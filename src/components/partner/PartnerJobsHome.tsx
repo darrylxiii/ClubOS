@@ -103,6 +103,9 @@ interface JobWithMetrics {
   company_name: string;
   company_logo: string | null;
   is_stealth: boolean;
+  is_continuous: boolean;
+  hired_count: number;
+  target_hire_count: number | null;
 }
 
 interface CompanyMetrics {
@@ -166,6 +169,9 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           company_id,
           club_sync_status,
           is_stealth,
+          is_continuous,
+          hired_count,
+          target_hire_count,
           companies (
             name,
             logo_url
@@ -264,6 +270,9 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           company_name: job.companies?.name || 'Unknown Company',
           company_logo: job.companies?.logo_url || null,
           is_stealth: job.is_stealth || false,
+          is_continuous: job.is_continuous || false,
+          hired_count: job.hired_count || 0,
+          target_hire_count: job.target_hire_count,
         };
       });
 
@@ -1273,6 +1282,9 @@ const MemoizedJobCard = memo(({
             status={job.status}
             clubSyncBadge={getClubSyncBadge(job.club_sync_status)}
             isStealth={job.is_stealth}
+            isContinuous={job.is_continuous}
+            hiredCount={job.hired_count}
+            targetHireCount={job.target_hire_count}
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

@@ -20,6 +20,7 @@ import { StealthJobToggle } from "@/components/jobs/StealthJobToggle";
 import { StealthViewerSelector } from "@/components/jobs/StealthViewerSelector";
 import { Separator } from "@/components/ui/separator";
 import { stealthJobAuditService } from "@/services/stealthJobAuditService";
+import { PipelineTypeSelector } from "@/components/jobs/PipelineTypeSelector";
 
 interface CreateJobDialogProps {
   open: boolean;
@@ -60,6 +61,11 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   // Stealth job state
   const [isStealthEnabled, setIsStealthEnabled] = useState(false);
   const [stealthViewerIds, setStealthViewerIds] = useState<string[]>([]);
+  
+  // Continuous pipeline state
+  const [pipelineType, setPipelineType] = useState<"standard" | "continuous">("standard");
+  const [targetHireCount, setTargetHireCount] = useState<number | null>(null);
+  const [isUnlimitedHires, setIsUnlimitedHires] = useState(true);
 
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
@@ -320,6 +326,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         viewerCount: stealthViewerIds.length 
       });
 
+      const isContinuous = pipelineType === "continuous";
+      
       const { data: job, error: jobError } = await supabase
         .from('jobs')
         .insert({
@@ -336,7 +344,11 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           is_stealth: isStealthEnabled,
           stealth_enabled_by: isStealthEnabled ? user?.id : null,
           stealth_enabled_at: isStealthEnabled ? new Date().toISOString() : null,
-        })
+          is_continuous: isContinuous,
+          target_hire_count: isContinuous ? (isUnlimitedHires ? null : targetHireCount) : 1,
+          hired_count: 0,
+          continuous_started_at: isContinuous ? new Date().toISOString() : null,
+        } as any)
         .select()
         .single();
 
@@ -466,6 +478,9 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     setHasUnsavedChanges(false);
     setIsStealthEnabled(false);
     setStealthViewerIds([]);
+    setPipelineType("standard");
+    setTargetHireCount(null);
+    setIsUnlimitedHires(true);
   };
 
   const handleClose = () => {
@@ -711,6 +726,17 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             )}
           </div>
 
+          {/* Pipeline Type Section */}
+          <Separator className="my-4" />
+          <PipelineTypeSelector
+            pipelineType={pipelineType}
+            onPipelineTypeChange={setPipelineType}
+            targetHireCount={targetHireCount}
+            onTargetHireCountChange={setTargetHireCount}
+            isUnlimited={isUnlimitedHires}
+            onIsUnlimitedChange={setIsUnlimitedHires}
+          />
+          
           {/* Stealth Job Section */}
           <Separator className="my-4" />
           <div className="space-y-4">

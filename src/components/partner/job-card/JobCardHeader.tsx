@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Lock } from "lucide-react";
 import { JobStatusBadge, JobStatus } from "@/components/jobs/JobStatusBadge";
+import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
 
 interface JobCardHeaderProps {
   companyLogo: string | null;
@@ -18,6 +19,9 @@ interface JobCardHeaderProps {
   status: string;
   clubSyncBadge: React.ReactNode;
   isStealth?: boolean;
+  isContinuous?: boolean;
+  hiredCount?: number;
+  targetHireCount?: number | null;
 }
 
 export const JobCardHeader = memo(({
@@ -26,7 +30,10 @@ export const JobCardHeader = memo(({
   title,
   status,
   clubSyncBadge,
-  isStealth
+  isStealth,
+  isContinuous = false,
+  hiredCount = 0,
+  targetHireCount,
 }: JobCardHeaderProps) => {
   return (
     <div className="flex items-center gap-3 flex-1">
@@ -43,6 +50,12 @@ export const JobCardHeader = memo(({
         <p className="text-xs text-muted-foreground mb-2 truncate">{companyName}</p>
         <div className="flex items-center gap-2 flex-wrap">
           <JobStatusBadge status={status as JobStatus} size="sm" />
+          <ContinuousPipelineBadge
+            isContinuous={isContinuous}
+            hiredCount={hiredCount}
+            targetHireCount={targetHireCount}
+            size="sm"
+          />
           {isStealth && (
             <TooltipProvider>
               <Tooltip>

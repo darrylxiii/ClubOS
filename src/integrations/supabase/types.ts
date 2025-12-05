@@ -7253,6 +7253,110 @@ export type Database = {
         }
         Relationships: []
       }
+      continuous_pipeline_hires: {
+        Row: {
+          actual_salary: number | null
+          application_id: string | null
+          candidate_id: string | null
+          cohort_start_date: string | null
+          created_at: string | null
+          created_by: string | null
+          days_to_fill: number | null
+          hire_number: number
+          hired_at: string | null
+          id: string
+          job_id: string
+          notes: string | null
+          placement_fee: number | null
+          placement_fee_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_salary?: number | null
+          application_id?: string | null
+          candidate_id?: string | null
+          cohort_start_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          days_to_fill?: number | null
+          hire_number: number
+          hired_at?: string | null
+          id?: string
+          job_id: string
+          notes?: string | null
+          placement_fee?: number | null
+          placement_fee_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_salary?: number | null
+          application_id?: string | null
+          candidate_id?: string | null
+          cohort_start_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          days_to_fill?: number | null
+          hire_number?: number
+          hired_at?: string | null
+          id?: string
+          job_id?: string
+          notes?: string | null
+          placement_fee?: number | null
+          placement_fee_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "continuous_pipeline_hires_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "continuous_pipeline_hires_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "continuous_pipeline_hires_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "continuous_pipeline_hires_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "continuous_pipeline_hires_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "continuous_pipeline_hires_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "continuous_pipeline_hires_placement_fee_id_fkey"
+            columns: ["placement_fee_id"]
+            isOneToOne: false
+            referencedRelation: "placement_fees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_analytics: {
         Row: {
           avg_response_time_seconds: number | null
@@ -12247,6 +12351,7 @@ export type Database = {
             | null
           company_id: string
           company_name: string | null
+          continuous_started_at: string | null
           created_at: string | null
           created_by: string
           currency: string
@@ -12258,7 +12363,9 @@ export type Database = {
           embedding_generated_at: string | null
           employment_type: string | null
           expected_close_date: string | null
+          hired_count: number | null
           id: string
+          is_continuous: boolean | null
           is_lost: boolean | null
           is_stealth: boolean | null
           job_description_url: string | null
@@ -12277,6 +12384,7 @@ export type Database = {
           stealth_enabled_by: string | null
           supporting_documents: Json | null
           tags: Json | null
+          target_hire_count: number | null
           title: string
           updated_at: string | null
         }
@@ -12289,6 +12397,7 @@ export type Database = {
             | null
           company_id: string
           company_name?: string | null
+          continuous_started_at?: string | null
           created_at?: string | null
           created_by: string
           currency?: string
@@ -12300,7 +12409,9 @@ export type Database = {
           embedding_generated_at?: string | null
           employment_type?: string | null
           expected_close_date?: string | null
+          hired_count?: number | null
           id?: string
+          is_continuous?: boolean | null
           is_lost?: boolean | null
           is_stealth?: boolean | null
           job_description_url?: string | null
@@ -12319,6 +12430,7 @@ export type Database = {
           stealth_enabled_by?: string | null
           supporting_documents?: Json | null
           tags?: Json | null
+          target_hire_count?: number | null
           title: string
           updated_at?: string | null
         }
@@ -12331,6 +12443,7 @@ export type Database = {
             | null
           company_id?: string
           company_name?: string | null
+          continuous_started_at?: string | null
           created_at?: string | null
           created_by?: string
           currency?: string
@@ -12342,7 +12455,9 @@ export type Database = {
           embedding_generated_at?: string | null
           employment_type?: string | null
           expected_close_date?: string | null
+          hired_count?: number | null
           id?: string
+          is_continuous?: boolean | null
           is_lost?: boolean | null
           is_stealth?: boolean | null
           job_description_url?: string | null
@@ -12361,6 +12476,7 @@ export type Database = {
           stealth_enabled_by?: string | null
           supporting_documents?: Json | null
           tags?: Json | null
+          target_hire_count?: number | null
           title?: string
           updated_at?: string | null
         }
@@ -18484,12 +18600,14 @@ export type Database = {
           application_id: string | null
           candidate_id: string | null
           candidate_salary: number | null
+          continuous_hire_id: string | null
           created_at: string | null
           created_by: string | null
           currency_code: string | null
           fee_amount: number
           fee_percentage: number
           fee_percentage_used: number | null
+          hire_sequence: number | null
           hired_date: string
           id: string
           invoice_id: string | null
@@ -18505,12 +18623,14 @@ export type Database = {
           application_id?: string | null
           candidate_id?: string | null
           candidate_salary?: number | null
+          continuous_hire_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency_code?: string | null
           fee_amount: number
           fee_percentage: number
           fee_percentage_used?: number | null
+          hire_sequence?: number | null
           hired_date: string
           id?: string
           invoice_id?: string | null
@@ -18526,12 +18646,14 @@ export type Database = {
           application_id?: string | null
           candidate_id?: string | null
           candidate_salary?: number | null
+          continuous_hire_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency_code?: string | null
           fee_amount?: number
           fee_percentage?: number
           fee_percentage_used?: number | null
+          hire_sequence?: number | null
           hired_date?: string
           id?: string
           invoice_id?: string | null
@@ -18577,6 +18699,13 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_fees_continuous_hire_id_fkey"
+            columns: ["continuous_hire_id"]
+            isOneToOne: false
+            referencedRelation: "continuous_pipeline_hires"
             referencedColumns: ["id"]
           },
           {
