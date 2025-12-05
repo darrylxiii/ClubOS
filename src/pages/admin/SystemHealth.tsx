@@ -1,3 +1,4 @@
+import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useSystemHealth } from "@/hooks/useSystemHealth";
 import { Activity, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
@@ -31,75 +32,79 @@ export default function SystemHealth() {
 
   if (isLoading) {
     return (
+      <AppLayout>
+        <div className="container mx-auto p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">System Health</h1>
+              <p className="text-muted-foreground">Real-time platform monitoring and diagnostics</p>
+            </div>
+            <Skeleton className="h-10 w-24" />
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  return (
+    <AppLayout>
       <div className="container mx-auto p-6 space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">System Health</h1>
             <p className="text-muted-foreground">Real-time platform monitoring and diagnostics</p>
           </div>
-          <Skeleton className="h-10 w-24" />
+          <Button onClick={() => refetch()} variant="outline" size="sm">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">System Health</h1>
-          <p className="text-muted-foreground">Real-time platform monitoring and diagnostics</p>
-        </div>
-        <Button onClick={() => refetch()} variant="outline" size="sm">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
-
-      {/* Platform Status */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            {getStatusIcon(health?.platform_status || 'unknown')}
-            <div>
-              <CardTitle className={getStatusColor(health?.platform_status || 'unknown')}>
-                Platform Status: {health?.platform_status?.toUpperCase() || 'CHECKING...'}
-              </CardTitle>
-              <CardDescription>
-                Last updated: {new Date().toLocaleTimeString()}
-              </CardDescription>
+        {/* Platform Status */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              {getStatusIcon(health?.platform_status || 'unknown')}
+              <div>
+                <CardTitle className={getStatusColor(health?.platform_status || 'unknown')}>
+                  Platform Status: {health?.platform_status?.toUpperCase() || 'CHECKING...'}
+                </CardTitle>
+                <CardDescription>
+                  Last updated: {new Date().toLocaleTimeString()}
+                </CardDescription>
+              </div>
             </div>
-          </div>
-        </CardHeader>
-      </Card>
+          </CardHeader>
+        </Card>
 
-      {/* Tabbed Interface */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="functions">Functions</TabsTrigger>
-          <TabsTrigger value="errors">Error Logs</TabsTrigger>
-        </TabsList>
+        {/* Tabbed Interface */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="functions">Functions</TabsTrigger>
+            <TabsTrigger value="errors">Error Logs</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overview" className="space-y-4 mt-6">
-          <SystemHealthMetrics health={health} />
-        </TabsContent>
+          <TabsContent value="overview" className="space-y-4 mt-6">
+            <SystemHealthMetrics health={health} />
+          </TabsContent>
 
-        <TabsContent value="functions" className="mt-6">
-          <FunctionHealthTable functions={functions} />
-        </TabsContent>
+          <TabsContent value="functions" className="mt-6">
+            <FunctionHealthTable functions={functions} />
+          </TabsContent>
 
-        <TabsContent value="errors" className="mt-6">
-          <ErrorLogViewer />
-        </TabsContent>
-      </Tabs>
-    </div>
+          <TabsContent value="errors" className="mt-6">
+            <ErrorLogViewer />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AppLayout>
   );
 }

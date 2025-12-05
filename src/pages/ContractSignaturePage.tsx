@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SignaturePad } from "@/components/contracts/SignaturePad";
+import { MinimalHeader } from "@/components/MinimalHeader";
 import { ProjectContract } from "@/types/projects";
 import { ArrowLeft, FileText, Download, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -124,49 +125,48 @@ export default function ContractSignaturePage() {
 
   if (isLoading || !contract) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-background flex flex-col">
+        <MinimalHeader backPath={`/contracts/${contractId}`} />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
       </div>
     );
   }
 
   if (alreadySigned) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-3xl mx-auto">
-          <Card className="p-8 text-center border border-border/50">
-            <CheckCircle className="h-16 w-16 mx-auto text-green-500 mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">
-              Contract Already Signed
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              You have already signed this contract on{' '}
-              {userRole === 'freelancer' 
-                ? format(new Date(contract.freelancer_signed_at!), 'MMMM d, yyyy')
-                : format(new Date(contract.client_signed_at!), 'MMMM d, yyyy')
-              }
-            </p>
-            <Button onClick={() => navigate(`/contracts/${contractId}`)}>
-              View Contract Details
-            </Button>
-          </Card>
+      <div className="min-h-screen bg-background flex flex-col">
+        <MinimalHeader backPath={`/contracts/${contractId}`} />
+        <div className="flex-1 p-6">
+          <div className="max-w-3xl mx-auto">
+            <Card className="p-8 text-center border border-border/50">
+              <CheckCircle className="h-16 w-16 mx-auto text-green-500 mb-4" />
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                Contract Already Signed
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                You have already signed this contract on{' '}
+                {userRole === 'freelancer' 
+                  ? format(new Date(contract.freelancer_signed_at!), 'MMMM d, yyyy')
+                  : format(new Date(contract.client_signed_at!), 'MMMM d, yyyy')
+                }
+              </p>
+              <Button onClick={() => navigate(`/contracts/${contractId}`)}>
+                View Contract Details
+              </Button>
+            </Card>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Back button */}
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate(`/contracts/${contractId}`)}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Contract
-        </Button>
+    <div className="min-h-screen bg-background flex flex-col">
+      <MinimalHeader backPath={`/contracts/${contractId}`} />
+      <div className="flex-1 p-6">
+        <div className="max-w-4xl mx-auto">
 
         {/* Header */}
         <div className="mb-8">
@@ -299,6 +299,7 @@ export default function ContractSignaturePage() {
             <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
           </p>
         </Card>
+        </div>
       </div>
     </div>
   );

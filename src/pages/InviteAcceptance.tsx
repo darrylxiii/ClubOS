@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { MinimalHeader } from "@/components/MinimalHeader";
 import { Loader2, CheckCircle2, AlertCircle, Briefcase, User } from "lucide-react";
 import { toast } from "sonner";
 
@@ -78,35 +79,43 @@ export default function InviteAcceptance() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex flex-col bg-background">
+        <MinimalHeader showBackButton={false} />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="max-w-md w-full">
-          <CardHeader>
-            <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
-              <AlertCircle className="w-6 h-6 text-destructive" />
-            </div>
-            <CardTitle className="text-center">Invalid Invitation</CardTitle>
-            <CardDescription className="text-center">{error}</CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <Button onClick={() => navigate('/')} variant="outline">
-              Go to Home
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex flex-col bg-background">
+        <MinimalHeader showBackButton={false} />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardHeader>
+              <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+                <AlertCircle className="w-6 h-6 text-destructive" />
+              </div>
+              <CardTitle className="text-center">Invalid Invitation</CardTitle>
+              <CardDescription className="text-center">{error}</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button onClick={() => navigate('/')} variant="outline">
+                Go to Home
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex flex-col bg-background">
+      <MinimalHeader showBackButton={false} />
+      <div className="flex-1 flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full">
         <CardHeader className="text-center">
           <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -200,6 +209,7 @@ export default function InviteAcceptance() {
           </p>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

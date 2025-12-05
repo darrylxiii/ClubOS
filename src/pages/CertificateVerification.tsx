@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { MinimalHeader } from '@/components/MinimalHeader';
 import { Award, CheckCircle, Download, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -53,30 +54,38 @@ export default function CertificateVerification() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex flex-col">
+        <MinimalHeader backPath="/" />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
-              <XCircle className="w-12 h-12 text-destructive" />
+      <div className="min-h-screen flex flex-col">
+        <MinimalHeader backPath="/" />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
+                <XCircle className="w-12 h-12 text-destructive" />
+              </div>
             </div>
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Certificate Not Found</h1>
-          <p className="text-muted-foreground">{error}</p>
-        </Card>
+            <h1 className="text-2xl font-bold mb-2">Certificate Not Found</h1>
+            <p className="text-muted-foreground">{error}</p>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/20">
+      <MinimalHeader backPath="/" />
+      <div className="flex-1 flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full p-8 md:p-12">
         <div className="text-center space-y-6">
           <div className="flex justify-center">
@@ -135,6 +144,7 @@ export default function CertificateVerification() {
           </div>
         </div>
       </Card>
+      </div>
     </div>
   );
 }

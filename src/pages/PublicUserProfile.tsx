@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import EnhancedProfile from "./EnhancedProfile";
+import { MinimalHeader } from "@/components/MinimalHeader";
 import { Loader2 } from "lucide-react";
 
 export default function PublicUserProfile() {
@@ -42,20 +43,33 @@ export default function PublicUserProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex flex-col">
+        <MinimalHeader />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
 
   if (!userId) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Profile not found</p>
+      <div className="min-h-screen flex flex-col">
+        <MinimalHeader />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-muted-foreground">Profile not found</p>
+        </div>
       </div>
     );
   }
 
   // Show public view (no edit buttons) even for own profile when accessed via this route
-  return <EnhancedProfile viewingUserId={userId} />;
+  return (
+    <div className="min-h-screen flex flex-col">
+      <MinimalHeader />
+      <div className="flex-1">
+        <EnhancedProfile viewingUserId={userId} />
+      </div>
+    </div>
+  );
 }
