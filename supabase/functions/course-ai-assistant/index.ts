@@ -1,9 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -12,20 +10,65 @@ interface Message {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreFlight(publicCorsHeaders);
   }
 
+  const startTime = Date.now();
+  const clientInfo = extractClientInfo(req);
+  let userId: string | undefined;
+
   try {
-    const { messages, courseId } = await req.json() as {
-      messages: Message[];
-      courseId: string;
-    };
+    console.log('[course-ai-assistant] Processing request');
+    
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.log('[course-ai-assistant] No auth header');
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log('Fetching course with ID:', courseId);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+    
+    if (authError || !user) {
+      console.log('[course-ai-assistant] Auth failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    userId = user.id;
+
+    // Rate limiting: 30 requests per hour
+    const rateLimit = await checkUserRateLimit(userId, 'course-ai-assistant', 30);
+    if (!rateLimit.allowed) {
+      console.log('[course-ai-assistant] Rate limit exceeded for user:', userId);
+      await logAIUsage({
+        userId,
+        functionName: 'course-ai-assistant',
+        ...clientInfo,
+        rateLimitHit: true,
+        success: false,
+        errorMessage: 'Rate limit exceeded'
+      });
+      return createRateLimitResponse(rateLimit.retryAfter!, publicCorsHeaders);
+    }
+
+    const { messages, courseId } = await req.json() as {
+      messages: Message[];
+      courseId: string;
+    };
+
+    console.log('[course-ai-assistant] Fetching course with ID:', courseId);
 
     // Fetch the current course with all its modules
     const { data: course, error: courseError } = await supabase
@@ -48,17 +91,17 @@ Deno.serve(async (req) => {
       .single();
 
     if (courseError || !course) {
-      console.error('Error fetching course:', courseError);
+      console.error('[course-ai-assistant] Error fetching course:', courseError);
       return new Response(
         JSON.stringify({ 
           error: 'Course not found', 
           details: courseError?.message || 'No course data returned'
         }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 404, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Successfully fetched course:', course.title, 'with', course.modules?.length || 0, 'modules');
+    console.log('[course-ai-assistant] Successfully fetched course:', course.title, 'with', course.modules?.length || 0, 'modules');
 
     // Fetch all other courses for comparative questions
     const { data: allCourses } = await supabase
@@ -114,13 +157,9 @@ ${otherCoursesContext}` : ''}
 - If asked about content not covered in this course, suggest other courses if relevant
 - When unsure about specific details, acknowledge limitations honestly
 
-# IMPORTANT CONTEXT AWARENESS:
-- Users are currently viewing the "${course.title}" course page
-- If they ask "this course" or "the course", they mean "${course.title}"
-- Provide specific, accurate information based on the modules and content above
-- Don't invent features or content not present in the course data
-
 Keep responses focused, helpful, and encouraging. Use markdown formatting for clarity.`;
+
+    console.log('[course-ai-assistant] Calling Lovable AI');
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -139,34 +178,65 @@ Keep responses focused, helpful, and encouraging. Use markdown formatting for cl
     });
 
     if (!response.ok) {
+      const errorMessage = response.status === 429 ? 'AI rate limit exceeded' :
+                          response.status === 402 ? 'AI credits exhausted' :
+                          'AI service error';
+      
+      await logAIUsage({
+        userId,
+        functionName: 'course-ai-assistant',
+        ...clientInfo,
+        responseTimeMs: Date.now() - startTime,
+        success: false,
+        errorMessage
+      });
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 429, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (response.status === 402) {
         return new Response(
           JSON.stringify({ error: 'AI credits exhausted. Please contact support.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 402, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
+      console.error('[course-ai-assistant] AI gateway error:', response.status, errorText);
       return new Response(
         JSON.stringify({ error: 'AI service error' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    await logAIUsage({
+      userId,
+      functionName: 'course-ai-assistant',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: true
+    });
+
+    console.log('[course-ai-assistant] Streaming response');
+
     return new Response(response.body, {
-      headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' }
+      headers: { ...publicCorsHeaders, 'Content-Type': 'text/event-stream' }
     });
   } catch (error) {
-    console.error('Course AI assistant error:', error);
+    console.error('[course-ai-assistant] Error:', error);
+    await logAIUsage({
+      userId,
+      functionName: 'course-ai-assistant',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    });
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

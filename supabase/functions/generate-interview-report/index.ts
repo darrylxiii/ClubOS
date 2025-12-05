@@ -1,27 +1,70 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreFlight(publicCorsHeaders);
   }
 
+  const startTime = Date.now();
+  const clientInfo = extractClientInfo(req);
+  let userId: string | undefined;
+
   try {
+    console.log('[generate-interview-report] Processing request');
+    
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.log('[generate-interview-report] No auth header');
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+    
+    if (authError || !user) {
+      console.log('[generate-interview-report] Auth failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    userId = user.id;
+
+    // Rate limiting: 10 reports per hour (expensive operation)
+    const rateLimit = await checkUserRateLimit(userId, 'generate-interview-report', 10);
+    if (!rateLimit.allowed) {
+      console.log('[generate-interview-report] Rate limit exceeded for user:', userId);
+      await logAIUsage({
+        userId,
+        functionName: 'generate-interview-report',
+        ...clientInfo,
+        rateLimitHit: true,
+        success: false,
+        errorMessage: 'Rate limit exceeded'
+      });
+      return createRateLimitResponse(rateLimit.retryAfter!, publicCorsHeaders);
+    }
+
     const { meetingId, candidateId, roleTitle, companyName } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY not configured");
     }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Fetch meeting transcript
     const { data: transcripts } = await supabase
@@ -38,6 +81,8 @@ serve(async (req) => {
       .select('*')
       .eq('meeting_id', meetingId)
       .single();
+
+    console.log('[generate-interview-report] Calling Lovable AI for meeting:', meetingId);
 
     // Generate AI report
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -85,19 +130,7 @@ ${intelligence ? `Real-time Scores:
 - Culture Fit: ${intelligence.culture_fit_score}/100
 - Overall: ${intelligence.overall_score}/100` : ''}
 
-Generate a comprehensive interview report with:
-1. Executive summary
-2. Key strengths (3-5 items)
-3. Key weaknesses (2-3 items)
-4. Technical assessment
-5. Cultural fit assessment
-6. Communication assessment
-7. Notable highlights (3-5 moments with timestamps)
-8. Hiring recommendation (advance/reject/reconsider)
-9. Confidence in recommendation (0-100)
-10. Detailed reasoning for recommendation
-
-Provide response as valid JSON.`
+Generate a comprehensive interview report with all required fields.`
           }
         ],
         temperature: 0.7,
@@ -105,8 +138,21 @@ Provide response as valid JSON.`
     });
 
     if (!response.ok) {
+      const errorMessage = response.status === 429 ? 'AI rate limit exceeded' :
+                          response.status === 402 ? 'AI credits exhausted' :
+                          'AI service error';
+      
+      await logAIUsage({
+        userId,
+        functionName: 'generate-interview-report',
+        ...clientInfo,
+        responseTimeMs: Date.now() - startTime,
+        success: false,
+        errorMessage
+      });
+
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error("[generate-interview-report] AI gateway error:", response.status, errorText);
       throw new Error("AI analysis failed");
     }
 
@@ -123,7 +169,7 @@ Provide response as valid JSON.`
         throw new Error("No JSON found in response");
       }
     } catch (parseError) {
-      console.error("Failed to parse AI response:", analysisText);
+      console.error("[generate-interview-report] Failed to parse AI response:", analysisText);
       report = {
         executive_summary: "Interview completed. Review transcript for detailed assessment.",
         key_strengths: ["Engaged with interviewer"],
@@ -159,19 +205,37 @@ Provide response as valid JSON.`
       .single();
 
     if (insertError) {
-      console.error('Error inserting report:', insertError);
+      console.error('[generate-interview-report] Error inserting report:', insertError);
       throw insertError;
     }
 
+    await logAIUsage({
+      userId,
+      functionName: 'generate-interview-report',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: true
+    });
+
+    console.log('[generate-interview-report] Report generated successfully for meeting:', meetingId);
+
     return new Response(
       JSON.stringify({ report: reportData }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...publicCorsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in generate-interview-report:", error);
+    console.error("[generate-interview-report] Error:", error);
+    await logAIUsage({
+      userId,
+      functionName: 'generate-interview-report',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: false,
+      errorMessage: error instanceof Error ? error.message : "Unknown error"
+    });
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...publicCorsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

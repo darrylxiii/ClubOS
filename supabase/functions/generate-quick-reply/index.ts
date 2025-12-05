@@ -1,16 +1,64 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreFlight(publicCorsHeaders);
   }
 
+  const startTime = Date.now();
+  const clientInfo = extractClientInfo(req);
+  let userId: string | undefined;
+
   try {
+    console.log('[generate-quick-reply] Processing request');
+    
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.log('[generate-quick-reply] No auth header');
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    
+    if (authError || !user) {
+      console.log('[generate-quick-reply] Auth failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    userId = user.id;
+
+    // Rate limiting: 30 requests per hour
+    const rateLimit = await checkUserRateLimit(userId, 'generate-quick-reply', 30);
+    if (!rateLimit.allowed) {
+      console.log('[generate-quick-reply] Rate limit exceeded for user:', userId);
+      await logAIUsage({
+        userId,
+        functionName: 'generate-quick-reply',
+        ...clientInfo,
+        rateLimitHit: true,
+        success: false,
+        errorMessage: 'Rate limit exceeded'
+      });
+      return createRateLimitResponse(rateLimit.retryAfter!, publicCorsHeaders);
+    }
+
     const { conversationId, recentMessages } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -24,7 +72,8 @@ serve(async (req) => {
       content: msg.content
     }));
 
-    // Call Lovable AI to generate a professional, context-aware reply
+    console.log('[generate-quick-reply] Calling Lovable AI');
+
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -53,16 +102,29 @@ Focus on moving the conversation forward constructively.`
     });
 
     if (!response.ok) {
+      const errorMessage = response.status === 429 ? 'AI rate limit exceeded' :
+                          response.status === 402 ? 'AI credits exhausted' :
+                          'AI service error';
+      
+      await logAIUsage({
+        userId,
+        functionName: 'generate-quick-reply',
+        ...clientInfo,
+        responseTimeMs: Date.now() - startTime,
+        success: false,
+        errorMessage
+      });
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 429, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (response.status === 402) {
         return new Response(
           JSON.stringify({ error: 'AI credits exhausted. Please add funds to your Lovable workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 402, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       throw new Error(`AI API error: ${response.status}`);
@@ -71,16 +133,34 @@ Focus on moving the conversation forward constructively.`
     const data = await response.json();
     const suggestion = data.choices[0]?.message?.content || '';
 
+    await logAIUsage({
+      userId,
+      functionName: 'generate-quick-reply',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: true
+    });
+
+    console.log('[generate-quick-reply] Suggestion generated successfully');
+
     return new Response(
       JSON.stringify({ suggestion }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error generating quick reply:', error);
+    console.error('[generate-quick-reply] Error:', error);
+    await logAIUsage({
+      userId,
+      functionName: 'generate-quick-reply',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    });
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to generate suggestion' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
