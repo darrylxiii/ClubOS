@@ -9,6 +9,7 @@ import { FeedbackButton } from "@/components/FeedbackButton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { JobDashboardRoute } from "@/components/routes/JobDashboardRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
+import { ProtectedRoutesWrapper } from "@/components/ProtectedRoutesWrapper";
 import { TranslationDebugger } from "@/components/TranslationDebugger";
 import { lazy, Suspense, useState, useEffect, useRef, memo } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
@@ -418,7 +419,7 @@ const App = () => {
               <PublicProviders>
                 <Suspense fallback={<ProtectedProvidersLoader />}>
                   <ProtectedProviders>
-                    <Routes>
+                    <ProtectedRoutesWrapper>
                       {/* Shared Routes - Available to all roles */}
                       {sharedRoutes}
                       
@@ -463,7 +464,7 @@ const App = () => {
                       
                       {/* 404 Catch-all */}
                       <Route path="*" element={<NotFound />} />
-                    </Routes>
+                    </ProtectedRoutesWrapper>
                     <QuickAccessHub />
                     <CookieConsentBanner />
                   </ProtectedProviders>
