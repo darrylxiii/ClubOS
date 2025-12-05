@@ -10,6 +10,7 @@ interface ApprovalStepIndicatorProps {
 const steps: { key: ApprovalStep; label: string }[] = [
   { key: 'detect', label: 'Detect Profiles' },
   { key: 'create', label: 'Create Profile' },
+  { key: 'assign', label: 'Assign Role' },
   { key: 'confirm', label: 'Confirm' },
 ];
 
@@ -39,7 +40,7 @@ export const ApprovalStepIndicator = ({ currentStep, completedSteps }: ApprovalS
                 )}
               </div>
               <span className={cn(
-                "text-xs mt-2 font-medium transition-colors",
+                "text-xs mt-2 font-medium transition-colors text-center",
                 isCurrent && "text-primary",
                 isCompleted && "text-primary",
                 isUpcoming && "text-muted-foreground"
