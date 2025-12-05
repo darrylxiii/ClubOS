@@ -11,7 +11,7 @@ import quantumClubLogoLight from "@/assets/quantum-logo-dark.png"; // Full logo 
 import { Home, LayoutDashboard, Building2, Briefcase, Users, Calendar, Video, MessageSquare, Gift, FileText, Settings, ListTodo, Sparkles, Clock, GraduationCap, Rss, Trophy, MessagesSquare, User, BarChart3, TrendingUp, Share2, Mail, Brain } from "lucide-react";
 import { InstantMeetingButton } from "@/components/meetings/InstantMeetingButton";
 import { supabase } from "@/integrations/supabase/client";
-import { CallNotificationManager } from "./messages/CallNotificationManager";
+import { GlobalCallNotificationProvider } from "./GlobalCallNotificationProvider";
 import { MeetingNotificationManager } from "./meetings/MeetingNotificationManager";
 import { DynamicBackground } from "./DynamicBackground";
 import { useAuth } from "@/contexts/AuthContext";
@@ -198,7 +198,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Global Navigation Tools */}
       <CommandPalette />
-      <CallNotificationManager onAcceptCall={() => {}} />
+      <GlobalCallNotificationProvider />
       <MeetingNotificationManager />
     </div>
   );
