@@ -629,3 +629,15 @@ verify_jwt = true
 
 [functions.check-login-lockout]
 verify_jwt = false
+
+# =============================================================================
+# System Integration Functions
+# =============================================================================
+[functions.sync-interview-to-candidate]
+verify_jwt = true
+
+[functions.auto-reengagement-campaigns]
+verify_jwt = false
+
+[functions.generate-offer-recommendation]
+verify_jwt = true
