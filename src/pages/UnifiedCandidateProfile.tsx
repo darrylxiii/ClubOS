@@ -22,6 +22,8 @@ import { BackButton } from "@/components/candidate-profile/BackButton";
 import { ActivityFeedCard } from "@/components/candidate-profile/ActivityFeedCard";
 import { CandidateEditModal } from "@/components/candidate-profile/CandidateEditModal";
 import { AuditLogViewer } from "@/components/candidate-profile/AuditLogViewer";
+import { MeetingIntelligenceCard } from "@/components/candidate-profile/MeetingIntelligenceCard";
+import { AssessmentInsightsCard } from "@/components/candidate-profile/AssessmentInsightsCard";
 
 export default function UnifiedCandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -190,6 +192,12 @@ export default function UnifiedCandidateProfile() {
           <div className="space-y-4">
                 {/* Decision Intelligence Zone (Always Expanded) */}
                 <CandidateDecisionDashboard candidate={candidate} applications={application ? [application] : []} />
+
+                {/* Meeting Intelligence - Interview Insights */}
+                <MeetingIntelligenceCard candidateId={candidateId!} />
+
+                {/* Assessment Insights */}
+                <AssessmentInsightsCard candidateId={candidateId!} />
 
                 {/* Skills & Expertise */}
                 <SkillMatrix mustHaveSkills={mustHaveSkills} niceToHaveSkills={niceToHaveSkills} />
