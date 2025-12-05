@@ -9,10 +9,59 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Sparkles, TrendingUp, AlertCircle, Users, Calendar, Target, BarChart3, Briefcase, FileText, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { PredictiveAnalyticsDashboard } from "@/components/intelligence/PredictiveAnalyticsDashboard";
 import { CandidateIntelligenceDossier } from "@/components/intelligence/CandidateIntelligenceDossier";
+import { AggregatedIntelligenceOverview } from "@/components/intelligence/AggregatedIntelligenceOverview";
+import { JobPredictionAccordion } from "@/components/intelligence/JobPredictionAccordion";
+import { useAggregatedHiringIntelligence, useRefreshAggregatedIntelligence } from "@/hooks/useAggregatedHiringIntelligence";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
+
+// Predictions Tab Content Component
+function PredictionsTabContent({ 
+  jobs, 
+  navigate, 
+  EmptyState 
+}: { 
+  jobs: any[]; 
+  navigate: (path: string) => void;
+  EmptyState: React.FC<{ icon: any; title: string; description: string; action?: { label: string; onClick: () => void } }>;
+}) {
+  const { data: insights, isLoading } = useAggregatedHiringIntelligence();
+  const refreshMutation = useRefreshAggregatedIntelligence();
+
+  if (jobs.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <EmptyState
+            icon={Target}
+            title="No Predictions Available"
+            description="AI predictions will appear once you have active jobs with candidates in the pipeline."
+            action={{ label: "Create Job", onClick: () => navigate('/jobs/new') }}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Aggregated Intelligence Overview - Primary View */}
+      <AggregatedIntelligenceOverview
+        insights={insights || null}
+        isLoading={isLoading}
+        onRefresh={() => refreshMutation.mutate(undefined)}
+        isRefreshing={refreshMutation.isPending}
+      />
+
+      {/* Individual Job Predictions - Expandable Accordion */}
+      <JobPredictionAccordion
+        jobs={jobs.filter(j => j.status === 'published')}
+        jobHealthScores={insights?.jobHealthScores || []}
+      />
+    </div>
+  );
+}
 
 export default function HiringIntelligenceHub() {
   const navigate = useNavigate();
@@ -466,24 +515,9 @@ export default function HiringIntelligenceHub() {
             </div>
           </TabsContent>
 
-          {/* Predictions Tab */}
+          {/* Predictions Tab - Redesigned with Aggregated Intelligence */}
           <TabsContent value="predictions" className="space-y-6">
-            {jobs.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6">
-                  <EmptyState
-                    icon={Target}
-                    title="No Predictions Available"
-                    description="AI predictions will appear once you have active jobs with candidates in the pipeline."
-                    action={{ label: "Create Job", onClick: () => navigate('/jobs/new') }}
-                  />
-                </CardContent>
-              </Card>
-            ) : (
-              jobs.filter(j => j.status === 'published').map(job => (
-                <PredictiveAnalyticsDashboard key={job.id} jobId={job.id} />
-              ))
-            )}
+            <PredictionsTabContent jobs={jobs} navigate={navigate} EmptyState={EmptyState} />
           </TabsContent>
 
           {/* Performance Tab */}

@@ -94,3 +94,50 @@ export interface ContinuousPipelineHire {
   notes: string | null;
   created_at: string;
 }
+
+// Aggregated Hiring Intelligence Types
+export interface AggregatedHiringInsights {
+  overallHealth: {
+    score: number;
+    trend: 'improving' | 'stable' | 'declining' | 'needs_attention';
+    summary: string;
+  };
+  crossPipelineInsights: {
+    bottleneckPattern: string;
+    topPerformer: string | null;
+    concernAreas: string[];
+    patterns: string[];
+  };
+  strategicRecommendations: Array<{
+    priority: 'critical' | 'high' | 'medium';
+    insight: string;
+    impact: string;
+  }>;
+  portfolioForecast: {
+    predictedHires30Days: number;
+    predictedHires90Days: number;
+    confidence: number;
+    riskFactors: string[];
+  };
+  improvementOpportunities: Array<{
+    area: string;
+    currentState: string;
+    recommendation: string;
+    potentialGain: string;
+  }>;
+  metrics: {
+    totalActiveJobs: number;
+    totalApplications: number;
+    totalInterviews: number;
+    avgMatchScore: number;
+    stageDistribution: Record<string, number>;
+    standardPipelines: number;
+    continuousPipelines: number;
+  };
+  jobHealthScores: Array<{
+    jobId: string;
+    title: string;
+    score: number;
+    appCount: number;
+  }>;
+}
