@@ -35,6 +35,38 @@ export const commonSchemas = {
 };
 
 /**
+ * KB Search schema
+ */
+export const kbSearchSchema = z.object({
+  query: z.string().min(2, 'Query too short').max(500, 'Query too long'),
+  category: z.string().max(100).optional(),
+  user_role: z.enum(['admin', 'strategist', 'partner', 'candidate']).optional(),
+});
+
+/**
+ * Support ticket schema
+ */
+export const supportTicketSchema = z.object({
+  user_id: commonSchemas.uuid.optional(),
+  email: commonSchemas.email,
+  category: z.string().max(100),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+  subject: z.string().min(5).max(200),
+  description: z.string().min(10).max(5000),
+  metadata: z.record(z.any()).optional(),
+  company_id: commonSchemas.uuid.optional(),
+});
+
+/**
+ * Embeddings generation schema
+ */
+export const embeddingsSchema = z.object({
+  text: z.string().min(1).max(10000),
+  entity_type: z.enum(['candidate', 'job', 'knowledge', 'interaction']).optional(),
+  entity_id: commonSchemas.uuid.optional(),
+});
+
+/**
  * Message schema for chat endpoints
  */
 export const chatMessageSchema = z.object({
@@ -104,18 +136,37 @@ export const contactFormSchema = z.object({
 });
 
 /**
- * Helper function to validate and sanitize input
+ * Helper function to validate input with safe result type
  */
-export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): T {
-  try {
-    return schema.parse(data);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.errors[0];
-      throw new Error(`Validation failed: ${firstError.message} (${firstError.path.join('.')})`);
-    }
-    throw error;
+export function validateInputSafe<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown,
+  corsHeaders: Record<string, string>
+): { success: true; data: T } | { success: false; response: Response } {
+  const result = schema.safeParse(data);
+  
+  if (!result.success) {
+    const errors = result.error.flatten();
+    console.error('[Validation] Input validation failed:', errors);
+    
+    return {
+      success: false,
+      response: new Response(
+        JSON.stringify({
+          error: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          details: errors,
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      ),
+    };
   }
+  
+  return { success: true, data: result.data };
 }
 
 /**

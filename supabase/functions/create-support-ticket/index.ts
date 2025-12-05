@@ -1,27 +1,29 @@
+/**
+ * Create Support Ticket Edge Function
+ * Phase 3: Enhanced with validation, logging, and standardized CORS
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { publicCorsHeaders, handleCorsPreFlight } from "../_shared/cors-config.ts";
+import { createFunctionLogger, getClientInfo } from "../_shared/function-logger.ts";
+import { supportTicketSchema, validateInputSafe } from "../_shared/validation-schemas.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreFlight(publicCorsHeaders);
   }
+
+  const logger = createFunctionLogger('create-support-ticket');
+  const clientInfo = getClientInfo(req);
+  logger.logRequest(req.method, undefined, { ip: clientInfo.ip });
 
   try {
     // Rate limiting: 5 tickets per hour per IP
-    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
-                     req.headers.get("x-real-ip") || 
-                     "unknown";
-    
-    const rateLimitResult = await checkUserRateLimit(clientIp, "create-support-ticket", 5, 3600000);
+    const rateLimitResult = await checkUserRateLimit(clientInfo.ip, "create-support-ticket", 5, 3600000);
     if (!rateLimitResult.allowed) {
-      console.log(`[Support Ticket] Rate limit exceeded for IP: ${clientIp}`);
-      return createRateLimitResponse(rateLimitResult.retryAfter || 3600, corsHeaders);
+      logger.logRateLimit(clientInfo.ip);
+      return createRateLimitResponse(rateLimitResult.retryAfter || 3600, publicCorsHeaders);
     }
 
     const supabaseClient = createClient(
@@ -29,7 +31,15 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { user_id, email, category, priority, subject, description, metadata, company_id } = await req.json();
+    const rawInput = await req.json();
+    const validation = validateInputSafe(supportTicketSchema, rawInput, publicCorsHeaders);
+    if (!validation.success) {
+      logger.logError(400, 'Validation failed');
+      return validation.response;
+    }
+
+    const { user_id, email, category, priority, subject, description, metadata, company_id } = validation.data;
+    logger.info('Creating support ticket', { category, priority, hasUserId: !!user_id });
 
     // Create support ticket
     const { data: ticket, error: ticketError } = await supabaseClient
@@ -83,20 +93,22 @@ serve(async (req) => {
         });
     }
 
+    logger.logSuccess(200, { ticketId: ticket.id, ticketNumber: ticket.ticket_number });
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         ticket,
         message: 'Support ticket created successfully'
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error creating support ticket:', error);
+    logger.error('Failed to create ticket', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });
