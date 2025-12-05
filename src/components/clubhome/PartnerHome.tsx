@@ -68,13 +68,13 @@ export const PartnerHome = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button className="w-full justify-start" variant="glass" asChild>
-              <Link to="/partner-dashboard">
+              <Link to="/jobs">
                 <Briefcase className="h-4 w-4 mr-2" />
                 Post New Job
               </Link>
             </Button>
             <Button className="w-full justify-start" variant="glass" asChild>
-              <Link to="/partner-dashboard">
+              <Link to="/company-applications">
                 <Users className="h-4 w-4 mr-2" />
                 Review Applications
               </Link>

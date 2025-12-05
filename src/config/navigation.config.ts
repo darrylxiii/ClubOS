@@ -89,6 +89,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     icon: Zap,
     items: [
       { name: "Club AI", icon: Sparkles, path: "/club-ai" },
+      { name: "Club Pilot", icon: Sparkles, path: "/club-pilot" },
       { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
       { name: "Club Radio", icon: Video, path: "/club-dj" },
     ],
@@ -118,7 +119,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Referrals", icon: Gift, path: "/referrals" },
         { name: "Invites", icon: Mail, path: "/invites" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
-        { name: "Analytics", icon: BarChart3, path: "/candidate/analytics" },
+        { name: "Analytics", icon: BarChart3, path: "/candidate-analytics" },
       ],
     },
     {
@@ -135,6 +136,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Briefcase,
       items: [
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
+        { name: "Target Companies", icon: Target, path: "/partner/target-companies" },
         { name: "Intelligence Hub", icon: Brain, path: "/hiring-intelligence" },
         { name: "Company Intelligence", icon: Building, path: "/company-intelligence" },
         { name: "Applicants", icon: FileText, path: "/applications" },
@@ -178,7 +180,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "All Candidates", icon: Users, path: "/admin/candidates" },
         { name: "Member Requests", icon: Users, path: "/admin/member-requests" },
         { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
-        { name: "Merge Dashboard", icon: Link2, path: "/admin/merge-dashboard" },
+        { name: "Merge Dashboard", icon: Link2, path: "/admin/merge" },
         { name: "Companies", icon: Building, path: "/companies" },
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
         { name: "Applications", icon: FileText, path: "/applications" },
@@ -188,8 +190,8 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Feedback Database", icon: MessagesSquare, path: "/feedback-database" },
         { name: "Club Sync Requests", icon: Zap, path: "/admin/club-sync-requests" },
         { name: "Funnel Analytics", icon: TrendingUp, path: "/funnel-analytics" },
-        { name: "Global Analytics", icon: BarChart3, path: "/admin/analytics" },
-        { name: "AI Configuration", icon: Cog, path: "/admin/ai-config" },
+        { name: "Global Analytics", icon: BarChart3, path: "/admin/global-analytics" },
+        { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
       ],
     },
     {

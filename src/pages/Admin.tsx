@@ -131,7 +131,7 @@ const Admin = () => {
                   <p className="text-muted-foreground">
                     Access the full merge dashboard to manually link candidates to user accounts
                   </p>
-                  <Button onClick={() => window.location.href = '/admin/merge-dashboard'}>
+                  <Button onClick={() => navigate('/admin/merge')}>
                     Open Merge Dashboard
                   </Button>
                 </div>

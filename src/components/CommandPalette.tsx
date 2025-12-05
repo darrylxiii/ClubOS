@@ -10,9 +10,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import {
-  LayoutDashboard,
   Briefcase,
-  Building2,
   Gift,
   FileText,
   Settings,
@@ -42,9 +40,7 @@ interface CommandItem {
 
 const allCommands: CommandItem[] = [
   // Overview
-  { id: "home", label: "Home", icon: Home, path: "/", category: "Overview", roles: ["user", "partner", "admin", "strategist"] },
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard", category: "Overview", roles: ["user", "strategist"] },
-  { id: "partner-dashboard", label: "Partner Dashboard", icon: Building2, path: "/partner-dashboard", category: "Overview", roles: ["partner"] },
+  { id: "home", label: "Home", icon: Home, path: "/home", category: "Overview", roles: ["user", "partner", "admin", "strategist"] },
   { id: "admin", label: "Admin Panel", icon: Users, path: "/admin", category: "Overview", roles: ["admin"] },
   { id: "feed", label: "Community Feed", icon: Rss, path: "/feed", category: "Overview", roles: ["user", "partner", "admin", "strategist"] },
   
@@ -56,7 +52,7 @@ const allCommands: CommandItem[] = [
   { id: "referrals", label: "Referral Program", icon: Gift, path: "/referrals", category: "Career", roles: ["user", "partner", "admin", "strategist"] },
   
   // Hiring
-  { id: "target-companies", label: "Target Companies", icon: Target, path: "/partner/targets", category: "Hiring", roles: ["partner", "strategist"] },
+  { id: "target-companies", label: "Target Companies", icon: Target, path: "/partner/target-companies", category: "Hiring", roles: ["partner", "strategist"] },
   { id: "admin-target-companies", label: "Target Companies Overview", icon: Target, path: "/admin/target-companies", category: "Hiring", roles: ["admin", "strategist"] },
   { id: "member-requests", label: "Review Member Requests", icon: Users, path: "/admin/member-requests", category: "Hiring", roles: ["admin"] },
   
