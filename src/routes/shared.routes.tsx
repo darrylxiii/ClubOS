@@ -12,11 +12,8 @@ const Analytics = lazy(() => import("@/pages/Analytics"));
 const Achievements = lazy(() => import("@/pages/Achievements"));
 const Inbox = lazy(() => import("@/pages/Inbox"));
 const Messages = lazy(() => import("@/pages/Messages"));
-const Meetings = lazy(() => import("@/pages/Meetings"));
-const MeetingHistory = lazy(() => import("@/pages/MeetingHistory"));
 const MeetingIntelligence = lazy(() => import("@/pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("@/pages/MeetingInsights"));
-const Scheduling = lazy(() => import("@/pages/Scheduling"));
 const UnifiedTasks = lazy(() => import("@/pages/UnifiedTasks"));
 const ObjectiveWorkspace = lazy(() => import("@/pages/ObjectiveWorkspace"));
 const ClubAI = lazy(() => import("@/pages/ClubAI"));
@@ -71,11 +68,9 @@ export const sharedRoutes = (
     <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
     <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
     <Route path="/messages/:conversationId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-    <Route path="/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
-    <Route path="/meeting-history" element={<ProtectedRoute><MeetingHistory /></ProtectedRoute>} />
+    {/* Meeting routes defined in meetings.routes.tsx to avoid duplicates */}
     <Route path="/meeting-intelligence" element={<ProtectedRoute><MeetingIntelligence /></ProtectedRoute>} />
     <Route path="/meeting-insights/:meetingId" element={<ProtectedRoute><MeetingInsights /></ProtectedRoute>} />
-    <Route path="/scheduling" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
     
     {/* Tasks */}
     <Route path="/unified-tasks" element={<ProtectedRoute><UnifiedTasks /></ProtectedRoute>} />
