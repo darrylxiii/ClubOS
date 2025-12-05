@@ -13,16 +13,33 @@ serve(async (req) => {
   }
 
   try {
-    // Validate input
+    // Validate input - now includes refreshToken action
     const requestSchema = z.object({
-      action: z.enum(['getAuthUrl', 'exchangeCode']),
+      action: z.enum(['getAuthUrl', 'exchangeCode', 'refreshToken']),
       code: z.string().optional(),
-      redirectUri: z.string().url('Invalid redirect URI')
-    });
+      refreshToken: z.string().optional(),
+      redirectUri: z.string().url('Invalid redirect URI').optional()
+    }).refine(
+      (data) => {
+        // redirectUri required for getAuthUrl and exchangeCode
+        if (data.action === 'getAuthUrl' || data.action === 'exchangeCode') {
+          return !!data.redirectUri;
+        }
+        // refreshToken required for refreshToken action
+        if (data.action === 'refreshToken') {
+          return !!data.refreshToken;
+        }
+        return true;
+      },
+      {
+        message: "redirectUri required for getAuthUrl/exchangeCode, refreshToken required for refreshToken action"
+      }
+    );
 
-    const { action, code, redirectUri } = requestSchema.parse(await req.json());
+    const body = await req.json();
+    const { action, code, refreshToken, redirectUri } = requestSchema.parse(body);
     
-    console.log('🔵 Google Calendar auth request:', { action, redirectUri: redirectUri.substring(0, 50) + '...' });
+    console.log('🔵 Google Calendar auth request:', { action, redirectUri: redirectUri?.substring(0, 50) + '...' });
     
     // Authentication is handled by Supabase platform (verify_jwt = true in config.toml)
     // No need to manually check auth here
@@ -49,7 +66,7 @@ serve(async (req) => {
 
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${encodeURIComponent(clientId)}` +
-        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&redirect_uri=${encodeURIComponent(redirectUri!)}` +
         `&response_type=code` +
         `&scope=${encodeURIComponent(scopes)}` +
         `&access_type=offline` +
@@ -80,7 +97,7 @@ serve(async (req) => {
           code,
           client_id: clientId,
           client_secret: clientSecret,
-          redirect_uri: redirectUri,
+          redirect_uri: redirectUri!,
           grant_type: 'authorization_code',
         }),
       });
@@ -132,6 +149,81 @@ serve(async (req) => {
           tokens: {
             ...tokens,
             expires_at: expiresAt.toISOString()
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'refreshToken') {
+      if (!refreshToken) {
+        return new Response(
+          JSON.stringify({ error: 'Refresh token is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log('🔄 Refreshing Google access token...');
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          refresh_token: refreshToken,
+          client_id: clientId,
+          client_secret: clientSecret,
+          grant_type: 'refresh_token',
+        }),
+      });
+      console.log('📥 Google refresh response status:', tokenResponse.status);
+
+      if (!tokenResponse.ok) {
+        const errorText = await tokenResponse.text();
+        let errorDetails;
+        try {
+          errorDetails = JSON.parse(errorText);
+        } catch {
+          errorDetails = { error: errorText };
+        }
+        
+        console.error('Token refresh failed:', {
+          status: tokenResponse.status,
+          error: errorDetails,
+        });
+        
+        let userMessage = 'Failed to refresh Google Calendar token';
+        if (errorDetails.error === 'invalid_grant') {
+          userMessage = 'Refresh token expired or revoked. Please reconnect your Google Calendar.';
+        } else if (errorDetails.error_description) {
+          userMessage = errorDetails.error_description;
+        }
+        
+        return new Response(
+          JSON.stringify({ 
+            error: userMessage,
+            details: errorDetails,
+            requiresReauth: errorDetails.error === 'invalid_grant'
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const tokens = await tokenResponse.json();
+      console.log('✅ Token refresh successful');
+      
+      // Calculate token expiration
+      const expiresIn = tokens.expires_in || 3600;
+      const expiresAt = new Date(Date.now() + expiresIn * 1000);
+      
+      return new Response(
+        JSON.stringify({ 
+          tokens: {
+            access_token: tokens.access_token,
+            expires_in: tokens.expires_in,
+            expires_at: expiresAt.toISOString(),
+            token_type: tokens.token_type,
+            scope: tokens.scope,
+            // Preserve original refresh_token if not returned
+            refresh_token: tokens.refresh_token || refreshToken
           }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
