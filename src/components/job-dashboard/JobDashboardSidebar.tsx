@@ -4,6 +4,7 @@ import { EnhancedStatsGrid } from "./EnhancedStatsGrid";
 import { JobTeamPanel } from "@/components/partner/JobTeamPanel";
 import { InlineDocumentsCard } from "./InlineDocumentsCard";
 import { UpcomingInterviewsCompact } from "./UpcomingInterviewsCompact";
+import { QuickResponseTimeTracker } from "./QuickResponseTimeTracker";
 
 interface JobDashboardSidebarProps {
   job: any;
@@ -64,6 +65,14 @@ export const JobDashboardSidebar = memo(({
         conversionRate={metrics?.conversionRates?.['0-1'] || 0}
         avgTimeToHire={Math.round(avgTimeToHire)}
       />
+
+      {/* Quick Response Time Tracker */}
+      {metrics && stages.length > 0 && (
+        <QuickResponseTimeTracker
+          avgDaysInStage={metrics.avgDaysInStage}
+          stages={stages}
+        />
+      )}
       
       {/* Team Panel - Compact */}
       <JobTeamPanel jobId={job.id} />
