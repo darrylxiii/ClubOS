@@ -3,6 +3,8 @@ export interface CompanyBasic {
   name: string;
 }
 
+export type FeeType = 'percentage' | 'fixed' | 'hybrid';
+
 export interface Company extends CompanyBasic {
   slug: string;
   logo_url: string | null;
@@ -16,7 +18,10 @@ export interface Company extends CompanyBasic {
   linkedin_url: string | null;
   twitter_url: string | null;
   instagram_url: string | null;
+  fee_type: FeeType;
   placement_fee_percentage: number | null;
+  placement_fee_fixed: number | null;
+  default_fee_notes: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
