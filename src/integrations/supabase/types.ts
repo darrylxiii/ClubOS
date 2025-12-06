@@ -13195,6 +13195,185 @@ export type Database = {
           },
         ]
       }
+      kpi_alert_configs: {
+        Row: {
+          alert_on_critical: boolean | null
+          alert_on_improvement: boolean | null
+          alert_on_warning: boolean | null
+          created_at: string | null
+          domain: string
+          email_enabled: boolean | null
+          id: string
+          in_app_enabled: boolean | null
+          kpi_name: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          alert_on_critical?: boolean | null
+          alert_on_improvement?: boolean | null
+          alert_on_warning?: boolean | null
+          created_at?: string | null
+          domain: string
+          email_enabled?: boolean | null
+          id?: string
+          in_app_enabled?: boolean | null
+          kpi_name: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          alert_on_critical?: boolean | null
+          alert_on_improvement?: boolean | null
+          alert_on_warning?: boolean | null
+          created_at?: string | null
+          domain?: string
+          email_enabled?: boolean | null
+          id?: string
+          in_app_enabled?: boolean | null
+          kpi_name?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      kpi_escalation_log: {
+        Row: {
+          action_id: string | null
+          created_at: string | null
+          escalated_from: string | null
+          escalated_to: string | null
+          escalation_level: number | null
+          id: string
+          reason: string | null
+          resolved: boolean | null
+          resolved_at: string | null
+        }
+        Insert: {
+          action_id?: string | null
+          created_at?: string | null
+          escalated_from?: string | null
+          escalated_to?: string | null
+          escalation_level?: number | null
+          id?: string
+          reason?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+        }
+        Update: {
+          action_id?: string | null
+          created_at?: string | null
+          escalated_from?: string | null
+          escalated_to?: string | null
+          escalation_level?: number | null
+          id?: string
+          reason?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpi_escalation_log_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "kpi_improvement_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kpi_history: {
+        Row: {
+          category: string | null
+          domain: string
+          id: string
+          kpi_name: string
+          metadata: Json | null
+          recorded_at: string | null
+          status: string | null
+          target_value: number | null
+          trend: number | null
+          value: number
+        }
+        Insert: {
+          category?: string | null
+          domain: string
+          id?: string
+          kpi_name: string
+          metadata?: Json | null
+          recorded_at?: string | null
+          status?: string | null
+          target_value?: number | null
+          trend?: number | null
+          value: number
+        }
+        Update: {
+          category?: string | null
+          domain?: string
+          id?: string
+          kpi_name?: string
+          metadata?: Json | null
+          recorded_at?: string | null
+          status?: string | null
+          target_value?: number | null
+          trend?: number | null
+          value?: number
+        }
+        Relationships: []
+      }
+      kpi_improvement_actions: {
+        Row: {
+          action_description: string
+          action_type: string | null
+          completed_at: string | null
+          created_at: string | null
+          domain: string
+          due_date: string | null
+          escalated_at: string | null
+          escalated_to: string | null
+          id: string
+          kpi_name: string
+          outcome_notes: string | null
+          owner_id: string | null
+          priority: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_description: string
+          action_type?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          domain: string
+          due_date?: string | null
+          escalated_at?: string | null
+          escalated_to?: string | null
+          id?: string
+          kpi_name: string
+          outcome_notes?: string | null
+          owner_id?: string | null
+          priority?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_description?: string
+          action_type?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          domain?: string
+          due_date?: string | null
+          escalated_at?: string | null
+          escalated_to?: string | null
+          id?: string
+          kpi_name?: string
+          outcome_notes?: string | null
+          owner_id?: string | null
+          priority?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       kpi_metrics: {
         Row: {
           category: string
@@ -13263,6 +13442,105 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      kpi_ownership: {
+        Row: {
+          backup_owner_id: string | null
+          category: string
+          created_at: string | null
+          domain: string
+          id: string
+          kpi_name: string
+          last_reviewed_at: string | null
+          next_review_at: string | null
+          notes: string | null
+          owner_role: string | null
+          owner_user_id: string | null
+          review_frequency: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          backup_owner_id?: string | null
+          category: string
+          created_at?: string | null
+          domain: string
+          id?: string
+          kpi_name: string
+          last_reviewed_at?: string | null
+          next_review_at?: string | null
+          notes?: string | null
+          owner_role?: string | null
+          owner_user_id?: string | null
+          review_frequency?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          backup_owner_id?: string | null
+          category?: string
+          created_at?: string | null
+          domain?: string
+          id?: string
+          kpi_name?: string
+          last_reviewed_at?: string | null
+          next_review_at?: string | null
+          notes?: string | null
+          owner_role?: string | null
+          owner_user_id?: string | null
+          review_frequency?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      kpi_targets: {
+        Row: {
+          created_at: string | null
+          critical_threshold: number | null
+          domain: string
+          effective_from: string | null
+          effective_until: string | null
+          id: string
+          kpi_name: string
+          lower_is_better: boolean | null
+          notes: string | null
+          period_type: string | null
+          set_by: string | null
+          target_value: number
+          updated_at: string | null
+          warning_threshold: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          critical_threshold?: number | null
+          domain: string
+          effective_from?: string | null
+          effective_until?: string | null
+          id?: string
+          kpi_name: string
+          lower_is_better?: boolean | null
+          notes?: string | null
+          period_type?: string | null
+          set_by?: string | null
+          target_value: number
+          updated_at?: string | null
+          warning_threshold?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          critical_threshold?: number | null
+          domain?: string
+          effective_from?: string | null
+          effective_until?: string | null
+          id?: string
+          kpi_name?: string
+          lower_is_better?: boolean | null
+          notes?: string | null
+          period_type?: string | null
+          set_by?: string | null
+          target_value?: number
+          updated_at?: string | null
+          warning_threshold?: number | null
+        }
+        Relationships: []
       }
       language_config: {
         Row: {
@@ -29369,6 +29647,10 @@ export type Database = {
         Returns: boolean
       }
       check_error_threshold: { Args: never; Returns: undefined }
+      check_kpi_critical_and_create_action: {
+        Args: { p_domain: string; p_kpi_name: string; p_status: string }
+        Returns: string
+      }
       check_password_reset_rate_limit: {
         Args: { p_email: string; p_ip_address: string }
         Returns: Json
