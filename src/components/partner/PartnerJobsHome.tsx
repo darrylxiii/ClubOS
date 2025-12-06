@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { ClubSyncBadge } from "@/components/jobs/ClubSyncBadge";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -662,7 +663,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
   // Use ClubSyncBadge component instead of inline badge creation
   const getClubSyncBadge = (status: string | null) => {
-    const ClubSyncBadge = require("@/components/jobs/ClubSyncBadge").ClubSyncBadge;
     return <ClubSyncBadge status={status as any} size="sm" showTooltip={true} />;
   };
 
