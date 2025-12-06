@@ -185,13 +185,13 @@ export function MyKPIsDashboard() {
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold">
+                          <p className="text-lg font-bold">
                               {typeof kpi.value === 'number' ? kpi.value.toFixed(1) : kpi.value}
-                              {kpi.format === 'percentage' && '%'}
+                              {kpi.format === 'percent' && '%'}
                             </p>
                             {kpi.targetValue && (
                               <p className="text-xs text-muted-foreground">
-                                Target: {kpi.targetValue}{kpi.format === 'percentage' && '%'}
+                                Target: {kpi.targetValue}{kpi.format === 'percent' && '%'}
                               </p>
                             )}
                           </div>
@@ -212,16 +212,16 @@ export function MyKPIsDashboard() {
 
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 text-xs">
-                            {kpi.trend !== undefined && (
+                            {kpi.trendPercentage !== undefined && (
                               <span className={`flex items-center gap-1 ${
-                                kpi.trend >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                                kpi.trendPercentage >= 0 ? 'text-emerald-600' : 'text-rose-600'
                               }`}>
-                                {kpi.trend >= 0 ? (
+                                {kpi.trendPercentage >= 0 ? (
                                   <TrendingUp className="h-3 w-3" />
                                 ) : (
                                   <TrendingDown className="h-3 w-3" />
                                 )}
-                                {Math.abs(kpi.trend).toFixed(1)}%
+                                {Math.abs(kpi.trendPercentage).toFixed(1)}%
                               </span>
                             )}
                           </div>
