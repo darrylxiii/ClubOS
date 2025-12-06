@@ -211,6 +211,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "System Management",
       icon: Shield,
       items: [
+        { name: "KPI Command Center", icon: BarChart3, path: "/admin/kpi-command-center" },
         { name: "User Activity", icon: Activity, path: "/admin/user-activity" },
         { name: "System Health", icon: Shield, path: "/admin/system-health" },
         { name: "Disaster Recovery", icon: Shield, path: "/admin/comprehensive-dr" },
