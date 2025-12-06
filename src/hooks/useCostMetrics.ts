@@ -153,6 +153,7 @@ export const useCostMetrics = () => {
       // Define known cron jobs from the system - OPTIMIZED for event-driven architecture
       const knownCronJobs = [
         { name: 'send-single-reminder', schedule: 'event-driven (~3/day)', costDriver: 'Email/SMS (on-demand)' },
+        { name: 'region-health-check-5min', schedule: '*/5 * * * *', costDriver: 'Database + Edge health checks' },
         { name: 'cleanup-stale-activity', schedule: '0 * * * *', costDriver: 'Database cleanup' },
         { name: 'auto-reengagement-daily', schedule: '0 9 * * *', costDriver: 'AI + Email' },
         { name: 'calculate-kpi-metrics', schedule: '0 0 * * *', costDriver: 'Database aggregation' },

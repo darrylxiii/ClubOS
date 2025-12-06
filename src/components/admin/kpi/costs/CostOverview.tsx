@@ -327,7 +327,8 @@ export function CostOverview() {
           <ul className="space-y-2 text-sm">
             <li className="flex items-start gap-2">
               <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5" />
-              <span>Reduce <code className="bg-muted px-1 rounded">region-health-check</code> frequency from every minute to every 5 minutes</span>
+              <span className="line-through text-muted-foreground">Reduce <code className="bg-muted px-1 rounded">region-health-check</code> frequency from every minute to every 5 minutes</span>
+              <Badge variant="outline" className="text-emerald-500 border-emerald-500/30 ml-2">Done</Badge>
             </li>
             <li className="flex items-start gap-2">
               <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5" />
