@@ -11,6 +11,7 @@ import { AIExecutiveSummary } from './AIExecutiveSummary';
 import { ComparisonToggle } from './ComparisonToggle';
 import { KPIDetailModal } from './KPIDetailModal';
 import { AlertConfigDialog, type AlertThreshold } from './AlertConfigDialog';
+import { CostOverview } from './costs/CostOverview';
 import { exportToCSV, exportToPDF } from './KPIExport';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -210,7 +211,9 @@ export function UnifiedKPICommandCenter() {
         {/* Main Content */}
         <div className="flex-1 overflow-auto">
           <div className="container mx-auto px-4 py-6 max-w-7xl">
-            {selectedCategory ? (
+            {selectedDomain === 'costs' ? (
+              <CostOverview />
+            ) : selectedCategory ? (
               <CategoryView
                 domain={selectedDomain as KPIDomain}
                 category={selectedCat!}
@@ -225,7 +228,7 @@ export function UnifiedKPICommandCenter() {
                     <div>
                       <h1 className="text-2xl font-bold tracking-tight">KPI Command Center</h1>
                       <p className="text-muted-foreground">
-                        Unified view across Operations, Website, Sales, Platform Health, Intelligence, and Growth
+                        Unified view across Operations, Website, Sales, Platform, Intelligence, Growth, and Costs
                       </p>
                     </div>
                     <div className="flex items-center gap-2">

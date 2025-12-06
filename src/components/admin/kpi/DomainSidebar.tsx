@@ -30,7 +30,9 @@ import {
   LineChart,
   Briefcase,
   CreditCard,
-  Shield
+  Shield,
+  HardDrive,
+  Receipt
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -51,6 +53,7 @@ const domainIcons: Record<KPIDomain, React.ElementType> = {
   platform: Server,
   intelligence: Brain,
   growth: TrendingUp,
+  costs: Receipt,
 };
 
 const domainColors: Record<KPIDomain, string> = {
@@ -60,6 +63,7 @@ const domainColors: Record<KPIDomain, string> = {
   platform: 'text-emerald-500',
   intelligence: 'text-pink-500',
   growth: 'text-cyan-500',
+  costs: 'text-rose-500',
 };
 
 const categoryIcons: Record<string, React.ElementType> = {
@@ -99,6 +103,11 @@ const categoryIcons: Record<string, React.ElementType> = {
   revenue: CreditCard,
   companies: Building2,
   referrals: Share2,
+  // Costs
+  api_usage: Bot,
+  cron_jobs: Clock,
+  storage: HardDrive,
+  budget: Wallet,
 };
 
 const getHealthBadge = (score: number) => {
@@ -120,6 +129,7 @@ export function DomainSidebar({
     platform: true,
     intelligence: true,
     growth: true,
+    costs: true,
   });
 
   const toggleDomain = (domain: KPIDomain) => {

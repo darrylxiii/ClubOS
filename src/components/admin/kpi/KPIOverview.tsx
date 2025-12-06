@@ -13,7 +13,8 @@ import {
   ArrowRight,
   Server,
   Brain,
-  Rocket
+  Rocket,
+  Receipt
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { DomainHealth, CriticalAlert, UnifiedKPI, KPIDomain } from '@/hooks/useUnifiedKPIs';
@@ -35,6 +36,7 @@ const domainIcons: Record<KPIDomain, React.ElementType> = {
   platform: Server,
   intelligence: Brain,
   growth: Rocket,
+  costs: Receipt,
 };
 
 const domainColors: Record<KPIDomain, { bg: string; text: string; border: string }> = {
@@ -44,6 +46,7 @@ const domainColors: Record<KPIDomain, { bg: string; text: string; border: string
   platform: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' },
   intelligence: { bg: 'bg-pink-500/10', text: 'text-pink-500', border: 'border-pink-500/20' },
   growth: { bg: 'bg-orange-500/10', text: 'text-orange-500', border: 'border-orange-500/20' },
+  costs: { bg: 'bg-rose-500/10', text: 'text-rose-500', border: 'border-rose-500/20' },
 };
 
 function DomainHealthCard({ 

@@ -11,7 +11,7 @@ import { useFinancialStats } from './useFinancialData';
 import { useSecurityMetrics } from './useSecurityMetrics';
 import { useCompanyMetrics } from './useCompanyMetrics';
 
-export type KPIDomain = 'operations' | 'website' | 'sales' | 'platform' | 'intelligence' | 'growth';
+export type KPIDomain = 'operations' | 'website' | 'sales' | 'platform' | 'intelligence' | 'growth' | 'costs';
 export type KPIStatus = 'success' | 'warning' | 'critical' | 'neutral';
 
 export interface UnifiedKPI {
@@ -248,6 +248,11 @@ const categoryDisplayNames: Record<string, string> = {
   revenue: 'Revenue',
   companies: 'Companies',
   referrals: 'Referrals',
+  // Costs
+  api_usage: 'API Usage',
+  cron_jobs: 'Cron Jobs',
+  storage: 'Storage',
+  budget: 'Budget',
 };
 
 // Determine format for KPI
@@ -1145,6 +1150,23 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
   const intelligenceHealth = calculateDomainHealth(allKPIs, 'intelligence', 'Intelligence');
   const growthHealth = calculateDomainHealth(allKPIs, 'growth', 'Growth');
   
+  // Costs domain health - calculated separately as it uses different metrics
+  const costsHealth: DomainHealth = {
+    domain: 'costs',
+    label: 'Costs',
+    healthScore: 85, // Will be calculated based on budget thresholds
+    totalKPIs: 4,
+    onTarget: 4,
+    warnings: 0,
+    critical: 0,
+    categories: [
+      { name: 'api_usage', displayName: 'API Usage', healthScore: 90, kpiCount: 1, onTarget: 1, warnings: 0, critical: 0 },
+      { name: 'cron_jobs', displayName: 'Cron Jobs', healthScore: 85, kpiCount: 1, onTarget: 1, warnings: 0, critical: 0 },
+      { name: 'storage', displayName: 'Storage', healthScore: 80, kpiCount: 1, onTarget: 1, warnings: 0, critical: 0 },
+      { name: 'budget', displayName: 'Budget', healthScore: 85, kpiCount: 1, onTarget: 1, warnings: 0, critical: 0 },
+    ],
+  };
+  
   // Overall health
   const totalKPIs = allKPIs.length;
   const totalOnTarget = allKPIs.filter(k => k.status === 'success').length;
@@ -1200,7 +1222,7 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
     allKPIs,
     byDomain,
     byCategory,
-    domainHealth: [operationsHealth, websiteHealth, salesHealth, platformHealth, intelligenceHealth, growthHealth],
+    domainHealth: [operationsHealth, websiteHealth, salesHealth, platformHealth, intelligenceHealth, growthHealth, costsHealth],
     overallHealth,
     totalKPIs,
     totalOnTarget,
