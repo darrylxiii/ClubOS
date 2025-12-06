@@ -10,7 +10,10 @@ import {
   AlertCircle,
   TrendingUp,
   Lightbulb,
-  ArrowRight
+  ArrowRight,
+  Server,
+  Brain,
+  Rocket
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { DomainHealth, CriticalAlert, UnifiedKPI, KPIDomain } from '@/hooks/useUnifiedKPIs';
@@ -27,12 +30,18 @@ const domainIcons: Record<KPIDomain, React.ElementType> = {
   operations: Building2,
   website: Globe,
   sales: DollarSign,
+  platform: Server,
+  intelligence: Brain,
+  growth: Rocket,
 };
 
 const domainColors: Record<KPIDomain, { bg: string; text: string; border: string }> = {
   operations: { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20' },
   website: { bg: 'bg-purple-500/10', text: 'text-purple-500', border: 'border-purple-500/20' },
   sales: { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20' },
+  platform: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' },
+  intelligence: { bg: 'bg-pink-500/10', text: 'text-pink-500', border: 'border-pink-500/20' },
+  growth: { bg: 'bg-orange-500/10', text: 'text-orange-500', border: 'border-orange-500/20' },
 };
 
 function DomainHealthCard({ 
