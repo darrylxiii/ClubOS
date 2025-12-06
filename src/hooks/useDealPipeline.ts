@@ -61,6 +61,8 @@ export function useDealPipeline() {
   return useQuery({
     queryKey: ['deal-pipeline'],
     queryFn: async () => {
+      console.log('[DealPipeline] Fetching jobs...');
+      
       const { data, error } = await supabase
         .from('jobs')
         .select(`
@@ -68,29 +70,43 @@ export function useDealPipeline() {
           companies(name, placement_fee_percentage),
           applications(count)
         `)
-        .not('status', 'in', '(archived,closed)')
+        .eq('status', 'published')
         .eq('is_lost', false)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('[DealPipeline] Error fetching jobs:', error);
+        throw error;
+      }
+      
+      console.log('[DealPipeline] Found', data?.length || 0, 'jobs');
+      
+      if (!data || data.length === 0) {
+        return [];
+      }
       
       // Transform data and calculate revenue for each deal
       const dealsWithRevenue = await Promise.all(
         data.map(async (job: any) => {
           const feePercentage = job.companies?.placement_fee_percentage || 0;
           
-          // Get candidate salary stats
+          // Get candidate salary stats - use avg_desired_salary from fixed function
           let avgSalary = 0;
           try {
-            const { data: salaryData } = await (supabase as any)
+            const { data: salaryData, error: salaryError } = await (supabase as any)
               .rpc('get_pipeline_candidate_stats', { p_job_id: job.id });
-            avgSalary = salaryData?.[0]?.avg_expected_salary || 0;
+            
+            if (salaryError) {
+              console.warn('[DealPipeline] Salary stats error for job', job.id, salaryError);
+            } else {
+              avgSalary = salaryData?.[0]?.avg_desired_salary || salaryData?.[0]?.avg_current_salary || 0;
+            }
           } catch (err) {
-            console.warn('Failed to fetch salary stats for job', job.id);
+            console.warn('[DealPipeline] Failed to fetch salary stats for job', job.id, err);
           }
           
-          // Calculate estimated revenue
-          const baseSalary = avgSalary || 60000; // Default fallback
+          // Calculate estimated revenue using job salary if no candidate data
+          const baseSalary = avgSalary || job.salary_max || job.salary_min || 60000;
           const estimatedRevenue = baseSalary * (feePercentage / 100);
           
           return {
@@ -102,6 +118,7 @@ export function useDealPipeline() {
         })
       ) as Deal[];
       
+      console.log('[DealPipeline] Processed', dealsWithRevenue.length, 'deals');
       return dealsWithRevenue;
     },
   });
@@ -111,11 +128,34 @@ export function usePipelineMetrics() {
   return useQuery({
     queryKey: ['pipeline-metrics'],
     queryFn: async () => {
+      console.log('[PipelineMetrics] Fetching metrics...');
+      
       const { data, error } = await (supabase as any)
         .rpc('calculate_weighted_pipeline');
       
-      if (error) throw error;
-      return data[0] as PipelineMetrics;
+      if (error) {
+        console.error('[PipelineMetrics] Error:', error);
+        throw error;
+      }
+      
+      console.log('[PipelineMetrics] Result:', data);
+      
+      // Handle empty result
+      if (!data || data.length === 0) {
+        return {
+          total_pipeline: 0,
+          weighted_pipeline: 0,
+          deal_count: 0,
+          avg_deal_size: 0,
+        } as PipelineMetrics;
+      }
+      
+      return {
+        total_pipeline: data[0]?.total_pipeline_value || 0,
+        weighted_pipeline: data[0]?.weighted_pipeline_value || 0,
+        deal_count: data[0]?.deal_count || 0,
+        avg_deal_size: data[0]?.avg_deal_size || 0,
+      } as PipelineMetrics;
     },
   });
 }
