@@ -779,9 +779,19 @@ export default function JobDashboard() {
               </CardContent>
             </Card>
           </div>
+          </div>
+
+          {/* Sidebar (30%) */}
+          <JobDashboardSidebar
+            job={job}
+            metrics={metrics}
+            stages={stages}
+            onEditJob={() => setEditDialogOpen(true)}
+            onRefresh={fetchJobDetails}
+          />
         </div>
 
-        {/* Main Content - Reorganized Tabs */}
+        {/* Consolidated Tabs - Reduced from 8 to 3 */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-8 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
