@@ -48,7 +48,7 @@ export const JobDashboardSidebar = memo(({
     : 0;
 
   return (
-    <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+    <div className="space-y-4 lg:sticky lg:top-6 h-fit">
       {/* Job Summary - Always Visible */}
       <JobSummaryCard 
         job={job}
@@ -73,7 +73,7 @@ export const JobDashboardSidebar = memo(({
       
       {/* Upcoming Interviews - Compact */}
       <UpcomingInterviewsCompact jobId={job.id} limit={3} />
-    </aside>
+    </div>
   );
 });
 

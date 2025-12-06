@@ -570,9 +570,9 @@ export default function JobDashboard() {
         />
 
         {/* NEW 70/30 Two-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
-          {/* Main Content (70%) */}
-          <div className="space-y-6 order-2 lg:order-1">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+          {/* Main Content (Left - 70%) */}
+          <main className="space-y-6">
             {/* Smart Insights - Promoted */}
             {metrics && (
               <SmartInsightsCard metrics={metrics} stages={stages} />
@@ -779,23 +779,28 @@ export default function JobDashboard() {
               </CardContent>
             </Card>
           </div>
-          </div>
 
-          {/* Sidebar (30%) */}
-          <JobDashboardSidebar
-            job={job}
-            metrics={metrics}
-            stages={stages}
-            onEditJob={() => setEditDialogOpen(true)}
-            onRefresh={fetchJobDetails}
-          />
+            {/* Inline Activity Feed */}
+            <InlineActivityFeed jobId={job.id} initialLimit={5} />
+          </main>
+
+          {/* Sidebar (Right - 30%) */}
+          <aside className="order-first lg:order-last">
+            <JobDashboardSidebar
+              job={job}
+              metrics={metrics}
+              stages={stages}
+              onEditJob={() => setEditDialogOpen(true)}
+              onRefresh={fetchJobDetails}
+            />
+          </aside>
         </div>
 
         {/* Consolidated Tabs - Reduced from 8 to 3 */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-8 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
-              Overview
+              Intelligence
             </TabsTrigger>
             {jobRole && (
               <TabsTrigger value="my-view" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
@@ -803,87 +808,19 @@ export default function JobDashboard() {
                 My View
               </TabsTrigger>
             )}
-            <TabsTrigger value="pipeline" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
-              Pipeline
-            </TabsTrigger>
-            <TabsTrigger value="intelligence" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
-              <Brain className="h-4 w-4 mr-1 inline" />
-              Intelligence
-            </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Analytics
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
-              Documents
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
-              Activity
             </TabsTrigger>
             <TabsTrigger value="rejected" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Rejected ({rejectedCount})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-4">
+          <TabsContent value="overview" className="space-y-6 mt-6">
             {/* Predictive Analytics Widget */}
             <PredictiveAnalyticsDashboard jobId={job.id} />
             
-            <Card className="border-2 border-primary/20 backdrop-blur-xl bg-gradient-to-br from-card/90 to-card/60 shadow-[var(--shadow-glass-md)]">
-              <CardHeader>
-                <CardTitle className="font-black uppercase">Job Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h3 className="font-bold mb-2 text-lg">Description</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {job.description || "No description provided"}
-                  </p>
-                </div>
-                {job.requirements && job.requirements.length > 0 && (
-                  <div>
-                    <h3 className="font-bold mb-2 text-lg">Requirements</h3>
-                    <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                      {job.requirements.map((req: string, idx: number) => (
-                        <li key={idx}>{req}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="my-view">
-            {jobRole === 'hiring_manager' && <HiringManagerDashboard jobId={job.id} />}
-            {jobRole === 'founder_reviewer' && <ExecutiveDashboard jobId={job.id} />}
-            {['technical_interviewer', 'behavioral_interviewer', 'panel_member'].includes(jobRole || '') && 
-              <InterviewerDashboard jobId={job.id} />
-            }
-            {jobRole === 'observer' && <ObserverDashboard jobId={job.id} />}
-            {!jobRole && (
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="text-sm text-muted-foreground text-center">
-                    You don't have a specific role assigned for this job. Contact the hiring manager to get access.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="pipeline" className="space-y-4">
-            <p className="text-sm text-muted-foreground">Pipeline view is displayed above in the main dashboard.</p>
-          </TabsContent>
-
-          <TabsContent value="documents" className="space-y-4">
-            <JobDocuments jobId={job.id} onUpdate={fetchJobDetails} />
-          </TabsContent>
-
-          <TabsContent value="intelligence" className="space-y-6">
-            {/* Hero Section - Predictive Analytics */}
-            <PredictiveAnalyticsDashboard jobId={job.id} />
-            
-            {/* ML Insights Widget linking to ML Dashboard */}
+            {/* ML Insights Widget */}
             <MLInsightsWidget jobId={job.id} />
             
             {/* Candidate Intelligence Grid */}
@@ -945,46 +882,31 @@ export default function JobDashboard() {
                 </CardContent>
               </Card>
             </div>
-            
-            {/* ML Model Insights Link */}
-            <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="h-5 w-5" />
-                  Machine Learning Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  View how our ML matching engine is performing for this role
-                </p>
-                <Button onClick={() => navigate(`/ml-dashboard?jobId=${job.id}`)} variant="outline">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  View ML Performance
-                </Button>
-              </CardContent>
-            </Card>
           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-4">
+          <TabsContent value="my-view" className="mt-6">
+            {jobRole === 'hiring_manager' && <HiringManagerDashboard jobId={job.id} />}
+            {jobRole === 'founder_reviewer' && <ExecutiveDashboard jobId={job.id} />}
+            {['technical_interviewer', 'behavioral_interviewer', 'panel_member'].includes(jobRole || '') && 
+              <InterviewerDashboard jobId={job.id} />
+            }
+            {jobRole === 'observer' && <ObserverDashboard jobId={job.id} />}
+            {!jobRole && (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-sm text-muted-foreground text-center">
+                    You don't have a specific role assigned for this job. Contact the hiring manager to get access.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-4 mt-6">
             <JobAnalytics jobId={job.id} />
-            
-            {/* Add ML-powered predictions */}
-            <Card className="border-2 border-primary/20 backdrop-blur-xl bg-gradient-to-br from-card/90 to-card/60">
-              <CardHeader>
-                <CardTitle className="font-black uppercase text-sm">AI-Powered Predictions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PredictiveAnalyticsDashboard jobId={job.id} />
-              </CardContent>
-            </Card>
           </TabsContent>
 
-          <TabsContent value="activity" className="space-y-4">
-            <PipelineAuditLog jobId={job.id} />
-          </TabsContent>
-
-          <TabsContent value="rejected" className="space-y-4">
+          <TabsContent value="rejected" className="space-y-4 mt-6">
             <RejectedCandidatesTab
               jobId={job.id}
               stages={stages}
