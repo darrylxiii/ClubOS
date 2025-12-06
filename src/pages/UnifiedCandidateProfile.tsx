@@ -24,6 +24,7 @@ import { CandidateEditModal } from "@/components/candidate-profile/CandidateEdit
 import { AuditLogViewer } from "@/components/candidate-profile/AuditLogViewer";
 import { MeetingIntelligenceCard } from "@/components/candidate-profile/MeetingIntelligenceCard";
 import { AssessmentInsightsCard } from "@/components/candidate-profile/AssessmentInsightsCard";
+import { InterviewScorecard } from "@/components/candidate-profile/InterviewScorecard";
 
 export default function UnifiedCandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -195,6 +196,9 @@ export default function UnifiedCandidateProfile() {
 
                 {/* Meeting Intelligence - Interview Insights */}
                 <MeetingIntelligenceCard candidateId={candidateId!} />
+
+                {/* Interview Scorecard - AI Analysis from Interviews */}
+                <InterviewScorecard candidateId={candidateId!} />
 
                 {/* Assessment Insights */}
                 <AssessmentInsightsCard candidateId={candidateId!} />

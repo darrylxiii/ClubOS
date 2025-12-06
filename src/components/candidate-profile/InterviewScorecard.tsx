@@ -3,12 +3,14 @@
  * 
  * Displays aggregated interview intelligence from all interviews
  * for a candidate. Shows scores, strengths, weaknesses, and AI recommendation.
+ * Auto-fetches data based on candidateId.
  */
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Video, 
   ThumbsUp, 
@@ -22,24 +24,50 @@ import {
   Clock
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface InterviewScorecardProps {
-  interviewScoreAvg: number | null;
-  interviewCount: number;
-  aiRecommendation: string | null;
-  keyStrengths: string[] | null;
-  keyWeaknesses: string[] | null;
-  lastInterviewAt: string | null;
+  candidateId: string;
 }
 
-export function InterviewScorecard({
-  interviewScoreAvg,
-  interviewCount,
-  aiRecommendation,
-  keyStrengths,
-  keyWeaknesses,
-  lastInterviewAt,
-}: InterviewScorecardProps) {
+export function InterviewScorecard({ candidateId }: InterviewScorecardProps) {
+  const { data: candidate, isLoading } = useQuery({
+    queryKey: ['candidate-interview-data', candidateId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('candidate_profiles')
+        .select('interview_score_avg, interview_count, ai_recommendation, key_strengths_aggregated, key_weaknesses_aggregated, last_interview_at')
+        .eq('id', candidateId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!candidateId,
+  });
+
+  if (isLoading) {
+    return (
+      <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
+        <CardHeader className="pb-3">
+          <Skeleton className="h-6 w-48" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const interviewCount = candidate?.interview_count || 0;
+  const interviewScoreAvg = candidate?.interview_score_avg;
+  const aiRecommendation = candidate?.ai_recommendation;
+  const keyStrengths = candidate?.key_strengths_aggregated as string[] | null;
+  const keyWeaknesses = candidate?.key_weaknesses_aggregated as string[] | null;
+  const lastInterviewAt = candidate?.last_interview_at;
+
   if (interviewCount === 0) {
     return (
       <Card className="bg-muted/30">

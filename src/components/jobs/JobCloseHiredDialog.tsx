@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Trophy, DollarSign, Users, Calendar } from "lucide-react";
+import { Trophy, DollarSign, Users, Calendar, Sparkles, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
+import { useSalaryRecommendation } from "@/hooks/useSalaryRecommendation";
+import { Badge } from "@/components/ui/badge";
 
 interface JobCloseHiredDialogProps {
   open: boolean;
@@ -28,6 +30,18 @@ export function JobCloseHiredDialog({
   const [loading, setLoading] = useState(false);
 
   const selectedApplication = applications.find(app => app.id === selectedCandidateId);
+  const candidateId = selectedApplication?.candidate_id;
+  
+  // Get AI salary recommendation hook
+  const { recommendation, loading: recommendationLoading, getRecommendation } = useSalaryRecommendation();
+
+  // Fetch recommendation when candidate is selected
+  useEffect(() => {
+    if (candidateId && job?.id && open) {
+      getRecommendation(candidateId, job.id, selectedCandidateId);
+    }
+  }, [candidateId, job?.id, selectedCandidateId, open, getRecommendation]);
+
   const expectedSalary = selectedApplication?.candidate_profiles?.expected_salary || 0;
   const feePercentage = job.companies?.placement_fee_percentage || 0;
   
@@ -37,6 +51,13 @@ export function JobCloseHiredDialog({
   const daysToFill = job.published_at 
     ? Math.floor((new Date().getTime() - new Date(job.published_at).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
+
+  const handleApplyRecommendation = () => {
+    if (recommendation?.recommended_base_salary) {
+      setActualSalary(recommendation.recommended_base_salary.toString());
+      toast.success("AI recommendation applied");
+    }
+  };
 
   const handleConfirm = async () => {
     if (!selectedCandidateId) {
@@ -62,7 +83,7 @@ export function JobCloseHiredDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[650px]">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-success" />
@@ -96,6 +117,48 @@ export function JobCloseHiredDialog({
           {/* Salary Information */}
           {selectedCandidateId && (
             <>
+              {/* AI Salary Recommendation */}
+              {recommendationLoading ? (
+                <div className="rounded-lg border bg-primary/5 p-4 flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                  <span className="text-sm text-muted-foreground">Generating AI salary recommendation...</span>
+                </div>
+              ) : recommendation ? (
+                <div className="rounded-lg border bg-gradient-to-br from-primary/10 to-primary/5 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">AI Salary Recommendation</span>
+                    </div>
+                    <Badge variant="outline" className="bg-primary/10">
+                      {recommendation.salary_percentile}th percentile
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-primary">
+                        {formatCurrency(recommendation.recommended_base_salary)}
+                      </p>
+                      {recommendation.market_data && (
+                        <p className="text-xs text-muted-foreground">
+                          Range: {formatCurrency(recommendation.market_data.min)} - {formatCurrency(recommendation.market_data.max)}
+                        </p>
+                      )}
+                    </div>
+                    <Button size="sm" variant="outline" onClick={handleApplyRecommendation}>
+                      Apply
+                    </Button>
+                  </div>
+                  
+                  {recommendation.ai_insights?.summary && (
+                    <p className="text-xs text-muted-foreground border-t pt-2">
+                      {recommendation.ai_insights.summary}
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
               <div className="space-y-2">
                 <Label htmlFor="salary">Actual Annual Salary</Label>
                 <div className="relative">
