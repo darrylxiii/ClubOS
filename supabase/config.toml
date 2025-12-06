@@ -641,3 +641,6 @@ verify_jwt = false
 
 [functions.generate-offer-recommendation]
 verify_jwt = true
+
+[functions.calculate-kpi-metrics]
+verify_jwt = true

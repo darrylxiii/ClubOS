@@ -4751,6 +4751,42 @@ export type Database = {
         }
         Relationships: []
       }
+      capacity_planning: {
+        Row: {
+          available_hours: number | null
+          capacity_load_percent: number | null
+          created_at: string | null
+          forecast_load: number | null
+          id: string
+          scheduled_hours: number | null
+          updated_at: string | null
+          user_id: string | null
+          week_start: string
+        }
+        Insert: {
+          available_hours?: number | null
+          capacity_load_percent?: number | null
+          created_at?: string | null
+          forecast_load?: number | null
+          id?: string
+          scheduled_hours?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          week_start: string
+        }
+        Update: {
+          available_hours?: number | null
+          capacity_load_percent?: number | null
+          created_at?: string | null
+          forecast_load?: number | null
+          id?: string
+          scheduled_hours?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          week_start?: string
+        }
+        Relationships: []
+      }
       career_context_snapshots: {
         Row: {
           active_applications: Json | null
@@ -7964,6 +8000,64 @@ export type Database = {
             columns: ["learning_path_id"]
             isOneToOne: false
             referencedRelation: "learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      csat_surveys: {
+        Row: {
+          application_id: string | null
+          created_at: string | null
+          feedback: string | null
+          id: string
+          job_id: string | null
+          milestone: string
+          respondent_id: string
+          respondent_type: string
+          score: number | null
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          job_id?: string | null
+          milestone: string
+          respondent_id: string
+          respondent_type: string
+          score?: number | null
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          job_id?: string | null
+          milestone?: string
+          respondent_id?: string
+          respondent_type?: string
+          score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "csat_surveys_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csat_surveys_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csat_surveys_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -12865,6 +12959,75 @@ export type Database = {
           },
         ]
       }
+      kpi_metrics: {
+        Row: {
+          category: string
+          company_id: string | null
+          created_at: string | null
+          id: string
+          kpi_name: string
+          metadata: Json | null
+          period_end: string
+          period_start: string
+          period_type: string | null
+          previous_value: number | null
+          trend_direction: string | null
+          trend_percent: number | null
+          updated_at: string | null
+          user_id: string | null
+          value: number | null
+        }
+        Insert: {
+          category: string
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          kpi_name: string
+          metadata?: Json | null
+          period_end: string
+          period_start: string
+          period_type?: string | null
+          previous_value?: number | null
+          trend_direction?: string | null
+          trend_percent?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          value?: number | null
+        }
+        Update: {
+          category?: string
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          kpi_name?: string
+          metadata?: Json | null
+          period_end?: string
+          period_start?: string
+          period_type?: string | null
+          previous_value?: number | null
+          trend_direction?: string | null
+          trend_percent?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpi_metrics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpi_metrics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       language_config: {
         Row: {
           added_at: string | null
@@ -16891,6 +17054,70 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      nps_surveys: {
+        Row: {
+          application_id: string | null
+          created_at: string | null
+          feedback_text: string | null
+          id: string
+          job_id: string | null
+          nps_score: number | null
+          respondent_id: string
+          respondent_type: string
+          response_date: string | null
+          stage_name: string | null
+          survey_type: string
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string | null
+          feedback_text?: string | null
+          id?: string
+          job_id?: string | null
+          nps_score?: number | null
+          respondent_id: string
+          respondent_type: string
+          response_date?: string | null
+          stage_name?: string | null
+          survey_type: string
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string | null
+          feedback_text?: string | null
+          id?: string
+          job_id?: string | null
+          nps_score?: number | null
+          respondent_id?: string
+          respondent_type?: string
+          response_date?: string | null
+          stage_name?: string | null
+          survey_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nps_surveys_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nps_surveys_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nps_surveys_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       objective_activities: {
         Row: {
@@ -21265,6 +21492,45 @@ export type Database = {
         }
         Relationships: []
       }
+      recruiter_bonuses: {
+        Row: {
+          bonus_amount: number
+          bonus_type: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          recruiter_id: string | null
+          revenue_contribution: number | null
+        }
+        Insert: {
+          bonus_amount?: number
+          bonus_type?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_start: string
+          recruiter_id?: string | null
+          revenue_contribution?: number | null
+        }
+        Update: {
+          bonus_amount?: number
+          bonus_type?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          recruiter_id?: string | null
+          revenue_contribution?: number | null
+        }
+        Relationships: []
+      }
       reengagement_history: {
         Row: {
           campaign_type: string
@@ -24593,6 +24859,51 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      time_entries: {
+        Row: {
+          activity_level: string | null
+          billable_hours: number | null
+          created_at: string | null
+          date: string
+          hours_worked: number
+          id: string
+          idle_time_minutes: number | null
+          notes: string | null
+          project_id: string | null
+          source: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_level?: string | null
+          billable_hours?: number | null
+          created_at?: string | null
+          date: string
+          hours_worked?: number
+          id?: string
+          idle_time_minutes?: number | null
+          notes?: string | null
+          project_id?: string | null
+          source?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_level?: string | null
+          billable_hours?: number | null
+          created_at?: string | null
+          date?: string
+          hours_worked?: number
+          id?: string
+          idle_time_minutes?: number | null
+          notes?: string | null
+          project_id?: string | null
+          source?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

@@ -32,6 +32,7 @@ const AdminRejections = lazy(() => import("@/pages/AdminRejections"));
 const FeedbackDatabase = lazy(() => import("@/pages/FeedbackDatabase"));
 const UserActivity = lazy(() => import("@/pages/admin/UserActivity"));
 const SystemHealth = lazy(() => import("@/pages/admin/SystemHealth"));
+const QuantumPerformanceMatrixPage = lazy(() => import("@/pages/QuantumPerformanceMatrixPage"));
 
 export const adminRoutes = (
   <>
@@ -270,6 +271,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <SystemHealth />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/performance-matrix"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <QuantumPerformanceMatrixPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
