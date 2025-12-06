@@ -498,6 +498,9 @@ verify_jwt = true
 [functions.train-ml-model]
 verify_jwt = true
 
+[functions.calculate-sales-kpis]
+verify_jwt = true
+
 [functions.track-ml-outcome]
 verify_jwt = true
 

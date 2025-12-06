@@ -993,6 +993,128 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_outreach_logs: {
+        Row: {
+          ai_generated_content_id: string | null
+          ai_usage_log_id: string | null
+          booking_id: string | null
+          bounce_type: string | null
+          created_at: string | null
+          edit_percentage: number | null
+          id: string
+          opened_at: string | null
+          outreach_type: string | null
+          owner_id: string | null
+          personalization_fields: Json | null
+          recipient_company_id: string | null
+          recipient_contact_id: string | null
+          recipient_email: string | null
+          replied_at: string | null
+          reply_sentiment: string | null
+          resulted_in_booking: boolean | null
+          sent_at: string | null
+          template_used: string | null
+          unsubscribed: boolean | null
+          was_edited: boolean | null
+        }
+        Insert: {
+          ai_generated_content_id?: string | null
+          ai_usage_log_id?: string | null
+          booking_id?: string | null
+          bounce_type?: string | null
+          created_at?: string | null
+          edit_percentage?: number | null
+          id?: string
+          opened_at?: string | null
+          outreach_type?: string | null
+          owner_id?: string | null
+          personalization_fields?: Json | null
+          recipient_company_id?: string | null
+          recipient_contact_id?: string | null
+          recipient_email?: string | null
+          replied_at?: string | null
+          reply_sentiment?: string | null
+          resulted_in_booking?: boolean | null
+          sent_at?: string | null
+          template_used?: string | null
+          unsubscribed?: boolean | null
+          was_edited?: boolean | null
+        }
+        Update: {
+          ai_generated_content_id?: string | null
+          ai_usage_log_id?: string | null
+          booking_id?: string | null
+          bounce_type?: string | null
+          created_at?: string | null
+          edit_percentage?: number | null
+          id?: string
+          opened_at?: string | null
+          outreach_type?: string | null
+          owner_id?: string | null
+          personalization_fields?: Json | null
+          recipient_company_id?: string | null
+          recipient_contact_id?: string | null
+          recipient_email?: string | null
+          replied_at?: string | null
+          reply_sentiment?: string | null
+          resulted_in_booking?: boolean | null
+          sent_at?: string | null
+          template_used?: string | null
+          unsubscribed?: boolean | null
+          was_edited?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_outreach_logs_ai_generated_content_id_fkey"
+            columns: ["ai_generated_content_id"]
+            isOneToOne: false
+            referencedRelation: "ai_generated_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_outreach_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_outreach_logs_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "ai_outreach_logs_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_outreach_logs_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_outreach_logs_recipient_company_id_fkey"
+            columns: ["recipient_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_outreach_logs_recipient_company_id_fkey"
+            columns: ["recipient_company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_persona_profiles: {
         Row: {
           characteristics: Json
@@ -22432,6 +22554,549 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_conversations: {
+        Row: {
+          booking_id: string | null
+          channel: string
+          company_id: string | null
+          company_interaction_id: string | null
+          contact_id: string | null
+          created_at: string | null
+          direction: string | null
+          email_thread_id: string | null
+          first_message_at: string
+          id: string
+          is_qualified: boolean | null
+          last_message_at: string | null
+          message_count: number | null
+          metadata: Json | null
+          next_action: string | null
+          next_action_due: string | null
+          owner_id: string | null
+          qualification_date: string | null
+          qualification_score: number | null
+          qualification_stage: string | null
+          referral_mentioned: boolean | null
+          referral_source: string | null
+          resulted_in_booking: boolean | null
+          sentiment_trend: number | null
+          source_utm: Json | null
+          status: string | null
+          updated_at: string | null
+          urgency_level: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          channel: string
+          company_id?: string | null
+          company_interaction_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          direction?: string | null
+          email_thread_id?: string | null
+          first_message_at?: string
+          id?: string
+          is_qualified?: boolean | null
+          last_message_at?: string | null
+          message_count?: number | null
+          metadata?: Json | null
+          next_action?: string | null
+          next_action_due?: string | null
+          owner_id?: string | null
+          qualification_date?: string | null
+          qualification_score?: number | null
+          qualification_stage?: string | null
+          referral_mentioned?: boolean | null
+          referral_source?: string | null
+          resulted_in_booking?: boolean | null
+          sentiment_trend?: number | null
+          source_utm?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          urgency_level?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          channel?: string
+          company_id?: string | null
+          company_interaction_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          direction?: string | null
+          email_thread_id?: string | null
+          first_message_at?: string
+          id?: string
+          is_qualified?: boolean | null
+          last_message_at?: string | null
+          message_count?: number | null
+          metadata?: Json | null
+          next_action?: string | null
+          next_action_due?: string | null
+          owner_id?: string | null
+          qualification_date?: string | null
+          qualification_score?: number | null
+          qualification_stage?: string | null
+          referral_mentioned?: boolean | null
+          referral_source?: string | null
+          resulted_in_booking?: boolean | null
+          sentiment_trend?: number | null
+          source_utm?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          urgency_level?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_conversations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_conversations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_conversations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_conversations_company_interaction_id_fkey"
+            columns: ["company_interaction_id"]
+            isOneToOne: false
+            referencedRelation: "company_interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_conversations_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "sales_conversations_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_conversations_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_forecasts: {
+        Row: {
+          ai_forecast_generated_at: string | null
+          company_id: string | null
+          confidence_score: number | null
+          created_at: string | null
+          engagement_score: number | null
+          forecast_notes: string | null
+          forecast_period: string
+          forecast_type: string | null
+          forecasted_by: string | null
+          id: string
+          is_slipping: boolean | null
+          job_id: string | null
+          last_activity_date: string | null
+          last_activity_type: string | null
+          predicted_close_date: string | null
+          predicted_value: number | null
+          probability_override: number | null
+          risk_factors: Json | null
+          slip_days: number | null
+          updated_at: string | null
+          upside_factors: Json | null
+          velocity_score: number | null
+          weighted_value: number | null
+        }
+        Insert: {
+          ai_forecast_generated_at?: string | null
+          company_id?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          engagement_score?: number | null
+          forecast_notes?: string | null
+          forecast_period: string
+          forecast_type?: string | null
+          forecasted_by?: string | null
+          id?: string
+          is_slipping?: boolean | null
+          job_id?: string | null
+          last_activity_date?: string | null
+          last_activity_type?: string | null
+          predicted_close_date?: string | null
+          predicted_value?: number | null
+          probability_override?: number | null
+          risk_factors?: Json | null
+          slip_days?: number | null
+          updated_at?: string | null
+          upside_factors?: Json | null
+          velocity_score?: number | null
+          weighted_value?: number | null
+        }
+        Update: {
+          ai_forecast_generated_at?: string | null
+          company_id?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          engagement_score?: number | null
+          forecast_notes?: string | null
+          forecast_period?: string
+          forecast_type?: string | null
+          forecasted_by?: string | null
+          id?: string
+          is_slipping?: boolean | null
+          job_id?: string | null
+          last_activity_date?: string | null
+          last_activity_type?: string | null
+          predicted_close_date?: string | null
+          predicted_value?: number | null
+          probability_override?: number | null
+          risk_factors?: Json | null
+          slip_days?: number | null
+          updated_at?: string | null
+          upside_factors?: Json | null
+          velocity_score?: number | null
+          weighted_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_forecasts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_forecasts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_forecasts_forecasted_by_fkey"
+            columns: ["forecasted_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "sales_forecasts_forecasted_by_fkey"
+            columns: ["forecasted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_forecasts_forecasted_by_fkey"
+            columns: ["forecasted_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_forecasts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_kpi_metrics: {
+        Row: {
+          breakdown: Json | null
+          calculated_at: string | null
+          category: string
+          company_id: string | null
+          created_at: string | null
+          id: string
+          kpi_name: string
+          metadata: Json | null
+          period_end: string | null
+          period_start: string | null
+          period_type: string | null
+          previous_value: number | null
+          rep_id: string | null
+          target_value: number | null
+          threshold_critical: number | null
+          threshold_warning: number | null
+          trend_direction: string | null
+          trend_percentage: number | null
+          value: number | null
+        }
+        Insert: {
+          breakdown?: Json | null
+          calculated_at?: string | null
+          category: string
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          kpi_name: string
+          metadata?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          period_type?: string | null
+          previous_value?: number | null
+          rep_id?: string | null
+          target_value?: number | null
+          threshold_critical?: number | null
+          threshold_warning?: number | null
+          trend_direction?: string | null
+          trend_percentage?: number | null
+          value?: number | null
+        }
+        Update: {
+          breakdown?: Json | null
+          calculated_at?: string | null
+          category?: string
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          kpi_name?: string
+          metadata?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          period_type?: string | null
+          previous_value?: number | null
+          rep_id?: string | null
+          target_value?: number | null
+          threshold_critical?: number | null
+          threshold_warning?: number | null
+          trend_direction?: string | null
+          trend_percentage?: number | null
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_kpi_metrics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_kpi_metrics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_kpi_metrics_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "sales_kpi_metrics_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_kpi_metrics_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_proposals: {
+        Row: {
+          accepted_at: string | null
+          assigned_to: string | null
+          candidate_offer_id: string | null
+          company_id: string | null
+          competitor_mentioned: string | null
+          conversation_id: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          discount_percentage: number | null
+          discovery_call_date: string | null
+          final_value: number | null
+          id: string
+          job_id: string | null
+          metadata: Json | null
+          notes: string | null
+          proposal_created_at: string | null
+          proposal_expires_at: string | null
+          proposal_sent_at: string | null
+          proposal_type: string | null
+          proposal_value: number
+          proposal_viewed_at: string | null
+          rejected_at: string | null
+          rejection_reason: string | null
+          response_deadline: string | null
+          revision_count: number | null
+          scope_changes: Json | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          assigned_to?: string | null
+          candidate_offer_id?: string | null
+          company_id?: string | null
+          competitor_mentioned?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          discount_percentage?: number | null
+          discovery_call_date?: string | null
+          final_value?: number | null
+          id?: string
+          job_id?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          proposal_created_at?: string | null
+          proposal_expires_at?: string | null
+          proposal_sent_at?: string | null
+          proposal_type?: string | null
+          proposal_value: number
+          proposal_viewed_at?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          response_deadline?: string | null
+          revision_count?: number | null
+          scope_changes?: Json | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          assigned_to?: string | null
+          candidate_offer_id?: string | null
+          company_id?: string | null
+          competitor_mentioned?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          discount_percentage?: number | null
+          discovery_call_date?: string | null
+          final_value?: number | null
+          id?: string
+          job_id?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          proposal_created_at?: string | null
+          proposal_expires_at?: string | null
+          proposal_sent_at?: string | null
+          proposal_type?: string | null
+          proposal_value?: number
+          proposal_viewed_at?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          response_deadline?: string | null
+          revision_count?: number | null
+          scope_changes?: Json | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_proposals_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "sales_proposals_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_proposals_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_proposals_candidate_offer_id_fkey"
+            columns: ["candidate_offer_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_proposals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_proposals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_proposals_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "sales_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_proposals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "sales_proposals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_proposals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_proposals_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_jobs: {
         Row: {
           created_at: string | null
@@ -28761,6 +29426,7 @@ export type Database = {
       cleanup_stale_voice_participants: { Args: never; Returns: number }
       cosine_similarity: { Args: { a: string; b: string }; Returns: number }
       detect_churn_risk: { Args: { p_user_id: string }; Returns: string }
+      detect_slipping_deals: { Args: never; Returns: undefined }
       evaluate_user_achievements: {
         Args: { _user_id: string }
         Returns: {
