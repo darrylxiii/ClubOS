@@ -22,7 +22,15 @@ import {
   MessageSquare,
   Phone,
   FileText,
-  Bot
+  Bot,
+  Server,
+  Zap,
+  Activity,
+  AlertTriangle,
+  LineChart,
+  Briefcase,
+  CreditCard,
+  Shield
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -40,6 +48,18 @@ const domainIcons: Record<KPIDomain, React.ElementType> = {
   operations: Building2,
   website: Globe,
   sales: DollarSign,
+  platform: Server,
+  intelligence: Brain,
+  growth: TrendingUp,
+};
+
+const domainColors: Record<KPIDomain, string> = {
+  operations: 'text-blue-500',
+  website: 'text-purple-500',
+  sales: 'text-amber-500',
+  platform: 'text-emerald-500',
+  intelligence: 'text-pink-500',
+  growth: 'text-cyan-500',
 };
 
 const categoryIcons: Record<string, React.ElementType> = {
@@ -65,6 +85,17 @@ const categoryIcons: Record<string, React.ElementType> = {
   ai_efficiency: Bot,
   quality: Heart,
   forecasting: TrendingUp,
+  // Platform
+  system: Server,
+  edge_functions: Zap,
+  // Intelligence
+  ml_models: Brain,
+  churn: AlertTriangle,
+  engagement: Activity,
+  // Growth
+  applications: Briefcase,
+  hiring: Users,
+  revenue: CreditCard,
 };
 
 const getHealthBadge = (score: number) => {
@@ -83,6 +114,9 @@ export function DomainSidebar({
     operations: true,
     website: true,
     sales: true,
+    platform: true,
+    intelligence: true,
+    growth: true,
   });
 
   const toggleDomain = (domain: KPIDomain) => {
@@ -107,6 +141,7 @@ export function DomainSidebar({
           {domainHealth.map(domain => {
             const DomainIcon = domainIcons[domain.domain];
             const isOpen = openDomains[domain.domain];
+            const iconColor = domainColors[domain.domain];
 
             return (
               <Collapsible
@@ -120,10 +155,13 @@ export function DomainSidebar({
                     className="w-full justify-between px-3 py-2 h-auto"
                   >
                     <div className="flex items-center gap-2">
-                      <DomainIcon className="h-4 w-4 text-primary" />
+                      <DomainIcon className={cn("h-4 w-4", iconColor)} />
                       <span className="font-medium">{domain.label}</span>
                     </div>
                     <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {domain.totalKPIs}
+                      </span>
                       <div className={cn(
                         "w-2 h-2 rounded-full",
                         getHealthBadge(domain.healthScore)
