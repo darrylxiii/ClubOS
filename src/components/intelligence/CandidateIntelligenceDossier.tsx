@@ -128,8 +128,8 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
           <div className="p-4 rounded-lg bg-background border border-border">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold">AI Recommendation</span>
-              <Badge className={getRecommendationColor(dossier.recommendation)}>
-                {dossier.recommendation.replace('_', ' ').toUpperCase()}
+              <Badge className={getRecommendationColor(dossier.recommendation || '')}>
+                {(dossier.recommendation || 'pending').replace('_', ' ').toUpperCase()}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">{dossier.recommendationReasoning}</p>
@@ -148,7 +148,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {dossier.topStrengths.map((strength: string, idx: number) => (
+              {(dossier.topStrengths || []).map((strength: string, idx: number) => (
                 <li key={idx} className="flex items-start gap-2 text-sm">
                   <span className="text-green-500 mt-1">✓</span>
                   <span>{strength}</span>
@@ -167,7 +167,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {dossier.topConcerns.map((concern: string, idx: number) => (
+              {(dossier.topConcerns || []).map((concern: string, idx: number) => (
                 <li key={idx} className="flex items-start gap-2 text-sm">
                   <span className="text-yellow-500 mt-1">!</span>
                   <span>{concern}</span>
@@ -187,18 +187,18 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Overall Sentiment</span>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className={getSentimentColor(dossier.sentimentAnalysis.overall)}>
-                {dossier.sentimentAnalysis.overall.toUpperCase()}
+              <Badge variant="outline" className={getSentimentColor(dossier.sentimentAnalysis?.overall || 'neutral')}>
+                {(dossier.sentimentAnalysis?.overall || 'neutral').toUpperCase()}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                {Math.round(dossier.sentimentAnalysis.confidence * 100)}% confidence
+                {Math.round((dossier.sentimentAnalysis?.confidence || 0) * 100)}% confidence
               </span>
             </div>
           </div>
           <div className="space-y-1">
             <span className="text-xs text-muted-foreground">Key Indicators:</span>
             <div className="flex flex-wrap gap-2">
-              {dossier.sentimentAnalysis.keyIndicators.map((indicator: string, idx: number) => (
+              {(dossier.sentimentAnalysis?.keyIndicators || []).map((indicator: string, idx: number) => (
                 <Badge key={idx} variant="secondary" className="text-xs">
                   {indicator}
                 </Badge>
@@ -221,11 +221,11 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
             {dossier.redFlags.map((flag: any, idx: number) => (
               <div key={idx} className="p-3 rounded-lg bg-background border border-red-500/20">
                 <div className="flex items-center justify-between mb-2">
-                  <Badge variant={flag.severity === 'high' ? 'destructive' : 'secondary'}>
-                    {flag.severity.toUpperCase()}
+                  <Badge variant={(flag.severity || '') === 'high' ? 'destructive' : 'secondary'}>
+                    {(flag.severity || 'unknown').toUpperCase()}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {Math.round(flag.confidence * 100)}% confidence
+                    {Math.round((flag.confidence || 0) * 100)}% confidence
                   </span>
                 </div>
                 <p className="text-sm font-medium mb-1">{flag.flag}</p>
@@ -246,28 +246,28 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
             <div>
               <span className="text-xs text-muted-foreground">Offer Acceptance</span>
               <div className="flex items-center gap-2 mt-1">
-                <Progress value={dossier.predictedOfferAcceptance * 100} className="flex-1 h-2" />
+              <Progress value={(dossier.predictedOfferAcceptance || 0) * 100} className="flex-1 h-2" />
                 <span className="text-sm font-semibold">
-                  {Math.round(dossier.predictedOfferAcceptance * 100)}%
+                  {Math.round((dossier.predictedOfferAcceptance || 0) * 100)}%
                 </span>
               </div>
             </div>
             <div>
               <span className="text-xs text-muted-foreground">Retention Risk</span>
               <Badge variant="outline" className="mt-1">
-                {dossier.retentionRisk.toUpperCase()}
+                {(dossier.retentionRisk || 'unknown').toUpperCase()}
               </Badge>
             </div>
             <div>
               <span className="text-xs text-muted-foreground">Time to Productivity</span>
               <Badge variant="outline" className="mt-1">
-                {dossier.timeToProductivity.toUpperCase()}
+                {(dossier.timeToProductivity || 'unknown').toUpperCase()}
               </Badge>
             </div>
             <div>
               <span className="text-xs text-muted-foreground">Interview Consensus</span>
-              <Badge variant={dossier.interviewConsensus.aligned ? 'default' : 'secondary'} className="mt-1">
-                {dossier.interviewConsensus.aligned ? 'ALIGNED' : 'MIXED'}
+              <Badge variant={dossier.interviewConsensus?.aligned ? 'default' : 'secondary'} className="mt-1">
+                {dossier.interviewConsensus?.aligned ? 'ALIGNED' : 'MIXED'}
               </Badge>
             </div>
           </div>
