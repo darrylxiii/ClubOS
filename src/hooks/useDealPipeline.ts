@@ -57,6 +57,14 @@ export function useDealStages() {
   });
 }
 
+// Helper function for case-insensitive stage matching
+export function findStageByName(stages: DealStage[], stageName: string): DealStage | undefined {
+  if (!stages || !stageName) return undefined;
+  // Try exact match first, then case-insensitive
+  return stages.find(s => s.name === stageName) || 
+         stages.find(s => s.name.toLowerCase() === stageName.toLowerCase());
+}
+
 export function useDealPipeline() {
   return useQuery({
     queryKey: ['deal-pipeline'],

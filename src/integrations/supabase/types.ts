@@ -29682,8 +29682,8 @@ export type Database = {
         Returns: {
           avg_deal_size: number
           deal_count: number
-          total_pipeline: number
-          weighted_pipeline: number
+          total_pipeline_value: number
+          weighted_pipeline_value: number
         }[]
       }
       can_access_board: {
@@ -29960,9 +29960,7 @@ export type Database = {
         Returns: {
           avg_current_salary: number
           avg_desired_salary: number
-          avg_experience_years: number
-          skill_match_rate: number
-          total_candidates: number
+          candidate_count: number
         }[]
       }
       get_popular_courses: {
