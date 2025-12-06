@@ -24,6 +24,8 @@ interface KPIOverviewProps {
   criticalAlerts: CriticalAlert[];
   allKPIs: UnifiedKPI[];
   onSelectCategory: (domain: KPIDomain, category: string) => void;
+  searchTerm?: string;
+  statusFilter?: string;
 }
 
 const domainIcons: Record<KPIDomain, React.ElementType> = {
@@ -218,11 +220,13 @@ export function KPIOverview({
   criticalAlerts,
   allKPIs,
   onSelectCategory,
+  searchTerm,
+  statusFilter,
 }: KPIOverviewProps) {
   return (
     <div className="space-y-6">
-      {/* Domain Health Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Domain Health Cards - 2x3 grid for 6 domains */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {domainHealth.map(domain => (
           <DomainHealthCard 
             key={domain.domain} 

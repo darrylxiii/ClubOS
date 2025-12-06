@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUnifiedKPIs, type KPIDomain } from '@/hooks/useUnifiedKPIs';
 import { ExecutiveSummaryBar } from './ExecutiveSummaryBar';
 import { DomainSidebar } from './DomainSidebar';
 import { KPIOverview } from './KPIOverview';
 import { CategoryView } from './CategoryView';
+import { KPISearchFilter, type StatusFilter } from './KPISearchFilter';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -15,6 +16,9 @@ export function UnifiedKPICommandCenter() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const isMobile = useIsMobile();
 
   const {
@@ -30,7 +34,36 @@ export function UnifiedKPICommandCenter() {
     criticalAlerts,
     refreshAll,
     categoryDisplayNames,
-  } = useUnifiedKPIs();
+  } = useUnifiedKPIs(period);
+
+  // Last updated timestamp
+  const lastUpdated = useMemo(() => new Date(), [isLoading]);
+
+  // Filter KPIs based on search and status
+  const filteredKPIs = useMemo(() => {
+    return allKPIs.filter(kpi => {
+      // Search filter
+      const matchesSearch = searchTerm === '' || 
+        kpi.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        kpi.id.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Status filter
+      const matchesStatus = statusFilter === 'all' ||
+        (statusFilter === 'critical' && kpi.status === 'critical') ||
+        (statusFilter === 'warning' && kpi.status === 'warning') ||
+        (statusFilter === 'on_target' && kpi.status === 'success');
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [allKPIs, searchTerm, statusFilter]);
+
+  // Counts for filter badges
+  const filterCounts = useMemo(() => ({
+    total: allKPIs.length,
+    critical: allKPIs.filter(k => k.status === 'critical').length,
+    warning: allKPIs.filter(k => k.status === 'warning').length,
+    onTarget: allKPIs.filter(k => k.status === 'success').length,
+  }), [allKPIs]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -79,8 +112,9 @@ export function UnifiedKPICommandCenter() {
         <div className="flex">
           {!isMobile && <div className="w-64 border-r border-border/50 h-[calc(100vh-3.5rem)]" />}
           <div className="flex-1 p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[1, 2, 3].map(i => (
+            {/* 6 domain cards in 2x3 grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map(i => (
                 <Skeleton key={i} className="h-48" />
               ))}
             </div>
@@ -105,6 +139,9 @@ export function UnifiedKPICommandCenter() {
         onTargetPercentage={onTargetPercentage}
         isRefreshing={isRefreshing}
         onRefresh={handleRefresh}
+        period={period}
+        onPeriodChange={setPeriod}
+        lastUpdated={lastUpdated}
       />
 
       <div className="flex flex-1">
@@ -141,17 +178,30 @@ export function UnifiedKPICommandCenter() {
               />
             ) : (
               <>
-                <div className="mb-6">
-                  <h1 className="text-2xl font-bold tracking-tight">KPI Command Center</h1>
-                  <p className="text-muted-foreground">
-                    Unified view across Operations, Website, Sales, Platform Health, Intelligence, and Growth
-                  </p>
+                <div className="mb-6 space-y-4">
+                  <div>
+                    <h1 className="text-2xl font-bold tracking-tight">KPI Command Center</h1>
+                    <p className="text-muted-foreground">
+                      Unified view across Operations, Website, Sales, Platform Health, Intelligence, and Growth
+                    </p>
+                  </div>
+                  
+                  {/* Search and Filter Bar */}
+                  <KPISearchFilter
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    statusFilter={statusFilter}
+                    onStatusFilterChange={setStatusFilter}
+                    counts={filterCounts}
+                  />
                 </div>
                 <KPIOverview
                   domainHealth={domainHealth}
                   criticalAlerts={criticalAlerts}
-                  allKPIs={allKPIs}
+                  allKPIs={filteredKPIs}
                   onSelectCategory={handleSelectCategory}
+                  searchTerm={searchTerm}
+                  statusFilter={statusFilter}
                 />
               </>
             )}
