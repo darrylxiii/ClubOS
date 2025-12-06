@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download, Bell } from 'lucide-react';
+import { ArrowLeft, Download, Bell, FileText } from 'lucide-react';
 import { UnifiedKPICard } from './UnifiedKPICard';
+import { AlertConfigDialog, type AlertThreshold } from './AlertConfigDialog';
+import { KPIDetailModal } from './KPIDetailModal';
+import { exportToCSV, exportToPDF } from './KPIExport';
+import { toast } from 'sonner';
 import type { UnifiedKPI, KPIDomain } from '@/hooks/useUnifiedKPIs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface CategoryViewProps {
   domain: KPIDomain;
@@ -114,6 +124,10 @@ export function CategoryView({
   kpis,
   onBack,
 }: CategoryViewProps) {
+  const [selectedKPI, setSelectedKPI] = useState<UnifiedKPI | null>(null);
+  const [alertKPI, setAlertKPI] = useState<UnifiedKPI | null>(null);
+  const [alertThresholds, setAlertThresholds] = useState<Record<string, AlertThreshold>>({});
+  
   const description = categoryDescriptions[category] || 'Category metrics and performance indicators';
   const actions = categoryActions[category];
 
@@ -122,6 +136,21 @@ export function CategoryView({
     const order = { critical: 0, warning: 1, success: 2, neutral: 3 };
     return order[a.status] - order[b.status];
   });
+
+  const handleExportCSV = () => {
+    exportToCSV(kpis, `${domain}-${category}-kpis`);
+    toast.success('KPIs exported to CSV');
+  };
+
+  const handleExportPDF = () => {
+    exportToPDF(kpis, `${domain}-${category}-kpis`);
+    toast.success('Opening print preview...');
+  };
+
+  const handleSaveAlert = (threshold: AlertThreshold) => {
+    setAlertThresholds(prev => ({ ...prev, [threshold.kpiId]: threshold }));
+    toast.success(`Alert configured for ${alertKPI?.displayName}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -141,14 +170,33 @@ export function CategoryView({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-2"
+            onClick={() => sortedKPIs[0] && setAlertKPI(sortedKPIs[0])}
+          >
             <Bell className="h-4 w-4" />
             Set Alerts
           </Button>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Download className="h-4 w-4" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportCSV}>
+                <FileText className="h-4 w-4 mr-2" />
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportPDF}>
+                <FileText className="h-4 w-4 mr-2" />
+                Export as PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -156,7 +204,13 @@ export function CategoryView({
       {sortedKPIs.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {sortedKPIs.map(kpi => (
-            <UnifiedKPICard key={kpi.id || kpi.name} kpi={kpi} />
+            <div 
+              key={kpi.id || kpi.name} 
+              className="cursor-pointer"
+              onClick={() => setSelectedKPI(kpi)}
+            >
+              <UnifiedKPICard kpi={kpi} showSparkline />
+            </div>
           ))}
         </div>
       ) : (
@@ -191,6 +245,26 @@ export function CategoryView({
           </CardContent>
         </Card>
       )}
+
+      {/* KPI Detail Modal */}
+      <KPIDetailModal
+        open={!!selectedKPI}
+        onOpenChange={(open) => !open && setSelectedKPI(null)}
+        kpi={selectedKPI}
+        onConfigureAlert={() => {
+          setAlertKPI(selectedKPI);
+          setSelectedKPI(null);
+        }}
+      />
+
+      {/* Alert Config Dialog */}
+      <AlertConfigDialog
+        open={!!alertKPI}
+        onOpenChange={(open) => !open && setAlertKPI(null)}
+        kpi={alertKPI}
+        currentThreshold={alertKPI ? alertThresholds[alertKPI.id] : undefined}
+        onSave={handleSaveAlert}
+      />
     </div>
   );
 }
