@@ -1,10 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useKPIMetrics, type KPIMetric } from './useQuantumKPIs';
 import { useLatestWebKPIs, getKPIStatus, type WebKPIMetric } from './useWebsiteKPIs';
 import { useGroupedSalesKPIs, type SalesKPI } from './useSalesKPIs';
+import { useSystemHealth } from './useSystemHealth';
+import { usePredictiveAnalytics } from './usePredictiveAnalytics';
+import { useApplicationMetrics } from './useApplicationMetrics';
+import { usePlatformHealth } from './usePlatformHealth';
+import { useFinancialStats } from './useFinancialData';
 
-export type KPIDomain = 'operations' | 'website' | 'sales';
+export type KPIDomain = 'operations' | 'website' | 'sales' | 'platform' | 'intelligence' | 'growth';
 export type KPIStatus = 'success' | 'warning' | 'critical' | 'neutral';
 
 export interface UnifiedKPI {
@@ -21,7 +26,7 @@ export interface UnifiedKPI {
   trendDirection?: 'up' | 'down' | 'stable';
   trendPercentage?: number;
   status: KPIStatus;
-  format: 'number' | 'percent' | 'currency' | 'hours' | 'days' | 'minutes';
+  format: 'number' | 'percent' | 'currency' | 'hours' | 'days' | 'minutes' | 'ms';
   unit?: string;
   description?: string;
   lowerIsBetter?: boolean;
@@ -144,22 +149,60 @@ const kpiDisplayNames: Record<string, string> = {
   slipping_deals: 'Slipping Deals',
   pipeline_coverage_ratio: 'Pipeline Coverage',
   avg_forecast_confidence: 'Forecast Confidence',
+  
+  // Platform Health
+  platform_health_score: 'Platform Health',
+  active_users_1h: 'Active Users (1h)',
+  total_errors_1h: 'Errors (1h)',
+  critical_errors_1h: 'Critical Errors (1h)',
+  avg_response_time_ms: 'Avg Response Time',
+  db_connections: 'DB Connections',
+  edge_function_success_rate: 'Edge Fn Success Rate',
+  edge_function_avg_duration: 'Edge Fn Avg Duration',
+  
+  // Intelligence
+  ml_model_auc_roc: 'Model AUC-ROC',
+  ml_predictions_count: 'ML Predictions',
+  churn_critical_count: 'Critical Churn Risk',
+  churn_high_count: 'High Churn Risk',
+  high_engagement_users: 'High Engagement',
+  medium_engagement_users: 'Medium Engagement',
+  low_engagement_users: 'Low Engagement',
+  avg_events_per_user: 'Avg Events/User',
+  
+  // Growth
+  total_applications: 'Total Applications',
+  pending_review: 'Pending Review',
+  approved_applications: 'Approved',
+  rejected_applications: 'Rejected',
+  new_today: 'New Today',
+  approval_rate: 'Approval Rate',
+  jobs_filled_this_month: 'Jobs Filled',
+  active_meetings: 'Active Meetings',
+  total_placement_revenue: 'Placement Revenue',
+  paid_placement_revenue: 'Paid Revenue',
+  outstanding_invoices: 'Outstanding Invoices',
+  overdue_invoices: 'Overdue Invoices',
+  pending_payouts: 'Pending Payouts',
 };
 
 // Category display names
 const categoryDisplayNames: Record<string, string> = {
+  // Operations
   workforce: 'Workforce',
   pipeline: 'Pipeline',
   recruitment: 'Recruitment',
   experience: 'Experience',
   utilisation: 'Utilisation',
   financial: 'Financial',
+  // Website
   north_star: 'North Star',
   funnel: 'Performance',
   attribution: 'Attribution',
   ai_insights: 'AI Insights',
   retention: 'Retention',
   google_signals: 'Google Signals',
+  // Sales
   conversational: 'Conversational',
   meetings: 'Meetings',
   proposals: 'Proposals',
@@ -167,15 +210,27 @@ const categoryDisplayNames: Record<string, string> = {
   ai_efficiency: 'AI Efficiency',
   quality: 'Quality',
   forecasting: 'Forecasting',
+  // Platform
+  system: 'System Health',
+  edge_functions: 'Edge Functions',
+  // Intelligence
+  ml_models: 'ML Models',
+  churn: 'Churn Risk',
+  engagement: 'Engagement',
+  // Growth
+  applications: 'Applications',
+  hiring: 'Hiring',
+  revenue: 'Revenue',
 };
 
 // Determine format for KPI
 function getKPIFormat(name: string): { format: UnifiedKPI['format']; unit?: string; lowerIsBetter?: boolean } {
-  if (name.includes('pct') || name.includes('rate') || name.includes('ratio') || name === 'win_rate') {
+  if (name.includes('pct') || name.includes('rate') || name.includes('ratio') || name === 'win_rate' || name.includes('auc')) {
     return { format: 'percent', unit: '%' };
   }
   if (name.includes('value') || name.includes('revenue') || name.includes('deal_size') || 
-      name.includes('bonus') || name.includes('cost') || name === 'cpl' || name === 'cpsql') {
+      name.includes('bonus') || name.includes('cost') || name === 'cpl' || name === 'cpsql' ||
+      name.includes('invoices') || name.includes('payouts')) {
     return { format: 'currency', unit: '€' };
   }
   if (name.includes('hours') || name === 'hours_worked') {
@@ -184,14 +239,16 @@ function getKPIFormat(name: string): { format: UnifiedKPI['format']; unit?: stri
   if (name.includes('days') || name === 'avg_time_to_hire') {
     return { format: 'days', unit: 'd' };
   }
-  if (name.includes('duration') || name.includes('lag')) {
-    return { format: 'minutes', unit: 'min' };
+  if (name.includes('duration') || name.includes('lag') || name.includes('response_time') || name.includes('_ms')) {
+    return { format: 'ms', unit: 'ms' };
   }
   
   // Lower is better for these
   const lowerIsBetter = ['bounce_rate', 'idle_time_pct', 'slipping_deals', 'churned_deals', 
     'no_shows', 'scope_change_frequency', 'cpl', 'cpsql', 'page_load_time_lcp', 
-    'search_to_lead_lag', 'session_to_sql_lag', 'cost_per_placement'].includes(name);
+    'search_to_lead_lag', 'session_to_sql_lag', 'cost_per_placement', 'total_errors_1h',
+    'critical_errors_1h', 'churn_critical_count', 'churn_high_count', 'pending_review',
+    'rejected_applications', 'overdue_invoices', 'avg_response_time_ms', 'low_engagement_users'].includes(name);
   
   return { format: 'number', lowerIsBetter };
 }
@@ -304,6 +361,405 @@ function transformSalesKPIs(grouped: Record<string, SalesKPI[]> | undefined): Un
   return result;
 }
 
+// Transform Platform Health KPIs
+function transformPlatformKPIs(
+  systemHealth: { platform_status: string; active_users_1h: number; total_errors_1h: number; critical_errors_1h: number; avg_response_time_ms: number; db_connections: number } | undefined,
+  edgeFunctions: { function_name: string; success_rate: number; avg_duration_ms: number }[] | undefined
+): UnifiedKPI[] {
+  const result: UnifiedKPI[] = [];
+  
+  if (systemHealth) {
+    // System Health KPIs
+    result.push({
+      id: 'platform_active_users',
+      domain: 'platform',
+      category: 'system',
+      name: 'active_users_1h',
+      displayName: 'Active Users (1h)',
+      value: systemHealth.active_users_1h || 0,
+      targetValue: 10,
+      status: systemHealth.active_users_1h >= 10 ? 'success' : systemHealth.active_users_1h >= 5 ? 'warning' : 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'platform_errors',
+      domain: 'platform',
+      category: 'system',
+      name: 'total_errors_1h',
+      displayName: 'Errors (1h)',
+      value: systemHealth.total_errors_1h || 0,
+      warningThreshold: 10,
+      criticalThreshold: 50,
+      lowerIsBetter: true,
+      status: systemHealth.total_errors_1h >= 50 ? 'critical' : systemHealth.total_errors_1h >= 10 ? 'warning' : 'success',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'platform_critical_errors',
+      domain: 'platform',
+      category: 'system',
+      name: 'critical_errors_1h',
+      displayName: 'Critical Errors (1h)',
+      value: systemHealth.critical_errors_1h || 0,
+      warningThreshold: 1,
+      criticalThreshold: 5,
+      lowerIsBetter: true,
+      status: systemHealth.critical_errors_1h >= 5 ? 'critical' : systemHealth.critical_errors_1h >= 1 ? 'warning' : 'success',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'platform_response_time',
+      domain: 'platform',
+      category: 'system',
+      name: 'avg_response_time_ms',
+      displayName: 'Avg Response Time',
+      value: systemHealth.avg_response_time_ms || 0,
+      targetValue: 200,
+      warningThreshold: 500,
+      criticalThreshold: 1000,
+      lowerIsBetter: true,
+      status: systemHealth.avg_response_time_ms <= 200 ? 'success' : systemHealth.avg_response_time_ms <= 500 ? 'warning' : 'critical',
+      format: 'ms',
+      unit: 'ms',
+    });
+    
+    result.push({
+      id: 'platform_db_connections',
+      domain: 'platform',
+      category: 'system',
+      name: 'db_connections',
+      displayName: 'DB Connections',
+      value: systemHealth.db_connections || 0,
+      warningThreshold: 80,
+      criticalThreshold: 95,
+      lowerIsBetter: true,
+      status: systemHealth.db_connections >= 95 ? 'critical' : systemHealth.db_connections >= 80 ? 'warning' : 'success',
+      format: 'number',
+    });
+  }
+  
+  // Edge Function KPIs (aggregate)
+  if (edgeFunctions && edgeFunctions.length > 0) {
+    const avgSuccessRate = edgeFunctions.reduce((sum, f) => sum + (f.success_rate || 0), 0) / edgeFunctions.length;
+    const avgDuration = edgeFunctions.reduce((sum, f) => sum + (f.avg_duration_ms || 0), 0) / edgeFunctions.length;
+    
+    result.push({
+      id: 'edge_fn_success_rate',
+      domain: 'platform',
+      category: 'edge_functions',
+      name: 'edge_function_success_rate',
+      displayName: 'Edge Fn Success Rate',
+      value: avgSuccessRate,
+      targetValue: 99,
+      warningThreshold: 95,
+      criticalThreshold: 90,
+      status: avgSuccessRate >= 99 ? 'success' : avgSuccessRate >= 95 ? 'warning' : 'critical',
+      format: 'percent',
+      unit: '%',
+    });
+    
+    result.push({
+      id: 'edge_fn_duration',
+      domain: 'platform',
+      category: 'edge_functions',
+      name: 'edge_function_avg_duration',
+      displayName: 'Edge Fn Avg Duration',
+      value: avgDuration,
+      targetValue: 500,
+      warningThreshold: 1000,
+      criticalThreshold: 2000,
+      lowerIsBetter: true,
+      status: avgDuration <= 500 ? 'success' : avgDuration <= 1000 ? 'warning' : 'critical',
+      format: 'ms',
+      unit: 'ms',
+    });
+  }
+  
+  return result;
+}
+
+// Transform Intelligence KPIs
+function transformIntelligenceKPIs(
+  activeModel: { metrics: { auc_roc?: number } } | null | undefined,
+  matchPredictions: any[] | undefined,
+  churnRiskUsers: { risk_level: string }[] | undefined,
+  engagementStats: { highEngagement: number; mediumEngagement: number; lowEngagement: number; avgEventsPerUser: number } | undefined
+): UnifiedKPI[] {
+  const result: UnifiedKPI[] = [];
+  
+  // ML Model KPIs
+  if (activeModel?.metrics?.auc_roc) {
+    result.push({
+      id: 'ml_auc_roc',
+      domain: 'intelligence',
+      category: 'ml_models',
+      name: 'ml_model_auc_roc',
+      displayName: 'Model AUC-ROC',
+      value: activeModel.metrics.auc_roc * 100,
+      targetValue: 85,
+      warningThreshold: 70,
+      criticalThreshold: 60,
+      status: activeModel.metrics.auc_roc >= 0.85 ? 'success' : activeModel.metrics.auc_roc >= 0.70 ? 'warning' : 'critical',
+      format: 'percent',
+      unit: '%',
+    });
+  }
+  
+  result.push({
+    id: 'ml_predictions_count',
+    domain: 'intelligence',
+    category: 'ml_models',
+    name: 'ml_predictions_count',
+    displayName: 'ML Predictions',
+    value: matchPredictions?.length || 0,
+    targetValue: 50,
+    status: (matchPredictions?.length || 0) >= 50 ? 'success' : 'neutral',
+    format: 'number',
+  });
+  
+  // Churn KPIs
+  if (churnRiskUsers) {
+    const criticalCount = churnRiskUsers.filter(u => u.risk_level === 'critical').length;
+    const highCount = churnRiskUsers.filter(u => u.risk_level === 'high').length;
+    
+    result.push({
+      id: 'churn_critical',
+      domain: 'intelligence',
+      category: 'churn',
+      name: 'churn_critical_count',
+      displayName: 'Critical Churn Risk',
+      value: criticalCount,
+      warningThreshold: 3,
+      criticalThreshold: 10,
+      lowerIsBetter: true,
+      status: criticalCount >= 10 ? 'critical' : criticalCount >= 3 ? 'warning' : 'success',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'churn_high',
+      domain: 'intelligence',
+      category: 'churn',
+      name: 'churn_high_count',
+      displayName: 'High Churn Risk',
+      value: highCount,
+      warningThreshold: 10,
+      criticalThreshold: 25,
+      lowerIsBetter: true,
+      status: highCount >= 25 ? 'critical' : highCount >= 10 ? 'warning' : 'success',
+      format: 'number',
+    });
+  }
+  
+  // Engagement KPIs
+  if (engagementStats) {
+    result.push({
+      id: 'engagement_high',
+      domain: 'intelligence',
+      category: 'engagement',
+      name: 'high_engagement_users',
+      displayName: 'High Engagement',
+      value: engagementStats.highEngagement,
+      targetValue: 20,
+      status: engagementStats.highEngagement >= 20 ? 'success' : 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'engagement_medium',
+      domain: 'intelligence',
+      category: 'engagement',
+      name: 'medium_engagement_users',
+      displayName: 'Medium Engagement',
+      value: engagementStats.mediumEngagement,
+      status: 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'engagement_low',
+      domain: 'intelligence',
+      category: 'engagement',
+      name: 'low_engagement_users',
+      displayName: 'Low Engagement',
+      value: engagementStats.lowEngagement,
+      warningThreshold: 30,
+      criticalThreshold: 50,
+      lowerIsBetter: true,
+      status: engagementStats.lowEngagement >= 50 ? 'critical' : engagementStats.lowEngagement >= 30 ? 'warning' : 'success',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'engagement_avg_events',
+      domain: 'intelligence',
+      category: 'engagement',
+      name: 'avg_events_per_user',
+      displayName: 'Avg Events/User',
+      value: engagementStats.avgEventsPerUser,
+      targetValue: 30,
+      warningThreshold: 15,
+      status: engagementStats.avgEventsPerUser >= 30 ? 'success' : engagementStats.avgEventsPerUser >= 15 ? 'neutral' : 'warning',
+      format: 'number',
+    });
+  }
+  
+  return result;
+}
+
+// Transform Growth KPIs
+function transformGrowthKPIs(
+  appMetrics: { total_applications: number; pending_review: number; approved: number; rejected: number; new_today: number; approval_rate: number } | undefined,
+  platformHealth: { jobsFilledThisMonth: number; activeMeetings: number } | undefined,
+  financialStats: { totalPlacementRevenue: number; paidPlacementRevenue: number; outstandingInvoices: number; overdueInvoices: number; pendingPayouts: number } | undefined
+): UnifiedKPI[] {
+  const result: UnifiedKPI[] = [];
+  
+  // Application KPIs
+  if (appMetrics) {
+    result.push({
+      id: 'growth_total_apps',
+      domain: 'growth',
+      category: 'applications',
+      name: 'total_applications',
+      displayName: 'Total Applications',
+      value: appMetrics.total_applications,
+      status: 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'growth_pending',
+      domain: 'growth',
+      category: 'applications',
+      name: 'pending_review',
+      displayName: 'Pending Review',
+      value: appMetrics.pending_review,
+      warningThreshold: 20,
+      criticalThreshold: 50,
+      lowerIsBetter: true,
+      status: appMetrics.pending_review >= 50 ? 'critical' : appMetrics.pending_review >= 20 ? 'warning' : 'success',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'growth_new_today',
+      domain: 'growth',
+      category: 'applications',
+      name: 'new_today',
+      displayName: 'New Today',
+      value: appMetrics.new_today,
+      targetValue: 5,
+      status: appMetrics.new_today >= 5 ? 'success' : 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'growth_approval_rate',
+      domain: 'growth',
+      category: 'applications',
+      name: 'approval_rate',
+      displayName: 'Approval Rate',
+      value: appMetrics.approval_rate,
+      targetValue: 70,
+      warningThreshold: 50,
+      criticalThreshold: 30,
+      status: appMetrics.approval_rate >= 70 ? 'success' : appMetrics.approval_rate >= 50 ? 'warning' : 'critical',
+      format: 'percent',
+      unit: '%',
+    });
+  }
+  
+  // Hiring KPIs
+  if (platformHealth) {
+    result.push({
+      id: 'growth_jobs_filled',
+      domain: 'growth',
+      category: 'hiring',
+      name: 'jobs_filled_this_month',
+      displayName: 'Jobs Filled',
+      value: platformHealth.jobsFilledThisMonth,
+      targetValue: 5,
+      status: platformHealth.jobsFilledThisMonth >= 5 ? 'success' : 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'growth_active_meetings',
+      domain: 'growth',
+      category: 'hiring',
+      name: 'active_meetings',
+      displayName: 'Active Meetings',
+      value: platformHealth.activeMeetings,
+      targetValue: 10,
+      status: platformHealth.activeMeetings >= 10 ? 'success' : 'neutral',
+      format: 'number',
+    });
+  }
+  
+  // Financial KPIs
+  if (financialStats) {
+    result.push({
+      id: 'growth_placement_revenue',
+      domain: 'growth',
+      category: 'revenue',
+      name: 'total_placement_revenue',
+      displayName: 'Placement Revenue',
+      value: financialStats.totalPlacementRevenue,
+      status: 'neutral',
+      format: 'currency',
+      unit: '€',
+    });
+    
+    result.push({
+      id: 'growth_paid_revenue',
+      domain: 'growth',
+      category: 'revenue',
+      name: 'paid_placement_revenue',
+      displayName: 'Paid Revenue',
+      value: financialStats.paidPlacementRevenue,
+      status: 'neutral',
+      format: 'currency',
+      unit: '€',
+    });
+    
+    result.push({
+      id: 'growth_outstanding',
+      domain: 'growth',
+      category: 'revenue',
+      name: 'outstanding_invoices',
+      displayName: 'Outstanding Invoices',
+      value: financialStats.outstandingInvoices,
+      warningThreshold: 10000,
+      criticalThreshold: 50000,
+      lowerIsBetter: true,
+      status: financialStats.outstandingInvoices >= 50000 ? 'critical' : financialStats.outstandingInvoices >= 10000 ? 'warning' : 'success',
+      format: 'currency',
+      unit: '€',
+    });
+    
+    result.push({
+      id: 'growth_overdue',
+      domain: 'growth',
+      category: 'revenue',
+      name: 'overdue_invoices',
+      displayName: 'Overdue Invoices',
+      value: financialStats.overdueInvoices,
+      warningThreshold: 5000,
+      criticalThreshold: 20000,
+      lowerIsBetter: true,
+      status: financialStats.overdueInvoices >= 20000 ? 'critical' : financialStats.overdueInvoices >= 5000 ? 'warning' : 'success',
+      format: 'currency',
+      unit: '€',
+    });
+  }
+  
+  return result;
+}
+
 // Calculate domain health
 function calculateDomainHealth(kpis: UnifiedKPI[], domain: KPIDomain, label: string): DomainHealth {
   const domainKPIs = kpis.filter(k => k.domain === domain);
@@ -352,23 +808,41 @@ function calculateDomainHealth(kpis: UnifiedKPI[], domain: KPIDomain, label: str
 
 // Main hook
 export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
+  // Original 3 domains
   const { data: operationsData, isLoading: opsLoading, refetch: refetchOps } = useKPIMetrics(period);
   const { data: websiteData, isLoading: webLoading, refetch: refetchWeb } = useLatestWebKPIs();
   const { data: salesData, isLoading: salesLoading, refetch: refetchSales } = useGroupedSalesKPIs();
   
-  const isLoading = opsLoading || webLoading || salesLoading;
+  // New domains
+  const { health: systemHealth, functions: edgeFunctions, isLoading: platformLoading, refetch: refetchPlatform } = useSystemHealth();
+  const { activeModel, matchPredictions, churnRiskUsers, engagementStats, isLoading: intelligenceLoading, refetchChurn, refetchModel } = usePredictiveAnalytics();
+  const { metrics: appMetrics, isLoading: appLoading } = useApplicationMetrics();
+  const platformHealthResult = usePlatformHealth();
+  const platformHealthMetrics = platformHealthResult;
+  const healthLoading = false;
+  const financialResult = useFinancialStats();
+  const financialStats = financialResult.data;
+  const financialLoading = financialResult.isLoading;
+  
+  const isLoading = opsLoading || webLoading || salesLoading || platformLoading || intelligenceLoading || appLoading || healthLoading || financialLoading;
   
   // Transform all KPIs
   const operationsKPIs = transformOperationsKPIs(operationsData as unknown as Record<string, KPIMetric[]> | undefined);
   const websiteKPIs = transformWebsiteKPIs(websiteData);
   const salesKPIs = transformSalesKPIs(salesData);
+  const platformKPIs = transformPlatformKPIs(systemHealth, edgeFunctions);
+  const intelligenceKPIs = transformIntelligenceKPIs(activeModel, matchPredictions, churnRiskUsers, engagementStats);
+  const growthKPIs = transformGrowthKPIs(appMetrics, platformHealthMetrics, financialStats);
   
-  const allKPIs = [...operationsKPIs, ...websiteKPIs, ...salesKPIs];
+  const allKPIs = [...operationsKPIs, ...websiteKPIs, ...salesKPIs, ...platformKPIs, ...intelligenceKPIs, ...growthKPIs];
   
   // Calculate domain health
   const operationsHealth = calculateDomainHealth(allKPIs, 'operations', 'Operations');
   const websiteHealth = calculateDomainHealth(allKPIs, 'website', 'Website');
   const salesHealth = calculateDomainHealth(allKPIs, 'sales', 'Sales');
+  const platformHealth = calculateDomainHealth(allKPIs, 'platform', 'Platform');
+  const intelligenceHealth = calculateDomainHealth(allKPIs, 'intelligence', 'Intelligence');
+  const growthHealth = calculateDomainHealth(allKPIs, 'growth', 'Growth');
   
   // Overall health
   const totalKPIs = allKPIs.length;
@@ -395,6 +869,9 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
     operations: operationsKPIs,
     website: websiteKPIs,
     sales: salesKPIs,
+    platform: platformKPIs,
+    intelligence: intelligenceKPIs,
+    growth: growthKPIs,
   };
   
   // Group by category
@@ -407,7 +884,14 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
   
   // Refresh all
   const refreshAll = async () => {
-    await Promise.all([refetchOps(), refetchWeb(), refetchSales()]);
+    await Promise.all([
+      refetchOps(), 
+      refetchWeb(), 
+      refetchSales(), 
+      refetchPlatform(),
+      refetchChurn(),
+      refetchModel(),
+    ]);
   };
   
   return {
@@ -415,7 +899,7 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
     allKPIs,
     byDomain,
     byCategory,
-    domainHealth: [operationsHealth, websiteHealth, salesHealth],
+    domainHealth: [operationsHealth, websiteHealth, salesHealth, platformHealth, intelligenceHealth, growthHealth],
     overallHealth,
     totalKPIs,
     totalOnTarget,
@@ -430,13 +914,11 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
 
 // Hook for cross-domain insights
 export function useCrossDomainInsights(kpis: UnifiedKPI[]) {
-  // Analyze correlations between domains
   const insights: { type: 'warning' | 'success' | 'info'; message: string; action?: string }[] = [];
   
-  // Example correlations
+  // Website + Sales correlations
   const cpl = kpis.find(k => k.name === 'cpl');
   const landingCR = kpis.find(k => k.name === 'landing_page_conversion_rate');
-  
   if (cpl && landingCR && cpl.status === 'warning' && landingCR.status !== 'success') {
     insights.push({
       type: 'warning',
@@ -445,9 +927,9 @@ export function useCrossDomainInsights(kpis: UnifiedKPI[]) {
     });
   }
   
+  // Operations + Experience
   const showRate = kpis.find(k => k.name === 'show_rate');
   const npsCandidate = kpis.find(k => k.name === 'nps_candidate');
-  
   if (showRate && npsCandidate && showRate.status === 'success' && npsCandidate.status === 'success') {
     insights.push({
       type: 'success',
@@ -456,10 +938,51 @@ export function useCrossDomainInsights(kpis: UnifiedKPI[]) {
     });
   }
   
-  const winRate = kpis.find(k => k.name === 'win_rate');
-  const timeToHire = kpis.find(k => k.name === 'avg_time_to_hire');
+  // Platform + Intelligence
+  const criticalErrors = kpis.find(k => k.name === 'critical_errors_1h');
+  const lowEngagement = kpis.find(k => k.name === 'low_engagement_users');
+  if (criticalErrors && lowEngagement && criticalErrors.status !== 'success' && lowEngagement.status !== 'success') {
+    insights.push({
+      type: 'warning',
+      message: 'System errors correlating with declining engagement',
+      action: 'Prioritize error resolution to prevent user churn',
+    });
+  }
   
-  if (winRate && timeToHire && winRate.status === 'success') {
+  // Intelligence + Growth
+  const churnCritical = kpis.find(k => k.name === 'churn_critical_count');
+  const approvalRate = kpis.find(k => k.name === 'approval_rate');
+  if (churnCritical && churnCritical.status === 'critical') {
+    insights.push({
+      type: 'warning',
+      message: `${churnCritical.value} users at critical churn risk`,
+      action: 'Trigger immediate re-engagement campaign',
+    });
+  }
+  
+  // Financial
+  const overdueInvoices = kpis.find(k => k.name === 'overdue_invoices');
+  if (overdueInvoices && overdueInvoices.status !== 'success') {
+    insights.push({
+      type: 'warning',
+      message: 'Overdue invoices require attention',
+      action: 'Follow up with clients on outstanding payments',
+    });
+  }
+  
+  // ML Model
+  const mlAuc = kpis.find(k => k.name === 'ml_model_auc_roc');
+  if (mlAuc && mlAuc.status === 'success') {
+    insights.push({
+      type: 'success',
+      message: 'ML model performing well with high accuracy',
+      action: 'Continue using AI-powered candidate matching',
+    });
+  }
+  
+  // Success state
+  const winRate = kpis.find(k => k.name === 'win_rate');
+  if (winRate && winRate.status === 'success') {
     insights.push({
       type: 'info',
       message: 'Pipeline Win Rate stable with optimized hiring cycle',
