@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUnifiedKPIs, type KPIDomain, type UnifiedKPI } from '@/hooks/useUnifiedKPIs';
+import { useUnifiedKPIs, type KPIDomain, type UnifiedKPI, type DomainHealth } from '@/hooks/useUnifiedKPIs';
 import { ExecutiveSummaryBar } from './ExecutiveSummaryBar';
 import { DomainSidebar } from './DomainSidebar';
 import { KPIOverview } from './KPIOverview';
@@ -280,7 +280,10 @@ export function UnifiedKPICommandCenter() {
                 <div className="mb-6">
                   <AIExecutiveSummary
                     allKPIs={allKPIs}
-                    domainHealth={domainHealth}
+                    domainHealth={domainHealth.reduce((acc, domain) => {
+                      acc[domain.domain] = domain;
+                      return acc;
+                    }, {} as Record<string, DomainHealth>)}
                     overallHealth={overallHealth}
                     onRefresh={handleRefresh}
                     isRefreshing={isRefreshing}
