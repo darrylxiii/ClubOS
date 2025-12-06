@@ -46,7 +46,19 @@ import { InterviewerDashboard } from "@/components/partner/dashboards/Interviewe
 import { ObserverDashboard } from "@/components/partner/dashboards/ObserverDashboard";
 import { ManualInterviewEntryDialog } from "@/components/partner/ManualInterviewEntryDialog";
 import { CalendarInterviewLinker } from "@/components/partner/CalendarInterviewLinker";
-import { JobDashboardSidebar, InlineActivityFeed, CollapsibleSection, CandidatesAtRiskPanel, QuickResponseTimeTracker } from "@/components/job-dashboard";
+import { 
+  JobDashboardSidebar, 
+  InlineActivityFeed, 
+  CollapsibleSection, 
+  CandidatesAtRiskPanel, 
+  QuickResponseTimeTracker,
+  PipelineVelocityTracker,
+  CandidateLeaderboard,
+  CandidateEngagementStream,
+  StageQuickActionsToolbar,
+  JobPerformanceScorecard
+} from "@/components/job-dashboard";
+import { motion } from "framer-motion";
 import {
   DndContext,
   closestCenter,
@@ -575,17 +587,53 @@ export default function JobDashboard() {
           <main className="space-y-6">
             {/* Candidates at Risk - Top Priority Alert */}
             {metrics && applications.length > 0 && (
-              <CandidatesAtRiskPanel
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <CandidatesAtRiskPanel
+                  applications={applications}
+                  stages={stages}
+                  avgDaysInStage={metrics.avgDaysInStage}
+                  jobId={jobId!}
+                />
+              </motion.div>
+            )}
+
+            {/* Pipeline Velocity & Performance - Side by Side */}
+            {metrics && (
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                <PipelineVelocityTracker
+                  stages={stages}
+                  avgDaysInStage={metrics.avgDaysInStage}
+                  stageBreakdown={metrics.stageBreakdown}
+                />
+                <JobPerformanceScorecard
+                  metrics={metrics}
+                  daysOpen={Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))}
+                />
+              </div>
+            )}
+
+            {/* Top Candidates Leaderboard */}
+            {applications.length > 0 && (
+              <CandidateLeaderboard
                 applications={applications}
                 stages={stages}
-                avgDaysInStage={metrics.avgDaysInStage}
                 jobId={jobId!}
               />
             )}
 
             {/* Smart Insights - Promoted */}
             {metrics && (
-              <SmartInsightsCard metrics={metrics} stages={stages} />
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+              >
+                <SmartInsightsCard metrics={metrics} stages={stages} />
+              </motion.div>
             )}
 
             {/* Enhanced Pipeline Breakdown */}
