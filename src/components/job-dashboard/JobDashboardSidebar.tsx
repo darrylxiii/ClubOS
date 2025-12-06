@@ -5,6 +5,8 @@ import { JobTeamPanel } from "@/components/partner/JobTeamPanel";
 import { InlineDocumentsCard } from "./InlineDocumentsCard";
 import { UpcomingInterviewsCompact } from "./UpcomingInterviewsCompact";
 import { QuickResponseTimeTracker } from "./QuickResponseTimeTracker";
+import { CandidateEngagementStream } from "./CandidateEngagementStream";
+import { motion } from "framer-motion";
 
 interface JobDashboardSidebarProps {
   job: any;
@@ -49,7 +51,12 @@ export const JobDashboardSidebar = memo(({
     : 0;
 
   return (
-    <div className="space-y-4 lg:sticky lg:top-6 h-fit">
+    <motion.div 
+      className="space-y-4 lg:sticky lg:top-6 h-fit"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       {/* Job Summary - Always Visible */}
       <JobSummaryCard 
         job={job}
@@ -65,6 +72,9 @@ export const JobDashboardSidebar = memo(({
         conversionRate={metrics?.conversionRates?.['0-1'] || 0}
         avgTimeToHire={Math.round(avgTimeToHire)}
       />
+
+      {/* Live Engagement Stream */}
+      <CandidateEngagementStream jobId={job.id} />
 
       {/* Quick Response Time Tracker */}
       {metrics && stages.length > 0 && (
@@ -82,7 +92,7 @@ export const JobDashboardSidebar = memo(({
       
       {/* Upcoming Interviews - Compact */}
       <UpcomingInterviewsCompact jobId={job.id} limit={3} />
-    </div>
+    </motion.div>
   );
 });
 
