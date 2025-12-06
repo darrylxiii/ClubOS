@@ -5502,7 +5502,9 @@ export type Database = {
           cover_image_url: string | null
           created_at: string
           culture_highlights: Json | null
+          default_fee_notes: string | null
           description: string | null
+          fee_type: string | null
           founded_year: number | null
           headquarters_location: string | null
           hiring_intent_score: number | null
@@ -5519,6 +5521,7 @@ export type Database = {
           meta_title: string | null
           mission: string | null
           name: string
+          placement_fee_fixed: number | null
           placement_fee_percentage: number | null
           slug: string
           tagline: string | null
@@ -5537,7 +5540,9 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           culture_highlights?: Json | null
+          default_fee_notes?: string | null
           description?: string | null
+          fee_type?: string | null
           founded_year?: number | null
           headquarters_location?: string | null
           hiring_intent_score?: number | null
@@ -5554,6 +5559,7 @@ export type Database = {
           meta_title?: string | null
           mission?: string | null
           name: string
+          placement_fee_fixed?: number | null
           placement_fee_percentage?: number | null
           slug: string
           tagline?: string | null
@@ -5572,7 +5578,9 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           culture_highlights?: Json | null
+          default_fee_notes?: string | null
           description?: string | null
+          fee_type?: string | null
           founded_year?: number | null
           headquarters_location?: string | null
           hiring_intent_score?: number | null
@@ -5589,6 +5597,7 @@ export type Database = {
           meta_title?: string | null
           mission?: string | null
           name?: string
+          placement_fee_fixed?: number | null
           placement_fee_percentage?: number | null
           slug?: string
           tagline?: string | null
@@ -12877,6 +12886,7 @@ export type Database = {
           embedding_generated_at: string | null
           employment_type: string | null
           expected_close_date: string | null
+          fee_source: string | null
           hired_count: number | null
           id: string
           is_continuous: boolean | null
@@ -12884,6 +12894,9 @@ export type Database = {
           is_stealth: boolean | null
           job_description_url: string | null
           job_embedding: string | null
+          job_fee_fixed: number | null
+          job_fee_percentage: number | null
+          job_fee_type: string | null
           last_activity_date: string | null
           location: string | null
           loss_reason_id: string | null
@@ -12923,6 +12936,7 @@ export type Database = {
           embedding_generated_at?: string | null
           employment_type?: string | null
           expected_close_date?: string | null
+          fee_source?: string | null
           hired_count?: number | null
           id?: string
           is_continuous?: boolean | null
@@ -12930,6 +12944,9 @@ export type Database = {
           is_stealth?: boolean | null
           job_description_url?: string | null
           job_embedding?: string | null
+          job_fee_fixed?: number | null
+          job_fee_percentage?: number | null
+          job_fee_type?: string | null
           last_activity_date?: string | null
           location?: string | null
           loss_reason_id?: string | null
@@ -12969,6 +12986,7 @@ export type Database = {
           embedding_generated_at?: string | null
           employment_type?: string | null
           expected_close_date?: string | null
+          fee_source?: string | null
           hired_count?: number | null
           id?: string
           is_continuous?: boolean | null
@@ -12976,6 +12994,9 @@ export type Database = {
           is_stealth?: boolean | null
           job_description_url?: string | null
           job_embedding?: string | null
+          job_fee_fixed?: number | null
+          job_fee_percentage?: number | null
+          job_fee_type?: string | null
           last_activity_date?: string | null
           location?: string | null
           loss_reason_id?: string | null
@@ -29644,6 +29665,16 @@ export type Database = {
       }
       calculate_current_mrr: { Args: never; Returns: number }
       calculate_deal_health_score: { Args: { job_id: string }; Returns: number }
+      calculate_job_placement_fee: {
+        Args: { p_job_id: string }
+        Returns: {
+          confidence_level: string
+          fee_amount: number
+          fee_percentage: number
+          fee_source: string
+          fee_type: string
+        }[]
+      }
       calculate_name_similarity: {
         Args: { name1: string; name2: string }
         Returns: number

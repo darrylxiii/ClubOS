@@ -20,13 +20,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Loader2, Building2, Percent, AlertTriangle, CheckCircle, Edit2, X, Save, AlertCircle } from "lucide-react";
+import { Loader2, Building2, Percent, AlertTriangle, CheckCircle, Edit2, X, Save, AlertCircle, DollarSign, Shuffle, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { CompanyFeeConfigDialog } from "./CompanyFeeConfigDialog";
+
+type FeeType = "percentage" | "fixed" | "hybrid";
 
 interface CompanyWithFee {
   id: string;
   name: string;
+  fee_type: FeeType;
   placement_fee_percentage: number | null;
+  placement_fee_fixed: number | null;
+  default_fee_notes: string | null;
   logo_url: string | null;
   active_jobs_count: number;
   total_pipeline_value: number;
@@ -37,6 +43,8 @@ export function CompanyFeeManagement() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [bulkFee, setBulkFee] = useState("20");
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyWithFee | null>(null);
 
   // Fetch companies with their fee status and job counts
   const { data: companies, isLoading } = useQuery({
@@ -47,7 +55,10 @@ export function CompanyFeeManagement() {
         .select(`
           id,
           name,
+          fee_type,
           placement_fee_percentage,
+          placement_fee_fixed,
+          default_fee_notes,
           logo_url,
           jobs (
             id,
@@ -62,7 +73,10 @@ export function CompanyFeeManagement() {
       return (data || []).map((company: any) => ({
         id: company.id,
         name: company.name,
+        fee_type: company.fee_type || "percentage",
         placement_fee_percentage: company.placement_fee_percentage,
+        placement_fee_fixed: company.placement_fee_fixed,
+        default_fee_notes: company.default_fee_notes,
         logo_url: company.logo_url,
         active_jobs_count: (company.jobs || []).filter((j: any) => j.status === "published").length,
         total_pipeline_value: (company.jobs || []).reduce((sum: number, j: any) => sum + (j.deal_value_override || 0), 0),
@@ -137,8 +151,35 @@ export function CompanyFeeManagement() {
     setEditValue("");
   };
 
-  const companiesWithoutFee = companies?.filter((c) => !c.placement_fee_percentage) || [];
-  const companiesWithFee = companies?.filter((c) => c.placement_fee_percentage) || [];
+  const companiesWithoutFee = companies?.filter((c) => !c.placement_fee_percentage && c.fee_type !== "fixed") || [];
+  const companiesWithFee = companies?.filter((c) => c.placement_fee_percentage || c.fee_type === "fixed") || [];
+  const companiesWithFixedFee = companies?.filter((c) => c.fee_type === "fixed") || [];
+
+  const openConfigDialog = (company: CompanyWithFee) => {
+    setSelectedCompany(company);
+    setConfigDialogOpen(true);
+  };
+
+  const getFeeTypeIcon = (feeType: FeeType) => {
+    switch (feeType) {
+      case "fixed":
+        return <DollarSign className="h-4 w-4" />;
+      case "hybrid":
+        return <Shuffle className="h-4 w-4" />;
+      default:
+        return <Percent className="h-4 w-4" />;
+    }
+  };
+
+  const getFeeDisplay = (company: CompanyWithFee) => {
+    if (company.fee_type === "fixed" && company.placement_fee_fixed) {
+      return `€${company.placement_fee_fixed.toLocaleString()}`;
+    }
+    if (company.fee_type === "hybrid") {
+      return `${company.placement_fee_percentage || 0}% / €${company.placement_fee_fixed?.toLocaleString() || "—"}`;
+    }
+    return company.placement_fee_percentage ? `${company.placement_fee_percentage}%` : "Not set";
+  };
 
   if (isLoading) {
     return (
@@ -151,7 +192,7 @@ export function CompanyFeeManagement() {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -180,11 +221,31 @@ export function CompanyFeeManagement() {
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-emerald-500/10">
-                  <CheckCircle className="h-5 w-5 text-emerald-500" />
+                  <Percent className="h-5 w-5 text-emerald-500" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{companiesWithFee.length}</p>
-                  <p className="text-sm text-muted-foreground">Fee Configured</p>
+                  <p className="text-2xl font-bold">{companiesWithFee.length - companiesWithFixedFee.length}</p>
+                  <p className="text-sm text-muted-foreground">Percentage Fee</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <Card className="bg-gradient-to-br from-blue-500/10 to-card/60 backdrop-blur-xl border-blue-500/20">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-500/10">
+                  <DollarSign className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{companiesWithFixedFee.length}</p>
+                  <p className="text-sm text-muted-foreground">Fixed Fee</p>
                 </div>
               </div>
             </CardContent>
@@ -283,8 +344,9 @@ export function CompanyFeeManagement() {
             <TableHeader>
               <TableRow>
                 <TableHead>Company</TableHead>
+                <TableHead className="text-center">Type</TableHead>
                 <TableHead className="text-center">Active Jobs</TableHead>
-                <TableHead className="text-right">Fee %</TableHead>
+                <TableHead className="text-right">Fee</TableHead>
                 <TableHead className="text-right">Status</TableHead>
                 <TableHead className="text-right w-32">Actions</TableHead>
               </TableRow>
@@ -297,36 +359,47 @@ export function CompanyFeeManagement() {
                       <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-xs font-bold">
                         {company.name.substring(0, 2).toUpperCase()}
                       </div>
-                      <span className="font-medium">{company.name}</span>
+                      <div>
+                        <span className="font-medium">{company.name}</span>
+                        {company.default_fee_notes && (
+                          <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                            {company.default_fee_notes}
+                          </p>
+                        )}
+                      </div>
                     </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Badge variant="outline" className="capitalize gap-1">
+                            {getFeeTypeIcon(company.fee_type)}
+                            {company.fee_type}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {company.fee_type === "percentage" && "Standard percentage of salary"}
+                          {company.fee_type === "fixed" && "Fixed fee per placement"}
+                          {company.fee_type === "hybrid" && "Flexible: percentage or fixed per role"}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge variant="secondary">{company.active_jobs_count}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    {editingId === company.id ? (
-                      <div className="flex items-center justify-end gap-2">
-                        <Input
-                          type="number"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          className="w-20 text-right"
-                          min={0}
-                          max={100}
-                          autoFocus
-                        />
-                        <span className="text-muted-foreground">%</span>
-                      </div>
-                    ) : (
-                      <span className={company.placement_fee_percentage ? "font-mono" : "text-muted-foreground"}>
-                        {company.placement_fee_percentage 
-                          ? `${company.placement_fee_percentage}%` 
-                          : "Not set"}
-                      </span>
-                    )}
+                    <span className={
+                      company.placement_fee_percentage || company.placement_fee_fixed 
+                        ? "font-mono" 
+                        : "text-muted-foreground"
+                    }>
+                      {getFeeDisplay(company)}
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    {company.placement_fee_percentage ? (
+                    {company.placement_fee_percentage || company.fee_type === "fixed" ? (
                       <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Configured
@@ -348,31 +421,15 @@ export function CompanyFeeManagement() {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    {editingId === company.id ? (
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleSave(company.id)}
-                          disabled={updateFeeMutation.isPending}
-                        >
-                          <Save className="h-4 w-4 text-emerald-500" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={handleCancel}>
-                          <X className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEdit(company)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Edit2 className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => openConfigDialog(company)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Settings2 className="h-4 w-4 mr-1" />
+                      Configure
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -380,6 +437,13 @@ export function CompanyFeeManagement() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Fee Config Dialog */}
+      <CompanyFeeConfigDialog
+        open={configDialogOpen}
+        onOpenChange={setConfigDialogOpen}
+        company={selectedCompany}
+      />
     </div>
   );
 }
