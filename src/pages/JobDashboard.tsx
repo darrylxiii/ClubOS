@@ -46,6 +46,7 @@ import { InterviewerDashboard } from "@/components/partner/dashboards/Interviewe
 import { ObserverDashboard } from "@/components/partner/dashboards/ObserverDashboard";
 import { ManualInterviewEntryDialog } from "@/components/partner/ManualInterviewEntryDialog";
 import { CalendarInterviewLinker } from "@/components/partner/CalendarInterviewLinker";
+import { JobDashboardSidebar, InlineActivityFeed, CollapsibleSection } from "@/components/job-dashboard";
 import {
   DndContext,
   closestCenter,
@@ -568,108 +569,16 @@ export default function JobDashboard() {
           candidateCount={metrics?.totalApplicants || 0}
         />
 
-        {/* Enhanced Filters Panel */}
-        <EnhancedFiltersPanel />
+        {/* NEW 70/30 Two-Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+          {/* Main Content (70%) */}
+          <div className="space-y-6 order-2 lg:order-1">
+            {/* Smart Insights - Promoted */}
+            {metrics && (
+              <SmartInsightsCard metrics={metrics} stages={stages} />
+            )}
 
-        {/* Job-Specific KPI Overview */}
-        <div className="space-y-4 md:space-y-6">
-          {/* Top KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-border/60 transition-all duration-300 group shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)]">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-muted/50 group-hover:bg-muted/70 transition-colors">
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  Total Applicants
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-black">{metrics?.totalApplicants || 0}</div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-primary/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-primary/40 transition-all duration-300 group shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)]">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-primary/20 group-hover:bg-primary/30 transition-colors">
-                    <TrendingUp className="w-4 h-4 text-primary" />
-                  </div>
-                  Conversion Rate
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-black text-primary">
-                  {metrics?.conversionRates?.['0-1'] || 0}%
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Applied → Screened</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-accent/40 transition-all duration-300 group shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)]">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-accent/20 group-hover:bg-accent/30 transition-colors">
-                    <Sparkles className="w-4 h-4 text-accent" />
-                  </div>
-                  Club Check Needed
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-black">
-                  {metrics?.needsClubCheck || 0}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Candidates awaiting review</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-border/60 transition-all duration-300 group shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)]">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-muted/50 group-hover:bg-muted/70 transition-colors">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-black">
-                  {metrics?.lastActivity || 'N/A'}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Last candidate action</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Upcoming Interviews and Team Panel */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-            <div className="lg:col-span-2 space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Upcoming Interviews</h3>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setShowCalendarLinker(true)}>
-                    <Calendar className="w-4 h-4 mr-2" />
-                    From Calendar
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setShowManualInterview(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Manual Entry
-                  </Button>
-                </div>
-              </div>
-              <UpcomingInterviewsWidget jobId={job.id} />
-            </div>
-            <div>
-              <JobTeamPanel jobId={job.id} />
-            </div>
-          </div>
-
-          {/* Smart Insights */}
-          {metrics && (
-            <SmartInsightsCard metrics={metrics} stages={stages} />
-          )}
-
-          {/* Enhanced Pipeline Breakdown */}
+            {/* Enhanced Pipeline Breakdown */}
           <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)] transition-all duration-300">
             <CardHeader>
               <div className="flex flex-col gap-4">
