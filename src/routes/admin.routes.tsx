@@ -35,6 +35,7 @@ const SystemHealth = lazy(() => import("@/pages/admin/SystemHealth"));
 const QuantumPerformanceMatrixPage = lazy(() => import("@/pages/QuantumPerformanceMatrixPage"));
 const WebsiteKPIDashboardPage = lazy(() => import("@/pages/WebsiteKPIDashboardPage"));
 const SalesKPIDashboardPage = lazy(() => import("@/pages/SalesKPIDashboardPage"));
+const UnifiedKPICommandCenterPage = lazy(() => import("@/pages/UnifiedKPICommandCenterPage"));
 
 export const adminRoutes = (
   <>
@@ -309,6 +310,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <SalesKPIDashboardPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/kpi-command-center"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <UnifiedKPICommandCenterPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
