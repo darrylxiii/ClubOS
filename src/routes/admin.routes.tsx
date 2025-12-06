@@ -37,7 +37,7 @@ const WebsiteKPIDashboardPage = lazy(() => import("@/pages/WebsiteKPIDashboardPa
 const SalesKPIDashboardPage = lazy(() => import("@/pages/SalesKPIDashboardPage"));
 const UnifiedKPICommandCenterPage = lazy(() => import("@/pages/UnifiedKPICommandCenterPage"));
 const CompanyFeeConfiguration = lazy(() => import("@/pages/admin/CompanyFeeConfiguration"));
-
+const DealPipelineSettings = lazy(() => import("@/pages/admin/DealPipelineSettings"));
 export const adminRoutes = (
   <>
     <Route
@@ -335,6 +335,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <CompanyFeeConfiguration />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/deal-pipeline-settings"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <DealPipelineSettings />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
