@@ -58,11 +58,18 @@ export interface BudgetAlert {
 
 // Calculate cron executions per day from schedule
 function calculateDailyExecutions(schedule: string): number {
+  // Event-driven jobs have minimal executions
+  if (schedule.includes('event-driven')) {
+    // Extract estimated daily calls from schedule string like "event-driven (~3/day)"
+    const match = schedule.match(/~(\d+)/);
+    return match ? parseInt(match[1]) : 3;
+  }
+  
   // Parse cron schedule (simplified)
   const parts = schedule.split(' ');
   if (parts.length !== 5) return 1;
   
-  const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
+  const [minute, hour] = parts;
   
   // Every minute
   if (minute === '*' && hour === '*') return 1440;
@@ -143,17 +150,14 @@ export const useCostMetrics = () => {
   const { data: cronJobs, isLoading: cronLoading } = useQuery({
     queryKey: ['cost-cron-jobs'],
     queryFn: async (): Promise<CronJobCost[]> => {
-      // Define known cron jobs from the system
+      // Define known cron jobs from the system - OPTIMIZED for event-driven architecture
       const knownCronJobs = [
-        { name: 'cleanup-stale-activity', schedule: '* * * * *', costDriver: 'Database cleanup' },
-        { name: 'process-booking-reminders', schedule: '* * * * *', costDriver: 'Email/SMS' },
-        { name: 'monitor-region-health', schedule: '* * * * *', costDriver: 'Health checks' },
-        { name: 'verify-database-backups', schedule: '* * * * *', costDriver: 'Database queries' },
+        { name: 'send-single-reminder', schedule: 'event-driven (~3/day)', costDriver: 'Email/SMS (on-demand)' },
+        { name: 'cleanup-stale-activity', schedule: '0 * * * *', costDriver: 'Database cleanup' },
         { name: 'auto-reengagement-daily', schedule: '0 9 * * *', costDriver: 'AI + Email' },
         { name: 'calculate-kpi-metrics', schedule: '0 0 * * *', costDriver: 'Database aggregation' },
         { name: 'calculate-sales-kpis', schedule: '0 1 * * *', costDriver: 'Database aggregation' },
         { name: 'calculate-web-kpis', schedule: '0 2 * * *', costDriver: 'Database aggregation' },
-        { name: 'process-meeting-intelligence', schedule: '*/15 * * * *', costDriver: 'AI analysis' },
         { name: 'sync-revenue-metrics', schedule: '0 3 * * *', costDriver: 'Database sync' },
         { name: 'predict-hiring-outcomes', schedule: '0 4 * * *', costDriver: 'ML predictions' },
         { name: 'predict-aggregated-hiring', schedule: '0 5 * * *', costDriver: 'AI analysis' },

@@ -2909,6 +2909,7 @@ export type Database = {
           id: string
           reminder_type: string
           scheduled_for: string
+          scheduled_send_at: string | null
           send_before_minutes: number | null
           sent_at: string | null
           status: string | null
@@ -2921,6 +2922,7 @@ export type Database = {
           id?: string
           reminder_type: string
           scheduled_for: string
+          scheduled_send_at?: string | null
           send_before_minutes?: number | null
           sent_at?: string | null
           status?: string | null
@@ -2933,6 +2935,7 @@ export type Database = {
           id?: string
           reminder_type?: string
           scheduled_for?: string
+          scheduled_send_at?: string | null
           send_before_minutes?: number | null
           sent_at?: string | null
           status?: string | null
@@ -29922,6 +29925,10 @@ export type Database = {
           p_session_id: string
           p_user_id?: string
         }
+        Returns: undefined
+      }
+      unschedule_booking_reminder: {
+        Args: { p_reminder_id: string }
         Returns: undefined
       }
       update_achievement_leaderboard_for_user: {
