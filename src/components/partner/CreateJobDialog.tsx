@@ -21,6 +21,7 @@ import { StealthViewerSelector } from "@/components/jobs/StealthViewerSelector";
 import { Separator } from "@/components/ui/separator";
 import { stealthJobAuditService } from "@/services/stealthJobAuditService";
 import { PipelineTypeSelector } from "@/components/jobs/PipelineTypeSelector";
+import { JobFeeConfiguration, type FeeConfiguration } from "@/components/jobs/JobFeeConfiguration";
 
 interface CreateJobDialogProps {
   open: boolean;
@@ -66,6 +67,14 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const [pipelineType, setPipelineType] = useState<"standard" | "continuous">("standard");
   const [targetHireCount, setTargetHireCount] = useState<number | null>(null);
   const [isUnlimitedHires, setIsUnlimitedHires] = useState(true);
+  
+  // Fee configuration state
+  const [feeConfig, setFeeConfig] = useState<FeeConfiguration>({
+    feeType: 'percentage',
+    feePercentage: null,
+    feeFixed: null,
+    useOverride: false,
+  });
 
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
@@ -328,6 +337,21 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       const isContinuous = pipelineType === "continuous";
       
+      // Build fee configuration for job insert
+      const jobFeeData = feeConfig.useOverride ? {
+        job_fee_type: feeConfig.feeType,
+        job_fee_percentage: feeConfig.feeType === 'percentage' || feeConfig.feeType === 'hybrid' 
+          ? feeConfig.feePercentage : null,
+        job_fee_fixed: feeConfig.feeType === 'fixed' || feeConfig.feeType === 'hybrid'
+          ? feeConfig.feeFixed : null,
+        fee_source: 'job_override',
+      } : {
+        job_fee_type: null,
+        job_fee_percentage: null,
+        job_fee_fixed: null,
+        fee_source: 'company',
+      };
+
       const { data: job, error: jobError } = await supabase
         .from('jobs')
         .insert({
@@ -348,6 +372,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           target_hire_count: isContinuous ? (isUnlimitedHires ? null : targetHireCount) : 1,
           hired_count: 0,
           continuous_started_at: isContinuous ? new Date().toISOString() : null,
+          ...jobFeeData,
         } as any)
         .select()
         .single();
@@ -481,6 +506,12 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     setPipelineType("standard");
     setTargetHireCount(null);
     setIsUnlimitedHires(true);
+    setFeeConfig({
+      feeType: 'percentage',
+      feePercentage: null,
+      feeFixed: null,
+      useOverride: false,
+    });
   };
 
   const handleClose = () => {
@@ -736,6 +767,19 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             isUnlimited={isUnlimitedHires}
             onIsUnlimitedChange={setIsUnlimitedHires}
           />
+          
+          {/* Fee Configuration Section */}
+          {formData.company_id && (
+            <>
+              <Separator className="my-4" />
+              <JobFeeConfiguration
+                companyId={formData.company_id}
+                feeConfig={feeConfig}
+                onFeeConfigChange={setFeeConfig}
+                disabled={isSubmitting}
+              />
+            </>
+          )}
           
           {/* Stealth Job Section */}
           <Separator className="my-4" />
