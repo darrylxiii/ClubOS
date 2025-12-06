@@ -29889,10 +29889,10 @@ export type Database = {
         Args: { p_job_id: string }
         Returns: {
           avg_current_salary: number
-          avg_expected_salary: number
-          candidate_count: number
-          salary_range_max: number
-          salary_range_min: number
+          avg_desired_salary: number
+          avg_experience_years: number
+          skill_match_rate: number
+          total_candidates: number
         }[]
       }
       get_popular_courses: {
