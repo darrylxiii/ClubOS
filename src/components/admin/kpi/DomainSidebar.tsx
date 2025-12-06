@@ -88,6 +88,7 @@ const categoryIcons: Record<string, React.ElementType> = {
   // Platform
   system: Server,
   edge_functions: Zap,
+  security: Shield,
   // Intelligence
   ml_models: Brain,
   churn: AlertTriangle,
@@ -96,6 +97,8 @@ const categoryIcons: Record<string, React.ElementType> = {
   applications: Briefcase,
   hiring: Users,
   revenue: CreditCard,
+  companies: Building2,
+  referrals: Share2,
 };
 
 const getHealthBadge = (score: number) => {
