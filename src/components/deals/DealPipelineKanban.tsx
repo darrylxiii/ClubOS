@@ -107,13 +107,16 @@ export function DealPipelineKanban() {
     }
   };
 
+  // Case-insensitive stage matching for robustness
   const getDealsByStage = (stageName: string) => {
-    return deals?.filter(deal => deal.deal_stage === stageName) || [];
+    return deals?.filter(deal => 
+      deal.deal_stage?.toLowerCase() === stageName.toLowerCase()
+    ) || [];
   };
 
   const getStageValue = (stageName: string) => {
     const stageDeals = getDealsByStage(stageName);
-    const stage = stages?.find(s => s.name === stageName);
+    const stage = stages?.find(s => s.name.toLowerCase() === stageName.toLowerCase());
     const probability = stage?.probability_weight || 0;
     
     return stageDeals.reduce((sum, deal) => {
