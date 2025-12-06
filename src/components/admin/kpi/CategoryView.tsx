@@ -36,6 +36,20 @@ const categoryDescriptions: Record<string, string> = {
   ai_efficiency: 'AI-assisted outreach and automation metrics',
   quality: 'Lead sentiment, intent scores, and satisfaction',
   forecasting: 'Pipeline predictions and forecast accuracy',
+  // Platform Health
+  system: 'System health, uptime, response times, and error tracking',
+  edge_functions: 'Edge function performance, success rates, and latency',
+  security: 'RLS policies, auth failures, rate limits, and storage security',
+  // Intelligence
+  ml_models: 'Machine learning model performance and prediction accuracy',
+  churn: 'User churn risk detection and prevention metrics',
+  engagement: 'User engagement levels and activity patterns',
+  // Growth
+  applications: 'Application volume, approval rates, and processing times',
+  hiring: 'Job fills, active meetings, and hiring velocity',
+  revenue: 'Placement revenue, invoicing, and payment status',
+  companies: 'Partner companies, activity levels, and engagement',
+  referrals: 'Referral program performance and conversion metrics',
 };
 
 const categoryActions: Record<string, { label: string; tip: string }[]> = {
@@ -53,6 +67,43 @@ const categoryActions: Record<string, { label: string; tip: string }[]> = {
     { label: 'Win Rate < 30%', tip: 'Review qualification criteria and proposal quality' },
     { label: 'Cycle > 45 days', tip: 'Identify and remove pipeline bottlenecks' },
     { label: 'High Churn', tip: 'Analyze loss reasons and address patterns' },
+  ],
+  // Platform actions
+  system: [
+    { label: 'Errors > 10/h', tip: 'Investigate error logs and deploy hotfix' },
+    { label: 'Response > 500ms', tip: 'Optimize queries and add caching' },
+    { label: 'DB Connections > 80%', tip: 'Review connection pooling settings' },
+  ],
+  security: [
+    { label: 'RLS < 100%', tip: 'Add RLS policies to unprotected tables' },
+    { label: 'Auth Failures > 50', tip: 'Review login attempts for suspicious IPs' },
+    { label: 'Rate Limits Hit', tip: 'Adjust rate limits or investigate abuse' },
+  ],
+  // Intelligence actions
+  ml_models: [
+    { label: 'AUC-ROC < 70%', tip: 'Retrain model with updated data' },
+    { label: 'Low Predictions', tip: 'Increase candidate profile completeness' },
+  ],
+  churn: [
+    { label: 'Critical Risk > 5', tip: 'Trigger immediate outreach campaign' },
+    { label: 'High Risk > 20', tip: 'Review re-engagement email sequences' },
+  ],
+  engagement: [
+    { label: 'Low Engagement > 30%', tip: 'Add personalized onboarding flows' },
+    { label: 'Avg Events < 15', tip: 'Improve feature discovery and prompts' },
+  ],
+  // Growth actions
+  applications: [
+    { label: 'Pending > 20', tip: 'Assign reviewers to clear backlog' },
+    { label: 'Approval Rate < 50%', tip: 'Review qualification criteria' },
+  ],
+  revenue: [
+    { label: 'Overdue > €5K', tip: 'Send payment reminders immediately' },
+    { label: 'Outstanding > €10K', tip: 'Follow up with finance contacts' },
+  ],
+  companies: [
+    { label: 'Low Activity', tip: 'Schedule partner check-in calls' },
+    { label: 'No New Jobs', tip: 'Send job posting reminder emails' },
   ],
 };
 

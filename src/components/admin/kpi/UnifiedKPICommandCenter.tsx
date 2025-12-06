@@ -144,7 +144,7 @@ export function UnifiedKPICommandCenter() {
                 <div className="mb-6">
                   <h1 className="text-2xl font-bold tracking-tight">KPI Command Center</h1>
                   <p className="text-muted-foreground">
-                    Unified view of all platform metrics across Operations, Website, and Sales
+                    Unified view across Operations, Website, Sales, Platform Health, Intelligence, and Growth
                   </p>
                 </div>
                 <KPIOverview

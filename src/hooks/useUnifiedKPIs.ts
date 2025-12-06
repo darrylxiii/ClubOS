@@ -8,6 +8,8 @@ import { usePredictiveAnalytics } from './usePredictiveAnalytics';
 import { useApplicationMetrics } from './useApplicationMetrics';
 import { usePlatformHealth } from './usePlatformHealth';
 import { useFinancialStats } from './useFinancialData';
+import { useSecurityMetrics } from './useSecurityMetrics';
+import { useCompanyMetrics } from './useCompanyMetrics';
 
 export type KPIDomain = 'operations' | 'website' | 'sales' | 'platform' | 'intelligence' | 'growth';
 export type KPIStatus = 'success' | 'warning' | 'critical' | 'neutral';
@@ -160,6 +162,16 @@ const kpiDisplayNames: Record<string, string> = {
   edge_function_success_rate: 'Edge Fn Success Rate',
   edge_function_avg_duration: 'Edge Fn Avg Duration',
   
+  // Security
+  rls_coverage_pct: 'RLS Coverage',
+  rls_total_policies: 'Total RLS Policies',
+  tables_with_rls: 'Tables with RLS',
+  auth_failures_24h: 'Auth Failures (24h)',
+  auth_unique_ips: 'Unique Failed IPs',
+  rate_limit_rejections: 'Rate Limit Rejections',
+  public_buckets: 'Public Buckets',
+  private_buckets: 'Private Buckets',
+  
   // Intelligence
   ml_model_auc_roc: 'Model AUC-ROC',
   ml_predictions_count: 'ML Predictions',
@@ -184,6 +196,18 @@ const kpiDisplayNames: Record<string, string> = {
   outstanding_invoices: 'Outstanding Invoices',
   overdue_invoices: 'Overdue Invoices',
   pending_payouts: 'Pending Payouts',
+  
+  // Companies
+  total_companies: 'Total Companies',
+  active_companies: 'Active Companies',
+  companies_new_this_month: 'New Companies',
+  total_company_jobs: 'Company Jobs',
+  total_followers: 'Total Followers',
+  
+  // Referrals
+  referral_count: 'Total Referrals',
+  hired_referrals: 'Hired from Referrals',
+  referral_conversion_rate: 'Referral Conversion',
 };
 
 // Category display names
@@ -213,6 +237,7 @@ const categoryDisplayNames: Record<string, string> = {
   // Platform
   system: 'System Health',
   edge_functions: 'Edge Functions',
+  security: 'Security',
   // Intelligence
   ml_models: 'ML Models',
   churn: 'Churn Risk',
@@ -221,6 +246,8 @@ const categoryDisplayNames: Record<string, string> = {
   applications: 'Applications',
   hiring: 'Hiring',
   revenue: 'Revenue',
+  companies: 'Companies',
+  referrals: 'Referrals',
 };
 
 // Determine format for KPI
@@ -481,6 +508,136 @@ function transformPlatformKPIs(
   return result;
 }
 
+// Transform Security KPIs
+function transformSecurityKPIs(
+  rlsMetrics: { totalPolicies: number; tablesWithRLS: number; totalTables: number; coveragePercentage: number } | undefined,
+  authMetrics: { totalFailures: number; uniqueIPs: number } | undefined,
+  rateLimitMetrics: { totalRejections: number } | undefined,
+  storageMetrics: { totalBuckets: number; publicBuckets: number; privateBuckets: number } | undefined
+): UnifiedKPI[] {
+  const result: UnifiedKPI[] = [];
+  
+  // RLS Coverage
+  if (rlsMetrics) {
+    result.push({
+      id: 'security_rls_coverage',
+      domain: 'platform',
+      category: 'security',
+      name: 'rls_coverage_pct',
+      displayName: 'RLS Coverage',
+      value: rlsMetrics.coveragePercentage,
+      targetValue: 100,
+      warningThreshold: 80,
+      criticalThreshold: 50,
+      status: rlsMetrics.coveragePercentage >= 100 ? 'success' : rlsMetrics.coveragePercentage >= 80 ? 'warning' : 'critical',
+      format: 'percent',
+      unit: '%',
+    });
+    
+    result.push({
+      id: 'security_rls_policies',
+      domain: 'platform',
+      category: 'security',
+      name: 'rls_total_policies',
+      displayName: 'Total RLS Policies',
+      value: rlsMetrics.totalPolicies,
+      targetValue: 20,
+      status: rlsMetrics.totalPolicies >= 20 ? 'success' : 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'security_tables_rls',
+      domain: 'platform',
+      category: 'security',
+      name: 'tables_with_rls',
+      displayName: 'Tables with RLS',
+      value: rlsMetrics.tablesWithRLS,
+      status: 'neutral',
+      format: 'number',
+      description: `${rlsMetrics.tablesWithRLS} of ${rlsMetrics.totalTables} tables`,
+    });
+  }
+  
+  // Auth Failures
+  if (authMetrics) {
+    result.push({
+      id: 'security_auth_failures',
+      domain: 'platform',
+      category: 'security',
+      name: 'auth_failures_24h',
+      displayName: 'Auth Failures (24h)',
+      value: authMetrics.totalFailures,
+      warningThreshold: 50,
+      criticalThreshold: 200,
+      lowerIsBetter: true,
+      status: authMetrics.totalFailures >= 200 ? 'critical' : authMetrics.totalFailures >= 50 ? 'warning' : 'success',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'security_auth_ips',
+      domain: 'platform',
+      category: 'security',
+      name: 'auth_unique_ips',
+      displayName: 'Unique Failed IPs',
+      value: authMetrics.uniqueIPs,
+      warningThreshold: 10,
+      criticalThreshold: 30,
+      lowerIsBetter: true,
+      status: authMetrics.uniqueIPs >= 30 ? 'critical' : authMetrics.uniqueIPs >= 10 ? 'warning' : 'success',
+      format: 'number',
+    });
+  }
+  
+  // Rate Limiting
+  if (rateLimitMetrics) {
+    result.push({
+      id: 'security_rate_limits',
+      domain: 'platform',
+      category: 'security',
+      name: 'rate_limit_rejections',
+      displayName: 'Rate Limit Rejections',
+      value: rateLimitMetrics.totalRejections,
+      warningThreshold: 100,
+      criticalThreshold: 500,
+      lowerIsBetter: true,
+      status: rateLimitMetrics.totalRejections >= 500 ? 'critical' : rateLimitMetrics.totalRejections >= 100 ? 'warning' : 'success',
+      format: 'number',
+    });
+  }
+  
+  // Storage Buckets
+  if (storageMetrics) {
+    result.push({
+      id: 'security_public_buckets',
+      domain: 'platform',
+      category: 'security',
+      name: 'public_buckets',
+      displayName: 'Public Buckets',
+      value: storageMetrics.publicBuckets,
+      warningThreshold: 3,
+      criticalThreshold: 5,
+      lowerIsBetter: true,
+      status: storageMetrics.publicBuckets >= 5 ? 'critical' : storageMetrics.publicBuckets >= 3 ? 'warning' : 'success',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'security_private_buckets',
+      domain: 'platform',
+      category: 'security',
+      name: 'private_buckets',
+      displayName: 'Private Buckets',
+      value: storageMetrics.privateBuckets,
+      status: 'neutral',
+      format: 'number',
+    });
+  }
+  
+  return result;
+}
+
 // Transform Intelligence KPIs
 function transformIntelligenceKPIs(
   activeModel: { metrics: { auc_roc?: number } } | null | undefined,
@@ -614,7 +771,9 @@ function transformIntelligenceKPIs(
 function transformGrowthKPIs(
   appMetrics: { total_applications: number; pending_review: number; approved: number; rejected: number; new_today: number; approval_rate: number } | undefined,
   platformHealth: { jobsFilledThisMonth: number; activeMeetings: number } | undefined,
-  financialStats: { totalPlacementRevenue: number; paidPlacementRevenue: number; outstandingInvoices: number; overdueInvoices: number; pendingPayouts: number } | undefined
+  financialStats: { totalPlacementRevenue: number; paidPlacementRevenue: number; outstandingInvoices: number; overdueInvoices: number; pendingPayouts: number } | undefined,
+  companyMetrics: { total_companies: number; active_companies: number; new_this_month: number; total_jobs: number; total_followers: number } | undefined,
+  referralStats: { totalReferrals: number; hiredReferrals: number; conversionRate: number } | undefined
 ): UnifiedKPI[] {
   const result: UnifiedKPI[] = [];
   
@@ -757,6 +916,109 @@ function transformGrowthKPIs(
     });
   }
   
+  // Company KPIs
+  if (companyMetrics) {
+    result.push({
+      id: 'growth_total_companies',
+      domain: 'growth',
+      category: 'companies',
+      name: 'total_companies',
+      displayName: 'Total Companies',
+      value: companyMetrics.total_companies,
+      targetValue: 50,
+      status: companyMetrics.total_companies >= 50 ? 'success' : 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'growth_active_companies',
+      domain: 'growth',
+      category: 'companies',
+      name: 'active_companies',
+      displayName: 'Active Companies',
+      value: companyMetrics.active_companies,
+      targetValue: 20,
+      status: companyMetrics.active_companies >= 20 ? 'success' : 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'growth_new_companies',
+      domain: 'growth',
+      category: 'companies',
+      name: 'companies_new_this_month',
+      displayName: 'New Companies',
+      value: companyMetrics.new_this_month,
+      targetValue: 3,
+      status: companyMetrics.new_this_month >= 3 ? 'success' : 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'growth_company_jobs',
+      domain: 'growth',
+      category: 'companies',
+      name: 'total_company_jobs',
+      displayName: 'Company Jobs',
+      value: companyMetrics.total_jobs,
+      status: 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'growth_followers',
+      domain: 'growth',
+      category: 'companies',
+      name: 'total_followers',
+      displayName: 'Total Followers',
+      value: companyMetrics.total_followers,
+      targetValue: 100,
+      status: companyMetrics.total_followers >= 100 ? 'success' : 'neutral',
+      format: 'number',
+    });
+  }
+  
+  // Referral KPIs
+  if (referralStats) {
+    result.push({
+      id: 'growth_referral_count',
+      domain: 'growth',
+      category: 'referrals',
+      name: 'referral_count',
+      displayName: 'Total Referrals',
+      value: referralStats.totalReferrals,
+      targetValue: 20,
+      status: referralStats.totalReferrals >= 20 ? 'success' : 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'growth_hired_referrals',
+      domain: 'growth',
+      category: 'referrals',
+      name: 'hired_referrals',
+      displayName: 'Hired from Referrals',
+      value: referralStats.hiredReferrals,
+      targetValue: 5,
+      status: referralStats.hiredReferrals >= 5 ? 'success' : 'neutral',
+      format: 'number',
+    });
+    
+    result.push({
+      id: 'growth_referral_conversion',
+      domain: 'growth',
+      category: 'referrals',
+      name: 'referral_conversion_rate',
+      displayName: 'Referral Conversion',
+      value: referralStats.conversionRate,
+      targetValue: 20,
+      warningThreshold: 10,
+      status: referralStats.conversionRate >= 20 ? 'success' : referralStats.conversionRate >= 10 ? 'neutral' : 'warning',
+      format: 'percent',
+      unit: '%',
+    });
+  }
+  
   return result;
 }
 
@@ -813,9 +1075,14 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
   const { data: websiteData, isLoading: webLoading, refetch: refetchWeb } = useLatestWebKPIs();
   const { data: salesData, isLoading: salesLoading, refetch: refetchSales } = useGroupedSalesKPIs();
   
-  // New domains
+  // Platform & Security
   const { health: systemHealth, functions: edgeFunctions, isLoading: platformLoading, refetch: refetchPlatform } = useSystemHealth();
+  const { rlsMetrics, authMetrics, rateLimitMetrics, storageMetrics, isLoading: securityLoading } = useSecurityMetrics();
+  
+  // Intelligence
   const { activeModel, matchPredictions, churnRiskUsers, engagementStats, isLoading: intelligenceLoading, refetchChurn, refetchModel } = usePredictiveAnalytics();
+  
+  // Growth
   const { metrics: appMetrics, isLoading: appLoading } = useApplicationMetrics();
   const platformHealthResult = usePlatformHealth();
   const platformHealthMetrics = platformHealthResult.data;
@@ -823,18 +1090,52 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
   const financialResult = useFinancialStats();
   const financialStats = financialResult.data;
   const financialLoading = financialResult.isLoading;
+  const { metrics: companyMetrics, isLoading: companyLoading } = useCompanyMetrics();
   
-  const isLoading = opsLoading || webLoading || salesLoading || platformLoading || intelligenceLoading || appLoading || healthLoading || financialLoading;
+  // Referral stats query
+  const { data: referralStats, isLoading: referralLoading } = useQuery({
+    queryKey: ['kpi-referral-stats'],
+    queryFn: async () => {
+      try {
+        const { count: totalCount } = await (supabase as any)
+          .from('referrals')
+          .select('*', { count: 'exact', head: true });
+        
+        const { count: hiredCount } = await (supabase as any)
+          .from('referrals')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'hired');
+        
+        const total = totalCount || 0;
+        const hired = hiredCount || 0;
+        const conversionRate = total > 0 ? Math.round((hired / total) * 100) : 0;
+        
+        return {
+          totalReferrals: total,
+          hiredReferrals: hired,
+          conversionRate,
+        };
+      } catch {
+        // Table may not exist, return defaults
+        return { totalReferrals: 0, hiredReferrals: 0, conversionRate: 0 };
+      }
+    },
+    refetchInterval: 300000, // 5 minutes
+  });
+  
+  const isLoading = opsLoading || webLoading || salesLoading || platformLoading || securityLoading || 
+    intelligenceLoading || appLoading || healthLoading || financialLoading || companyLoading || referralLoading;
   
   // Transform all KPIs
   const operationsKPIs = transformOperationsKPIs(operationsData as unknown as Record<string, KPIMetric[]> | undefined);
   const websiteKPIs = transformWebsiteKPIs(websiteData);
   const salesKPIs = transformSalesKPIs(salesData);
   const platformKPIs = transformPlatformKPIs(systemHealth, edgeFunctions);
+  const securityKPIs = transformSecurityKPIs(rlsMetrics, authMetrics, rateLimitMetrics, storageMetrics);
   const intelligenceKPIs = transformIntelligenceKPIs(activeModel, matchPredictions, churnRiskUsers, engagementStats);
-  const growthKPIs = transformGrowthKPIs(appMetrics, platformHealthMetrics, financialStats);
+  const growthKPIs = transformGrowthKPIs(appMetrics, platformHealthMetrics, financialStats, companyMetrics, referralStats);
   
-  const allKPIs = [...operationsKPIs, ...websiteKPIs, ...salesKPIs, ...platformKPIs, ...intelligenceKPIs, ...growthKPIs];
+  const allKPIs = [...operationsKPIs, ...websiteKPIs, ...salesKPIs, ...platformKPIs, ...securityKPIs, ...intelligenceKPIs, ...growthKPIs];
   
   // Calculate domain health
   const operationsHealth = calculateDomainHealth(allKPIs, 'operations', 'Operations');
