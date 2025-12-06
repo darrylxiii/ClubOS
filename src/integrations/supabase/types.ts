@@ -19535,6 +19535,74 @@ export type Database = {
         }
         Relationships: []
       }
+      pipeline_stage_mappings: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          deal_stage_id: string | null
+          description: string | null
+          id: string
+          is_default: boolean | null
+          job_stage_pattern: string
+          match_type: string | null
+          priority: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          deal_stage_id?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          job_stage_pattern: string
+          match_type?: string | null
+          priority?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          deal_stage_id?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          job_stage_pattern?: string
+          match_type?: string | null
+          priority?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_stage_mappings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "pipeline_stage_mappings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_stage_mappings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_stage_mappings_deal_stage_id_fkey"
+            columns: ["deal_stage_id"]
+            isOneToOne: false
+            referencedRelation: "deal_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pitr_test_logs: {
         Row: {
           created_at: string | null
@@ -29555,6 +29623,7 @@ export type Database = {
       aggregate_daily_security_metrics: { Args: never; Returns: undefined }
       archive_expired_documents: { Args: never; Returns: undefined }
       auto_delete_old_audit_logs: { Args: never; Returns: undefined }
+      backfill_deal_stages: { Args: never; Returns: number }
       calculate_activity_level: {
         Args: { last_activity: string }
         Returns: string
@@ -29805,6 +29874,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_deal_stage_for_job: { Args: { p_job_id: string }; Returns: string }
       get_department_hierarchy: {
         Args: { p_company_id: string }
         Returns: {
