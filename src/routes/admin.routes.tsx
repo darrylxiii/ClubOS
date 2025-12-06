@@ -36,6 +36,7 @@ const QuantumPerformanceMatrixPage = lazy(() => import("@/pages/QuantumPerforman
 const WebsiteKPIDashboardPage = lazy(() => import("@/pages/WebsiteKPIDashboardPage"));
 const SalesKPIDashboardPage = lazy(() => import("@/pages/SalesKPIDashboardPage"));
 const UnifiedKPICommandCenterPage = lazy(() => import("@/pages/UnifiedKPICommandCenterPage"));
+const CompanyFeeConfiguration = lazy(() => import("@/pages/admin/CompanyFeeConfiguration"));
 
 export const adminRoutes = (
   <>
@@ -322,6 +323,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <UnifiedKPICommandCenterPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/company-fees"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <CompanyFeeConfiguration />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>

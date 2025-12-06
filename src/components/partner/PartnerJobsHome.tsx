@@ -660,17 +660,10 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     }
   };
 
+  // Use ClubSyncBadge component instead of inline badge creation
   const getClubSyncBadge = (status: string | null) => {
-    switch (status) {
-      case 'accepted':
-        return <Badge variant="outline"><CheckCircle className="w-3 h-3 mr-1" />Club Sync Active</Badge>;
-      case 'pending':
-        return <Badge variant="outline"><AlertCircle className="w-3 h-3 mr-1" />Pending Approval</Badge>;
-      case 'not_offered':
-        return <Badge variant="outline"><XCircle className="w-3 h-3 mr-1" />Not Active</Badge>;
-      default:
-        return null;
-    }
+    const ClubSyncBadge = require("@/components/jobs/ClubSyncBadge").ClubSyncBadge;
+    return <ClubSyncBadge status={status as any} size="sm" showTooltip={true} />;
   };
 
   const formatLastActivity = (date: string | null) => {
