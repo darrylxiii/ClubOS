@@ -34,6 +34,7 @@ const UserActivity = lazy(() => import("@/pages/admin/UserActivity"));
 const SystemHealth = lazy(() => import("@/pages/admin/SystemHealth"));
 const QuantumPerformanceMatrixPage = lazy(() => import("@/pages/QuantumPerformanceMatrixPage"));
 const WebsiteKPIDashboardPage = lazy(() => import("@/pages/WebsiteKPIDashboardPage"));
+const SalesKPIDashboardPage = lazy(() => import("@/pages/SalesKPIDashboardPage"));
 
 export const adminRoutes = (
   <>
@@ -296,6 +297,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <WebsiteKPIDashboardPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/sales-kpis"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <SalesKPIDashboardPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
