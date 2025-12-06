@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DealHealthBadge } from "./DealHealthBadge";
-import { Building2, Calendar, Users, TrendingUp, AlertCircle, Rocket, CheckCircle } from "lucide-react";
+import { Building2, Calendar, Users, TrendingUp, AlertCircle, Rocket, CheckCircle, Percent, DollarSign, Calculator } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Deal } from "@/hooks/useDealPipeline";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -13,6 +13,14 @@ interface DealCardProps {
   onClick?: (deal: Deal) => void;
   onPublish?: (dealId: string) => void;
 }
+
+type FeeType = 'percentage' | 'fixed' | 'hybrid';
+
+const FEE_TYPE_CONFIG: Record<FeeType, { icon: typeof Percent; label: string; className: string }> = {
+  percentage: { icon: Percent, label: '%', className: 'bg-primary/10 text-primary border-primary/20' },
+  fixed: { icon: DollarSign, label: 'Fixed', className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+  hybrid: { icon: Calculator, label: 'Hybrid', className: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+};
 
 export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProps) {
   const formatCurrency = (amount: number) => {
@@ -25,9 +33,24 @@ export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProp
   };
 
   const companies = deal.companies as any;
+  const feeType = (companies?.fee_type || 'percentage') as FeeType;
   const feePercentage = companies?.placement_fee_percentage;
-  const hasFeeConfigured = feePercentage !== null && feePercentage !== undefined;
-  const weightedValue = (deal.estimated_value || 0) * (deal.deal_probability / 100);
+  const feeFixed = companies?.placement_fee_fixed;
+  const hasFeeConfigured = (feePercentage !== null && feePercentage !== undefined && feePercentage > 0) 
+    || (feeFixed !== null && feeFixed !== undefined && feeFixed > 0);
+  
+  // Calculate weighted value based on fee type
+  let feeAmount = 0;
+  const baseSalary = deal.estimated_value || 0;
+  if (feeType === 'fixed' && feeFixed) {
+    feeAmount = feeFixed;
+  } else if (feePercentage) {
+    feeAmount = baseSalary * (feePercentage / 100);
+  }
+  const weightedValue = feeAmount * (deal.deal_probability / 100);
+  
+  const feeConfig = FEE_TYPE_CONFIG[feeType];
+  const FeeIcon = feeConfig.icon;
 
   return (
     <Card
@@ -80,8 +103,18 @@ export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProp
       {/* Value */}
       <div className="flex items-center gap-2 mb-3">
         <div className="flex-1">
-          <div className="text-xs text-muted-foreground">
-            {hasFeeConfigured ? `Weighted Value (${feePercentage}% fee)` : 'Weighted Value (fee not set)'}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>
+              {feeType === 'fixed' 
+                ? `Fixed Fee: €${feeFixed?.toLocaleString() || 'N/A'}` 
+                : hasFeeConfigured 
+                  ? `${feePercentage}% of salary` 
+                  : 'Fee not set'}
+            </span>
+            <Badge variant="outline" className={`text-[10px] px-1 py-0 ${feeConfig.className}`}>
+              <FeeIcon className="h-2.5 w-2.5 mr-0.5" />
+              {feeConfig.label}
+            </Badge>
           </div>
           <div className="font-semibold text-foreground">
             {formatCurrency(weightedValue)}

@@ -31,6 +31,8 @@ interface RevenueSource {
   color: string;
 }
 
+type FeeSourceType = "fixed" | "percentage" | "hybrid";
+
 const REVENUE_SOURCES: Record<string, RevenueSource> = {
   actual: {
     type: "actual",
@@ -69,6 +71,12 @@ const REVENUE_SOURCES: Record<string, RevenueSource> = {
   },
 };
 
+const FEE_TYPE_LABELS: Record<FeeSourceType, { label: string; icon: typeof Percent }> = {
+  percentage: { label: "Percentage", icon: Percent },
+  fixed: { label: "Fixed", icon: DollarSign },
+  hybrid: { label: "Hybrid", icon: Calculator },
+};
+
 interface RevenuePreCalculationProps {
   deals: Deal[];
   stages?: Array<{ name: string; probability_weight: number }>;
@@ -85,13 +93,27 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
     let lowConfidenceValue = 0;
     let missingFeeCount = 0;
     let missingSalaryCount = 0;
+    let fixedFeeCount = 0;
+    let percentageFeeCount = 0;
+    let hybridFeeCount = 0;
 
     const dealCalculations = deals.map((deal) => {
       const companies = deal.companies as any;
+      const feeType = (companies?.fee_type || 'percentage') as FeeSourceType;
       const feePercentage = companies?.placement_fee_percentage || 0;
-      const hasFee = feePercentage > 0;
+      const feeFixed = companies?.placement_fee_fixed || 0;
+      const hasFee = feePercentage > 0 || feeFixed > 0;
 
-      if (!hasFee) missingFeeCount++;
+      // Track fee types
+      if (!hasFee) {
+        missingFeeCount++;
+      } else if (feeType === 'fixed') {
+        fixedFeeCount++;
+      } else if (feeType === 'hybrid') {
+        hybridFeeCount++;
+      } else {
+        percentageFeeCount++;
+      }
 
       // Determine salary source and confidence
       let baseSalary = 0;
@@ -109,8 +131,16 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
         missingSalaryCount++;
       }
 
-      // Calculate revenue
-      const feeAmount = baseSalary * (feePercentage / 100);
+      // Calculate revenue based on fee type
+      let feeAmount = 0;
+      if (feeType === 'fixed' && feeFixed > 0) {
+        feeAmount = feeFixed;
+      } else if (feePercentage > 0) {
+        feeAmount = baseSalary * (feePercentage / 100);
+      } else {
+        feeAmount = baseSalary * 0.20; // Default 20%
+      }
+      
       const probability = deal.deal_probability || 50;
       const weightedValue = feeAmount * (probability / 100);
 
@@ -134,7 +164,9 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
         title: deal.title,
         company: deal.company_name,
         baseSalary,
+        feeType,
         feePercentage,
+        feeFixed,
         feeAmount,
         probability,
         weightedValue,
@@ -156,6 +188,9 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
       avgConfidence,
       missingFeeCount,
       missingSalaryCount,
+      fixedFeeCount,
+      percentageFeeCount,
+      hybridFeeCount,
       dealCalculations,
       dealCount: deals.length,
     };
@@ -324,6 +359,37 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
                 value={(calculations.lowConfidenceValue / calculations.weightedPipeline) * 100} 
                 className="h-2 bg-muted"
               />
+            </div>
+          </div>
+
+          {/* Fee Type Breakdown */}
+          <div className="mt-6 p-4 rounded-lg bg-muted/30 border border-border">
+            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Fee Type Distribution
+            </h4>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Percent className="h-3 w-3 text-primary" />
+                  <span className="text-xs text-muted-foreground">Percentage</span>
+                </div>
+                <span className="text-lg font-bold">{calculations.percentageFeeCount}</span>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <DollarSign className="h-3 w-3 text-emerald-500" />
+                  <span className="text-xs text-muted-foreground">Fixed</span>
+                </div>
+                <span className="text-lg font-bold">{calculations.fixedFeeCount}</span>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Calculator className="h-3 w-3 text-blue-500" />
+                  <span className="text-xs text-muted-foreground">Hybrid</span>
+                </div>
+                <span className="text-lg font-bold">{calculations.hybridFeeCount}</span>
+              </div>
             </div>
           </div>
 
