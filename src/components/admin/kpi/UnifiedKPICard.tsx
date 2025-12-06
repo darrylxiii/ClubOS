@@ -13,10 +13,12 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
+import { KPISparkline } from './KPISparkline';
 
 interface UnifiedKPICardProps {
   kpi: UnifiedKPI;
   showCategory?: boolean;
+  showSparkline?: boolean;
 }
 
 const statusConfig = {
@@ -54,7 +56,7 @@ const actionTips: Record<string, string> = {
   pipeline_win_rate: 'Focus on qualification criteria',
 };
 
-export function UnifiedKPICard({ kpi, showCategory = false }: UnifiedKPICardProps) {
+export function UnifiedKPICard({ kpi, showCategory = false, showSparkline = false }: UnifiedKPICardProps) {
   const config = statusConfig[kpi.status];
   const StatusIcon = config.icon;
 
@@ -89,7 +91,7 @@ export function UnifiedKPICard({ kpi, showCategory = false }: UnifiedKPICardProp
 
   return (
     <Card className={cn(
-      "relative overflow-hidden transition-all hover:shadow-md",
+      "relative overflow-hidden transition-all hover:shadow-md hover:scale-[1.01]",
       config.border
     )}>
       <CardHeader className="pb-2">
@@ -154,6 +156,13 @@ export function UnifiedKPICard({ kpi, showCategory = false }: UnifiedKPICardProp
               value={progress} 
               className="h-1.5"
             />
+          </div>
+        )}
+
+        {/* Sparkline */}
+        {showSparkline && (
+          <div className="h-10 mt-1">
+            <KPISparkline kpi={kpi} height={40} />
           </div>
         )}
 

@@ -1,16 +1,28 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUnifiedKPIs, type KPIDomain } from '@/hooks/useUnifiedKPIs';
+import { useUnifiedKPIs, type KPIDomain, type UnifiedKPI } from '@/hooks/useUnifiedKPIs';
 import { ExecutiveSummaryBar } from './ExecutiveSummaryBar';
 import { DomainSidebar } from './DomainSidebar';
 import { KPIOverview } from './KPIOverview';
 import { CategoryView } from './CategoryView';
 import { KPISearchFilter, type StatusFilter } from './KPISearchFilter';
+import { PinnedKPIsSection } from './PinnedKPIsSection';
+import { AIExecutiveSummary } from './AIExecutiveSummary';
+import { ComparisonToggle } from './ComparisonToggle';
+import { KPIDetailModal } from './KPIDetailModal';
+import { AlertConfigDialog, type AlertThreshold } from './AlertConfigDialog';
+import { exportToCSV, exportToPDF } from './KPIExport';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { Menu, Download, FileText } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function UnifiedKPICommandCenter() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -19,6 +31,11 @@ export function UnifiedKPICommandCenter() {
   const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [isComparing, setIsComparing] = useState(false);
+  const [pinnedKPIIds, setPinnedKPIIds] = useState<Set<string>>(new Set());
+  const [selectedKPI, setSelectedKPI] = useState<UnifiedKPI | null>(null);
+  const [alertKPI, setAlertKPI] = useState<UnifiedKPI | null>(null);
+  const [alertThresholds, setAlertThresholds] = useState<Record<string, AlertThreshold>>({});
   const isMobile = useIsMobile();
 
   const {
@@ -65,16 +82,41 @@ export function UnifiedKPICommandCenter() {
     onTarget: allKPIs.filter(k => k.status === 'success').length,
   }), [allKPIs]);
 
+  // Pinned KPIs
+  const pinnedKPIs = useMemo(() => 
+    allKPIs.filter(kpi => pinnedKPIIds.has(kpi.id)),
+    [allKPIs, pinnedKPIIds]
+  );
+
+  const togglePin = useCallback((kpiId: string) => {
+    setPinnedKPIIds(prev => {
+      const next = new Set(prev);
+      if (next.has(kpiId)) {
+        next.delete(kpiId);
+        toast.success('KPI unpinned');
+      } else {
+        next.add(kpiId);
+        toast.success('KPI pinned to dashboard');
+      }
+      return next;
+    });
+  }, []);
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
       await refreshAll();
-      toast.success('All KPIs refreshed successfully');
+      toast.success('All KPIs refreshed');
     } catch (error) {
       toast.error('Failed to refresh KPIs');
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  const handleSaveAlert = (threshold: AlertThreshold) => {
+    setAlertThresholds(prev => ({ ...prev, [threshold.kpiId]: threshold }));
+    toast.success(`Alert configured for ${alertKPI?.displayName}`);
   };
 
   const handleSelectCategory = (domain: KPIDomain, category: string | null) => {
@@ -179,11 +221,38 @@ export function UnifiedKPICommandCenter() {
             ) : (
               <>
                 <div className="mb-6 space-y-4">
-                  <div>
-                    <h1 className="text-2xl font-bold tracking-tight">KPI Command Center</h1>
-                    <p className="text-muted-foreground">
-                      Unified view across Operations, Website, Sales, Platform Health, Intelligence, and Growth
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h1 className="text-2xl font-bold tracking-tight">KPI Command Center</h1>
+                      <p className="text-muted-foreground">
+                        Unified view across Operations, Website, Sales, Platform Health, Intelligence, and Growth
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ComparisonToggle 
+                        isComparing={isComparing} 
+                        onToggle={() => setIsComparing(!isComparing)}
+                        period={period}
+                      />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Download className="h-4 w-4 mr-2" />
+                            Export
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => { exportToCSV(allKPIs, 'all-kpis'); toast.success('Exported to CSV'); }}>
+                            <FileText className="h-4 w-4 mr-2" />
+                            Export CSV
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { exportToPDF(allKPIs, 'all-kpis'); toast.success('Opening PDF...'); }}>
+                            <FileText className="h-4 w-4 mr-2" />
+                            Export PDF
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                   
                   {/* Search and Filter Bar */}
@@ -195,6 +264,29 @@ export function UnifiedKPICommandCenter() {
                     counts={filterCounts}
                   />
                 </div>
+
+                {/* Pinned KPIs */}
+                {pinnedKPIs.length > 0 && (
+                  <div className="mb-6">
+                    <PinnedKPIsSection
+                      pinnedKPIs={pinnedKPIs}
+                      onUnpin={(id) => togglePin(id)}
+                      onKPIClick={setSelectedKPI}
+                    />
+                  </div>
+                )}
+
+                {/* AI Executive Summary */}
+                <div className="mb-6">
+                  <AIExecutiveSummary
+                    allKPIs={allKPIs}
+                    domainHealth={domainHealth}
+                    overallHealth={overallHealth}
+                    onRefresh={handleRefresh}
+                    isRefreshing={isRefreshing}
+                  />
+                </div>
+
                 <KPIOverview
                   domainHealth={domainHealth}
                   criticalAlerts={criticalAlerts}
@@ -208,6 +300,28 @@ export function UnifiedKPICommandCenter() {
           </div>
         </div>
       </div>
+
+      {/* KPI Detail Modal */}
+      <KPIDetailModal
+        open={!!selectedKPI}
+        onOpenChange={(open) => !open && setSelectedKPI(null)}
+        kpi={selectedKPI}
+        isPinned={selectedKPI ? pinnedKPIIds.has(selectedKPI.id) : false}
+        onTogglePin={() => selectedKPI && togglePin(selectedKPI.id)}
+        onConfigureAlert={() => {
+          setAlertKPI(selectedKPI);
+          setSelectedKPI(null);
+        }}
+      />
+
+      {/* Alert Config Dialog */}
+      <AlertConfigDialog
+        open={!!alertKPI}
+        onOpenChange={(open) => !open && setAlertKPI(null)}
+        kpi={alertKPI}
+        currentThreshold={alertKPI ? alertThresholds[alertKPI.id] : undefined}
+        onSave={handleSaveAlert}
+      />
     </div>
   );
 }
