@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Gauge } from 'lucide-react';
+import { RefreshCw, AlertTriangle, AlertCircle, CheckCircle2, TrendingUp, Calendar, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 interface ExecutiveSummaryBarProps {
   overallHealth: number;
@@ -11,6 +12,9 @@ interface ExecutiveSummaryBarProps {
   onTargetPercentage: number;
   isRefreshing: boolean;
   onRefresh: () => void;
+  period: 'weekly' | 'monthly';
+  onPeriodChange: (period: 'weekly' | 'monthly') => void;
+  lastUpdated: Date;
 }
 
 export function ExecutiveSummaryBar({
@@ -21,6 +25,9 @@ export function ExecutiveSummaryBar({
   onTargetPercentage,
   isRefreshing,
   onRefresh,
+  period,
+  onPeriodChange,
+  lastUpdated,
 }: ExecutiveSummaryBarProps) {
   const getHealthColor = (score: number) => {
     if (score >= 80) return 'text-emerald-500';
@@ -38,11 +45,41 @@ export function ExecutiveSummaryBar({
     <div className="w-full bg-card/50 backdrop-blur-sm border-b border-border/50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Gauge className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-              Platform Health
-            </span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <span className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
+                Platform Health
+              </span>
+            </div>
+
+            {/* Period Toggle */}
+            <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onPeriodChange('weekly')}
+                className={cn(
+                  "h-7 px-3 text-xs font-medium",
+                  period === 'weekly' ? "bg-background shadow-sm" : "hover:bg-background/50"
+                )}
+              >
+                <Calendar className="h-3 w-3 mr-1.5" />
+                Weekly
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onPeriodChange('monthly')}
+                className={cn(
+                  "h-7 px-3 text-xs font-medium",
+                  period === 'monthly' ? "bg-background shadow-sm" : "hover:bg-background/50"
+                )}
+              >
+                <Calendar className="h-3 w-3 mr-1.5" />
+                Monthly
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 md:gap-6">
@@ -95,11 +132,18 @@ export function ExecutiveSummaryBar({
 
             {/* On Target */}
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-emerald-500/10 border-emerald-500/20">
-              <CheckCircle className="h-4 w-4 text-emerald-500" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               <span className="font-bold text-emerald-500">{onTargetCount}</span>
               <span className="text-xs text-muted-foreground hidden sm:inline">
                 ({onTargetPercentage}%)
               </span>
+            </div>
+
+            {/* Last Updated */}
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              <span className="hidden md:inline">Updated</span>
+              {format(lastUpdated, 'HH:mm')}
             </div>
 
             {/* Refresh Button */}
