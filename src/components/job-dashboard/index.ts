@@ -5,3 +5,6 @@ export { InlineDocumentsCard } from './InlineDocumentsCard';
 export { UpcomingInterviewsCompact } from './UpcomingInterviewsCompact';
 export { InlineActivityFeed } from './InlineActivityFeed';
 export { CollapsibleSection } from './CollapsibleSection';
+export { CandidatesAtRiskPanel } from './CandidatesAtRiskPanel';
+export { NextBestActionBadge } from './NextBestActionBadge';
+export { QuickResponseTimeTracker } from './QuickResponseTimeTracker';

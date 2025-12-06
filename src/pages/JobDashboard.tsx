@@ -46,7 +46,7 @@ import { InterviewerDashboard } from "@/components/partner/dashboards/Interviewe
 import { ObserverDashboard } from "@/components/partner/dashboards/ObserverDashboard";
 import { ManualInterviewEntryDialog } from "@/components/partner/ManualInterviewEntryDialog";
 import { CalendarInterviewLinker } from "@/components/partner/CalendarInterviewLinker";
-import { JobDashboardSidebar, InlineActivityFeed, CollapsibleSection } from "@/components/job-dashboard";
+import { JobDashboardSidebar, InlineActivityFeed, CollapsibleSection, CandidatesAtRiskPanel, QuickResponseTimeTracker } from "@/components/job-dashboard";
 import {
   DndContext,
   closestCenter,
@@ -573,6 +573,16 @@ export default function JobDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
           {/* Main Content (Left - 70%) */}
           <main className="space-y-6">
+            {/* Candidates at Risk - Top Priority Alert */}
+            {metrics && applications.length > 0 && (
+              <CandidatesAtRiskPanel
+                applications={applications}
+                stages={stages}
+                avgDaysInStage={metrics.avgDaysInStage}
+                jobId={jobId!}
+              />
+            )}
+
             {/* Smart Insights - Promoted */}
             {metrics && (
               <SmartInsightsCard metrics={metrics} stages={stages} />
