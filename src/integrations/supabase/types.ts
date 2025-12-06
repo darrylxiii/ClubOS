@@ -461,6 +461,66 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_campaigns: {
+        Row: {
+          ad_platform: string | null
+          brand_impressions: number | null
+          campaign_id: string
+          campaign_name: string | null
+          clicks: number | null
+          conversions: number | null
+          cpc: number | null
+          created_at: string | null
+          ctr: number | null
+          date: string
+          gclid_capture_count: number | null
+          id: string
+          impressions: number | null
+          metadata: Json | null
+          non_brand_impressions: number | null
+          spend: number | null
+          total_sessions: number | null
+        }
+        Insert: {
+          ad_platform?: string | null
+          brand_impressions?: number | null
+          campaign_id: string
+          campaign_name?: string | null
+          clicks?: number | null
+          conversions?: number | null
+          cpc?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date: string
+          gclid_capture_count?: number | null
+          id?: string
+          impressions?: number | null
+          metadata?: Json | null
+          non_brand_impressions?: number | null
+          spend?: number | null
+          total_sessions?: number | null
+        }
+        Update: {
+          ad_platform?: string | null
+          brand_impressions?: number | null
+          campaign_id?: string
+          campaign_name?: string | null
+          clicks?: number | null
+          conversions?: number | null
+          cpc?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date?: string
+          gclid_capture_count?: number | null
+          id?: string
+          impressions?: number | null
+          metadata?: Json | null
+          non_brand_impressions?: number | null
+          spend?: number | null
+          total_sessions?: number | null
+        }
+        Relationships: []
+      }
       admin_alert_preferences: {
         Row: {
           admin_id: string | null
@@ -7180,6 +7240,57 @@ export type Database = {
         }
         Relationships: []
       }
+      content_ai_scores: {
+        Row: {
+          analysis_details: Json | null
+          analysis_model: string | null
+          analyzed_at: string | null
+          content_clarity_score: number | null
+          created_at: string | null
+          emotional_sentiment: string | null
+          heat_trigger_ratio: number | null
+          id: string
+          improvement_suggestions: string[] | null
+          page_path: string
+          page_title: string | null
+          readability_grade: number | null
+          sentiment_score: number | null
+          word_count: number | null
+        }
+        Insert: {
+          analysis_details?: Json | null
+          analysis_model?: string | null
+          analyzed_at?: string | null
+          content_clarity_score?: number | null
+          created_at?: string | null
+          emotional_sentiment?: string | null
+          heat_trigger_ratio?: number | null
+          id?: string
+          improvement_suggestions?: string[] | null
+          page_path: string
+          page_title?: string | null
+          readability_grade?: number | null
+          sentiment_score?: number | null
+          word_count?: number | null
+        }
+        Update: {
+          analysis_details?: Json | null
+          analysis_model?: string | null
+          analyzed_at?: string | null
+          content_clarity_score?: number | null
+          created_at?: string | null
+          emotional_sentiment?: string | null
+          heat_trigger_ratio?: number | null
+          id?: string
+          improvement_suggestions?: string[] | null
+          page_path?: string
+          page_title?: string | null
+          readability_grade?: number | null
+          sentiment_score?: number | null
+          word_count?: number | null
+        }
+        Relationships: []
+      }
       content_attributions: {
         Row: {
           attribution_text: string | null
@@ -13064,6 +13175,54 @@ export type Database = {
           name?: string
           native_name?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      lead_scores: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_sql: boolean | null
+          lead_score: number | null
+          partner_request_id: string | null
+          qualified_at: string | null
+          scoring_factors: Json | null
+          session_id: string | null
+          source_channel: string | null
+          time_to_qualify_hours: number | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_sql?: boolean | null
+          lead_score?: number | null
+          partner_request_id?: string | null
+          qualified_at?: string | null
+          scoring_factors?: Json | null
+          session_id?: string | null
+          source_channel?: string | null
+          time_to_qualify_hours?: number | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_sql?: boolean | null
+          lead_score?: number | null
+          partner_request_id?: string | null
+          qualified_at?: string | null
+          scoring_factors?: Json | null
+          session_id?: string | null
+          source_channel?: string | null
+          time_to_qualify_hours?: number | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }
@@ -27509,6 +27668,114 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      web_kpi_metrics: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          kpi_name: string
+          metadata: Json | null
+          period_date: string | null
+          period_type: string | null
+          target_value: number | null
+          threshold_critical: number | null
+          threshold_warning: number | null
+          trend_direction: string | null
+          trend_percentage: number | null
+          updated_at: string | null
+          value: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          kpi_name: string
+          metadata?: Json | null
+          period_date?: string | null
+          period_type?: string | null
+          target_value?: number | null
+          threshold_critical?: number | null
+          threshold_warning?: number | null
+          trend_direction?: string | null
+          trend_percentage?: number | null
+          updated_at?: string | null
+          value?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          kpi_name?: string
+          metadata?: Json | null
+          period_date?: string | null
+          period_type?: string | null
+          target_value?: number | null
+          threshold_critical?: number | null
+          threshold_warning?: number | null
+          trend_direction?: string | null
+          trend_percentage?: number | null
+          updated_at?: string | null
+          value?: number | null
+        }
+        Relationships: []
+      }
+      web_performance_metrics: {
+        Row: {
+          cls_score: number | null
+          created_at: string | null
+          cwv_pass: boolean | null
+          date: string
+          fcp_ms: number | null
+          fid_ms: number | null
+          id: string
+          inp_ms: number | null
+          lcp_ms: number | null
+          lighthouse_score: number | null
+          p75_cls: number | null
+          p75_fid: number | null
+          p75_lcp: number | null
+          page_path: string | null
+          sample_count: number | null
+          ttfb_ms: number | null
+        }
+        Insert: {
+          cls_score?: number | null
+          created_at?: string | null
+          cwv_pass?: boolean | null
+          date: string
+          fcp_ms?: number | null
+          fid_ms?: number | null
+          id?: string
+          inp_ms?: number | null
+          lcp_ms?: number | null
+          lighthouse_score?: number | null
+          p75_cls?: number | null
+          p75_fid?: number | null
+          p75_lcp?: number | null
+          page_path?: string | null
+          sample_count?: number | null
+          ttfb_ms?: number | null
+        }
+        Update: {
+          cls_score?: number | null
+          created_at?: string | null
+          cwv_pass?: boolean | null
+          date?: string
+          fcp_ms?: number | null
+          fid_ms?: number | null
+          id?: string
+          inp_ms?: number | null
+          lcp_ms?: number | null
+          lighthouse_score?: number | null
+          p75_cls?: number | null
+          p75_fid?: number | null
+          p75_lcp?: number | null
+          page_path?: string | null
+          sample_count?: number | null
+          ttfb_ms?: number | null
+        }
+        Relationships: []
       }
       webhook_deliveries: {
         Row: {
