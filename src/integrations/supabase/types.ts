@@ -22083,6 +22083,126 @@ export type Database = {
           },
         ]
       }
+      project_contracts: {
+        Row: {
+          client_id: string | null
+          company_id: string | null
+          contract_terms: string | null
+          created_at: string
+          end_date: string | null
+          escrow_amount: number | null
+          estimated_total: number | null
+          freelancer_id: string | null
+          hourly_rate: number
+          id: string
+          payment_terms: string | null
+          platform_fee_percentage: number | null
+          project_description: string | null
+          project_title: string
+          start_date: string | null
+          status: string
+          total_hours_budget: number | null
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          company_id?: string | null
+          contract_terms?: string | null
+          created_at?: string
+          end_date?: string | null
+          escrow_amount?: number | null
+          estimated_total?: number | null
+          freelancer_id?: string | null
+          hourly_rate?: number
+          id?: string
+          payment_terms?: string | null
+          platform_fee_percentage?: number | null
+          project_description?: string | null
+          project_title: string
+          start_date?: string | null
+          status?: string
+          total_hours_budget?: number | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          company_id?: string | null
+          contract_terms?: string | null
+          created_at?: string
+          end_date?: string | null
+          escrow_amount?: number | null
+          estimated_total?: number | null
+          freelancer_id?: string | null
+          hourly_rate?: number
+          id?: string
+          payment_terms?: string | null
+          platform_fee_percentage?: number | null
+          project_description?: string | null
+          project_title?: string
+          start_date?: string | null
+          status?: string
+          total_hours_budget?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_contracts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_contracts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_contracts_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_contracts_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_contracts_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projected_earnings: {
         Row: {
           application_id: string
@@ -26802,6 +26922,7 @@ export type Database = {
           client_id: string | null
           color: string
           company_id: string | null
+          contract_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -26817,6 +26938,7 @@ export type Database = {
           client_id?: string | null
           color?: string
           company_id?: string | null
+          contract_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -26832,6 +26954,7 @@ export type Database = {
           client_id?: string | null
           color?: string
           company_id?: string | null
+          contract_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -26869,6 +26992,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracking_projects_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "project_contracts"
             referencedColumns: ["id"]
           },
         ]
