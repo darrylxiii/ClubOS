@@ -1,16 +1,21 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Globe, MapPin, AlertTriangle, Shield, Wifi } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { WorldMap } from '@/components/ui/world-map';
 import { useAttackGeoData, useCountryAttackStats, AttackGeoPoint } from '@/hooks/useAttackGeoData';
+import { Globe, Shield, AlertTriangle, MapPin, Wifi } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
-const severityColors = {
-  critical: 'bg-red-500',
-  high: 'bg-orange-500',
-  medium: 'bg-yellow-500',
-  low: 'bg-blue-500',
+// TQC Server location (Amsterdam, Netherlands)
+const SERVER_LOCATION = { lat: 52.3676, lng: 4.9041 };
+
+// Severity to color mapping
+const SEVERITY_COLORS: Record<string, string> = {
+  critical: '#ef4444',
+  high: '#f97316',
+  medium: '#eab308',
+  low: '#3b82f6',
 };
 
 const severityBadgeVariants = {
@@ -21,240 +26,253 @@ const severityBadgeVariants = {
 };
 
 export function AttackMap() {
-  const { data: attackPoints, isLoading: pointsLoading } = useAttackGeoData();
-  const { data: countryStats, isLoading: statsLoading } = useCountryAttackStats();
+  const { data: attackPoints, isLoading: isLoadingAttacks } = useAttackGeoData();
+  const { data: countryStats, isLoading: isLoadingStats } = useCountryAttackStats();
 
-  const mapPoints = useMemo(() => {
-    if (!attackPoints) return [];
-    return attackPoints.map(point => ({
-      ...point,
-      // Convert lat/lng to approximate percentage positions on SVG
-      x: ((point.longitude || 0) + 180) / 360 * 100,
-      y: (90 - (point.latitude || 0)) / 180 * 100,
-    }));
+  // Transform attack data to WorldMap format
+  const attackDots = useMemo(() => {
+    if (!attackPoints?.length) return [];
+    
+    // Take top 20 attacks to avoid visual clutter
+    return attackPoints
+      .filter(point => point.latitude && point.longitude)
+      .slice(0, 20)
+      .map(point => ({
+        start: {
+          lat: point.latitude!,
+          lng: point.longitude!,
+          label: point.severity === 'critical' || point.severity === 'high' 
+            ? `${point.country || 'Unknown'} (${point.attack_count})` 
+            : undefined,
+        },
+        end: {
+          lat: SERVER_LOCATION.lat,
+          lng: SERVER_LOCATION.lng,
+        },
+        color: SEVERITY_COLORS[point.severity] || SEVERITY_COLORS.low,
+      }));
   }, [attackPoints]);
+
+  // Calculate statistics
+  const totalAttacks = useMemo(() => 
+    attackPoints?.reduce((sum, p) => sum + p.attack_count, 0) || 0
+  , [attackPoints]);
+
+  const uniqueIPs = attackPoints?.length || 0;
+  
+  const criticalCount = useMemo(() => 
+    attackPoints?.filter(p => p.severity === 'critical').length || 0
+  , [attackPoints]);
 
   const topCountries = countryStats?.slice(0, 10) || [];
 
-  if (pointsLoading || statsLoading) {
+  if (isLoadingAttacks || isLoadingStats) {
     return (
-      <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-        <CardContent className="flex items-center justify-center h-96">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-3">
+          <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="w-full aspect-[2/1]" />
+            </CardContent>
+          </Card>
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      {/* World Map Visualization */}
-      <Card className="lg:col-span-2 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-primary" />
-            Global Attack Map
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative w-full aspect-[2/1] bg-muted/30 rounded-lg overflow-hidden">
-            {/* Simple World Map SVG */}
-            <svg
-              viewBox="0 0 100 50"
-              className="w-full h-full"
-              preserveAspectRatio="xMidYMid slice"
-            >
-              {/* Ocean background */}
-              <rect width="100" height="50" fill="hsl(var(--muted) / 0.3)" />
-              
-              {/* Simplified continent shapes */}
-              <g fill="hsl(var(--muted-foreground) / 0.2)" stroke="hsl(var(--border))" strokeWidth="0.1">
-                {/* North America */}
-                <path d="M10,8 L25,8 L28,15 L25,22 L18,25 L12,22 L8,15 Z" />
-                {/* South America */}
-                <path d="M20,28 L28,28 L30,35 L25,45 L18,42 L17,32 Z" />
-                {/* Europe */}
-                <path d="M45,10 L55,8 L58,12 L55,18 L48,18 L45,14 Z" />
-                {/* Africa */}
-                <path d="M45,20 L55,18 L60,28 L55,42 L48,42 L42,30 Z" />
-                {/* Asia */}
-                <path d="M58,8 L85,6 L92,18 L85,28 L70,30 L60,22 L55,12 Z" />
-                {/* Australia */}
-                <path d="M78,35 L90,33 L92,42 L85,45 L78,42 Z" />
-              </g>
-
-              {/* Attack Points */}
-              {mapPoints.map((point, index) => (
-                <g key={point.id}>
-                  {/* Pulse animation */}
-                  <circle
-                    cx={point.x / 2}
-                    cy={point.y / 2}
-                    r="1.5"
-                    className={`${severityColors[point.severity]} opacity-30`}
-                  >
-                    <animate
-                      attributeName="r"
-                      from="0.5"
-                      to="2"
-                      dur="2s"
-                      repeatCount="indefinite"
-                    />
-                    <animate
-                      attributeName="opacity"
-                      from="0.5"
-                      to="0"
-                      dur="2s"
-                      repeatCount="indefinite"
-                    />
-                  </circle>
-                  {/* Main point */}
-                  <circle
-                    cx={point.x / 2}
-                    cy={point.y / 2}
-                    r="0.5"
-                    className={severityColors[point.severity]}
-                  />
-                </g>
-              ))}
-            </svg>
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      {/* Main Map */}
+      <div className="lg:col-span-3">
+        <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50 overflow-hidden">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Globe className="h-5 w-5 text-primary" />
+                Live Attack Map
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse" />
+                  Live
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 relative">
+            {/* Stats Overlay */}
+            <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+              <div className="bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-border/50">
+                <div className="text-xs text-muted-foreground">Total Attacks</div>
+                <div className="text-xl font-bold text-foreground">{totalAttacks.toLocaleString()}</div>
+              </div>
+              <div className="bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-border/50">
+                <div className="text-xs text-muted-foreground">Unique IPs</div>
+                <div className="text-xl font-bold text-foreground">{uniqueIPs}</div>
+              </div>
+              {criticalCount > 0 && (
+                <div className="bg-destructive/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-destructive/30">
+                  <div className="text-xs text-destructive">Critical Threats</div>
+                  <div className="text-xl font-bold text-destructive">{criticalCount}</div>
+                </div>
+              )}
+            </div>
 
             {/* Legend */}
-            <div className="absolute bottom-2 left-2 flex gap-2 bg-background/80 backdrop-blur-sm rounded-md px-2 py-1">
-              <div className="flex items-center gap-1 text-xs">
-                <div className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="text-muted-foreground">Critical</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs">
-                <div className="w-2 h-2 rounded-full bg-orange-500" />
-                <span className="text-muted-foreground">High</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs">
-                <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                <span className="text-muted-foreground">Medium</span>
+            <div className="absolute bottom-4 left-4 z-10 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-border/50">
+              <div className="text-xs text-muted-foreground mb-2">Severity</div>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(SEVERITY_COLORS).map(([level, color]) => (
+                  <div key={level} className="flex items-center gap-1">
+                    <div 
+                      className="w-2.5 h-2.5 rounded-full" 
+                      style={{ backgroundColor: color }}
+                    />
+                    <span className="text-xs capitalize text-foreground">{level}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Stats overlay */}
-            <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-md px-3 py-2">
-              <div className="text-xs text-muted-foreground">Active Threats</div>
-              <div className="text-2xl font-bold text-foreground">{attackPoints?.length || 0}</div>
+            {/* Server Location Badge */}
+            <div className="absolute top-4 right-4 z-10 bg-green-500/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-green-500/30">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-green-500" />
+                <div>
+                  <div className="text-xs text-green-400">TQC Server</div>
+                  <div className="text-xs text-green-300">Amsterdam, NL</div>
+                </div>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Top Countries */}
-      <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <MapPin className="h-4 w-4 text-primary" />
-            Top Attack Origins
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[280px]">
-            <div className="space-y-2">
-              {topCountries.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No attack data available
-                </p>
-              ) : (
-                topCountries.map((country, index) => (
-                  <div
-                    key={country.country_code}
-                    className="flex items-center justify-between p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                  >
+            {/* World Map */}
+            {attackDots.length > 0 ? (
+              <WorldMap
+                dots={attackDots}
+                lineColor="#ef4444"
+                showLabels={true}
+                animationDuration={3}
+                loop={true}
+              />
+            ) : (
+              <div className="w-full aspect-[2/1] flex items-center justify-center bg-muted/20">
+                <div className="text-center text-muted-foreground">
+                  <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No attack data available</p>
+                  <p className="text-sm">All systems secure</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Side Panel */}
+      <div className="space-y-4">
+        {/* Top Attack Origins */}
+        <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-destructive" />
+              Top Attack Origins
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {topCountries.length > 0 ? (
+              <div className="space-y-2">
+                {topCountries.slice(0, 5).map((stat, index) => (
+                  <div key={stat.country_code} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{getCountryFlag(country.country_code)}</span>
-                      <div>
-                        <p className="text-sm font-medium">{country.country}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {country.unique_ips} unique IPs
-                        </p>
-                      </div>
+                      <span className="text-lg">{getCountryFlag(stat.country_code)}</span>
+                      <span className="text-sm font-medium">{stat.country}</span>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold">{country.attack_count}</p>
-                      <p className="text-xs text-muted-foreground">attacks</p>
+                    <Badge 
+                      variant="outline" 
+                      className={
+                        stat.attack_count > 100 
+                          ? 'bg-destructive/10 text-destructive border-destructive/30'
+                          : stat.attack_count > 50
+                          ? 'bg-orange-500/10 text-orange-500 border-orange-500/30'
+                          : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30'
+                      }
+                    >
+                      {stat.attack_count}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No attack origins detected</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Attack Details */}
+        <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-yellow-500" />
+              Recent Attacks
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {attackPoints && attackPoints.length > 0 ? (
+              <div className="space-y-3 max-h-[280px] overflow-y-auto">
+                {attackPoints.slice(0, 6).map((point) => (
+                  <div key={point.id} className="flex items-start gap-2 text-sm">
+                    <div 
+                      className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+                      style={{ backgroundColor: SEVERITY_COLORS[point.severity] }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium font-mono text-xs truncate">{point.ip_address}</span>
+                        <Badge variant="outline" className="text-xs flex-shrink-0">
+                          {point.attack_count}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {point.city ? `${point.city}, ` : ''}{point.country || 'Unknown'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(point.last_attack), { addSuffix: true })}
+                      </div>
+                      {(point.is_vpn || point.is_proxy || point.is_tor) && (
+                        <div className="flex gap-1 mt-1">
+                          {point.is_vpn && <Badge variant="secondary" className="text-[10px] py-0"><Shield className="h-2 w-2 mr-0.5" />VPN</Badge>}
+                          {point.is_proxy && <Badge variant="secondary" className="text-[10px] py-0">Proxy</Badge>}
+                          {point.is_tor && <Badge variant="secondary" className="text-[10px] py-0 text-orange-500"><Wifi className="h-2 w-2 mr-0.5" />TOR</Badge>}
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
-
-      {/* Recent Attacks List */}
-      <Card className="lg:col-span-3 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <AlertTriangle className="h-4 w-4 text-destructive" />
-            Recent Attack Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[200px]">
-            <div className="space-y-2">
-              {attackPoints?.slice(0, 15).map((point) => (
-                <AttackPointRow key={point.id} point={point} />
-              ))}
-              {(!attackPoints || attackPoints.length === 0) && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No recent attacks detected
-                </p>
-              )}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-function AttackPointRow({ point }: { point: AttackGeoPoint }) {
-  return (
-    <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-      <div className="flex items-center gap-3">
-        <Badge variant={severityBadgeVariants[point.severity]} className="w-16 justify-center">
-          {point.severity}
-        </Badge>
-        <div>
-          <p className="text-sm font-mono">{point.ip_address}</p>
-          <p className="text-xs text-muted-foreground">
-            {point.city ? `${point.city}, ` : ''}{point.country || 'Unknown'}
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1">
-          {point.is_vpn && (
-            <Badge variant="outline" className="text-xs">
-              <Shield className="h-3 w-3 mr-1" />VPN
-            </Badge>
-          )}
-          {point.is_tor && (
-            <Badge variant="outline" className="text-xs text-orange-500 border-orange-500">
-              <Wifi className="h-3 w-3 mr-1" />TOR
-            </Badge>
-          )}
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-medium">{point.attack_count} attacks</p>
-          <p className="text-xs text-muted-foreground">
-            {formatDistanceToNow(new Date(point.last_attack), { addSuffix: true })}
-          </p>
-        </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No recent attacks</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 }
 
 function getCountryFlag(countryCode: string): string {
-  const codePoints = countryCode
-    .toUpperCase()
-    .split('')
-    .map(char => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
+  try {
+    const codePoints = countryCode
+      .toUpperCase()
+      .split('')
+      .map(char => 127397 + char.charCodeAt(0));
+    return String.fromCodePoint(...codePoints);
+  } catch {
+    return '🌍';
+  }
 }
