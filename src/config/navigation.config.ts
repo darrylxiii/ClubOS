@@ -38,6 +38,16 @@ import {
   Languages,
   Plus,
   Radio,
+  DollarSign,
+  FileCheck,
+  HelpCircle,
+  Ticket,
+  History,
+  FolderOpen,
+  Timer,
+  FileSignature,
+  Database,
+  AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -74,6 +84,7 @@ const baseNavigationGroups: NavigationGroup[] = [
       { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
+      { name: "Meeting History", icon: History, path: "/meeting-history" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
     ],
   },
@@ -99,9 +110,20 @@ const baseNavigationGroups: NavigationGroup[] = [
     icon: Cog,
     items: [
       { name: "My Profile", icon: User, path: "/profile" },
+      { name: "My Skills", icon: Target, path: "/my-skills" },
+      { name: "Documents", icon: FolderOpen, path: "/documents" },
+      { name: "Email Settings", icon: Mail, path: "/email-settings" },
       { name: "Subscription", icon: CreditCard, path: "/subscription" },
-      { name: "Knowledge Base", icon: BookOpen, path: "/help" },
       { name: "Settings", icon: Settings, path: "/settings" },
+    ],
+  },
+  {
+    title: "Support",
+    icon: HelpCircle,
+    items: [
+      { name: "Help Center", icon: BookOpen, path: "/help" },
+      { name: "Support Tickets", icon: Ticket, path: "/support/tickets" },
+      { name: "Submit Ticket", icon: Plus, path: "/support/tickets/new" },
     ],
   },
 ];
@@ -118,11 +140,19 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Companies", icon: Building2, path: "/companies" },
         { name: "Salary Insights", icon: TrendingUp, path: "/salary-insights" },
         { name: "Career Path", icon: Target, path: "/career-path" },
-        { name: "Projects", icon: Layers, path: "/projects" },
         { name: "Referrals", icon: Gift, path: "/referrals" },
         { name: "Invites", icon: Mail, path: "/invites" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
         { name: "Analytics", icon: BarChart3, path: "/candidate-analytics" },
+      ],
+    },
+    {
+      title: "Projects",
+      icon: Layers,
+      items: [
+        { name: "Browse Projects", icon: Layers, path: "/projects" },
+        { name: "My Contracts", icon: FileSignature, path: "/contracts" },
+        { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
       ],
     },
     {
@@ -139,16 +169,36 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Briefcase,
       items: [
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
+        { name: "Company Jobs", icon: Briefcase, path: "/company-jobs" },
         { name: "Target Companies", icon: Target, path: "/partner/target-companies" },
         { name: "Intelligence Hub", icon: Brain, path: "/hiring-intelligence" },
         { name: "Company Intelligence", icon: Building, path: "/company-intelligence" },
         { name: "Applicants", icon: FileText, path: "/applications" },
+        { name: "Company Applications", icon: FileText, path: "/company-applications" },
         { name: "Interactions", icon: MessageSquare, path: "/interactions" },
         { name: "Log Interaction", icon: Plus, path: "/interactions/new" },
         { name: "Rejections", icon: Users, path: "/partner/rejections" },
         { name: "Companies", icon: Building, path: "/companies" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
         { name: "Hiring Analytics", icon: BarChart3, path: "/partner/analytics" },
+      ],
+    },
+    {
+      title: "Operations",
+      icon: Activity,
+      items: [
+        { name: "Audit Log", icon: FileCheck, path: "/partner/audit-log" },
+        { name: "SLA Dashboard", icon: Timer, path: "/partner/sla" },
+        { name: "Integrations", icon: Link2, path: "/partner/integrations" },
+      ],
+    },
+    {
+      title: "Projects",
+      icon: Layers,
+      items: [
+        { name: "Browse Projects", icon: Layers, path: "/projects" },
+        { name: "Contracts", icon: FileSignature, path: "/contracts" },
+        { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
       ],
     },
     {
@@ -182,6 +232,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "All Candidates", icon: Users, path: "/admin/candidates" },
         { name: "Member Requests", icon: Users, path: "/admin/member-requests" },
+        { name: "Company Management", icon: Building, path: "/admin/companies" },
         { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
         { name: "Merge Dashboard", icon: Link2, path: "/admin/merge" },
         { name: "Companies", icon: Building, path: "/companies" },
@@ -212,9 +263,13 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Shield,
       items: [
         { name: "KPI Command Center", icon: BarChart3, path: "/admin/kpi-command-center" },
+        { name: "Performance Matrix", icon: LayoutDashboard, path: "/admin/performance-matrix" },
+        { name: "Website KPIs", icon: Globe, path: "/admin/website-kpis" },
+        { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
         { name: "User Activity", icon: Activity, path: "/admin/user-activity" },
         { name: "System Health", icon: Shield, path: "/admin/system-health" },
         { name: "Disaster Recovery", icon: Shield, path: "/admin/comprehensive-dr" },
+        { name: "DR Runbooks", icon: FileCheck, path: "/admin/dr-runbooks" },
         { name: "Translation Manager", icon: Languages, path: "/admin/translations" },
         { name: "Language Manager", icon: Globe, path: "/admin/languages" },
         { name: "Target Companies", icon: Target, path: "/admin/target-companies" },
@@ -225,9 +280,31 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: TrendingUp,
       items: [
         { name: "Deal Pipeline", icon: Target, path: "/admin/deals-pipeline" },
+        { name: "Company Fees", icon: DollarSign, path: "/admin/company-fees" },
+        { name: "Deal Pipeline Settings", icon: Cog, path: "/admin/deal-pipeline-settings" },
         { name: "Financial Dashboard", icon: CreditCard, path: "/admin/financial" },
         { name: "Revenue Analytics", icon: BarChart3, path: "/revenue-analytics" },
         { name: "Referral Program", icon: Gift, path: "/referrals" },
+      ],
+    },
+    {
+      title: "Compliance",
+      icon: FileCheck,
+      items: [
+        { name: "Compliance Dashboard", icon: Shield, path: "/compliance/dashboard" },
+        { name: "Legal Agreements", icon: FileSignature, path: "/compliance/legal-agreements" },
+        { name: "Subprocessors", icon: Building2, path: "/compliance/subprocessors" },
+        { name: "Data Classification", icon: Database, path: "/compliance/data-classification" },
+        { name: "Audit Requests", icon: AlertTriangle, path: "/compliance/audit-requests" },
+      ],
+    },
+    {
+      title: "Projects",
+      icon: Layers,
+      items: [
+        { name: "All Projects", icon: Layers, path: "/projects" },
+        { name: "Contracts", icon: FileSignature, path: "/contracts" },
+        { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
       ],
     },
     {
@@ -309,10 +386,11 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   }
   groups.push(communicationGroup);
   
-  // 4. Add remaining base sections (Learning, AI & Tools, Settings)
+  // 4. Add remaining base sections (Learning, AI & Tools, Settings, Support)
   groups.push(baseNavigationGroups[2]); // Learning
   groups.push(baseNavigationGroups[3]); // AI & Tools
   groups.push(baseNavigationGroups[4]); // Settings
+  groups.push(baseNavigationGroups[5]); // Support
   
   return groups;
 }
