@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/contexts/RoleContext";
 import { Download, FileText, Calendar, DollarSign } from "lucide-react";
 import { format } from "date-fns";
+import { AppLayout } from "@/components/AppLayout";
 
 interface Invoice {
   id: string;
@@ -57,123 +58,125 @@ export default function BillingDashboard() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <DollarSign className="w-8 h-8" />
-            Billing & Invoices
-          </h1>
-          <p className="text-muted-foreground mt-2">Manage your billing and download invoices</p>
+    <AppLayout>
+      <div className="container mx-auto py-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <DollarSign className="w-8 h-8" />
+              Billing & Invoices
+            </h1>
+            <p className="text-muted-foreground mt-2">Manage your billing and download invoices</p>
+          </div>
         </div>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Invoiced</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(
+                  invoices?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
+                  'EUR'
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Paid</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {formatCurrency(
+                  invoices?.filter((i) => i.status === 'paid')
+                    .reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
+                  'EUR'
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">
+                {formatCurrency(
+                  invoices?.filter((i) => i.status !== 'paid')
+                    .reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
+                  'EUR'
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Invoiced</CardTitle>
+          <CardHeader>
+            <CardTitle>Recent Invoices</CardTitle>
+            <CardDescription>View and download your invoices</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(
-                invoices?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
-                'EUR'
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Paid</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(
-                invoices?.filter((i) => i.status === 'paid')
-                  .reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
-                'EUR'
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {formatCurrency(
-                invoices?.filter((i) => i.status !== 'paid')
-                  .reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
-                'EUR'
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Invoices</CardTitle>
-          <CardDescription>View and download your invoices</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-20 bg-muted animate-pulse rounded" />
-              ))}
-            </div>
-          ) : invoices && invoices.length > 0 ? (
-            <div className="space-y-2">
-              {invoices.map((invoice) => (
-                <div key={invoice.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <FileText className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-semibold">{invoice.invoice_number}</span>
-                        <Badge variant={getStatusColor(invoice.status)}>
-                          {invoice.status}
-                        </Badge>
+            {isLoading ? (
+              <div className="space-y-2">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-20 bg-muted animate-pulse rounded" />
+                ))}
+              </div>
+            ) : invoices && invoices.length > 0 ? (
+              <div className="space-y-2">
+                {invoices.map((invoice) => (
+                  <div key={invoice.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-1">
+                          <FileText className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-semibold">{invoice.invoice_number}</span>
+                          <Badge variant={getStatusColor(invoice.status)}>
+                            {invoice.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {format(new Date(invoice.invoice_date), 'MMM d, yyyy')}
+                          </span>
+                          {invoice.due_date && (
+                            <span>Due: {format(new Date(invoice.due_date), 'MMM d, yyyy')}</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {format(new Date(invoice.invoice_date), 'MMM d, yyyy')}
-                        </span>
-                        {invoice.due_date && (
-                          <span>Due: {format(new Date(invoice.due_date), 'MMM d, yyyy')}</span>
+                      <div className="text-right space-y-2">
+                        <div className="text-xl font-bold">
+                          {formatCurrency(invoice.total_amount || 0, invoice.currency_code || 'EUR')}
+                        </div>
+                        {invoice.pdf_url && (
+                          <Button size="sm" variant="outline" asChild>
+                            <a href={invoice.pdf_url} target="_blank" rel="noopener noreferrer">
+                              <Download className="w-4 h-4 mr-2" />
+                              Download
+                            </a>
+                          </Button>
                         )}
                       </div>
                     </div>
-                    <div className="text-right space-y-2">
-                      <div className="text-xl font-bold">
-                        {formatCurrency(invoice.total_amount || 0, invoice.currency_code || 'EUR')}
-                      </div>
-                      {invoice.pdf_url && (
-                        <Button size="sm" variant="outline" asChild>
-                          <a href={invoice.pdf_url} target="_blank" rel="noopener noreferrer">
-                            <Download className="w-4 h-4 mr-2" />
-                            Download
-                          </a>
-                        </Button>
-                      )}
-                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No invoices found</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No invoices found</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </AppLayout>
   );
 }
