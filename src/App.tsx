@@ -25,6 +25,7 @@ import { analyticsRoutes } from "@/routes/analytics.routes";
 import { meetingsRoutes } from "@/routes/meetings.routes";
 import { jobsRoutes } from "@/routes/jobs.routes";
 import { profilesRoutes } from "@/routes/profiles.routes";
+import { projectsRoutes } from "@/routes/projects.routes";
 import { QuickAccessHub } from '@/components/QuickAccessHub';
 import { CookieConsentBanner } from '@/components/support/CookieConsentBanner';
 
@@ -103,14 +104,7 @@ import ResetPasswordVerify from "./pages/ResetPasswordVerify";
 import ResetPasswordMagicLink from "./pages/ResetPasswordMagicLink";
 import ResetPasswordNew from "./pages/ResetPasswordNew";
 
-// Club Projects
-const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
-const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage"));
-const ProjectApplyPage = lazy(() => import("./pages/ProjectApplyPage"));
-const ContractListPage = lazy(() => import("./pages/ContractListPage"));
-const ContractDetailPage = lazy(() => import("./pages/ContractDetailPage"));
-const ContractSignaturePage = lazy(() => import("./pages/ContractSignaturePage"));
-const TimeTrackingPage = lazy(() => import("./pages/TimeTrackingPage"));
+// Club Projects - Routes defined in projects.routes.tsx
 
 // Live Hub
 const LiveHub = lazy(() => import("./pages/LiveHub"));
@@ -444,6 +438,9 @@ const App = () => {
                       
                       {/* Profile Routes */}
                       {profilesRoutes}
+                      
+                      {/* Club Projects Routes */}
+                      {projectsRoutes}
                       
                       {/* Support & Help */}
                       <Route path="/support/tickets" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SupportTicketList /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
