@@ -4,27 +4,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 
+// Match actual database schema
 export interface TimeEntryData {
   id: string;
   user_id: string;
   date: string;
   hours_worked: number;
   billable_hours: number | null;
-  hourly_rate: number | null;
-  total_amount: number | null;
-  task_description: string | null;
   notes: string | null;
-  is_billable: boolean;
-  status: 'pending' | 'approved' | 'rejected' | 'disputed' | 'invoiced' | 'paid';
-  approved_by: string | null;
-  approved_at: string | null;
-  tags: string[];
-  start_time: string | null;
-  end_time: string | null;
-  entry_type: string;
   project_id: string | null;
-  contract_id: string | null;
-  company_id: string | null;
+  activity_level: string | null;
+  idle_time_minutes: number | null;
+  source: string | null;
   created_at: string;
   updated_at: string;
   // Joined data
@@ -37,11 +28,9 @@ export interface TimeEntryData {
 
 export interface TimeStats {
   totalHours: number;
-  totalEarnings: number;
   thisWeekHours: number;
   thisMonthHours: number;
-  pendingApprovals: number;
-  approvedHours: number;
+  billableHours: number;
 }
 
 export function useTimeTracking() {
@@ -62,62 +51,48 @@ export function useTimeTracking() {
         .limit(100);
 
       if (error) throw error;
-      return data as TimeEntryData[];
+      return (data || []) as TimeEntryData[];
     },
     enabled: !!user?.id,
   });
 
-  // Fetch team time entries (for partners/admins)
+  // Fetch team time entries (for partners/admins) - simplified query to avoid type recursion
   const { data: teamEntries = [], isLoading: loadingTeamEntries } = useQuery({
     queryKey: ['time-entries', 'team'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get time entries
+      const { data: entries, error } = await supabase
         .from('time_entries')
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .order('date', { ascending: false })
         .limit(200);
 
       if (error) throw error;
-      return (data || []).map(entry => ({
+      if (!entries || entries.length === 0) return [];
+
+      // Get unique user IDs
+      const userIds = [...new Set(entries.map(e => e.user_id).filter(Boolean))];
+      
+      // Fetch profiles separately
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      return entries.map(entry => ({
         ...entry,
-        user: entry.profiles
+        user: entry.user_id ? profileMap.get(entry.user_id) : undefined
       })) as TimeEntryData[];
     },
     enabled: !!user?.id,
   });
 
-  // Fetch pending approvals
-  const { data: pendingApprovals = [], isLoading: loadingPending } = useQuery({
-    queryKey: ['time-entries', 'pending'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('time_entries')
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('status', 'pending')
-        .order('date', { ascending: false });
-
-      if (error) throw error;
-      return (data || []).map(entry => ({
-        ...entry,
-        user: entry.profiles
-      })) as TimeEntryData[];
-    },
-    enabled: !!user?.id,
-  });
+  // Pending approvals - for this simplified version, we'll just return empty
+  // since the status column doesn't exist in the actual schema
+  const pendingApprovals: TimeEntryData[] = [];
+  const loadingPending = false;
 
   // Calculate stats
   const calculateStats = (entries: TimeEntryData[]): TimeStats => {
@@ -137,16 +112,11 @@ export function useTimeTracking() {
       return date >= monthStart && date <= monthEnd;
     });
 
-    const approvedEntries = entries.filter(e => e.status === 'approved');
-    const pendingEntries = entries.filter(e => e.status === 'pending');
-
     return {
       totalHours: entries.reduce((sum, e) => sum + Number(e.hours_worked || 0), 0),
-      totalEarnings: entries.reduce((sum, e) => sum + Number(e.total_amount || 0), 0),
       thisWeekHours: thisWeekEntries.reduce((sum, e) => sum + Number(e.hours_worked || 0), 0),
       thisMonthHours: thisMonthEntries.reduce((sum, e) => sum + Number(e.hours_worked || 0), 0),
-      pendingApprovals: pendingEntries.length,
-      approvedHours: approvedEntries.reduce((sum, e) => sum + Number(e.hours_worked || 0), 0),
+      billableHours: entries.reduce((sum, e) => sum + Number(e.billable_hours || 0), 0),
     };
   };
 
@@ -155,22 +125,13 @@ export function useTimeTracking() {
     mutationFn: async (entry: {
       date: string;
       hours_worked: number;
-      task_description?: string;
       notes?: string;
-      is_billable?: boolean;
-      hourly_rate?: number;
-      entry_type?: string;
-      start_time?: string;
-      end_time?: string;
-      tags?: string[];
+      billable_hours?: number;
       project_id?: string;
-      contract_id?: string;
+      activity_level?: string;
+      source?: string;
     }) => {
       if (!user?.id) throw new Error('Not authenticated');
-
-      const totalAmount = entry.hourly_rate 
-        ? entry.hours_worked * entry.hourly_rate 
-        : 0;
 
       const { error } = await supabase
         .from('time_entries')
@@ -178,19 +139,11 @@ export function useTimeTracking() {
           user_id: user.id,
           date: entry.date,
           hours_worked: entry.hours_worked,
-          billable_hours: entry.is_billable !== false ? entry.hours_worked : 0,
-          task_description: entry.task_description,
+          billable_hours: entry.billable_hours ?? entry.hours_worked,
           notes: entry.notes,
-          is_billable: entry.is_billable ?? true,
-          hourly_rate: entry.hourly_rate ?? 0,
-          total_amount: totalAmount,
-          entry_type: entry.entry_type ?? 'work',
-          start_time: entry.start_time,
-          end_time: entry.end_time,
-          tags: entry.tags ?? [],
           project_id: entry.project_id,
-          contract_id: entry.contract_id,
-          status: 'pending',
+          activity_level: entry.activity_level ?? 'high',
+          source: entry.source ?? 'manual',
         });
 
       if (error) throw error;
@@ -209,7 +162,13 @@ export function useTimeTracking() {
     mutationFn: async ({ id, ...updates }: Partial<TimeEntryData> & { id: string }) => {
       const { error } = await supabase
         .from('time_entries')
-        .update(updates)
+        .update({
+          hours_worked: updates.hours_worked,
+          billable_hours: updates.billable_hours,
+          notes: updates.notes,
+          project_id: updates.project_id,
+          activity_level: updates.activity_level,
+        })
         .eq('id', id);
 
       if (error) throw error;
@@ -242,47 +201,16 @@ export function useTimeTracking() {
     },
   });
 
-  // Approve time entry
+  // Placeholder approve/reject (no-op since status column doesn't exist)
   const approveEntry = useMutation({
     mutationFn: async (id: string) => {
-      if (!user?.id) throw new Error('Not authenticated');
-
-      const { error } = await supabase
-        .from('time_entries')
-        .update({
-          status: 'approved',
-          approved_by: user.id,
-          approved_at: new Date().toISOString(),
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['time-entries'] });
-      toast.success('Time entry approved');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to approve time entry');
+      toast.info('Approval feature requires database migration');
     },
   });
 
-  // Reject time entry
   const rejectEntry = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('time_entries')
-        .update({ status: 'rejected' })
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['time-entries'] });
-      toast.success('Time entry rejected');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to reject time entry');
+      toast.info('Rejection feature requires database migration');
     },
   });
 

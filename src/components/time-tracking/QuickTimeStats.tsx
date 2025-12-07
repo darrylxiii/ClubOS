@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Clock, DollarSign, TrendingUp, Calendar, Users, CheckCircle } from "lucide-react";
+import { Clock, Calendar, TrendingUp, Users } from "lucide-react";
 import { TimeStats } from "@/hooks/useTimeTracking";
 
 interface QuickTimeStatsProps {
@@ -10,71 +10,82 @@ interface QuickTimeStatsProps {
 
 export function QuickTimeStats({ stats, showTeamStats, teamStats }: QuickTimeStatsProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-      {/* Personal Stats */}
-      <Card className="p-4 border border-border/50 bg-gradient-to-br from-card/90 to-card/60">
-        <div className="flex items-center gap-2 mb-2">
-          <Clock className="h-4 w-4 text-primary" />
-          <span className="text-xs text-muted-foreground">This Week</span>
-        </div>
-        <div className="text-2xl font-bold text-foreground">
-          {stats.thisWeekHours.toFixed(1)}h
-        </div>
-      </Card>
-
-      <Card className="p-4 border border-border/50 bg-gradient-to-br from-card/90 to-card/60">
-        <div className="flex items-center gap-2 mb-2">
-          <Calendar className="h-4 w-4 text-primary" />
-          <span className="text-xs text-muted-foreground">This Month</span>
-        </div>
-        <div className="text-2xl font-bold text-foreground">
-          {stats.thisMonthHours.toFixed(1)}h
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* This Week */}
+      <Card className="p-4 border border-border/50">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Clock className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">This Week</p>
+            <p className="text-2xl font-bold text-foreground">
+              {stats.thisWeekHours.toFixed(1)}h
+            </p>
+          </div>
         </div>
       </Card>
 
-      <Card className="p-4 border border-border/50 bg-gradient-to-br from-card/90 to-card/60">
-        <div className="flex items-center gap-2 mb-2">
-          <DollarSign className="h-4 w-4 text-primary" />
-          <span className="text-xs text-muted-foreground">Total Earnings</span>
-        </div>
-        <div className="text-2xl font-bold text-foreground">
-          €{stats.totalEarnings.toLocaleString()}
-        </div>
-      </Card>
-
-      <Card className="p-4 border border-border/50 bg-gradient-to-br from-card/90 to-card/60">
-        <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="h-4 w-4 text-primary" />
-          <span className="text-xs text-muted-foreground">All Time</span>
-        </div>
-        <div className="text-2xl font-bold text-foreground">
-          {stats.totalHours.toFixed(1)}h
+      {/* This Month */}
+      <Card className="p-4 border border-border/50">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-500/10 rounded-lg">
+            <Calendar className="h-5 w-5 text-blue-500" />
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">This Month</p>
+            <p className="text-2xl font-bold text-foreground">
+              {stats.thisMonthHours.toFixed(1)}h
+            </p>
+          </div>
         </div>
       </Card>
 
-      {/* Team Stats (for managers) */}
+      {/* Billable Hours */}
+      <Card className="p-4 border border-border/50">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-500/10 rounded-lg">
+            <TrendingUp className="h-5 w-5 text-green-500" />
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Billable Hours</p>
+            <p className="text-2xl font-bold text-foreground">
+              {stats.billableHours.toFixed(1)}h
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {/* All Time */}
+      <Card className="p-4 border border-border/50">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-purple-500/10 rounded-lg">
+            <TrendingUp className="h-5 w-5 text-purple-500" />
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">All Time</p>
+            <p className="text-2xl font-bold text-foreground">
+              {stats.totalHours.toFixed(0)}h
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Team Stats (if manager) */}
       {showTeamStats && teamStats && (
-        <>
-          <Card className="p-4 border border-border/50 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="h-4 w-4 text-blue-500" />
-              <span className="text-xs text-muted-foreground">Team This Week</span>
+        <Card className="p-4 border border-border/50 md:col-span-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-500/10 rounded-lg">
+              <Users className="h-5 w-5 text-amber-500" />
             </div>
-            <div className="text-2xl font-bold text-foreground">
-              {teamStats.thisWeekHours.toFixed(1)}h
+            <div>
+              <p className="text-sm text-muted-foreground">Team This Week</p>
+              <p className="text-2xl font-bold text-foreground">
+                {teamStats.thisWeekHours.toFixed(1)}h
+              </p>
             </div>
-          </Card>
-
-          <Card className="p-4 border border-border/50 bg-gradient-to-br from-amber-500/10 to-amber-500/5">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle className="h-4 w-4 text-amber-500" />
-              <span className="text-xs text-muted-foreground">Pending</span>
-            </div>
-            <div className="text-2xl font-bold text-foreground">
-              {teamStats.pendingApprovals}
-            </div>
-          </Card>
-        </>
+          </div>
+        </Card>
       )}
     </div>
   );

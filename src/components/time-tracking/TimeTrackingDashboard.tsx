@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
-import { useUserRoles } from "@/hooks/useUserRoles";
+import { useRole } from "@/contexts/RoleContext";
 import { MyTimeEntries } from "./MyTimeEntries";
 import { TeamTimeOverview } from "./TeamTimeOverview";
 import { PendingApprovals } from "./PendingApprovals";
@@ -9,13 +9,11 @@ import { QuickTimeStats } from "./QuickTimeStats";
 import { Clock, Users, CheckCircle } from "lucide-react";
 
 export function TimeTrackingDashboard() {
-  const { userRoles } = useUserRoles();
+  const { currentRole } = useRole();
   const { myStats, teamStats, pendingApprovals, isLoading } = useTimeTracking();
   const [activeTab, setActiveTab] = useState("my-time");
 
-  const isManager = userRoles.some(r => 
-    ['admin', 'strategist', 'partner'].includes(r.role)
-  );
+  const isManager = ['admin', 'strategist', 'partner'].includes(currentRole || '');
 
   if (isLoading) {
     return (

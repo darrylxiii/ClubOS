@@ -1,4 +1,4 @@
-import { AppLayout } from "@/components/layout/AppLayout";
+import { AppLayout } from "@/components/AppLayout";
 import { TimeTrackingDashboard } from "@/components/time-tracking/TimeTrackingDashboard";
 import { Clock } from "lucide-react";
 

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useTimeTracking, TimeEntryData } from "@/hooks/useTimeTracking";
 import { format, startOfWeek, endOfWeek } from "date-fns";
-import { Users, Search, Clock, CheckCircle, AlertCircle, TrendingUp } from "lucide-react";
+import { Users, Search, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TeamMemberStats {
@@ -15,8 +15,7 @@ interface TeamMemberStats {
   avatar: string | null;
   thisWeekHours: number;
   thisMonthHours: number;
-  pendingCount: number;
-  approvedCount: number;
+  totalBillable: number;
   entries: TimeEntryData[];
 }
 
@@ -36,8 +35,7 @@ export function TeamTimeOverview() {
           avatar: entry.user?.avatar_url || null,
           thisWeekHours: 0,
           thisMonthHours: 0,
-          pendingCount: 0,
-          approvedCount: 0,
+          totalBillable: 0,
           entries: [],
         };
       }
@@ -53,12 +51,7 @@ export function TeamTimeOverview() {
       if (entryDate >= monthStart) {
         acc[userId].thisMonthHours += Number(entry.hours_worked || 0);
       }
-      if (entry.status === 'pending') {
-        acc[userId].pendingCount++;
-      }
-      if (entry.status === 'approved') {
-        acc[userId].approvedCount++;
-      }
+      acc[userId].totalBillable += Number(entry.billable_hours || 0);
       acc[userId].entries.push(entry);
 
       return acc;
@@ -182,18 +175,9 @@ function TeamMemberCard({ member, isSelected, onClick }: TeamMemberCardProps) {
           </div>
 
           <div className="flex items-center gap-2 mt-2">
-            {member.pendingCount > 0 && (
-              <Badge variant="outline" className="text-xs bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
-                <AlertCircle className="h-3 w-3 mr-1" />
-                {member.pendingCount} pending
-              </Badge>
-            )}
-            {member.approvedCount > 0 && (
-              <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                {member.approvedCount} approved
-              </Badge>
-            )}
+            <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
+              {member.totalBillable.toFixed(1)}h billable
+            </Badge>
           </div>
         </div>
 
@@ -248,8 +232,8 @@ function MemberDetailPanel({ member, onClose }: MemberDetailPanelProps) {
           <div className="text-xl font-bold">{member.thisMonthHours.toFixed(1)}h</div>
         </div>
         <div className="p-3 bg-muted/50 rounded-lg">
-          <div className="text-sm text-muted-foreground">Pending</div>
-          <div className="text-xl font-bold">{member.pendingCount}</div>
+          <div className="text-sm text-muted-foreground">Billable</div>
+          <div className="text-xl font-bold">{member.totalBillable.toFixed(1)}h</div>
         </div>
       </div>
 
@@ -265,21 +249,11 @@ function MemberDetailPanel({ member, onClose }: MemberDetailPanelProps) {
                 {format(new Date(entry.date), 'MMM d')}
               </span>
               <span className="text-sm text-foreground truncate max-w-[200px]">
-                {entry.task_description || entry.notes || 'No description'}
+                {entry.notes || 'No description'}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">{Number(entry.hours_worked).toFixed(1)}h</span>
-              <Badge 
-                variant="outline" 
-                className={cn(
-                  "text-xs",
-                  entry.status === 'approved' && "bg-green-500/10 text-green-600",
-                  entry.status === 'pending' && "bg-yellow-500/10 text-yellow-600"
-                )}
-              >
-                {entry.status}
-              </Badge>
             </div>
           </div>
         ))}

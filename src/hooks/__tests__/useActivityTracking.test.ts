@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useActivityTracking } from '../useActivityTracking';
 
 // Mock Supabase
@@ -26,20 +26,14 @@ describe('useActivityTracking', () => {
     expect(result.current).toBeDefined();
   });
 
-  it('should provide trackActivity function', async () => {
+  it('should provide trackActivity function', () => {
     const { result } = renderHook(() => useActivityTracking());
-    
-    await waitFor(() => {
-      expect(result.current.trackActivity).toBeInstanceOf(Function);
-    });
+    expect(result.current.trackActivity).toBeInstanceOf(Function);
   });
 
-  it('should provide updateOnlineStatus function', async () => {
+  it('should provide updateOnlineStatus function', () => {
     const { result } = renderHook(() => useActivityTracking());
-    
-    await waitFor(() => {
-      expect(result.current.updateOnlineStatus).toBeInstanceOf(Function);
-    });
+    expect(result.current.updateOnlineStatus).toBeInstanceOf(Function);
   });
 
   it('should handle missing user gracefully', () => {

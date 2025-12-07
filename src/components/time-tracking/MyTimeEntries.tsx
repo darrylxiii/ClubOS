@@ -13,9 +13,6 @@ import {
   Calendar,
   Edit,
   Trash2,
-  CheckCircle,
-  AlertCircle,
-  XCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +33,7 @@ export function MyTimeEntries() {
 
   // Calculate weekly totals
   const weeklyTotal = weekEntries.reduce((sum, e) => sum + Number(e.hours_worked || 0), 0);
-  const weeklyEarnings = weekEntries.reduce((sum, e) => sum + Number(e.total_amount || 0), 0);
+  const weeklyBillable = weekEntries.reduce((sum, e) => sum + Number(e.billable_hours || 0), 0);
 
   const goToPreviousWeek = () => setCurrentWeekStart(subWeeks(currentWeekStart, 1));
   const goToNextWeek = () => setCurrentWeekStart(addWeeks(currentWeekStart, 1));
@@ -45,29 +42,16 @@ export function MyTimeEntries() {
   const isCurrentWeek = format(currentWeekStart, 'yyyy-MM-dd') === 
     format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'rejected':
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      case 'disputed':
-        return <AlertCircle className="h-4 w-4 text-orange-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved':
+  const getActivityColor = (level: string | null) => {
+    switch (level) {
+      case 'high':
         return 'bg-green-500/10 text-green-600 border-green-500/20';
-      case 'rejected':
-        return 'bg-red-500/10 text-red-600 border-red-500/20';
-      case 'disputed':
-        return 'bg-orange-500/10 text-orange-600 border-orange-500/20';
-      default:
+      case 'medium':
         return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+      case 'low':
+        return 'bg-red-500/10 text-red-600 border-red-500/20';
+      default:
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -109,11 +93,9 @@ export function MyTimeEntries() {
               <span className="text-sm text-muted-foreground">
                 {weeklyTotal.toFixed(1)}h logged
               </span>
-              {weeklyEarnings > 0 && (
-                <span className="text-sm text-muted-foreground">
-                  €{weeklyEarnings.toLocaleString()} earned
-                </span>
-              )}
+              <span className="text-sm text-muted-foreground">
+                {weeklyBillable.toFixed(1)}h billable
+              </span>
             </div>
           </div>
 
@@ -157,8 +139,7 @@ export function MyTimeEntries() {
               key={entry.id} 
               entry={entry} 
               onDelete={() => deleteEntry.mutate(entry.id)}
-              getStatusIcon={getStatusIcon}
-              getStatusColor={getStatusColor}
+              getActivityColor={getActivityColor}
             />
           ))}
         </div>
@@ -176,11 +157,10 @@ export function MyTimeEntries() {
 interface TimeEntryRowProps {
   entry: TimeEntryData;
   onDelete: () => void;
-  getStatusIcon: (status: string) => React.ReactNode;
-  getStatusColor: (status: string) => string;
+  getActivityColor: (level: string | null) => string;
 }
 
-function TimeEntryRow({ entry, onDelete, getStatusIcon, getStatusColor }: TimeEntryRowProps) {
+function TimeEntryRow({ entry, onDelete, getActivityColor }: TimeEntryRowProps) {
   return (
     <Card className="p-4 border border-border/50 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
@@ -189,35 +169,21 @@ function TimeEntryRow({ entry, onDelete, getStatusIcon, getStatusColor }: TimeEn
             <span className="text-sm font-medium text-foreground">
               {format(new Date(entry.date), 'EEE, MMM d')}
             </span>
-            {entry.start_time && entry.end_time && (
-              <span className="text-xs text-muted-foreground">
-                {entry.start_time} - {entry.end_time}
-              </span>
+            {entry.activity_level && (
+              <Badge className={cn("border text-xs capitalize", getActivityColor(entry.activity_level))}>
+                {entry.activity_level} activity
+              </Badge>
             )}
-            <Badge className={cn("border text-xs", getStatusColor(entry.status))}>
-              {getStatusIcon(entry.status)}
-              <span className="ml-1 capitalize">{entry.status}</span>
-            </Badge>
-            {entry.entry_type && entry.entry_type !== 'work' && (
+            {entry.source && entry.source !== 'manual' && (
               <Badge variant="outline" className="text-xs capitalize">
-                {entry.entry_type}
+                {entry.source}
               </Badge>
             )}
           </div>
 
           <p className="text-sm text-foreground line-clamp-2">
-            {entry.task_description || entry.notes || 'No description'}
+            {entry.notes || 'No description'}
           </p>
-
-          {entry.tags && entry.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {entry.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
 
         <div className="flex items-center gap-4 ml-4">
@@ -225,28 +191,26 @@ function TimeEntryRow({ entry, onDelete, getStatusIcon, getStatusColor }: TimeEn
             <div className="text-lg font-bold text-foreground">
               {Number(entry.hours_worked).toFixed(1)}h
             </div>
-            {entry.total_amount && Number(entry.total_amount) > 0 && (
+            {entry.billable_hours && Number(entry.billable_hours) > 0 && (
               <div className="text-sm text-muted-foreground">
-                €{Number(entry.total_amount).toFixed(2)}
+                {Number(entry.billable_hours).toFixed(1)}h billable
               </div>
             )}
           </div>
 
-          {entry.status === 'pending' && (
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-destructive hover:text-destructive"
-                onClick={onDelete}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-destructive hover:text-destructive"
+              onClick={onDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </Card>
