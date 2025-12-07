@@ -67,7 +67,7 @@ export function useTimesheets(userId?: string) {
       if (error) throw error;
       return data as TimesheetPeriod[];
     },
-    enabled: !!user?.id,
+    enabled: !!currentUserId,
   });
 
   // Fetch pending approvals (for managers)
@@ -293,7 +293,7 @@ export function useTimesheets(userId?: string) {
     if (existing) return existing as TimesheetPeriod;
     
     // Generate if not exists
-    const timesheetId = await generateTimesheet.mutateAsync();
+    const timesheetId = await generateTimesheet.mutateAsync(new Date());
     
     const { data: newTimesheet } = await supabase
       .from('timesheet_periods')
