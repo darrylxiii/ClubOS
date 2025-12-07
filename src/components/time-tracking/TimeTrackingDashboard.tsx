@@ -10,9 +10,9 @@ import { QuickTimeStats } from "./QuickTimeStats";
 import { TimerButton } from "./TimerButton";
 import { ManualTimeEntryDialog } from "./ManualTimeEntryDialog";
 import { IdleDetectionModal } from "./IdleDetectionModal";
-import { RunningTimerHeader } from "./RunningTimerHeader";
 import { TimerSettingsDialog } from "./TimerSettingsDialog";
 import { ActivityMonitoringIndicator } from "./ActivityMonitoringIndicator";
+import { PilotTaskTimerIntegration } from "./PilotTaskTimerIntegration";
 import { Clock, Users, Plus, Settings, Keyboard, Activity } from "lucide-react";
 import { toast } from "sonner";
 
@@ -108,11 +108,10 @@ export function TimeTrackingDashboard() {
 
   return (
     <>
-      {/* Running timer header - shows when timer is active */}
-      {runningEntry && <RunningTimerHeader />}
+      {/* Timer header is now global in AppLayout */}
       
-      {/* Add padding when timer header is shown */}
-      <div className={runningEntry ? "pt-16" : ""}>
+      {/* Add padding when timer is running (global header shows) */}
+      <div className={runningEntry ? "pt-12" : ""}>
         <div className="space-y-6">
           {/* Header with Timer Controls */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

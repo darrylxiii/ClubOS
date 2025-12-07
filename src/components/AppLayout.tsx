@@ -2,6 +2,7 @@ import { ReactNode, useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTranslationSync } from "@/hooks/use-translation-sync";
+import { GlobalRunningTimerHeader } from "@/components/time-tracking/GlobalRunningTimerHeader";
 // Short QC icons (for collapsed state) - "transparent" files are the small icons
 import quantumClubLogoDarkShort from "@/assets/quantum-logo-dark-transparent.png"; // QC icon - black for light theme
 import quantumClubLogoLightShort from "@/assets/quantum-logo-light-transparent.png"; // QC icon - white for dark theme
@@ -176,6 +177,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           profilePath={profilePath}
         />
       </Sidebar>
+
+      {/* Global Running Timer Header */}
+      <GlobalRunningTimerHeader />
 
       {/* Main Content - Adjusted for sidebar - Mobile Optimized */}
       <main 

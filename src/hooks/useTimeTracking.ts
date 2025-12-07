@@ -21,6 +21,12 @@ export interface TimeEntryData {
   source: string | null;
   created_at: string;
   updated_at: string;
+  // Integration fields
+  contract_id?: string | null;
+  company_id?: string | null;
+  pilot_task_id?: string | null;
+  hourly_rate?: number | null;
+  earnings?: number | null;
   // Joined data
   project?: TrackingProject;
   task?: TrackingTask;

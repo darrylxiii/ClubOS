@@ -26402,14 +26402,19 @@ export type Database = {
       time_entries: {
         Row: {
           activity_level: string | null
+          company_id: string | null
+          contract_id: string | null
           created_at: string
           description: string | null
           duration_seconds: number
+          earnings: number | null
           end_time: string | null
+          hourly_rate: number | null
           id: string
           idle_seconds: number | null
           is_billable: boolean
           is_running: boolean
+          pilot_task_id: string | null
           project_id: string | null
           source: string | null
           start_time: string | null
@@ -26419,14 +26424,19 @@ export type Database = {
         }
         Insert: {
           activity_level?: string | null
+          company_id?: string | null
+          contract_id?: string | null
           created_at?: string
           description?: string | null
           duration_seconds?: number
+          earnings?: number | null
           end_time?: string | null
+          hourly_rate?: number | null
           id?: string
           idle_seconds?: number | null
           is_billable?: boolean
           is_running?: boolean
+          pilot_task_id?: string | null
           project_id?: string | null
           source?: string | null
           start_time?: string | null
@@ -26436,14 +26446,19 @@ export type Database = {
         }
         Update: {
           activity_level?: string | null
+          company_id?: string | null
+          contract_id?: string | null
           created_at?: string
           description?: string | null
           duration_seconds?: number
+          earnings?: number | null
           end_time?: string | null
+          hourly_rate?: number | null
           id?: string
           idle_seconds?: number | null
           is_billable?: boolean
           is_running?: boolean
+          pilot_task_id?: string | null
           project_id?: string | null
           source?: string | null
           start_time?: string | null
@@ -26452,6 +26467,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "time_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "time_entries_project_id_fkey"
             columns: ["project_id"]
@@ -26559,6 +26588,7 @@ export type Database = {
           budget_hours: number | null
           client_id: string | null
           color: string
+          company_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -26573,6 +26603,7 @@ export type Database = {
           budget_hours?: number | null
           client_id?: string | null
           color?: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -26587,6 +26618,7 @@ export type Database = {
           budget_hours?: number | null
           client_id?: string | null
           color?: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -26608,6 +26640,20 @@ export type Database = {
           {
             foreignKeyName: "tracking_projects_client_id_fkey"
             columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracking_projects_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracking_projects_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "public_companies"
             referencedColumns: ["id"]
@@ -30157,6 +30203,66 @@ export type Database = {
           },
         ]
       }
+      team_time_tracking_summary: {
+        Row: {
+          avg_activity_level: number | null
+          billable_seconds: number | null
+          company_id: string | null
+          entry_count: number | null
+          total_earnings: number | null
+          total_seconds: number | null
+          user_avatar: string | null
+          user_id: string | null
+          user_name: string | null
+          work_date: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_tracking_revenue_metrics: {
+        Row: {
+          avg_activity_level: number | null
+          billable_seconds: number | null
+          company_id: string | null
+          contract_id: string | null
+          entry_count: number | null
+          month_start: string | null
+          total_earnings: number | null
+          total_seconds: number | null
+          user_id: string | null
+          week_start: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unified_candidate_view: {
         Row: {
           avatar_url: string | null
@@ -30637,6 +30743,14 @@ export type Database = {
       get_system_health_metrics: { Args: never; Returns: Json }
       get_system_health_stats: { Args: never; Returns: Json }
       get_threat_summary: { Args: never; Returns: Json }
+      get_time_entry_hourly_rate: {
+        Args: {
+          p_contract_id?: string
+          p_project_id?: string
+          p_user_id: string
+        }
+        Returns: number
+      }
       get_top_achievements_by_unlocks: {
         Args: { limit_count?: number }
         Returns: {
