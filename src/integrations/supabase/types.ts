@@ -26233,47 +26233,71 @@ export type Database = {
       time_entries: {
         Row: {
           activity_level: string | null
-          billable_hours: number | null
-          created_at: string | null
-          date: string
-          hours_worked: number
+          created_at: string
+          description: string | null
+          duration_seconds: number
+          end_time: string | null
           id: string
-          idle_time_minutes: number | null
-          notes: string | null
+          idle_seconds: number | null
+          is_billable: boolean
+          is_running: boolean
           project_id: string | null
           source: string | null
-          updated_at: string | null
-          user_id: string | null
+          start_time: string | null
+          task_id: string | null
+          updated_at: string
+          user_id: string
         }
         Insert: {
           activity_level?: string | null
-          billable_hours?: number | null
-          created_at?: string | null
-          date: string
-          hours_worked?: number
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number
+          end_time?: string | null
           id?: string
-          idle_time_minutes?: number | null
-          notes?: string | null
+          idle_seconds?: number | null
+          is_billable?: boolean
+          is_running?: boolean
           project_id?: string | null
           source?: string | null
-          updated_at?: string | null
-          user_id?: string | null
+          start_time?: string | null
+          task_id?: string | null
+          updated_at?: string
+          user_id: string
         }
         Update: {
           activity_level?: string | null
-          billable_hours?: number | null
-          created_at?: string | null
-          date?: string
-          hours_worked?: number
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number
+          end_time?: string | null
           id?: string
-          idle_time_minutes?: number | null
-          notes?: string | null
+          idle_seconds?: number | null
+          is_billable?: boolean
+          is_running?: boolean
           project_id?: string | null
           source?: string | null
-          updated_at?: string | null
-          user_id?: string | null
+          start_time?: string | null
+          task_id?: string | null
+          updated_at?: string
+          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tools_and_skills: {
         Row: {
@@ -26313,6 +26337,107 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      tracking_projects: {
+        Row: {
+          budget_hours: number | null
+          client_id: string | null
+          color: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          hourly_rate: number | null
+          id: string
+          is_active: boolean
+          is_billable_default: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          budget_hours?: number | null
+          client_id?: string | null
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          is_billable_default?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          budget_hours?: number | null
+          client_id?: string | null
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          is_billable_default?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracking_projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tracking_tasks: {
+        Row: {
+          created_at: string
+          description: string | null
+          estimated_hours: number | null
+          id: string
+          is_active: boolean
+          name: string
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tracks: {
         Row: {
@@ -28099,6 +28224,47 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_timer_settings: {
+        Row: {
+          auto_stop_on_idle: boolean
+          created_at: string
+          default_project_id: string | null
+          id: string
+          idle_threshold_minutes: number
+          show_running_timer_header: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_stop_on_idle?: boolean
+          created_at?: string
+          default_project_id?: string | null
+          id?: string
+          idle_threshold_minutes?: number
+          show_running_timer_header?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_stop_on_idle?: boolean
+          created_at?: string
+          default_project_id?: string | null
+          id?: string
+          idle_threshold_minutes?: number
+          show_running_timer_header?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_timer_settings_default_project_id_fkey"
+            columns: ["default_project_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_trend_subscriptions: {
         Row: {

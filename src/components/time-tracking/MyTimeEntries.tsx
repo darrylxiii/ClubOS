@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useTimeTracking, TimeEntryData } from "@/hooks/useTimeTracking";
-import { QuickTimeEntryDialog } from "./QuickTimeEntryDialog";
-import { format, startOfWeek, endOfWeek, subWeeks, addWeeks } from "date-fns";
+import { useTimeTracking, TimeEntryData, formatDuration, secondsToHours } from "@/hooks/useTimeTracking";
+import { format, startOfWeek, endOfWeek, subWeeks, addWeeks, parseISO } from "date-fns";
 import { 
   Plus, 
   Clock, 
@@ -13,12 +12,12 @@ import {
   Calendar,
   Edit,
   Trash2,
+  Play,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function MyTimeEntries() {
   const { myEntries, deleteEntry, isLoading } = useTimeTracking();
-  const [showAddDialog, setShowAddDialog] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState(
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
@@ -27,13 +26,16 @@ export function MyTimeEntries() {
   
   // Filter entries for current week
   const weekEntries = myEntries.filter(entry => {
-    const entryDate = new Date(entry.date);
+    if (!entry.start_time) return false;
+    const entryDate = parseISO(entry.start_time);
     return entryDate >= currentWeekStart && entryDate <= weekEnd;
   });
 
   // Calculate weekly totals
-  const weeklyTotal = weekEntries.reduce((sum, e) => sum + Number(e.hours_worked || 0), 0);
-  const weeklyBillable = weekEntries.reduce((sum, e) => sum + Number(e.billable_hours || 0), 0);
+  const weeklyTotalSeconds = weekEntries.reduce((sum, e) => sum + (e.duration_seconds || 0), 0);
+  const weeklyBillableSeconds = weekEntries
+    .filter(e => e.is_billable)
+    .reduce((sum, e) => sum + (e.duration_seconds || 0), 0);
 
   const goToPreviousWeek = () => setCurrentWeekStart(subWeeks(currentWeekStart, 1));
   const goToNextWeek = () => setCurrentWeekStart(addWeeks(currentWeekStart, 1));
@@ -41,19 +43,6 @@ export function MyTimeEntries() {
 
   const isCurrentWeek = format(currentWeekStart, 'yyyy-MM-dd') === 
     format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
-
-  const getActivityColor = (level: string | null) => {
-    switch (level) {
-      case 'high':
-        return 'bg-green-500/10 text-green-600 border-green-500/20';
-      case 'medium':
-        return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
-      case 'low':
-        return 'bg-red-500/10 text-red-600 border-red-500/20';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
 
   if (isLoading) {
     return (
@@ -65,18 +54,6 @@ export function MyTimeEntries() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Add Button */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">My Time Entries</h2>
-          <p className="text-sm text-muted-foreground">Track and manage your work hours</p>
-        </div>
-        <Button onClick={() => setShowAddDialog(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Log Time
-        </Button>
-      </div>
-
       {/* Week Navigator */}
       <Card className="p-4 border border-border/50">
         <div className="flex items-center justify-between">
@@ -91,10 +68,10 @@ export function MyTimeEntries() {
             </div>
             <div className="flex items-center gap-4 justify-center mt-1">
               <span className="text-sm text-muted-foreground">
-                {weeklyTotal.toFixed(1)}h logged
+                {secondsToHours(weeklyTotalSeconds).toFixed(1)}h logged
               </span>
               <span className="text-sm text-muted-foreground">
-                {weeklyBillable.toFixed(1)}h billable
+                {secondsToHours(weeklyBillableSeconds).toFixed(1)}h billable
               </span>
             </div>
           </div>
@@ -125,12 +102,8 @@ export function MyTimeEntries() {
             No time logged this week
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Start tracking your work hours to see them here
+            Start the timer or add a manual entry to track your work
           </p>
-          <Button onClick={() => setShowAddDialog(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Log Your First Entry
-          </Button>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -139,17 +112,10 @@ export function MyTimeEntries() {
               key={entry.id} 
               entry={entry} 
               onDelete={() => deleteEntry.mutate(entry.id)}
-              getActivityColor={getActivityColor}
             />
           ))}
         </div>
       )}
-
-      {/* Add Entry Dialog */}
-      <QuickTimeEntryDialog 
-        open={showAddDialog} 
-        onOpenChange={setShowAddDialog} 
-      />
     </div>
   );
 }
@@ -157,45 +123,75 @@ export function MyTimeEntries() {
 interface TimeEntryRowProps {
   entry: TimeEntryData;
   onDelete: () => void;
-  getActivityColor: (level: string | null) => string;
 }
 
-function TimeEntryRow({ entry, onDelete, getActivityColor }: TimeEntryRowProps) {
+function TimeEntryRow({ entry, onDelete }: TimeEntryRowProps) {
+  const hours = secondsToHours(entry.duration_seconds);
+  
   return (
     <Card className="p-4 border border-border/50 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-sm font-medium text-foreground">
-              {format(new Date(entry.date), 'EEE, MMM d')}
-            </span>
-            {entry.activity_level && (
-              <Badge className={cn("border text-xs capitalize", getActivityColor(entry.activity_level))}>
-                {entry.activity_level} activity
+            {/* Running indicator */}
+            {entry.is_running && (
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+            )}
+            
+            {/* Project badge */}
+            {entry.project && (
+              <Badge 
+                variant="outline" 
+                className="gap-1"
+                style={{ borderColor: entry.project.color + '50', backgroundColor: entry.project.color + '10' }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: entry.project.color }}
+                />
+                {entry.project.name}
               </Badge>
             )}
-            {entry.source && entry.source !== 'manual' && (
-              <Badge variant="outline" className="text-xs capitalize">
-                {entry.source}
+            
+            {/* Time */}
+            {entry.start_time && (
+              <span className="text-sm text-muted-foreground">
+                {format(parseISO(entry.start_time), 'EEE, MMM d')} · 
+                {format(parseISO(entry.start_time), 'h:mm a')}
+                {entry.end_time && (
+                  <> - {format(parseISO(entry.end_time), 'h:mm a')}</>
+                )}
+              </span>
+            )}
+
+            {/* Billable badge */}
+            {entry.is_billable && (
+              <Badge variant="secondary" className="text-xs">
+                Billable
               </Badge>
             )}
           </div>
 
-          <p className="text-sm text-foreground line-clamp-2">
-            {entry.notes || 'No description'}
+          <p className="text-sm text-foreground">
+            {entry.description || 'No description'}
           </p>
         </div>
 
         <div className="flex items-center gap-4 ml-4">
           <div className="text-right">
-            <div className="text-lg font-bold text-foreground">
-              {Number(entry.hours_worked).toFixed(1)}h
+            <div className="text-lg font-bold text-foreground font-mono">
+              {entry.is_running ? (
+                <span className="text-green-500">Running...</span>
+              ) : (
+                formatDuration(entry.duration_seconds)
+              )}
             </div>
-            {entry.billable_hours && Number(entry.billable_hours) > 0 && (
-              <div className="text-sm text-muted-foreground">
-                {Number(entry.billable_hours).toFixed(1)}h billable
-              </div>
-            )}
+            <div className="text-sm text-muted-foreground">
+              {hours.toFixed(1)}h
+            </div>
           </div>
 
           <div className="flex items-center gap-1">
