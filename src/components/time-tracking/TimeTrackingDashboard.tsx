@@ -5,15 +5,17 @@ import { useTimeTracking, useIdleDetection } from "@/hooks/useTimeTracking";
 import { useActivityMonitoring } from "@/hooks/useActivityMonitoring";
 import { useRole } from "@/contexts/RoleContext";
 import { MyTimeEntries } from "./MyTimeEntries";
-import { TeamTimeOverview } from "./TeamTimeOverview";
+import { TeamTimeView } from "./TeamTimeView";
+import { FreelancerTimeView } from "./FreelancerTimeView";
 import { QuickTimeStats } from "./QuickTimeStats";
 import { TimerButton } from "./TimerButton";
 import { ManualTimeEntryDialog } from "./ManualTimeEntryDialog";
 import { IdleDetectionModal } from "./IdleDetectionModal";
 import { TimerSettingsDialog } from "./TimerSettingsDialog";
 import { ActivityMonitoringIndicator } from "./ActivityMonitoringIndicator";
-import { PilotTaskTimerIntegration } from "./PilotTaskTimerIntegration";
-import { Clock, Users, Plus, Settings, Keyboard, Activity } from "lucide-react";
+import { TimesheetList } from "./TimesheetList";
+import { ApprovalDashboard } from "./ApprovalDashboard";
+import { Clock, Users, Plus, Settings, Keyboard, Activity, FileText, CheckSquare, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 
 export function TimeTrackingDashboard() {
@@ -33,6 +35,8 @@ export function TimeTrackingDashboard() {
   const [idleSeconds, setIdleSeconds] = useState(0);
 
   const isManager = ['admin', 'strategist', 'partner'].includes(currentRole || '');
+  const isFreelancer = currentRole === 'user'; // Regular users can be freelancers on Club Projects
+  const isAdmin = currentRole === 'admin';
 
   // Activity monitoring - tracks mouse/keyboard activity in real-time
   const {
@@ -97,6 +101,14 @@ export function TimeTrackingDashboard() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Calculate number of tabs based on role
+  const getTabCount = () => {
+    let count = 2; // My Time + Timesheets always visible
+    if (isManager) count += 2; // Team + Approvals for managers
+    if (isFreelancer) count += 1; // Contracts for freelancers
+    return count;
+  };
 
   if (isLoading) {
     return (
@@ -174,15 +186,35 @@ export function TimeTrackingDashboard() {
 
           {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsList className={`grid w-full max-w-2xl grid-cols-${Math.min(getTabCount(), 5)}`}>
               <TabsTrigger value="my-time" className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                My Time
+                <span className="hidden sm:inline">My Time</span>
               </TabsTrigger>
+              
+              <TabsTrigger value="timesheets" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Timesheets</span>
+              </TabsTrigger>
+
+              {isManager && (
+                <TabsTrigger value="approvals" className="flex items-center gap-2">
+                  <CheckSquare className="h-4 w-4" />
+                  <span className="hidden sm:inline">Approvals</span>
+                </TabsTrigger>
+              )}
+
               {isManager && (
                 <TabsTrigger value="team" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Team Overview
+                  <span className="hidden sm:inline">Team</span>
+                </TabsTrigger>
+              )}
+
+              {isFreelancer && (
+                <TabsTrigger value="contracts" className="flex items-center gap-2">
+                  <Briefcase className="h-4 w-4" />
+                  <span className="hidden sm:inline">Contracts</span>
                 </TabsTrigger>
               )}
             </TabsList>
@@ -191,9 +223,25 @@ export function TimeTrackingDashboard() {
               <MyTimeEntries />
             </TabsContent>
 
+            <TabsContent value="timesheets" className="mt-6">
+              <TimesheetList />
+            </TabsContent>
+
+            {isManager && (
+              <TabsContent value="approvals" className="mt-6">
+                <ApprovalDashboard />
+              </TabsContent>
+            )}
+
             {isManager && (
               <TabsContent value="team" className="mt-6">
-                <TeamTimeOverview />
+                <TeamTimeView />
+              </TabsContent>
+            )}
+
+            {isFreelancer && (
+              <TabsContent value="contracts" className="mt-6">
+                <FreelancerTimeView />
               </TabsContent>
             )}
           </Tabs>
