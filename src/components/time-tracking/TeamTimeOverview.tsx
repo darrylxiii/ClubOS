@@ -20,14 +20,19 @@ interface TeamMemberStats {
 }
 
 export function TeamTimeOverview() {
-  const { teamEntries, isLoading } = useTimeTracking();
+  const { myEntries, isLoading } = useTimeTracking();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
-  // Group entries by user
+  // Helper to convert duration_seconds to hours
+  const getHours = (entry: TimeEntryData): number => {
+    return (entry.duration_seconds || 0) / 3600;
+  };
+
+  // Group entries by user (for now using myEntries as team data)
   const teamMembers: TeamMemberStats[] = Object.values(
-    teamEntries.reduce((acc, entry) => {
-      const userId = entry.user_id;
+    myEntries.reduce((acc, entry) => {
+      const userId = entry.user_id || 'unknown';
       if (!acc[userId]) {
         acc[userId] = {
           userId,
@@ -40,18 +45,22 @@ export function TeamTimeOverview() {
         };
       }
 
-      const entryDate = new Date(entry.date);
+      const entryDate = new Date(entry.start_time);
       const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
       const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
       const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
+      const hours = getHours(entry);
+
       if (entryDate >= weekStart && entryDate <= weekEnd) {
-        acc[userId].thisWeekHours += Number(entry.hours_worked || 0);
+        acc[userId].thisWeekHours += hours;
       }
       if (entryDate >= monthStart) {
-        acc[userId].thisMonthHours += Number(entry.hours_worked || 0);
+        acc[userId].thisMonthHours += hours;
       }
-      acc[userId].totalBillable += Number(entry.billable_hours || 0);
+      if (entry.is_billable) {
+        acc[userId].totalBillable += hours;
+      }
       acc[userId].entries.push(entry);
 
       return acc;
@@ -200,6 +209,11 @@ interface MemberDetailPanelProps {
 function MemberDetailPanel({ member, onClose }: MemberDetailPanelProps) {
   const recentEntries = member.entries.slice(0, 10);
 
+  // Helper to convert duration_seconds to hours
+  const getHours = (entry: TimeEntryData): number => {
+    return (entry.duration_seconds || 0) / 3600;
+  };
+
   return (
     <Card className="p-6 border border-border/50">
       <div className="flex items-center justify-between mb-4">
@@ -246,14 +260,14 @@ function MemberDetailPanel({ member, onClose }: MemberDetailPanelProps) {
           >
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                {format(new Date(entry.date), 'MMM d')}
+                {format(new Date(entry.start_time), 'MMM d')}
               </span>
               <span className="text-sm text-foreground truncate max-w-[200px]">
-                {entry.notes || 'No description'}
+                {entry.description || 'No description'}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{Number(entry.hours_worked).toFixed(1)}h</span>
+              <span className="text-sm font-medium">{getHours(entry).toFixed(1)}h</span>
             </div>
           </div>
         ))}
