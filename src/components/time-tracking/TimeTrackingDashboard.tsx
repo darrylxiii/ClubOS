@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useTimeTracking, useIdleDetection } from "@/hooks/useTimeTracking";
+import { useActivityMonitoring } from "@/hooks/useActivityMonitoring";
 import { useRole } from "@/contexts/RoleContext";
 import { MyTimeEntries } from "./MyTimeEntries";
 import { TeamTimeOverview } from "./TeamTimeOverview";
@@ -11,7 +12,8 @@ import { ManualTimeEntryDialog } from "./ManualTimeEntryDialog";
 import { IdleDetectionModal } from "./IdleDetectionModal";
 import { RunningTimerHeader } from "./RunningTimerHeader";
 import { TimerSettingsDialog } from "./TimerSettingsDialog";
-import { Clock, Users, Plus, Settings, Keyboard } from "lucide-react";
+import { ActivityMonitoringIndicator } from "./ActivityMonitoringIndicator";
+import { Clock, Users, Plus, Settings, Keyboard, Activity } from "lucide-react";
 import { toast } from "sonner";
 
 export function TimeTrackingDashboard() {
@@ -31,6 +33,14 @@ export function TimeTrackingDashboard() {
   const [idleSeconds, setIdleSeconds] = useState(0);
 
   const isManager = ['admin', 'strategist', 'partner'].includes(currentRole || '');
+
+  // Activity monitoring - tracks mouse/keyboard activity in real-time
+  const {
+    isTracking: isActivityTracking,
+    activityPercentage,
+    privacySettings,
+    hasConsent,
+  } = useActivityMonitoring(runningEntry?.id || null, !!runningEntry);
 
   // Idle detection callback
   const handleIdle = useCallback((seconds: number) => {
@@ -143,6 +153,22 @@ export function TimeTrackingDashboard() {
               Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl+T</kbd> for manual entry
             </span>
           </div>
+
+          {/* Activity Monitoring Indicator - shows when timer is running */}
+          {runningEntry && (
+            <div className="flex items-center gap-4">
+              <ActivityMonitoringIndicator
+                activityPercentage={activityPercentage}
+                isTracking={isActivityTracking}
+              />
+              {isActivityTracking && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Activity className="h-3 w-3" />
+                  Activity tracking active
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Quick Stats */}
           <QuickTimeStats stats={myStats} />

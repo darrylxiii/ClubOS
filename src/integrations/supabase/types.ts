@@ -437,6 +437,47 @@ export type Database = {
           },
         ]
       }
+      activity_samples: {
+        Row: {
+          activity_percentage: number
+          created_at: string
+          id: string
+          keyboard_events: number
+          mouse_events: number
+          time_entry_id: string
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          activity_percentage?: number
+          created_at?: string
+          id?: string
+          keyboard_events?: number
+          mouse_events?: number
+          time_entry_id: string
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          activity_percentage?: number
+          created_at?: string
+          id?: string
+          keyboard_events?: number
+          mouse_events?: number
+          time_entry_id?: string
+          timestamp?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_samples_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_timeline: {
         Row: {
           activity_data: Json | null
@@ -1655,6 +1696,83 @@ export type Database = {
             columns: ["api_key_id"]
             isOneToOne: false
             referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      app_categories: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_system: boolean
+          name: string
+          patterns: string[]
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_system?: boolean
+          name: string
+          patterns?: string[]
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_system?: boolean
+          name?: string
+          patterns?: string[]
+        }
+        Relationships: []
+      }
+      app_usage_tracking: {
+        Row: {
+          app_name: string
+          category: string
+          created_at: string
+          domain: string | null
+          duration_seconds: number
+          id: string
+          time_entry_id: string
+          timestamp: string
+          url: string | null
+          user_id: string
+          window_title: string | null
+        }
+        Insert: {
+          app_name: string
+          category?: string
+          created_at?: string
+          domain?: string | null
+          duration_seconds?: number
+          id?: string
+          time_entry_id: string
+          timestamp?: string
+          url?: string | null
+          user_id: string
+          window_title?: string | null
+        }
+        Update: {
+          app_name?: string
+          category?: string
+          created_at?: string
+          domain?: string | null
+          duration_seconds?: number
+          id?: string
+          time_entry_id?: string
+          timestamp?: string
+          url?: string | null
+          user_id?: string
+          window_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_usage_tracking_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -20733,6 +20851,57 @@ export type Database = {
         }
         Relationships: []
       }
+      productivity_privacy_settings: {
+        Row: {
+          activity_tracking_enabled: boolean
+          app_monitoring_enabled: boolean
+          consent_given_at: string | null
+          created_at: string
+          data_retention_days: number
+          domain_blacklist: string[] | null
+          domain_whitelist: string[] | null
+          id: string
+          screenshot_blur_level: string
+          screenshot_interval_minutes: number
+          screenshots_enabled: boolean
+          updated_at: string
+          url_tracking_enabled: boolean
+          user_id: string
+        }
+        Insert: {
+          activity_tracking_enabled?: boolean
+          app_monitoring_enabled?: boolean
+          consent_given_at?: string | null
+          created_at?: string
+          data_retention_days?: number
+          domain_blacklist?: string[] | null
+          domain_whitelist?: string[] | null
+          id?: string
+          screenshot_blur_level?: string
+          screenshot_interval_minutes?: number
+          screenshots_enabled?: boolean
+          updated_at?: string
+          url_tracking_enabled?: boolean
+          user_id: string
+        }
+        Update: {
+          activity_tracking_enabled?: boolean
+          app_monitoring_enabled?: boolean
+          consent_given_at?: string | null
+          created_at?: string
+          data_retention_days?: number
+          domain_blacklist?: string[] | null
+          domain_whitelist?: string[] | null
+          id?: string
+          screenshot_blur_level?: string
+          screenshot_interval_minutes?: number
+          screenshots_enabled?: boolean
+          updated_at?: string
+          url_tracking_enabled?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_achievements: {
         Row: {
           certificate_file_url: string | null
@@ -26299,6 +26468,53 @@ export type Database = {
           },
         ]
       }
+      time_tracking_screenshots: {
+        Row: {
+          activity_level: number | null
+          capture_time: string
+          created_at: string
+          expires_at: string | null
+          file_url: string
+          id: string
+          is_blurred: boolean
+          thumbnail_url: string | null
+          time_entry_id: string
+          user_id: string
+        }
+        Insert: {
+          activity_level?: number | null
+          capture_time?: string
+          created_at?: string
+          expires_at?: string | null
+          file_url: string
+          id?: string
+          is_blurred?: boolean
+          thumbnail_url?: string | null
+          time_entry_id: string
+          user_id: string
+        }
+        Update: {
+          activity_level?: number | null
+          capture_time?: string
+          created_at?: string
+          expires_at?: string | null
+          file_url?: string
+          id?: string
+          is_blurred?: boolean
+          thumbnail_url?: string | null
+          time_entry_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_tracking_screenshots_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tools_and_skills: {
         Row: {
           category: string
@@ -30216,6 +30432,7 @@ export type Database = {
         Args: { p_session_id?: string; p_user_id: string }
         Returns: undefined
       }
+      ensure_privacy_settings: { Args: never; Returns: string }
       evaluate_user_achievements: {
         Args: { _user_id: string }
         Returns: {
