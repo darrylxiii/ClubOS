@@ -266,6 +266,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Performance Matrix", icon: LayoutDashboard, path: "/admin/performance-matrix" },
         { name: "Website KPIs", icon: Globe, path: "/admin/website-kpis" },
         { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
+        { name: "Anti-Hacking Center", icon: Shield, path: "/admin/anti-hacking" },
         { name: "User Activity", icon: Activity, path: "/admin/user-activity" },
         { name: "System Health", icon: Shield, path: "/admin/system-health" },
         { name: "Disaster Recovery", icon: Shield, path: "/admin/comprehensive-dr" },
