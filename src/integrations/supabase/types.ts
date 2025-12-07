@@ -30031,8 +30031,11 @@ export type Database = {
       cosine_similarity: { Args: { a: string; b: string }; Returns: number }
       detect_brute_force_attacks: { Args: never; Returns: number }
       detect_churn_risk: { Args: { p_user_id: string }; Returns: string }
+      detect_credential_stuffing: { Args: never; Returns: number }
       detect_enumeration_attacks: { Args: never; Returns: number }
+      detect_impossible_travel: { Args: never; Returns: number }
       detect_slipping_deals: { Args: never; Returns: undefined }
+      detect_suspicious_logins: { Args: never; Returns: number }
       evaluate_user_achievements: {
         Args: { _user_id: string }
         Returns: {
