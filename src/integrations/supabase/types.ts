@@ -2493,6 +2493,48 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_ips: {
+        Row: {
+          block_type: string
+          blocked_at: string | null
+          blocked_by: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          ip_address: string
+          is_active: boolean | null
+          metadata: Json | null
+          reason: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          block_type: string
+          blocked_at?: string | null
+          blocked_by?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          reason?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          block_type?: string
+          blocked_at?: string | null
+          blocked_by?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          reason?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       booking_analytics: {
         Row: {
           avg_booking_time_minutes: number | null
@@ -12619,6 +12661,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ip_geo_cache: {
+        Row: {
+          city: string | null
+          country_code: string | null
+          country_name: string | null
+          created_at: string | null
+          ip_address: string
+          is_proxy: boolean | null
+          is_tor: boolean | null
+          is_vpn: boolean | null
+          isp: string | null
+          last_updated: string | null
+          latitude: number | null
+          longitude: number | null
+          region: string | null
+          threat_score: number | null
+        }
+        Insert: {
+          city?: string | null
+          country_code?: string | null
+          country_name?: string | null
+          created_at?: string | null
+          ip_address: string
+          is_proxy?: boolean | null
+          is_tor?: boolean | null
+          is_vpn?: boolean | null
+          isp?: string | null
+          last_updated?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          region?: string | null
+          threat_score?: number | null
+        }
+        Update: {
+          city?: string | null
+          country_code?: string | null
+          country_name?: string | null
+          created_at?: string | null
+          ip_address?: string
+          is_proxy?: boolean | null
+          is_tor?: boolean | null
+          is_vpn?: boolean | null
+          isp?: string | null
+          last_updated?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          region?: string | null
+          threat_score?: number | null
+        }
+        Relationships: []
       }
       job_analytics: {
         Row: {
@@ -23726,6 +23819,36 @@ export type Database = {
           },
         ]
       }
+      security_config: {
+        Row: {
+          config_key: string
+          config_value: Json
+          created_at: string | null
+          description: string | null
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       security_logs: {
         Row: {
           created_at: string | null
@@ -26056,6 +26179,57 @@ export type Database = {
         }
         Relationships: []
       }
+      threat_events: {
+        Row: {
+          attack_details: Json | null
+          created_at: string | null
+          description: string | null
+          email: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          is_resolved: boolean | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attack_details?: Json | null
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          is_resolved?: boolean | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attack_details?: Json | null
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          is_resolved?: boolean | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       time_entries: {
         Row: {
           activity_level: string | null
@@ -27878,6 +28052,51 @@ export type Database = {
           session_type?: string | null
           started_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions_security: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string | null
+          device_fingerprint: string | null
+          id: string
+          ip_address: string | null
+          is_suspicious: boolean | null
+          last_activity: string | null
+          session_id: string | null
+          suspicious_reason: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          is_suspicious?: boolean | null
+          last_activity?: string | null
+          session_id?: string | null
+          suspicious_reason?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          is_suspicious?: boolean | null
+          last_activity?: string | null
+          session_id?: string | null
+          suspicious_reason?: string | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -29810,7 +30029,9 @@ export type Database = {
       cleanup_stale_channel_participants: { Args: never; Returns: undefined }
       cleanup_stale_voice_participants: { Args: never; Returns: number }
       cosine_similarity: { Args: { a: string; b: string }; Returns: number }
+      detect_brute_force_attacks: { Args: never; Returns: number }
       detect_churn_risk: { Args: { p_user_id: string }; Returns: string }
+      detect_enumeration_attacks: { Args: never; Returns: number }
       detect_slipping_deals: { Args: never; Returns: undefined }
       evaluate_user_achievements: {
         Args: { _user_id: string }
@@ -30015,6 +30236,7 @@ export type Database = {
       get_storage_bucket_stats: { Args: never; Returns: Json }
       get_system_health_metrics: { Args: never; Returns: Json }
       get_system_health_stats: { Args: never; Returns: Json }
+      get_threat_summary: { Args: never; Returns: Json }
       get_top_achievements_by_unlocks: {
         Args: { limit_count?: number }
         Returns: {
