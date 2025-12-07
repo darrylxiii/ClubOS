@@ -668,3 +668,6 @@ verify_jwt = false
 
 [functions.auto-respond-threats]
 verify_jwt = false
+
+[functions.send-security-alert]
+verify_jwt = false
