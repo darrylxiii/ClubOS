@@ -61,6 +61,7 @@
     "date-fns": "^3.6.0",
     "date-fns-tz": "^3.2.0",
     "dompurify": "^3.2.7",
+    "dotted-map": "^2.2.3",
     "embla-carousel-react": "^8.6.0",
     "fabric": "^6.7.1",
     "framer-motion": "^12.23.24",
