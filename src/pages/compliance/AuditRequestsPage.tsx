@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AppLayout } from "@/components/AppLayout";
 
 interface AuditRequest {
   id: string;
@@ -170,191 +171,193 @@ export default function AuditRequestsPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Audit Requests</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage customer audit requests and compliance documentation
-          </p>
-        </div>
-        <CreateAuditRequestDialog onSubmit={createAuditRequest} />
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Requests
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.total}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4 text-yellow-500" />
-              Pending
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.pending}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <FileText className="h-4 w-4 text-blue-500" />
-              In Progress
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.in_progress}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              Completed
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.completed}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by request number, requester, or audit type..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+    <AppLayout>
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Audit Requests</h1>
+            <p className="text-muted-foreground mt-1">
+              Manage customer audit requests and compliance documentation
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          <CreateAuditRequestDialog onSubmit={createAuditRequest} />
+        </div>
 
-      {/* Requests List */}
-      <div className="space-y-4">
-        {loading ? (
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              Loading audit requests...
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Requests
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">{stats.total}</div>
             </CardContent>
           </Card>
-        ) : filteredRequests.length === 0 ? (
           <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              No audit requests found
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Clock className="h-4 w-4 text-yellow-500" />
+                Pending
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">{stats.pending}</div>
             </CardContent>
           </Card>
-        ) : (
-          filteredRequests.map((request) => (
-            <Card key={request.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg">{request.request_number}</CardTitle>
-                      {getStatusBadge(request.status)}
-                      {getPriorityBadge(request.priority)}
-                    </div>
-                    <CardDescription>
-                      {request.audit_type} - {request.audit_scope}
-                    </CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    {request.status === "pending" && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => updateRequestStatus(request.id, "in_progress")}
-                        >
-                          Start Review
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => updateRequestStatus(request.id, "rejected")}
-                        >
-                          Reject
-                        </Button>
-                      </>
-                    )}
-                    {request.status === "in_progress" && (
-                      <Button
-                        size="sm"
-                        onClick={() => updateRequestStatus(request.id, "completed")}
-                      >
-                        Mark Complete
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Requester</p>
-                    <p className="font-medium text-foreground">
-                      {request.requester_name} ({request.requester_email})
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Due Date</p>
-                    <p className="font-medium text-foreground">
-                      {request.due_date
-                        ? new Date(request.due_date).toLocaleDateString()
-                        : "Not set"}
-                    </p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <p className="text-muted-foreground">Purpose</p>
-                    <p className="font-medium text-foreground">{request.audit_purpose}</p>
-                  </div>
-                  {request.requested_documents && request.requested_documents.length > 0 && (
-                    <div className="md:col-span-2">
-                      <p className="text-muted-foreground mb-2">Requested Documents</p>
-                      <div className="flex flex-wrap gap-2">
-                        {request.requested_documents.map((doc, idx) => (
-                          <Badge key={idx} variant="outline">
-                            {doc}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <FileText className="h-4 w-4 text-blue-500" />
+                In Progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">{stats.in_progress}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                Completed
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">{stats.completed}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by request number, requester, or audit type..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Requests List */}
+        <div className="space-y-4">
+          {loading ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Loading audit requests...
               </CardContent>
             </Card>
-          ))
-        )}
+          ) : filteredRequests.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                No audit requests found
+              </CardContent>
+            </Card>
+          ) : (
+            filteredRequests.map((request) => (
+              <Card key={request.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-lg">{request.request_number}</CardTitle>
+                        {getStatusBadge(request.status)}
+                        {getPriorityBadge(request.priority)}
+                      </div>
+                      <CardDescription>
+                        {request.audit_type} - {request.audit_scope}
+                      </CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      {request.status === "pending" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateRequestStatus(request.id, "in_progress")}
+                          >
+                            Start Review
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateRequestStatus(request.id, "rejected")}
+                          >
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                      {request.status === "in_progress" && (
+                        <Button
+                          size="sm"
+                          onClick={() => updateRequestStatus(request.id, "completed")}
+                        >
+                          Mark Complete
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Requester</p>
+                      <p className="font-medium text-foreground">
+                        {request.requester_name} ({request.requester_email})
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Due Date</p>
+                      <p className="font-medium text-foreground">
+                        {request.due_date
+                          ? new Date(request.due_date).toLocaleDateString()
+                          : "Not set"}
+                      </p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-muted-foreground">Purpose</p>
+                      <p className="font-medium text-foreground">{request.audit_purpose}</p>
+                    </div>
+                    {request.requested_documents && request.requested_documents.length > 0 && (
+                      <div className="md:col-span-2">
+                        <p className="text-muted-foreground mb-2">Requested Documents</p>
+                        <div className="flex flex-wrap gap-2">
+                          {request.requested_documents.map((doc, idx) => (
+                            <Badge key={idx} variant="outline">
+                              {doc}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
 
