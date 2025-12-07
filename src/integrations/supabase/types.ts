@@ -2026,6 +2026,57 @@ export type Database = {
           },
         ]
       }
+      approval_workflows: {
+        Row: {
+          auto_approve_after_days: number | null
+          company_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          steps: Json
+          updated_at: string | null
+          workflow_type: string | null
+        }
+        Insert: {
+          auto_approve_after_days?: number | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          steps?: Json
+          updated_at?: string | null
+          workflow_type?: string | null
+        }
+        Update: {
+          auto_approve_after_days?: number | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          steps?: Json
+          updated_at?: string | null
+          workflow_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_workflows_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_workflows_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessment_analytics: {
         Row: {
           assessment_id: string
@@ -26413,12 +26464,14 @@ export type Database = {
           id: string
           idle_seconds: number | null
           is_billable: boolean
+          is_locked: boolean | null
           is_running: boolean
           pilot_task_id: string | null
           project_id: string | null
           source: string | null
           start_time: string | null
           task_id: string | null
+          timesheet_period_id: string | null
           updated_at: string
           user_id: string
         }
@@ -26435,12 +26488,14 @@ export type Database = {
           id?: string
           idle_seconds?: number | null
           is_billable?: boolean
+          is_locked?: boolean | null
           is_running?: boolean
           pilot_task_id?: string | null
           project_id?: string | null
           source?: string | null
           start_time?: string | null
           task_id?: string | null
+          timesheet_period_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -26457,12 +26512,14 @@ export type Database = {
           id?: string
           idle_seconds?: number | null
           is_billable?: boolean
+          is_locked?: boolean | null
           is_running?: boolean
           pilot_task_id?: string | null
           project_id?: string | null
           source?: string | null
           start_time?: string | null
           task_id?: string | null
+          timesheet_period_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -26493,6 +26550,58 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "tracking_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_timesheet_period_id_fkey"
+            columns: ["timesheet_period_id"]
+            isOneToOne: false
+            referencedRelation: "timesheet_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entry_audit_logs: {
+        Row: {
+          action: string
+          changes: Json | null
+          created_at: string | null
+          id: string
+          time_entry_id: string | null
+          timesheet_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          changes?: Json | null
+          created_at?: string | null
+          id?: string
+          time_entry_id?: string | null
+          timesheet_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          changes?: Json | null
+          created_at?: string | null
+          id?: string
+          time_entry_id?: string | null
+          timesheet_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entry_audit_logs_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entry_audit_logs_timesheet_id_fkey"
+            columns: ["timesheet_id"]
+            isOneToOne: false
+            referencedRelation: "timesheet_periods"
             referencedColumns: ["id"]
           },
         ]
@@ -26543,6 +26652,110 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      timesheet_approvals: {
+        Row: {
+          approver_id: string | null
+          comment: string | null
+          created_at: string | null
+          decided_at: string | null
+          delegated_to: string | null
+          id: string
+          status: string | null
+          step_number: number
+          timesheet_id: string
+        }
+        Insert: {
+          approver_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          decided_at?: string | null
+          delegated_to?: string | null
+          id?: string
+          status?: string | null
+          step_number?: number
+          timesheet_id: string
+        }
+        Update: {
+          approver_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          decided_at?: string | null
+          delegated_to?: string | null
+          id?: string
+          status?: string | null
+          step_number?: number
+          timesheet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timesheet_approvals_timesheet_id_fkey"
+            columns: ["timesheet_id"]
+            isOneToOne: false
+            referencedRelation: "timesheet_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timesheet_periods: {
+        Row: {
+          approved_at: string | null
+          approver_comment: string | null
+          approver_id: string | null
+          billable_hours: number | null
+          created_at: string | null
+          end_date: string
+          id: string
+          non_billable_hours: number | null
+          overtime_hours: number | null
+          rejected_at: string | null
+          start_date: string
+          status: string | null
+          submitted_at: string | null
+          total_hours: number | null
+          updated_at: string | null
+          user_id: string
+          user_notes: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approver_comment?: string | null
+          approver_id?: string | null
+          billable_hours?: number | null
+          created_at?: string | null
+          end_date: string
+          id?: string
+          non_billable_hours?: number | null
+          overtime_hours?: number | null
+          rejected_at?: string | null
+          start_date: string
+          status?: string | null
+          submitted_at?: string | null
+          total_hours?: number | null
+          updated_at?: string | null
+          user_id: string
+          user_notes?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approver_comment?: string | null
+          approver_id?: string | null
+          billable_hours?: number | null
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          non_billable_hours?: number | null
+          overtime_hours?: number | null
+          rejected_at?: string | null
+          start_date?: string
+          status?: string | null
+          submitted_at?: string | null
+          total_hours?: number | null
+          updated_at?: string | null
+          user_id?: string
+          user_notes?: string | null
+        }
+        Relationships: []
       }
       tools_and_skills: {
         Row: {
@@ -30600,6 +30813,10 @@ export type Database = {
       }
       generate_task_number: { Args: never; Returns: string }
       generate_unified_task_number: { Args: never; Returns: string }
+      generate_weekly_timesheet: {
+        Args: { p_user_id: string; p_week_start?: string }
+        Returns: string
+      }
       get_achievement_metrics: { Args: never; Returns: Json }
       get_achievement_stats: { Args: never; Returns: Json }
       get_application_metrics: { Args: never; Returns: Json }
@@ -30895,10 +31112,15 @@ export type Database = {
         Args: { _file_path: string }
         Returns: boolean
       }
+      process_timesheet_approval: {
+        Args: { p_action: string; p_comment?: string; p_timesheet_id: string }
+        Returns: boolean
+      }
       queue_webhook_delivery: {
         Args: { p_company_id: string; p_event_type: string; p_payload: Json }
         Returns: undefined
       }
+      recall_timesheet: { Args: { p_timesheet_id: string }; Returns: boolean }
       record_login_attempt: {
         Args: {
           p_email: string
@@ -31005,6 +31227,10 @@ export type Database = {
           tags: string[]
           title: string
         }[]
+      }
+      submit_timesheet: {
+        Args: { p_timesheet_id: string; p_user_notes?: string }
+        Returns: boolean
       }
       sync_existing_partner_domains: {
         Args: never
