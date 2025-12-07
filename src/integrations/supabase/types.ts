@@ -30029,6 +30029,16 @@ export type Database = {
       cleanup_stale_channel_participants: { Args: never; Returns: undefined }
       cleanup_stale_voice_participants: { Args: never; Returns: number }
       cosine_similarity: { Args: { a: string; b: string }; Returns: number }
+      create_user_session: {
+        Args: {
+          p_device_fingerprint?: string
+          p_ip_address?: string
+          p_session_id?: string
+          p_user_agent?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       detect_brute_force_attacks: { Args: never; Returns: number }
       detect_churn_risk: { Args: { p_user_id: string }; Returns: string }
       detect_credential_stuffing: { Args: never; Returns: number }
@@ -30036,6 +30046,10 @@ export type Database = {
       detect_impossible_travel: { Args: never; Returns: number }
       detect_slipping_deals: { Args: never; Returns: undefined }
       detect_suspicious_logins: { Args: never; Returns: number }
+      end_user_session: {
+        Args: { p_session_id?: string; p_user_id: string }
+        Returns: undefined
+      }
       evaluate_user_achievements: {
         Args: { _user_id: string }
         Returns: {
@@ -30388,6 +30402,15 @@ export type Database = {
         Args: { p_company_id: string; p_event_type: string; p_payload: Json }
         Returns: undefined
       }
+      record_login_attempt: {
+        Args: {
+          p_email: string
+          p_ip_address?: string
+          p_success?: boolean
+          p_user_agent?: string
+        }
+        Returns: string
+      }
       refresh_activity_dashboard_view: { Args: never; Returns: undefined }
       refresh_analytics_views: { Args: never; Returns: undefined }
       register_listener: {
@@ -30546,6 +30569,10 @@ export type Database = {
       update_overdue_invoices: { Args: never; Returns: undefined }
       update_relationship_score: {
         Args: { p_related_user_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      update_session_activity: {
+        Args: { p_session_id: string }
         Returns: undefined
       }
       update_user_activity_tracking: {

@@ -74,9 +74,20 @@ export function useIPWhitelist() {
   const { data: config } = useSecurityConfig();
   
   const whitelist = config?.find(c => c.config_key === 'ip_whitelist');
-  const ips = Array.isArray(whitelist?.config_value) 
-    ? (whitelist.config_value as unknown as WhitelistedIP[])
-    : [];
+  
+  // Handle multiple formats: { ips: [...] }, [...], or null
+  let ips: WhitelistedIP[] = [];
+  if (whitelist?.config_value) {
+    const value = whitelist.config_value as unknown;
+    if (Array.isArray(value)) {
+      ips = value as WhitelistedIP[];
+    } else if (typeof value === 'object' && value !== null && 'ips' in value) {
+      const obj = value as { ips: unknown };
+      if (Array.isArray(obj.ips)) {
+        ips = obj.ips as WhitelistedIP[];
+      }
+    }
+  }
   
   return ips;
 }
