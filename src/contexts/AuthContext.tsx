@@ -1,8 +1,9 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { trackLogin, trackLogout } from "@/services/sessionTracking";
+import { useSecurityTracking, generateDeviceFingerprint } from "@/hooks/useSecurityTracking";
 
 interface AuthContextType {
   user: User | null;
@@ -20,6 +21,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { recordLoginAttempt, createSession, endSession } = useSecurityTracking();
+  const sessionCreatedRef = useRef<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -92,13 +95,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         setAuthError(null);
         
-        // Track login in background without blocking
+        // Track login and create security session (non-blocking)
         if (event === 'SIGNED_IN' && session?.user?.id) {
-          setTimeout(() => {
-            trackLogin(session.user.id, 'email').catch(err => {
-              console.log('[AuthContext] Login tracking failed (non-critical):', err.message);
-            });
-          }, 0);
+          const userId = session.user.id;
+          const userEmail = session.user.email || '';
+          const sessionId = session.access_token?.substring(0, 32); // Use part of token as session ID
+          
+          // Prevent duplicate session creation
+          if (sessionCreatedRef.current !== userId) {
+            sessionCreatedRef.current = userId;
+            
+            setTimeout(() => {
+              // Record successful login attempt
+              recordLoginAttempt(userEmail, true).catch(err => {
+                console.log('[AuthContext] Login attempt tracking failed (non-critical):', err);
+              });
+              
+              // Create security session
+              const fingerprint = generateDeviceFingerprint();
+              createSession(userId, sessionId, undefined, undefined, fingerprint).catch(err => {
+                console.log('[AuthContext] Security session creation failed (non-critical):', err);
+              });
+              
+              // Legacy session tracking
+              trackLogin(userId, 'email').catch(err => {
+                console.log('[AuthContext] Login tracking failed (non-critical):', err.message);
+              });
+            }, 0);
+          }
+        }
+        
+        // Clear session ref on sign out
+        if (event === 'SIGNED_OUT') {
+          sessionCreatedRef.current = null;
         }
       }
     );
@@ -108,11 +137,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       clearAuthTimeout();
       subscription.unsubscribe();
     };
-  }, []);
+  }, [recordLoginAttempt, createSession]);
 
   const signOut = async () => {
     try {
       if (user?.id) {
+        // End security session (non-blocking)
+        endSession(user.id).catch(err => {
+          console.log('[AuthContext] Security session end failed (non-critical):', err);
+        });
+        
         await trackLogout(user.id).catch(err => {
           console.log('[AuthContext] Logout tracking failed (non-critical):', err.message);
         });
@@ -127,6 +161,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('[AuthContext] Error during signout (will clear local state anyway):', error);
     } finally {
       // Always clear local state and redirect, even if backend signout fails
+      sessionCreatedRef.current = null;
       setUser(null);
       setSession(null);
       navigate("/auth");

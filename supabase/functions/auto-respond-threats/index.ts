@@ -135,10 +135,14 @@ serve(async (req) => {
     // 4. Escalate critical threats that haven't been addressed
     const { data: criticalThreats } = await supabase
       .from('threat_events')
-      .select('id, event_type, ip_address, created_at')
+      .select('id, event_type, ip_address, created_at, attack_details')
       .eq('severity', 'critical')
       .eq('is_resolved', false)
       .lt('created_at', new Date(Date.now() - 15 * 60 * 1000).toISOString()); // 15 min old
+
+    // Check if critical alerts are enabled
+    const alertConfig = configs?.find(c => c.config_key === 'alert_on_critical');
+    const alertEnabled = (alertConfig?.config_value as { enabled: boolean; email: string })?.enabled;
 
     if (criticalThreats && criticalThreats.length > 0) {
       actions.push(`⚠️ ${criticalThreats.length} critical threats require immediate attention`);
@@ -159,6 +163,38 @@ serve(async (req) => {
           }, { onConflict: 'ip_address' });
         
         blockedCount++;
+      }
+
+      // Send email alerts for critical threats if enabled
+      if (alertEnabled) {
+        for (const threat of criticalThreats) {
+          try {
+            const alertResponse = await fetch(
+              `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-security-alert`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+                },
+                body: JSON.stringify({
+                  threat_type: threat.event_type,
+                  severity: 'critical',
+                  ip_address: threat.ip_address,
+                  details: `Critical ${threat.event_type} detected from IP ${threat.ip_address}. Attack details: ${JSON.stringify(threat.attack_details || {})}`,
+                  actions_taken: ['IP auto-blocked for 24 hours', 'Threat escalated for review'],
+                  threat_id: threat.id
+                })
+              }
+            );
+            
+            if (alertResponse.ok) {
+              actions.push(`📧 Alert email sent for critical threat from ${threat.ip_address}`);
+            }
+          } catch (alertError) {
+            console.error('[auto-respond-threats] Failed to send alert:', alertError);
+          }
+        }
       }
     }
 
