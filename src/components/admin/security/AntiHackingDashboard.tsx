@@ -1,10 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, Shield, AlertTriangle, Ban, BarChart3, Settings } from 'lucide-react';
+import { RefreshCw, Shield, AlertTriangle, Ban, BarChart3, Globe, Monitor, Settings } from 'lucide-react';
 import { ThreatOverview } from './ThreatOverview';
 import { ActiveThreatsPanel } from './ActiveThreatsPanel';
 import { BlockedIPsManager } from './BlockedIPsManager';
 import { ThreatAnalytics } from './ThreatAnalytics';
+import { AttackMap } from './AttackMap';
+import { SessionSecurityPanel } from './SessionSecurityPanel';
+import { SecurityControlsPanel } from './SecurityControlsPanel';
 import { useThreatRealtimeSubscription, useRunThreatScan } from '@/hooks/useThreatDetection';
 
 export function AntiHackingDashboard() {
@@ -38,10 +41,18 @@ export function AntiHackingDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="threats" className="space-y-4">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto gap-1 p-1">
           <TabsTrigger value="threats" className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
             Active Threats
+          </TabsTrigger>
+          <TabsTrigger value="map" className="flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            Attack Map
+          </TabsTrigger>
+          <TabsTrigger value="sessions" className="flex items-center gap-2">
+            <Monitor className="h-4 w-4" />
+            Sessions
           </TabsTrigger>
           <TabsTrigger value="blocked" className="flex items-center gap-2">
             <Ban className="h-4 w-4" />
@@ -51,10 +62,22 @@ export function AntiHackingDashboard() {
             <BarChart3 className="h-4 w-4" />
             Analytics
           </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Settings
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="threats">
           <ActiveThreatsPanel />
+        </TabsContent>
+
+        <TabsContent value="map">
+          <AttackMap />
+        </TabsContent>
+
+        <TabsContent value="sessions">
+          <SessionSecurityPanel />
         </TabsContent>
 
         <TabsContent value="blocked">
@@ -63,6 +86,10 @@ export function AntiHackingDashboard() {
 
         <TabsContent value="analytics">
           <ThreatAnalytics />
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <SecurityControlsPanel />
         </TabsContent>
       </Tabs>
     </div>
