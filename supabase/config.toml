@@ -653,3 +653,18 @@ verify_jwt = true
 
 [functions.calculate-web-kpis]
 verify_jwt = true
+
+# =============================================================================
+# Security & Anti-Hacking (Mixed - Some need cron access)
+# =============================================================================
+[functions.detect-threats]
+verify_jwt = false
+
+[functions.check-ip-blocked]
+verify_jwt = false
+
+[functions.enrich-ip-geo]
+verify_jwt = false
+
+[functions.auto-respond-threats]
+verify_jwt = false
