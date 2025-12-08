@@ -16110,6 +16110,178 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_recordings_extended: {
+        Row: {
+          action_items: Json | null
+          ai_analysis: Json | null
+          application_id: string | null
+          candidate_id: string | null
+          consent_participants: Json | null
+          conversation_id: string | null
+          created_at: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          duration_seconds: number | null
+          executive_summary: string | null
+          file_size_bytes: number | null
+          host_id: string
+          id: string
+          is_private: boolean | null
+          job_id: string | null
+          key_moments: Json | null
+          live_channel_id: string | null
+          meeting_id: string | null
+          mime_type: string | null
+          participants: Json | null
+          processing_error: string | null
+          processing_status: string
+          recorded_at: string | null
+          recording_consent_at: string | null
+          recording_url: string | null
+          skills_assessed: Json | null
+          source_type: string
+          storage_path: string | null
+          title: string | null
+          transcript: string | null
+          transcript_json: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_items?: Json | null
+          ai_analysis?: Json | null
+          application_id?: string | null
+          candidate_id?: string | null
+          consent_participants?: Json | null
+          conversation_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          duration_seconds?: number | null
+          executive_summary?: string | null
+          file_size_bytes?: number | null
+          host_id: string
+          id?: string
+          is_private?: boolean | null
+          job_id?: string | null
+          key_moments?: Json | null
+          live_channel_id?: string | null
+          meeting_id?: string | null
+          mime_type?: string | null
+          participants?: Json | null
+          processing_error?: string | null
+          processing_status?: string
+          recorded_at?: string | null
+          recording_consent_at?: string | null
+          recording_url?: string | null
+          skills_assessed?: Json | null
+          source_type?: string
+          storage_path?: string | null
+          title?: string | null
+          transcript?: string | null
+          transcript_json?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_items?: Json | null
+          ai_analysis?: Json | null
+          application_id?: string | null
+          candidate_id?: string | null
+          consent_participants?: Json | null
+          conversation_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          duration_seconds?: number | null
+          executive_summary?: string | null
+          file_size_bytes?: number | null
+          host_id?: string
+          id?: string
+          is_private?: boolean | null
+          job_id?: string | null
+          key_moments?: Json | null
+          live_channel_id?: string | null
+          meeting_id?: string | null
+          mime_type?: string | null
+          participants?: Json | null
+          processing_error?: string | null
+          processing_status?: string
+          recorded_at?: string | null
+          recording_consent_at?: string | null
+          recording_url?: string | null
+          skills_assessed?: Json | null
+          source_type?: string
+          storage_path?: string | null
+          title?: string | null
+          transcript?: string | null
+          transcript_json?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_recordings_extended_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_recordings_extended_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_recordings_extended_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_recordings_extended_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "meeting_recordings_extended_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_recordings_extended_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_recordings_extended_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_recordings_extended_live_channel_id_fkey"
+            columns: ["live_channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_recordings_extended_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_summaries: {
         Row: {
           action_items: Json | null
