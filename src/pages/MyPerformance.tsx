@@ -1,4 +1,4 @@
-import AppLayout from "@/components/AppLayout";
+import { AppLayout } from "@/components/AppLayout";
 import { RoleGate } from "@/components/RoleGate";
 import { EmployeeOverviewCard } from "@/components/employees/EmployeeOverviewCard";
 import { CommissionsTracker } from "@/components/employees/CommissionsTracker";
