@@ -15521,6 +15521,57 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_clips: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          duration_seconds: number
+          end_ms: number
+          expires_at: string | null
+          id: string
+          is_public: boolean | null
+          recording_id: string
+          start_ms: number
+          title: string
+          transcript_excerpt: string | null
+          updated_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          duration_seconds: number
+          end_ms: number
+          expires_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          recording_id: string
+          start_ms: number
+          title: string
+          transcript_excerpt?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          duration_seconds?: number
+          end_ms?: number
+          expires_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          recording_id?: string
+          start_ms?: number
+          title?: string
+          transcript_excerpt?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Relationships: []
+      }
       meeting_connection_stats: {
         Row: {
           bitrate_kbps: number | null
@@ -16264,6 +16315,7 @@ export type Database = {
           recording_url: string | null
           skills_assessed: Json | null
           source_type: string
+          speaking_metrics: Json | null
           storage_path: string | null
           title: string | null
           transcript: string | null
@@ -16301,6 +16353,7 @@ export type Database = {
           recording_url?: string | null
           skills_assessed?: Json | null
           source_type?: string
+          speaking_metrics?: Json | null
           storage_path?: string | null
           title?: string | null
           transcript?: string | null
@@ -16338,6 +16391,7 @@ export type Database = {
           recording_url?: string | null
           skills_assessed?: Json | null
           source_type?: string
+          speaking_metrics?: Json | null
           storage_path?: string | null
           title?: string | null
           transcript?: string | null
