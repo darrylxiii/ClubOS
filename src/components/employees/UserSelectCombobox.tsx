@@ -20,16 +20,17 @@ import { Badge } from "@/components/ui/badge";
 import { useAvailableUsers, AvailableUser } from "@/hooks/useAvailableUsers";
 
 interface UserSelectComboboxProps {
-  value?: string;
-  onSelect: (user: AvailableUser | null) => void;
+  value?: AvailableUser | null;
+  onChange: (user: AvailableUser | null) => void;
   disabled?: boolean;
+  placeholder?: string;
 }
 
-export const UserSelectCombobox = ({ value, onSelect, disabled }: UserSelectComboboxProps) => {
+export const UserSelectCombobox = ({ value, onChange, disabled, placeholder }: UserSelectComboboxProps) => {
   const [open, setOpen] = useState(false);
   const { data: users, isLoading } = useAvailableUsers(true);
 
-  const selectedUser = users?.find(u => u.id === value);
+  const selectedUser = value;
 
   const getRoleBadgeVariant = (role: string | null) => {
     switch (role) {
@@ -69,7 +70,7 @@ export const UserSelectCombobox = ({ value, onSelect, disabled }: UserSelectComb
               )}
             </div>
           ) : (
-            <span className="text-muted-foreground">Select a user...</span>
+            <span className="text-muted-foreground">{placeholder || "Select a user..."}</span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -85,7 +86,7 @@ export const UserSelectCombobox = ({ value, onSelect, disabled }: UserSelectComb
                   key={user.id}
                   value={`${user.full_name} ${user.email}`}
                   onSelect={() => {
-                    onSelect(user.id === value ? null : user);
+                    onChange(user.id === value?.id ? null : user);
                     setOpen(false);
                   }}
                   className="flex items-center gap-3 py-3"
@@ -93,7 +94,7 @@ export const UserSelectCombobox = ({ value, onSelect, disabled }: UserSelectComb
                   <Check
                     className={cn(
                       "h-4 w-4",
-                      value === user.id ? "opacity-100" : "opacity-0"
+                      value?.id === user.id ? "opacity-100" : "opacity-0"
                     )}
                   />
                   <Avatar className="h-8 w-8">
