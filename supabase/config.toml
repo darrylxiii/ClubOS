@@ -1,5 +1,11 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
+[functions.calculate-referral-earnings]
+verify_jwt = true
+
+[functions.process-referral-payout]
+verify_jwt = true
+
 [functions.send-meeting-summary-email]
 verify_jwt = true
 
