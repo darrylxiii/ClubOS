@@ -254,7 +254,16 @@ export function MeetingVideoCallInterface({
     }
   };
 
-  const handleEndCall = () => {
+  const handleEndCall = async () => {
+    // Stop auto-recording and upload before leaving
+    if (isAutoRecording && stopAutoRecording) {
+      try {
+        await stopAutoRecording();
+        toast.success('Recording saved and analysis started');
+      } catch (error) {
+        console.error('[Meeting] Failed to save recording:', error);
+      }
+    }
     cleanup();
     onEnd();
   };
@@ -830,6 +839,10 @@ export function MeetingVideoCallInterface({
         </div>
       )}
       
+      {/* Recording Consent Banner - Shows when auto-recording is active */}
+      {isAutoRecording && !showDiagnostics && (
+        <RecordingConsentBanner meetingTitle={meeting.title} />
+      )}
       
       {/* Meeting Info Header - Simplified */}
       <div className="absolute top-6 left-6 z-50 animate-in slide-in-from-left duration-500">
