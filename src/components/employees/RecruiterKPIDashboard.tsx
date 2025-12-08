@@ -4,14 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { useRecruiterMetrics } from "@/hooks/useRecruiterMetrics";
 import { 
   Users, 
-  Phone, 
-  Mail, 
   TrendingUp, 
   Target, 
   DollarSign,
   UserCheck,
-  MessageSquare,
-  Calendar
+  Clock,
+  Calendar,
+  Zap
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -43,13 +42,12 @@ export const RecruiterKPIDashboard = ({ userId, days = 30 }: RecruiterKPIDashboa
   const stats = aggregateStats || {
     total_candidates_added: 0,
     total_candidates_placed: 0,
-    total_candidates_outreached: 0,
-    total_candidates_spoken: 0,
-    total_client_calls: 0,
-    total_candidate_calls: 0,
+    total_interviews_scheduled: 0,
+    total_offers_made: 0,
     total_sourcing_hours: 0,
     total_placement_revenue: 0,
-    days_active: 0,
+    placement_rate: 0,
+    avg_time_to_hire_days: 0,
   };
 
   const pipeline = pipelineStats || {
@@ -59,16 +57,8 @@ export const RecruiterKPIDashboard = ({ userId, days = 30 }: RecruiterKPIDashboa
     in_offer: 0,
     hired: 0,
     rejected: 0,
+    active_in_pipeline: 0,
   };
-
-  // Calculate conversion rates
-  const responseRate = stats.total_candidates_outreached > 0 
-    ? ((stats.total_candidates_spoken / stats.total_candidates_outreached) * 100).toFixed(1)
-    : '0';
-  
-  const placementRate = pipeline.total_sourced > 0
-    ? ((pipeline.hired / pipeline.total_sourced) * 100).toFixed(1)
-    : '0';
 
   return (
     <div className="space-y-6">
@@ -80,7 +70,7 @@ export const RecruiterKPIDashboard = ({ userId, days = 30 }: RecruiterKPIDashboa
             <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pipeline.total_sourced}</div>
+            <div className="text-2xl font-bold">{stats.total_candidates_added}</div>
             <p className="text-xs text-muted-foreground">Last {days} days</p>
           </CardContent>
         </Card>
@@ -91,19 +81,19 @@ export const RecruiterKPIDashboard = ({ userId, days = 30 }: RecruiterKPIDashboa
             <UserCheck className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{pipeline.hired}</div>
-            <p className="text-xs text-muted-foreground">{placementRate}% conversion</p>
+            <div className="text-2xl font-bold text-green-600">{stats.total_candidates_placed}</div>
+            <p className="text-xs text-muted-foreground">{stats.placement_rate}% conversion</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Outreach</CardTitle>
-            <Mail className="h-4 w-4 text-blue-500" />
+            <CardTitle className="text-sm font-medium">Interviews</CardTitle>
+            <Calendar className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total_candidates_outreached}</div>
-            <p className="text-xs text-muted-foreground">{responseRate}% response rate</p>
+            <div className="text-2xl font-bold">{stats.total_interviews_scheduled}</div>
+            <p className="text-xs text-muted-foreground">Candidates in interviews</p>
           </CardContent>
         </Card>
 
@@ -163,42 +153,42 @@ export const RecruiterKPIDashboard = ({ userId, days = 30 }: RecruiterKPIDashboa
         </CardContent>
       </Card>
 
-      {/* Activity Metrics */}
+      {/* Performance Metrics */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Candidate Calls</CardTitle>
-            <Phone className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Offers Made</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total_candidate_calls}</div>
+            <div className="text-2xl font-bold">{stats.total_offers_made}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.total_candidates_spoken} candidates spoken
+              {pipeline.total_sourced > 0 
+                ? `${((stats.total_offers_made / pipeline.total_sourced) * 100).toFixed(0)}% offer rate`
+                : 'No candidates sourced'}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Client Calls</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Time to Hire</CardTitle>
+            <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total_client_calls}</div>
-            <p className="text-xs text-muted-foreground">Partner interactions</p>
+            <div className="text-2xl font-bold">{stats.avg_time_to_hire_days} days</div>
+            <p className="text-xs text-muted-foreground">Average per placement</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Days</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Sourcing Hours</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.days_active}</div>
-            <p className="text-xs text-muted-foreground">
-              {((stats.days_active / days) * 100).toFixed(0)}% of period
-            </p>
+            <div className="text-2xl font-bold">{stats.total_sourcing_hours}h</div>
+            <p className="text-xs text-muted-foreground">Tracked this period</p>
           </CardContent>
         </Card>
       </div>

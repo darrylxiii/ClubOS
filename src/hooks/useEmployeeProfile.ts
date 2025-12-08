@@ -162,14 +162,30 @@ export function useDirectReports(managerId?: string) {
     queryFn: async () => {
       if (!managerId) return [];
 
-      const { data, error } = await supabase
+      // First get employee profiles
+      const { data: employees, error } = await supabase
         .from('employee_profiles')
         .select('*')
         .eq('manager_id', managerId)
         .eq('is_active', true);
 
       if (error) throw error;
-      return data as EmployeeProfile[];
+      if (!employees || employees.length === 0) return [];
+
+      // Then fetch profiles for those users
+      const userIds = employees.map(e => e.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url')
+        .in('id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      // Merge profiles into employees
+      return employees.map(emp => ({
+        ...emp,
+        profile: profileMap.get(emp.user_id) || null
+      })) as EmployeeProfile[];
     },
     enabled: !!managerId,
   });
@@ -204,14 +220,30 @@ export function useAllEmployees() {
   return useQuery({
     queryKey: ['all-employees'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get all active employees
+      const { data: employees, error } = await supabase
         .from('employee_profiles')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as EmployeeProfile[];
+      if (!employees || employees.length === 0) return [];
+
+      // Then fetch profiles for those users
+      const userIds = employees.map(e => e.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url')
+        .in('id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      // Merge profiles into employees
+      return employees.map(emp => ({
+        ...emp,
+        profile: profileMap.get(emp.user_id) || null
+      })) as EmployeeProfile[];
     },
   });
 }
