@@ -22097,6 +22097,7 @@ export type Database = {
           current_salary_max: number | null
           current_salary_min: number | null
           current_title: string | null
+          default_revenue_share_percentage: number | null
           desired_salary_max: number | null
           desired_salary_min: number | null
           email: string | null
@@ -22153,6 +22154,7 @@ export type Database = {
           remote_work_preference: boolean | null
           resume_filename: string | null
           resume_url: string | null
+          revenue_share_type: string | null
           salary_expectation_currency: string | null
           salary_expectation_max: number | null
           salary_expectation_min: number | null
@@ -22199,6 +22201,7 @@ export type Database = {
           current_salary_max?: number | null
           current_salary_min?: number | null
           current_title?: string | null
+          default_revenue_share_percentage?: number | null
           desired_salary_max?: number | null
           desired_salary_min?: number | null
           email?: string | null
@@ -22255,6 +22258,7 @@ export type Database = {
           remote_work_preference?: boolean | null
           resume_filename?: string | null
           resume_url?: string | null
+          revenue_share_type?: string | null
           salary_expectation_currency?: string | null
           salary_expectation_max?: number | null
           salary_expectation_min?: number | null
@@ -22301,6 +22305,7 @@ export type Database = {
           current_salary_max?: number | null
           current_salary_min?: number | null
           current_title?: string | null
+          default_revenue_share_percentage?: number | null
           desired_salary_max?: number | null
           desired_salary_min?: number | null
           email?: string | null
@@ -22357,6 +22362,7 @@ export type Database = {
           remote_work_preference?: boolean | null
           resume_filename?: string | null
           resume_url?: string | null
+          revenue_share_type?: string | null
           salary_expectation_currency?: string | null
           salary_expectation_max?: number | null
           salary_expectation_min?: number | null
@@ -23101,6 +23107,156 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_earnings: {
+        Row: {
+          application_id: string | null
+          candidate_id: string | null
+          company_id: string | null
+          created_at: string | null
+          earned_amount: number
+          id: string
+          job_id: string | null
+          paid_at: string | null
+          payment_reference: string | null
+          placement_fee_total: number
+          placement_id: string | null
+          policy_id: string | null
+          projected_amount: number
+          qualified_at: string | null
+          referrer_id: string
+          referrer_share_percentage: number
+          revenue_share_id: string | null
+          stage_probability: number | null
+          status: string
+          updated_at: string | null
+          weighted_amount: number
+        }
+        Insert: {
+          application_id?: string | null
+          candidate_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          earned_amount?: number
+          id?: string
+          job_id?: string | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          placement_fee_total?: number
+          placement_id?: string | null
+          policy_id?: string | null
+          projected_amount?: number
+          qualified_at?: string | null
+          referrer_id: string
+          referrer_share_percentage?: number
+          revenue_share_id?: string | null
+          stage_probability?: number | null
+          status?: string
+          updated_at?: string | null
+          weighted_amount?: number
+        }
+        Update: {
+          application_id?: string | null
+          candidate_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          earned_amount?: number
+          id?: string
+          job_id?: string | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          placement_fee_total?: number
+          placement_id?: string | null
+          policy_id?: string | null
+          projected_amount?: number
+          qualified_at?: string | null
+          referrer_id?: string
+          referrer_share_percentage?: number
+          revenue_share_id?: string | null
+          stage_probability?: number | null
+          status?: string
+          updated_at?: string | null
+          weighted_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_earnings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_earnings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_earnings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_earnings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "referral_earnings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_earnings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_earnings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_earnings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_earnings_placement_id_fkey"
+            columns: ["placement_id"]
+            isOneToOne: false
+            referencedRelation: "placement_fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_earnings_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "referral_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_earnings_revenue_share_id_fkey"
+            columns: ["revenue_share_id"]
+            isOneToOne: false
+            referencedRelation: "referral_revenue_shares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_metadata: {
         Row: {
           company_name: string
@@ -23305,6 +23461,127 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referral_policies: {
+        Row: {
+          claimed_at: string | null
+          company_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          job_id: string | null
+          notes: string | null
+          policy_type: string
+          referred_member_id: string | null
+          referrer_id: string
+          share_percentage: number | null
+          source_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          claimed_at?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_id?: string | null
+          notes?: string | null
+          policy_type: string
+          referred_member_id?: string | null
+          referrer_id: string
+          share_percentage?: number | null
+          source_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          claimed_at?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_id?: string | null
+          notes?: string | null
+          policy_type?: string
+          referred_member_id?: string | null
+          referrer_id?: string
+          share_percentage?: number | null
+          source_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_policies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_policies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_policies_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_revenue_shares: {
+        Row: {
+          applies_to: string
+          created_at: string | null
+          created_by: string | null
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          is_active: boolean | null
+          min_deal_value: number | null
+          notes: string | null
+          share_fixed_amount: number | null
+          share_percentage: number | null
+          share_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          applies_to: string
+          created_at?: string | null
+          created_by?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_deal_value?: number | null
+          notes?: string | null
+          share_fixed_amount?: number | null
+          share_percentage?: number | null
+          share_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          applies_to?: string
+          created_at?: string | null
+          created_by?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_deal_value?: number | null
+          notes?: string | null
+          share_fixed_amount?: number | null
+          share_percentage?: number | null
+          share_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       region_health_checks: {
         Row: {
