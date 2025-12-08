@@ -5772,6 +5772,39 @@ export type Database = {
           },
         ]
       }
+      commission_tiers: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          max_revenue: number | null
+          min_revenue: number
+          name: string
+          percentage: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          max_revenue?: number | null
+          min_revenue?: number
+          name: string
+          percentage: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          max_revenue?: number | null
+          min_revenue?: number
+          name?: string
+          percentage?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           benefits: Json | null
@@ -18614,6 +18647,91 @@ export type Database = {
           },
         ]
       }
+      onboarding_checklists: {
+        Row: {
+          category: string
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          due_date: string | null
+          employee_id: string
+          id: string
+          notes: string | null
+          task_name: string
+        }
+        Insert: {
+          category: string
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          employee_id: string
+          id?: string
+          notes?: string | null
+          task_name: string
+        }
+        Update: {
+          category?: string
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          employee_id?: string
+          id?: string
+          notes?: string | null
+          task_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_checklists_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      one_on_one_notes: {
+        Row: {
+          action_items: string | null
+          agenda: string | null
+          created_at: string | null
+          discussion_notes: string | null
+          employee_id: string
+          id: string
+          manager_id: string | null
+          meeting_date: string
+        }
+        Insert: {
+          action_items?: string | null
+          agenda?: string | null
+          created_at?: string | null
+          discussion_notes?: string | null
+          employee_id: string
+          id?: string
+          manager_id?: string | null
+          meeting_date: string
+        }
+        Update: {
+          action_items?: string | null
+          agenda?: string | null
+          created_at?: string | null
+          discussion_notes?: string | null
+          employee_id?: string
+          id?: string
+          manager_id?: string | null
+          meeting_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "one_on_one_notes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_chart_candidate_placements: {
         Row: {
           candidate_user_id: string
@@ -19866,6 +19984,62 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "partner_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_reviews: {
+        Row: {
+          areas_for_improvement: string | null
+          comments: string | null
+          completed_at: string | null
+          created_at: string | null
+          employee_id: string
+          goals: string | null
+          id: string
+          overall_rating: number | null
+          review_period: string
+          reviewer_id: string | null
+          status: string | null
+          strengths: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          areas_for_improvement?: string | null
+          comments?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          employee_id: string
+          goals?: string | null
+          id?: string
+          overall_rating?: number | null
+          review_period: string
+          reviewer_id?: string | null
+          status?: string | null
+          strengths?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          areas_for_improvement?: string | null
+          comments?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          employee_id?: string
+          goals?: string | null
+          id?: string
+          overall_rating?: number | null
+          review_period?: string
+          reviewer_id?: string | null
+          status?: string | null
+          strengths?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_reviews_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -28032,6 +28206,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      training_records: {
+        Row: {
+          certificate_url: string | null
+          completion_date: string | null
+          created_at: string | null
+          employee_id: string
+          expiry_date: string | null
+          id: string
+          provider: string | null
+          status: string | null
+          training_name: string
+          training_type: string
+        }
+        Insert: {
+          certificate_url?: string | null
+          completion_date?: string | null
+          created_at?: string | null
+          employee_id: string
+          expiry_date?: string | null
+          id?: string
+          provider?: string | null
+          status?: string | null
+          training_name: string
+          training_type: string
+        }
+        Update: {
+          certificate_url?: string | null
+          completion_date?: string | null
+          created_at?: string | null
+          employee_id?: string
+          expiry_date?: string | null
+          id?: string
+          provider?: string | null
+          status?: string | null
+          training_name?: string
+          training_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       translation_feedback: {
         Row: {
