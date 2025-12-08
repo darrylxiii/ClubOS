@@ -14,15 +14,16 @@ import {
   Search,
   Edit,
   Trash2,
-  Building2,
-  DollarSign
+  Eye
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAllEmployees, EmployeeProfile } from "@/hooks/useEmployeeProfile";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { formatCurrency } from "@/lib/revenueCalculations";
+import { UserSelectCombobox } from "./UserSelectCombobox";
+import { EmployeeDetailView } from "./EmployeeDetailView";
+import { AvailableUser } from "@/hooks/useAvailableUsers";
 
 export function EmployeeProfileManager() {
   const [searchQuery, setSearchQuery] = useState("");

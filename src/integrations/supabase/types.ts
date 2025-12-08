@@ -23149,6 +23149,86 @@ export type Database = {
         }
         Relationships: []
       }
+      recruiter_activity_metrics: {
+        Row: {
+          candidate_calls: number | null
+          candidates_added: number | null
+          candidates_interviewed: number | null
+          candidates_outreached: number | null
+          candidates_placed: number | null
+          candidates_responded: number | null
+          candidates_screened: number | null
+          candidates_spoken: number | null
+          candidates_submitted: number | null
+          client_calls: number | null
+          created_at: string | null
+          date: string
+          emails_sent: number | null
+          employee_id: string | null
+          id: string
+          linkedin_searches: number | null
+          meetings_held: number | null
+          placement_revenue: number | null
+          sourcing_hours: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          candidate_calls?: number | null
+          candidates_added?: number | null
+          candidates_interviewed?: number | null
+          candidates_outreached?: number | null
+          candidates_placed?: number | null
+          candidates_responded?: number | null
+          candidates_screened?: number | null
+          candidates_spoken?: number | null
+          candidates_submitted?: number | null
+          client_calls?: number | null
+          created_at?: string | null
+          date?: string
+          emails_sent?: number | null
+          employee_id?: string | null
+          id?: string
+          linkedin_searches?: number | null
+          meetings_held?: number | null
+          placement_revenue?: number | null
+          sourcing_hours?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          candidate_calls?: number | null
+          candidates_added?: number | null
+          candidates_interviewed?: number | null
+          candidates_outreached?: number | null
+          candidates_placed?: number | null
+          candidates_responded?: number | null
+          candidates_screened?: number | null
+          candidates_spoken?: number | null
+          candidates_submitted?: number | null
+          client_calls?: number | null
+          created_at?: string | null
+          date?: string
+          emails_sent?: number | null
+          employee_id?: string | null
+          id?: string
+          linkedin_searches?: number | null
+          meetings_held?: number | null
+          placement_revenue?: number | null
+          sourcing_hours?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruiter_activity_metrics_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recruiter_bonuses: {
         Row: {
           achievement_percentage: number | null
@@ -31956,6 +32036,10 @@ export type Database = {
         }[]
       }
       get_realtime_system_health: { Args: never; Returns: Json }
+      get_recruiter_stats: {
+        Args: { p_days?: number; p_user_id: string }
+        Returns: Json
+      }
       get_rls_policy_count: { Args: never; Returns: Json }
       get_role_distribution: {
         Args: never
