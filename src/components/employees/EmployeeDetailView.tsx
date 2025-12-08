@@ -16,6 +16,9 @@ import {
   Building
 } from "lucide-react";
 import { RecruiterKPIDashboard } from "./RecruiterKPIDashboard";
+import { EmployeeTargetsTab } from "./EmployeeTargetsTab";
+import { EmployeeTimeTab } from "./EmployeeTimeTab";
+import { EmployeeCommissionsTab } from "./EmployeeCommissionsTab";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -32,22 +35,23 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
   const { data: fetchedEmployee, isLoading } = useQuery({
     queryKey: ['employee-detail', employeeId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Get employee profile
+      const { data: emp, error } = await supabase
         .from('employee_profiles')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            email,
-            avatar_url,
-            phone
-          )
-        `)
+        .select('*')
         .eq('id', employeeId!)
         .single();
       
       if (error) throw error;
-      return data;
+      
+      // Fetch profile separately
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email, avatar_url, phone')
+        .eq('id', emp.user_id)
+        .single();
+      
+      return { ...emp, profile };
     },
     enabled: !!employeeId && !passedEmployee,
   });
@@ -201,41 +205,15 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
         </TabsContent>
 
         <TabsContent value="targets" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Targets & Goals</CardTitle>
-              <CardDescription>Performance targets and progress</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Target tracking coming soon.</p>
-            </CardContent>
-          </Card>
+          <EmployeeTargetsTab employeeId={employee.id} />
         </TabsContent>
 
         <TabsContent value="time" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Time Tracking</CardTitle>
-              <CardDescription>View time entries and work hours</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Time tracking data will be displayed here when integrated with the time tracking system.
-              </p>
-            </CardContent>
-          </Card>
+          <EmployeeTimeTab userId={employee.user_id} />
         </TabsContent>
 
         <TabsContent value="commissions" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Commissions</CardTitle>
-              <CardDescription>Commission earnings and history</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Commission tracking coming soon.</p>
-            </CardContent>
-          </Card>
+          <EmployeeCommissionsTab employeeId={employee.id} />
         </TabsContent>
       </Tabs>
     </div>
