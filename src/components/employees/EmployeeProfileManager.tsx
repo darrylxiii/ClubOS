@@ -29,6 +29,7 @@ export function EmployeeProfileManager() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<EmployeeProfile | null>(null);
+  const [viewingEmployee, setViewingEmployee] = useState<EmployeeProfile | null>(null);
   const queryClient = useQueryClient();
 
   const { data: employees, isLoading } = useAllEmployees();
@@ -167,15 +168,25 @@ export function EmployeeProfileManager() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => setViewingEmployee(employee)}
+                        title="View Details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleEdit(employee)}
+                        title="Edit"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => deleteEmployee.mutate(employee.id)}
+                        title="Deactivate"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -186,6 +197,21 @@ export function EmployeeProfileManager() {
             </div>
           )}
         </ScrollArea>
+
+        {/* View Employee Detail Dialog */}
+        <Dialog open={!!viewingEmployee} onOpenChange={(open) => !open && setViewingEmployee(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Employee Details</DialogTitle>
+            </DialogHeader>
+            {viewingEmployee && (
+              <EmployeeDetailView 
+                employee={viewingEmployee} 
+                onClose={() => setViewingEmployee(null)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
@@ -201,6 +227,7 @@ function EmployeeForm({
   allEmployees: EmployeeProfile[];
 }) {
   const queryClient = useQueryClient();
+  const [selectedUser, setSelectedUser] = useState<AvailableUser | null>(null);
   const [formData, setFormData] = useState({
     user_id: employee?.user_id || '',
     job_title: employee?.job_title || '',
@@ -212,6 +239,17 @@ function EmployeeForm({
     base_salary: employee?.base_salary || 0,
     annual_bonus_target: employee?.annual_bonus_target || 0,
   });
+
+  const handleUserSelect = (user: AvailableUser | null) => {
+    setSelectedUser(user);
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        user_id: user.id,
+        job_title: prev.job_title || user.current_title || '',
+      }));
+    }
+  };
 
   const saveEmployee = useMutation({
     mutationFn: async () => {
@@ -232,6 +270,7 @@ function EmployeeForm({
           .eq('id', employee.id);
         if (error) throw error;
       } else {
+        if (!formData.user_id) throw new Error('Please select a user');
         const { error } = await supabase
           .from('employee_profiles')
           .insert({
@@ -250,6 +289,7 @@ function EmployeeForm({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-employees'] });
+      queryClient.invalidateQueries({ queryKey: ['available-users'] });
       toast.success(employee ? "Employee updated" : "Employee created");
       onClose();
     },
@@ -260,6 +300,23 @@ function EmployeeForm({
 
   return (
     <div className="space-y-4">
+      {/* User Selection - only for new employees */}
+      {!employee && (
+        <div className="space-y-2">
+          <Label>Select User *</Label>
+          <UserSelectCombobox
+            value={selectedUser}
+            onChange={handleUserSelect}
+            placeholder="Search for a user..."
+          />
+          {selectedUser && (
+            <p className="text-xs text-muted-foreground">
+              Role: {selectedUser.role || 'No role assigned'}
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Job Title *</Label>
@@ -378,7 +435,7 @@ function EmployeeForm({
         <Button variant="outline" onClick={onClose}>Cancel</Button>
         <Button 
           onClick={() => saveEmployee.mutate()}
-          disabled={!formData.job_title || saveEmployee.isPending}
+          disabled={(!employee && !formData.user_id) || !formData.job_title || saveEmployee.isPending}
         >
           {saveEmployee.isPending ? 'Saving...' : (employee ? 'Update' : 'Create')}
         </Button>

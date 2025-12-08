@@ -20,14 +20,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface EmployeeDetailViewProps {
-  employeeId: string;
-  onBack: () => void;
+  employeeId?: string;
+  employee?: any; // When passed directly
+  onBack?: () => void;
+  onClose?: () => void;
 }
 
-export const EmployeeDetailView = ({ employeeId, onBack }: EmployeeDetailViewProps) => {
+export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBack, onClose }: EmployeeDetailViewProps) => {
   const [activeTab, setActiveTab] = useState("overview");
 
-  const { data: employee, isLoading } = useQuery({
+  const { data: fetchedEmployee, isLoading } = useQuery({
     queryKey: ['employee-detail', employeeId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -41,15 +43,18 @@ export const EmployeeDetailView = ({ employeeId, onBack }: EmployeeDetailViewPro
             phone
           )
         `)
-        .eq('id', employeeId)
+        .eq('id', employeeId!)
         .single();
       
       if (error) throw error;
       return data;
     },
+    enabled: !!employeeId && !passedEmployee,
   });
 
-  if (isLoading || !employee) {
+  const employee = passedEmployee || fetchedEmployee;
+
+  if ((isLoading && !passedEmployee) || !employee) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -57,15 +62,18 @@ export const EmployeeDetailView = ({ employeeId, onBack }: EmployeeDetailViewPro
     );
   }
 
-  const profile = employee.profiles as any;
+  const profile = employee.profile || employee.profiles;
+  const handleBack = onBack || onClose;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start gap-4">
-        <Button variant="ghost" size="icon" onClick={onBack}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+        {handleBack && (
+          <Button variant="ghost" size="icon" onClick={handleBack}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        )}
         
         <div className="flex items-start gap-4 flex-1">
           <Avatar className="h-16 w-16">
