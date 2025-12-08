@@ -22,6 +22,7 @@ import { SLATracker } from "../partner/SLATracker";
 import { UnifiedStatsBar } from "./UnifiedStatsBar";
 import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
+import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
 
 export const PartnerHome = () => {
   const { companyId } = useUserRole();
@@ -94,6 +95,11 @@ export const PartnerHome = () => {
           </CardContent>
         </Card>
         {companyId && <HiringPipelineOverview companyId={companyId} />}
+      </DashboardSection>
+
+      {/* Upcoming Meetings */}
+      <DashboardSection>
+        <UpcomingMeetingsWidget />
       </DashboardSection>
 
       {/* Applications & Recommendations */}

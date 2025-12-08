@@ -18,6 +18,7 @@ import { Briefcase } from "lucide-react";
 import { UnifiedStatsBar } from "./UnifiedStatsBar";
 import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
+import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
 import { T } from "@/components/T";
 
 export const CandidateHome = () => {
@@ -123,6 +124,11 @@ export const CandidateHome = () => {
           <JobRecommendations userId={user.id} />
         </DashboardSection>
       )}
+
+      {/* Upcoming Meetings */}
+      <DashboardSection>
+        <UpcomingMeetingsWidget />
+      </DashboardSection>
 
       {/* Live Pulse & Profile Views */}
       <DashboardSection columns={2}>

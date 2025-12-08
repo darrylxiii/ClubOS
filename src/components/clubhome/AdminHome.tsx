@@ -5,7 +5,9 @@ import {
   Building2, 
   Shield,
   Settings,
-  Activity
+  Activity,
+  UserCheck,
+  BarChart3
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { RecentActivityFeed } from "./RecentActivityFeed";
@@ -15,6 +17,9 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UnifiedStatsBar } from "./UnifiedStatsBar";
 import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
+import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
+import { PendingMemberApprovalsWidget } from "./PendingMemberApprovalsWidget";
+import { SecurityAlertsWidget } from "./SecurityAlertsWidget";
 
 const AdminHomeContent = () => {
   const { stats, loading } = useRoleStats('admin');
