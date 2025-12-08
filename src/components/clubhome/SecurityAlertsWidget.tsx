@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Shield, AlertTriangle, ArrowRight, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Shield, AlertTriangle, ArrowRight, ShieldAlert, ShieldCheck, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { motion } from "framer-motion";
 
 interface SecurityStats {
   total: number;
@@ -26,12 +27,10 @@ export const SecurityAlertsWidget = () => {
     blockedIps: 0
   });
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchSecurityStats();
-  }, []);
-
-  const fetchSecurityStats = async () => {
+  const fetchSecurityStats = useCallback(async (isManualRefresh = false) => {
+    if (isManualRefresh) setIsRefreshing(true);
     try {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       
@@ -68,8 +67,28 @@ export const SecurityAlertsWidget = () => {
       console.error('Error fetching security stats:', error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchSecurityStats();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('security-alerts')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'threat_events' }, () => {
+        fetchSecurityStats();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'blocked_ips' }, () => {
+        fetchSecurityStats();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchSecurityStats]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -106,66 +125,93 @@ export const SecurityAlertsWidget = () => {
   const StatusIcon = overallStatus.icon;
 
   return (
-    <Card className="glass-card">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="glass-card overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
             Security Status
           </CardTitle>
-          <CardDescription>Threat detection (last 24h)</CardDescription>
+          <CardDescription className="hidden sm:block">Threat detection (last 24h)</CardDescription>
         </div>
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/admin/anti-hacking" className="flex items-center gap-1">
-            Details <ArrowRight className="h-4 w-4" />
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => fetchSecurityStats(true)}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
+            <Link to="/admin/anti-hacking" className="flex items-center gap-1">
+              Details <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {/* Overall Status */}
-        <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-muted/30">
-          <StatusIcon className={`h-8 w-8 ${overallStatus.color}`} />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex items-center gap-3 mb-4 p-2 sm:p-3 rounded-lg bg-muted/30"
+        >
+          <StatusIcon className={`h-6 w-6 sm:h-8 sm:w-8 ${overallStatus.color}`} />
           <div>
-            <p className={`font-semibold ${overallStatus.color}`}>{overallStatus.label}</p>
-            <p className="text-sm text-muted-foreground">
+            <p className={`font-semibold text-sm sm:text-base ${overallStatus.color}`}>{overallStatus.label}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {stats.total === 0 
                 ? 'No threats detected' 
                 : `${stats.total} threat${stats.total > 1 ? 's' : ''} detected`}
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Severity Breakdown */}
         {stats.total > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="flex flex-wrap gap-1.5 sm:gap-2 mb-4"
+          >
             {stats.critical > 0 && (
-              <Badge className={getSeverityColor('critical')}>
+              <Badge className={`${getSeverityColor('critical')} text-xs`}>
                 {stats.critical} Critical
               </Badge>
             )}
             {stats.high > 0 && (
-              <Badge className={getSeverityColor('high')}>
+              <Badge className={`${getSeverityColor('high')} text-xs`}>
                 {stats.high} High
               </Badge>
             )}
             {stats.medium > 0 && (
-              <Badge className={getSeverityColor('medium')}>
+              <Badge className={`${getSeverityColor('medium')} text-xs`}>
                 {stats.medium} Medium
               </Badge>
             )}
             {stats.low > 0 && (
-              <Badge className={getSeverityColor('low')}>
+              <Badge className={`${getSeverityColor('low')} text-xs`}>
                 {stats.low} Low
               </Badge>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* Blocked IPs */}
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center justify-between text-xs sm:text-sm">
           <span className="text-muted-foreground">Blocked IPs</span>
-          <Badge variant="outline">{stats.blockedIps}</Badge>
+          <Badge variant="outline" className="text-xs">{stats.blockedIps}</Badge>
         </div>
+        
+        {/* Mobile-only Details button */}
+        <Button variant="outline" size="sm" asChild className="w-full mt-4 sm:hidden">
+          <Link to="/admin/anti-hacking" className="flex items-center justify-center gap-1">
+            View Details <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   );

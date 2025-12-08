@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Video, Calendar, Clock, Users, ArrowRight } from "lucide-react";
+import { Video, Calendar, Clock, Users, ArrowRight, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { format, isToday, isTomorrow, formatDistanceToNow } from "date-fns";
+import { format, isToday, isTomorrow } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Meeting {
   id: string;
@@ -23,14 +24,11 @@ export const UpcomingMeetingsWidget = () => {
   const { user } = useAuth();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchUpcomingMeetings();
-    }
-  }, [user]);
-
-  const fetchUpcomingMeetings = async () => {
+  const fetchUpcomingMeetings = useCallback(async (isManualRefresh = false) => {
+    if (!user) return;
+    if (isManualRefresh) setIsRefreshing(true);
     if (!user) return;
 
     try {
@@ -90,8 +88,30 @@ export const UpcomingMeetingsWidget = () => {
       console.error('Error fetching meetings:', error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUpcomingMeetings();
+
+      // Subscribe to realtime updates
+      const channel = supabase
+        .channel('meetings-updates')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, () => {
+          fetchUpcomingMeetings();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'meeting_participants' }, () => {
+          fetchUpcomingMeetings();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user, fetchUpcomingMeetings]);
 
   const getDateLabel = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -135,69 +155,100 @@ export const UpcomingMeetingsWidget = () => {
   }
 
   return (
-    <Card className="glass-card">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="glass-card overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="flex items-center gap-2">
             <Video className="h-5 w-5 text-primary" />
             Upcoming Meetings
           </CardTitle>
-          <CardDescription>Your scheduled calls and interviews</CardDescription>
+          <CardDescription className="hidden sm:block">Your scheduled calls and interviews</CardDescription>
         </div>
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/meetings" className="flex items-center gap-1">
-            View All <ArrowRight className="h-4 w-4" />
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => fetchUpcomingMeetings(true)}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
+            <Link to="/meetings" className="flex items-center gap-1">
+              View All <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {meetings.length === 0 ? (
-          <div className="text-center py-6 text-muted-foreground">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-6 text-muted-foreground"
+          >
             <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
             <p>No upcoming meetings</p>
             <Button variant="outline" size="sm" className="mt-3" asChild>
               <Link to="/meetings">Schedule a Meeting</Link>
             </Button>
-          </div>
+          </motion.div>
         ) : (
-          <div className="space-y-3">
-            {meetings.map(meeting => (
-              <Link
-                key={meeting.id}
-                to={`/meetings/${meeting.id}`}
-                className="block p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium truncate">{meeting.title}</h4>
-                      {getStatusBadge(meeting.status, meeting.scheduled_start)}
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5" />
-                        {getDateLabel(meeting.scheduled_start)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5" />
-                        {getTimeLabel(meeting.scheduled_start)}
-                      </span>
-                      {meeting.participants.length > 0 && (
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3.5 w-3.5" />
-                          {meeting.participants.length} participant{meeting.participants.length > 1 ? 's' : ''}
-                        </span>
+          <AnimatePresence mode="popLayout">
+            <div className="space-y-2 sm:space-y-3">
+              {meetings.map((meeting, index) => (
+                <motion.div
+                  key={meeting.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Link
+                    to={`/meetings/${meeting.id}`}
+                    className="block p-2 sm:p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    <div className="flex items-start justify-between gap-2 sm:gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h4 className="font-medium truncate text-sm sm:text-base">{meeting.title}</h4>
+                          {getStatusBadge(meeting.status, meeting.scheduled_start)}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                            {getDateLabel(meeting.scheduled_start)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                            {getTimeLabel(meeting.scheduled_start)}
+                          </span>
+                          {meeting.participants.length > 0 && (
+                            <span className="flex items-center gap-1 hidden sm:flex">
+                              <Users className="h-3.5 w-3.5" />
+                              {meeting.participants.length}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {meeting.status === 'in_progress' && (
+                        <Button size="sm" className="shrink-0 text-xs sm:text-sm">Join</Button>
                       )}
                     </div>
-                  </div>
-                  {meeting.status === 'in_progress' && (
-                    <Button size="sm" className="shrink-0">Join</Button>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </AnimatePresence>
         )}
+        
+        {/* Mobile-only View All button */}
+        <Button variant="outline" size="sm" asChild className="w-full mt-4 sm:hidden">
+          <Link to="/meetings" className="flex items-center justify-center gap-1">
+            View All <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   );

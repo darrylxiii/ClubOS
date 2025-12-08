@@ -23,6 +23,7 @@ import { ClubPilotTasksWidget } from "./ClubPilotTasksWidget";
 import { MessagesPreviewWidget } from "./MessagesPreviewWidget";
 import { TimeTrackingWidget } from "./TimeTrackingWidget";
 import { T } from "@/components/T";
+import { motion } from "framer-motion";
 
 export const CandidateHome = () => {
   const { user } = useAuth();
@@ -56,9 +57,15 @@ export const CandidateHome = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Stats at top */}
-      <UnifiedStatsBar role="user" stats={stats} loading={loading} />
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <UnifiedStatsBar role="user" stats={stats} loading={loading} />
+      </motion.div>
 
       {/* Profile Completion */}
       <ProfileCompletion />
@@ -72,41 +79,47 @@ export const CandidateHome = () => {
       </DashboardSection>
 
       {/* Club Projects Banner */}
-      <Card className="glass-strong hover:glass transition-all duration-300">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="secondary" className="gap-1 bg-premium/20 text-premium-foreground border-premium/30">
-                  <Briefcase className="h-3 w-3" />
-                  New Feature
-                </Badge>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1 }}
+      >
+        <Card className="glass-strong hover:glass transition-all duration-300">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="secondary" className="gap-1 bg-premium/20 text-premium-foreground border-premium/30 text-xs">
+                    <Briefcase className="h-3 w-3" />
+                    New Feature
+                  </Badge>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold mb-2">💼 Introducing Club Projects</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Earn while you search. Join our premium freelance marketplace and get matched 
+                  with high-value projects using Club AI.
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs sm:text-sm text-muted-foreground mb-4">
+                  <div className="flex items-center gap-1">
+                    ✓ AI-powered matching
+                  </div>
+                  <div className="flex items-center gap-1">
+                    ✓ €100-150/hr avg rate
+                  </div>
+                  <div className="flex items-center gap-1 hidden sm:flex">
+                    ✓ &lt;24h time to hire
+                  </div>
+                </div>
+                <Button asChild className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+                  <Link to="/projects">
+                    Explore Projects
+                  </Link>
+                </Button>
               </div>
-              <h3 className="text-xl font-bold mb-2">💼 Introducing Club Projects</h3>
-              <p className="text-muted-foreground mb-4">
-                Earn while you search. Join our premium freelance marketplace and get matched 
-                with high-value projects using Club AI.
-              </p>
-              <div className="flex flex-wrap gap-2 text-sm text-muted-foreground mb-4">
-                <div className="flex items-center gap-1">
-                  ✓ AI-powered matching
-                </div>
-                <div className="flex items-center gap-1">
-                  ✓ €100-150/hr avg rate
-                </div>
-                <div className="flex items-center gap-1">
-                  ✓ &lt;24h time to hire
-                </div>
-              </div>
-              <Button asChild className="bg-primary hover:bg-primary/90">
-                <Link to="/projects">
-                  Explore Projects
-                </Link>
-              </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Quick Actions */}
       {user && (
