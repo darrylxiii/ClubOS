@@ -78,7 +78,7 @@ export const PartnerHome = () => {
           </CardHeader>
           <CardContent className="space-y-2 sm:space-y-3">
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
-              <Link to="/jobs">
+              <Link to="/company-jobs">
                 <Briefcase className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Post New Job</span>
                 <span className="sm:hidden">New Job</span>
@@ -92,7 +92,7 @@ export const PartnerHome = () => {
               </Link>
             </Button>
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
-              <Link to="/companies">
+              <Link to="/company-settings">
                 <FileText className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Update Company Profile</span>
                 <span className="sm:hidden">Company</span>
