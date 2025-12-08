@@ -55,17 +55,22 @@ export const useRoleStats = (role: string, userId?: string, companyId?: string) 
   }, [role, userId, companyId]);
 
   const fetchAdminStats = async () => {
-    const [usersRes, companiesRes, jobsRes] = await Promise.all([
-      supabase.from('profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('companies').select('*', { count: 'exact', head: true }),
-      supabase.from('jobs').select('*', { count: 'exact', head: true }),
+    const [usersRes, companiesRes, jobsRes, pendingRes] = await Promise.all([
+      supabase.from('profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('companies').select('id', { count: 'exact', head: true }),
+      supabase.from('jobs').select('id', { count: 'exact', head: true }),
+      // Count pending member approvals (users with incomplete onboarding)
+      supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .is('onboarding_completed_at', null),
     ]);
 
     setStats({
       totalUsers: usersRes.count || 0,
       totalCompanies: companiesRes.count || 0,
       totalJobs: jobsRes.count || 0,
-      pendingReviews: 0,
+      pendingReviews: pendingRes.count || 0,
     });
   };
 
@@ -108,14 +113,22 @@ export const useRoleStats = (role: string, userId?: string, companyId?: string) 
   };
 
   const fetchCandidateStats = async (userId: string) => {
-    const [appsRes, matchesRes, interviewsRes] = await Promise.all([
+    // First get user's conversation IDs
+    const { data: conversations } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', userId);
+    
+    const conversationIds = conversations?.map(c => c.conversation_id) || [];
+
+    const [appsRes, matchesRes, interviewsRes, messagesRes] = await Promise.all([
       supabase
         .from('applications')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('candidate_id', userId),
       supabase
         .from('match_scores')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('user_id', userId)
         .gte('overall_score', 70),
       supabase
@@ -123,13 +136,22 @@ export const useRoleStats = (role: string, userId?: string, companyId?: string) 
         .select('meeting_id, meetings!inner(scheduled_start)', { count: 'exact', head: true })
         .eq('user_id', userId)
         .gte('meetings.scheduled_start', new Date().toISOString()),
+      // Count unread messages
+      conversationIds.length > 0
+        ? supabase
+            .from('messages')
+            .select('id', { count: 'exact', head: true })
+            .neq('sender_id', userId)
+            .eq('is_read', false)
+            .in('conversation_id', conversationIds)
+        : Promise.resolve({ count: 0 })
     ]);
 
     setStats({
       applications: appsRes.count || 0,
       matches: matchesRes.count || 0,
       interviews: interviewsRes.count || 0,
-      messages: 0,
+      messages: messagesRes.count || 0,
     });
   };
 
