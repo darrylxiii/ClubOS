@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,15 +11,17 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Progress } from '@/components/ui/progress';
 import { 
   Play, Download, Share2, AlertTriangle, Star, 
   CheckCircle2, Clock, User, ChevronDown, ArrowLeft,
-  RefreshCw, FileText, Mic, Video
+  RefreshCw, FileText, Mic, Video, BarChart3, Scissors, Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { AppLayout } from '@/components/AppLayout';
+import { TimestampedTranscript } from './TimestampedTranscript';
+import { SpeakingMetricsPanel } from './SpeakingMetricsPanel';
+import { RecordingClipCreator } from './RecordingClipCreator';
 
 export default function RecordingPlaybackPage() {
   const { recordingId } = useParams();
@@ -27,8 +29,14 @@ export default function RecordingPlaybackPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [recording, setRecording] = useState<any>(null);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const [retriggeringAnalysis, setRetriggeringAnalysis] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Clip creator state
+  const [clipDialogOpen, setClipDialogOpen] = useState(false);
+  const [clipData, setClipData] = useState({ startMs: 0, endMs: 0, text: '' });
 
   useEffect(() => {
     if (recordingId) {
@@ -38,7 +46,6 @@ export default function RecordingPlaybackPage() {
 
   const loadRecording = async () => {
     try {
-      // First try to get by recording ID directly
       const { data: recordingData, error } = await supabase
         .from('meeting_recordings_extended' as any)
         .select('*')
@@ -49,7 +56,6 @@ export default function RecordingPlaybackPage() {
 
       if (recordingData) {
         const rec = recordingData as Record<string, any>;
-        // Fetch meeting info if available
         if (rec.meeting_id) {
           const { data: meetingData } = await supabase
             .from('meetings')
@@ -59,7 +65,6 @@ export default function RecordingPlaybackPage() {
           
           setRecording({ ...rec, meeting: meetingData });
         } else if (rec.live_channel_id) {
-          // Fetch channel info for Live Hub recordings
           const { data: channelData } = await supabase
             .from('live_channels')
             .select('name, channel_type')
@@ -98,18 +103,44 @@ export default function RecordingPlaybackPage() {
       if (error) throw error;
       
       toast.success('Analysis started - refresh in a few minutes');
-      
-      // Update status locally
-      setRecording((prev: any) => ({
-        ...prev,
-        processing_status: 'processing'
-      }));
+      setRecording((prev: any) => ({ ...prev, processing_status: 'processing' }));
     } catch (error) {
       console.error('Failed to retrigger analysis:', error);
       toast.error('Failed to start analysis');
     } finally {
       setRetriggeringAnalysis(false);
     }
+  };
+
+  const sendSummaryEmail = async () => {
+    if (!recording) return;
+    
+    setSendingEmail(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-meeting-summary-email', {
+        body: { recordingId: recording.id }
+      });
+
+      if (error) throw error;
+      toast.success('Summary email sent successfully');
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      toast.error('Failed to send summary email');
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  const handleSeek = (timeMs: number) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = timeMs / 1000;
+      videoRef.current.play();
+    }
+  };
+
+  const handleCreateClip = (startMs: number, endMs: number, text: string) => {
+    setClipData({ startMs, endMs, text });
+    setClipDialogOpen(true);
   };
 
   const getFitColor = (fit: string) => {
@@ -191,6 +222,15 @@ export default function RecordingPlaybackPage() {
   const candidateEval = analysis.candidateEvaluation || {};
   const decisionGuidance = analysis.decisionGuidance || {};
   const sourceType = recording.source_type === 'live_hub' ? 'Live Hub' : 'TQC Meeting';
+  const transcriptJson = recording.transcript_json || null;
+  const speakingMetrics = recording.speaking_metrics || null;
+  
+  // Build participants for metrics panel
+  const participants = (recording.participants || []).map((name: string, idx: number) => ({
+    id: `participant-${idx}`,
+    name,
+    role: idx === 0 ? 'host' : 'participant'
+  }));
 
   return (
     <AppLayout>
@@ -205,7 +245,7 @@ export default function RecordingPlaybackPage() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold">
-                {recording.meeting?.title || 'Recording'}
+                {recording.title || recording.meeting?.title || 'Recording'}
               </h1>
               <Badge variant="secondary">{sourceType}</Badge>
               {recording.processing_status === 'processing' && (
@@ -216,6 +256,10 @@ export default function RecordingPlaybackPage() {
               )}
             </div>
             <div className="flex items-center gap-2">
+              <Button onClick={sendSummaryEmail} variant="outline" size="sm" disabled={sendingEmail || !recording.ai_summary}>
+                <Mail className="h-4 w-4 mr-2" />
+                {sendingEmail ? 'Sending...' : 'Email Summary'}
+              </Button>
               <Button onClick={exportTranscript} variant="outline" size="sm" disabled={!recording.transcript}>
                 <FileText className="h-4 w-4 mr-2" />
                 Export Transcript
@@ -236,7 +280,7 @@ export default function RecordingPlaybackPage() {
             </span>
             <span className="flex items-center gap-1">
               <Video className="h-4 w-4" />
-              {Math.round(recording.duration_seconds / 60)} minutes
+              {Math.round((recording.duration_seconds || 0) / 60)} minutes
             </span>
             {recording.participants && recording.participants.length > 0 && (
               <span className="flex items-center gap-1">
@@ -254,10 +298,11 @@ export default function RecordingPlaybackPage() {
               <CardContent className="p-0">
                 {recording.recording_url ? (
                   <video 
+                    ref={videoRef}
                     src={recording.recording_url} 
                     controls 
                     className="w-full rounded-lg"
-                    onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                    onTimeUpdate={(e) => setCurrentTimeMs(e.currentTarget.currentTime * 1000)}
                   />
                 ) : (
                   <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
@@ -290,40 +335,50 @@ export default function RecordingPlaybackPage() {
               </Alert>
             )}
 
-            {/* Tabs for different sections */}
+            {/* Tabs */}
             <Tabs defaultValue="transcript" className="w-full">
-              <TabsList className="w-full grid grid-cols-5">
+              <TabsList className="w-full grid grid-cols-6">
                 <TabsTrigger value="transcript">Transcript</TabsTrigger>
                 <TabsTrigger value="summary">Summary</TabsTrigger>
                 <TabsTrigger value="actions">Actions</TabsTrigger>
                 <TabsTrigger value="moments">Key Moments</TabsTrigger>
                 <TabsTrigger value="skills">Skills</TabsTrigger>
+                <TabsTrigger value="metrics">Metrics</TabsTrigger>
               </TabsList>
 
+              {/* Timestamped Transcript Tab */}
               <TabsContent value="transcript" className="space-y-4">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Mic className="h-5 w-5" />
-                      Full Transcript
+                      Synced Transcript
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-96">
-                      {recording.transcript ? (
+                    {transcriptJson ? (
+                      <TimestampedTranscript
+                        transcriptJson={transcriptJson}
+                        currentTimeMs={currentTimeMs}
+                        onSeek={handleSeek}
+                        onCreateClip={handleCreateClip}
+                      />
+                    ) : recording.transcript ? (
+                      <ScrollArea className="h-96">
                         <pre className="whitespace-pre-wrap text-sm leading-relaxed font-sans">
                           {recording.transcript}
                         </pre>
-                      ) : (
-                        <p className="text-muted-foreground text-center py-8">
-                          Transcript not available yet. Analysis may be in progress.
-                        </p>
-                      )}
-                    </ScrollArea>
+                      </ScrollArea>
+                    ) : (
+                      <p className="text-muted-foreground text-center py-8">
+                        Transcript not available yet. Analysis may be in progress.
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
 
+              {/* Summary Tab */}
               <TabsContent value="summary" className="space-y-4">
                 <Card>
                   <CardHeader>
@@ -331,7 +386,7 @@ export default function RecordingPlaybackPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground leading-relaxed">
-                      {analysis.executiveSummary || 'Analysis in progress...'}
+                      {analysis.executiveSummary || recording.executive_summary || 'Analysis in progress...'}
                     </p>
 
                     {(candidateEval.overallFit || decisionGuidance.recommendation) && (
@@ -349,7 +404,7 @@ export default function RecordingPlaybackPage() {
                       </div>
                     )}
 
-                    {candidateEval.strengths && candidateEval.strengths.length > 0 && (
+                    {candidateEval.strengths?.length > 0 && (
                       <div className="mt-6">
                         <h4 className="font-semibold mb-2">Strengths</h4>
                         <ul className="space-y-1">
@@ -363,7 +418,7 @@ export default function RecordingPlaybackPage() {
                       </div>
                     )}
 
-                    {candidateEval.weaknesses && candidateEval.weaknesses.length > 0 && (
+                    {candidateEval.weaknesses?.length > 0 && (
                       <div className="mt-4">
                         <h4 className="font-semibold mb-2">Areas for Concern</h4>
                         <ul className="space-y-1">
@@ -380,15 +435,16 @@ export default function RecordingPlaybackPage() {
                 </Card>
               </TabsContent>
 
+              {/* Actions Tab */}
               <TabsContent value="actions" className="space-y-4">
                 <Card>
                   <CardHeader>
                     <CardTitle>Action Items</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {analysis.actionItems && analysis.actionItems.length > 0 ? (
+                    {(analysis.actionItems || recording.action_items)?.length > 0 ? (
                       <div className="space-y-3">
-                        {analysis.actionItems.map((item: any, idx: number) => (
+                        {(analysis.actionItems || recording.action_items).map((item: any, idx: number) => (
                           <div key={idx} className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50">
                             <Checkbox />
                             <div className="flex-1">
@@ -410,19 +466,21 @@ export default function RecordingPlaybackPage() {
                 </Card>
               </TabsContent>
 
+              {/* Key Moments Tab */}
               <TabsContent value="moments" className="space-y-4">
                 <Card>
                   <CardHeader>
                     <CardTitle>Key Moments</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {analysis.keyMoments && analysis.keyMoments.length > 0 ? (
+                    {(analysis.keyMoments || recording.key_moments)?.length > 0 ? (
                       <ScrollArea className="h-96">
                         <div className="space-y-3">
-                          {analysis.keyMoments.map((moment: any, idx: number) => (
+                          {(analysis.keyMoments || recording.key_moments).map((moment: any, idx: number) => (
                             <div 
                               key={idx}
                               className="flex gap-3 p-3 hover:bg-muted/50 cursor-pointer rounded-lg border"
+                              onClick={() => moment.timestamp_ms && handleSeek(moment.timestamp_ms)}
                             >
                               <Badge className="shrink-0">{moment.timestamp}</Badge>
                               <div className="flex-1">
@@ -434,6 +492,20 @@ export default function RecordingPlaybackPage() {
                                   </blockquote>
                                 )}
                               </div>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCreateClip(
+                                    moment.timestamp_ms || 0,
+                                    (moment.timestamp_ms || 0) + 30000,
+                                    moment.quote || moment.description
+                                  );
+                                }}
+                              >
+                                <Scissors className="h-4 w-4" />
+                              </Button>
                             </div>
                           ))}
                         </div>
@@ -445,13 +517,14 @@ export default function RecordingPlaybackPage() {
                 </Card>
               </TabsContent>
 
+              {/* Skills Tab */}
               <TabsContent value="skills" className="space-y-4">
                 <Card>
                   <CardHeader>
                     <CardTitle>Skills Assessment</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {candidateEval.skillsAssessment && candidateEval.skillsAssessment.length > 0 ? (
+                    {candidateEval.skillsAssessment?.length > 0 ? (
                       <div className="space-y-4">
                         {candidateEval.skillsAssessment.map((skill: any, idx: number) => (
                           <div key={idx} className="p-4 border rounded-lg">
@@ -483,13 +556,21 @@ export default function RecordingPlaybackPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
+
+              {/* Speaking Metrics Tab */}
+              <TabsContent value="metrics" className="space-y-4">
+                <SpeakingMetricsPanel 
+                  metrics={speakingMetrics} 
+                  participants={participants}
+                />
+              </TabsContent>
             </Tabs>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Next Steps */}
-            {decisionGuidance.nextSteps && decisionGuidance.nextSteps.length > 0 && (
+            {decisionGuidance.nextSteps?.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Next Steps</CardTitle>
@@ -508,7 +589,7 @@ export default function RecordingPlaybackPage() {
             )}
 
             {/* Participants */}
-            {recording.participants && recording.participants.length > 0 && (
+            {recording.participants?.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Participants</CardTitle>
@@ -534,11 +615,11 @@ export default function RecordingPlaybackPage() {
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Duration</span>
-                  <span>{Math.round(recording.duration_seconds / 60)} min</span>
+                  <span>{Math.round((recording.duration_seconds || 0) / 60)} min</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">File Size</span>
-                  <span>{Math.round(recording.file_size_bytes / 1024 / 1024)} MB</span>
+                  <span>{Math.round((recording.file_size_bytes || 0) / 1024 / 1024)} MB</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Source</span>
@@ -552,9 +633,57 @@ export default function RecordingPlaybackPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  size="sm"
+                  onClick={() => setClipDialogOpen(true)}
+                >
+                  <Scissors className="h-4 w-4 mr-2" />
+                  Create Clip
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  size="sm"
+                  onClick={sendSummaryEmail}
+                  disabled={sendingEmail || !recording.ai_summary}
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email Summary
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  size="sm"
+                  onClick={() => toast.info('Coming soon')}
+                >
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share Recording
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
+
+      {/* Clip Creator Dialog */}
+      <RecordingClipCreator
+        open={clipDialogOpen}
+        onOpenChange={setClipDialogOpen}
+        recordingId={recording?.id || ''}
+        startMs={clipData.startMs}
+        endMs={clipData.endMs}
+        transcript={clipData.text}
+        recordingUrl={recording?.recording_url}
+      />
     </AppLayout>
   );
 }

@@ -1,8 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -47,7 +46,6 @@ export function GlobalRecordingSearch({ open, onOpenChange }: GlobalRecordingSea
 
     setLoading(true);
     try {
-      // Use full-text search via RPC or basic ILIKE
       const { data, error } = await supabase
         .from('meeting_recordings_extended' as any)
         .select('id, title, source_type, created_at, duration_seconds, executive_summary, transcript')
@@ -57,7 +55,6 @@ export function GlobalRecordingSearch({ open, onOpenChange }: GlobalRecordingSea
 
       if (error) throw error;
 
-      // Process results to extract highlights
       const processedResults: SearchResult[] = (data || []).map((rec: any) => {
         let matchType: 'transcript' | 'summary' | 'title' = 'title';
         let highlight = '';
@@ -95,11 +92,13 @@ export function GlobalRecordingSearch({ open, onOpenChange }: GlobalRecordingSea
   }, []);
 
   // Trigger search when debounced query changes
-  useState(() => {
+  useEffect(() => {
     if (debouncedQuery) {
       performSearch(debouncedQuery);
+    } else {
+      setResults([]);
     }
-  });
+  }, [debouncedQuery, performSearch]);
 
   const handleResultClick = (recordingId: string) => {
     navigate(`/recording/${recordingId}`);
