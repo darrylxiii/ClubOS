@@ -6,7 +6,6 @@ import {
   Shield,
   Settings,
   Activity,
-  UserCheck,
   BarChart3
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -20,13 +19,16 @@ import { useRoleStats } from "@/hooks/useRoleStats";
 import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
 import { PendingMemberApprovalsWidget } from "./PendingMemberApprovalsWidget";
 import { SecurityAlertsWidget } from "./SecurityAlertsWidget";
+import { DealPipelineSummaryWidget } from "./DealPipelineSummaryWidget";
+import { KPISummaryWidget } from "./KPISummaryWidget";
+import { SystemErrorsWidget } from "./SystemErrorsWidget";
+import { ActiveMeetingsWidget } from "./ActiveMeetingsWidget";
 
 const AdminHomeContent = () => {
   const { stats, loading } = useRoleStats('admin');
 
   return (
     <div className="space-y-6">
-      {/* Stats at top */}
       <UnifiedStatsBar role="admin" stats={stats} loading={loading} />
 
       {/* Quick Management & Platform Growth */}
@@ -41,27 +43,33 @@ const AdminHomeContent = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button className="w-full justify-start" variant="glass" asChild>
-              <Link to="/admin">
+              <Link to="/admin/users">
                 <Users className="h-4 w-4 mr-2" />
                 Manage Users & Roles
               </Link>
             </Button>
             <Button className="w-full justify-start" variant="glass" asChild>
-              <Link to="/admin">
+              <Link to="/admin/companies">
                 <Building2 className="h-4 w-4 mr-2" />
                 Manage Companies
               </Link>
             </Button>
             <Button className="w-full justify-start" variant="glass" asChild>
-              <Link to="/admin">
+              <Link to="/admin/anti-hacking">
                 <Shield className="h-4 w-4 mr-2" />
                 Security Settings
               </Link>
             </Button>
             <Button className="w-full justify-start" variant="glass" asChild>
-              <Link to="/admin">
+              <Link to="/admin/audit-log">
                 <Activity className="h-4 w-4 mr-2" />
                 View System Logs
+              </Link>
+            </Button>
+            <Button className="w-full justify-start" variant="glass" asChild>
+              <Link to="/admin/kpi-command-center">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                KPI Command Center
               </Link>
             </Button>
           </CardContent>
@@ -69,9 +77,28 @@ const AdminHomeContent = () => {
         <PlatformGrowthCard />
       </DashboardSection>
 
-      {/* Platform Health */}
-      <DashboardSection>
+      {/* Critical Widgets Row */}
+      <DashboardSection columns={3}>
+        <PendingMemberApprovalsWidget />
+        <SecurityAlertsWidget />
+        <ActiveMeetingsWidget />
+      </DashboardSection>
+
+      {/* KPI & Deal Pipeline */}
+      <DashboardSection columns={2}>
+        <KPISummaryWidget />
+        <DealPipelineSummaryWidget />
+      </DashboardSection>
+
+      {/* Platform Health & Errors */}
+      <DashboardSection columns={2}>
         <PlatformHealthCard />
+        <SystemErrorsWidget />
+      </DashboardSection>
+
+      {/* Upcoming Meetings */}
+      <DashboardSection>
+        <UpcomingMeetingsWidget />
       </DashboardSection>
 
       {/* Recent System Activity */}

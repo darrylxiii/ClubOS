@@ -5,7 +5,8 @@ import {
   Users,
   MessageSquare,
   FileText,
-  PlusCircle
+  PlusCircle,
+  Clock
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -23,6 +24,8 @@ import { UnifiedStatsBar } from "./UnifiedStatsBar";
 import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
 import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
+import { TimeTrackingWidget } from "./TimeTrackingWidget";
+import { DealPipelineSummaryWidget } from "./DealPipelineSummaryWidget";
 
 export const PartnerHome = () => {
   const { companyId } = useUserRole();
@@ -97,9 +100,15 @@ export const PartnerHome = () => {
         {companyId && <HiringPipelineOverview companyId={companyId} />}
       </DashboardSection>
 
-      {/* Upcoming Meetings */}
-      <DashboardSection>
+      {/* Upcoming Meetings & Time Tracking */}
+      <DashboardSection columns={2}>
         <UpcomingMeetingsWidget />
+        {companyId && <TimeTrackingWidget role="partner" companyId={companyId} />}
+      </DashboardSection>
+
+      {/* Deal Pipeline Summary */}
+      <DashboardSection>
+        <DealPipelineSummaryWidget />
       </DashboardSection>
 
       {/* Applications & Recommendations */}
