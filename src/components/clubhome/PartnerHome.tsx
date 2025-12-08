@@ -24,7 +24,7 @@ import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
 import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
 import { TimeTrackingWidget } from "./TimeTrackingWidget";
-import { DealPipelineSummaryWidget } from "./DealPipelineSummaryWidget";
+
 import { motion } from "framer-motion";
 
 export const PartnerHome = () => {
@@ -116,10 +116,6 @@ export const PartnerHome = () => {
         {companyId && <TimeTrackingWidget role="partner" companyId={companyId} />}
       </DashboardSection>
 
-      {/* Deal Pipeline Summary */}
-      <DashboardSection>
-        <DealPipelineSummaryWidget />
-      </DashboardSection>
 
       {/* Applications & Recommendations */}
       <DashboardSection columns={2}>
