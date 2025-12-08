@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, ArrowRight } from "lucide-react";
+import { MessageSquare, ArrowRight, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Message {
   id: string;
@@ -24,14 +25,11 @@ export const MessagesPreviewWidget = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchMessages();
-    }
-  }, [user]);
-
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async (isManualRefresh = false) => {
+    if (!user) return;
+    if (isManualRefresh) setIsRefreshing(true);
     if (!user) return;
 
     try {
@@ -92,8 +90,27 @@ export const MessagesPreviewWidget = () => {
       console.error('Error fetching messages:', error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchMessages();
+
+      // Subscribe to realtime updates
+      const channel = supabase
+        .channel('messages-preview')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+          fetchMessages();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user, fetchMessages]);
 
   if (loading) {
     return (
@@ -109,54 +126,73 @@ export const MessagesPreviewWidget = () => {
   }
 
   return (
-    <Card className="glass-card">
-      <CardHeader className="pb-3">
+    <Card className="glass-card overflow-hidden">
+      <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           <MessageSquare className="h-5 w-5 text-primary" />
           Messages
           {unreadCount > 0 && (
-            <Badge variant="destructive" className="ml-auto">
+            <Badge variant="destructive" className="ml-auto animate-pulse">
               {unreadCount} new
             </Badge>
           )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 ml-auto"
+            onClick={() => fetchMessages(true)}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>
         {messages.length === 0 ? (
-          <div className="text-center py-6 text-muted-foreground">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-6 text-muted-foreground"
+          >
             <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No messages yet</p>
-          </div>
+          </motion.div>
         ) : (
-          <div className="space-y-3 mb-4">
-            {messages.slice(0, 3).map(msg => (
-              <div
-                key={msg.id}
-                className={`flex items-start gap-3 p-2 rounded-lg transition-colors ${
-                  !msg.is_read ? 'bg-primary/5' : 'hover:bg-muted/50'
-                }`}
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={msg.sender_avatar || undefined} />
-                  <AvatarFallback>{msg.sender_name[0]}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm">{msg.sender_name}</span>
-                    {!msg.is_read && <div className="h-2 w-2 rounded-full bg-primary" />}
+          <AnimatePresence mode="popLayout">
+            <div className="space-y-2 mb-4">
+              {messages.slice(0, 3).map((msg, index) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={`flex items-start gap-2 sm:gap-3 p-2 rounded-lg transition-all hover:scale-[1.01] ${
+                    !msg.is_read ? 'bg-primary/5' : 'hover:bg-muted/50'
+                  }`}
+                >
+                  <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
+                    <AvatarImage src={msg.sender_avatar || undefined} />
+                    <AvatarFallback className="text-xs">{msg.sender_name[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-xs sm:text-sm truncate">{msg.sender_name}</span>
+                      {!msg.is_read && <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-1">{msg.content}</p>
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
+                    </span>
                   </div>
-                  <p className="text-xs text-muted-foreground line-clamp-1">{msg.content}</p>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          </AnimatePresence>
         )}
 
         <Button asChild variant="outline" size="sm" className="w-full">
-          <Link to="/messages">
+          <Link to="/messages" className="flex items-center justify-center">
             <ArrowRight className="h-4 w-4 mr-2" />
             View All Messages
           </Link>

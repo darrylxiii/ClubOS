@@ -23,53 +23,66 @@ import { DealPipelineSummaryWidget } from "./DealPipelineSummaryWidget";
 import { KPISummaryWidget } from "./KPISummaryWidget";
 import { SystemErrorsWidget } from "./SystemErrorsWidget";
 import { ActiveMeetingsWidget } from "./ActiveMeetingsWidget";
+import { motion } from "framer-motion";
 
 const AdminHomeContent = () => {
   const { stats, loading } = useRoleStats('admin');
 
   return (
-    <div className="space-y-6">
-      <UnifiedStatsBar role="admin" stats={stats} loading={loading} />
+    <div className="space-y-4 sm:space-y-6">
+      {/* Stats Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <UnifiedStatsBar role="admin" stats={stats} loading={loading} />
+      </motion.div>
 
       {/* Quick Management & Platform Growth */}
       <DashboardSection columns={2}>
         <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Quick Management
             </CardTitle>
-            <CardDescription>Common admin tasks</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Common admin tasks</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Button className="w-full justify-start" variant="glass" asChild>
+          <CardContent className="space-y-2 sm:space-y-3">
+            <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/admin/users">
                 <Users className="h-4 w-4 mr-2" />
-                Manage Users & Roles
+                <span className="hidden sm:inline">Manage Users & Roles</span>
+                <span className="sm:hidden">Users & Roles</span>
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="glass" asChild>
+            <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/admin/companies">
                 <Building2 className="h-4 w-4 mr-2" />
-                Manage Companies
+                <span className="hidden sm:inline">Manage Companies</span>
+                <span className="sm:hidden">Companies</span>
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="glass" asChild>
+            <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/admin/anti-hacking">
                 <Shield className="h-4 w-4 mr-2" />
-                Security Settings
+                <span className="hidden sm:inline">Security Settings</span>
+                <span className="sm:hidden">Security</span>
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="glass" asChild>
+            <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/admin/audit-log">
                 <Activity className="h-4 w-4 mr-2" />
-                View System Logs
+                <span className="hidden sm:inline">View System Logs</span>
+                <span className="sm:hidden">System Logs</span>
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="glass" asChild>
+            <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/admin/kpi-command-center">
                 <BarChart3 className="h-4 w-4 mr-2" />
-                KPI Command Center
+                <span className="hidden sm:inline">KPI Command Center</span>
+                <span className="sm:hidden">KPIs</span>
               </Link>
             </Button>
           </CardContent>
@@ -78,7 +91,7 @@ const AdminHomeContent = () => {
       </DashboardSection>
 
       {/* Critical Widgets Row */}
-      <DashboardSection columns={3}>
+      <DashboardSection columns={3} mobileColumns={1}>
         <PendingMemberApprovalsWidget />
         <SecurityAlertsWidget />
         <ActiveMeetingsWidget />

@@ -6,7 +6,6 @@ import {
   MessageSquare,
   FileText,
   PlusCircle,
-  Clock
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -26,15 +25,22 @@ import { useRoleStats } from "@/hooks/useRoleStats";
 import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
 import { TimeTrackingWidget } from "./TimeTrackingWidget";
 import { DealPipelineSummaryWidget } from "./DealPipelineSummaryWidget";
+import { motion } from "framer-motion";
 
 export const PartnerHome = () => {
   const { companyId } = useUserRole();
   const { stats, loading } = useRoleStats('partner', undefined, companyId || undefined);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Stats at top */}
-      <UnifiedStatsBar role="partner" stats={stats} loading={loading} />
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <UnifiedStatsBar role="partner" stats={stats} loading={loading} />
+      </motion.div>
 
       {/* Concierge Card - Premium white-glove service */}
       {companyId && (
@@ -63,36 +69,40 @@ export const PartnerHome = () => {
       {/* Quick Actions & Pipeline */}
       <DashboardSection columns={2}>
         <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PlusCircle className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <PlusCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Quick Actions
             </CardTitle>
-            <CardDescription>Common tasks and shortcuts</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Common tasks and shortcuts</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Button className="w-full justify-start" variant="glass" asChild>
+          <CardContent className="space-y-2 sm:space-y-3">
+            <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/jobs">
                 <Briefcase className="h-4 w-4 mr-2" />
-                Post New Job
+                <span className="hidden sm:inline">Post New Job</span>
+                <span className="sm:hidden">New Job</span>
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="glass" asChild>
+            <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/company-applications">
                 <Users className="h-4 w-4 mr-2" />
-                Review Applications
+                <span className="hidden sm:inline">Review Applications</span>
+                <span className="sm:hidden">Applications</span>
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="glass" asChild>
+            <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/companies">
                 <FileText className="h-4 w-4 mr-2" />
-                Update Company Profile
+                <span className="hidden sm:inline">Update Company Profile</span>
+                <span className="sm:hidden">Company</span>
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start text-sm" variant="outline" asChild>
               <Link to="/messages">
                 <MessageSquare className="h-4 w-4 mr-2" />
-                Message Candidates
+                <span className="hidden sm:inline">Message Candidates</span>
+                <span className="sm:hidden">Messages</span>
               </Link>
             </Button>
           </CardContent>
@@ -112,12 +122,10 @@ export const PartnerHome = () => {
       </DashboardSection>
 
       {/* Applications & Recommendations */}
-      {companyId && (
-        <DashboardSection columns={2}>
-          <RecentApplicationsList companyId={companyId} />
-          <TalentRecommendations companyId={companyId} />
-        </DashboardSection>
-      )}
+      <DashboardSection columns={2}>
+        {companyId && <RecentApplicationsList companyId={companyId} />}
+        {companyId && <TalentRecommendations companyId={companyId} />}
+      </DashboardSection>
 
       {/* Activity Feed */}
       {companyId && (
