@@ -289,6 +289,15 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
+      title: "Employee Management",
+      icon: Users,
+      items: [
+        { name: "Employee Profiles", icon: Users, path: "/admin/employees" },
+        { name: "My Performance", icon: TrendingUp, path: "/my-performance" },
+        { name: "Team Performance", icon: BarChart3, path: "/team-performance" },
+      ],
+    },
+    {
       title: "Compliance",
       icon: FileCheck,
       items: [

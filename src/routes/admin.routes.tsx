@@ -40,6 +40,9 @@ const CompanyFeeConfiguration = lazy(() => import("@/pages/admin/CompanyFeeConfi
 const DealPipelineSettings = lazy(() => import("@/pages/admin/DealPipelineSettings"));
 const AntiHacking = lazy(() => import("@/pages/admin/AntiHacking"));
 const AdminAuditLog = lazy(() => import("@/pages/admin/AdminAuditLog"));
+const AdminEmployees = lazy(() => import("@/pages/admin/Employees"));
+const MyPerformance = lazy(() => import("@/pages/MyPerformance"));
+const TeamPerformance = lazy(() => import("@/pages/TeamPerformance"));
 
 export const adminRoutes = (
   <>
@@ -374,6 +377,42 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <AdminAuditLog />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/employees"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <AdminEmployees />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/my-performance"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <MyPerformance />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/team-performance"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <TeamPerformance />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
