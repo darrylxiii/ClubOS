@@ -1,277 +1,205 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { useTimeTracking, TimeEntryData } from "@/hooks/useTimeTracking";
-import { format, startOfWeek, endOfWeek } from "date-fns";
-import { Users, Search, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { Users, Clock, TrendingUp, AlertTriangle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface TeamMemberStats {
-  userId: string;
-  name: string;
-  avatar: string | null;
-  thisWeekHours: number;
-  thisMonthHours: number;
-  totalBillable: number;
-  entries: TimeEntryData[];
+interface TeamMember {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  total_hours: number;
+  billable_hours: number;
+  entries_count: number;
 }
 
+type DateRange = "today" | "week" | "month";
+
 export function TeamTimeOverview() {
-  const { myEntries, isLoading } = useTimeTracking();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [dateRange, setDateRange] = useState<DateRange>("week");
 
-  // Helper to convert duration_seconds to hours
-  const getHours = (entry: TimeEntryData): number => {
-    return (entry.duration_seconds || 0) / 3600;
-  };
+  // Get user's company
+  const { data: userCompany } = useQuery({
+    queryKey: ["user-company", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      return data?.company_id || null;
+    },
+    enabled: !!user?.id,
+  });
 
-  // Group entries by user (for now using myEntries as team data)
-  const teamMembers: TeamMemberStats[] = Object.values(
-    myEntries.reduce((acc, entry) => {
-      const userId = entry.user_id || 'unknown';
-      if (!acc[userId]) {
-        acc[userId] = {
-          userId,
-          name: entry.user?.full_name || 'Unknown User',
-          avatar: entry.user?.avatar_url || null,
-          thisWeekHours: 0,
-          thisMonthHours: 0,
-          totalBillable: 0,
-          entries: [],
-        };
+  // Fetch team members and their time data
+  const { data: teamData, isLoading } = useQuery({
+    queryKey: ["team-time-overview", userCompany, dateRange],
+    queryFn: async () => {
+      if (!userCompany) return [];
+
+      const now = new Date();
+      let startDate: Date;
+      let endDate: Date = now;
+
+      switch (dateRange) {
+        case "today":
+          startDate = new Date(now.setHours(0, 0, 0, 0));
+          break;
+        case "week":
+          startDate = startOfWeek(now, { weekStartsOn: 1 });
+          endDate = endOfWeek(now, { weekStartsOn: 1 });
+          break;
+        case "month":
+          startDate = startOfMonth(now);
+          endDate = endOfMonth(now);
+          break;
       }
 
-      const entryDate = new Date(entry.start_time);
-      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-      const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
-      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      // Get team members
+      const { data: members } = await supabase
+        .from("company_members")
+        .select("user_id")
+        .eq("company_id", userCompany);
 
-      const hours = getHours(entry);
+      if (!members?.length) return [];
 
-      if (entryDate >= weekStart && entryDate <= weekEnd) {
-        acc[userId].thisWeekHours += hours;
-      }
-      if (entryDate >= monthStart) {
-        acc[userId].thisMonthHours += hours;
-      }
-      if (entry.is_billable) {
-        acc[userId].totalBillable += hours;
-      }
-      acc[userId].entries.push(entry);
+      const memberIds = members.map((m) => m.user_id).filter(Boolean);
 
-      return acc;
-    }, {} as Record<string, TeamMemberStats>)
-  );
+      // Get profiles
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .in("id", memberIds);
 
-  // Filter by search
-  const filteredMembers = teamMembers.filter(member =>
-    member.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      // Get time entries
+      const { data: entries } = await supabase
+        .from("time_entries")
+        .select("user_id, duration_seconds, is_billable")
+        .in("user_id", memberIds)
+        .gte("start_time", startDate.toISOString())
+        .lte("start_time", endDate.toISOString())
+        .eq("is_running", false);
 
-  // Sort by this week's hours (descending)
-  const sortedMembers = [...filteredMembers].sort((a, b) => b.thisWeekHours - a.thisWeekHours);
+      // Aggregate
+      const statsMap = new Map<string, { total: number; billable: number; count: number }>();
+      entries?.forEach((e) => {
+        if (!e.user_id) return;
+        const curr = statsMap.get(e.user_id) || { total: 0, billable: 0, count: 0 };
+        curr.total += e.duration_seconds || 0;
+        if (e.is_billable) curr.billable += e.duration_seconds || 0;
+        curr.count += 1;
+        statsMap.set(e.user_id, curr);
+      });
+
+      return memberIds.map((id) => {
+        const profile = profiles?.find((p) => p.id === id);
+        const stats = statsMap.get(id) || { total: 0, billable: 0, count: 0 };
+        return {
+          id,
+          full_name: profile?.full_name || "Unknown",
+          avatar_url: profile?.avatar_url,
+          total_hours: Math.round((stats.total / 3600) * 10) / 10,
+          billable_hours: Math.round((stats.billable / 3600) * 10) / 10,
+          entries_count: stats.count,
+        } as TeamMember;
+      }).sort((a, b) => b.total_hours - a.total_hours);
+    },
+    enabled: !!userCompany,
+  });
+
+  const totalTeamHours = teamData?.reduce((sum, m) => sum + m.total_hours, 0) || 0;
+  const totalBillable = teamData?.reduce((sum, m) => sum + m.billable_hours, 0) || 0;
+  const billablePercentage = totalTeamHours > 0 ? Math.round((totalBillable / totalTeamHours) * 100) : 0;
 
   if (isLoading) {
+    return <Skeleton className="h-64 w-full" />;
+  }
+
+  if (!userCompany) {
     return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
+      <Card className="border-border/50">
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-medium">No Team Found</h3>
+          <p className="text-sm text-muted-foreground mt-1">You need to be part of a company to view team data</p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">Team Overview</h2>
-          <p className="text-sm text-muted-foreground">
-            {teamMembers.length} team member{teamMembers.length !== 1 ? 's' : ''} tracked
-          </p>
-        </div>
-
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search team members..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      </div>
-
-      {/* Team Members Grid */}
-      {sortedMembers.length === 0 ? (
-        <Card className="p-12 text-center border border-border/50">
-          <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">
-            No team members found
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {searchQuery ? 'Try a different search term' : 'Team time entries will appear here'}
-          </p>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border-border/50">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10"><Users className="h-5 w-5 text-primary" /></div>
+            <div><p className="text-sm text-muted-foreground">Team Members</p><p className="text-2xl font-bold">{teamData?.length || 0}</p></div>
+          </CardContent>
         </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {sortedMembers.map((member) => (
-            <TeamMemberCard
-              key={member.userId}
-              member={member}
-              isSelected={selectedMember === member.userId}
-              onClick={() => setSelectedMember(
-                selectedMember === member.userId ? null : member.userId
-              )}
-            />
-          ))}
-        </div>
-      )}
+        <Card className="border-border/50">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-green-500/10"><Clock className="h-5 w-5 text-green-500" /></div>
+            <div><p className="text-sm text-muted-foreground">Total Hours</p><p className="text-2xl font-bold">{totalTeamHours.toFixed(1)}h</p></div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/50">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-amber-500/10"><TrendingUp className="h-5 w-5 text-amber-500" /></div>
+            <div><p className="text-sm text-muted-foreground">Billable %</p><p className="text-2xl font-bold">{billablePercentage}%</p></div>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Selected Member Details */}
-      {selectedMember && (
-        <MemberDetailPanel
-          member={sortedMembers.find(m => m.userId === selectedMember)!}
-          onClose={() => setSelectedMember(null)}
-        />
-      )}
+      {/* Team List */}
+      <Card className="border-border/50">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">Team Activity</CardTitle>
+          <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
+            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent>
+          {!teamData?.length ? (
+            <div className="text-center py-8 text-muted-foreground">No time tracked by team members</div>
+          ) : (
+            <div className="space-y-3">
+              {teamData.map((member) => (
+                <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={member.avatar_url || undefined} />
+                      <AvatarFallback>{member.full_name?.charAt(0) || "?"}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{member.full_name}</p>
+                      <p className="text-sm text-muted-foreground">{member.entries_count} entries</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-mono font-semibold">{member.total_hours.toFixed(1)}h</p>
+                    <p className="text-xs text-muted-foreground">{member.billable_hours.toFixed(1)}h billable</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
-  );
-}
-
-interface TeamMemberCardProps {
-  member: TeamMemberStats;
-  isSelected: boolean;
-  onClick: () => void;
-}
-
-function TeamMemberCard({ member, isSelected, onClick }: TeamMemberCardProps) {
-  const initials = member.name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
-  return (
-    <Card 
-      className={cn(
-        "p-4 border cursor-pointer transition-all hover:shadow-md",
-        isSelected 
-          ? "border-primary bg-primary/5" 
-          : "border-border/50 hover:border-border"
-      )}
-      onClick={onClick}
-    >
-      <div className="flex items-start gap-3">
-        <Avatar className="h-10 w-10">
-          <AvatarImage src={member.avatar || undefined} />
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
-
-        <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-foreground truncate">{member.name}</h3>
-          
-          <div className="flex items-center gap-3 mt-2">
-            <div className="flex items-center gap-1 text-sm">
-              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="font-medium">{member.thisWeekHours.toFixed(1)}h</span>
-              <span className="text-muted-foreground text-xs">this week</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
-              {member.totalBillable.toFixed(1)}h billable
-            </Badge>
-          </div>
-        </div>
-
-        <div className="text-right">
-          <div className="text-lg font-bold text-foreground">
-            {member.thisMonthHours.toFixed(0)}h
-          </div>
-          <div className="text-xs text-muted-foreground">this month</div>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-interface MemberDetailPanelProps {
-  member: TeamMemberStats;
-  onClose: () => void;
-}
-
-function MemberDetailPanel({ member, onClose }: MemberDetailPanelProps) {
-  const recentEntries = member.entries.slice(0, 10);
-
-  // Helper to convert duration_seconds to hours
-  const getHours = (entry: TimeEntryData): number => {
-    return (entry.duration_seconds || 0) / 3600;
-  };
-
-  return (
-    <Card className="p-6 border border-border/50">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={member.avatar || undefined} />
-            <AvatarFallback>
-              {member.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">{member.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              {member.entries.length} time entries
-            </p>
-          </div>
-        </div>
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          Close
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="p-3 bg-muted/50 rounded-lg">
-          <div className="text-sm text-muted-foreground">This Week</div>
-          <div className="text-xl font-bold">{member.thisWeekHours.toFixed(1)}h</div>
-        </div>
-        <div className="p-3 bg-muted/50 rounded-lg">
-          <div className="text-sm text-muted-foreground">This Month</div>
-          <div className="text-xl font-bold">{member.thisMonthHours.toFixed(1)}h</div>
-        </div>
-        <div className="p-3 bg-muted/50 rounded-lg">
-          <div className="text-sm text-muted-foreground">Billable</div>
-          <div className="text-xl font-bold">{member.totalBillable.toFixed(1)}h</div>
-        </div>
-      </div>
-
-      <h4 className="text-sm font-medium text-foreground mb-3">Recent Entries</h4>
-      <div className="space-y-2 max-h-60 overflow-y-auto">
-        {recentEntries.map((entry) => (
-          <div 
-            key={entry.id}
-            className="flex items-center justify-between p-2 rounded bg-muted/30"
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {format(new Date(entry.start_time), 'MMM d')}
-              </span>
-              <span className="text-sm text-foreground truncate max-w-[200px]">
-                {entry.description || 'No description'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{getHours(entry).toFixed(1)}h</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Card>
   );
 }
