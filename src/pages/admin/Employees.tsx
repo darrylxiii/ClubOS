@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/AppLayout";
 import { RoleGate } from "@/components/RoleGate";
 import { EmployeeProfileManager } from "@/components/employees/EmployeeProfileManager";
+import { TargetManagementPanel } from "@/components/employees/TargetManagementPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -124,17 +125,7 @@ export default function AdminEmployees() {
             </TabsContent>
 
             <TabsContent value="targets">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Target Management</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Configure quarterly and annual targets for employees here.
-                  </p>
-                  {/* Target management component would go here */}
-                </CardContent>
-              </Card>
+              <TargetManagementPanel />
             </TabsContent>
 
             <TabsContent value="settings">
