@@ -1,4 +1,4 @@
-import AppLayout from "@/components/AppLayout";
+import { AppLayout } from "@/components/AppLayout";
 import { RoleGate } from "@/components/RoleGate";
 import { EmployeeProfileManager } from "@/components/employees/EmployeeProfileManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
