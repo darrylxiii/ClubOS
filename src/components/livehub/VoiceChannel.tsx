@@ -4,9 +4,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceChannel } from '@/hooks/useVoiceChannel';
 import { usePushToTalk } from '@/hooks/usePushToTalk';
 import { useRecordingWithEffects } from '@/hooks/useRecordingWithEffects';
+import { useLiveHubAutoRecording } from '@/hooks/useLiveHubAutoRecording';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import {
   Phone, PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff,
   Monitor, Volume2, VolumeX, Smile, PenTool, Circle, Square
@@ -94,6 +96,16 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     enabled: isConnected
   });
 
+  // Auto-recording for Live Hub (integrates with meeting_recordings_extended)
+  const autoRecording = useLiveHubAutoRecording({
+    channelId,
+    channelName: channel?.name || 'Live Hub',
+    localStream,
+    remoteStreams,
+    autoRecord: channel?.auto_record ?? true,
+    enabled: isConnected
+  });
+
   const handleStartRecording = (settings: RecordingSettings) => {
     recording.startRecording({
       quality: settings.quality,
@@ -176,6 +188,10 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
       if (isRecording) {
         await handleStopRecording();
       }
+      // Stop auto-recording and upload
+      if (autoRecording.isRecording) {
+        await autoRecording.stopRecording();
+      }
       await leaveChannel();
       toast.success('Disconnected from voice channel');
     } catch (error) {
@@ -216,6 +232,16 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+      {/* Auto-Recording Indicator */}
+      {autoRecording.isRecording && (
+        <div className="absolute top-2 right-2 z-20">
+          <Badge variant="destructive" className="animate-pulse flex items-center gap-2">
+            <Circle className="h-2 w-2 fill-current" />
+            Recording {Math.floor(autoRecording.recordingDuration / 60)}:{String(autoRecording.recordingDuration % 60).padStart(2, '0')}
+          </Badge>
+        </div>
+      )}
+
       {/* Live Reactions Overlay */}
       <LiveReactions channelId={channelId} />
 

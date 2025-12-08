@@ -105,7 +105,7 @@ export function MeetingRecordingCard({
   const hasAnalysis = !!recording.ai_analysis || !!recording.executive_summary;
 
   const handleViewRecording = () => {
-    navigate(`/meeting-notes/${recording.id}`);
+    navigate(`/recording/${recording.id}`);
   };
 
   return (

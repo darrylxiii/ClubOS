@@ -671,3 +671,12 @@ verify_jwt = false
 
 [functions.send-security-alert]
 verify_jwt = false
+
+# =============================================================================
+# Meeting Recordings & Transcription
+# =============================================================================
+[functions.compile-meeting-transcript]
+verify_jwt = true
+
+[functions.analyze-meeting-recording-advanced]
+verify_jwt = true

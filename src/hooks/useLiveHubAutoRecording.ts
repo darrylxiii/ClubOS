@@ -142,6 +142,8 @@ export function useLiveHubAutoRecording({
           source_type: 'live_hub',
           participants: participantNames,
           processing_status: 'pending',
+          analysis_status: 'pending',
+          title: channelName,
           recording_consent_at: new Date().toISOString()
         })
         .select()

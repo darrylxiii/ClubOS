@@ -19,6 +19,7 @@ const MeetingNotes = lazy(() => import("@/pages/MeetingNotes"));
 const MeetingHistory = lazy(() => import("@/pages/MeetingHistory"));
 const Scheduling = lazy(() => import("@/pages/Scheduling"));
 const BookingManagement = lazy(() => import("@/pages/BookingManagement"));
+const RecordingPlaybackPage = lazy(() => import("@/components/meetings/RecordingPlaybackPage"));
 
 export const meetingsRoutes = (
   <>
@@ -101,6 +102,18 @@ export const meetingsRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <BookingManagement />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/recording/:recordingId"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <RecordingPlaybackPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
