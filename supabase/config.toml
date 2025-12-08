@@ -1,5 +1,11 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
+[functions.send-meeting-summary-email]
+verify_jwt = true
+
+[functions.calculate-speaking-metrics]
+verify_jwt = true
+
 # =============================================================================
 # GDPR & Compliance Functions (JWT Required)
 # =============================================================================
