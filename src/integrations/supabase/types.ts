@@ -10838,6 +10838,219 @@ export type Database = {
           },
         ]
       }
+      employee_commissions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          candidate_name: string | null
+          commission_rate: number | null
+          company_name: string | null
+          created_at: string | null
+          employee_id: string
+          gross_amount: number
+          id: string
+          job_title: string | null
+          net_amount: number | null
+          notes: string | null
+          paid_at: string | null
+          payment_reference: string | null
+          period_date: string | null
+          placement_fee_base: number | null
+          source_id: string | null
+          source_type: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          candidate_name?: string | null
+          commission_rate?: number | null
+          company_name?: string | null
+          created_at?: string | null
+          employee_id: string
+          gross_amount: number
+          id?: string
+          job_title?: string | null
+          net_amount?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          period_date?: string | null
+          placement_fee_base?: number | null
+          source_id?: string | null
+          source_type: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          candidate_name?: string | null
+          commission_rate?: number | null
+          company_name?: string | null
+          created_at?: string | null
+          employee_id?: string
+          gross_amount?: number
+          id?: string
+          job_title?: string | null
+          net_amount?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          period_date?: string | null
+          placement_fee_base?: number | null
+          source_id?: string | null
+          source_type?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_commissions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_profiles: {
+        Row: {
+          annual_bonus_target: number | null
+          base_salary: number | null
+          commission_percentage: number | null
+          commission_structure: string | null
+          created_at: string | null
+          department: string | null
+          employee_number: string | null
+          employment_type: string | null
+          id: string
+          is_active: boolean | null
+          job_title: string
+          manager_id: string | null
+          salary_currency: string | null
+          start_date: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          annual_bonus_target?: number | null
+          base_salary?: number | null
+          commission_percentage?: number | null
+          commission_structure?: string | null
+          created_at?: string | null
+          department?: string | null
+          employee_number?: string | null
+          employment_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_title: string
+          manager_id?: string | null
+          salary_currency?: string | null
+          start_date?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          annual_bonus_target?: number | null
+          base_salary?: number | null
+          commission_percentage?: number | null
+          commission_structure?: string | null
+          created_at?: string | null
+          department?: string | null
+          employee_number?: string | null
+          employment_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_title?: string
+          manager_id?: string | null
+          salary_currency?: string | null
+          start_date?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_profiles_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_targets: {
+        Row: {
+          candidates_sourced_achieved: number | null
+          candidates_sourced_target: number | null
+          created_at: string | null
+          employee_id: string
+          hours_achieved: number | null
+          hours_target: number | null
+          id: string
+          interviews_achieved: number | null
+          interviews_target: number | null
+          notes: string | null
+          period_end: string
+          period_start: string
+          period_type: string
+          placements_achieved: number | null
+          placements_target: number | null
+          revenue_achieved: number | null
+          revenue_target: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          candidates_sourced_achieved?: number | null
+          candidates_sourced_target?: number | null
+          created_at?: string | null
+          employee_id: string
+          hours_achieved?: number | null
+          hours_target?: number | null
+          id?: string
+          interviews_achieved?: number | null
+          interviews_target?: number | null
+          notes?: string | null
+          period_end: string
+          period_start: string
+          period_type: string
+          placements_achieved?: number | null
+          placements_target?: number | null
+          revenue_achieved?: number | null
+          revenue_target?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          candidates_sourced_achieved?: number | null
+          candidates_sourced_target?: number | null
+          created_at?: string | null
+          employee_id?: string
+          hours_achieved?: number | null
+          hours_target?: number | null
+          id?: string
+          interviews_achieved?: number | null
+          interviews_target?: number | null
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          period_type?: string
+          placements_achieved?: number | null
+          placements_target?: number | null
+          revenue_achieved?: number | null
+          revenue_target?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_targets_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_relationships: {
         Row: {
           created_at: string | null
@@ -22938,7 +23151,11 @@ export type Database = {
       }
       recruiter_bonuses: {
         Row: {
+          achievement_percentage: number | null
+          approved_at: string | null
+          approved_by: string | null
           bonus_amount: number
+          bonus_category: string | null
           bonus_type: string | null
           created_at: string | null
           currency: string | null
@@ -22948,9 +23165,15 @@ export type Database = {
           period_start: string
           recruiter_id: string | null
           revenue_contribution: number | null
+          status: string | null
+          target_id: string | null
         }
         Insert: {
+          achievement_percentage?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
           bonus_amount?: number
+          bonus_category?: string | null
           bonus_type?: string | null
           created_at?: string | null
           currency?: string | null
@@ -22960,9 +23183,15 @@ export type Database = {
           period_start: string
           recruiter_id?: string | null
           revenue_contribution?: number | null
+          status?: string | null
+          target_id?: string | null
         }
         Update: {
+          achievement_percentage?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
           bonus_amount?: number
+          bonus_category?: string | null
           bonus_type?: string | null
           created_at?: string | null
           currency?: string | null
@@ -22972,8 +23201,18 @@ export type Database = {
           period_start?: string
           recruiter_id?: string | null
           revenue_contribution?: number | null
+          status?: string | null
+          target_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "recruiter_bonuses_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "employee_targets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reengagement_history: {
         Row: {
@@ -31640,6 +31879,14 @@ export type Database = {
           total_records: number
           with_embeddings: number
         }[]
+      }
+      get_employee_metrics: {
+        Args: {
+          p_employee_id: string
+          p_end_date?: string
+          p_start_date?: string
+        }
+        Returns: Json
       }
       get_historical_conversion_rate: {
         Args: {
