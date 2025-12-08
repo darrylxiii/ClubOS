@@ -39,6 +39,8 @@ const UnifiedKPICommandCenterPage = lazy(() => import("@/pages/UnifiedKPICommand
 const CompanyFeeConfiguration = lazy(() => import("@/pages/admin/CompanyFeeConfiguration"));
 const DealPipelineSettings = lazy(() => import("@/pages/admin/DealPipelineSettings"));
 const AntiHacking = lazy(() => import("@/pages/admin/AntiHacking"));
+const AdminAuditLog = lazy(() => import("@/pages/admin/AdminAuditLog"));
+
 export const adminRoutes = (
   <>
     <Route
@@ -360,6 +362,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <AntiHacking />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/audit-log"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <AdminAuditLog />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>

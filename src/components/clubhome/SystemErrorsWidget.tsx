@@ -128,7 +128,7 @@ export const SystemErrorsWidget = () => {
         )}
 
         <Button asChild variant="outline" size="sm" className="w-full">
-          <Link to="/feedback-database">
+          <Link to="/admin/feedback">
             <ArrowRight className="h-4 w-4 mr-2" />
             View Error Logs
           </Link>

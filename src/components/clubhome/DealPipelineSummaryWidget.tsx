@@ -136,7 +136,7 @@ export const DealPipelineSummaryWidget = () => {
         )}
 
         <Button asChild variant="outline" size="sm" className="w-full">
-          <Link to="/deal-pipeline">
+          <Link to="/admin/deals-pipeline">
             <Target className="h-4 w-4 mr-2" />
             View Pipeline
           </Link>

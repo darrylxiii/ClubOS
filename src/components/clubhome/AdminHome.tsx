@@ -51,14 +51,14 @@ const AdminHomeContent = () => {
           </CardHeader>
           <CardContent className="space-y-2 sm:space-y-3">
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
-              <Link to="/admin/users">
+              <Link to="/admin">
                 <Users className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Manage Users & Roles</span>
                 <span className="sm:hidden">Users & Roles</span>
               </Link>
             </Button>
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
-              <Link to="/admin/companies">
+              <Link to="/admin?tab=companies">
                 <Building2 className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Manage Companies</span>
                 <span className="sm:hidden">Companies</span>

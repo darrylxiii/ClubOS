@@ -124,7 +124,7 @@ export const ClubPilotTasksWidget = () => {
         )}
 
         <Button asChild variant="outline" size="sm" className="w-full">
-          <Link to="/pilot">
+          <Link to="/club-pilot">
             <ArrowRight className="h-4 w-4 mr-2" />
             View All Tasks
           </Link>
