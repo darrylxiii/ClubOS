@@ -5,7 +5,7 @@ import { useTimeTracking, useIdleDetection } from "@/hooks/useTimeTracking";
 import { useActivityMonitoring } from "@/hooks/useActivityMonitoring";
 import { useRole } from "@/contexts/RoleContext";
 import { MyTimeEntries } from "./MyTimeEntries";
-import { TeamTimeView } from "./TeamTimeView";
+import { TeamTimeOverview } from "./TeamTimeOverview";
 import { FreelancerTimeView } from "./FreelancerTimeView";
 import { QuickTimeStats } from "./QuickTimeStats";
 import { TimerButton } from "./TimerButton";
@@ -235,7 +235,7 @@ export function TimeTrackingDashboard() {
 
             {isManager && (
               <TabsContent value="team" className="mt-6">
-                <TeamTimeView />
+                <TeamTimeOverview />
               </TabsContent>
             )}
 

@@ -15,12 +15,14 @@ import {
   Play,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EditTimeEntryDialog } from "./EditTimeEntryDialog";
 
 export function MyTimeEntries() {
   const { myEntries, deleteEntry, isLoading } = useTimeTracking();
   const [currentWeekStart, setCurrentWeekStart] = useState(
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
+  const [editingEntry, setEditingEntry] = useState<TimeEntryData | null>(null);
 
   const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
   
@@ -111,21 +113,30 @@ export function MyTimeEntries() {
             <TimeEntryRow 
               key={entry.id} 
               entry={entry} 
+              onEdit={() => setEditingEntry(entry)}
               onDelete={() => deleteEntry.mutate(entry.id)}
             />
           ))}
         </div>
       )}
+
+      {/* Edit Dialog */}
+      <EditTimeEntryDialog
+        entry={editingEntry}
+        open={!!editingEntry}
+        onOpenChange={(open) => !open && setEditingEntry(null)}
+      />
     </div>
   );
 }
 
 interface TimeEntryRowProps {
   entry: TimeEntryData;
+  onEdit: () => void;
   onDelete: () => void;
 }
 
-function TimeEntryRow({ entry, onDelete }: TimeEntryRowProps) {
+function TimeEntryRow({ entry, onEdit, onDelete }: TimeEntryRowProps) {
   const hours = secondsToHours(entry.duration_seconds);
   
   return (
@@ -195,7 +206,13 @@ function TimeEntryRow({ entry, onDelete }: TimeEntryRowProps) {
           </div>
 
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8"
+              onClick={onEdit}
+              title="Edit entry"
+            >
               <Edit className="h-4 w-4" />
             </Button>
             <Button 
