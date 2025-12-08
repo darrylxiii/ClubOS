@@ -3,10 +3,11 @@ import { Circle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface RecordingConsentBannerProps {
-  isRecording: boolean;
+  isRecording?: boolean;
+  meetingTitle?: string;
 }
 
-export function RecordingConsentBanner({ isRecording }: RecordingConsentBannerProps) {
+export function RecordingConsentBanner({ isRecording = true, meetingTitle }: RecordingConsentBannerProps) {
   if (!isRecording) return null;
 
   return (
@@ -17,8 +18,8 @@ export function RecordingConsentBanner({ isRecording }: RecordingConsentBannerPr
       className="fixed top-4 left-1/2 -translate-x-1/2 z-50"
     >
       <Badge 
-        variant="destructive" 
-        className="px-4 py-2 text-sm font-medium flex items-center gap-2 bg-destructive/90 backdrop-blur-sm shadow-lg"
+        variant="default" 
+        className="px-4 py-2 text-sm font-medium flex items-center gap-2 bg-rose-600 text-white backdrop-blur-sm shadow-lg"
       >
         <motion.div
           animate={{ opacity: [1, 0.5, 1] }}
@@ -27,6 +28,7 @@ export function RecordingConsentBanner({ isRecording }: RecordingConsentBannerPr
           <Circle className="h-3 w-3 fill-current" />
         </motion.div>
         Club AI is Recording
+        {meetingTitle && <span className="text-xs opacity-80">· {meetingTitle}</span>}
       </Badge>
     </motion.div>
   );
