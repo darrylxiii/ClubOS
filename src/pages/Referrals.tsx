@@ -20,7 +20,6 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 export default function Referrals() {
   const [claimDialogOpen, setClaimDialogOpen] = useState(false);
-  const [claimType, setClaimType] = useState<'company' | 'job' | 'member'>('company');
   
   const { role } = useUserRole();
   const { data: policies, isLoading: policiesLoading } = useReferralPolicies();
@@ -34,8 +33,7 @@ export default function Referrals() {
   const companyPolicies = policies?.filter(p => p.policy_type === 'company') || [];
   const memberPolicies = policies?.filter(p => p.source_type === 'member_referral') || [];
 
-  const handleClaimClick = (type: 'company' | 'job' | 'member') => {
-    setClaimType(type);
+  const handleClaimClick = () => {
     setClaimDialogOpen(true);
   };
 
@@ -70,12 +68,12 @@ export default function Referrals() {
           
           <div className="flex flex-wrap gap-2">
             {(isAdmin || isPartner) && (
-              <Button variant="outline" size="sm" onClick={() => handleClaimClick('company')} className="gap-2">
+              <Button variant="outline" size="sm" onClick={handleClaimClick} className="gap-2">
                 <Building2 className="h-4 w-4" />
                 Claim Company
               </Button>
             )}
-            <Button size="sm" onClick={() => handleClaimClick('member')} className="gap-2">
+            <Button size="sm" onClick={handleClaimClick} className="gap-2">
               <Plus className="h-4 w-4" />
               Refer a Member
             </Button>
@@ -84,7 +82,7 @@ export default function Referrals() {
 
         <ReferralEarningsOverview stats={stats || defaultStats} loading={statsLoading} />
 
-        <RevenueShareInfo activeShares={revenueShares || []} userRole={role || undefined} />
+        <RevenueShareInfo shares={revenueShares || []} userRole={role || undefined} />
 
         <Tabs defaultValue="companies" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
@@ -97,7 +95,7 @@ export default function Referrals() {
             {policiesLoading ? (
               <div className="h-48 bg-muted/50 rounded-xl animate-pulse" />
             ) : companyPolicies.length === 0 ? (
-              <EmptyState icon={Building2} title="No company referrals" description="Claim a company to track all its jobs." onAction={() => handleClaimClick('company')} showAction={isAdmin || isPartner} />
+              <EmptyState icon={Building2} title="No company referrals" description="Claim a company to track all its jobs." onAction={handleClaimClick} showAction={isAdmin || isPartner} />
             ) : (
               companyPolicies.map(policy => <CompanyReferralCard key={policy.id} policy={policy} earnings={earnings?.filter(e => e.company_id === policy.company_id) || []} />)
             )}
@@ -105,7 +103,7 @@ export default function Referrals() {
 
           <TabsContent value="members" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {policiesLoading ? <div className="h-32 bg-muted/50 rounded-xl animate-pulse" /> : memberPolicies.length === 0 ? (
-              <EmptyState icon={Users} title="No member referrals" description="Refer professionals to earn rewards." onAction={() => handleClaimClick('member')} showAction={true} />
+              <EmptyState icon={Users} title="No member referrals" description="Refer professionals to earn rewards." onAction={handleClaimClick} showAction={true} />
             ) : memberPolicies.map(policy => <MemberReferralCard key={policy.id} policy={policy} earnings={earnings?.filter(e => e.policy_id === policy.id) || []} />)}
           </TabsContent>
 
@@ -114,7 +112,7 @@ export default function Referrals() {
           </TabsContent>
         </Tabs>
 
-        <ClaimReferralDialog open={claimDialogOpen} onOpenChange={setClaimDialogOpen} claimType={claimType} />
+        <ClaimReferralDialog open={claimDialogOpen} onOpenChange={setClaimDialogOpen} />
       </div>
     </AppLayout>
   );
