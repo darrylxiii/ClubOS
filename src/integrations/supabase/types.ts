@@ -4226,6 +4226,74 @@ export type Database = {
           },
         ]
       }
+      candidate_interview_recordings: {
+        Row: {
+          candidate_id: string | null
+          company_name: string | null
+          created_at: string | null
+          id: string
+          interview_date: string | null
+          job_title: string | null
+          meeting_id: string | null
+          overall_score: string | null
+          recommendation: string | null
+          recording_id: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          id?: string
+          interview_date?: string | null
+          job_title?: string | null
+          meeting_id?: string | null
+          overall_score?: string | null
+          recommendation?: string | null
+          recording_id?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          id?: string
+          interview_date?: string | null
+          job_title?: string | null
+          meeting_id?: string | null
+          overall_score?: string | null
+          recommendation?: string | null
+          recording_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_interview_recordings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_interview_recordings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_interview_recordings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_interview_recordings_recording_id_fkey"
+            columns: ["recording_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_recordings_extended"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_invitations: {
         Row: {
           accepted_at: string | null
@@ -12935,6 +13003,60 @@ export type Database = {
           },
         ]
       }
+      job_interview_recordings: {
+        Row: {
+          candidate_id: string | null
+          candidate_name: string | null
+          created_at: string | null
+          id: string
+          interview_stage: string | null
+          job_id: string | null
+          meeting_id: string | null
+          overall_score: string | null
+          recommendation: string | null
+          recording_id: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          candidate_name?: string | null
+          created_at?: string | null
+          id?: string
+          interview_stage?: string | null
+          job_id?: string | null
+          meeting_id?: string | null
+          overall_score?: string | null
+          recommendation?: string | null
+          recording_id?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          candidate_name?: string | null
+          created_at?: string | null
+          id?: string
+          interview_stage?: string | null
+          job_id?: string | null
+          meeting_id?: string | null
+          overall_score?: string | null
+          recommendation?: string | null
+          recording_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_interview_recordings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_interview_recordings_recording_id_fkey"
+            columns: ["recording_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_recordings_extended"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_pipelines: {
         Row: {
           company_name: string
@@ -16114,6 +16236,8 @@ export type Database = {
         Row: {
           action_items: Json | null
           ai_analysis: Json | null
+          analysis_status: string | null
+          analyzed_at: string | null
           application_id: string | null
           candidate_id: string | null
           consent_participants: Json | null
@@ -16149,6 +16273,8 @@ export type Database = {
         Insert: {
           action_items?: Json | null
           ai_analysis?: Json | null
+          analysis_status?: string | null
+          analyzed_at?: string | null
           application_id?: string | null
           candidate_id?: string | null
           consent_participants?: Json | null
@@ -16184,6 +16310,8 @@ export type Database = {
         Update: {
           action_items?: Json | null
           ai_analysis?: Json | null
+          analysis_status?: string | null
+          analyzed_at?: string | null
           application_id?: string | null
           candidate_id?: string | null
           consent_participants?: Json | null
