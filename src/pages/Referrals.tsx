@@ -1,198 +1,132 @@
-import { useState, useEffect } from "react";
-import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Building2, Briefcase, Users, History, Plus, TrendingUp } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Euro, Plus } from "lucide-react";
-import { InviteSystem } from "@/components/InviteSystem";
-import { ReferralPipelineTracker } from "@/components/referrals/ReferralPipelineTracker";
-import { ReferralStats } from "@/components/referrals/ReferralStats";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { AppLayout } from "@/components/AppLayout";
+import { ReferralEarningsOverview } from "@/components/referrals/ReferralEarningsOverview";
+import { CompanyReferralCard } from "@/components/referrals/CompanyReferralCard";
+import { MemberReferralCard } from "@/components/referrals/MemberReferralCard";
+import { ClaimReferralDialog } from "@/components/referrals/ClaimReferralDialog";
+import { EarningsHistoryTable } from "@/components/referrals/EarningsHistoryTable";
+import { RevenueShareInfo } from "@/components/referrals/RevenueShareInfo";
+import { 
+  useReferralPolicies, 
+  useReferralEarnings, 
+  useRevenueShares,
+  useReferralStats 
+} from "@/hooks/useReferralSystem";
+import { useUserRole } from "@/hooks/useUserRole";
 
-const calculateReferralBonus = (salary: number = 75000): number => {
-  if (salary < 50000) return 1000;
-  if (salary < 75000) return 1500;
-  if (salary < 125000) return 2000;
-  return 3000;
-};
+export default function Referrals() {
+  const [claimDialogOpen, setClaimDialogOpen] = useState(false);
+  const [claimType, setClaimType] = useState<'company' | 'job' | 'member'>('company');
+  
+  const { role } = useUserRole();
+  const { data: policies, isLoading: policiesLoading } = useReferralPolicies();
+  const { data: earnings, isLoading: earningsLoading } = useReferralEarnings();
+  const { data: revenueShares } = useRevenueShares();
+  const { data: stats, isLoading: statsLoading } = useReferralStats();
 
-const Referrals = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [stats, setStats] = useState({
-    totalReferrals: 0,
-    activeReferrals: 0,
-    successfulHires: 0,
-    totalEarnings: 0,
-    potentialEarnings: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const isAdmin = role === 'admin' || role === 'strategist';
+  const isPartner = role === 'partner';
 
-  useEffect(() => {
-    if (!user) return;
+  const companyPolicies = policies?.filter(p => p.policy_type === 'company') || [];
+  const memberPolicies = policies?.filter(p => p.source_type === 'member_referral') || [];
 
-    const fetchReferralStats = async () => {
-      try {
-        // Get all referrals with their application data
-        const { data: inviteCodes } = await supabase
-          .from('invite_codes')
-          .select(`
-            *,
-            referral_metadata (*),
-            referral_network (
-              user_id,
-              joined_at
-            )
-          `)
-          .eq('created_by', user.id);
+  const handleClaimClick = (type: 'company' | 'job' | 'member') => {
+    setClaimType(type);
+    setClaimDialogOpen(true);
+  };
 
-        let activeCount = 0;
-        let hiredCount = 0;
-        let totalEarned = 0;
-        let totalPotential = 0;
-
-        for (const invite of inviteCodes || []) {
-          const metadata = invite.referral_metadata?.[0];
-          const networkEntry = invite.referral_network?.[0];
-
-          if (networkEntry?.user_id) {
-            const { data: application } = await supabase
-              .from('applications')
-              .select('status')
-              .eq('user_id', networkEntry.user_id)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .single();
-
-            const estimatedSalary = 75000; // Default estimate
-            const reward = calculateReferralBonus(estimatedSalary);
-
-            if (application) {
-              if (application.status === 'hired') {
-                hiredCount++;
-                totalEarned += reward;
-              } else if (application.status === 'active') {
-                activeCount++;
-                totalPotential += reward;
-              }
-            }
-          } else if (metadata) {
-            totalPotential += calculateReferralBonus(75000);
-          }
-        }
-
-        setStats({
-          totalReferrals: inviteCodes?.length || 0,
-          activeReferrals: activeCount,
-          successfulHires: hiredCount,
-          totalEarnings: totalEarned,
-          potentialEarnings: totalPotential,
-        });
-      } catch (error) {
-        console.error('Error fetching referral stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReferralStats();
-  }, [user]);
+  const defaultStats = { 
+    totalRevenueGenerated: 0, 
+    yourEarnings: 0, 
+    projectedEarnings: 0, 
+    activePipelines: 0, 
+    companiesCount: 0, 
+    jobsCount: 0,
+    memberReferralsCount: 0,
+    successRate: 0
+  };
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Header */}
-        <div className="space-y-4">
-          <p className="text-caps text-muted-foreground">Build Your Network</p>
-          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
-            Invite & Earn Rewards
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
-            Curate our elite community and earn competitive bonuses when your referrals succeed
-          </p>
-        </div>
-
-        {/* Stats Overview */}
-        {!loading && (
-          <ReferralStats
-            totalReferrals={stats.totalReferrals}
-            activeReferrals={stats.activeReferrals}
-            successfulHires={stats.successfulHires}
-            totalEarnings={stats.totalEarnings}
-            potentialEarnings={stats.potentialEarnings}
-          />
-        )}
-
-        {/* Tabs for Pipeline Tracking and Invite System */}
-        <Tabs defaultValue="tracking" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="tracking">Live Pipeline</TabsTrigger>
-              <TabsTrigger value="invites">Invite Codes</TabsTrigger>
-            </TabsList>
-            <Button 
-              onClick={() => navigate('/jobs')}
-              className="gap-2"
-              variant="glass"
-            >
-              <Plus className="w-4 h-4" />
-              New Referral
+      <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        >
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-3">
+              <TrendingUp className="h-8 w-8 text-primary" />
+              Your Earnings & Referrals
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Track your referrals, monitor pipelines, and view your earnings
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {(isAdmin || isPartner) && (
+              <Button variant="outline" size="sm" onClick={() => handleClaimClick('company')} className="gap-2">
+                <Building2 className="h-4 w-4" />
+                Claim Company
+              </Button>
+            )}
+            <Button size="sm" onClick={() => handleClaimClick('member')} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Refer a Member
             </Button>
           </div>
+        </motion.div>
 
-          {/* Live Pipeline Tracking Tab */}
-          <TabsContent value="tracking" className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Active Referral Pipelines</h2>
-              </div>
-              <ReferralPipelineTracker />
-            </div>
+        <ReferralEarningsOverview stats={stats || defaultStats} loading={statsLoading} />
 
-            {/* Compensation Bands Info */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Euro className="w-5 h-5" />
-                  Referral Bonus Structure
-                </CardTitle>
-                <CardDescription>
-                  Earn tiered bonuses when your referrals get hired
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors">
-                    <div className="text-sm text-muted-foreground mb-1">€0 - €50k</div>
-                    <div className="text-2xl font-bold">€1,000</div>
-                  </div>
-                  <div className="p-4 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors">
-                    <div className="text-sm text-muted-foreground mb-1">€50k - €75k</div>
-                    <div className="text-2xl font-bold">€1,500</div>
-                  </div>
-                  <div className="p-4 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors">
-                    <div className="text-sm text-muted-foreground mb-1">€75k - €125k</div>
-                    <div className="text-2xl font-bold">€2,000</div>
-                  </div>
-                  <div className="p-4 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors">
-                    <div className="text-sm text-muted-foreground mb-1">€125k+</div>
-                    <div className="text-2xl font-bold">€3,000</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        <RevenueShareInfo activeShares={revenueShares || []} userRole={role || undefined} />
+
+        <Tabs defaultValue="companies" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+            <TabsTrigger value="companies"><Building2 className="h-4 w-4 mr-2 hidden sm:block" />Companies</TabsTrigger>
+            <TabsTrigger value="members"><Users className="h-4 w-4 mr-2 hidden sm:block" />Members</TabsTrigger>
+            <TabsTrigger value="history"><History className="h-4 w-4 mr-2 hidden sm:block" />History</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="companies" className="space-y-4">
+            {policiesLoading ? (
+              <div className="h-48 bg-muted/50 rounded-xl animate-pulse" />
+            ) : companyPolicies.length === 0 ? (
+              <EmptyState icon={Building2} title="No company referrals" description="Claim a company to track all its jobs." onAction={() => handleClaimClick('company')} showAction={isAdmin || isPartner} />
+            ) : (
+              companyPolicies.map(policy => <CompanyReferralCard key={policy.id} policy={policy} earnings={earnings?.filter(e => e.company_id === policy.company_id) || []} />)
+            )}
           </TabsContent>
 
-          {/* Invite System Tab */}
-          <TabsContent value="invites" className="space-y-6">
-            <InviteSystem />
+          <TabsContent value="members" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {policiesLoading ? <div className="h-32 bg-muted/50 rounded-xl animate-pulse" /> : memberPolicies.length === 0 ? (
+              <EmptyState icon={Users} title="No member referrals" description="Refer professionals to earn rewards." onAction={() => handleClaimClick('member')} showAction={true} />
+            ) : memberPolicies.map(policy => <MemberReferralCard key={policy.id} policy={policy} earnings={earnings?.filter(e => e.policy_id === policy.id) || []} />)}
           </TabsContent>
-    </Tabs>
+
+          <TabsContent value="history">
+            <EarningsHistoryTable earnings={earnings || []} loading={earningsLoading} />
+          </TabsContent>
+        </Tabs>
+
+        <ClaimReferralDialog open={claimDialogOpen} onOpenChange={setClaimDialogOpen} claimType={claimType} />
       </div>
     </AppLayout>
   );
-};
+}
 
-export default Referrals;
+function EmptyState({ icon: Icon, title, description, onAction, showAction }: { icon: React.ElementType; title: string; description: string; onAction: () => void; showAction?: boolean }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center glass-card rounded-xl col-span-full">
+      <div className="p-4 rounded-full bg-muted/50 mb-4"><Icon className="h-8 w-8 text-muted-foreground" /></div>
+      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+      <p className="text-muted-foreground max-w-md mb-4">{description}</p>
+      {showAction && <Button onClick={onAction} className="gap-2"><Plus className="h-4 w-4" />Add</Button>}
+    </div>
+  );
+}
