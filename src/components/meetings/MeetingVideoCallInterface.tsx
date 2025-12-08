@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useMeetingWebRTC } from '@/hooks/useMeetingWebRTC';
 import { useMeetingConnectionQuality } from '@/hooks/useMeetingConnectionQuality';
+import { useMeetingAutoRecording } from '@/hooks/useMeetingAutoRecording';
 import { ControlsPanel } from '@/components/video-call/ControlsPanel';
 import { VideoGrid } from '@/components/video-call/VideoGrid';
 import { PreCallDiagnostics } from '@/components/video-call/PreCallDiagnostics';
@@ -29,6 +30,7 @@ import { VirtualBackgroundSelector } from '@/components/meetings/VirtualBackgrou
 import { InterviewerBackchannel } from '@/components/meetings/InterviewerBackchannel';
 import { InterviewerVotingPanel } from '@/components/meetings/InterviewerVotingPanel';
 import { RecordingIndicator } from '@/components/meetings/RecordingIndicator';
+import { RecordingConsentBanner } from '@/components/meetings/RecordingConsentBanner';
 import { MeetingConnectionIndicator } from '@/components/meetings/MeetingConnectionIndicator';
 import { PresenterHUD } from '@/components/video-call/PresenterHUD';
 import { useMeetingTranscription } from '@/hooks/useMeetingTranscription';
@@ -201,6 +203,20 @@ export function MeetingVideoCallInterface({
     meetingId: meeting.id,
     userId: participantId,
     enabled: !showDiagnostics && !!peerConnections
+  });
+
+  // Auto-recording - records all meetings automatically
+  const { 
+    isRecording: isAutoRecording, 
+    stopRecording: stopAutoRecording 
+  } = useMeetingAutoRecording({
+    meetingId: meeting.id,
+    participantId,
+    participantName,
+    localStream,
+    remoteStreams,
+    meeting,
+    enabled: !showDiagnostics && !!localStream
   });
 
   const handleDiagnosticsComplete = async () => {
