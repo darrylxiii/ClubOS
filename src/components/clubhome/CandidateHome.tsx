@@ -19,6 +19,9 @@ import { UnifiedStatsBar } from "./UnifiedStatsBar";
 import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
 import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
+import { ClubPilotTasksWidget } from "./ClubPilotTasksWidget";
+import { MessagesPreviewWidget } from "./MessagesPreviewWidget";
+import { TimeTrackingWidget } from "./TimeTrackingWidget";
 import { T } from "@/components/T";
 
 export const CandidateHome = () => {
@@ -125,9 +128,16 @@ export const CandidateHome = () => {
         </DashboardSection>
       )}
 
-      {/* Upcoming Meetings */}
-      <DashboardSection>
+      {/* Upcoming Meetings & Tasks */}
+      <DashboardSection columns={2}>
         <UpcomingMeetingsWidget />
+        <ClubPilotTasksWidget />
+      </DashboardSection>
+
+      {/* Messages & Time Tracking */}
+      <DashboardSection columns={2}>
+        <MessagesPreviewWidget />
+        <TimeTrackingWidget role="candidate" />
       </DashboardSection>
 
       {/* Live Pulse & Profile Views */}
