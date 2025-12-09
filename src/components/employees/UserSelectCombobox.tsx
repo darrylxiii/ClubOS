@@ -37,8 +37,12 @@ export const UserSelectCombobox = ({
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   
-  // Pass companyId to filter users by company - use null if not provided to get all users
-  const { data: users, isLoading, error } = useAvailableUsers(true, companyId ?? null);
+  // CRITICAL: Pass companyId directly - undefined means "wait", string means "filter by company"
+  // Do NOT convert undefined to null here - that triggers wrong code path
+  const { data: users, isLoading, error } = useAvailableUsers(true, companyId);
+
+  // Check if we're still waiting for company context
+  const isWaitingForCompany = companyId === undefined;
 
   const selectedUser = value;
 
@@ -69,10 +73,15 @@ export const UserSelectCombobox = ({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          disabled={disabled || isLoading}
+          disabled={disabled || isLoading || isWaitingForCompany}
           className="w-full justify-between h-auto min-h-10 py-2"
         >
-          {isLoading ? (
+          {isWaitingForCompany ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading company...</span>
+            </div>
+          ) : isLoading ? (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span>Loading users...</span>
