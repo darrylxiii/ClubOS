@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import AppLayout from '@/components/layout/AppLayout';
-import RoleGate from '@/components/RoleGate';
+import { AppLayout } from '@/components/AppLayout';
+import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import { Plus, Edit2, Trash2, Shield, Languages } from 'lucide-react';
 import { useBrandTerms, useCreateBrandTerm, useUpdateBrandTerm, useDeleteBrandTerm, type BrandTerm } from '@/hooks/use-brand-terms';
 import { useActiveLanguages } from '@/hooks/use-translation-namespaces';
+
+type LanguageConfig = { code: string; name: string; native_name: string; flag: string; is_active: boolean; is_default: boolean };
 
 export default function BrandTermManager() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -90,7 +92,7 @@ export default function BrandTermManager() {
     }
   };
   
-  const activeLanguages = (languages || []).filter((l: any) => l.is_active && l.code !== 'en');
+  const activeLanguages = ((languages || []) as LanguageConfig[]).filter((l) => l.is_active && l.code !== 'en');
   
   return (
     <AppLayout>

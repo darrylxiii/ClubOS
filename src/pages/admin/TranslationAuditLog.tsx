@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import AppLayout from '@/components/layout/AppLayout';
-import RoleGate from '@/components/RoleGate';
+import { AppLayout } from '@/components/AppLayout';
+import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,8 @@ import { format } from 'date-fns';
 import { History, Search, Eye, Download, RefreshCw } from 'lucide-react';
 import { useTranslationAuditLog, useAuditLogStats } from '@/hooks/use-translation-audit';
 import { useTranslationNamespaces, useActiveLanguages } from '@/hooks/use-translation-namespaces';
+
+type LanguageConfig = { code: string; name: string; native_name: string; flag: string; is_active: boolean; is_default: boolean };
 
 export default function TranslationAuditLog() {
   const [filters, setFilters] = useState({
@@ -145,7 +147,7 @@ export default function TranslationAuditLog() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Languages</SelectItem>
-                    {languages?.map(lang => (
+                    {((languages || []) as LanguageConfig[]).map(lang => (
                       <SelectItem key={lang.code} value={lang.code}>
                         {lang.flag} {lang.name}
                       </SelectItem>
