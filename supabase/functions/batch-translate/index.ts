@@ -27,8 +27,8 @@ Deno.serve(async (req) => {
   logger.logRequest(req.method, undefined, { ip: clientInfo.ip });
 
   try {
-    // Rate limiting: 10 requests per hour per IP/user
-    const rateLimitResult = await checkUserRateLimit(clientInfo.ip, "batch-translate", 10, 3600000);
+    // Rate limiting: 100 requests per hour per IP/user (increased for enterprise translation)
+    const rateLimitResult = await checkUserRateLimit(clientInfo.ip, "batch-translate", 100, 3600000);
     if (!rateLimitResult.allowed) {
       logger.logRateLimit(clientInfo.ip);
       return createRateLimitResponse(rateLimitResult.retryAfter || 3600, publicCorsHeaders);

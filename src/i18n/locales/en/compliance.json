@@ -1,0 +1,116 @@
+{
+  "title": "Compliance",
+  "subtitle": "Data protection and legal compliance",
+  "gdpr": {
+    "title": "GDPR Compliance",
+    "subtitle": "General Data Protection Regulation",
+    "consent": "Cookie Consent",
+    "dataProcessing": "Data Processing",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "dataRetention": "Data Retention",
+    "dataPortability": "Data Portability",
+    "rightToErasure": "Right to Erasure",
+    "rightToAccess": "Right to Access"
+  },
+  "cookies": {
+    "title": "Cookie Settings",
+    "essential": "Essential Cookies",
+    "analytics": "Analytics Cookies",
+    "marketing": "Marketing Cookies",
+    "preferences": "Preference Cookies",
+    "acceptAll": "Accept All",
+    "rejectAll": "Reject All",
+    "savePreferences": "Save Preferences",
+    "description": "We use cookies to improve your experience"
+  },
+  "consent": {
+    "title": "Consent Management",
+    "given": "Consent Given",
+    "withdrawn": "Consent Withdrawn",
+    "pending": "Pending Consent",
+    "history": "Consent History",
+    "requestConsent": "Request Consent",
+    "withdrawConsent": "Withdraw Consent"
+  },
+  "dataSubject": {
+    "title": "Data Subject Rights",
+    "accessRequest": "Access Request",
+    "rectification": "Rectification Request",
+    "erasure": "Erasure Request",
+    "portability": "Portability Request",
+    "restriction": "Restriction Request",
+    "objection": "Objection to Processing",
+    "submitRequest": "Submit Request",
+    "requestStatus": "Request Status"
+  },
+  "audit": {
+    "title": "Audit Log",
+    "viewLog": "View Audit Log",
+    "exportLog": "Export Audit Log",
+    "filterByAction": "Filter by Action",
+    "filterByUser": "Filter by User",
+    "filterByDate": "Filter by Date",
+    "dataAccess": "Data Access",
+    "dataModification": "Data Modification",
+    "dataDeletion": "Data Deletion"
+  },
+  "privacy": {
+    "title": "Privacy Settings",
+    "profileVisibility": "Profile Visibility",
+    "dataSharing": "Data Sharing",
+    "marketingPreferences": "Marketing Preferences",
+    "thirdPartyAccess": "Third-party Access",
+    "communicationPreferences": "Communication Preferences"
+  },
+  "legal": {
+    "title": "Legal Documents",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "cookiePolicy": "Cookie Policy",
+    "dataProcessingAgreement": "Data Processing Agreement",
+    "acceptTerms": "Accept Terms",
+    "lastUpdated": "Last Updated",
+    "version": "Version"
+  },
+  "export": {
+    "title": "Export Your Data",
+    "description": "Download a copy of your personal data",
+    "requestExport": "Request Export",
+    "format": "Export Format",
+    "json": "JSON Format",
+    "csv": "CSV Format",
+    "pdf": "PDF Format",
+    "processing": "Processing your request...",
+    "ready": "Your export is ready"
+  },
+  "deletion": {
+    "title": "Delete Your Data",
+    "description": "Permanently delete your account and data",
+    "requestDeletion": "Request Deletion",
+    "confirmDeletion": "Confirm Deletion",
+    "warning": "This action cannot be undone",
+    "processingTime": "Processing may take up to 30 days"
+  },
+  "notifications": {
+    "consentUpdated": "Consent preferences updated",
+    "requestSubmitted": "Your request has been submitted",
+    "exportReady": "Your data export is ready for download",
+    "deletionScheduled": "Your account deletion has been scheduled"
+  },
+  "subprocessors": {
+    "title": "Subprocessors",
+    "list": "List of Subprocessors",
+    "purpose": "Purpose",
+    "location": "Location",
+    "dataTypes": "Data Types Processed"
+  },
+  "breach": {
+    "title": "Data Breach",
+    "notification": "Breach Notification",
+    "report": "Report a Breach",
+    "timeline": "Breach Timeline",
+    "affectedData": "Affected Data",
+    "remediation": "Remediation Steps"
+  }
+}

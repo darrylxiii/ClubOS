@@ -1,0 +1,114 @@
+{
+  "title": "Analytics",
+  "subtitle": "Insights and performance metrics",
+  "overview": {
+    "title": "Overview",
+    "summary": "Performance Summary",
+    "keyMetrics": "Key Metrics",
+    "trends": "Trends"
+  },
+  "metrics": {
+    "title": "Key Metrics",
+    "views": "Views",
+    "clicks": "Clicks",
+    "conversions": "Conversions",
+    "engagement": "Engagement Rate",
+    "bounceRate": "Bounce Rate",
+    "avgSessionDuration": "Avg. Session Duration",
+    "pageViews": "Page Views",
+    "uniqueVisitors": "Unique Visitors",
+    "returningVisitors": "Returning Visitors"
+  },
+  "dashboard": {
+    "title": "Analytics Dashboard",
+    "filters": "Filters",
+    "dateRange": "Date Range",
+    "comparison": "Compare to",
+    "export": "Export Data",
+    "refresh": "Refresh"
+  },
+  "charts": {
+    "lineChart": "Line Chart",
+    "barChart": "Bar Chart",
+    "pieChart": "Pie Chart",
+    "areaChart": "Area Chart",
+    "noData": "No data available"
+  },
+  "periods": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "last7Days": "Last 7 Days",
+    "last30Days": "Last 30 Days",
+    "lastMonth": "Last Month",
+    "lastQuarter": "Last Quarter",
+    "lastYear": "Last Year",
+    "custom": "Custom Range"
+  },
+  "hiring": {
+    "title": "Hiring Analytics",
+    "applicationsReceived": "Applications Received",
+    "candidatesScreened": "Candidates Screened",
+    "interviewsConducted": "Interviews Conducted",
+    "offersExtended": "Offers Extended",
+    "offerAcceptanceRate": "Offer Acceptance Rate",
+    "timeToHire": "Time to Hire",
+    "costPerHire": "Cost per Hire",
+    "sourceEffectiveness": "Source Effectiveness"
+  },
+  "pipeline": {
+    "title": "Pipeline Analytics",
+    "stageConversion": "Stage Conversion Rates",
+    "bottlenecks": "Bottlenecks",
+    "velocity": "Pipeline Velocity",
+    "dropoffPoints": "Drop-off Points"
+  },
+  "engagement": {
+    "title": "Engagement Analytics",
+    "activeUsers": "Active Users",
+    "sessionCount": "Session Count",
+    "averageTime": "Average Time on Platform",
+    "featureUsage": "Feature Usage"
+  },
+  "revenue": {
+    "title": "Revenue Analytics",
+    "totalRevenue": "Total Revenue",
+    "monthlyRecurring": "Monthly Recurring",
+    "growthRate": "Growth Rate",
+    "projections": "Projections",
+    "bySource": "Revenue by Source"
+  },
+  "reports": {
+    "title": "Reports",
+    "generate": "Generate Report",
+    "schedule": "Schedule Report",
+    "download": "Download Report",
+    "share": "Share Report",
+    "templates": "Report Templates"
+  },
+  "insights": {
+    "title": "AI Insights",
+    "recommendations": "Recommendations",
+    "anomalies": "Anomalies Detected",
+    "opportunities": "Opportunities",
+    "risks": "Risks"
+  },
+  "comparison": {
+    "vsLastPeriod": "vs. Last Period",
+    "vsTarget": "vs. Target",
+    "vsIndustry": "vs. Industry Average",
+    "increase": "Increase",
+    "decrease": "Decrease",
+    "noChange": "No Change"
+  },
+  "export": {
+    "csv": "Export as CSV",
+    "pdf": "Export as PDF",
+    "excel": "Export as Excel",
+    "scheduled": "Schedule Export"
+  },
+  "empty": {
+    "noData": "No data available for this period",
+    "noMetrics": "No metrics to display",
+    "selectPeriod": "Select a date range to view analytics"
+  }
+}

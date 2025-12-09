@@ -1,0 +1,170 @@
+{
+  "title": "Partner Portal",
+  "subtitle": "Manage your hiring and recruitment",
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "overview": "Overview",
+    "recentActivity": "Recent Activity",
+    "quickActions": "Quick Actions",
+    "stats": "Your Stats"
+  },
+  "candidates": {
+    "title": "Candidates",
+    "active": "Active Candidates",
+    "pipeline": "Candidate Pipeline",
+    "shortlisted": "Shortlisted",
+    "interviewed": "Interviewed",
+    "offered": "Offers Extended",
+    "hired": "Hired",
+    "viewAll": "View All Candidates",
+    "addCandidate": "Add Candidate",
+    "searchCandidates": "Search Candidates"
+  },
+  "jobs": {
+    "title": "Jobs",
+    "activeJobs": "Active Jobs",
+    "draftJobs": "Draft Jobs",
+    "closedJobs": "Closed Jobs",
+    "createJob": "Create Job",
+    "viewAll": "View All Jobs",
+    "applicationsReceived": "Applications Received",
+    "positionsFilled": "Positions Filled"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "hiringMetrics": "Hiring Metrics",
+    "timeToHire": "Time to Hire",
+    "costPerHire": "Cost per Hire",
+    "offerAcceptance": "Offer Acceptance Rate",
+    "sourceEffectiveness": "Source Effectiveness",
+    "pipelineHealth": "Pipeline Health"
+  },
+  "team": {
+    "title": "Team",
+    "members": "Team Members",
+    "addMember": "Add Team Member",
+    "roles": "Roles & Permissions",
+    "activity": "Team Activity",
+    "inviteMember": "Invite Member"
+  },
+  "settings": {
+    "title": "Settings",
+    "company": "Company Profile",
+    "branding": "Branding",
+    "integrations": "Integrations",
+    "notifications": "Notifications",
+    "billing": "Billing",
+    "apiAccess": "API Access"
+  },
+  "company": {
+    "title": "Company Profile",
+    "name": "Company Name",
+    "logo": "Company Logo",
+    "description": "Description",
+    "industry": "Industry",
+    "size": "Company Size",
+    "location": "Headquarters",
+    "website": "Website",
+    "culture": "Company Culture",
+    "benefits": "Benefits & Perks"
+  },
+  "pipeline": {
+    "title": "Hiring Pipeline",
+    "stages": "Pipeline Stages",
+    "customize": "Customize Stages",
+    "metrics": "Stage Metrics",
+    "bottlenecks": "Bottlenecks",
+    "velocity": "Pipeline Velocity"
+  },
+  "interviews": {
+    "title": "Interviews",
+    "scheduled": "Scheduled Interviews",
+    "pending": "Pending Feedback",
+    "completed": "Completed",
+    "schedule": "Schedule Interview",
+    "feedback": "Submit Feedback",
+    "scorecards": "Scorecards"
+  },
+  "offers": {
+    "title": "Offers",
+    "pending": "Pending Offers",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "createOffer": "Create Offer",
+    "template": "Offer Templates",
+    "approval": "Approval Workflow"
+  },
+  "reports": {
+    "title": "Reports",
+    "generate": "Generate Report",
+    "scheduled": "Scheduled Reports",
+    "download": "Download",
+    "share": "Share Report",
+    "types": {
+      "hiring": "Hiring Report",
+      "diversity": "Diversity Report",
+      "pipeline": "Pipeline Report",
+      "source": "Source Report"
+    }
+  },
+  "integrations": {
+    "title": "Integrations",
+    "ats": "ATS Integration",
+    "calendar": "Calendar Sync",
+    "email": "Email Integration",
+    "linkedin": "LinkedIn",
+    "slack": "Slack",
+    "teams": "Microsoft Teams"
+  },
+  "notifications": {
+    "newApplication": "New application received",
+    "interviewScheduled": "Interview scheduled",
+    "feedbackPending": "Feedback pending",
+    "offerAccepted": "Offer accepted",
+    "candidateUpdate": "Candidate update"
+  },
+  "actions": {
+    "viewDetails": "View Details",
+    "edit": "Edit",
+    "delete": "Delete",
+    "archive": "Archive",
+    "export": "Export",
+    "share": "Share"
+  },
+  "filters": {
+    "all": "All",
+    "byJob": "By Job",
+    "byStage": "By Stage",
+    "byDate": "By Date",
+    "bySource": "By Source",
+    "byRecruiter": "By Recruiter"
+  },
+  "empty": {
+    "noCandidates": "No candidates yet",
+    "noJobs": "No jobs posted",
+    "noInterviews": "No interviews scheduled",
+    "noOffers": "No pending offers"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "verified": "Verified"
+  },
+  "referrals": {
+    "title": "Referrals",
+    "myReferrals": "My Referrals",
+    "earnings": "Referral Earnings",
+    "pending": "Pending Rewards",
+    "refer": "Refer a Candidate",
+    "referCompany": "Refer a Company"
+  },
+  "support": {
+    "title": "Support",
+    "helpCenter": "Help Center",
+    "contact": "Contact Support",
+    "documentation": "Documentation",
+    "faq": "FAQ"
+  }
+}

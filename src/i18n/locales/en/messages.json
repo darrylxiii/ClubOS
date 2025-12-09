@@ -1,0 +1,148 @@
+{
+  "title": "Messages",
+  "subtitle": "Your conversations",
+  "compose": {
+    "title": "Compose Message",
+    "newMessage": "New Message",
+    "to": "To",
+    "subject": "Subject",
+    "body": "Message",
+    "send": "Send",
+    "cancel": "Cancel",
+    "saveDraft": "Save Draft",
+    "attachFile": "Attach File",
+    "insertEmoji": "Insert Emoji"
+  },
+  "inbox": {
+    "title": "Inbox",
+    "all": "All Messages",
+    "unread": "Unread",
+    "starred": "Starred",
+    "archived": "Archived",
+    "spam": "Spam",
+    "trash": "Trash",
+    "empty": "Your inbox is empty"
+  },
+  "sent": {
+    "title": "Sent",
+    "empty": "No sent messages"
+  },
+  "drafts": {
+    "title": "Drafts",
+    "empty": "No drafts"
+  },
+  "search": {
+    "placeholder": "Search messages...",
+    "noResults": "No messages found",
+    "inConversation": "In this conversation"
+  },
+  "actions": {
+    "reply": "Reply",
+    "replyAll": "Reply All",
+    "forward": "Forward",
+    "delete": "Delete",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "markAsRead": "Mark as Read",
+    "markAsUnread": "Mark as Unread",
+    "star": "Star",
+    "unstar": "Unstar",
+    "moveToTrash": "Move to Trash",
+    "markAsSpam": "Mark as Spam",
+    "print": "Print"
+  },
+  "conversation": {
+    "title": "Conversation",
+    "typeMessage": "Type a message...",
+    "send": "Send",
+    "loadMore": "Load more messages",
+    "noMessages": "No messages yet",
+    "startConversation": "Start the conversation"
+  },
+  "attachments": {
+    "title": "Attachments",
+    "add": "Add Attachment",
+    "remove": "Remove",
+    "download": "Download",
+    "preview": "Preview",
+    "maxSize": "Max file size: 25MB",
+    "supportedFormats": "Supported formats: PDF, DOC, DOCX, JPG, PNG"
+  },
+  "notifications": {
+    "newMessage": "New message received",
+    "messageSent": "Message sent successfully",
+    "messageDeleted": "Message deleted",
+    "messageArchived": "Message archived",
+    "draftSaved": "Draft saved"
+  },
+  "templates": {
+    "title": "Message Templates",
+    "create": "Create Template",
+    "edit": "Edit Template",
+    "delete": "Delete Template",
+    "use": "Use Template",
+    "name": "Template Name",
+    "content": "Template Content"
+  },
+  "filters": {
+    "all": "All",
+    "unread": "Unread",
+    "hasAttachments": "Has Attachments",
+    "fromMe": "From Me",
+    "toMe": "To Me",
+    "dateRange": "Date Range"
+  },
+  "labels": {
+    "title": "Labels",
+    "create": "Create Label",
+    "edit": "Edit Label",
+    "delete": "Delete Label",
+    "apply": "Apply Label",
+    "remove": "Remove Label",
+    "noLabels": "No labels"
+  },
+  "settings": {
+    "title": "Message Settings",
+    "notifications": "Notification Preferences",
+    "signature": "Email Signature",
+    "autoReply": "Auto-Reply",
+    "blockedSenders": "Blocked Senders"
+  },
+  "bulk": {
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "selected": "selected",
+    "deleteSelected": "Delete Selected",
+    "archiveSelected": "Archive Selected",
+    "markAllRead": "Mark All as Read"
+  },
+  "status": {
+    "sending": "Sending...",
+    "sent": "Sent",
+    "delivered": "Delivered",
+    "read": "Read",
+    "failed": "Failed to send"
+  },
+  "empty": {
+    "noConversations": "No conversations yet",
+    "startNew": "Start a new conversation",
+    "noResults": "No messages match your search"
+  },
+  "quickReplies": {
+    "title": "Quick Replies",
+    "thankYou": "Thank you for your message!",
+    "willReply": "I'll get back to you soon.",
+    "acknowledged": "Received, thank you!",
+    "custom": "Custom reply..."
+  },
+  "typing": {
+    "indicator": "is typing...",
+    "multiple": "are typing..."
+  },
+  "online": {
+    "online": "Online",
+    "offline": "Offline",
+    "away": "Away",
+    "busy": "Busy"
+  }
+}
