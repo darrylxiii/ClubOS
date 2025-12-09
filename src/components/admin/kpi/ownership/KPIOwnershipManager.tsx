@@ -314,12 +314,12 @@ export function KPIOwnershipManager() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Primary Owner</Label>
-              <Select value={selectedOwner} onValueChange={setSelectedOwner}>
+              <Select value={selectedOwner || "__none__"} onValueChange={(v) => setSelectedOwner(v === "__none__" ? "" : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select owner..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No owner</SelectItem>
+                  <SelectItem value="__none__">No owner</SelectItem>
                   {teamMembers?.map(member => (
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center gap-2">
@@ -342,12 +342,12 @@ export function KPIOwnershipManager() {
 
             <div className="space-y-2">
               <Label>Backup Owner (Optional)</Label>
-              <Select value={selectedBackup} onValueChange={setSelectedBackup}>
+              <Select value={selectedBackup || "__none__"} onValueChange={(v) => setSelectedBackup(v === "__none__" ? "" : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select backup..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No backup</SelectItem>
+                  <SelectItem value="__none__">No backup</SelectItem>
                   {teamMembers?.filter(m => m.id !== selectedOwner).map(member => (
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center gap-2">

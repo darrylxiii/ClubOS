@@ -212,14 +212,14 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
                     <div>
                       <Label htmlFor="department">Department</Label>
                       <Select
-                        value={editForm.department_id}
-                        onValueChange={(value) => setEditForm({ ...editForm, department_id: value })}
+                        value={editForm.department_id || "__none__"}
+                        onValueChange={(value) => setEditForm({ ...editForm, department_id: value === "__none__" ? "" : value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select department" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No department</SelectItem>
+                          <SelectItem value="__none__">No department</SelectItem>
                           {departments.map((dept) => (
                             <SelectItem key={dept.id} value={dept.id}>
                               {dept.name}
@@ -232,14 +232,14 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
                     <div>
                       <Label htmlFor="reports_to">Reports To</Label>
                       <Select
-                        value={editForm.reports_to_member_id}
-                        onValueChange={(value) => setEditForm({ ...editForm, reports_to_member_id: value })}
+                        value={editForm.reports_to_member_id || "__none__"}
+                        onValueChange={(value) => setEditForm({ ...editForm, reports_to_member_id: value === "__none__" ? "" : value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select manager" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No manager (CEO/Owner)</SelectItem>
+                          <SelectItem value="__none__">No manager (CEO/Owner)</SelectItem>
                           {availableManagers.map((manager) => (
                             <SelectItem key={manager.id} value={manager.id}>
                               {manager.profiles?.full_name} - {manager.job_title}
