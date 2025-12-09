@@ -1,0 +1,166 @@
+{
+  "title": "Meetings",
+  "subtitle": "Schedule and manage your meetings",
+  "schedule": {
+    "title": "Schedule Meeting",
+    "selectDate": "Select Date",
+    "selectTime": "Select Time",
+    "duration": "Duration",
+    "timezone": "Timezone",
+    "recurring": "Recurring Meeting",
+    "confirm": "Confirm Meeting"
+  },
+  "join": {
+    "title": "Join Meeting",
+    "button": "Join Now",
+    "waiting": "Waiting for host...",
+    "connecting": "Connecting...",
+    "reconnecting": "Reconnecting...",
+    "joined": "Joined",
+    "left": "Left Meeting"
+  },
+  "upcoming": {
+    "title": "Upcoming Meetings",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "thisWeek": "This Week",
+    "nextWeek": "Next Week",
+    "noMeetings": "No upcoming meetings"
+  },
+  "past": {
+    "title": "Past Meetings",
+    "recordings": "Recordings",
+    "notes": "Meeting Notes",
+    "transcript": "Transcript"
+  },
+  "controls": {
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "video": "Turn Off Video",
+    "videoOn": "Turn On Video",
+    "share": "Share Screen",
+    "stopShare": "Stop Sharing",
+    "chat": "Chat",
+    "participants": "Participants",
+    "more": "More Options",
+    "leave": "Leave Meeting",
+    "end": "End Meeting"
+  },
+  "recording": {
+    "start": "Start Recording",
+    "stop": "Stop Recording",
+    "pause": "Pause Recording",
+    "resume": "Resume Recording",
+    "inProgress": "Recording in Progress",
+    "saved": "Recording Saved",
+    "download": "Download Recording",
+    "share": "Share Recording",
+    "delete": "Delete Recording"
+  },
+  "participants": {
+    "title": "Participants",
+    "host": "Host",
+    "coHost": "Co-Host",
+    "guest": "Guest",
+    "waiting": "In Waiting Room",
+    "admit": "Admit",
+    "remove": "Remove",
+    "mute": "Mute Participant",
+    "makeHost": "Make Host",
+    "makeCoHost": "Make Co-Host"
+  },
+  "chat": {
+    "title": "Meeting Chat",
+    "sendMessage": "Send a message...",
+    "toEveryone": "To Everyone",
+    "privately": "Privately",
+    "file": "Share File"
+  },
+  "settings": {
+    "title": "Meeting Settings",
+    "audio": "Audio Settings",
+    "video": "Video Settings",
+    "background": "Background",
+    "blur": "Blur Background",
+    "virtual": "Virtual Background",
+    "noise": "Noise Cancellation"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "sync": "Sync with Calendar",
+    "google": "Google Calendar",
+    "outlook": "Outlook Calendar",
+    "apple": "Apple Calendar",
+    "addToCalendar": "Add to Calendar"
+  },
+  "invitations": {
+    "title": "Invitations",
+    "send": "Send Invitation",
+    "copyLink": "Copy Meeting Link",
+    "linkCopied": "Link copied!",
+    "email": "Send via Email",
+    "resend": "Resend Invitation"
+  },
+  "reminders": {
+    "title": "Reminders",
+    "15min": "15 minutes before",
+    "30min": "30 minutes before",
+    "1hour": "1 hour before",
+    "1day": "1 day before",
+    "custom": "Custom reminder"
+  },
+  "types": {
+    "interview": "Interview",
+    "screening": "Screening Call",
+    "debrief": "Debrief",
+    "oneOnOne": "1:1 Meeting",
+    "team": "Team Meeting",
+    "client": "Client Meeting",
+    "training": "Training Session"
+  },
+  "status": {
+    "scheduled": "Scheduled",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "rescheduled": "Rescheduled",
+    "noShow": "No Show"
+  },
+  "actions": {
+    "reschedule": "Reschedule",
+    "cancel": "Cancel Meeting",
+    "duplicate": "Duplicate",
+    "edit": "Edit Meeting",
+    "delete": "Delete Meeting",
+    "viewDetails": "View Details"
+  },
+  "feedback": {
+    "title": "Meeting Feedback",
+    "rate": "Rate this meeting",
+    "comment": "Leave a comment",
+    "submit": "Submit Feedback",
+    "thankYou": "Thank you for your feedback!"
+  },
+  "ai": {
+    "title": "AI Features",
+    "summary": "AI Summary",
+    "actionItems": "Action Items",
+    "keyMoments": "Key Moments",
+    "insights": "Meeting Insights",
+    "transcription": "Live Transcription",
+    "translation": "Real-time Translation"
+  },
+  "errors": {
+    "connectionFailed": "Connection failed",
+    "microphoneBlocked": "Microphone access blocked",
+    "cameraBlocked": "Camera access blocked",
+    "browserNotSupported": "Browser not supported",
+    "meetingNotFound": "Meeting not found",
+    "meetingEnded": "Meeting has ended"
+  },
+  "empty": {
+    "noMeetings": "No meetings scheduled",
+    "scheduleFirst": "Schedule your first meeting",
+    "noRecordings": "No recordings available"
+  }
+}

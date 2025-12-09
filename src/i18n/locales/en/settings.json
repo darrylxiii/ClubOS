@@ -1,0 +1,169 @@
+{
+  "title": "Settings",
+  "subtitle": "Manage your preferences",
+  "profile": {
+    "title": "Profile Settings",
+    "personalInfo": "Personal Information",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "avatar": "Profile Photo",
+    "uploadPhoto": "Upload Photo",
+    "removePhoto": "Remove Photo",
+    "bio": "Bio",
+    "timezone": "Timezone",
+    "language": "Language",
+    "location": "Location"
+  },
+  "account": {
+    "title": "Account Settings",
+    "email": "Email Settings",
+    "password": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "twoFactor": "Two-Factor Authentication",
+    "enable2FA": "Enable 2FA",
+    "disable2FA": "Disable 2FA",
+    "sessions": "Active Sessions",
+    "logoutAll": "Log Out All Sessions",
+    "deleteAccount": "Delete Account"
+  },
+  "notifications": {
+    "title": "Notification Settings",
+    "email": "Email Notifications",
+    "push": "Push Notifications",
+    "sms": "SMS Notifications",
+    "inApp": "In-App Notifications",
+    "frequency": "Notification Frequency",
+    "immediate": "Immediate",
+    "daily": "Daily Digest",
+    "weekly": "Weekly Digest",
+    "never": "Never",
+    "types": {
+      "messages": "Messages",
+      "applications": "Applications",
+      "interviews": "Interviews",
+      "offers": "Offers",
+      "reminders": "Reminders",
+      "marketing": "Marketing & Updates"
+    }
+  },
+  "privacy": {
+    "title": "Privacy Settings",
+    "profileVisibility": "Profile Visibility",
+    "public": "Public",
+    "private": "Private",
+    "connections": "Connections Only",
+    "showEmail": "Show Email Address",
+    "showPhone": "Show Phone Number",
+    "showLocation": "Show Location",
+    "dataSharing": "Data Sharing",
+    "analytics": "Usage Analytics",
+    "thirdParty": "Third-party Services",
+    "activityStatus": "Activity Status",
+    "showOnline": "Show when online"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "fontSize": "Font Size",
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large",
+    "reducedMotion": "Reduced Motion",
+    "highContrast": "High Contrast"
+  },
+  "language": {
+    "title": "Language & Region",
+    "displayLanguage": "Display Language",
+    "dateFormat": "Date Format",
+    "timeFormat": "Time Format",
+    "12hour": "12-hour",
+    "24hour": "24-hour",
+    "firstDayOfWeek": "First Day of Week",
+    "currency": "Currency"
+  },
+  "integrations": {
+    "title": "Integrations",
+    "connected": "Connected",
+    "notConnected": "Not Connected",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "google": "Google",
+    "microsoft": "Microsoft",
+    "linkedin": "LinkedIn",
+    "slack": "Slack",
+    "calendar": "Calendar",
+    "email": "Email"
+  },
+  "security": {
+    "title": "Security",
+    "loginHistory": "Login History",
+    "devices": "Trusted Devices",
+    "removeDevice": "Remove Device",
+    "passwordStrength": "Password Strength",
+    "lastChanged": "Last Changed",
+    "changeNow": "Change Now",
+    "recoveryEmail": "Recovery Email",
+    "recoveryPhone": "Recovery Phone"
+  },
+  "billing": {
+    "title": "Billing & Subscription",
+    "currentPlan": "Current Plan",
+    "usage": "Usage",
+    "invoices": "Invoices",
+    "paymentMethod": "Payment Method",
+    "addCard": "Add Card",
+    "removeCard": "Remove Card",
+    "upgrade": "Upgrade Plan",
+    "downgrade": "Downgrade Plan",
+    "cancel": "Cancel Subscription"
+  },
+  "api": {
+    "title": "API Settings",
+    "keys": "API Keys",
+    "createKey": "Create API Key",
+    "revokeKey": "Revoke Key",
+    "documentation": "API Documentation",
+    "webhooks": "Webhooks",
+    "addWebhook": "Add Webhook",
+    "testWebhook": "Test Webhook"
+  },
+  "data": {
+    "title": "Data & Storage",
+    "export": "Export Data",
+    "import": "Import Data",
+    "storage": "Storage Used",
+    "clearCache": "Clear Cache",
+    "downloadData": "Download All Data"
+  },
+  "actions": {
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "reset": "Reset to Default",
+    "apply": "Apply",
+    "edit": "Edit",
+    "update": "Update"
+  },
+  "messages": {
+    "saved": "Settings saved successfully",
+    "error": "Failed to save settings",
+    "passwordChanged": "Password changed successfully",
+    "2faEnabled": "Two-factor authentication enabled",
+    "2faDisabled": "Two-factor authentication disabled",
+    "connected": "Successfully connected",
+    "disconnected": "Successfully disconnected"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooWeak": "Password is too weak",
+    "invalidPhone": "Invalid phone number"
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "title": "Jobs",
+  "subtitle": "Manage job listings and applications",
+  "create": {
+    "title": "Create Job",
+    "fromTemplate": "Create from Template",
+    "fromScratch": "Create from Scratch",
+    "duplicate": "Duplicate Job"
+  },
+  "edit": {
+    "title": "Edit Job",
+    "save": "Save Changes",
+    "publish": "Publish Job",
+    "unpublish": "Unpublish Job"
+  },
+  "apply": {
+    "title": "Apply Now",
+    "button": "Apply for this Position",
+    "submitted": "Application Submitted",
+    "alreadyApplied": "Already Applied",
+    "requiresLogin": "Login to Apply"
+  },
+  "details": {
+    "title": "Job Details",
+    "description": "Description",
+    "requirements": "Requirements",
+    "responsibilities": "Responsibilities",
+    "benefits": "Benefits",
+    "salary": "Salary Range",
+    "location": "Location",
+    "department": "Department",
+    "reportingTo": "Reporting To",
+    "startDate": "Start Date",
+    "deadline": "Application Deadline"
+  },
+  "status": {
+    "draft": "Draft",
+    "published": "Published",
+    "closed": "Closed",
+    "paused": "Paused",
+    "archived": "Archived",
+    "filled": "Position Filled"
+  },
+  "types": {
+    "fullTime": "Full-time",
+    "partTime": "Part-time",
+    "contract": "Contract",
+    "freelance": "Freelance",
+    "internship": "Internship",
+    "temporary": "Temporary"
+  },
+  "workMode": {
+    "remote": "Remote",
+    "hybrid": "Hybrid",
+    "onsite": "On-site",
+    "flexible": "Flexible"
+  },
+  "experience": {
+    "entry": "Entry Level",
+    "junior": "Junior (1-2 years)",
+    "mid": "Mid-Level (3-5 years)",
+    "senior": "Senior (5-8 years)",
+    "lead": "Lead (8+ years)",
+    "executive": "Executive"
+  },
+  "pipeline": {
+    "title": "Pipeline",
+    "applied": "Applied",
+    "screening": "Screening",
+    "interview": "Interview",
+    "assessment": "Assessment",
+    "offer": "Offer",
+    "hired": "Hired",
+    "rejected": "Rejected",
+    "candidatesInStage": "Candidates in this stage"
+  },
+  "filters": {
+    "title": "Filters",
+    "all": "All Jobs",
+    "location": "Location",
+    "department": "Department",
+    "type": "Job Type",
+    "experience": "Experience Level",
+    "salary": "Salary Range",
+    "posted": "Posted Date",
+    "remote": "Remote Only",
+    "clearAll": "Clear All Filters"
+  },
+  "search": {
+    "placeholder": "Search jobs by title, company, or skills...",
+    "noResults": "No jobs found",
+    "results": "jobs found",
+    "savedSearches": "Saved Searches"
+  },
+  "actions": {
+    "view": "View Job",
+    "edit": "Edit Job",
+    "delete": "Delete Job",
+    "duplicate": "Duplicate Job",
+    "share": "Share Job",
+    "bookmark": "Save Job",
+    "removeBookmark": "Remove from Saved",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "close": "Close Position",
+    "reopen": "Reopen Position"
+  },
+  "applicants": {
+    "title": "Applicants",
+    "new": "New Applicants",
+    "total": "Total Applicants",
+    "qualified": "Qualified",
+    "shortlisted": "Shortlisted",
+    "viewAll": "View All Applicants"
+  },
+  "posting": {
+    "title": "Job Posting",
+    "preview": "Preview Posting",
+    "visibility": "Visibility",
+    "public": "Public",
+    "private": "Private",
+    "internal": "Internal Only",
+    "expiry": "Posting Expiry",
+    "boost": "Boost This Job"
+  },
+  "analytics": {
+    "title": "Job Analytics",
+    "views": "Job Views",
+    "applications": "Applications",
+    "conversionRate": "Conversion Rate",
+    "avgTimeToApply": "Avg. Time to Apply",
+    "topSources": "Top Sources"
+  },
+  "recommendations": {
+    "title": "Recommended for You",
+    "basedOn": "Based on your profile",
+    "similar": "Similar Jobs",
+    "trending": "Trending Jobs"
+  },
+  "alerts": {
+    "title": "Job Alerts",
+    "create": "Create Alert",
+    "manage": "Manage Alerts",
+    "frequency": "Alert Frequency",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "instant": "Instant"
+  },
+  "company": {
+    "about": "About the Company",
+    "culture": "Company Culture",
+    "size": "Company Size",
+    "industry": "Industry",
+    "website": "Website",
+    "otherJobs": "Other Jobs at this Company"
+  },
+  "application": {
+    "resume": "Resume",
+    "coverLetter": "Cover Letter",
+    "questions": "Application Questions",
+    "attachments": "Attachments",
+    "submit": "Submit Application",
+    "withdraw": "Withdraw Application"
+  },
+  "empty": {
+    "noJobs": "No jobs available",
+    "noSavedJobs": "No saved jobs",
+    "noApplications": "No applications yet",
+    "createFirst": "Post your first job"
+  },
+  "notifications": {
+    "published": "Job published successfully",
+    "updated": "Job updated successfully",
+    "closed": "Job closed",
+    "applicationReceived": "New application received"
+  }
+}

@@ -28300,12 +28300,14 @@ export type Database = {
         Row: {
           completed_at: string | null
           completed_languages: string[] | null
+          created_at: string | null
           created_by: string | null
           error_message: string | null
           failed_languages: Json | null
           id: string
           namespace: string
           processed_keys_count: number | null
+          progress_percentage: number | null
           started_at: string | null
           status: string | null
           target_languages: string[]
@@ -28315,12 +28317,14 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           completed_languages?: string[] | null
+          created_at?: string | null
           created_by?: string | null
           error_message?: string | null
           failed_languages?: Json | null
           id?: string
           namespace: string
           processed_keys_count?: number | null
+          progress_percentage?: number | null
           started_at?: string | null
           status?: string | null
           target_languages: string[]
@@ -28330,17 +28334,91 @@ export type Database = {
         Update: {
           completed_at?: string | null
           completed_languages?: string[] | null
+          created_at?: string | null
           created_by?: string | null
           error_message?: string | null
           failed_languages?: Json | null
           id?: string
           namespace?: string
           processed_keys_count?: number | null
+          progress_percentage?: number | null
           started_at?: string | null
           status?: string | null
           target_languages?: string[]
           total_keys_count?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      translation_namespace_registry: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          key_count: number | null
+          last_synced_at: string | null
+          namespace: string
+          priority: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_count?: number | null
+          last_synced_at?: string | null
+          namespace: string
+          priority?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_count?: number | null
+          last_synced_at?: string | null
+          namespace?: string
+          priority?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      translation_sync_queue: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          namespace: string
+          new_keys: Json
+          priority: number | null
+          processed_at: string | null
+          status: string | null
+          target_languages: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          namespace: string
+          new_keys: Json
+          priority?: number | null
+          processed_at?: string | null
+          status?: string | null
+          target_languages?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          namespace?: string
+          new_keys?: Json
+          priority?: number | null
+          processed_at?: string | null
+          status?: string | null
+          target_languages?: string[] | null
         }
         Relationships: []
       }

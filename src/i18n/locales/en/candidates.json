@@ -1,0 +1,159 @@
+{
+  "title": "Candidates",
+  "subtitle": "Manage your talent pipeline",
+  "profile": {
+    "title": "Candidate Profile",
+    "edit": "Edit Profile",
+    "view": "View Profile",
+    "summary": "Professional Summary",
+    "experience": "Experience",
+    "education": "Education",
+    "skills": "Skills",
+    "languages": "Languages",
+    "certifications": "Certifications",
+    "portfolio": "Portfolio",
+    "resume": "Resume",
+    "coverLetter": "Cover Letter"
+  },
+  "applications": {
+    "title": "Applications",
+    "view": "View Applications",
+    "applied": "Applied",
+    "screening": "Screening",
+    "interview": "Interview",
+    "offer": "Offer",
+    "hired": "Hired",
+    "rejected": "Rejected",
+    "withdrawn": "Withdrawn",
+    "status": "Application Status",
+    "history": "Application History"
+  },
+  "search": {
+    "title": "Search Candidates",
+    "placeholder": "Search by name, skills, or title...",
+    "filters": "Filters",
+    "clearFilters": "Clear Filters",
+    "results": "Search Results",
+    "noResults": "No candidates found",
+    "advancedSearch": "Advanced Search"
+  },
+  "filters": {
+    "skills": "Skills",
+    "experience": "Experience Level",
+    "location": "Location",
+    "availability": "Availability",
+    "salaryRange": "Salary Range",
+    "jobType": "Job Type",
+    "remote": "Remote Only",
+    "hybrid": "Hybrid",
+    "onsite": "On-site"
+  },
+  "experience": {
+    "entry": "Entry Level",
+    "junior": "Junior",
+    "mid": "Mid-Level",
+    "senior": "Senior",
+    "lead": "Lead",
+    "executive": "Executive"
+  },
+  "availability": {
+    "immediate": "Immediately Available",
+    "twoWeeks": "2 Weeks Notice",
+    "oneMonth": "1 Month Notice",
+    "threeMonths": "3 Months Notice",
+    "notLooking": "Not Currently Looking"
+  },
+  "actions": {
+    "invite": "Invite to Apply",
+    "message": "Send Message",
+    "schedule": "Schedule Interview",
+    "addNote": "Add Note",
+    "addToShortlist": "Add to Shortlist",
+    "removeFromShortlist": "Remove from Shortlist",
+    "reject": "Reject",
+    "advance": "Advance to Next Stage",
+    "export": "Export Profile"
+  },
+  "matching": {
+    "title": "Match Score",
+    "excellent": "Excellent Match",
+    "good": "Good Match",
+    "fair": "Fair Match",
+    "poor": "Poor Match",
+    "factors": "Match Factors",
+    "skillsMatch": "Skills Match",
+    "experienceMatch": "Experience Match",
+    "cultureMatch": "Culture Fit"
+  },
+  "notes": {
+    "title": "Notes",
+    "addNote": "Add Note",
+    "editNote": "Edit Note",
+    "deleteNote": "Delete Note",
+    "placeholder": "Add a note about this candidate...",
+    "private": "Private Note",
+    "shared": "Shared with Team"
+  },
+  "tags": {
+    "title": "Tags",
+    "addTag": "Add Tag",
+    "removeTag": "Remove Tag",
+    "topCandidate": "Top Candidate",
+    "referral": "Referral",
+    "returning": "Returning Candidate"
+  },
+  "pipeline": {
+    "title": "Pipeline",
+    "stage": "Current Stage",
+    "moveToStage": "Move to Stage",
+    "daysInStage": "Days in Stage",
+    "nextStep": "Next Step"
+  },
+  "communication": {
+    "title": "Communication",
+    "emails": "Emails",
+    "calls": "Calls",
+    "meetings": "Meetings",
+    "lastContact": "Last Contact",
+    "sendEmail": "Send Email",
+    "logCall": "Log Call"
+  },
+  "documents": {
+    "title": "Documents",
+    "resume": "Resume",
+    "coverLetter": "Cover Letter",
+    "portfolio": "Portfolio",
+    "references": "References",
+    "upload": "Upload Document",
+    "download": "Download",
+    "preview": "Preview"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "doNotContact": "Do Not Contact",
+    "blacklisted": "Blacklisted"
+  },
+  "bulk": {
+    "title": "Bulk Actions",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "selected": "selected",
+    "sendEmail": "Send Bulk Email",
+    "addTags": "Add Tags",
+    "export": "Export Selected",
+    "moveToStage": "Move to Stage"
+  },
+  "import": {
+    "title": "Import Candidates",
+    "fromCSV": "Import from CSV",
+    "fromLinkedIn": "Import from LinkedIn",
+    "template": "Download Template",
+    "mapping": "Field Mapping"
+  },
+  "empty": {
+    "noCandidates": "No candidates found",
+    "noApplications": "No applications yet",
+    "addFirst": "Add your first candidate"
+  }
+}

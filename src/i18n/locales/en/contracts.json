@@ -1,0 +1,145 @@
+{
+  "title": "Contracts",
+  "subtitle": "Manage your contracts and agreements",
+  "create": {
+    "title": "Create Contract",
+    "fromTemplate": "Create from Template",
+    "fromScratch": "Create from Scratch",
+    "duplicate": "Duplicate Contract"
+  },
+  "edit": {
+    "title": "Edit Contract",
+    "save": "Save Changes",
+    "discard": "Discard Changes",
+    "preview": "Preview"
+  },
+  "sign": {
+    "title": "Sign Contract",
+    "eSign": "Electronic Signature",
+    "uploadSignature": "Upload Signature",
+    "drawSignature": "Draw Signature",
+    "typeSignature": "Type Signature",
+    "confirm": "Confirm Signature",
+    "signed": "Signed",
+    "pending": "Pending Signature",
+    "requestSignature": "Request Signature"
+  },
+  "status": {
+    "draft": "Draft",
+    "pending": "Pending Approval",
+    "active": "Active",
+    "expired": "Expired",
+    "terminated": "Terminated",
+    "renewed": "Renewed",
+    "cancelled": "Cancelled"
+  },
+  "types": {
+    "employment": "Employment Contract",
+    "freelance": "Freelance Agreement",
+    "nda": "Non-Disclosure Agreement",
+    "service": "Service Agreement",
+    "placement": "Placement Agreement",
+    "partnership": "Partnership Agreement"
+  },
+  "details": {
+    "title": "Contract Details",
+    "parties": "Parties",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "value": "Contract Value",
+    "currency": "Currency",
+    "terms": "Terms & Conditions",
+    "attachments": "Attachments",
+    "history": "Version History"
+  },
+  "parties": {
+    "client": "Client",
+    "contractor": "Contractor",
+    "employer": "Employer",
+    "employee": "Employee",
+    "party1": "First Party",
+    "party2": "Second Party"
+  },
+  "templates": {
+    "title": "Contract Templates",
+    "browse": "Browse Templates",
+    "create": "Create Template",
+    "edit": "Edit Template",
+    "delete": "Delete Template",
+    "use": "Use Template",
+    "preview": "Preview Template"
+  },
+  "clauses": {
+    "title": "Clauses",
+    "add": "Add Clause",
+    "edit": "Edit Clause",
+    "remove": "Remove Clause",
+    "standard": "Standard Clauses",
+    "custom": "Custom Clauses",
+    "library": "Clause Library"
+  },
+  "milestones": {
+    "title": "Milestones",
+    "add": "Add Milestone",
+    "completed": "Completed",
+    "pending": "Pending",
+    "dueDate": "Due Date",
+    "payment": "Payment Amount"
+  },
+  "payments": {
+    "title": "Payments",
+    "schedule": "Payment Schedule",
+    "history": "Payment History",
+    "pending": "Pending Payments",
+    "completed": "Completed Payments",
+    "overdue": "Overdue Payments",
+    "amount": "Amount",
+    "dueDate": "Due Date"
+  },
+  "actions": {
+    "view": "View Contract",
+    "edit": "Edit Contract",
+    "delete": "Delete Contract",
+    "duplicate": "Duplicate Contract",
+    "send": "Send for Signature",
+    "download": "Download PDF",
+    "print": "Print",
+    "archive": "Archive",
+    "renew": "Renew Contract",
+    "terminate": "Terminate Contract"
+  },
+  "notifications": {
+    "created": "Contract created successfully",
+    "updated": "Contract updated successfully",
+    "signed": "Contract signed successfully",
+    "sent": "Contract sent for signature",
+    "expiringSoon": "Contract expiring soon",
+    "expired": "Contract has expired"
+  },
+  "filters": {
+    "all": "All Contracts",
+    "active": "Active",
+    "draft": "Drafts",
+    "pending": "Pending",
+    "expired": "Expired",
+    "byType": "By Type",
+    "byParty": "By Party",
+    "byDate": "By Date"
+  },
+  "search": {
+    "placeholder": "Search contracts...",
+    "noResults": "No contracts found",
+    "advanced": "Advanced Search"
+  },
+  "empty": {
+    "noContracts": "No contracts yet",
+    "createFirst": "Create your first contract",
+    "noTemplates": "No templates available"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidDate": "Invalid date",
+    "endBeforeStart": "End date must be after start date",
+    "missingParty": "All parties must be specified"
+  }
+}
