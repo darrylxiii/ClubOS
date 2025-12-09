@@ -2,21 +2,26 @@ import { AppLayout } from "@/components/AppLayout";
 import { RoleGate } from "@/components/RoleGate";
 import { EmployeeProfileManager } from "@/components/employees/EmployeeProfileManager";
 import { TargetManagementPanel } from "@/components/employees/TargetManagementPanel";
+import { CommissionTierBuilder } from "@/components/employees/CommissionTierBuilder";
+import { PayoutScheduler } from "@/components/employees/PayoutScheduler";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   Users, 
   Settings, 
   Target,
-  DollarSign
+  DollarSign,
+  LayoutDashboard
 } from "lucide-react";
 import { useAllEmployees } from "@/hooks/useEmployeeProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/revenueCalculations";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminEmployees() {
+  const navigate = useNavigate();
   const { data: employees } = useAllEmployees();
 
   const { data: stats } = useQuery({
@@ -40,11 +45,20 @@ export default function AdminEmployees() {
       <RoleGate allowedRoles={['admin']}>
         <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
           {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold">Employee Management</h1>
-            <p className="text-muted-foreground">
-              Manage employee profiles, commissions, and targets
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Employee Management</h1>
+              <p className="text-muted-foreground">
+                Manage employee profiles, commissions, and targets
+              </p>
+            </div>
+            <Button 
+              onClick={() => navigate('/admin/employee-management')}
+              className="gap-2"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Full Dashboard
+            </Button>
           </div>
 
           {/* Stats Overview */}
@@ -128,30 +142,9 @@ export default function AdminEmployees() {
               <TargetManagementPanel />
             </TabsContent>
 
-            <TabsContent value="settings">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Commission Structure Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="p-4 bg-muted/30 rounded-lg">
-                      <h4 className="font-medium mb-2">Default Commission Rate</h4>
-                      <p className="text-2xl font-bold">5%</p>
-                      <p className="text-sm text-muted-foreground">Applied to new employees</p>
-                    </div>
-                    <div className="p-4 bg-muted/30 rounded-lg">
-                      <h4 className="font-medium mb-2">Commission Structures</h4>
-                      <div className="space-y-1">
-                        <Badge variant="outline">Percentage</Badge>
-                        <Badge variant="outline">Tiered</Badge>
-                        <Badge variant="outline">Hybrid</Badge>
-                        <Badge variant="outline">Fixed</Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="settings" className="space-y-6">
+              <CommissionTierBuilder />
+              <PayoutScheduler />
             </TabsContent>
           </Tabs>
         </div>
