@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Globe, Loader2 } from 'lucide-react';
+import { Globe, Loader2, Check } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
+import { changeLanguageWithReload, clearTranslationCache } from '@/i18n/config';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -25,8 +25,8 @@ const languages = [
 
 export const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
-  const queryClient = useQueryClient();
   const [isChanging, setIsChanging] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const currentLang = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   // Load user's preferred language on mount
@@ -41,13 +41,14 @@ export const LanguageSwitcher = () => {
           .single();
         
         if (profile?.preferred_language && profile.preferred_language !== i18n.language) {
-          await i18n.changeLanguage(profile.preferred_language);
+          // Clear cache and reload with user's preferred language
+          await changeLanguageWithReload(profile.preferred_language);
         }
       }
     };
     
     loadUserLanguage();
-  }, [i18n]);
+  }, []);
 
   // Apply RTL for Arabic
   useEffect(() => {
@@ -55,56 +56,62 @@ export const LanguageSwitcher = () => {
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
-  const changeLanguage = async (code: string) => {
-    if (code === i18n.language) return; // Already on this language
+  const handleChangeLanguage = async (code: string) => {
+    if (code === i18n.language || isChanging) return;
     
     setIsChanging(true);
-    const loadingToast = toast.loading(`Switching to ${languages.find(l => l.code === code)?.name}...`);
+    setIsOpen(false);
+    
+    const targetLang = languages.find(l => l.code === code);
+    const loadingToast = toast.loading(`Switching to ${targetLang?.name}...`);
     
     try {
-      // Change language first
-      await i18n.changeLanguage(code);
+      // Clear cache for the target language to ensure fresh data
+      clearTranslationCache(code);
       
-      // Force all components to re-render with new translations
-      queryClient.invalidateQueries();
+      // Use our new reload function
+      const success = await changeLanguageWithReload(code);
+      
+      if (!success) {
+        throw new Error('Language change failed');
+      }
       
       // Persist to user profile (if authenticated)
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { error } = await supabase
+        await supabase
           .from('profiles')
           .update({ preferred_language: code })
           .eq('id', user.id);
-        
-        if (error) {
-          console.error('[LanguageSwitcher] Failed to save language preference:', error);
-        }
       }
       
-      // Broadcast language change event to all components
-      window.dispatchEvent(new CustomEvent('languageChange', { detail: code }));
-      
       toast.dismiss(loadingToast);
-      toast.success(`Language changed to ${languages.find(l => l.code === code)?.name}`);
+      toast.success(`Language changed to ${targetLang?.name}`);
+      
+      // Force page re-render by triggering a state update
+      window.dispatchEvent(new Event('languageChange'));
     } catch (error) {
       console.error('[LanguageSwitcher] Error changing language:', error);
       toast.dismiss(loadingToast);
-      toast.error('Failed to change language');
+      toast.error('Failed to change language. Please try again.');
     } finally {
       setIsChanging(false);
     }
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative z-[60]" disabled={isChanging}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="relative z-[60]" 
+          disabled={isChanging}
+        >
           {isChanging ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
-            <>
-          <Globe className="h-5 w-5" />
-            </>
+            <Globe className="h-5 w-5" />
           )}
         </Button>
       </DropdownMenuTrigger>
@@ -112,11 +119,17 @@ export const LanguageSwitcher = () => {
         {languages.map(lang => (
           <DropdownMenuItem
             key={lang.code}
-            onClick={() => changeLanguage(lang.code)}
-            className={i18n.language === lang.code ? 'bg-accent' : ''}
+            onClick={() => handleChangeLanguage(lang.code)}
+            className="flex items-center justify-between cursor-pointer"
+            disabled={isChanging}
           >
-            <span className="mr-2 text-lg">{lang.flag}</span>
-            <span>{lang.name}</span>
+            <div className="flex items-center">
+              <span className="mr-2 text-lg">{lang.flag}</span>
+              <span>{lang.name}</span>
+            </div>
+            {i18n.language === lang.code && (
+              <Check className="h-4 w-4 text-primary" />
+            )}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

@@ -3528,6 +3528,45 @@ export type Database = {
           },
         ]
       }
+      brand_terms: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          never_translate: boolean | null
+          priority: number | null
+          term: string
+          translations: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          never_translate?: boolean | null
+          priority?: number | null
+          term: string
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          never_translate?: boolean | null
+          priority?: number | null
+          term?: string
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       calendar_connections: {
         Row: {
           access_token: string
@@ -28254,6 +28293,56 @@ export type Database = {
           },
         ]
       }
+      translation_audit_log: {
+        Row: {
+          action: string
+          changed_at: string | null
+          changed_by: string | null
+          id: string
+          key_path: string
+          language: string
+          metadata: Json | null
+          namespace: string
+          new_value: string | null
+          old_value: string | null
+          translation_id: string | null
+        }
+        Insert: {
+          action: string
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          key_path: string
+          language: string
+          metadata?: Json | null
+          namespace: string
+          new_value?: string | null
+          old_value?: string | null
+          translation_id?: string | null
+        }
+        Update: {
+          action?: string
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          key_path?: string
+          language?: string
+          metadata?: Json | null
+          namespace?: string
+          new_value?: string | null
+          old_value?: string | null
+          translation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translation_audit_log_translation_id_fkey"
+            columns: ["translation_id"]
+            isOneToOne: false
+            referencedRelation: "translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       translation_feedback: {
         Row: {
           created_at: string | null
@@ -28431,6 +28520,8 @@ export type Database = {
           is_active: boolean | null
           language: string
           namespace: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           translations: Json
           updated_at: string | null
           version: number | null
@@ -28443,6 +28534,8 @@ export type Database = {
           is_active?: boolean | null
           language: string
           namespace: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           translations: Json
           updated_at?: string | null
           version?: number | null
@@ -28455,6 +28548,8 @@ export type Database = {
           is_active?: boolean | null
           language?: string
           namespace?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           translations?: Json
           updated_at?: string | null
           version?: number | null
