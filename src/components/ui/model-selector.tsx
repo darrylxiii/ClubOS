@@ -20,22 +20,22 @@ const models: Model[] = [
     icon: <Sparkles className="w-4 h-4" />,
   },
   {
-    id: "claude-sonnet-4-5",
-    name: "Claude 4.5 Sonnet",
-    description: "Anthropic's most capable model",
-    icon: <Brain className="w-4 h-4" />,
-  },
-  {
-    id: "google/gemini-3",
-    name: "Gemini 3",
-    description: "Google's latest AI",
+    id: "google/gemini-2.5-pro",
+    name: "Gemini 2.5 Pro",
+    description: "Google's most capable model",
     icon: <Gem className="w-4 h-4" />,
   },
   {
-    id: "openai/gpt-5.1-pro",
-    name: "ChatGPT 5.1 Pro",
-    description: "OpenAI's flagship model",
+    id: "google/gemini-2.5-flash",
+    name: "Gemini 2.5 Flash",
+    description: "Fast and efficient",
     icon: <Zap className="w-4 h-4" />,
+  },
+  {
+    id: "openai/gpt-5",
+    name: "GPT-5",
+    description: "OpenAI's flagship model",
+    icon: <Brain className="w-4 h-4" />,
   },
 ];
 

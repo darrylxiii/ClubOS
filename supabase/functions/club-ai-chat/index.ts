@@ -829,12 +829,16 @@ ${careerBrainContext}`;
 
     // Map client-selected model to actual AI model
     let selectedModel = 'google/gemini-2.5-flash'; // Default
-    if (clientSelectedModel === 'quantum-0.1') {
+    if (clientSelectedModel === 'club-ai-0.1' || clientSelectedModel === 'quantum-0.1') {
       selectedModel = 'google/gemini-2.5-flash';
-    } else if (clientSelectedModel === 'gpt-5') {
+    } else if (clientSelectedModel === 'google/gemini-2.5-pro') {
+      selectedModel = 'google/gemini-2.5-pro';
+    } else if (clientSelectedModel === 'google/gemini-2.5-flash') {
+      selectedModel = 'google/gemini-2.5-flash';
+    } else if (clientSelectedModel === 'openai/gpt-5') {
       selectedModel = 'openai/gpt-5';
-    } else if (clientSelectedModel === 'claude-sonnet-4-5') {
-      selectedModel = 'claude-sonnet-4-5';
+    } else if (clientSelectedModel === 'openai/gpt-5-mini') {
+      selectedModel = 'openai/gpt-5-mini';
     }
 
     console.log('Client selected model:', clientSelectedModel, '→ Actual model:', selectedModel);
