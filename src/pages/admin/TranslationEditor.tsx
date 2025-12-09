@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import AppLayout from '@/components/layout/AppLayout';
-import RoleGate from '@/components/RoleGate';
+import { AppLayout } from '@/components/AppLayout';
+import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,8 @@ import {
   useMarkAsReviewed,
   type FlatTranslation 
 } from '@/hooks/use-translation-editor';
+
+type LanguageConfig = { code: string; name: string; native_name: string; flag: string; is_active: boolean; is_default: boolean };
 
 export default function TranslationEditor() {
   const [selectedNamespace, setSelectedNamespace] = useState('common');
@@ -92,7 +94,7 @@ export default function TranslationEditor() {
     toast.success('Translations exported');
   };
   
-  const activeLanguages = (languages || []).filter((l: any) => l.is_active);
+  const activeLanguages = ((languages || []) as LanguageConfig[]).filter((l) => l.is_active);
   
   return (
     <AppLayout>
