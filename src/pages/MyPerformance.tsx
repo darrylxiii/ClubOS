@@ -4,10 +4,15 @@ import { EmployeeOverviewCard } from "@/components/employees/EmployeeOverviewCar
 import { CommissionsTracker } from "@/components/employees/CommissionsTracker";
 import { TargetsProgressCard } from "@/components/employees/TargetsProgressCard";
 import { PlacementHistory } from "@/components/employees/PlacementHistory";
+import { ActivityLoggerWidget } from "@/components/employees/ActivityLoggerWidget";
+import { ActivityFeed } from "@/components/employees/ActivityFeed";
+import { TrainingRecordsPanel } from "@/components/employees/TrainingRecordsPanel";
+import { OnboardingChecklist } from "@/components/employees/OnboardingChecklist";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   useEmployeeProfile, 
   useEmployeeTargets, 
@@ -16,9 +21,9 @@ import {
 } from "@/hooks/useEmployeeProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertCircle, TrendingUp, Clock, RefreshCw } from "lucide-react";
+import { AlertCircle, Clock, RefreshCw, Activity, GraduationCap, ListChecks } from "lucide-react";
 import { motion } from "framer-motion";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { startOfMonth, endOfMonth } from "date-fns";
 
 export default function MyPerformance() {
   const { data: employee, isLoading: employeeLoading, refetch } = useEmployeeProfile();
@@ -121,55 +126,93 @@ export default function MyPerformance() {
                 hoursThisMonth={hoursData?.hours || 0}
               />
 
-              {/* Two Column Layout */}
-              <div className="grid gap-6 lg:grid-cols-2">
-                {/* Left Column */}
-                <div className="space-y-6">
-                  <TargetsProgressCard 
-                    targets={targets || []} 
-                    isLoading={targetsLoading}
-                  />
-                  
-                  <PlacementHistory 
-                    placements={commissions || []} 
-                    isLoading={commissionsLoading}
-                  />
-                </div>
+              {/* Tabbed Content */}
+              <Tabs defaultValue="performance" className="space-y-6">
+                <TabsList>
+                  <TabsTrigger value="performance" className="gap-2">
+                    <Clock className="h-4 w-4" />
+                    Performance
+                  </TabsTrigger>
+                  <TabsTrigger value="activity" className="gap-2">
+                    <Activity className="h-4 w-4" />
+                    Activity
+                  </TabsTrigger>
+                  <TabsTrigger value="training" className="gap-2">
+                    <GraduationCap className="h-4 w-4" />
+                    Training
+                  </TabsTrigger>
+                  <TabsTrigger value="onboarding" className="gap-2">
+                    <ListChecks className="h-4 w-4" />
+                    Onboarding
+                  </TabsTrigger>
+                </TabsList>
 
-                {/* Right Column */}
-                <div className="space-y-6">
-                  <CommissionsTracker 
-                    commissions={commissions || []} 
-                    isLoading={commissionsLoading}
-                  />
+                <TabsContent value="performance">
+                  <div className="grid gap-6 lg:grid-cols-2">
+                    {/* Left Column */}
+                    <div className="space-y-6">
+                      <TargetsProgressCard 
+                        targets={targets || []} 
+                        isLoading={targetsLoading}
+                      />
+                      
+                      <PlacementHistory 
+                        placements={commissions || []} 
+                        isLoading={commissionsLoading}
+                      />
+                    </div>
 
-                  {/* Quick Stats */}
-                  <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-primary" />
-                        Time & Productivity
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 bg-muted/30 rounded-lg">
-                          <p className="text-xs text-muted-foreground">Hours This Month</p>
-                          <p className="text-2xl font-bold">{hoursData?.hours || 0}h</p>
-                        </div>
-                        <div className="p-3 bg-muted/30 rounded-lg">
-                          <p className="text-xs text-muted-foreground">Revenue per Hour</p>
-                          <p className="text-2xl font-bold">
-                            €{hoursData?.hours && metrics?.total_commissions 
-                              ? Math.round(metrics.total_commissions / hoursData.hours)
-                              : 0}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+                    {/* Right Column */}
+                    <div className="space-y-6">
+                      <CommissionsTracker 
+                        commissions={commissions || []} 
+                        isLoading={commissionsLoading}
+                      />
+
+                      {/* Quick Stats */}
+                      <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Clock className="h-5 w-5 text-primary" />
+                            Time & Productivity
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <p className="text-xs text-muted-foreground">Hours This Month</p>
+                              <p className="text-2xl font-bold">{hoursData?.hours || 0}h</p>
+                            </div>
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <p className="text-xs text-muted-foreground">Revenue per Hour</p>
+                              <p className="text-2xl font-bold">
+                                €{hoursData?.hours && metrics?.total_commissions 
+                                  ? Math.round(metrics.total_commissions / hoursData.hours)
+                                  : 0}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="activity" className="space-y-6">
+                  <div className="grid gap-6 lg:grid-cols-2">
+                    <ActivityLoggerWidget />
+                    <ActivityFeed userId={employee.user_id} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="training">
+                  <TrainingRecordsPanel />
+                </TabsContent>
+
+                <TabsContent value="onboarding">
+                  <OnboardingChecklist />
+                </TabsContent>
+              </Tabs>
             </motion.div>
           )}
         </div>

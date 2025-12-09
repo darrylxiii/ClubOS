@@ -41,6 +41,8 @@ const DealPipelineSettings = lazy(() => import("@/pages/admin/DealPipelineSettin
 const AntiHacking = lazy(() => import("@/pages/admin/AntiHacking"));
 const AdminAuditLog = lazy(() => import("@/pages/admin/AdminAuditLog"));
 const AdminEmployees = lazy(() => import("@/pages/admin/Employees"));
+const EmployeeDetailPage = lazy(() => import("@/pages/admin/EmployeeDetailPage"));
+const EmployeeManagement = lazy(() => import("@/pages/admin/EmployeeManagement"));
 const MyPerformance = lazy(() => import("@/pages/MyPerformance"));
 const TeamPerformance = lazy(() => import("@/pages/TeamPerformance"));
 
@@ -389,6 +391,30 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <AdminEmployees />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/employees/:employeeId"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <EmployeeDetailPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/employee-management"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <EmployeeManagement />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
