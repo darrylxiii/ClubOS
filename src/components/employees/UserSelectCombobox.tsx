@@ -35,7 +35,10 @@ export const UserSelectCombobox = ({
   companyId 
 }: UserSelectComboboxProps) => {
   const [open, setOpen] = useState(false);
-  const { data: users, isLoading } = useAvailableUsers(true, companyId);
+  const [searchValue, setSearchValue] = useState("");
+  
+  // Pass companyId to filter users by company - use null if not provided to get all users
+  const { data: users, isLoading, error } = useAvailableUsers(true, companyId ?? null);
 
   const selectedUser = value;
 
@@ -47,6 +50,17 @@ export const UserSelectCombobox = ({
       default: return 'outline';
     }
   };
+
+  // Filter users based on search
+  const filteredUsers = users?.filter(user => {
+    if (!searchValue) return true;
+    const searchLower = searchValue.toLowerCase();
+    return (
+      user.full_name?.toLowerCase().includes(searchLower) ||
+      user.email?.toLowerCase().includes(searchLower) ||
+      user.current_title?.toLowerCase().includes(searchLower)
+    );
+  });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -88,52 +102,63 @@ export const UserSelectCombobox = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Search users..." />
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder="Search users..." 
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
           <CommandList>
             {isLoading ? (
               <div className="flex items-center justify-center py-6">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
-            ) : users?.length === 0 ? (
+            ) : error ? (
+              <div className="py-6 text-center text-sm text-destructive">
+                Error loading users. Please try again.
+              </div>
+            ) : filteredUsers?.length === 0 ? (
               <CommandEmpty>
-                {companyId 
-                  ? "No available users in this company." 
-                  : "No users found."}
+                {searchValue 
+                  ? `No users found matching "${searchValue}"` 
+                  : companyId 
+                    ? "No available users in this company." 
+                    : "No users found."}
               </CommandEmpty>
             ) : (
-              <CommandGroup>
-                {users?.map((user) => (
+              <CommandGroup heading={`${filteredUsers?.length || 0} users available`}>
+                {filteredUsers?.map((user) => (
                   <CommandItem
                     key={user.id}
-                    value={`${user.full_name} ${user.email}`}
+                    value={user.id}
                     onSelect={() => {
                       onChange(user.id === value?.id ? null : user);
                       setOpen(false);
+                      setSearchValue("");
                     }}
-                    className="flex items-center gap-3 py-3"
+                    className="flex items-center gap-3 py-3 cursor-pointer"
                   >
                     <Check
                       className={cn(
-                        "h-4 w-4",
+                        "h-4 w-4 flex-shrink-0",
                         value?.id === user.id ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={user.avatar_url || undefined} />
                       <AvatarFallback>
                         {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col flex-1">
-                      <span className="font-medium">{user.full_name || 'Unknown'}</span>
-                      <span className="text-xs text-muted-foreground">{user.email}</span>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="font-medium truncate">{user.full_name || 'Unknown'}</span>
+                      <span className="text-xs text-muted-foreground truncate">{user.email}</span>
                       {user.current_title && (
-                        <span className="text-xs text-muted-foreground">{user.current_title}</span>
+                        <span className="text-xs text-muted-foreground truncate">{user.current_title}</span>
                       )}
                     </div>
                     {user.role && (
-                      <Badge variant={getRoleBadgeVariant(user.role)} className="ml-auto">
+                      <Badge variant={getRoleBadgeVariant(user.role)} className="ml-auto flex-shrink-0">
                         {user.role}
                       </Badge>
                     )}

@@ -24,13 +24,19 @@ export const useAvailableUsers = (excludeExistingEmployees = true, companyId?: s
           .eq('company_id', companyId)
           .eq('is_active', true);
 
-        if (membersError) throw membersError;
+        if (membersError) {
+          console.error('Error fetching company members:', membersError);
+          throw membersError;
+        }
 
         const memberUserIds = companyMembers?.map(m => m.user_id) || [];
         
         if (memberUserIds.length === 0) {
+          console.log('No company members found for company:', companyId);
           return [];
         }
+
+        console.log('Found company members:', memberUserIds.length);
 
         // Fetch profiles for company members
         const { data: profiles, error: profilesError } = await supabase
@@ -45,7 +51,10 @@ export const useAvailableUsers = (excludeExistingEmployees = true, companyId?: s
           .in('id', memberUserIds)
           .order('full_name');
 
-        if (profilesError) throw profilesError;
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+          throw profilesError;
+        }
 
         // Fetch user roles for these members
         const { data: roles, error: rolesError } = await supabase
@@ -53,7 +62,10 @@ export const useAvailableUsers = (excludeExistingEmployees = true, companyId?: s
           .select('user_id, role')
           .in('user_id', memberUserIds);
 
-        if (rolesError) throw rolesError;
+        if (rolesError) {
+          console.error('Error fetching roles:', rolesError);
+          throw rolesError;
+        }
 
         // Fetch existing employee profiles
         const { data: existingEmployees, error: employeesError } = await supabase
@@ -61,7 +73,10 @@ export const useAvailableUsers = (excludeExistingEmployees = true, companyId?: s
           .select('user_id')
           .in('user_id', memberUserIds);
 
-        if (employeesError) throw employeesError;
+        if (employeesError) {
+          console.error('Error fetching existing employees:', employeesError);
+          throw employeesError;
+        }
 
         const existingEmployeeIds = new Set(existingEmployees?.map(e => e.user_id) || []);
         const roleMap = new Map<string, string>();
@@ -90,7 +105,7 @@ export const useAvailableUsers = (excludeExistingEmployees = true, companyId?: s
         return users;
       }
 
-      // Original behavior: fetch all profiles
+      // Original behavior: fetch all profiles (when no companyId provided)
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -145,5 +160,8 @@ export const useAvailableUsers = (excludeExistingEmployees = true, companyId?: s
 
       return users;
     },
+    // Only run when companyId is explicitly provided (not undefined)
+    // If companyId is null, we'll fetch all users; if undefined, we wait
+    enabled: companyId !== undefined,
   });
 };
