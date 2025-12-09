@@ -179,9 +179,9 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
           <div className="space-y-2">
             <Label>Project</Label>
             <Select
-              value={projectId || ""}
+              value={projectId || "__none__"}
               onValueChange={(val) => {
-                setProjectId(val || null);
+                setProjectId(val === "__none__" ? null : val);
                 setTaskId(null);
               }}
             >
@@ -189,7 +189,7 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
                 <SelectValue placeholder="Select project" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No project</SelectItem>
+                <SelectItem value="__none__">No project</SelectItem>
                 {projects?.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     <span className="flex items-center gap-2">
@@ -210,14 +210,14 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
             <div className="space-y-2">
               <Label>Task</Label>
               <Select
-                value={taskId || ""}
-                onValueChange={(val) => setTaskId(val || null)}
+                value={taskId || "__none__"}
+                onValueChange={(val) => setTaskId(val === "__none__" ? null : val)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select task" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No task</SelectItem>
+                  <SelectItem value="__none__">No task</SelectItem>
                   {tasks.map((task) => (
                     <SelectItem key={task.id} value={task.id}>
                       {task.name}

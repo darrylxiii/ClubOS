@@ -356,14 +356,14 @@ function EmployeeForm({
         <div className="space-y-2">
           <Label>Manager</Label>
           <Select
-            value={formData.manager_id}
-            onValueChange={(value) => setFormData({ ...formData, manager_id: value })}
+            value={formData.manager_id || "__none__"}
+            onValueChange={(value) => setFormData({ ...formData, manager_id: value === "__none__" ? "" : value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select manager" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No Manager</SelectItem>
+              <SelectItem value="__none__">No Manager</SelectItem>
               {allEmployees
                 .filter(e => e.id !== employee?.id)
                 .map(e => {
