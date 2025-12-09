@@ -24,6 +24,8 @@ import { toast } from "sonner";
 import { UserSelectCombobox } from "./UserSelectCombobox";
 import { EmployeeDetailView } from "./EmployeeDetailView";
 import { AvailableUser } from "@/hooks/useAvailableUsers";
+import { useUserCompany } from "@/hooks/useUserCompany";
+import { CommissionTierSelector, TierConfig } from "./CommissionTierSelector";
 
 export function EmployeeProfileManager() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,6 +33,7 @@ export function EmployeeProfileManager() {
   const [editingEmployee, setEditingEmployee] = useState<EmployeeProfile | null>(null);
   const [viewingEmployee, setViewingEmployee] = useState<EmployeeProfile | null>(null);
   const queryClient = useQueryClient();
+  const { data: userCompany } = useUserCompany();
 
   const { data: employees, isLoading } = useAllEmployees();
 
@@ -84,7 +87,7 @@ export function EmployeeProfileManager() {
               Add Employee
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingEmployee ? 'Edit Employee Profile' : 'Add New Employee'}
@@ -94,6 +97,7 @@ export function EmployeeProfileManager() {
               employee={editingEmployee} 
               onClose={() => setIsDialogOpen(false)}
               allEmployees={employees || []}
+              companyId={userCompany?.id}
             />
           </DialogContent>
         </Dialog>
@@ -159,7 +163,9 @@ export function EmployeeProfileManager() {
                     <div className="flex items-center gap-3">
                       <div className="text-right hidden md:block">
                         <Badge variant="outline" className="mb-1">
-                          {employee.commission_percentage}% commission
+                          {employee.commission_structure === 'fixed' 
+                            ? 'Fixed' 
+                            : `${employee.commission_percentage}% ${employee.commission_structure}`}
                         </Badge>
                         <p className="text-xs text-muted-foreground">
                           {employee.employment_type.replace('_', ' ')}
@@ -220,11 +226,13 @@ export function EmployeeProfileManager() {
 function EmployeeForm({ 
   employee, 
   onClose,
-  allEmployees 
+  allEmployees,
+  companyId
 }: { 
   employee: EmployeeProfile | null;
   onClose: () => void;
   allEmployees: EmployeeProfile[];
+  companyId?: string | null;
 }) {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<AvailableUser | null>(null);
@@ -239,6 +247,15 @@ function EmployeeForm({
     base_salary: employee?.base_salary || 0,
     annual_bonus_target: employee?.annual_bonus_target || 0,
   });
+  
+  // Commission tier state
+  const [customTiers, setCustomTiers] = useState<TierConfig[]>([
+    { min_revenue: 0, max_revenue: 50000, commission_rate: 5 },
+    { min_revenue: 50000, max_revenue: 100000, commission_rate: 7.5 },
+    { min_revenue: 100000, max_revenue: null, commission_rate: 10 },
+  ]);
+  const [useCompanyDefaults, setUseCompanyDefaults] = useState(true);
+  const [fixedAmount, setFixedAmount] = useState(0);
 
   const handleUserSelect = (user: AvailableUser | null) => {
     setSelectedUser(user);
@@ -271,6 +288,8 @@ function EmployeeForm({
         if (error) throw error;
       } else {
         if (!formData.user_id) throw new Error('Please select a user');
+        if (!formData.job_title.trim()) throw new Error('Please enter a job title');
+        
         const { error } = await supabase
           .from('employee_profiles')
           .insert({
@@ -308,10 +327,16 @@ function EmployeeForm({
             value={selectedUser}
             onChange={handleUserSelect}
             placeholder="Search for a user..."
+            companyId={companyId}
           />
           {selectedUser && (
             <p className="text-xs text-muted-foreground">
               Role: {selectedUser.role || 'No role assigned'}
+            </p>
+          )}
+          {!companyId && (
+            <p className="text-xs text-amber-500">
+              Warning: No company context. Showing all users.
             </p>
           )}
         </div>
@@ -379,36 +404,37 @@ function EmployeeForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Commission Structure</Label>
-          <Select
-            value={formData.commission_structure}
-            onValueChange={(value) => setFormData({ ...formData, commission_structure: value })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="percentage">Percentage</SelectItem>
-              <SelectItem value="tiered">Tiered</SelectItem>
-              <SelectItem value="hybrid">Hybrid</SelectItem>
-              <SelectItem value="fixed">Fixed</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Commission %</Label>
-          <Input
-            type="number"
-            step="0.5"
-            min="0"
-            max="100"
-            value={formData.commission_percentage}
-            onChange={(e) => setFormData({ ...formData, commission_percentage: parseFloat(e.target.value) || 0 })}
-          />
-        </div>
+      {/* Commission Structure Type Selection */}
+      <div className="space-y-2">
+        <Label>Commission Structure</Label>
+        <Select
+          value={formData.commission_structure}
+          onValueChange={(value) => setFormData({ ...formData, commission_structure: value })}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="percentage">Percentage</SelectItem>
+            <SelectItem value="tiered">Tiered</SelectItem>
+            <SelectItem value="hybrid">Hybrid (Base + Tiers)</SelectItem>
+            <SelectItem value="fixed">Fixed Amount</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {/* Dynamic Commission Configuration */}
+      <CommissionTierSelector
+        commissionStructure={formData.commission_structure}
+        basePercentage={formData.commission_percentage}
+        onBasePercentageChange={(value) => setFormData({ ...formData, commission_percentage: value })}
+        customTiers={customTiers}
+        onCustomTiersChange={setCustomTiers}
+        useCompanyDefaults={useCompanyDefaults}
+        onUseCompanyDefaultsChange={setUseCompanyDefaults}
+        fixedAmount={fixedAmount}
+        onFixedAmountChange={setFixedAmount}
+      />
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -435,7 +461,7 @@ function EmployeeForm({
         <Button variant="outline" onClick={onClose}>Cancel</Button>
         <Button 
           onClick={() => saveEmployee.mutate()}
-          disabled={(!employee && !formData.user_id) || !formData.job_title || saveEmployee.isPending}
+          disabled={(!employee && !formData.user_id) || !formData.job_title.trim() || saveEmployee.isPending}
         >
           {saveEmployee.isPending ? 'Saving...' : (employee ? 'Update' : 'Create')}
         </Button>
