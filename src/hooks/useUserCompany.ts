@@ -13,8 +13,13 @@ export const useUserCompany = () => {
 
   return useQuery({
     queryKey: ['user-company', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
+    queryFn: async (): Promise<UserCompany | null> => {
+      if (!user?.id) {
+        console.log('useUserCompany: No user ID available');
+        return null;
+      }
+
+      console.log('useUserCompany: Fetching company for user:', user.id);
 
       // Get the user's primary company from company_members
       const { data, error } = await supabase
@@ -30,20 +35,35 @@ export const useUserCompany = () => {
         .eq('user_id', user.id)
         .eq('is_active', true)
         .order('created_at', { ascending: true })
-        .limit(1)
-        .single();
+        .limit(1);
 
-      if (error || !data) return null;
+      if (error) {
+        console.error('useUserCompany: Error fetching company:', error);
+        throw error;
+      }
 
-      const company = data.companies as { id: string; name: string } | null;
-      if (!company) return null;
+      if (!data || data.length === 0) {
+        console.log('useUserCompany: No company membership found for user');
+        return null;
+      }
+
+      const membership = data[0];
+      const company = membership.companies as { id: string; name: string } | null;
+      
+      if (!company) {
+        console.log('useUserCompany: No company data in membership');
+        return null;
+      }
+
+      console.log('useUserCompany: Found company:', company.name, company.id);
 
       return {
         id: company.id,
         name: company.name,
-        role: data.role,
-      } as UserCompany;
+        role: membership.role,
+      };
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 };
