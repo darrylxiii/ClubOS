@@ -1,6 +1,6 @@
 /**
  * Batch Translate Edge Function
- * Phase 3: Enhanced with standardized CORS and comprehensive logging
+ * Enterprise-grade: Smart batching (multiple texts per prompt), proper rate limiting
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
@@ -8,7 +8,7 @@ import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-lim
 import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
 import { createFunctionLogger, getClientInfo } from '../_shared/function-logger.ts';
 
-// Input validation schema for security
+// Input validation schema
 const batchTranslateSchema = z.object({
   texts: z.array(z.string().max(1000)).max(200).optional(),
   targetLanguage: z.enum(['nl', 'de', 'fr', 'es', 'zh', 'ar', 'ru']),
@@ -16,6 +16,16 @@ const batchTranslateSchema = z.object({
   namespace: z.string().max(50),
   sourceTranslations: z.record(z.any()).optional()
 });
+
+const LANGUAGE_NAMES: Record<string, string> = {
+  nl: 'Dutch',
+  de: 'German',
+  fr: 'French',
+  es: 'Spanish',
+  zh: 'Chinese (Simplified)',
+  ar: 'Arabic',
+  ru: 'Russian'
+};
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -27,7 +37,7 @@ Deno.serve(async (req) => {
   logger.logRequest(req.method, undefined, { ip: clientInfo.ip });
 
   try {
-    // Rate limiting: 100 requests per hour per IP/user (increased for enterprise translation)
+    // Rate limiting: 100 requests per hour per IP
     const rateLimitResult = await checkUserRateLimit(clientInfo.ip, "batch-translate", 100, 3600000);
     if (!rateLimitResult.allowed) {
       logger.logRateLimit(clientInfo.ip);
@@ -44,80 +54,84 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Validate input to prevent injection and malformed data
+    // Validate input
     const rawInput = await req.json();
     const validationResult = batchTranslateSchema.safeParse(rawInput);
     
     if (!validationResult.success) {
       logger.error('Validation failed', validationResult.error);
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid input', 
-          details: validationResult.error.flatten() 
-        }),
+        JSON.stringify({ error: 'Invalid input', details: validationResult.error.flatten() }),
         { status: 400, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { texts, targetLanguage, context = 'ui_translation', namespace, sourceTranslations } = validationResult.data;
+    const { targetLanguage, namespace, sourceTranslations } = validationResult.data;
 
-    // Handle two modes: direct texts array OR sourceTranslations object
-    let textsToTranslate: string[] = [];
-
-    if (sourceTranslations && typeof sourceTranslations === 'object') {
-      // Extract all string values from nested object
-      const extractTexts = (obj: any): string[] => {
-        const results: string[] = [];
-        for (const value of Object.values(obj)) {
-          if (typeof value === 'string') {
-            results.push(value);
-          } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            results.push(...extractTexts(value));
-          }
-        }
-        return results;
-      };
-      
-      textsToTranslate = extractTexts(sourceTranslations);
-      logger.info(`Extracted ${textsToTranslate.length} texts from sourceTranslations`);
-    } else if (texts && Array.isArray(texts)) {
-      textsToTranslate = texts;
-    } else {
+    if (!sourceTranslations || typeof sourceTranslations !== 'object') {
       return new Response(
-        JSON.stringify({ error: 'Either texts array or sourceTranslations object is required' }),
+        JSON.stringify({ error: 'sourceTranslations object is required' }),
         { status: 400, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (textsToTranslate.length === 0) {
+    // Flatten the nested object to key-value pairs
+    const flattenObject = (obj: any, prefix = ''): Array<{ key: string; value: string }> => {
+      const results: Array<{ key: string; value: string }> = [];
+      for (const [key, value] of Object.entries(obj)) {
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+        if (typeof value === 'string') {
+          results.push({ key: fullKey, value });
+        } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          results.push(...flattenObject(value, fullKey));
+        }
+      }
+      return results;
+    };
+
+    const flatPairs = flattenObject(sourceTranslations);
+    logger.info(`Processing ${flatPairs.length} texts for ${targetLanguage}`);
+
+    if (flatPairs.length === 0) {
       return new Response(
         JSON.stringify({ error: 'No texts found to translate' }),
         { status: 400, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!targetLanguage) {
-      return new Response(
-        JSON.stringify({ error: 'targetLanguage is required' }),
-        { status: 400, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    logger.info(`Translating ${textsToTranslate.length} texts to ${targetLanguage}`);
-
-    // Batch translate using Lovable AI with retry logic
-    const translations: string[] = [];
-    
-    // Helper function to sleep/delay
     const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-    
-    // Phase 4: Optimized prompt (simplified for faster processing)
-    const translateWithRetry = async (text: string, maxRetries = 3): Promise<string> => {
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-          // Phase 4: Simplified prompt - ONLY return translation, no explanations
-          const prompt = `Translate this exact text to ${targetLanguage}. Return ONLY the translation, nothing else: "${text}"`;
+    const languageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
 
+    // SMART BATCHING: Translate multiple texts in ONE prompt (up to 15 at a time)
+    const BATCH_SIZE = 15;
+    const translatedPairs: Array<{ key: string; value: string }> = [];
+
+    for (let i = 0; i < flatPairs.length; i += BATCH_SIZE) {
+      const batch = flatPairs.slice(i, i + BATCH_SIZE);
+      const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+      const totalBatches = Math.ceil(flatPairs.length / BATCH_SIZE);
+      
+      logger.info(`Translating batch ${batchNum}/${totalBatches} (${batch.length} texts)`);
+
+      // Build a JSON array for batch translation
+      const textsToTranslate = batch.map((p, idx) => ({ id: idx, text: p.value }));
+      
+      const prompt = `Translate each text to ${languageName}. Return a JSON array with the same structure.
+      
+Input:
+${JSON.stringify(textsToTranslate, null, 2)}
+
+Rules:
+- Return ONLY a valid JSON array
+- Each object must have "id" (same as input) and "text" (translated)
+- Maintain professional, sophisticated tone for a luxury recruitment platform
+- Do NOT add explanations or extra text`;
+
+      let success = false;
+      let lastError: Error | null = null;
+
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
           const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -125,30 +139,26 @@ Deno.serve(async (req) => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'google/gemini-2.5-flash-lite', // Phase 1: Faster model with higher rate limits
+              model: 'google/gemini-2.5-flash',
               messages: [
                 { 
                   role: 'system', 
-                  content: 'You are a professional translator. Return ONLY the translation without any explanation, options, or additional text. Use a professional, sophisticated tone suitable for luxury recruitment platforms.'
+                  content: 'You are a professional translator. Return ONLY valid JSON. No explanations.'
                 },
                 { role: 'user', content: prompt }
               ],
+              temperature: 0.3,
             }),
           });
 
           if (response.status === 429) {
-            const retryAfter = response.headers.get('retry-after');
-            const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
-            logger.warn(`Rate limited (429), waiting ${waitTime}ms before retry ${attempt}/${maxRetries}`);
-            if (attempt < maxRetries) {
-              await sleep(waitTime);
-              continue;
-            }
-            throw new Error('RATE_LIMIT_EXCEEDED');
+            const waitTime = Math.pow(2, attempt) * 2000; // 2s, 4s, 8s
+            logger.warn(`Rate limited (429), waiting ${waitTime}ms...`);
+            await sleep(waitTime);
+            continue;
           }
 
           if (response.status === 402) {
-            logger.error('Payment required (402) - out of credits');
             throw new Error('PAYMENT_REQUIRED');
           }
 
@@ -159,159 +169,109 @@ Deno.serve(async (req) => {
           }
 
           const data = await response.json();
-          return data.choices[0].message.content.trim();
-        } catch (error: any) {
-          if (error.message === 'RATE_LIMIT_EXCEEDED' || error.message === 'PAYMENT_REQUIRED') {
-            throw error;
-          }
-          if (attempt === maxRetries) {
-            logger.error(`Failed after ${maxRetries} attempts`, error);
-            throw error;
-          }
-          const backoffTime = Math.pow(2, attempt) * 1000;
-          logger.info(`Retry ${attempt}/${maxRetries} after ${backoffTime}ms`);
-          await sleep(backoffTime);
-        }
-      }
-      throw new Error('Translation failed after retries');
-    };
-    
-    // Process in batches of 5 (reduced from 10) to avoid rate limits
-    const batchSize = 5;
-    for (let i = 0; i < textsToTranslate.length; i += batchSize) {
-      const batch = textsToTranslate.slice(i, i + batchSize);
-      
-      // Translate each text in the batch
-      const batchPromises = batch.map(text => translateWithRetry(text));
-
-      try {
-        const batchResults = await Promise.all(batchPromises);
-        translations.push(...batchResults);
-        
-        logger.info(`Completed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(textsToTranslate.length / batchSize)}`);
-        
-        // Add delay between batches to respect rate limits (500ms)
-        if (i + batchSize < textsToTranslate.length) {
-          await sleep(500);
-        }
-      } catch (error: any) {
-        // Surface rate limit and payment errors to caller
-        if (error.message === 'RATE_LIMIT_EXCEEDED') {
-          logger.error('Rate limit exceeded, cannot continue');
-          return new Response(
-            JSON.stringify({ 
-              error: 'Rate limit exceeded. Please try again in a few minutes.',
-              errorType: 'RATE_LIMIT',
-              partialTranslations: translations
-            }),
-            { status: 429, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        if (error.message === 'PAYMENT_REQUIRED') {
-          logger.error('Payment required - out of credits');
-          return new Response(
-            JSON.stringify({ 
-              error: 'Translation credits depleted. Please add more credits to continue.',
-              errorType: 'PAYMENT_REQUIRED',
-              partialTranslations: translations
-            }),
-            { status: 402, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        throw error;
-      }
-    }
-
-    logger.logSuccess(200, { translatedCount: translations.length });
-
-    // Reconstruct the translation object if sourceTranslations provided
-    const translationObject: Record<string, any> = {};
-    if (sourceTranslations) {
-      let textIndex = 0;
-      
-      const reconstructObject = (obj: any, prefix = ''): void => {
-        for (const [key, value] of Object.entries(obj)) {
-          const fullKey = prefix ? `${prefix}.${key}` : key;
+          const content = data.choices[0].message.content.trim();
           
-          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            reconstructObject(value, fullKey);
-          } else {
-            const translatedText = translations[textIndex++];
-            const keys = fullKey.split('.');
-            let current: any = translationObject;
-            
-            for (let i = 0; i < keys.length - 1; i++) {
-              if (!current[keys[i]]) {
-                current[keys[i]] = {};
-              }
-              current = current[keys[i]];
-            }
-            
-            current[keys[keys.length - 1]] = translatedText;
+          // Parse the JSON response
+          const jsonMatch = content.match(/\[[\s\S]*\]/);
+          if (!jsonMatch) {
+            throw new Error('Invalid JSON response');
           }
-        }
-      };
 
-      reconstructObject(sourceTranslations);
-
-        if (namespace) {
-        logger.info(`Storing ${targetLanguage} translation for ${namespace} in database...`);
-        
-        // Get user from auth header
-        const authHeader = req.headers.get('Authorization');
-        let userId = null;
-        
-        if (authHeader) {
-          const userClient = createClient(supabaseUrl, supabaseServiceKey, {
-            global: { headers: { Authorization: authHeader } }
-          });
-          const { data: { user } } = await userClient.auth.getUser();
-          userId = user?.id;
-        }
-        
-        const { error: insertError } = await supabase
-          .from('translations')
-          .insert({
-            namespace,
-            language: targetLanguage,
-            translations: translationObject,
-            version: 1,
-            generated_by: userId,
-            is_active: true
-          });
-
-        if (insertError) {
-          // If unique constraint violation, update instead
-          if (insertError.code === '23505') {
-            const { error: updateError } = await supabase
-              .from('translations')
-              .update({
-                translations: translationObject,
-                generated_at: new Date().toISOString(),
-                generated_by: userId
-              })
-              .eq('namespace', namespace)
-              .eq('language', targetLanguage)
-              .eq('version', 1);
-
-            if (updateError) {
-              logger.error('Failed to update translation', updateError);
-            } else {
-              logger.info(`Updated ${targetLanguage} translation for ${namespace}`);
+          const translatedArray = JSON.parse(jsonMatch[0]);
+          
+          // Map translations back to keys
+          for (const item of translatedArray) {
+            const originalPair = batch[item.id];
+            if (originalPair) {
+              translatedPairs.push({ key: originalPair.key, value: item.text });
             }
-          } else {
-            logger.error('Failed to insert translation', insertError);
           }
-        } else {
-          logger.info(`Stored ${targetLanguage} translation for ${namespace}`);
+
+          success = true;
+          break;
+        } catch (error: any) {
+          lastError = error;
+          if (error.message === 'PAYMENT_REQUIRED') {
+            throw error;
+          }
+          if (attempt < 3) {
+            const backoffTime = Math.pow(2, attempt) * 1000;
+            logger.warn(`Retry ${attempt}/3 after ${backoffTime}ms`);
+            await sleep(backoffTime);
+          }
         }
       }
+
+      if (!success) {
+        logger.error(`Failed batch ${batchNum} after 3 attempts`, lastError);
+        // Add original texts as fallback for failed batch
+        for (const pair of batch) {
+          translatedPairs.push({ key: pair.key, value: `[TRANSLATION_FAILED] ${pair.value}` });
+        }
+      }
+
+      // Wait between batches (1.5s) to avoid rate limits
+      if (i + BATCH_SIZE < flatPairs.length) {
+        await sleep(1500);
+      }
     }
+
+    // Reconstruct nested object from flat pairs
+    const translationObject: Record<string, any> = {};
+    for (const { key, value } of translatedPairs) {
+      const keys = key.split('.');
+      let current: any = translationObject;
+      
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (!current[keys[i]]) {
+          current[keys[i]] = {};
+        }
+        current = current[keys[i]];
+      }
+      
+      current[keys[keys.length - 1]] = value;
+    }
+
+    // Store in database using UPSERT
+    logger.info(`Storing ${targetLanguage} translation for ${namespace}...`);
+    
+    const authHeader = req.headers.get('Authorization');
+    let userId = null;
+    
+    if (authHeader) {
+      const userClient = createClient(supabaseUrl, supabaseServiceKey, {
+        global: { headers: { Authorization: authHeader } }
+      });
+      const { data: { user } } = await userClient.auth.getUser();
+      userId = user?.id;
+    }
+
+    // UPSERT: Insert or update on conflict
+    const { error: upsertError } = await supabase
+      .from('translations')
+      .upsert({
+        namespace,
+        language: targetLanguage,
+        translations: translationObject,
+        version: 1,
+        generated_by: userId,
+        generated_at: new Date().toISOString(),
+        is_active: true
+      }, {
+        onConflict: 'namespace,language,version',
+        ignoreDuplicates: false
+      });
+
+    if (upsertError) {
+      logger.error('Failed to upsert translation', upsertError);
+    } else {
+      logger.info(`✓ Stored ${targetLanguage} translation for ${namespace}`);
+    }
+
+    logger.logSuccess(200, { translatedCount: translatedPairs.length });
 
     return new Response(
-      JSON.stringify({ 
-        translations: sourceTranslations ? translationObject : translations 
-      }),
+      JSON.stringify({ translations: translationObject }),
       { 
         headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
         status: 200 
@@ -320,14 +280,17 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     logger.error('Translation failed', error);
+    
+    if (error instanceof Error && error.message === 'PAYMENT_REQUIRED') {
+      return new Response(
+        JSON.stringify({ error: 'Translation credits depleted', errorType: 'PAYMENT_REQUIRED' }),
+        { status: 402, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Translation failed'
-      }),
-      { 
-        headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
-      }
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Translation failed' }),
+      { status: 500, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
