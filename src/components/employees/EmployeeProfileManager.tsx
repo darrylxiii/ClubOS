@@ -33,9 +33,14 @@ export function EmployeeProfileManager() {
   const [editingEmployee, setEditingEmployee] = useState<EmployeeProfile | null>(null);
   const [viewingEmployee, setViewingEmployee] = useState<EmployeeProfile | null>(null);
   const queryClient = useQueryClient();
-  const { data: userCompany } = useUserCompany();
+  const { data: userCompany, isLoading: isLoadingCompany } = useUserCompany();
 
   const { data: employees, isLoading } = useAllEmployees();
+
+  // Compute effective companyId: undefined = wait, null = all users (admin fallback)
+  const effectiveCompanyId = isLoadingCompany 
+    ? undefined  // Still loading - wait
+    : (userCompany?.id ?? null);  // Loaded - use ID or null for all users
 
   const filteredEmployees = employees?.filter(emp => {
     const profileData = emp.profile as { full_name?: string } | undefined;
@@ -97,7 +102,7 @@ export function EmployeeProfileManager() {
               employee={editingEmployee} 
               onClose={() => setIsDialogOpen(false)}
               allEmployees={employees || []}
-              companyId={userCompany?.id}
+              companyId={effectiveCompanyId}
             />
           </DialogContent>
         </Dialog>

@@ -32370,6 +32370,7 @@ export type Database = {
         Returns: boolean
       }
       is_dossier_share_valid: { Args: { _token: string }; Returns: boolean }
+      is_manager_of: { Args: { target_manager_id: string }; Returns: boolean }
       is_meeting_participant: {
         Args: { _meeting_id: string; _user_id: string }
         Returns: boolean
