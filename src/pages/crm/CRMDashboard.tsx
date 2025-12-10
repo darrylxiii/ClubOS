@@ -18,13 +18,17 @@ import {
   Calendar,
   MessageSquare,
   Focus,
-  Keyboard
+  Keyboard,
+  DollarSign
 } from 'lucide-react';
 import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
 import { useCRMEmailReplies } from '@/hooks/useCRMEmailReplies';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CRMAnalyticsOverview } from '@/components/crm/CRMAnalyticsOverview';
+import { CRMWeightedPipeline } from '@/components/crm/CRMWeightedPipeline';
+import { CRMActivityReminderBell } from '@/components/crm/CRMActivityReminderBell';
+import { CRMRealtimeProvider } from '@/components/crm/CRMRealtimeProvider';
 import { useState } from 'react';
 
 export default function CRMDashboard() {
@@ -114,6 +118,7 @@ export default function CRMDashboard() {
   return (
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist']}>
+        <CRMRealtimeProvider>
         <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
           {/* Header */}
           <motion.div
@@ -121,13 +126,17 @@ export default function CRMDashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
           >
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                CRM Dashboard
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Manage your cold outreach and prospect pipeline
-              </p>
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  CRM Dashboard
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Manage your cold outreach and prospect pipeline
+                </p>
+              </div>
+              {/* Activity Reminders Bell */}
+              <CRMActivityReminderBell />
             </div>
             <div className="flex gap-2">
               <Button variant="outline" asChild>
@@ -154,6 +163,7 @@ export default function CRMDashboard() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="pipeline">Pipeline Revenue</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
             </TabsList>
 
@@ -322,11 +332,16 @@ export default function CRMDashboard() {
               </div>
             </TabsContent>
 
+            <TabsContent value="pipeline" className="mt-6">
+              <CRMWeightedPipeline />
+            </TabsContent>
+
             <TabsContent value="analytics" className="mt-6">
               <CRMAnalyticsOverview />
             </TabsContent>
           </Tabs>
         </div>
+        </CRMRealtimeProvider>
       </RoleGate>
     </AppLayout>
   );

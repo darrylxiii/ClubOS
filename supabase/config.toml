@@ -722,3 +722,15 @@ verify_jwt = true
 
 [functions.import-instantly-campaign]
 verify_jwt = true
+
+[functions.sync-partner-funnel-to-crm]
+verify_jwt = true
+
+[functions.convert-prospect-to-company]
+verify_jwt = true
+
+[functions.crm-activity-reminder]
+verify_jwt = false
+
+[functions.enrich-prospect-company]
+verify_jwt = true
