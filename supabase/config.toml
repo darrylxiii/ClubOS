@@ -734,3 +734,6 @@ verify_jwt = false
 
 [functions.enrich-prospect-company]
 verify_jwt = true
+
+[functions.seed-crm-data]
+verify_jwt = true

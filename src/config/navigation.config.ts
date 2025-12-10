@@ -56,14 +56,16 @@ export interface NavigationItem {
   name: string;
   icon: LucideIcon;
   path: string;
-  roles?: ('candidate' | 'partner' | 'admin')[];
+  roles?: ('candidate' | 'partner' | 'admin' | 'strategist')[];
+  badge?: string;
 }
 
 export interface NavigationGroup {
   title: string;
   icon: LucideIcon;
   items: NavigationItem[];
-  roles?: ('candidate' | 'partner' | 'admin')[];
+  roles?: ('candidate' | 'partner' | 'admin' | 'strategist')[];
+  badge?: string;
 }
 
 // Base navigation items shared across all roles
@@ -236,6 +238,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Reply Inbox", icon: Mail, path: "/crm/inbox" },
         { name: "Campaigns", icon: Zap, path: "/crm/campaigns" },
       ],
+      roles: ['admin', 'strategist'],
     },
     {
       title: "Management",
