@@ -208,22 +208,21 @@ Include:
 
 Keep it concise (3-4 sentences) and professional.`;
 
-      const response = await fetch('https://gateway.lovable.app/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_LOVABLE_API_KEY || ''}`,
+      // Use edge function for secure AI generation
+      const { data, error } = await supabase.functions.invoke('generate-interview-description', {
+        body: {
+          candidateName,
+          candidateTitle: application.candidate_title,
+          jobTitle: job?.title,
+          companyName,
+          stageName,
+          interviewType,
+          interviewerNames: selectedInterviewerNames || 'TBD',
         },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [{ role: 'user', content: prompt }],
-        }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const generatedDescription = data.choices?.[0]?.message?.content || '';
-        setDescription(generatedDescription);
+      if (!error && data?.description) {
+        setDescription(data.description);
       } else {
         // Fallback to template
         setDescription(
