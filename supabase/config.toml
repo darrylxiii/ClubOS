@@ -701,3 +701,12 @@ verify_jwt = true
 # =============================================================================
 [functions.generate-interview-description]
 verify_jwt = true
+
+# =============================================================================
+# CRM Functions (JWT Required)
+# =============================================================================
+[functions.analyze-email-reply]
+verify_jwt = true
+
+[functions.import-instantly-campaign]
+verify_jwt = true

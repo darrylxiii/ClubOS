@@ -8600,6 +8600,934 @@ export type Database = {
           },
         ]
       }
+      crm_assignment_rules: {
+        Row: {
+          assign_to_role: string | null
+          assign_to_team: string | null
+          assign_to_user_id: string | null
+          company_id: string | null
+          conditions: Json | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_prospects_per_day: number | null
+          max_prospects_per_user: number | null
+          metadata: Json | null
+          name: string
+          priority: number | null
+          round_robin_index: number | null
+          round_robin_queue: string[] | null
+          rule_type: string
+          updated_at: string
+        }
+        Insert: {
+          assign_to_role?: string | null
+          assign_to_team?: string | null
+          assign_to_user_id?: string | null
+          company_id?: string | null
+          conditions?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_prospects_per_day?: number | null
+          max_prospects_per_user?: number | null
+          metadata?: Json | null
+          name: string
+          priority?: number | null
+          round_robin_index?: number | null
+          round_robin_queue?: string[] | null
+          rule_type: string
+          updated_at?: string
+        }
+        Update: {
+          assign_to_role?: string | null
+          assign_to_team?: string | null
+          assign_to_user_id?: string | null
+          company_id?: string | null
+          conditions?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_prospects_per_day?: number | null
+          max_prospects_per_user?: number | null
+          metadata?: Json | null
+          name?: string
+          priority?: number | null
+          round_robin_index?: number | null
+          round_robin_queue?: string[] | null
+          rule_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_assignment_rules_assign_to_user_id_fkey"
+            columns: ["assign_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "crm_assignment_rules_assign_to_user_id_fkey"
+            columns: ["assign_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_assignment_rules_assign_to_user_id_fkey"
+            columns: ["assign_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_assignment_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_assignment_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_assignment_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "crm_assignment_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_assignment_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_campaigns: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          external_id: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          open_rate: number | null
+          owner_id: string | null
+          reply_rate: number | null
+          sequence_steps: number | null
+          source: string
+          start_date: string | null
+          status: string
+          target_company_size: string[] | null
+          target_industry: string[] | null
+          target_persona: string | null
+          total_bounces: number | null
+          total_opens: number | null
+          total_prospects: number | null
+          total_replies: number | null
+          total_sent: number | null
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          external_id?: string | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          open_rate?: number | null
+          owner_id?: string | null
+          reply_rate?: number | null
+          sequence_steps?: number | null
+          source?: string
+          start_date?: string | null
+          status?: string
+          target_company_size?: string[] | null
+          target_industry?: string[] | null
+          target_persona?: string | null
+          total_bounces?: number | null
+          total_opens?: number | null
+          total_prospects?: number | null
+          total_replies?: number | null
+          total_sent?: number | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          external_id?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          open_rate?: number | null
+          owner_id?: string | null
+          reply_rate?: number | null
+          sequence_steps?: number | null
+          source?: string
+          start_date?: string | null
+          status?: string
+          target_company_size?: string[] | null
+          target_industry?: string[] | null
+          target_persona?: string | null
+          total_bounces?: number | null
+          total_opens?: number | null
+          total_prospects?: number | null
+          total_replies?: number | null
+          total_sent?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_campaigns_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_campaigns_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_campaigns_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "crm_campaigns_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_campaigns_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_email_replies: {
+        Row: {
+          action_taken: string | null
+          actioned_at: string | null
+          actioned_by: string | null
+          ai_analysis: Json | null
+          ai_summary: string | null
+          analyzed_at: string | null
+          body_html: string | null
+          body_preview: string | null
+          body_text: string | null
+          campaign_id: string | null
+          classification: string
+          confidence_score: number | null
+          created_at: string
+          external_id: string | null
+          extracted_data: Json | null
+          from_email: string
+          from_name: string | null
+          id: string
+          in_reply_to: string | null
+          is_actioned: boolean | null
+          is_archived: boolean | null
+          is_read: boolean | null
+          is_spam: boolean | null
+          labels: string[] | null
+          message_id: string | null
+          metadata: Json | null
+          priority: number | null
+          prospect_id: string
+          received_at: string
+          sentiment_score: number | null
+          subject: string | null
+          suggested_action: string | null
+          suggested_reply: string | null
+          thread_id: string | null
+          to_email: string | null
+          touchpoint_id: string | null
+          updated_at: string
+          urgency: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          actioned_at?: string | null
+          actioned_by?: string | null
+          ai_analysis?: Json | null
+          ai_summary?: string | null
+          analyzed_at?: string | null
+          body_html?: string | null
+          body_preview?: string | null
+          body_text?: string | null
+          campaign_id?: string | null
+          classification?: string
+          confidence_score?: number | null
+          created_at?: string
+          external_id?: string | null
+          extracted_data?: Json | null
+          from_email: string
+          from_name?: string | null
+          id?: string
+          in_reply_to?: string | null
+          is_actioned?: boolean | null
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          is_spam?: boolean | null
+          labels?: string[] | null
+          message_id?: string | null
+          metadata?: Json | null
+          priority?: number | null
+          prospect_id: string
+          received_at?: string
+          sentiment_score?: number | null
+          subject?: string | null
+          suggested_action?: string | null
+          suggested_reply?: string | null
+          thread_id?: string | null
+          to_email?: string | null
+          touchpoint_id?: string | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          actioned_at?: string | null
+          actioned_by?: string | null
+          ai_analysis?: Json | null
+          ai_summary?: string | null
+          analyzed_at?: string | null
+          body_html?: string | null
+          body_preview?: string | null
+          body_text?: string | null
+          campaign_id?: string | null
+          classification?: string
+          confidence_score?: number | null
+          created_at?: string
+          external_id?: string | null
+          extracted_data?: Json | null
+          from_email?: string
+          from_name?: string | null
+          id?: string
+          in_reply_to?: string | null
+          is_actioned?: boolean | null
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          is_spam?: boolean | null
+          labels?: string[] | null
+          message_id?: string | null
+          metadata?: Json | null
+          priority?: number | null
+          prospect_id?: string
+          received_at?: string
+          sentiment_score?: number | null
+          subject?: string | null
+          suggested_action?: string | null
+          suggested_reply?: string | null
+          thread_id?: string | null
+          to_email?: string | null
+          touchpoint_id?: string | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_email_replies_actioned_by_fkey"
+            columns: ["actioned_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "crm_email_replies_actioned_by_fkey"
+            columns: ["actioned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_email_replies_actioned_by_fkey"
+            columns: ["actioned_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_email_replies_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "crm_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_email_replies_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "crm_prospects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_email_replies_touchpoint_id_fkey"
+            columns: ["touchpoint_id"]
+            isOneToOne: false
+            referencedRelation: "crm_touchpoints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_import_logs: {
+        Row: {
+          campaign_id: string | null
+          company_id: string | null
+          completed_at: string | null
+          created_at: string
+          duplicate_rows: number | null
+          error_message: string | null
+          errors: Json | null
+          failed_rows: number | null
+          field_mapping: Json | null
+          file_name: string | null
+          file_size: number | null
+          id: string
+          import_type: string
+          imported_by: string | null
+          imported_rows: number | null
+          metadata: Json | null
+          skipped_rows: number | null
+          started_at: string | null
+          status: string
+          total_rows: number | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          company_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          duplicate_rows?: number | null
+          error_message?: string | null
+          errors?: Json | null
+          failed_rows?: number | null
+          field_mapping?: Json | null
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          import_type: string
+          imported_by?: string | null
+          imported_rows?: number | null
+          metadata?: Json | null
+          skipped_rows?: number | null
+          started_at?: string | null
+          status?: string
+          total_rows?: number | null
+        }
+        Update: {
+          campaign_id?: string | null
+          company_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          duplicate_rows?: number | null
+          error_message?: string | null
+          errors?: Json | null
+          failed_rows?: number | null
+          field_mapping?: Json | null
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          import_type?: string
+          imported_by?: string | null
+          imported_rows?: number | null
+          metadata?: Json | null
+          skipped_rows?: number | null
+          started_at?: string | null
+          status?: string
+          total_rows?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_import_logs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "crm_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_import_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_import_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_import_logs_imported_by_fkey"
+            columns: ["imported_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "crm_import_logs_imported_by_fkey"
+            columns: ["imported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_import_logs_imported_by_fkey"
+            columns: ["imported_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_prospects: {
+        Row: {
+          assigned_at: string | null
+          campaign_id: string | null
+          close_probability: number | null
+          company_domain: string | null
+          company_id: string | null
+          company_name: string | null
+          company_size: string | null
+          contact_id: string | null
+          country: string | null
+          created_at: string
+          currency: string | null
+          custom_fields: Json | null
+          deal_value: number | null
+          disqualified_reason: string | null
+          email: string
+          email_status: string | null
+          emails_clicked: number | null
+          emails_opened: number | null
+          emails_replied: number | null
+          emails_sent: number | null
+          engagement_score: number | null
+          expected_close_date: string | null
+          external_id: string | null
+          first_name: string | null
+          full_name: string
+          id: string
+          industry: string | null
+          job_title: string | null
+          last_activity_at: string | null
+          last_contacted_at: string | null
+          last_name: string | null
+          last_opened_at: string | null
+          last_replied_at: string | null
+          lead_score: number | null
+          linkedin_url: string | null
+          location: string | null
+          next_followup_at: string | null
+          notes: string | null
+          owner_id: string | null
+          phone: string | null
+          qualified_reason: string | null
+          reply_sentiment: string | null
+          source: string
+          stage: string
+          stakeholder_id: string | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          campaign_id?: string | null
+          close_probability?: number | null
+          company_domain?: string | null
+          company_id?: string | null
+          company_name?: string | null
+          company_size?: string | null
+          contact_id?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          custom_fields?: Json | null
+          deal_value?: number | null
+          disqualified_reason?: string | null
+          email: string
+          email_status?: string | null
+          emails_clicked?: number | null
+          emails_opened?: number | null
+          emails_replied?: number | null
+          emails_sent?: number | null
+          engagement_score?: number | null
+          expected_close_date?: string | null
+          external_id?: string | null
+          first_name?: string | null
+          full_name: string
+          id?: string
+          industry?: string | null
+          job_title?: string | null
+          last_activity_at?: string | null
+          last_contacted_at?: string | null
+          last_name?: string | null
+          last_opened_at?: string | null
+          last_replied_at?: string | null
+          lead_score?: number | null
+          linkedin_url?: string | null
+          location?: string | null
+          next_followup_at?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          qualified_reason?: string | null
+          reply_sentiment?: string | null
+          source?: string
+          stage?: string
+          stakeholder_id?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          campaign_id?: string | null
+          close_probability?: number | null
+          company_domain?: string | null
+          company_id?: string | null
+          company_name?: string | null
+          company_size?: string | null
+          contact_id?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          custom_fields?: Json | null
+          deal_value?: number | null
+          disqualified_reason?: string | null
+          email?: string
+          email_status?: string | null
+          emails_clicked?: number | null
+          emails_opened?: number | null
+          emails_replied?: number | null
+          emails_sent?: number | null
+          engagement_score?: number | null
+          expected_close_date?: string | null
+          external_id?: string | null
+          first_name?: string | null
+          full_name?: string
+          id?: string
+          industry?: string | null
+          job_title?: string | null
+          last_activity_at?: string | null
+          last_contacted_at?: string | null
+          last_name?: string | null
+          last_opened_at?: string | null
+          last_replied_at?: string | null
+          lead_score?: number | null
+          linkedin_url?: string | null
+          location?: string | null
+          next_followup_at?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          qualified_reason?: string | null
+          reply_sentiment?: string | null
+          source?: string
+          stage?: string
+          stakeholder_id?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_prospects_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "crm_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_prospects_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_prospects_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_prospects_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "crm_prospects_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_prospects_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_prospects_stakeholder_id_fkey"
+            columns: ["stakeholder_id"]
+            isOneToOne: false
+            referencedRelation: "company_stakeholders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_suppression_list: {
+        Row: {
+          added_by: string | null
+          company_id: string | null
+          created_at: string
+          domain: string | null
+          email: string
+          expires_at: string | null
+          gdpr_request_id: string | null
+          id: string
+          metadata: Json | null
+          notes: string | null
+          reason: string
+          requested_by: string | null
+          source: string | null
+          suppressed_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          company_id?: string | null
+          created_at?: string
+          domain?: string | null
+          email: string
+          expires_at?: string | null
+          gdpr_request_id?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          reason: string
+          requested_by?: string | null
+          source?: string | null
+          suppressed_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          company_id?: string | null
+          created_at?: string
+          domain?: string | null
+          email?: string
+          expires_at?: string | null
+          gdpr_request_id?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          reason?: string
+          requested_by?: string | null
+          source?: string | null
+          suppressed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_suppression_list_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "crm_suppression_list_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_suppression_list_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_suppression_list_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_suppression_list_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_touchpoints: {
+        Row: {
+          ai_analysis: Json | null
+          bounce_type: string | null
+          bounced: boolean | null
+          campaign_id: string | null
+          channel: string
+          clicked: boolean | null
+          content: string | null
+          content_preview: string | null
+          created_at: string
+          direction: string
+          email_sequence_step: number | null
+          email_template_id: string | null
+          external_id: string | null
+          id: string
+          intent: string | null
+          message_id: string | null
+          metadata: Json | null
+          opened: boolean | null
+          performed_at: string
+          performed_by: string | null
+          prospect_id: string
+          replied: boolean | null
+          sentiment: string | null
+          subject: string | null
+          thread_id: string | null
+          touchpoint_type: string
+        }
+        Insert: {
+          ai_analysis?: Json | null
+          bounce_type?: string | null
+          bounced?: boolean | null
+          campaign_id?: string | null
+          channel: string
+          clicked?: boolean | null
+          content?: string | null
+          content_preview?: string | null
+          created_at?: string
+          direction: string
+          email_sequence_step?: number | null
+          email_template_id?: string | null
+          external_id?: string | null
+          id?: string
+          intent?: string | null
+          message_id?: string | null
+          metadata?: Json | null
+          opened?: boolean | null
+          performed_at?: string
+          performed_by?: string | null
+          prospect_id: string
+          replied?: boolean | null
+          sentiment?: string | null
+          subject?: string | null
+          thread_id?: string | null
+          touchpoint_type: string
+        }
+        Update: {
+          ai_analysis?: Json | null
+          bounce_type?: string | null
+          bounced?: boolean | null
+          campaign_id?: string | null
+          channel?: string
+          clicked?: boolean | null
+          content?: string | null
+          content_preview?: string | null
+          created_at?: string
+          direction?: string
+          email_sequence_step?: number | null
+          email_template_id?: string | null
+          external_id?: string | null
+          id?: string
+          intent?: string | null
+          message_id?: string | null
+          metadata?: Json | null
+          opened?: boolean | null
+          performed_at?: string
+          performed_by?: string | null
+          prospect_id?: string
+          replied?: boolean | null
+          sentiment?: string | null
+          subject?: string | null
+          thread_id?: string | null
+          touchpoint_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_touchpoints_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "crm_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_touchpoints_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "crm_touchpoints_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_touchpoints_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_touchpoints_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "crm_prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       csat_surveys: {
         Row: {
           application_id: string | null
@@ -32573,6 +33501,7 @@ export type Database = {
         Returns: boolean
       }
       is_dossier_share_valid: { Args: { _token: string }; Returns: boolean }
+      is_email_suppressed: { Args: { check_email: string }; Returns: boolean }
       is_manager_of: { Args: { target_manager_id: string }; Returns: boolean }
       is_meeting_participant: {
         Args: { _meeting_id: string; _user_id: string }
