@@ -30,6 +30,7 @@ interface CSVImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onImportComplete?: () => void;
+  onSuccess?: () => void;
 }
 
 type ImportStep = 'upload' | 'mapping' | 'options' | 'importing' | 'complete';
@@ -61,7 +62,7 @@ const TARGET_FIELDS = [
   { value: 'skip', label: '— Skip this column —' },
 ];
 
-export function CSVImportDialog({ open, onOpenChange, onImportComplete }: CSVImportDialogProps) {
+export function CSVImportDialog({ open, onOpenChange, onImportComplete, onSuccess }: CSVImportDialogProps) {
   const [step, setStep] = useState<ImportStep>('upload');
   const [parsedCSV, setParsedCSV] = useState<ParsedCSV | null>(null);
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
@@ -207,6 +208,7 @@ export function CSVImportDialog({ open, onOpenChange, onImportComplete }: CSVImp
       });
 
       onImportComplete?.();
+      onSuccess?.();
     } catch (err) {
       console.error('Import error:', err);
       toast({

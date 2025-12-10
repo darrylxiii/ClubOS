@@ -243,7 +243,7 @@ export default function ProspectDetail() {
               </Select>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="icon">
+                  <Button variant="outline" size="icon" className="text-destructive hover:bg-destructive/10">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </AlertDialogTrigger>
