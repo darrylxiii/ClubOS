@@ -20,6 +20,7 @@ const CampaignDashboard = lazy(() => import("@/pages/crm/CampaignDashboard"));
 const ImportHistory = lazy(() => import("@/pages/crm/ImportHistory"));
 const SuppressionList = lazy(() => import("@/pages/crm/SuppressionList"));
 const FocusView = lazy(() => import("@/pages/crm/FocusView"));
+const CRMAnalytics = lazy(() => import("@/pages/crm/CRMAnalytics"));
 
 export const crmRoutes = (
   <>
@@ -114,6 +115,18 @@ export const crmRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <FocusView />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/crm/analytics"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <CRMAnalytics />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
