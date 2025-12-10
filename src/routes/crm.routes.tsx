@@ -17,6 +17,8 @@ const ProspectPipeline = lazy(() => import("@/pages/crm/ProspectPipeline"));
 const ProspectDetail = lazy(() => import("@/pages/crm/ProspectDetail"));
 const ReplyInbox = lazy(() => import("@/pages/crm/ReplyInbox"));
 const CampaignDashboard = lazy(() => import("@/pages/crm/CampaignDashboard"));
+const ImportHistory = lazy(() => import("@/pages/crm/ImportHistory"));
+const SuppressionList = lazy(() => import("@/pages/crm/SuppressionList"));
 
 export const crmRoutes = (
   <>
@@ -75,6 +77,30 @@ export const crmRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <CampaignDashboard />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/crm/imports"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <ImportHistory />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/crm/suppression"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <SuppressionList />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
