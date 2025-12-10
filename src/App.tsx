@@ -9,7 +9,7 @@ import { FeedbackButton } from "@/components/FeedbackButton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { JobDashboardRoute } from "@/components/routes/JobDashboardRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
-
+import { TranslationProvider } from "@/providers/TranslationProvider";
 import { TranslationDebugger } from "@/components/TranslationDebugger";
 import { lazy, Suspense, useState, useEffect, useRef, memo } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
@@ -210,13 +210,14 @@ const queryClient = new QueryClient({
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <LanguageSync />
-          <TranslationDebugger />
-          <Routes>
+      <TranslationProvider>
+        <BrowserRouter>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <LanguageSync />
+            <TranslationDebugger />
+            <Routes>
             {/* Public Routes - Minimal providers for fastest FCP */}
             <Route
               path="/"
@@ -471,6 +472,7 @@ const App = () => {
           </Routes>
         </TooltipProvider>
       </BrowserRouter>
+      </TranslationProvider>
     </QueryClientProvider>
   );
 };

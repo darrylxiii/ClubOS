@@ -23,6 +23,7 @@ import { DealPipelineSummaryWidget } from "./DealPipelineSummaryWidget";
 import { KPISummaryWidget } from "./KPISummaryWidget";
 import { SystemErrorsWidget } from "./SystemErrorsWidget";
 import { ActiveMeetingsWidget } from "./ActiveMeetingsWidget";
+import { T } from "@/components/T";
 import { motion } from "framer-motion";
 
 const AdminHomeContent = () => {
@@ -45,44 +46,46 @@ const AdminHomeContent = () => {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              Quick Management
+              <T k="common:dashboard.quickManagement.title" fallback="Quick Management" />
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Common admin tasks</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
+              <T k="common:dashboard.quickManagement.description" fallback="Common admin tasks" />
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 sm:space-y-3">
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/admin">
                 <Users className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Manage Users & Roles</span>
-                <span className="sm:hidden">Users & Roles</span>
+                <span className="hidden sm:inline"><T k="common:admin.manageUsers" fallback="Manage Users & Roles" /></span>
+                <span className="sm:hidden"><T k="common:roles.user" fallback="Users & Roles" /></span>
               </Link>
             </Button>
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/admin?tab=companies">
                 <Building2 className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Manage Companies</span>
-                <span className="sm:hidden">Companies</span>
+                <span className="hidden sm:inline"><T k="common:admin.manageCompanies" fallback="Manage Companies" /></span>
+                <span className="sm:hidden"><T k="common:navigation.admin" fallback="Companies" /></span>
               </Link>
             </Button>
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/admin/anti-hacking">
                 <Shield className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Security Settings</span>
-                <span className="sm:hidden">Security</span>
+                <span className="hidden sm:inline"><T k="common:admin.securitySettings" fallback="Security Settings" /></span>
+                <span className="sm:hidden"><T k="common:settings.tabs.security" fallback="Security" /></span>
               </Link>
             </Button>
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/admin/audit-log">
                 <Activity className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">View System Logs</span>
-                <span className="sm:hidden">System Logs</span>
+                <span className="hidden sm:inline"><T k="common:admin.viewLogs" fallback="View System Logs" /></span>
+                <span className="sm:hidden"><T k="common:navigation.analytics" fallback="System Logs" /></span>
               </Link>
             </Button>
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/admin/kpi-command-center">
                 <BarChart3 className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">KPI Command Center</span>
-                <span className="sm:hidden">KPIs</span>
+                <span className="hidden sm:inline"><T k="common:admin.kpiCenter" fallback="KPI Command Center" /></span>
+                <span className="sm:hidden"><T k="common:navigation.analytics" fallback="KPIs" /></span>
               </Link>
             </Button>
           </CardContent>

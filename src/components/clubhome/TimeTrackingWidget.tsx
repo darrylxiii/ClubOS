@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { T } from "@/components/T";
 
 interface TimeStats {
   hoursThisWeek: number;
@@ -89,26 +90,36 @@ export const TimeTrackingWidget = ({ role, companyId }: TimeTrackingWidgetProps)
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Clock className="h-5 w-5 text-primary" />
-          {role === 'candidate' ? 'My Time Tracking' : 'Team Time Tracking'}
+          {role === 'candidate' ? (
+            <T k="common:dashboard.timeTracking.myTime" fallback="My Time Tracking" />
+          ) : (
+            <T k="common:dashboard.timeTracking.teamTime" fallback="Team Time Tracking" />
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-center p-3 rounded-lg bg-muted/50">
             <div className="text-2xl font-bold text-primary">{stats.hoursThisWeek}h</div>
-            <div className="text-xs text-muted-foreground">This Week</div>
+            <div className="text-xs text-muted-foreground">
+              <T k="common:dashboard.timeTracking.thisWeek" fallback="This Week" />
+            </div>
           </div>
           {role === 'candidate' ? (
             <div className="text-center p-3 rounded-lg bg-muted/50">
               <div className="text-2xl font-bold text-green-500">€{stats.earnings}</div>
-              <div className="text-xs text-muted-foreground">Earnings</div>
+              <div className="text-xs text-muted-foreground">
+                <T k="common:dashboard.timeTracking.earnings" fallback="Earnings" />
+              </div>
             </div>
           ) : (
             <div className="text-center p-3 rounded-lg bg-muted/50">
               <div className="flex items-center justify-center gap-1">
                 <Users className="h-4 w-4 text-muted-foreground" />
               </div>
-              <div className="text-xs text-muted-foreground">Team Hours</div>
+              <div className="text-xs text-muted-foreground">
+                <T k="common:dashboard.timeTracking.teamHours" fallback="Team Hours" />
+              </div>
             </div>
           )}
         </div>
@@ -116,14 +127,20 @@ export const TimeTrackingWidget = ({ role, companyId }: TimeTrackingWidgetProps)
         {stats.hasActiveTimer && (
           <div className="flex items-center gap-2 p-2 rounded-lg bg-green-500/10 border border-green-500/20 mb-3">
             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm text-green-600 dark:text-green-400">Timer running</span>
+            <span className="text-sm text-green-600 dark:text-green-400">
+              <T k="common:dashboard.timeTracking.timerRunning" fallback="Timer running" />
+            </span>
           </div>
         )}
 
         <Button asChild variant="outline" size="sm" className="w-full">
           <Link to="/time-tracking">
             <Play className="h-4 w-4 mr-2" />
-            {stats.hasActiveTimer ? 'View Timer' : 'Start Tracking'}
+            {stats.hasActiveTimer ? (
+              <T k="common:dashboard.timeTracking.viewTimer" fallback="View Timer" />
+            ) : (
+              <T k="common:dashboard.timeTracking.startTracking" fallback="Start Tracking" />
+            )}
           </Link>
         </Button>
       </CardContent>

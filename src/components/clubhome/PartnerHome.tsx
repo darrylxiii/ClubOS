@@ -24,7 +24,7 @@ import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
 import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
 import { TimeTrackingWidget } from "./TimeTrackingWidget";
-
+import { T } from "@/components/T";
 import { motion } from "framer-motion";
 
 export const PartnerHome = () => {
@@ -72,37 +72,39 @@ export const PartnerHome = () => {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <PlusCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              Quick Actions
+              <T k="common:dashboard.quickActions.title" fallback="Quick Actions" />
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Common tasks and shortcuts</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
+              <T k="common:dashboard.quickActions.description" fallback="Common tasks and shortcuts" />
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 sm:space-y-3">
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/company-jobs">
                 <Briefcase className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Post New Job</span>
-                <span className="sm:hidden">New Job</span>
+                <span className="hidden sm:inline"><T k="common:partner.postJob" fallback="Post New Job" /></span>
+                <span className="sm:hidden"><T k="common:navigation.jobs" fallback="New Job" /></span>
               </Link>
             </Button>
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/company-applications">
                 <Users className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Review Applications</span>
-                <span className="sm:hidden">Applications</span>
+                <span className="hidden sm:inline"><T k="common:partner.reviewApplications" fallback="Review Applications" /></span>
+                <span className="sm:hidden"><T k="common:navigation.applications" fallback="Applications" /></span>
               </Link>
             </Button>
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/company-settings">
                 <FileText className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Update Company Profile</span>
-                <span className="sm:hidden">Company</span>
+                <span className="hidden sm:inline"><T k="common:partner.updateCompany" fallback="Update Company Profile" /></span>
+                <span className="sm:hidden"><T k="common:navigation.profile" fallback="Company" /></span>
               </Link>
             </Button>
             <Button className="w-full justify-start text-sm" variant="outline" asChild>
               <Link to="/messages">
                 <MessageSquare className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Message Candidates</span>
-                <span className="sm:hidden">Messages</span>
+                <span className="hidden sm:inline"><T k="common:partner.messageCandidate" fallback="Message Candidates" /></span>
+                <span className="sm:hidden"><T k="common:navigation.messages" fallback="Messages" /></span>
               </Link>
             </Button>
           </CardContent>
