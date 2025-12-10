@@ -695,3 +695,9 @@ verify_jwt = true
 
 [functions.analyze-meeting-recording-advanced]
 verify_jwt = true
+
+# =============================================================================
+# Interview Description Generation (JWT Required)
+# =============================================================================
+[functions.generate-interview-description]
+verify_jwt = true
