@@ -26,6 +26,7 @@ import { meetingsRoutes } from "@/routes/meetings.routes";
 import { jobsRoutes } from "@/routes/jobs.routes";
 import { profilesRoutes } from "@/routes/profiles.routes";
 import { projectsRoutes } from "@/routes/projects.routes";
+import { crmRoutes } from "@/routes/crm.routes";
 import { QuickAccessHub } from '@/components/QuickAccessHub';
 import { CookieConsentBanner } from '@/components/support/CookieConsentBanner';
 
@@ -442,6 +443,9 @@ const App = () => {
                       
                       {/* Club Projects Routes */}
                       {projectsRoutes}
+                      
+                      {/* CRM Routes */}
+                      {crmRoutes}
                       
                       {/* Support & Help */}
                       <Route path="/support/tickets" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SupportTicketList /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
