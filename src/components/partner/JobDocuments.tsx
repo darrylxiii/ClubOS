@@ -111,10 +111,22 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
         throw new Error(`Failed to upload: ${uploadError.message}`);
       }
 
-      // Update database immediately
+      // Fetch user profile for uploader name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      // Update database immediately with uploader tracking
       const { error: updateError } = await supabase
         .from('jobs')
-        .update({ job_description_url: fileName })
+        .update({ 
+          job_description_url: fileName,
+          jd_uploaded_by: user.id,
+          jd_uploaded_at: new Date().toISOString(),
+          jd_uploader_name: profile?.full_name || 'Unknown'
+        })
         .eq('id', jobId);
 
       if (updateError) {

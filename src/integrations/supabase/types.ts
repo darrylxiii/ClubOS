@@ -13561,6 +13561,9 @@ export type Database = {
           is_continuous: boolean | null
           is_lost: boolean | null
           is_stealth: boolean | null
+          jd_uploaded_at: string | null
+          jd_uploaded_by: string | null
+          jd_uploader_name: string | null
           job_description_url: string | null
           job_embedding: string | null
           job_fee_fixed: number | null
@@ -13611,6 +13614,9 @@ export type Database = {
           is_continuous?: boolean | null
           is_lost?: boolean | null
           is_stealth?: boolean | null
+          jd_uploaded_at?: string | null
+          jd_uploaded_by?: string | null
+          jd_uploader_name?: string | null
           job_description_url?: string | null
           job_embedding?: string | null
           job_fee_fixed?: number | null
@@ -13661,6 +13667,9 @@ export type Database = {
           is_continuous?: boolean | null
           is_lost?: boolean | null
           is_stealth?: boolean | null
+          jd_uploaded_at?: string | null
+          jd_uploaded_by?: string | null
+          jd_uploader_name?: string | null
           job_description_url?: string | null
           job_embedding?: string | null
           job_fee_fixed?: number | null
@@ -13697,6 +13706,27 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_jd_uploaded_by_fkey"
+            columns: ["jd_uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "jobs_jd_uploaded_by_fkey"
+            columns: ["jd_uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_jd_uploaded_by_fkey"
+            columns: ["jd_uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {
