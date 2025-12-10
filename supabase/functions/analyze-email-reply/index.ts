@@ -242,6 +242,4 @@ Respond ONLY with valid JSON, no additional text.`;
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-    );
-  }
 });
