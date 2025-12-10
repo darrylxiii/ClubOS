@@ -3,6 +3,7 @@ import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
@@ -21,8 +22,11 @@ import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
 import { useCRMEmailReplies } from '@/hooks/useCRMEmailReplies';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CRMAnalyticsOverview } from '@/components/crm/CRMAnalyticsOverview';
+import { useState } from 'react';
 
 export default function CRMDashboard() {
+  const [activeTab, setActiveTab] = useState('overview');
   const { prospects, loading: prospectsLoading } = useCRMProspects({ limit: 100 });
   const { campaigns, loading: campaignsLoading } = useCRMCampaigns({ limit: 100 });
   const { replies, loading: repliesLoading } = useCRMEmailReplies({ isActioned: false, limit: 100 });
@@ -120,7 +124,7 @@ export default function CRMDashboard() {
               <Button variant="outline" asChild>
                 <Link to="/crm/campaigns">
                   <BarChart3 className="w-4 h-4 mr-2" />
-                  Analytics
+                  Campaigns
                 </Link>
               </Button>
               <Button asChild>
@@ -137,168 +141,182 @@ export default function CRMDashboard() {
             </div>
           </motion.div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30 hover:border-border/50 transition-all">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                        <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                      </div>
-                      <div>
-                        {loading ? (
-                          <Skeleton className="h-7 w-12" />
-                        ) : (
-                          <p className="text-2xl font-bold">{stat.value}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground">{stat.label}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            </TabsList>
 
-          {/* Quick Actions */}
-          <div className="grid md:grid-cols-3 gap-4">
-            {quickActions.map((action, index) => (
-              <motion.div
-                key={action.label}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 + index * 0.1 }}
-              >
-                <Link to={action.path}>
-                  <Card className={`bg-gradient-to-br ${action.color} backdrop-blur-xl border-border/30 hover:border-primary/50 hover:scale-[1.02] transition-all cursor-pointer group`}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
+            <TabsContent value="overview" className="space-y-6 mt-6">
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {stats.map((stat, index) => (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30 hover:border-border/50 transition-all">
+                      <CardContent className="p-4">
                         <div className="flex items-center gap-3">
-                          <action.icon className="w-8 h-8 text-primary" />
+                          <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                            <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                          </div>
                           <div>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{action.label}</h3>
-                              {action.badge && (
-                                <Badge variant="destructive" className="text-xs">
-                                  {action.badge}
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground">{action.description}</p>
+                            {loading ? (
+                              <Skeleton className="h-7 w-12" />
+                            ) : (
+                              <p className="text-2xl font-bold">{stat.value}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">{stat.label}</p>
                           </div>
                         </div>
-                        <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                      </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Quick Actions */}
+              <div className="grid md:grid-cols-3 gap-4">
+                {quickActions.map((action, index) => (
+                  <motion.div
+                    key={action.label}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 + index * 0.1 }}
+                  >
+                    <Link to={action.path}>
+                      <Card className={`bg-gradient-to-br ${action.color} backdrop-blur-xl border-border/30 hover:border-primary/50 hover:scale-[1.02] transition-all cursor-pointer group`}>
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <action.icon className="w-8 h-8 text-primary" />
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h3 className="font-semibold">{action.label}</h3>
+                                  {action.badge && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      {action.badge}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground">{action.description}</p>
+                              </div>
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Recent Activity */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Recent Hot Leads */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Zap className="w-5 h-5 text-red-500" />
+                        Recent Hot Leads
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {loading ? (
+                        <div className="space-y-3">
+                          {[1, 2, 3].map(i => (
+                            <Skeleton key={i} className="h-12 w-full" />
+                          ))}
+                        </div>
+                      ) : prospects.filter(p => p.reply_sentiment === 'hot').slice(0, 5).length > 0 ? (
+                        <div className="space-y-3">
+                          {prospects
+                            .filter(p => p.reply_sentiment === 'hot')
+                            .slice(0, 5)
+                            .map(prospect => (
+                              <Link
+                                key={prospect.id}
+                                to={`/crm/prospects/${prospect.id}`}
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
+                              >
+                                <div>
+                                  <p className="font-medium">{prospect.full_name}</p>
+                                  <p className="text-sm text-muted-foreground">{prospect.company_name}</p>
+                                </div>
+                                <Badge variant="destructive">🔥 Hot</Badge>
+                              </Link>
+                            ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-4">No hot leads yet</p>
+                      )}
                     </CardContent>
                   </Card>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
 
-          {/* Recent Activity */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Recent Hot Leads */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-red-500" />
-                    Recent Hot Leads
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <div className="space-y-3">
-                      {[1, 2, 3].map(i => (
-                        <Skeleton key={i} className="h-12 w-full" />
-                      ))}
-                    </div>
-                  ) : prospects.filter(p => p.reply_sentiment === 'hot').slice(0, 5).length > 0 ? (
-                    <div className="space-y-3">
-                      {prospects
-                        .filter(p => p.reply_sentiment === 'hot')
-                        .slice(0, 5)
-                        .map(prospect => (
-                          <Link
-                            key={prospect.id}
-                            to={`/crm/prospects/${prospect.id}`}
-                            className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
-                          >
-                            <div>
-                              <p className="font-medium">{prospect.full_name}</p>
-                              <p className="text-sm text-muted-foreground">{prospect.company_name}</p>
-                            </div>
-                            <Badge variant="destructive">🔥 Hot</Badge>
-                          </Link>
-                        ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-4">No hot leads yet</p>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
+                {/* Unread Replies */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Inbox className="w-5 h-5 text-purple-500" />
+                        Unread Replies
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {loading ? (
+                        <div className="space-y-3">
+                          {[1, 2, 3].map(i => (
+                            <Skeleton key={i} className="h-12 w-full" />
+                          ))}
+                        </div>
+                      ) : replies.filter(r => !r.is_read).slice(0, 5).length > 0 ? (
+                        <div className="space-y-3">
+                          {replies
+                            .filter(r => !r.is_read)
+                            .slice(0, 5)
+                            .map(reply => (
+                              <Link
+                                key={reply.id}
+                                to="/crm/inbox"
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium truncate">{reply.from_name || reply.from_email}</p>
+                                  <p className="text-sm text-muted-foreground truncate">{reply.subject}</p>
+                                </div>
+                                <Badge variant="outline" className="ml-2 shrink-0">
+                                  {reply.classification.replace('_', ' ')}
+                                </Badge>
+                              </Link>
+                            ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-4">No unread replies</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </div>
+            </TabsContent>
 
-            {/* Unread Replies */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Inbox className="w-5 h-5 text-purple-500" />
-                    Unread Replies
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <div className="space-y-3">
-                      {[1, 2, 3].map(i => (
-                        <Skeleton key={i} className="h-12 w-full" />
-                      ))}
-                    </div>
-                  ) : replies.filter(r => !r.is_read).slice(0, 5).length > 0 ? (
-                    <div className="space-y-3">
-                      {replies
-                        .filter(r => !r.is_read)
-                        .slice(0, 5)
-                        .map(reply => (
-                          <Link
-                            key={reply.id}
-                            to="/crm/inbox"
-                            className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
-                          >
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium truncate">{reply.from_name || reply.from_email}</p>
-                              <p className="text-sm text-muted-foreground truncate">{reply.subject}</p>
-                            </div>
-                            <Badge variant="outline" className="ml-2 shrink-0">
-                              {reply.classification.replace('_', ' ')}
-                            </Badge>
-                          </Link>
-                        ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-4">No unread replies</p>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
+            <TabsContent value="analytics" className="mt-6">
+              <CRMAnalyticsOverview />
+            </TabsContent>
+          </Tabs>
         </div>
       </RoleGate>
     </AppLayout>
