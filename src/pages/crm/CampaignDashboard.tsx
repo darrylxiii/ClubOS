@@ -30,6 +30,8 @@ import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
 import type { CRMCampaign } from '@/types/crm-enterprise';
 import { formatDistanceToNow, format } from 'date-fns';
 import { CSVImportDialog } from '@/components/crm/CSVImportDialog';
+import { CreateCampaignDialog } from '@/components/crm/CreateCampaignDialog';
+import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +44,7 @@ import { toast } from 'sonner';
 export default function CampaignDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const { campaigns, loading, refetch, updateCampaign } = useCRMCampaigns({});
 
@@ -103,6 +106,10 @@ export default function CampaignDashboard() {
               <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
                 <Upload className="w-4 h-4 mr-2" />
                 Import
+              </Button>
+              <Button onClick={() => setCreateDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Campaign
               </Button>
             </div>
           </motion.div>
@@ -189,6 +196,12 @@ export default function CampaignDashboard() {
             refetch();
             setImportDialogOpen(false);
           }}
+        />
+
+        <CreateCampaignDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onSuccess={refetch}
         />
       </RoleGate>
     </AppLayout>
