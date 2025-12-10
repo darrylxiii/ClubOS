@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, isToday, isTomorrow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { T } from "@/components/T";
 
 interface Meeting {
   id: string;
@@ -22,6 +24,7 @@ interface Meeting {
 
 export const UpcomingMeetingsWidget = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -115,8 +118,8 @@ export const UpcomingMeetingsWidget = () => {
 
   const getDateLabel = (dateStr: string) => {
     const date = new Date(dateStr);
-    if (isToday(date)) return 'Today';
-    if (isTomorrow(date)) return 'Tomorrow';
+    if (isToday(date)) return t('common:time.today');
+    if (isTomorrow(date)) return t('common:time.tomorrow', 'Tomorrow');
     return format(date, 'EEE, MMM d');
   };
 
@@ -130,10 +133,10 @@ export const UpcomingMeetingsWidget = () => {
     const minutesUntil = (start.getTime() - now.getTime()) / 60000;
 
     if (status === 'in_progress') {
-      return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Live Now</Badge>;
+      return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><T k="common:status.liveNow" fallback="Live Now" /></Badge>;
     }
     if (minutesUntil <= 15 && minutesUntil > 0) {
-      return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">Starting Soon</Badge>;
+      return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30"><T k="common:status.startingSoon" fallback="Starting Soon" /></Badge>;
     }
     return null;
   };
@@ -160,9 +163,11 @@ export const UpcomingMeetingsWidget = () => {
         <div>
           <CardTitle className="flex items-center gap-2">
             <Video className="h-5 w-5 text-primary" />
-            Upcoming Meetings
+            <T k="common:dashboard.upcomingMeetings.title" fallback="Upcoming Meetings" />
           </CardTitle>
-          <CardDescription className="hidden sm:block">Your scheduled calls and interviews</CardDescription>
+          <CardDescription className="hidden sm:block">
+            <T k="common:dashboard.upcomingMeetings.description" fallback="Your scheduled calls and interviews" />
+          </CardDescription>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -176,7 +181,7 @@ export const UpcomingMeetingsWidget = () => {
           </Button>
           <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
             <Link to="/meetings" className="flex items-center gap-1">
-              View All <ArrowRight className="h-4 w-4" />
+              <T k="common:navigation.viewAll" fallback="View All" /> <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -189,9 +194,9 @@ export const UpcomingMeetingsWidget = () => {
             className="text-center py-6 text-muted-foreground"
           >
             <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
-            <p>No upcoming meetings</p>
+            <p><T k="common:empty.noMeetings" fallback="No upcoming meetings" /></p>
             <Button variant="outline" size="sm" className="mt-3" asChild>
-              <Link to="/meetings">Schedule a Meeting</Link>
+              <Link to="/meetings"><T k="common:dashboard.upcomingMeetings.scheduleMeeting" fallback="Schedule a Meeting" /></Link>
             </Button>
           </motion.div>
         ) : (
@@ -233,7 +238,7 @@ export const UpcomingMeetingsWidget = () => {
                         </div>
                       </div>
                       {meeting.status === 'in_progress' && (
-                        <Button size="sm" className="shrink-0 text-xs sm:text-sm">Join</Button>
+                        <Button size="sm" className="shrink-0 text-xs sm:text-sm"><T k="common:actions.join" fallback="Join" /></Button>
                       )}
                     </div>
                   </Link>
@@ -246,7 +251,7 @@ export const UpcomingMeetingsWidget = () => {
         {/* Mobile-only View All button */}
         <Button variant="outline" size="sm" asChild className="w-full mt-4 sm:hidden">
           <Link to="/meetings" className="flex items-center justify-center gap-1">
-            View All <ArrowRight className="h-4 w-4" />
+            <T k="common:navigation.viewAll" fallback="View All" /> <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
       </CardContent>

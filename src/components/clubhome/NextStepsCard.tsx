@@ -15,11 +15,14 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
+import { T } from "@/components/T";
+import { useTranslation } from "react-i18next";
 import type { JourneyTask } from "@/lib/candidateJourney";
 
 export const NextStepsCard = () => {
   const { tasks, stage, stageInfo, stageCompletion, overallProgress, loading, markTaskComplete } = useNextSteps();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [processingTask, setProcessingTask] = useState<string | null>(null);
 
   const handleCelebrate = (taskTitle: string, isStageComplete: boolean = false) => {
@@ -67,7 +70,7 @@ export const NextStepsCard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Next Steps
+            <T k="common:dashboard.nextSteps.title" fallback="Next Steps" />
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
@@ -84,7 +87,7 @@ export const NextStepsCard = () => {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Rocket className="h-5 w-5" />
-              Your Journey
+              <T k="common:dashboard.nextSteps.yourJourney" fallback="Your Journey" />
             </CardTitle>
             <CardDescription>
               {stageInfo.description}
@@ -98,7 +101,9 @@ export const NextStepsCard = () => {
         {/* Stage Progress */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Stage Progress</span>
+            <span className="text-muted-foreground">
+              <T k="common:dashboard.nextSteps.stageProgress" fallback="Stage Progress" />
+            </span>
             <span className="font-medium">{stageCompletion}%</span>
           </div>
           <Progress value={stageCompletion} className="h-2" />
@@ -107,9 +112,15 @@ export const NextStepsCard = () => {
         {/* Overall Progress */}
         <div className="mt-3 pt-3 border-t border-border/20">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Overall Journey</span>
+            <span className="text-muted-foreground">
+              <T k="common:dashboard.nextSteps.overallJourney" fallback="Overall Journey" />
+            </span>
             <span className="font-medium">
-              {overallProgress.completed} of {overallProgress.total} tasks
+              {t('common:dashboard.nextSteps.tasksComplete', { 
+                completed: overallProgress.completed, 
+                total: overallProgress.total,
+                defaultValue: `${overallProgress.completed} of ${overallProgress.total} tasks`
+              })}
             </span>
           </div>
         </div>
@@ -119,9 +130,11 @@ export const NextStepsCard = () => {
         {tasks.length === 0 ? (
           <div className="text-center py-8">
             <Sparkles className="h-12 w-12 mx-auto mb-3 text-primary" />
-            <p className="text-sm font-medium mb-1">All caught up!</p>
+            <p className="text-sm font-medium mb-1">
+              <T k="common:empty.allCaughtUp" fallback="All caught up!" />
+            </p>
             <p className="text-xs text-muted-foreground">
-              You've completed all tasks for your current stage
+              <T k="common:dashboard.nextSteps.allTasksComplete" fallback="You've completed all tasks for your current stage" />
             </p>
             <Button 
               size="sm" 
@@ -129,7 +142,7 @@ export const NextStepsCard = () => {
               className="mt-3"
               onClick={() => navigate('/jobs')}
             >
-              Explore job opportunities →
+              <T k="common:dashboard.nextSteps.exploreJobs" fallback="Explore job opportunities" /> →
             </Button>
           </div>
         ) : (
@@ -192,7 +205,7 @@ export const NextStepsCard = () => {
                           {isProcessing ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
-                            'Start'
+                            <T k="common:actions.start" fallback="Start" />
                           )}
                         </Button>
                       </div>

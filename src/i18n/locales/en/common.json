@@ -11,7 +11,8 @@
     "academy": "Academy",
     "quantum_meetings": "Quantum Meetings",
     "analytics": "Analytics",
-    "hiring_intelligence": "Hiring Intelligence"
+    "hiring_intelligence": "Hiring Intelligence",
+    "viewAll": "View All"
   },
   "actions": {
     "save": "Save",
@@ -33,7 +34,10 @@
     "confirm": "Confirm",
     "resend": "Resend",
     "verify": "Verify",
-    "save_changes": "Save Changes"
+    "save_changes": "Save Changes",
+    "start": "Start",
+    "join": "Join",
+    "refresh": "Refresh"
   },
   "status": {
     "pending": "Pending",
@@ -42,13 +46,16 @@
     "active": "Active",
     "archived": "Archived",
     "completed": "Completed",
-    "in_progress": "In Progress"
+    "in_progress": "In Progress",
+    "liveNow": "Live Now",
+    "startingSoon": "Starting Soon"
   },
   "time": {
     "today": "Today",
     "yesterday": "Yesterday",
     "lastWeek": "Last Week",
     "lastMonth": "Last Month",
+    "thisWeek": "This Week",
     "daysAgo": "{{count}} day ago",
     "daysAgo_other": "{{count}} days ago",
     "hoursAgo": "{{count}} hour ago",
@@ -59,7 +66,9 @@
   "empty": {
     "noResults": "No results found",
     "noData": "No data available",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "noMeetings": "No upcoming meetings",
+    "allCaughtUp": "All caught up!"
   },
   "validation": {
     "required": "This field is required",
@@ -108,5 +117,68 @@
       "calendar": "Calendar",
       "freelance": "Freelance Projects"
     }
+  },
+  "roles": {
+    "admin": "Administrator",
+    "partner": "Partner",
+    "strategist": "Strategist",
+    "candidate": "Candidate",
+    "user": "Member"
+  },
+  "home": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "clubMember": "Club Member",
+    "welcome": "Welcome back"
+  },
+  "dashboard": {
+    "quickActions": {
+      "title": "Quick Actions",
+      "description": "Common tasks and shortcuts"
+    },
+    "quickManagement": {
+      "title": "Quick Management",
+      "description": "Common admin tasks"
+    },
+    "upcomingMeetings": {
+      "title": "Upcoming Meetings",
+      "description": "Your scheduled calls and interviews",
+      "scheduleMeeting": "Schedule a Meeting"
+    },
+    "timeTracking": {
+      "myTime": "My Time Tracking",
+      "teamTime": "Team Time Tracking",
+      "thisWeek": "This Week",
+      "earnings": "Earnings",
+      "teamHours": "Team Hours",
+      "timerRunning": "Timer running",
+      "viewTimer": "View Timer",
+      "startTracking": "Start Tracking"
+    },
+    "nextSteps": {
+      "title": "Next Steps",
+      "yourJourney": "Your Journey",
+      "stageProgress": "Stage Progress",
+      "overallJourney": "Overall Journey",
+      "tasksComplete": "{{completed}} of {{total}} tasks",
+      "allTasksComplete": "You've completed all tasks for your current stage",
+      "exploreJobs": "Explore job opportunities"
+    }
+  },
+  "partner": {
+    "postJob": "Post New Job",
+    "reviewApplications": "Review Applications",
+    "updateCompany": "Update Company Profile",
+    "messageCandidate": "Message Candidates"
+  },
+  "admin": {
+    "manageUsers": "Manage Users & Roles",
+    "manageCompanies": "Manage Companies",
+    "securitySettings": "Security Settings",
+    "viewLogs": "View System Logs",
+    "kpiCenter": "KPI Command Center"
   }
 }
