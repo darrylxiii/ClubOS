@@ -838,8 +838,6 @@ export default function JobDashboard() {
             </Card>
           </div>
 
-            {/* Inline Activity Feed */}
-            <InlineActivityFeed jobId={job.id} initialLimit={5} />
           </main>
 
           {/* Sidebar (Right - 30%) */}
