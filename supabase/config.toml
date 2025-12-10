@@ -1,5 +1,17 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
+# =============================================================================
+# CRM Functions (JWT Required)
+# =============================================================================
+[functions.generate-crm-reply]
+verify_jwt = true
+
+[functions.analyze-email-reply]
+verify_jwt = true
+
+[functions.import-instantly-campaign]
+verify_jwt = true
+
 [functions.calculate-referral-earnings]
 verify_jwt = true
 
