@@ -48,6 +48,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { ProspectScoreCard } from '@/components/crm/ProspectScoreCard';
+import { AIReplySuggestion } from '@/components/crm/AIReplySuggestion';
 
 export default function ProspectDetail() {
   const { prospectId } = useParams<{ prospectId: string }>();
@@ -447,49 +449,27 @@ export default function ProspectDetail() {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Stats */}
+              {/* Lead Score Card */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Engagement</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Lead Score</span>
-                      <div className="flex items-center gap-2">
-                        <Zap className={`w-4 h-4 ${
-                          prospect.lead_score >= 70 ? 'text-green-500' :
-                          prospect.lead_score >= 40 ? 'text-yellow-500' : 'text-gray-400'
-                        }`} />
-                        <span className="font-bold">{prospect.lead_score}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Emails Sent</span>
-                      <span className="font-medium">{prospect.emails_sent || 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Emails Opened</span>
-                      <span className="font-medium">{prospect.emails_opened || 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Replies</span>
-                      <span className="font-medium">{prospect.emails_replied || 0}</span>
-                    </div>
-                    {prospect.reply_sentiment && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Sentiment</span>
-                        <Badge variant="outline" className="capitalize">
-                          {prospect.reply_sentiment}
-                        </Badge>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <ProspectScoreCard prospectId={prospect.id} />
+              </motion.div>
+
+              {/* AI Reply Suggestion */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                <AIReplySuggestion 
+                  prospectName={prospect.full_name}
+                  prospectCompany={prospect.company_name || ''}
+                  originalEmail=""
+                  classification={prospect.reply_sentiment || 'neutral'}
+                />
               </motion.div>
 
               {/* Campaign */}

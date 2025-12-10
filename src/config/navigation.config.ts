@@ -48,6 +48,7 @@ import {
   FileSignature,
   Database,
   AlertTriangle,
+  Contact,
   type LucideIcon,
 } from "lucide-react";
 
@@ -226,6 +227,16 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
     },
   ],
   admin: [
+    {
+      title: "CRM",
+      icon: Contact,
+      items: [
+        { name: "CRM Dashboard", icon: LayoutDashboard, path: "/crm" },
+        { name: "Prospect Pipeline", icon: Target, path: "/crm/pipeline" },
+        { name: "Reply Inbox", icon: Mail, path: "/crm/replies" },
+        { name: "Campaigns", icon: Zap, path: "/crm/campaigns" },
+      ],
+    },
     {
       title: "Management",
       icon: Building,
