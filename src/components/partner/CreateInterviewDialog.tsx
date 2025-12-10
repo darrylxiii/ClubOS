@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Sparkles, Loader2, Users } from 'lucide-react';
+import { CalendarIcon, Sparkles, Loader2, Users, AlertCircle, CheckCircle2, Mail, Link2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -27,6 +27,8 @@ import { cn } from '@/lib/utils';
 import { SmartSchedulingPanel } from './SmartSchedulingPanel';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CreateInterviewDialogProps {
   open: boolean;
@@ -47,6 +49,7 @@ export const CreateInterviewDialog = ({
   stageName,
   onInterviewCreated,
 }: CreateInterviewDialogProps) => {
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState<Date>();
@@ -59,13 +62,55 @@ export const CreateInterviewDialog = ({
   const [submitting, setSubmitting] = useState(false);
   const [job, setJob] = useState<any>(null);
   const [showSmartScheduling, setShowSmartScheduling] = useState(false);
+  
+  // Calendar connection state
+  const [calendarConnection, setCalendarConnection] = useState<any>(null);
+  const [hasCalendarConnected, setHasCalendarConnected] = useState(false);
+  const [syncToCalendar, setSyncToCalendar] = useState(true);
+  const [checkingCalendar, setCheckingCalendar] = useState(true);
+  
+  // Attendee emails state
+  const [candidateEmail, setCandidateEmail] = useState('');
+  const [interviewerEmails, setInterviewerEmails] = useState<{id: string; name: string; email: string}[]>([]);
 
   useEffect(() => {
-    if (open) {
+    if (open && user) {
+      fetchCalendarConnection();
       fetchJobAndTeam();
+    }
+  }, [open, user]);
+
+  useEffect(() => {
+    if (job && application) {
       autoGenerateTitleAndDescription();
     }
-  }, [open, application, jobId]);
+  }, [job, application, interviewType, selectedInterviewers]);
+
+  const fetchCalendarConnection = async () => {
+    if (!user) return;
+    setCheckingCalendar(true);
+    try {
+      const { data, error } = await supabase
+        .from('calendar_connections')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('provider', 'google')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (!error && data) {
+        setCalendarConnection(data);
+        setHasCalendarConnected(true);
+      } else {
+        setHasCalendarConnected(false);
+      }
+    } catch (err) {
+      console.error('Error checking calendar connection:', err);
+      setHasCalendarConnected(false);
+    } finally {
+      setCheckingCalendar(false);
+    }
+  };
 
   const fetchJobAndTeam = async () => {
     try {
@@ -108,17 +153,41 @@ export const CreateInterviewDialog = ({
       if (stageInterviewers && stageInterviewers.length > 0) {
         setSelectedInterviewers(stageInterviewers.map((m) => m.company_member_id));
       }
+
+      // Set candidate email
+      const candidateEmailValue = application.candidate_email || '';
+      setCandidateEmail(candidateEmailValue);
+
+      // Build interviewer emails list
+      const emails = teamData?.map((m) => {
+        const userProfile = m.company_member?.user;
+        return {
+          id: m.company_member_id,
+          name: (userProfile as any)?.full_name || 'Unknown',
+          email: (userProfile as any)?.email || '',
+        };
+      }).filter(e => e.email) || [];
+      setInterviewerEmails(emails);
     } catch (error) {
       console.error('Error fetching job and team:', error);
     }
   };
 
   const autoGenerateTitleAndDescription = async () => {
+    if (!job || !application) return;
+    
     setGeneratingAI(true);
     try {
-      // Generate title
-      const candidateName = application.candidate_full_name || application.email || 'Candidate';
-      const generatedTitle = `${candidateName} - ${stageName} Interview`;
+      // Generate smart title: Company - Candidate Name - Stage Interview
+      const candidateName = application.candidate_full_name || application.email?.split('@')[0] || 'Candidate';
+      const companyName = job?.companies?.name || 'Company';
+      const selectedInterviewerNames = teamMembers
+        .filter((m) => selectedInterviewers.includes(m.company_member_id))
+        .map((m) => m.company_member?.user?.full_name)
+        .filter(Boolean)
+        .join(', ');
+
+      const generatedTitle = `${companyName} - ${candidateName} - ${stageName}`;
       setTitle(generatedTitle);
 
       // Generate description with AI
@@ -126,15 +195,16 @@ export const CreateInterviewDialog = ({
 Candidate: ${candidateName}
 Current Title: ${application.candidate_title || 'Not specified'}
 Job Position: ${job?.title || 'Position'}
-Company: ${job?.companies?.name || 'Company'}
+Company: ${companyName}
 Interview Stage: ${stageName}
 Interview Type: ${interviewType.replace('_', ' ')}
+Interviewers: ${selectedInterviewerNames || 'TBD'}
 
 Include:
 1. Brief introduction
 2. Key areas to assess
 3. Interview format
-4. Links to candidate profile and materials
+4. A note about the meeting link being included
 
 Keep it concise (3-4 sentences) and professional.`;
 
@@ -157,15 +227,16 @@ Keep it concise (3-4 sentences) and professional.`;
       } else {
         // Fallback to template
         setDescription(
-          `Interview with ${candidateName} for the ${stageName} stage of the ${job?.title} position.\n\nKey Assessment Areas:\n- Technical skills and experience\n- Problem-solving approach\n- Cultural fit\n- Communication skills\n\nPlease review the candidate's profile and application before the interview.`
+          `Interview with ${candidateName} for the ${stageName} stage of the ${job?.title} position at ${companyName}.\n\nInterviewers: ${selectedInterviewerNames || 'TBD'}\n\nKey Assessment Areas:\n- Technical skills and experience\n- Problem-solving approach\n- Cultural fit\n- Communication skills\n\nPlease review the candidate's profile and application before the interview.`
         );
       }
     } catch (error) {
       console.error('Error generating AI content:', error);
       // Use fallback template
       const candidateName = application.candidate_full_name || 'Candidate';
+      const companyName = job?.companies?.name || 'Company';
       setDescription(
-        `Interview with ${candidateName} for the ${stageName} stage.\n\nPlease review the candidate's application materials before the interview.`
+        `Interview with ${candidateName} for the ${stageName} stage at ${companyName}.\n\nPlease review the candidate's application materials before the interview.`
       );
     } finally {
       setGeneratingAI(false);
@@ -218,16 +289,16 @@ Keep it concise (3-4 sentences) and professional.`;
 
       // Get current user
       const {
-        data: { user },
+        data: { user: authUser },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!authUser) throw new Error('User not authenticated');
 
       // Get or create a system booking link for interviews
       let bookingLinkId = '';
       const { data: existingLink } = await supabase
         .from('booking_links')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', authUser.id)
         .eq('slug', 'system-interviews')
         .single();
 
@@ -238,7 +309,7 @@ Keep it concise (3-4 sentences) and professional.`;
         const { data: newLink, error: linkError } = await supabase
           .from('booking_links')
           .insert({
-            user_id: user.id,
+            user_id: authUser.id,
             slug: 'system-interviews',
             title: 'Interview Bookings',
             description: 'System-generated booking link for interview scheduling',
@@ -252,14 +323,20 @@ Keep it concise (3-4 sentences) and professional.`;
         bookingLinkId = newLink.id;
       }
 
+      // Collect all attendee emails
+      const selectedInterviewerEmailList = interviewerEmails
+        .filter((e) => selectedInterviewers.includes(e.id))
+        .map((e) => e.email)
+        .filter(Boolean);
+
       // Create booking
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
-          user_id: user.id,
+          user_id: authUser.id,
           booking_link_id: bookingLinkId,
           guest_name: application.candidate_full_name || 'Candidate',
-          guest_email: application.candidate_email || 'no-email@temp.com',
+          guest_email: candidateEmail || 'no-email@temp.com',
           scheduled_start: scheduledStart.toISOString(),
           scheduled_end: scheduledEnd.toISOString(),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -279,7 +356,65 @@ Keep it concise (3-4 sentences) and professional.`;
 
       if (bookingError) throw bookingError;
 
-      toast.success('Interview scheduled successfully');
+      // Sync to Google Calendar if connected and enabled
+      if (hasCalendarConnected && syncToCalendar && calendarConnection) {
+        try {
+          // Build attendees list for Google Calendar
+          const attendees = [];
+          if (candidateEmail) {
+            attendees.push({ email: candidateEmail });
+          }
+          selectedInterviewerEmailList.forEach((email) => {
+            attendees.push({ email });
+          });
+
+          const { data: calData, error: calError } = await supabase.functions.invoke('google-calendar-events', {
+            body: {
+              action: 'createEvent',
+              connectionId: calendarConnection.id,
+              event: {
+                summary: title,
+                description: description,
+                start: {
+                  dateTime: scheduledStart.toISOString(),
+                  timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                },
+                end: {
+                  dateTime: scheduledEnd.toISOString(),
+                  timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                },
+                attendees: attendees,
+                reminders: {
+                  useDefault: false,
+                  overrides: [
+                    { method: 'email', minutes: 60 },
+                    { method: 'popup', minutes: 15 },
+                  ],
+                },
+              },
+            },
+          });
+
+          if (calError) {
+            console.error('Failed to add to Google Calendar:', calError);
+            toast.warning('Interview scheduled, but failed to add to Google Calendar');
+          } else if (calData?.event?.id) {
+            // Update booking with calendar event ID
+            await supabase
+              .from('bookings')
+              .update({ calendar_event_id: calData.event.id })
+              .eq('id', booking.id);
+            
+            toast.success('Interview scheduled and added to your Google Calendar!');
+          }
+        } catch (calErr) {
+          console.error('Google Calendar sync error:', calErr);
+          toast.warning('Interview scheduled, but calendar sync failed');
+        }
+      } else {
+        toast.success('Interview scheduled successfully');
+      }
+
       onInterviewCreated?.();
     } catch (error: any) {
       console.error('Error creating interview:', error);
@@ -295,6 +430,11 @@ Keep it concise (3-4 sentences) and professional.`;
     );
   };
 
+  const selectedInterviewerNames = teamMembers
+    .filter((m) => selectedInterviewers.includes(m.company_member_id))
+    .map((m) => m.company_member?.user?.full_name)
+    .filter(Boolean);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -309,6 +449,57 @@ Keep it concise (3-4 sentences) and professional.`;
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Calendar Connection Status */}
+          {!checkingCalendar && (
+            <div className={cn(
+              "p-4 rounded-lg border flex items-start gap-3",
+              hasCalendarConnected 
+                ? "bg-green-500/10 border-green-500/30" 
+                : "bg-yellow-500/10 border-yellow-500/30"
+            )}>
+              {hasCalendarConnected ? (
+                <>
+                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-green-700">Google Calendar Connected</p>
+                    <p className="text-xs text-green-600/80">
+                      Interview will be synced to your calendar and attendees will receive invites
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Switch
+                        checked={syncToCalendar}
+                        onCheckedChange={setSyncToCalendar}
+                        id="sync-calendar"
+                      />
+                      <Label htmlFor="sync-calendar" className="text-sm cursor-pointer">
+                        Add to Google Calendar
+                      </Label>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-yellow-700">Google Calendar Not Connected</p>
+                    <p className="text-xs text-yellow-600/80">
+                      Connect your Google Calendar to automatically sync interviews and send calendar invites
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => window.open('/settings/connections', '_blank')}
+                    >
+                      <Link2 className="w-4 h-4 mr-2" />
+                      Connect Calendar
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {/* AI-Generated Content Section */}
           <div className="p-4 rounded-lg bg-muted/50 border border-border/50">
             <div className="flex items-center gap-2 mb-2">
@@ -317,7 +508,7 @@ Keep it concise (3-4 sentences) and professional.`;
               {generatingAI && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
             </div>
             <p className="text-xs text-muted-foreground">
-              Title and description generated based on candidate profile and job details
+              Title and description auto-generated with company, candidate, and interviewer details
             </p>
           </div>
 
@@ -346,8 +537,39 @@ Keep it concise (3-4 sentences) and professional.`;
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Interview title"
+              placeholder="Company - Candidate Name - Interview Stage"
             />
+            <p className="text-xs text-muted-foreground">
+              Format: {job?.companies?.name || 'Company'} - {application.candidate_full_name || 'Candidate'} - {stageName}
+            </p>
+          </div>
+
+          {/* Attendee Emails */}
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Attendee Emails
+            </Label>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={candidateEmail}
+                  onChange={(e) => setCandidateEmail(e.target.value)}
+                  placeholder="Candidate email"
+                  className="flex-1"
+                />
+                <Badge variant="outline" className="shrink-0">Candidate</Badge>
+              </div>
+              {selectedInterviewerNames.length > 0 && (
+                <div className="text-xs text-muted-foreground">
+                  <span className="font-medium">Interviewers: </span>
+                  {interviewerEmails
+                    .filter((e) => selectedInterviewers.includes(e.id))
+                    .map((e) => `${e.name} (${e.email})`)
+                    .join(', ') || 'No emails found'}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Description */}
@@ -388,7 +610,7 @@ Keep it concise (3-4 sentences) and professional.`;
                         {member.company_member?.user?.full_name}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {member.job_role.replace('_', ' ')}
+                        {member.job_role.replace('_', ' ')} • {member.company_member?.user?.email || 'No email'}
                       </p>
                     </div>
                   </div>
@@ -413,8 +635,9 @@ Keep it concise (3-4 sentences) and professional.`;
           {showSmartScheduling && (
             <SmartSchedulingPanel
               interviewers={selectedInterviewers}
-              candidateEmail={application.candidate_email}
+              candidateEmail={candidateEmail}
               duration={duration}
+              calendarConnectionId={hasCalendarConnected ? calendarConnection?.id : undefined}
               onSelectSlot={(slot) => {
                 setDate(slot.date);
                 setTime(slot.time);
@@ -482,7 +705,12 @@ Keep it concise (3-4 sentences) and professional.`;
                 Scheduling...
               </>
             ) : (
-              'Schedule Interview'
+              <>
+                {hasCalendarConnected && syncToCalendar && (
+                  <CalendarIcon className="w-4 h-4 mr-2" />
+                )}
+                Schedule Interview
+              </>
             )}
           </Button>
         </div>
