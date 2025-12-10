@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -123,21 +123,44 @@ export function TranslationJobProgress({ onJobComplete, onCleanup }: Translation
 }
 
 function RunningJobCard({ job }: { job: TranslationJob }) {
+  const [now, setNow] = useState(Date.now());
   const completedCount = job.completed_languages?.length || 0;
   const totalCount = job.target_languages?.length || 7;
   const namespaces = job.namespace.split(',');
   const totalTranslations = namespaces.length * totalCount;
   const progress = totalTranslations > 0 ? (completedCount / totalTranslations) * 100 : 0;
   
-  const elapsed = Math.floor((Date.now() - new Date(job.started_at).getTime()) / 1000);
+  const elapsed = Math.floor((now - new Date(job.started_at).getTime()) / 1000);
+  const lastUpdate = Math.floor((now - new Date(job.started_at).getTime()) / 1000);
+  const isStale = lastUpdate > 10 * 60; // 10 minutes without update = stale
   const estimatedRemaining = progress > 0 ? Math.floor((elapsed / progress) * (100 - progress)) : null;
 
+  // Update elapsed time every second
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="rounded-lg border bg-card p-4 animate-pulse-slow">
+    <div className={cn(
+      "rounded-lg border bg-card p-4",
+      isStale ? "border-yellow-500 bg-yellow-500/5" : "animate-pulse-slow"
+    )}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin text-primary" />
-          <span className="font-medium text-sm">Generating Translations</span>
+          {isStale ? (
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+          ) : (
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          )}
+          <span className="font-medium text-sm">
+            {isStale ? 'Job May Be Stuck' : 'Generating Translations'}
+          </span>
+          {isStale && (
+            <Badge variant="outline" className="text-xs text-yellow-600 border-yellow-500">
+              No updates for {formatDuration(lastUpdate)}
+            </Badge>
+          )}
         </div>
         <Badge variant="outline" className="text-xs">
           <Clock className="h-3 w-3 mr-1" />

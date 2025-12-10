@@ -1,11 +1,11 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Languages, Download, Loader2, CheckCircle, AlertCircle, Sparkles, TrendingUp, BarChart3, RefreshCw } from 'lucide-react';
+import { Languages, Download, Loader2, CheckCircle, AlertCircle, Sparkles, TrendingUp, BarChart3, RefreshCw, Trash2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useSeedTranslations } from '@/hooks/use-seed-translations';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -26,9 +26,66 @@ export default function TranslationManager() {
   const [generatingNamespace, setGeneratingNamespace] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('generate');
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [isCleaningJobs, setIsCleaningJobs] = useState(false);
   const logIdRef = useRef(0);
   const seedTranslations = useSeedTranslations();
   const { data: coverageData, isLoading: coverageLoading, refetch: refetchCoverage } = useTranslationCoverage();
+
+  // Auto-cleanup stale jobs on page load
+  useEffect(() => {
+    const cleanupStaleJobs = async () => {
+      const { data, error } = await supabase
+        .from('translation_generation_jobs')
+        .update({ 
+          status: 'failed', 
+          error_message: 'Job timed out and was cleaned up automatically',
+          updated_at: new Date().toISOString()
+        })
+        .eq('status', 'running')
+        .lt('updated_at', new Date(Date.now() - 30 * 60 * 1000).toISOString())
+        .select();
+      
+      if (data && data.length > 0) {
+        addLog('warn', `Auto-cleaned ${data.length} stale jobs`, undefined, 'cleanup');
+      }
+    };
+    
+    cleanupStaleJobs();
+  }, []);
+
+  const cleanupStuckJobs = async () => {
+    setIsCleaningJobs(true);
+    addLog('info', 'Cleaning up stuck jobs...', undefined, 'cleanup');
+    
+    try {
+      const { data, error } = await supabase
+        .from('translation_generation_jobs')
+        .update({ 
+          status: 'failed', 
+          error_message: 'Job timed out and was cleaned up manually',
+          updated_at: new Date().toISOString()
+        })
+        .eq('status', 'running')
+        .lt('updated_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
+        .select();
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        addLog('info', `✓ Cleaned up ${data.length} stuck jobs`, undefined, 'cleanup');
+        toast.success(`Cleaned up ${data.length} stuck jobs`);
+        queryClient.invalidateQueries({ queryKey: ['translation-jobs'] });
+      } else {
+        addLog('info', 'No stuck jobs found', undefined, 'cleanup');
+        toast.info('No stuck jobs to clean up');
+      }
+    } catch (error: any) {
+      addLog('error', 'Cleanup failed', error.message, 'cleanup');
+      toast.error(`Cleanup failed: ${error.message}`);
+    } finally {
+      setIsCleaningJobs(false);
+    }
+  };
 
   // Helper to add logs
   const addLog = useCallback((level: 'info' | 'warn' | 'error', message: string, details?: string, source?: string) => {
@@ -365,7 +422,7 @@ export default function TranslationManager() {
         <TranslationLoadingState queries={queryStates} onRetry={handleRetryQuery} />
 
         {/* Job Progress (Real-time) */}
-        <TranslationJobProgress onJobComplete={handleJobComplete} />
+        <TranslationJobProgress onJobComplete={handleJobComplete} onCleanup={cleanupStuckJobs} />
 
         {/* Debug Panel */}
         <TranslationDebugPanel logs={logs} onClear={() => setLogs([])} />
