@@ -22,7 +22,7 @@ export const TranslationDebugger = () => {
   }
   
   const currentLangData = coverage?.byLanguage[i18n.language];
-  const missingCount = coverage?.missingKeys.filter(k => k.language === i18n.language).length || 0;
+  const missingCount = coverage?.missingKeys.filter(k => k.missingIn?.includes(i18n.language)).length || 0;
   
   // Listen for trigger event from QuickAccessHub
   useEffect(() => {

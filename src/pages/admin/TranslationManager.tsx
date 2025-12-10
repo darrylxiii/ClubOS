@@ -426,10 +426,10 @@ export default function TranslationManager() {
                           {coverageData.missingKeys.slice(0, 20).map((missing, idx) => (
                             <div key={idx} className="flex justify-between p-2 rounded bg-muted/50">
                               <div>
-                                <p className="text-sm font-medium">{missing.namespace}</p>
-                                <p className="text-xs text-muted-foreground uppercase">{missing.language}</p>
+                                <p className="text-sm font-medium">{missing.namespace}:{missing.key}</p>
+                                <p className="text-xs text-muted-foreground">Missing in: {missing.missingIn?.join(', ') || 'unknown'}</p>
                               </div>
-                              <Badge variant="destructive">{missing.missingCount} keys</Badge>
+                              <Badge variant="destructive">{missing.missingIn?.length || 0} langs</Badge>
                             </div>
                           ))}
                           {coverageData.missingKeys.length > 20 && (
