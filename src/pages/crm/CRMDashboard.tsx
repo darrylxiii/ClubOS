@@ -16,7 +16,9 @@ import {
   BarChart3,
   Zap,
   Calendar,
-  MessageSquare
+  MessageSquare,
+  Focus,
+  Keyboard
 } from 'lucide-react';
 import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
@@ -77,6 +79,13 @@ export default function CRMDashboard() {
   ];
 
   const quickActions = [
+    { 
+      label: 'Focus View', 
+      description: 'Your activities for today',
+      icon: Focus, 
+      path: '/crm/focus',
+      color: 'from-primary/20 to-violet-500/20'
+    },
     { 
       label: 'Prospect Pipeline', 
       description: 'Manage and move prospects through stages',
@@ -180,7 +189,7 @@ export default function CRMDashboard() {
               </div>
 
               {/* Quick Actions */}
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-4 gap-4">
                 {quickActions.map((action, index) => (
                   <motion.div
                     key={action.label}

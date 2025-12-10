@@ -19,6 +19,7 @@ const ReplyInbox = lazy(() => import("@/pages/crm/ReplyInbox"));
 const CampaignDashboard = lazy(() => import("@/pages/crm/CampaignDashboard"));
 const ImportHistory = lazy(() => import("@/pages/crm/ImportHistory"));
 const SuppressionList = lazy(() => import("@/pages/crm/SuppressionList"));
+const FocusView = lazy(() => import("@/pages/crm/FocusView"));
 
 export const crmRoutes = (
   <>
@@ -101,6 +102,18 @@ export const crmRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <SuppressionList />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/crm/focus"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <FocusView />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>

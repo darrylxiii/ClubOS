@@ -50,6 +50,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ProspectScoreCard } from '@/components/crm/ProspectScoreCard';
 import { AIReplySuggestion } from '@/components/crm/AIReplySuggestion';
+import { ActivityList } from '@/components/crm/ActivityList';
+import { ActivityQuickAdd } from '@/components/crm/ActivityQuickAdd';
+import { RottingIndicator } from '@/components/crm/RottingIndicator';
+import { differenceInDays } from 'date-fns';
 
 export default function ProspectDetail() {
   const { prospectId } = useParams<{ prospectId: string }>();
@@ -375,17 +379,40 @@ export default function ProspectDetail() {
                 </Card>
               </motion.div>
 
-              {/* Activity Timeline */}
+              {/* Activities */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
                 <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Calendar className="w-5 h-5" />
+                      Activities
+                    </CardTitle>
+                    <ActivityQuickAdd 
+                      prospectId={prospect.id}
+                      onSuccess={() => {}}
+                    />
+                  </CardHeader>
+                  <CardContent>
+                    <ActivityList prospectId={prospect.id} />
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Touchpoint Timeline */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Clock className="w-5 h-5" />
-                      Activity Timeline
+                      Communication Timeline
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -439,7 +466,7 @@ export default function ProspectDetail() {
                       </div>
                     ) : (
                       <p className="text-muted-foreground text-center py-8">
-                        No activity recorded yet
+                        No touchpoints recorded yet
                       </p>
                     )}
                   </CardContent>

@@ -16,10 +16,13 @@ import {
   Phone,
   Linkedin,
   DollarSign,
-  Clock
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import type { CRMProspect } from '@/types/crm-enterprise';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow, format, differenceInDays } from 'date-fns';
+import { RottingIndicator } from './RottingIndicator';
+import { NextActivityBadge } from './NextActivityBadge';
 
 interface EnhancedProspectCardProps {
   prospect: CRMProspect;
@@ -168,6 +171,17 @@ export function EnhancedProspectCard({ prospect, isDragging }: EnhancedProspectC
               {sentimentEmojis[prospect.reply_sentiment]} {prospect.reply_sentiment}
             </Badge>
           )}
+        </div>
+
+        {/* Rotting Indicator */}
+        <div className="flex items-center gap-2 mb-2">
+          <RottingIndicator 
+            lastContactedAt={prospect.last_activity_at}
+            showLabel
+          />
+          <NextActivityBadge 
+            nextActivityAt={(prospect as any).next_activity_at}
+          />
         </div>
 
         {/* Stats Row */}

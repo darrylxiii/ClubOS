@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { motion } from 'framer-motion';
@@ -9,6 +9,7 @@ import {
   Upload, 
   Plus,
   RefreshCw,
+  Keyboard,
 } from 'lucide-react';
 import {
   DndContext,
@@ -22,12 +23,14 @@ import {
 } from '@dnd-kit/core';
 import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
+import { useCRMKeyboardShortcuts } from '@/hooks/useCRMKeyboardShortcuts';
 import { PROSPECT_STAGES, type CRMProspect, type ProspectStage } from '@/types/crm-enterprise';
 import { EnhancedKanbanColumn } from '@/components/crm/EnhancedKanbanColumn';
 import { EnhancedProspectCard } from '@/components/crm/EnhancedProspectCard';
 import { CSVImportDialog } from '@/components/crm/CSVImportDialog';
 import { AddProspectDialog } from '@/components/crm/AddProspectDialog';
 import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
+import { CRMKeyboardShortcutsDialog } from '@/components/crm/CRMKeyboardShortcutsDialog';
 import {
   Select,
   SelectContent,
@@ -37,6 +40,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Primary stages (visible by default)
 const PRIMARY_STAGES = ['new', 'contacted', 'replied', 'qualified', 'meeting_booked', 'closed_won'];
@@ -49,6 +53,12 @@ export default function ProspectPipeline() {
   const [addProspectStage, setAddProspectStage] = useState<ProspectStage>('new');
   const [activeProspect, setActiveProspect] = useState<CRMProspect | null>(null);
   const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const { showHelp, setShowHelp } = useCRMKeyboardShortcuts({
+    onAddProspect: () => handleAddProspect('new'),
+    onSearch: () => searchInputRef.current?.focus(),
+  });
 
   const { prospects, loading, refetch, updateProspectStage } = useCRMProspects({ 
     search: searchQuery || undefined,
@@ -171,6 +181,17 @@ export default function ProspectPipeline() {
                   <Plus className="w-4 h-4 mr-2" />
                   Add Prospect
                 </Button>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => setShowHelp(true)}>
+                      <Keyboard className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Keyboard shortcuts (?)</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </motion.div>
@@ -246,6 +267,11 @@ export default function ProspectPipeline() {
           onSuccess={refetch}
           campaigns={campaigns}
           defaultStage={addProspectStage}
+        />
+
+        <CRMKeyboardShortcutsDialog 
+          open={showHelp} 
+          onOpenChange={setShowHelp} 
         />
       </RoleGate>
     </AppLayout>
