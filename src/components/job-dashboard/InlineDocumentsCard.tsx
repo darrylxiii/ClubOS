@@ -6,27 +6,60 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { JobDocuments } from "@/components/partner/JobDocuments";
 
+interface DocumentItem {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_type: string;
+}
+
 interface InlineDocumentsCardProps {
   jobId: string;
 }
 
 export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) => {
-  const [documents, setDocuments] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFullDialog, setShowFullDialog] = useState(false);
 
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
-        const { data, error } = await (supabase as any)
-          .from('job_documents')
-          .select('id, file_name, file_type, created_at')
-          .eq('job_id', jobId)
-          .order('created_at', { ascending: false })
-          .limit(3);
+        // Fetch documents from the jobs table (job_description_url and supporting_documents)
+        const { data, error } = await supabase
+          .from('jobs')
+          .select('job_description_url, supporting_documents')
+          .eq('id', jobId)
+          .single();
         
-        if (!error) {
-          setDocuments(data || []);
+        if (!error && data) {
+          const docs: DocumentItem[] = [];
+          
+          // Add job description document if exists
+          if (data.job_description_url) {
+            docs.push({
+              id: 'jd-main',
+              file_name: 'Job Description',
+              file_url: data.job_description_url,
+              file_type: 'application/pdf'
+            });
+          }
+          
+          // Add supporting documents if they exist
+          if (data.supporting_documents && Array.isArray(data.supporting_documents)) {
+            data.supporting_documents.forEach((doc: any, index: number) => {
+              if (doc?.url || doc?.file_url) {
+                docs.push({
+                  id: `supporting-${index}`,
+                  file_name: doc.name || doc.file_name || `Document ${index + 1}`,
+                  file_url: doc.url || doc.file_url,
+                  file_type: doc.type || doc.file_type || 'application/pdf'
+                });
+              }
+            });
+          }
+          
+          setDocuments(docs.slice(0, 3)); // Limit to 3 for preview
         }
       } catch (err) {
         console.error('Error fetching documents:', err);
@@ -38,8 +71,8 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
     fetchDocuments();
   }, [jobId]);
 
-  const getFileIcon = (fileType: string) => {
-    return FileText;
+  const handleOpenDocument = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -87,19 +120,17 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
           </div>
         ) : (
           <div className="space-y-2">
-            {documents.map((doc) => {
-              const Icon = getFileIcon(doc.file_type);
-              return (
-                <div 
-                  key={doc.id}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-background/40 border border-border/20 hover:bg-background/60 transition-all cursor-pointer group"
-                >
-                  <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                  <span className="text-sm truncate flex-1">{doc.file_name}</span>
-                  <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              );
-            })}
+            {documents.map((doc) => (
+              <div 
+                key={doc.id}
+                onClick={() => handleOpenDocument(doc.file_url)}
+                className="flex items-center gap-2 p-2 rounded-lg bg-background/40 border border-border/20 hover:bg-background/60 transition-all cursor-pointer group"
+              >
+                <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm truncate flex-1">{doc.file_name}</span>
+                <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            ))}
             {documents.length >= 3 && (
               <Button 
                 variant="ghost" 

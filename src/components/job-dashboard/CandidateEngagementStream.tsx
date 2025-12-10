@@ -2,14 +2,14 @@ import { memo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Activity, Eye, FileText, MessageSquare, CheckCircle, XCircle, Clock, Video, Sparkles } from "lucide-react";
+import { Activity, Eye, FileText, MessageSquare, CheckCircle, XCircle, Clock, Video, ArrowRight, UserPlus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, parseISO } from "date-fns";
 
 interface EngagementEvent {
   id: string;
-  type: 'profile_view' | 'assessment_complete' | 'message_sent' | 'application_submitted' | 'interview_scheduled' | 'withdrawal' | 'document_upload';
+  type: string;
   candidateName: string;
   candidateAvatar?: string;
   timestamp: Date;
@@ -22,106 +22,180 @@ interface CandidateEngagementStreamProps {
 
 export const CandidateEngagementStream = memo(({ jobId }: CandidateEngagementStreamProps) => {
   const [events, setEvents] = useState<EngagementEvent[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isLive, setIsLive] = useState(true);
 
-  // Simulate real-time events - in production would use Supabase realtime
   useEffect(() => {
-    // Initial mock events
-    const mockEvents: EngagementEvent[] = [
-      {
-        id: '1',
-        type: 'assessment_complete',
-        candidateName: 'Sarah Chen',
-        timestamp: new Date(Date.now() - 1000 * 60 * 5),
-        details: 'Technical Assessment - Score: 92%'
-      },
-      {
-        id: '2',
-        type: 'interview_scheduled',
-        candidateName: 'Marcus Johnson',
-        timestamp: new Date(Date.now() - 1000 * 60 * 15),
-        details: 'Panel Interview - Tomorrow 2pm'
-      },
-      {
-        id: '3',
-        type: 'profile_view',
-        candidateName: 'Emma Williams',
-        timestamp: new Date(Date.now() - 1000 * 60 * 30),
-        details: 'Viewed job description 3 times'
-      },
-      {
-        id: '4',
-        type: 'document_upload',
-        candidateName: 'Alex Rivera',
-        timestamp: new Date(Date.now() - 1000 * 60 * 45),
-        details: 'Portfolio uploaded'
-      },
-      {
-        id: '5',
-        type: 'message_sent',
-        candidateName: 'Jordan Lee',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60),
-        details: 'Responded to follow-up'
-      }
-    ];
-    
-    setEvents(mockEvents);
-
-    // Simulate new event coming in
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        const newEventTypes: EngagementEvent['type'][] = ['profile_view', 'message_sent', 'document_upload'];
-        const names = ['Taylor Swift', 'Chris Martin', 'Amy Zhang', 'David Kim'];
+    const fetchRealEvents = async () => {
+      try {
+        // Fetch real pipeline audit logs for this job
+        const { data, error } = await supabase
+          .from('pipeline_audit_logs')
+          .select(`
+            id,
+            action,
+            created_at,
+            stage_data,
+            metadata
+          `)
+          .eq('job_id', jobId)
+          .order('created_at', { ascending: false })
+          .limit(10);
         
-        const newEvent: EngagementEvent = {
-          id: Date.now().toString(),
-          type: newEventTypes[Math.floor(Math.random() * newEventTypes.length)],
-          candidateName: names[Math.floor(Math.random() * names.length)],
-          timestamp: new Date(),
-          details: 'New activity detected'
-        };
-        
-        setEvents(prev => [newEvent, ...prev.slice(0, 4)]);
+        if (!error && data) {
+          const mappedEvents: EngagementEvent[] = data.map((log: any) => {
+            const stageData = log.stage_data as Record<string, any> | null;
+            const metadata = log.metadata as Record<string, any> | null;
+            return {
+              id: log.id,
+              type: mapActionToType(log.action),
+              candidateName: stageData?.candidate_name || metadata?.candidate_name || 'Candidate',
+              candidateAvatar: metadata?.avatar_url,
+              timestamp: new Date(log.created_at),
+              details: getEventDetails(log.action, stageData, metadata)
+            };
+          });
+          setEvents(mappedEvents);
+        }
+      } catch (err) {
+        console.error('Error fetching engagement events:', err);
+      } finally {
+        setLoading(false);
       }
-    }, 15000);
+    };
 
-    return () => clearInterval(interval);
+    fetchRealEvents();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel(`pipeline_logs_${jobId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'pipeline_audit_logs',
+          filter: `job_id=eq.${jobId}`
+        },
+        (payload) => {
+          const log = payload.new as any;
+          const newEvent: EngagementEvent = {
+            id: log.id,
+            type: mapActionToType(log.action),
+            candidateName: log.stage_data?.candidate_name || log.metadata?.candidate_name || 'Candidate',
+            candidateAvatar: log.metadata?.avatar_url,
+            timestamp: new Date(log.created_at),
+            details: getEventDetails(log.action, log.stage_data, log.metadata)
+          };
+          setEvents(prev => [newEvent, ...prev.slice(0, 9)]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [jobId]);
 
-  const getEventIcon = (type: EngagementEvent['type']) => {
+  const mapActionToType = (action: string): string => {
+    const mapping: Record<string, string> = {
+      'candidate_added': 'application_submitted',
+      'stage_advanced': 'stage_change',
+      'candidate_rejected': 'withdrawal',
+      'interview_scheduled': 'interview_scheduled',
+      'note_added': 'message_sent',
+      'document_uploaded': 'document_upload',
+      'job_viewed': 'profile_view',
+      'assessment_complete': 'assessment_complete'
+    };
+    return mapping[action] || action;
+  };
+
+  const getEventDetails = (action: string, stageData: any, metadata: any): string => {
+    if (action === 'stage_advanced') {
+      return `Moved to ${stageData?.new_stage || 'next stage'}`;
+    }
+    if (action === 'interview_scheduled') {
+      return metadata?.interview_type || 'Interview scheduled';
+    }
+    if (action === 'candidate_added') {
+      return 'Applied to position';
+    }
+    if (action === 'candidate_rejected') {
+      return stageData?.rejection_reason || 'Rejected';
+    }
+    return metadata?.details || '';
+  };
+
+  const getEventIcon = (type: string) => {
     switch (type) {
       case 'profile_view': return <Eye className="w-3.5 h-3.5" />;
       case 'assessment_complete': return <CheckCircle className="w-3.5 h-3.5" />;
       case 'message_sent': return <MessageSquare className="w-3.5 h-3.5" />;
-      case 'application_submitted': return <FileText className="w-3.5 h-3.5" />;
+      case 'application_submitted': return <UserPlus className="w-3.5 h-3.5" />;
       case 'interview_scheduled': return <Video className="w-3.5 h-3.5" />;
       case 'withdrawal': return <XCircle className="w-3.5 h-3.5" />;
       case 'document_upload': return <FileText className="w-3.5 h-3.5" />;
+      case 'stage_change': return <ArrowRight className="w-3.5 h-3.5" />;
       default: return <Activity className="w-3.5 h-3.5" />;
     }
   };
 
-  const getEventColor = (type: EngagementEvent['type']) => {
+  const getEventColor = (type: string) => {
     switch (type) {
       case 'assessment_complete': return 'bg-success/20 text-success border-success/30';
       case 'interview_scheduled': return 'bg-primary/20 text-primary border-primary/30';
       case 'withdrawal': return 'bg-destructive/20 text-destructive border-destructive/30';
+      case 'stage_change': return 'bg-accent/20 text-accent border-accent/30';
+      case 'application_submitted': return 'bg-success/20 text-success border-success/30';
       default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 
-  const getEventLabel = (type: EngagementEvent['type']) => {
+  const getEventLabel = (type: string) => {
     switch (type) {
       case 'profile_view': return 'Viewed';
       case 'assessment_complete': return 'Completed';
       case 'message_sent': return 'Replied';
       case 'application_submitted': return 'Applied';
       case 'interview_scheduled': return 'Scheduled';
-      case 'withdrawal': return 'Withdrew';
+      case 'withdrawal': return 'Rejected';
       case 'document_upload': return 'Uploaded';
+      case 'stage_change': return 'Advanced';
       default: return 'Activity';
     }
   };
+
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <Card className="bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl border border-border/50 shadow-[var(--shadow-glass-lg)]">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-accent/20 to-primary/20">
+                <Activity className="w-4 h-4 text-accent" />
+              </div>
+              <div>
+                <CardTitle className="text-base font-bold">Live Activity</CardTitle>
+                <p className="text-xs text-muted-foreground">Loading...</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-12 bg-muted/30 rounded-lg animate-pulse" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

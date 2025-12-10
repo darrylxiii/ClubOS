@@ -5,7 +5,7 @@ import { JobTeamPanel } from "@/components/partner/JobTeamPanel";
 import { InlineDocumentsCard } from "./InlineDocumentsCard";
 import { UpcomingInterviewsCompact } from "./UpcomingInterviewsCompact";
 import { QuickResponseTimeTracker } from "./QuickResponseTimeTracker";
-import { CandidateEngagementStream } from "./CandidateEngagementStream";
+import { InlineActivityFeed } from "./InlineActivityFeed";
 import { motion } from "framer-motion";
 
 interface JobDashboardSidebarProps {
@@ -73,8 +73,8 @@ export const JobDashboardSidebar = memo(({
         avgTimeToHire={Math.round(avgTimeToHire)}
       />
 
-      {/* Live Engagement Stream */}
-      <CandidateEngagementStream jobId={job.id} />
+      {/* Real Activity Feed (replaced mock CandidateEngagementStream) */}
+      <InlineActivityFeed jobId={job.id} initialLimit={5} />
 
       {/* Quick Response Time Tracker */}
       {metrics && stages.length > 0 && (
