@@ -119,6 +119,18 @@ export interface CRMProspect {
   external_id: string | null;
   stakeholder_id: string | null;
   contact_id: string | null;
+  // Close tracking
+  closed_at?: string | null;
+  closed_by?: string | null;
+  closed_reason?: string | null;
+  closed_reason_category?: string | null;
+  competitor_name?: string | null;
+  // Snooze
+  snoozed_until?: string | null;
+  // Activity
+  next_activity_id?: string | null;
+  next_activity_at?: string | null;
+  // Timestamps
   created_at: string;
   updated_at: string;
   // Joined

@@ -17,16 +17,20 @@ import {
   Linkedin,
   DollarSign,
   Clock,
-  AlertCircle
+  MoreHorizontal
 } from 'lucide-react';
 import type { CRMProspect } from '@/types/crm-enterprise';
-import { formatDistanceToNow, format, differenceInDays } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { RottingIndicator } from './RottingIndicator';
 import { NextActivityBadge } from './NextActivityBadge';
+import { ProspectActionsMenu } from './ProspectActionsMenu';
 
 interface EnhancedProspectCardProps {
   prospect: CRMProspect;
   isDragging?: boolean;
+  onUpdateProspect?: (id: string, updates: Partial<CRMProspect>) => Promise<boolean>;
+  onDeleteProspect?: (id: string) => Promise<boolean>;
+  onConvertToPartner?: (data: { companyName: string; notes: string }) => Promise<void>;
 }
 
 const sentimentColors: Record<string, string> = {
@@ -53,9 +57,15 @@ const sentimentEmojis: Record<string, string> = {
   negative: '👎',
 };
 
-export function EnhancedProspectCard({ prospect, isDragging }: EnhancedProspectCardProps) {
+export function EnhancedProspectCard({ 
+  prospect, 
+  isDragging,
+  onUpdateProspect,
+  onDeleteProspect,
+  onConvertToPartner
+}: EnhancedProspectCardProps) {
   const [showActions, setShowActions] = useState(false);
-  
+
   const {
     attributes,
     listeners,
@@ -132,13 +142,28 @@ export function EnhancedProspectCard({ prospect, isDragging }: EnhancedProspectC
             )}
           </div>
 
-          {/* Lead Score Badge */}
-          <div className={cn(
-            "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
-            getScoreColor(prospect.lead_score)
-          )}>
-            <Zap className="w-3 h-3" />
-            {prospect.lead_score}
+          {/* Lead Score Badge & Actions */}
+          <div className="flex items-center gap-1">
+            <div className={cn(
+              "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+              getScoreColor(prospect.lead_score)
+            )}>
+              <Zap className="w-3 h-3" />
+              {prospect.lead_score}
+            </div>
+            {onUpdateProspect && onDeleteProspect && onConvertToPartner && (
+              <ProspectActionsMenu
+                prospect={prospect}
+                onUpdateProspect={onUpdateProspect}
+                onDeleteProspect={onDeleteProspect}
+                onConvertToPartner={onConvertToPartner}
+                trigger={
+                  <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                }
+              />
+            )}
           </div>
         </div>
 
