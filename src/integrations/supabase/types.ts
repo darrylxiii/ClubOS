@@ -8600,6 +8600,173 @@ export type Database = {
           },
         ]
       }
+      crm_activities: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["crm_activity_type"]
+          all_day: boolean | null
+          campaign_id: string | null
+          company_id: string | null
+          created_at: string | null
+          created_by: string | null
+          deal_id: string | null
+          description: string | null
+          done_at: string | null
+          due_date: string | null
+          due_time: string | null
+          duration_minutes: number | null
+          external_id: string | null
+          id: string
+          is_done: boolean | null
+          linked_booking_id: string | null
+          linked_meeting_id: string | null
+          metadata: Json | null
+          note: string | null
+          outcome: Database["public"]["Enums"]["crm_activity_outcome"] | null
+          outcome_notes: string | null
+          owner_id: string | null
+          priority: number | null
+          prospect_id: string | null
+          reminder_at: string | null
+          reminder_sent: boolean | null
+          subject: string
+          tags: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          activity_type?: Database["public"]["Enums"]["crm_activity_type"]
+          all_day?: boolean | null
+          campaign_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deal_id?: string | null
+          description?: string | null
+          done_at?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          duration_minutes?: number | null
+          external_id?: string | null
+          id?: string
+          is_done?: boolean | null
+          linked_booking_id?: string | null
+          linked_meeting_id?: string | null
+          metadata?: Json | null
+          note?: string | null
+          outcome?: Database["public"]["Enums"]["crm_activity_outcome"] | null
+          outcome_notes?: string | null
+          owner_id?: string | null
+          priority?: number | null
+          prospect_id?: string | null
+          reminder_at?: string | null
+          reminder_sent?: boolean | null
+          subject: string
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["crm_activity_type"]
+          all_day?: boolean | null
+          campaign_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deal_id?: string | null
+          description?: string | null
+          done_at?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          duration_minutes?: number | null
+          external_id?: string | null
+          id?: string
+          is_done?: boolean | null
+          linked_booking_id?: string | null
+          linked_meeting_id?: string | null
+          metadata?: Json | null
+          note?: string | null
+          outcome?: Database["public"]["Enums"]["crm_activity_outcome"] | null
+          outcome_notes?: string | null
+          owner_id?: string | null
+          priority?: number | null
+          prospect_id?: string | null
+          reminder_at?: string | null
+          reminder_sent?: boolean | null
+          subject?: string
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_activities_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "crm_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "crm_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_activities_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "crm_activities_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_activities_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_activities_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "crm_prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_assignment_rules: {
         Row: {
           assign_to_role: string | null
@@ -9123,10 +9290,15 @@ export type Database = {
           assigned_at: string | null
           campaign_id: string | null
           close_probability: number | null
+          closed_at: string | null
+          closed_by: string | null
+          closed_reason: string | null
+          closed_reason_category: string | null
           company_domain: string | null
           company_id: string | null
           company_name: string | null
           company_size: string | null
+          competitor_name: string | null
           contact_id: string | null
           country: string | null
           created_at: string
@@ -9156,6 +9328,8 @@ export type Database = {
           lead_score: number | null
           linkedin_url: string | null
           location: string | null
+          next_activity_at: string | null
+          next_activity_id: string | null
           next_followup_at: string | null
           notes: string | null
           owner_id: string | null
@@ -9172,10 +9346,15 @@ export type Database = {
           assigned_at?: string | null
           campaign_id?: string | null
           close_probability?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closed_reason?: string | null
+          closed_reason_category?: string | null
           company_domain?: string | null
           company_id?: string | null
           company_name?: string | null
           company_size?: string | null
+          competitor_name?: string | null
           contact_id?: string | null
           country?: string | null
           created_at?: string
@@ -9205,6 +9384,8 @@ export type Database = {
           lead_score?: number | null
           linkedin_url?: string | null
           location?: string | null
+          next_activity_at?: string | null
+          next_activity_id?: string | null
           next_followup_at?: string | null
           notes?: string | null
           owner_id?: string | null
@@ -9221,10 +9402,15 @@ export type Database = {
           assigned_at?: string | null
           campaign_id?: string | null
           close_probability?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closed_reason?: string | null
+          closed_reason_category?: string | null
           company_domain?: string | null
           company_id?: string | null
           company_name?: string | null
           company_size?: string | null
+          competitor_name?: string | null
           contact_id?: string | null
           country?: string | null
           created_at?: string
@@ -9254,6 +9440,8 @@ export type Database = {
           lead_score?: number | null
           linkedin_url?: string | null
           location?: string | null
+          next_activity_at?: string | null
+          next_activity_id?: string | null
           next_followup_at?: string | null
           notes?: string | null
           owner_id?: string | null
@@ -33804,6 +33992,31 @@ export type Database = {
       board_visibility: "personal" | "shared" | "company"
       club_sync_status_enum: "not_offered" | "pending" | "accepted" | "declined"
       company_achievement_type: "custom" | "platform_generated"
+      crm_activity_outcome:
+        | "completed"
+        | "no_answer"
+        | "left_voicemail"
+        | "busy"
+        | "wrong_number"
+        | "interested"
+        | "not_interested"
+        | "callback_requested"
+        | "meeting_scheduled"
+        | "email_sent"
+        | "bounced"
+        | "cancelled"
+        | "rescheduled"
+        | "other"
+      crm_activity_type:
+        | "call"
+        | "email"
+        | "meeting"
+        | "task"
+        | "deadline"
+        | "follow_up"
+        | "linkedin"
+        | "note"
+        | "sms"
       notification_type:
         | "mention"
         | "reply"
@@ -33972,6 +34185,33 @@ export const Constants = {
       board_visibility: ["personal", "shared", "company"],
       club_sync_status_enum: ["not_offered", "pending", "accepted", "declined"],
       company_achievement_type: ["custom", "platform_generated"],
+      crm_activity_outcome: [
+        "completed",
+        "no_answer",
+        "left_voicemail",
+        "busy",
+        "wrong_number",
+        "interested",
+        "not_interested",
+        "callback_requested",
+        "meeting_scheduled",
+        "email_sent",
+        "bounced",
+        "cancelled",
+        "rescheduled",
+        "other",
+      ],
+      crm_activity_type: [
+        "call",
+        "email",
+        "meeting",
+        "task",
+        "deadline",
+        "follow_up",
+        "linkedin",
+        "note",
+        "sms",
+      ],
       notification_type: [
         "mention",
         "reply",
