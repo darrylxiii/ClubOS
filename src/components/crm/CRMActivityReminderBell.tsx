@@ -85,11 +85,11 @@ export function CRMActivityReminderBell() {
   };
 
   const overdueCount = activities.filter(a => 
-    a.due_at && isPast(new Date(a.due_at)) && !isToday(new Date(a.due_at))
+    a.due_date && isPast(new Date(a.due_date)) && !isToday(new Date(a.due_date))
   ).length;
 
   const todayCount = activities.filter(a => 
-    a.due_at && isToday(new Date(a.due_at))
+    a.due_date && isToday(new Date(a.due_date))
   ).length;
 
   const totalCount = overdueCount + todayCount;
@@ -147,8 +147,8 @@ export function CRMActivityReminderBell() {
             <div className="divide-y divide-border/30">
               {activities.map((activity) => {
                 const Icon = activityIcons[activity.activity_type] || Clock;
-                const isOverdue = activity.due_at && isPast(new Date(activity.due_at)) && !isToday(new Date(activity.due_at));
-                const isDueToday = activity.due_at && isToday(new Date(activity.due_at));
+                const isOverdue = activity.due_date && isPast(new Date(activity.due_date)) && !isToday(new Date(activity.due_date));
+                const isDueToday = activity.due_date && isToday(new Date(activity.due_date));
 
                 return (
                   <div 
@@ -185,9 +185,9 @@ export function CRMActivityReminderBell() {
                               Due today
                             </Badge>
                           )}
-                          {activity.due_at && (
+                          {activity.due_date && (
                             <span className="text-xs text-muted-foreground">
-                              {format(new Date(activity.due_at), 'h:mm a')}
+                              {format(new Date(activity.due_date), 'h:mm a')}
                             </span>
                           )}
                         </div>
