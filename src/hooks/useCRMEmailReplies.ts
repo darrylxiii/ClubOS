@@ -10,6 +10,7 @@ interface UseEmailRepliesOptions {
   prospectId?: string;
   campaignId?: string;
   limit?: number;
+  search?: string;
 }
 
 export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
@@ -62,6 +63,10 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
         query = query.limit(options.limit);
       }
 
+      if (options.search) {
+        query = query.or(`subject.ilike.%${options.search}%,body_text.ilike.%${options.search}%,from_email.ilike.%${options.search}%`);
+      }
+
       const { data, error: fetchError } = await query;
 
       if (fetchError) throw fetchError;
@@ -80,7 +85,7 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [options.classification, options.isRead, options.isActioned, options.prospectId, options.campaignId, options.limit]);
+  }, [options.classification, options.isRead, options.isActioned, options.prospectId, options.campaignId, options.limit, options.search]);
 
   useEffect(() => {
     fetchReplies();
