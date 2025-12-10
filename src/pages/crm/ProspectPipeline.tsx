@@ -1,15 +1,19 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
 import { 
   Search, 
   Upload, 
   Plus,
   RefreshCw,
   Keyboard,
+  Filter,
+  X,
 } from 'lucide-react';
 import {
   DndContext,
@@ -23,7 +27,9 @@ import {
 } from '@dnd-kit/core';
 import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
+import { useCRMOwners } from '@/hooks/useCRMOwners';
 import { useCRMKeyboardShortcuts } from '@/hooks/useCRMKeyboardShortcuts';
+import { CRMRealtimeProvider, useCRMRealtime } from '@/components/crm/CRMRealtimeProvider';
 import { PROSPECT_STAGES, type CRMProspect, type ProspectStage } from '@/types/crm-enterprise';
 import { EnhancedKanbanColumn } from '@/components/crm/EnhancedKanbanColumn';
 import { EnhancedProspectCard } from '@/components/crm/EnhancedProspectCard';
@@ -31,6 +37,7 @@ import { CSVImportDialog } from '@/components/crm/CSVImportDialog';
 import { AddProspectDialog } from '@/components/crm/AddProspectDialog';
 import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 import { CRMKeyboardShortcutsDialog } from '@/components/crm/CRMKeyboardShortcutsDialog';
+import { BulkActionsBar } from '@/components/crm/BulkActionsBar';
 import {
   Select,
   SelectContent,
@@ -38,21 +45,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 // Primary stages (visible by default)
 const PRIMARY_STAGES = ['new', 'contacted', 'replied', 'qualified', 'meeting_booked', 'closed_won'];
 
-export default function ProspectPipeline() {
+function ProspectPipelineContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
+  const [selectedOwner, setSelectedOwner] = useState<string>('all');
+  const [scoreRange, setScoreRange] = useState<[number, number]>([0, 100]);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [addProspectOpen, setAddProspectOpen] = useState(false);
   const [addProspectStage, setAddProspectStage] = useState<ProspectStage>('new');
   const [activeProspect, setActiveProspect] = useState<CRMProspect | null>(null);
   const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { showHelp, setShowHelp } = useCRMKeyboardShortcuts({
@@ -60,11 +78,18 @@ export default function ProspectPipeline() {
     onSearch: () => searchInputRef.current?.focus(),
   });
 
-  const { prospects, loading, refetch, updateProspectStage } = useCRMProspects({ 
+  // Use realtime context for live updates
+  const { lastUpdate } = useCRMRealtime();
+
+  const { prospects, loading, refetch, updateProspectStage, deleteProspect } = useCRMProspects({ 
     search: searchQuery || undefined,
     campaignId: selectedCampaign !== 'all' ? selectedCampaign : undefined,
+    ownerId: selectedOwner !== 'all' ? selectedOwner : undefined,
+    minScore: scoreRange[0] > 0 ? scoreRange[0] : undefined,
+    maxScore: scoreRange[1] < 100 ? scoreRange[1] : undefined,
   });
   const { campaigns } = useCRMCampaigns({});
+  const { owners } = useCRMOwners();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -90,6 +115,9 @@ export default function ProspectPipeline() {
     });
     return grouped;
   }, [prospects]);
+
+  // Check if filters are active
+  const hasActiveFilters = selectedOwner !== 'all' || scoreRange[0] > 0 || scoreRange[1] < 100;
 
   const handleDragStart = (event: DragStartEvent) => {
     const prospect = prospects.find(p => p.id === event.active.id);
@@ -126,153 +154,297 @@ export default function ProspectPipeline() {
     });
   };
 
+  const handleToggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  const handleBulkArchive = useCallback(async () => {
+    const count = selectedIds.size;
+    for (const id of selectedIds) {
+      await updateProspectStage(id, 'closed_lost');
+    }
+    toast.success(`Archived ${count} prospects`);
+    setSelectedIds(new Set());
+  }, [selectedIds, updateProspectStage]);
+
+  const handleBulkMarkActioned = useCallback(async () => {
+    const count = selectedIds.size;
+    for (const id of selectedIds) {
+      await updateProspectStage(id, 'contacted');
+    }
+    toast.success(`Marked ${count} prospects as contacted`);
+    setSelectedIds(new Set());
+  }, [selectedIds, updateProspectStage]);
+
+  const handleBulkAssign = useCallback(() => {
+    toast.info('Assign functionality coming soon');
+  }, []);
+
+  const clearFilters = () => {
+    setSelectedOwner('all');
+    setScoreRange([0, 100]);
+    setFiltersOpen(false);
+  };
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex-shrink-0 px-6 py-4 border-b border-border/30 bg-gradient-to-r from-card/50 to-transparent backdrop-blur-xl"
+      >
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">Prospect Pipeline</h1>
+            <p className="text-sm text-muted-foreground">
+              {prospects.length} prospects • Drag to move stages
+              {lastUpdate && (
+                <span className="ml-2 text-xs text-primary">• Live</span>
+              )}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                ref={searchInputRef}
+                placeholder="Search prospects..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 w-48 bg-muted/20 border-border/30"
+              />
+            </div>
+
+            <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
+              <SelectTrigger className="w-40 bg-muted/20 border-border/30">
+                <SelectValue placeholder="All Campaigns" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Campaigns</SelectItem>
+                {campaigns.map(campaign => (
+                  <SelectItem key={campaign.id} value={campaign.id}>
+                    {campaign.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Advanced Filters Popover */}
+            <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className={hasActiveFilters ? 'border-primary' : ''}
+                >
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filters
+                  {hasActiveFilters && (
+                    <Badge variant="secondary" className="ml-2 h-5 px-1.5">
+                      {(selectedOwner !== 'all' ? 1 : 0) + (scoreRange[0] > 0 || scoreRange[1] < 100 ? 1 : 0)}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-4" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Advanced Filters</h4>
+                    {hasActiveFilters && (
+                      <Button variant="ghost" size="sm" onClick={clearFilters}>
+                        <X className="w-3 h-3 mr-1" />
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {/* Owner Filter */}
+                  <div className="space-y-2">
+                    <Label>Owner</Label>
+                    <Select value={selectedOwner} onValueChange={setSelectedOwner}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="All Owners" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Owners</SelectItem>
+                        {owners.map(owner => (
+                          <SelectItem key={owner.id} value={owner.id}>
+                            {owner.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Score Range Filter */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>Lead Score Range</Label>
+                      <span className="text-sm text-muted-foreground">
+                        {scoreRange[0]} - {scoreRange[1]}
+                      </span>
+                    </div>
+                    <Slider
+                      value={scoreRange}
+                      onValueChange={(value) => setScoreRange(value as [number, number])}
+                      min={0}
+                      max={100}
+                      step={5}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <Button 
+                    className="w-full" 
+                    size="sm"
+                    onClick={() => setFiltersOpen(false)}
+                  >
+                    Apply Filters
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button variant="outline" size="icon" onClick={() => refetch()}>
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+              <Upload className="w-4 h-4 mr-2" />
+              Import
+            </Button>
+
+            <Button onClick={() => handleAddProspect('new')}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Prospect
+            </Button>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={() => setShowHelp(true)}>
+                  <Keyboard className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Keyboard shortcuts (?)</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Kanban Board */}
+      <div className="flex-1 overflow-hidden">
+        {loading ? (
+          <div className="flex gap-4 p-6 overflow-x-auto">
+            {visibleStages.map((stage) => (
+              <div key={stage.value} className="flex-shrink-0 w-80">
+                <Skeleton className="h-12 w-full mb-3 rounded-xl" />
+                <div className="space-y-3">
+                  {[1, 2, 3].map(i => (
+                    <Skeleton key={i} className="h-28 w-full rounded-xl" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : prospects.length === 0 && !searchQuery ? (
+          <div className="p-6">
+            <CRMEmptyState
+              type="no-prospects"
+              onPrimaryAction={() => handleAddProspect('new')}
+              onSecondaryAction={() => setImportDialogOpen(true)}
+              showTips
+            />
+          </div>
+        ) : (
+          <ScrollArea className="h-full">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="flex gap-4 p-6 min-w-max">
+                {visibleStages.map((stage) => (
+                  <EnhancedKanbanColumn
+                    key={stage.value}
+                    stage={stage}
+                    prospects={prospectsByStage[stage.value] || []}
+                    onAddProspect={handleAddProspect}
+                    isCollapsed={collapsedColumns.has(stage.value)}
+                    onToggleCollapse={() => toggleColumnCollapse(stage.value)}
+                    selectedIds={selectedIds}
+                    onToggleSelect={handleToggleSelect}
+                  />
+                ))}
+              </div>
+
+              <DragOverlay>
+                {activeProspect && (
+                  <EnhancedProspectCard prospect={activeProspect} isDragging />
+                )}
+              </DragOverlay>
+            </DndContext>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        )}
+      </div>
+
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar
+        selectedCount={selectedIds.size}
+        onArchive={handleBulkArchive}
+        onMarkActioned={handleBulkMarkActioned}
+        onAssign={handleBulkAssign}
+        onClearSelection={handleClearSelection}
+      />
+
+      <CSVImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onSuccess={() => {
+          refetch();
+          setImportDialogOpen(false);
+        }}
+      />
+
+      <AddProspectDialog
+        open={addProspectOpen}
+        onOpenChange={setAddProspectOpen}
+        onSuccess={refetch}
+        campaigns={campaigns}
+        defaultStage={addProspectStage}
+      />
+
+      <CRMKeyboardShortcutsDialog 
+        open={showHelp} 
+        onOpenChange={setShowHelp} 
+      />
+    </div>
+  );
+}
+
+export default function ProspectPipeline() {
   return (
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="flex flex-col h-[calc(100vh-4rem)]">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex-shrink-0 px-6 py-4 border-b border-border/30 bg-gradient-to-r from-card/50 to-transparent backdrop-blur-xl"
-          >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold">Prospect Pipeline</h1>
-                <p className="text-sm text-muted-foreground">
-                  {prospects.length} prospects • Drag to move stages
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search prospects..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 w-48 bg-muted/20 border-border/30"
-                  />
-                </div>
-
-                <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
-                  <SelectTrigger className="w-40 bg-muted/20 border-border/30">
-                    <SelectValue placeholder="All Campaigns" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Campaigns</SelectItem>
-                    {campaigns.map(campaign => (
-                      <SelectItem key={campaign.id} value={campaign.id}>
-                        {campaign.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Button variant="outline" size="icon" onClick={() => refetch()}>
-                  <RefreshCw className="w-4 h-4" />
-                </Button>
-
-                <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Import
-                </Button>
-
-                <Button onClick={() => handleAddProspect('new')}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Prospect
-                </Button>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={() => setShowHelp(true)}>
-                      <Keyboard className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Keyboard shortcuts (?)</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Kanban Board */}
-          <div className="flex-1 overflow-hidden">
-            {loading ? (
-              <div className="flex gap-4 p-6 overflow-x-auto">
-                {visibleStages.map((stage) => (
-                  <div key={stage.value} className="flex-shrink-0 w-80">
-                    <Skeleton className="h-12 w-full mb-3 rounded-xl" />
-                    <div className="space-y-3">
-                      {[1, 2, 3].map(i => (
-                        <Skeleton key={i} className="h-28 w-full rounded-xl" />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : prospects.length === 0 && !searchQuery ? (
-              <div className="p-6">
-                <CRMEmptyState
-                  type="no-prospects"
-                  onPrimaryAction={() => handleAddProspect('new')}
-                  onSecondaryAction={() => setImportDialogOpen(true)}
-                />
-              </div>
-            ) : (
-              <ScrollArea className="h-full">
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCorners}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                >
-                  <div className="flex gap-4 p-6 min-w-max">
-                    {visibleStages.map((stage) => (
-                      <EnhancedKanbanColumn
-                        key={stage.value}
-                        stage={stage}
-                        prospects={prospectsByStage[stage.value] || []}
-                        onAddProspect={handleAddProspect}
-                        isCollapsed={collapsedColumns.has(stage.value)}
-                        onToggleCollapse={() => toggleColumnCollapse(stage.value)}
-                      />
-                    ))}
-                  </div>
-
-                  <DragOverlay>
-                    {activeProspect && (
-                      <EnhancedProspectCard prospect={activeProspect} isDragging />
-                    )}
-                  </DragOverlay>
-                </DndContext>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            )}
-          </div>
-        </div>
-
-        <CSVImportDialog
-          open={importDialogOpen}
-          onOpenChange={setImportDialogOpen}
-          onSuccess={() => {
-            refetch();
-            setImportDialogOpen(false);
-          }}
-        />
-
-        <AddProspectDialog
-          open={addProspectOpen}
-          onOpenChange={setAddProspectOpen}
-          onSuccess={refetch}
-          campaigns={campaigns}
-          defaultStage={addProspectStage}
-        />
-
-        <CRMKeyboardShortcutsDialog 
-          open={showHelp} 
-          onOpenChange={setShowHelp} 
-        />
+        <CRMRealtimeProvider onProspectUpdate={() => {}}>
+          <ProspectPipelineContent />
+        </CRMRealtimeProvider>
       </RoleGate>
     </AppLayout>
   );

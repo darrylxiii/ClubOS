@@ -9,6 +9,8 @@ interface UseProspectsOptions {
   ownerId?: string;
   search?: string;
   limit?: number;
+  minScore?: number;
+  maxScore?: number;
 }
 
 export function useCRMProspects(options: UseProspectsOptions = {}) {
@@ -51,6 +53,14 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
         query = query.limit(options.limit);
       }
 
+      if (options.minScore !== undefined) {
+        query = query.gte('composite_score', options.minScore);
+      }
+
+      if (options.maxScore !== undefined) {
+        query = query.lte('composite_score', options.maxScore);
+      }
+
       const { data, error: fetchError } = await query;
 
       if (fetchError) throw fetchError;
@@ -69,7 +79,7 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [options.campaignId, options.stage, options.ownerId, options.search, options.limit]);
+  }, [options.campaignId, options.stage, options.ownerId, options.search, options.limit, options.minScore, options.maxScore]);
 
   useEffect(() => {
     fetchProspects();

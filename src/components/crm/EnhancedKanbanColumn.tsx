@@ -20,6 +20,8 @@ interface EnhancedKanbanColumnProps {
   onAddProspect?: (stage: ProspectStage) => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }
 
 const stageGradients: Record<string, string> = {
@@ -80,6 +82,8 @@ export function EnhancedKanbanColumn({
   onAddProspect,
   isCollapsed = false,
   onToggleCollapse,
+  selectedIds,
+  onToggleSelect,
 }: EnhancedKanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.value,
@@ -205,7 +209,11 @@ export function EnhancedKanbanColumn({
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: index * 0.03 }}
                 >
-                  <EnhancedProspectCard prospect={prospect} />
+                  <EnhancedProspectCard 
+                    prospect={prospect} 
+                    isSelected={selectedIds?.has(prospect.id)}
+                    onSelect={onToggleSelect ? (id, selected) => onToggleSelect(id) : undefined}
+                  />
                 </motion.div>
               ))}
             </AnimatePresence>

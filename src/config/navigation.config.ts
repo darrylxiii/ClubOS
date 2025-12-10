@@ -232,6 +232,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
     {
       title: "CRM",
       icon: Contact,
+      badge: "New",
       items: [
         { name: "CRM Dashboard", icon: LayoutDashboard, path: "/crm" },
         { name: "Prospect Pipeline", icon: Target, path: "/crm/prospects" },

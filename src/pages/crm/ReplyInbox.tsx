@@ -17,12 +17,12 @@ import {
   Clock,
   Inbox,
   Keyboard,
-  CheckSquare,
   Archive
 } from 'lucide-react';
 import { useCRMEmailReplies } from '@/hooks/useCRMEmailReplies';
 import { useCRMAdvancedSearch } from '@/hooks/useCRMAdvancedSearch';
-import { REPLY_CLASSIFICATIONS, type CRMEmailReply } from '@/types/crm-enterprise';
+import { CRMRealtimeProvider, useCRMRealtime } from '@/components/crm/CRMRealtimeProvider';
+import { type CRMEmailReply } from '@/types/crm-enterprise';
 import { toast } from 'sonner';
 import { VirtualReplyList } from '@/components/crm/VirtualReplyList';
 import { ReplyDetailDrawer } from '@/components/crm/ReplyDetailDrawer';
@@ -31,13 +31,16 @@ import { CRMActivityReminderBell } from '@/components/crm/CRMActivityReminderBel
 
 type TabFilter = 'all' | 'hot' | 'warm' | 'objections' | 'unread';
 
-export default function ReplyInbox() {
+function ReplyInboxContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
   const [selectedReply, setSelectedReply] = useState<CRMEmailReply | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
+  // Use realtime context for live updates
+  const { replyChanges, lastUpdate } = useCRMRealtime();
 
   const { replies, loading, refetch, markAsRead, markAsActioned } = useCRMEmailReplies({
     search: searchQuery || undefined,
@@ -178,169 +181,180 @@ export default function ReplyInbox() {
   };
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="flex flex-col h-[calc(100vh-4rem)]">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex-shrink-0 px-6 py-4 border-b border-border/30 bg-gradient-to-r from-card/50 to-transparent backdrop-blur-xl"
-          >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div>
-                  <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <Inbox className="w-6 h-6" />
-                    Smart Reply Inbox
-                  </h1>
-                  <p className="text-sm text-muted-foreground">
-                    {counts.unread} unread • AI-categorized email replies
-                  </p>
-                </div>
-                {/* Activity Reminders */}
-                <CRMActivityReminderBell />
-              </div>
-              <div className="flex items-center gap-2">
-                {selectedIds.size > 0 && (
-                  <Button variant="outline" size="sm" onClick={handleBulkArchive}>
-                    <Archive className="w-4 h-4 mr-2" />
-                    Archive ({selectedIds.size})
-                  </Button>
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex-shrink-0 px-6 py-4 border-b border-border/30 bg-gradient-to-r from-card/50 to-transparent backdrop-blur-xl"
+      >
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <Inbox className="w-6 h-6" />
+                Smart Reply Inbox
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {counts.unread} unread • AI-categorized email replies
+                {lastUpdate && (
+                  <span className="ml-2 text-xs text-primary">• Live</span>
                 )}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    data-search-input
-                    placeholder="Search (from:, company:, is:unread)"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 w-64 bg-muted/20 border-border/30"
-                  />
-                </div>
-                <Button variant="outline" size="icon" onClick={() => refetch()}>
-                  <RefreshCw className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => setShowShortcuts(true)}>
-                  <Keyboard className="w-4 h-4" />
-                </Button>
-              </div>
+              </p>
             </div>
-
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabFilter)} className="mt-4">
-              <TabsList className="bg-muted/20">
-                <TabsTrigger value="all" className="gap-2">
-                  <Mail className="w-4 h-4" />
-                  All
-                  {counts.all > 0 && (
-                    <Badge variant="secondary" className="text-xs">{counts.all}</Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="hot" className="gap-2">
-                  <Flame className="w-4 h-4 text-red-500" />
-                  Hot
-                  {counts.hot > 0 && (
-                    <Badge variant="destructive" className="text-xs">{counts.hot}</Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="warm" className="gap-2">
-                  <Sun className="w-4 h-4 text-orange-500" />
-                  Warm
-                  {counts.warm > 0 && (
-                    <Badge className="text-xs bg-orange-500">{counts.warm}</Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="objections" className="gap-2">
-                  <HelpCircle className="w-4 h-4 text-amber-500" />
-                  Objections
-                  {counts.objections > 0 && (
-                    <Badge className="text-xs bg-amber-500">{counts.objections}</Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="unread" className="gap-2">
-                  <Clock className="w-4 h-4" />
-                  Unread
-                  {counts.unread > 0 && (
-                    <Badge variant="outline" className="text-xs">{counts.unread}</Badge>
-                  )}
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </motion.div>
-
-          {/* Content - Virtualized List */}
-          <div className="flex-1 flex overflow-hidden">
-            {/* Reply List with Virtualization */}
-            <div className="w-full md:w-1/3 border-r border-border/30 flex flex-col">
-              {loading ? (
-                <div className="p-4 space-y-3">
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <Skeleton key={i} className="h-20 w-full" />
-                  ))}
-                </div>
-              ) : filteredReplies.length > 0 ? (
-                <VirtualReplyList
-                  replies={filteredReplies}
-                  selectedReplyId={selectedReply?.id || null}
-                  selectedIds={selectedIds}
-                  onReplySelect={handleSelectReply}
-                  onToggleCheck={handleToggleCheck}
-                  onToggleStar={handleToggleStar}
-                  onArchive={handleArchive}
-                  onSnooze={handleSnooze}
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-                  <Inbox className="w-12 h-12 mb-4 opacity-50" />
-                  <p>No replies found</p>
-                </div>
-              )}
-            </div>
-
-            {/* Reply Detail - Desktop */}
-            <div className="hidden md:flex flex-1 flex-col">
-              {selectedReply ? (
-                <ReplyDetailDrawer
-                  reply={selectedReply}
-                  open={true}
-                  onClose={() => setSelectedReply(null)}
-                  onReply={() => handleMarkActioned(selectedReply.id, 'replied')}
-                  onArchive={() => handleArchive(selectedReply.id)}
-                  onSnooze={() => handleSnooze(selectedReply.id)}
-                  onMarkActioned={(action) => handleMarkActioned(selectedReply.id, action)}
-                />
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                  <div className="text-center">
-                    <Mail className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                    <p>Select a reply to view details</p>
-                    <p className="text-xs mt-2">Press ? for keyboard shortcuts</p>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Activity Reminders */}
+            <CRMActivityReminderBell />
           </div>
+          <div className="flex items-center gap-2">
+            {selectedIds.size > 0 && (
+              <Button variant="outline" size="sm" onClick={handleBulkArchive}>
+                <Archive className="w-4 h-4 mr-2" />
+                Archive ({selectedIds.size})
+              </Button>
+            )}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                data-search-input
+                placeholder="Search (from:, company:, is:unread)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 w-64 bg-muted/20 border-border/30"
+              />
+            </div>
+            <Button variant="outline" size="icon" onClick={() => refetch()}>
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => setShowShortcuts(true)}>
+              <Keyboard className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
 
-          {/* Mobile Drawer */}
-          {mobileDrawerOpen && selectedReply && (
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabFilter)} className="mt-4">
+          <TabsList className="bg-muted/20">
+            <TabsTrigger value="all" className="gap-2">
+              <Mail className="w-4 h-4" />
+              All
+              {counts.all > 0 && (
+                <Badge variant="secondary" className="text-xs">{counts.all}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="hot" className="gap-2">
+              <Flame className="w-4 h-4 text-red-500" />
+              Hot
+              {counts.hot > 0 && (
+                <Badge variant="destructive" className="text-xs">{counts.hot}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="warm" className="gap-2">
+              <Sun className="w-4 h-4 text-orange-500" />
+              Warm
+              {counts.warm > 0 && (
+                <Badge className="text-xs bg-orange-500">{counts.warm}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="objections" className="gap-2">
+              <HelpCircle className="w-4 h-4 text-amber-500" />
+              Objections
+              {counts.objections > 0 && (
+                <Badge className="text-xs bg-amber-500">{counts.objections}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="unread" className="gap-2">
+              <Clock className="w-4 h-4" />
+              Unread
+              {counts.unread > 0 && (
+                <Badge variant="outline" className="text-xs">{counts.unread}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </motion.div>
+
+      {/* Content - Virtualized List */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Reply List with Virtualization */}
+        <div className="w-full md:w-1/3 border-r border-border/30 flex flex-col">
+          {loading ? (
+            <div className="p-4 space-y-3">
+              {[1, 2, 3, 4, 5].map(i => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
+            </div>
+          ) : filteredReplies.length > 0 ? (
+            <VirtualReplyList
+              replies={filteredReplies}
+              selectedReplyId={selectedReply?.id || null}
+              selectedIds={selectedIds}
+              onReplySelect={handleSelectReply}
+              onToggleCheck={handleToggleCheck}
+              onToggleStar={handleToggleStar}
+              onArchive={handleArchive}
+              onSnooze={handleSnooze}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+              <Inbox className="w-12 h-12 mb-4 opacity-50" />
+              <p>No replies found</p>
+            </div>
+          )}
+        </div>
+
+        {/* Reply Detail - Desktop */}
+        <div className="hidden md:flex flex-1 flex-col">
+          {selectedReply ? (
             <ReplyDetailDrawer
               reply={selectedReply}
-              open={mobileDrawerOpen}
-              onClose={() => setMobileDrawerOpen(false)}
+              open={true}
+              onClose={() => setSelectedReply(null)}
               onReply={() => handleMarkActioned(selectedReply.id, 'replied')}
               onArchive={() => handleArchive(selectedReply.id)}
               onSnooze={() => handleSnooze(selectedReply.id)}
               onMarkActioned={(action) => handleMarkActioned(selectedReply.id, action)}
             />
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <Mail className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                <p>Select a reply to view details</p>
+                <p className="text-xs mt-2">Press ? for keyboard shortcuts</p>
+              </div>
+            </div>
           )}
-
-          {/* Keyboard Shortcuts Dialog */}
-          <CRMKeyboardShortcutsDialog 
-            open={showShortcuts} 
-            onOpenChange={setShowShortcuts} 
-          />
         </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      {mobileDrawerOpen && selectedReply && (
+        <ReplyDetailDrawer
+          reply={selectedReply}
+          open={mobileDrawerOpen}
+          onClose={() => setMobileDrawerOpen(false)}
+          onReply={() => handleMarkActioned(selectedReply.id, 'replied')}
+          onArchive={() => handleArchive(selectedReply.id)}
+          onSnooze={() => handleSnooze(selectedReply.id)}
+          onMarkActioned={(action) => handleMarkActioned(selectedReply.id, action)}
+        />
+      )}
+
+      {/* Keyboard Shortcuts Dialog */}
+      <CRMKeyboardShortcutsDialog 
+        open={showShortcuts} 
+        onOpenChange={setShowShortcuts} 
+      />
+    </div>
+  );
+}
+
+export default function ReplyInbox() {
+  return (
+    <AppLayout>
+      <RoleGate allowedRoles={['admin', 'strategist']}>
+        <CRMRealtimeProvider onReplyUpdate={() => {}}>
+          <ReplyInboxContent />
+        </CRMRealtimeProvider>
       </RoleGate>
     </AppLayout>
   );
