@@ -10,6 +10,9 @@ import {
   Upload,
   Plus,
   Search,
+  Lightbulb,
+  ArrowRight,
+  CheckCircle2,
 } from 'lucide-react';
 
 type EmptyStateType = 
@@ -25,6 +28,7 @@ interface CRMEmptyStateProps {
   onPrimaryAction?: () => void;
   onSecondaryAction?: () => void;
   searchQuery?: string;
+  showTips?: boolean;
 }
 
 const emptyStateConfig: Record<EmptyStateType, {
@@ -35,6 +39,7 @@ const emptyStateConfig: Record<EmptyStateType, {
   secondaryLabel?: string;
   iconColor: string;
   bgGradient: string;
+  tips?: string[];
 }> = {
   'no-campaigns': {
     icon: Mail,
@@ -44,22 +49,37 @@ const emptyStateConfig: Record<EmptyStateType, {
     secondaryLabel: 'Import from Instantly',
     iconColor: 'text-blue-500',
     bgGradient: 'from-blue-500/10 to-blue-600/5',
+    tips: [
+      'Connect your Instantly.ai account to auto-sync campaigns',
+      'Segment prospects by industry for better response rates',
+      'Use personalized subject lines to boost open rates',
+    ],
   },
   'no-prospects': {
     icon: Users,
-    title: 'No prospects in pipeline',
-    description: 'Add prospects manually or import from a CSV file',
-    primaryLabel: 'Add Prospect',
-    secondaryLabel: 'Import CSV',
+    title: 'Start Building Your Pipeline',
+    description: 'Add prospects manually or import from a CSV file to begin outreach',
+    primaryLabel: 'Add First Prospect',
+    secondaryLabel: 'Import from CSV',
     iconColor: 'text-purple-500',
     bgGradient: 'from-purple-500/10 to-purple-600/5',
+    tips: [
+      'Import prospects from LinkedIn Sales Navigator via CSV',
+      'Add company information for better targeting',
+      'Set deal values to track pipeline revenue',
+    ],
   },
   'no-replies': {
     icon: Inbox,
     title: 'Inbox zero achieved!',
-    description: 'All caught up. New replies will appear here.',
+    description: 'All caught up. New replies will appear here automatically.',
     iconColor: 'text-green-500',
     bgGradient: 'from-green-500/10 to-green-600/5',
+    tips: [
+      'AI automatically categorizes replies as hot, warm, or cold',
+      'Use keyboard shortcuts (j/k) to navigate quickly',
+      'Set up notifications to respond faster to hot leads',
+    ],
   },
   'no-hot-leads': {
     icon: Flame,
@@ -67,6 +87,11 @@ const emptyStateConfig: Record<EmptyStateType, {
     description: 'Hot leads will appear here when prospects show strong interest',
     iconColor: 'text-red-500',
     bgGradient: 'from-red-500/10 to-red-600/5',
+    tips: [
+      'Personalize your outreach to increase engagement',
+      'Follow up within 24 hours of initial contact',
+      'Use social proof and case studies in emails',
+    ],
   },
   'empty-stage': {
     icon: MessageSquare,
@@ -90,6 +115,7 @@ export function CRMEmptyState({
   onPrimaryAction, 
   onSecondaryAction,
   searchQuery,
+  showTips = true,
 }: CRMEmptyStateProps) {
   const config = emptyStateConfig[type];
   const Icon = config.icon;
@@ -109,19 +135,19 @@ export function CRMEmptyState({
         animate={{ scale: 1 }}
         transition={{ type: 'spring', delay: 0.1 }}
         className={cn(
-          "w-20 h-20 rounded-2xl flex items-center justify-center mb-6",
+          "w-24 h-24 rounded-2xl flex items-center justify-center mb-6",
           "bg-gradient-to-br from-background/80 to-background/40 backdrop-blur-xl",
           "border border-border/30 shadow-lg"
         )}
       >
-        <Icon className={cn("w-10 h-10", config.iconColor)} />
+        <Icon className={cn("w-12 h-12", config.iconColor)} />
       </motion.div>
 
       <motion.h3
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="text-xl font-semibold mb-2"
+        className="text-2xl font-bold mb-2"
       >
         {config.title}
       </motion.h3>
@@ -130,7 +156,7 @@ export function CRMEmptyState({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="text-muted-foreground text-center max-w-sm mb-6"
+        className="text-muted-foreground text-center max-w-md mb-6"
       >
         {searchQuery 
           ? `No results for "${searchQuery}". Try a different search term.`
@@ -143,20 +169,49 @@ export function CRMEmptyState({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="flex items-center gap-3"
+          className="flex items-center gap-3 mb-8"
         >
           {config.primaryLabel && onPrimaryAction && (
-            <Button onClick={onPrimaryAction}>
-              <Plus className="w-4 h-4 mr-2" />
+            <Button size="lg" onClick={onPrimaryAction} className="gap-2">
+              <Plus className="w-5 h-5" />
               {config.primaryLabel}
             </Button>
           )}
           {config.secondaryLabel && onSecondaryAction && (
-            <Button variant="outline" onClick={onSecondaryAction}>
-              <Upload className="w-4 h-4 mr-2" />
+            <Button size="lg" variant="outline" onClick={onSecondaryAction} className="gap-2">
+              <Upload className="w-5 h-5" />
               {config.secondaryLabel}
             </Button>
           )}
+        </motion.div>
+      )}
+
+      {/* Getting Started Tips */}
+      {showTips && config.tips && config.tips.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="w-full max-w-lg"
+        >
+          <div className="flex items-center gap-2 mb-3 text-sm font-medium text-muted-foreground">
+            <Lightbulb className="w-4 h-4 text-amber-500" />
+            Quick Tips to Get Started
+          </div>
+          <div className="space-y-2">
+            {config.tips.map((tip, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 + index * 0.1 }}
+                className="flex items-start gap-2 text-sm text-muted-foreground bg-background/50 backdrop-blur-sm rounded-lg p-3 border border-border/20"
+              >
+                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                <span>{tip}</span>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
       )}
     </motion.div>

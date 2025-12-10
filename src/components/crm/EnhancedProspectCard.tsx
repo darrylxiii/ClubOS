@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Building, 
   Mail, 
@@ -18,7 +20,9 @@ import {
   DollarSign,
   Clock,
   MoreHorizontal,
-  Sparkles
+  Sparkles,
+  Pencil,
+  ListTodo,
 } from 'lucide-react';
 import type { CRMProspect } from '@/types/crm-enterprise';
 import { formatDistanceToNow } from 'date-fns';
@@ -26,10 +30,14 @@ import { RottingIndicator } from './RottingIndicator';
 import { NextActivityBadge } from './NextActivityBadge';
 import { ProspectActionsMenu } from './ProspectActionsMenu';
 import { CompanyEnrichButton } from './CompanyEnrichButton';
+import { CreatePilotTaskButton } from './CreatePilotTaskButton';
 
 interface EnhancedProspectCardProps {
   prospect: CRMProspect;
   isDragging?: boolean;
+  isSelected?: boolean;
+  onSelect?: (id: string, selected: boolean) => void;
+  onEdit?: (prospect: CRMProspect) => void;
   onUpdateProspect?: (id: string, updates: Partial<CRMProspect>) => Promise<boolean>;
   onDeleteProspect?: (id: string) => Promise<boolean>;
   onConvertToPartner?: (data: { companyName: string; notes: string }) => Promise<void>;
@@ -62,6 +70,9 @@ const sentimentEmojis: Record<string, string> = {
 export function EnhancedProspectCard({ 
   prospect, 
   isDragging,
+  isSelected = false,
+  onSelect,
+  onEdit,
   onUpdateProspect,
   onDeleteProspect,
   onConvertToPartner
@@ -114,13 +125,22 @@ export function EnhancedProspectCard({
       onMouseLeave={() => setShowActions(false)}
       whileHover={{ scale: dragging ? 1 : 1.02, y: -2 }}
     >
-      {/* Drag Handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute left-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
-      >
-        <GripVertical className="w-4 h-4 text-muted-foreground" />
+      {/* Drag Handle + Selection Checkbox */}
+      <div className="absolute left-1.5 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1">
+        {onSelect && (
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => onSelect(prospect.id, !!checked)}
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
+          />
+        )}
+        <div
+          {...attributes}
+          {...listeners}
+          className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
+        </div>
       </div>
 
       <div className="pl-5">
@@ -232,37 +252,65 @@ export function EnhancedProspectCard({
           )}
         </div>
 
-        {/* Quick Actions Overlay */}
+        {/* Inline Quick Actions */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: showActions ? 1 : 0, y: showActions ? 0 : 10 }}
           className={cn(
             "absolute inset-0 bg-gradient-to-t from-card via-card/95 to-card/80 rounded-xl",
-            "flex items-center justify-center gap-2 p-2",
+            "flex items-center justify-center gap-1.5 p-2",
             !showActions && "pointer-events-none"
           )}
         >
-          <Button size="sm" variant="outline" className="h-8" asChild>
-            <a href={`mailto:${prospect.email}`}>
-              <Mail className="w-3 h-3 mr-1" />
-              Email
-            </a>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="sm" variant="outline" className="h-8 w-8 p-0" asChild>
+                <a href={`mailto:${prospect.email}`}>
+                  <Mail className="w-4 h-4" />
+                </a>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Send Email</TooltipContent>
+          </Tooltip>
+
           {prospect.phone && (
-            <Button size="sm" variant="outline" className="h-8" asChild>
-              <a href={`tel:${prospect.phone}`}>
-                <Phone className="w-3 h-3 mr-1" />
-                Call
-              </a>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="outline" className="h-8 w-8 p-0" asChild>
+                  <a href={`tel:${prospect.phone}`}>
+                    <Phone className="w-4 h-4" />
+                  </a>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Call</TooltipContent>
+            </Tooltip>
           )}
+
           {prospect.linkedin_url && (
-            <Button size="sm" variant="outline" className="h-8" asChild>
-              <a href={prospect.linkedin_url} target="_blank" rel="noopener noreferrer">
-                <Linkedin className="w-3 h-3" />
-              </a>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="outline" className="h-8 w-8 p-0" asChild>
+                  <a href={prospect.linkedin_url} target="_blank" rel="noopener noreferrer">
+                    <Linkedin className="w-4 h-4" />
+                  </a>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>View LinkedIn</TooltipContent>
+            </Tooltip>
           )}
+
+          {onEdit && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => onEdit(prospect)}>
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit</TooltipContent>
+            </Tooltip>
+          )}
+
+          <CreatePilotTaskButton prospect={prospect} size="icon" variant="outline" />
         </motion.div>
       </div>
     </motion.div>
