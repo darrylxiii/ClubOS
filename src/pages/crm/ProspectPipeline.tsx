@@ -4,20 +4,11 @@ import { RoleGate } from '@/components/RoleGate';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { 
   Search, 
-  Filter, 
   Upload, 
   Plus,
   RefreshCw,
-  MoreHorizontal,
-  User,
-  Building,
-  Mail,
-  Phone,
-  Calendar,
-  Zap
 } from 'lucide-react';
 import {
   DndContext,
@@ -32,9 +23,11 @@ import {
 import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
 import { PROSPECT_STAGES, type CRMProspect, type ProspectStage } from '@/types/crm-enterprise';
-import { ProspectKanbanColumn } from '@/components/crm/ProspectKanbanColumn';
-import { ProspectCard } from '@/components/crm/ProspectCard';
+import { EnhancedKanbanColumn } from '@/components/crm/EnhancedKanbanColumn';
+import { EnhancedProspectCard } from '@/components/crm/EnhancedProspectCard';
 import { CSVImportDialog } from '@/components/crm/CSVImportDialog';
+import { AddProspectDialog } from '@/components/crm/AddProspectDialog';
+import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 import {
   Select,
   SelectContent,
@@ -44,13 +37,18 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Link } from 'react-router-dom';
+
+// Primary stages (visible by default)
+const PRIMARY_STAGES = ['new', 'contacted', 'replied', 'qualified', 'meeting_booked', 'closed_won'];
 
 export default function ProspectPipeline() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [addProspectOpen, setAddProspectOpen] = useState(false);
+  const [addProspectStage, setAddProspectStage] = useState<ProspectStage>('new');
   const [activeProspect, setActiveProspect] = useState<CRMProspect | null>(null);
+  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
 
   const { prospects, loading, refetch, updateProspectStage } = useCRMProspects({ 
     search: searchQuery || undefined,
@@ -60,11 +58,14 @@ export default function ProspectPipeline() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 },
     })
   );
+
+  // Filter to show primary stages first
+  const visibleStages = useMemo(() => {
+    return PROSPECT_STAGES.filter(stage => PRIMARY_STAGES.includes(stage.value));
+  }, []);
 
   // Group prospects by stage
   const prospectsByStage = useMemo(() => {
@@ -82,24 +83,37 @@ export default function ProspectPipeline() {
 
   const handleDragStart = (event: DragStartEvent) => {
     const prospect = prospects.find(p => p.id === event.active.id);
-    if (prospect) {
-      setActiveProspect(prospect);
-    }
+    if (prospect) setActiveProspect(prospect);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveProspect(null);
-    
     const { active, over } = event;
     if (!over) return;
 
     const prospectId = active.id as string;
     const newStage = over.id as ProspectStage;
-
     const prospect = prospects.find(p => p.id === prospectId);
     if (prospect && prospect.stage !== newStage) {
       updateProspectStage(prospectId, newStage);
     }
+  };
+
+  const handleAddProspect = (stage: ProspectStage) => {
+    setAddProspectStage(stage);
+    setAddProspectOpen(true);
+  };
+
+  const toggleColumnCollapse = (stageValue: string) => {
+    setCollapsedColumns(prev => {
+      const next = new Set(prev);
+      if (next.has(stageValue)) {
+        next.delete(stageValue);
+      } else {
+        next.add(stageValue);
+      }
+      return next;
+    });
   };
 
   return (
@@ -120,7 +134,6 @@ export default function ProspectPipeline() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {/* Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -131,7 +144,6 @@ export default function ProspectPipeline() {
                   />
                 </div>
 
-                {/* Campaign Filter */}
                 <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
                   <SelectTrigger className="w-40 bg-muted/20 border-border/30">
                     <SelectValue placeholder="All Campaigns" />
@@ -154,6 +166,11 @@ export default function ProspectPipeline() {
                   <Upload className="w-4 h-4 mr-2" />
                   Import
                 </Button>
+
+                <Button onClick={() => handleAddProspect('new')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Prospect
+                </Button>
               </div>
             </div>
           </motion.div>
@@ -162,16 +179,24 @@ export default function ProspectPipeline() {
           <div className="flex-1 overflow-hidden">
             {loading ? (
               <div className="flex gap-4 p-6 overflow-x-auto">
-                {PROSPECT_STAGES.slice(0, 6).map((stage) => (
-                  <div key={stage.value} className="flex-shrink-0 w-72">
-                    <Skeleton className="h-10 w-full mb-3" />
+                {visibleStages.map((stage) => (
+                  <div key={stage.value} className="flex-shrink-0 w-80">
+                    <Skeleton className="h-12 w-full mb-3 rounded-xl" />
                     <div className="space-y-3">
                       {[1, 2, 3].map(i => (
-                        <Skeleton key={i} className="h-24 w-full" />
+                        <Skeleton key={i} className="h-28 w-full rounded-xl" />
                       ))}
                     </div>
                   </div>
                 ))}
+              </div>
+            ) : prospects.length === 0 && !searchQuery ? (
+              <div className="p-6">
+                <CRMEmptyState
+                  type="no-prospects"
+                  onPrimaryAction={() => handleAddProspect('new')}
+                  onSecondaryAction={() => setImportDialogOpen(true)}
+                />
               </div>
             ) : (
               <ScrollArea className="h-full">
@@ -182,18 +207,21 @@ export default function ProspectPipeline() {
                   onDragEnd={handleDragEnd}
                 >
                   <div className="flex gap-4 p-6 min-w-max">
-                    {PROSPECT_STAGES.map((stage) => (
-                      <ProspectKanbanColumn
+                    {visibleStages.map((stage) => (
+                      <EnhancedKanbanColumn
                         key={stage.value}
                         stage={stage}
                         prospects={prospectsByStage[stage.value] || []}
+                        onAddProspect={handleAddProspect}
+                        isCollapsed={collapsedColumns.has(stage.value)}
+                        onToggleCollapse={() => toggleColumnCollapse(stage.value)}
                       />
                     ))}
                   </div>
 
                   <DragOverlay>
                     {activeProspect && (
-                      <ProspectCard prospect={activeProspect} isDragging />
+                      <EnhancedProspectCard prospect={activeProspect} isDragging />
                     )}
                   </DragOverlay>
                 </DndContext>
@@ -210,6 +238,14 @@ export default function ProspectPipeline() {
             refetch();
             setImportDialogOpen(false);
           }}
+        />
+
+        <AddProspectDialog
+          open={addProspectOpen}
+          onOpenChange={setAddProspectOpen}
+          onSuccess={refetch}
+          campaigns={campaigns}
+          defaultStage={addProspectStage}
         />
       </RoleGate>
     </AppLayout>
