@@ -1,8 +1,7 @@
 /**
  * Generate All Translations Edge Function
- * Enterprise-grade with real-time progress updates
+ * Uses background tasks to prevent timeouts - processes one namespace at a time
  */
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
@@ -27,157 +26,54 @@ const ALL_NAMESPACES = [
 
 const TARGET_LANGUAGES = ['nl', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+// Process translations as a background task
+async function processTranslations(
+  serviceClient: any,
+  userClient: any,
+  userId: string,
+  namespacesToProcess: string[],
+  jobId: string
+) {
+  console.log(`[Background] Starting translation processing for job ${jobId}`);
+  
+  const completedLanguages: string[] = [];
+  const errors: any[] = [];
+  let completedItems = 0;
+  const totalItems = namespacesToProcess.length * TARGET_LANGUAGES.length;
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
-
-  // Set maximum execution timeout (25 minutes to allow cleanup before edge function timeout)
-  const MAX_EXECUTION_MS = 25 * 60 * 1000;
-  const startTime = Date.now();
-  let currentJobId: string | null = null;
-
-  const checkTimeout = () => {
-    if (Date.now() - startTime > MAX_EXECUTION_MS) {
-      throw new Error('Job timeout - exceeded maximum execution time');
+  // Helper to update job progress with heartbeat
+  const updateJobProgress = async (status: string, updates: any = {}) => {
+    const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+    
+    try {
+      await serviceClient
+        .from('translation_generation_jobs')
+        .update({
+          status,
+          progress_percentage: progressPercentage,
+          updated_at: new Date().toISOString(),
+          ...updates
+        })
+        .eq('id', jobId);
+      
+      console.log(`[Background] Job ${jobId}: ${status} (${progressPercentage}%)`);
+    } catch (e) {
+      console.error('[Background] Failed to update job:', e);
     }
   };
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const rawInput = await req.json();
-    const validationResult = generateAllSchema.safeParse(rawInput);
-    
-    if (!validationResult.success) {
-      console.error('[Generate All] Validation failed:', validationResult.error);
-      return new Response(
-        JSON.stringify({ error: 'Invalid input', details: validationResult.error.flatten() }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const { namespace, generateAll, jobId } = validationResult.data;
-
-    // Get namespaces to process
-    let namespacesToProcess: string[] = [];
-    
-    if (generateAll) {
-      const { data: englishNamespaces, error: nsError } = await serviceClient
-        .from('translations')
-        .select('namespace')
-        .eq('language', 'en')
-        .eq('is_active', true);
-      
-      if (nsError) {
-        console.error('[Generate All] Failed to fetch namespaces:', nsError);
-        namespacesToProcess = ALL_NAMESPACES;
-      } else {
-        namespacesToProcess = [...new Set(englishNamespaces.map(n => n.namespace))];
-      }
-    } else if (namespace) {
-      namespacesToProcess = [namespace];
-    }
-
-    console.log(`[Generate All] Processing ${namespacesToProcess.length} namespaces:`, namespacesToProcess);
-
-    const results: any[] = [];
-    const errors: any[] = [];
-    let totalCost = 0;
-    let totalTime = 0;
-
-    // Calculate total work items for progress
-    const totalItems = namespacesToProcess.length * TARGET_LANGUAGES.length;
-    let completedItems = 0;
-
-    // Create or resume job
-    currentJobId = jobId || null;
-    let completedLanguages: string[] = [];
-    
-    if (!currentJobId) {
-      const { data: newJob, error: jobError } = await serviceClient
-        .from('translation_generation_jobs')
-        .insert({
-          namespace: namespacesToProcess.join(','),
-          target_languages: TARGET_LANGUAGES,
-          status: 'running',
-          progress_percentage: 0,
-          created_by: user.id,
-          started_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-        
-      if (jobError) {
-        console.error('[Generate All] Failed to create job:', jobError);
-      } else {
-        currentJobId = newJob.id;
-        console.log(`[Generate All] Created job ${currentJobId}`);
-      }
-    } else {
-      const { data: existingJob } = await serviceClient
-        .from('translation_generation_jobs')
-        .select('completed_languages')
-        .eq('id', currentJobId)
-        .single();
-        
-      if (existingJob) {
-        completedLanguages = existingJob.completed_languages || [];
-        completedItems = completedLanguages.length;
-        console.log(`[Generate All] Resuming job ${currentJobId}, skipping: ${completedLanguages.join(', ')}`);
-      }
-    }
-
-    // Helper to update job with progress
-    const updateJobProgress = async (status: string, updates: any = {}) => {
-      if (!currentJobId) return;
-      
-      const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-      
-      try {
-        await serviceClient
-          .from('translation_generation_jobs')
-          .update({
-            status,
-            progress_percentage: progressPercentage,
-            updated_at: new Date().toISOString(),
-            ...updates
-          })
-          .eq('id', currentJobId);
-        
-        console.log(`[Generate All] Job ${currentJobId}: ${status} (${progressPercentage}%)`);
-      } catch (e) {
-        console.error('[Generate All] Failed to update job:', e);
-      }
-    };
-
-    // Process each namespace
+    // Process ONE namespace at a time to prevent timeouts
     for (const ns of namespacesToProcess) {
-      console.log(`[Step 1] Fetching English source for '${ns}'...`);
+      console.log(`[Background] Processing namespace: ${ns}`);
       
+      // Heartbeat - update job to show we're still alive
+      await updateJobProgress('running', { 
+        error_message: `Processing: ${ns}`,
+        completed_languages: completedLanguages 
+      });
+
+      // Fetch English source
       const { data: englishData, error: fetchError } = await serviceClient
         .from('translations')
         .select('translations')
@@ -189,34 +85,33 @@ serve(async (req) => {
         .single();
 
       if (fetchError || !englishData) {
-        console.error(`[ERROR] No English for '${ns}'`, fetchError);
-        errors.push({ namespace: ns, error: 'No English translations found', action: 'seed_required' });
-        // Skip languages for this namespace but still count them as "done" for progress
+        console.error(`[Background] No English for '${ns}'`, fetchError);
+        errors.push({ namespace: ns, error: 'No English translations found' });
         completedItems += TARGET_LANGUAGES.length;
-        await updateJobProgress('running', { error_message: `No English source for ${ns}` });
+        await updateJobProgress('running', { 
+          error_message: `No English source for ${ns}`,
+          completed_languages: completedLanguages
+        });
         continue;
       }
 
       const totalKeys = Object.keys(englishData.translations).length;
-      console.log(`[Step 1] ✓ Found ${totalKeys} keys for '${ns}'`);
+      console.log(`[Background] Found ${totalKeys} keys for '${ns}'`);
 
-      console.log(`[Step 2] Translating '${ns}' to ${TARGET_LANGUAGES.length} languages...`);
-
-      // Process languages SEQUENTIALLY to avoid rate limits
-      for (const [index, lang] of TARGET_LANGUAGES.entries()) {
+      // Process languages ONE at a time
+      for (const lang of TARGET_LANGUAGES) {
         const langKey = `${ns}:${lang}`;
         
+        // Check if already completed (for resumability)
         if (completedLanguages.includes(langKey)) {
-          console.log(`[Step 2] Skipping ${langKey} (already done)`);
+          console.log(`[Background] Skipping ${langKey} (already done)`);
           continue;
         }
-        
-        const startTime = Date.now();
-        
+
         try {
-          console.log(`[Step 2] Processing ${langKey} (${index + 1}/${TARGET_LANGUAGES.length})...`);
+          console.log(`[Background] Translating ${langKey}...`);
           
-          const { data: translateData, error: translateError } = await supabaseClient.functions.invoke(
+          const { data: translateData, error: translateError } = await userClient.functions.invoke(
             'batch-translate',
             {
               body: {
@@ -230,130 +125,195 @@ serve(async (req) => {
           if (translateError) {
             const errorMsg = translateError.message || 'Unknown error';
             
+            // Handle rate limits
             if (errorMsg.includes('Rate limit') || errorMsg.includes('429')) {
-              console.error(`[RATE LIMIT] Pausing for 60s...`);
-              errors.push({ namespace: ns, language: lang, error: 'Rate limit exceeded', errorType: 'RATE_LIMIT' });
-              
+              console.log(`[Background] Rate limited, waiting 60s...`);
               await updateJobProgress('rate_limited', { 
                 error_message: 'Rate limit hit - pausing 60s'
               });
-              
               await new Promise(resolve => setTimeout(resolve, 60000));
-              
-              // Update status back to running
               await updateJobProgress('running');
+              // Retry this language
               continue;
             }
             
             throw translateError;
           }
 
-          const duration = Date.now() - startTime;
-          const estimatedCost = totalKeys * 0.0002; // Reduced cost per key
-
-          console.log(`[SUCCESS] ${langKey} in ${duration}ms`);
-
-          totalCost += estimatedCost;
-          totalTime += duration;
+          console.log(`[Background] Success: ${langKey}`);
           completedItems++;
-
-          results.push({
-            namespace: ns,
-            language: lang,
-            keyCount: totalKeys,
-            duration,
-            estimatedCost,
-            status: 'success'
-          });
-          
           completedLanguages.push(langKey);
           
           // Update progress after EACH language
           await updateJobProgress('running', { 
             completed_languages: completedLanguages,
-            processed_keys_count: completedLanguages.length * totalKeys
+            error_message: `Completed: ${langKey}`
           });
           
-          // Wait 2s between languages
-          if (index < TARGET_LANGUAGES.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-          }
-        // Check for timeout before each language
-        checkTimeout();
-        
-      } catch (error: any) {
-          console.error(`[ERROR] Failed ${langKey}:`, error.message);
-          errors.push({ namespace: ns, language: lang, error: error.message || 'Translation failed' });
-          results.push({ namespace: ns, language: lang, status: 'error', error: error.message });
+          // Wait between languages to avoid rate limits
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+        } catch (error: any) {
+          console.error(`[Background] Failed ${langKey}:`, error.message);
+          errors.push({ namespace: ns, language: lang, error: error.message });
           completedItems++;
           
           await updateJobProgress('running', {
-            failed_languages: errors.map(e => `${e.namespace}:${e.language}`)
+            failed_languages: errors.map(e => `${e.namespace}:${e.language}`),
+            error_message: `Failed: ${langKey}`
           });
         }
       }
-      
-      // Wait 3s between namespaces
-      if (namespacesToProcess.indexOf(ns) < namespacesToProcess.length - 1) {
-        console.log(`[Rate Limit] Waiting 3s before next namespace...`);
-        await new Promise(resolve => setTimeout(resolve, 3000));
-      }
+
+      // Wait between namespaces
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
 
-    const successCount = results.filter(r => r.status === 'success').length;
-    const errorCount = results.filter(r => r.status === 'error').length;
-
-    // Final job update
-    const finalStatus = errorCount === 0 ? 'completed' : (successCount > 0 ? 'partial' : 'failed');
+    // Mark job as complete
+    const finalStatus = errors.length === 0 ? 'completed' : (completedLanguages.length > 0 ? 'partial' : 'failed');
     await updateJobProgress(finalStatus, {
       completed_at: new Date().toISOString(),
-      error_message: errorCount > 0 ? `${errorCount} translations failed` : null,
+      error_message: errors.length > 0 ? `${errors.length} translations failed` : null,
       completed_languages: completedLanguages,
       failed_languages: errors.map(e => `${e.namespace}:${e.language}`)
     });
 
-    console.log(`[Complete] ${successCount} succeeded, ${errorCount} failed, ~$${totalCost.toFixed(2)}`);
+    console.log(`[Background] Job ${jobId} complete: ${finalStatus}`);
+    
+  } catch (error: any) {
+    console.error(`[Background] Fatal error in job ${jobId}:`, error);
+    
+    // Always mark job as failed on error
+    await serviceClient
+      .from('translation_generation_jobs')
+      .update({
+        status: 'failed',
+        error_message: error.message || 'Background task failed',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobId);
+  }
+}
 
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+
+  try {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const rawInput = await req.json();
+    const validationResult = generateAllSchema.safeParse(rawInput);
+    
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validationResult.error.flatten() }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { namespace, generateAll, jobId } = validationResult.data;
+
+    // Get namespaces to process
+    let namespacesToProcess: string[] = [];
+    
+    if (generateAll) {
+      const { data: englishNamespaces } = await serviceClient
+        .from('translations')
+        .select('namespace')
+        .eq('language', 'en')
+        .eq('is_active', true);
+      
+      if (englishNamespaces) {
+        namespacesToProcess = [...new Set(englishNamespaces.map(n => n.namespace))];
+      } else {
+        namespacesToProcess = ALL_NAMESPACES;
+      }
+    } else if (namespace) {
+      namespacesToProcess = [namespace];
+    }
+
+    console.log(`[Generate All] Processing ${namespacesToProcess.length} namespaces`);
+
+    // Create job record
+    let currentJobId = jobId;
+    
+    if (!currentJobId) {
+      const { data: newJob, error: jobError } = await serviceClient
+        .from('translation_generation_jobs')
+        .insert({
+          namespace: namespacesToProcess.join(','),
+          target_languages: TARGET_LANGUAGES,
+          status: 'running',
+          progress_percentage: 0,
+          created_by: user.id,
+          started_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+        
+      if (jobError) {
+        console.error('[Generate All] Failed to create job:', jobError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to create job', details: jobError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      currentJobId = newJob.id;
+    }
+
+    console.log(`[Generate All] Created job ${currentJobId}, starting background processing`);
+
+    // Start background processing using EdgeRuntime.waitUntil
+    // This allows the function to return immediately while processing continues
+    // @ts-ignore - EdgeRuntime is a Deno Deploy global
+    EdgeRuntime.waitUntil(
+      processTranslations(serviceClient, userClient, user.id, namespacesToProcess, currentJobId!)
+    );
+
+    // Return immediately with job ID - client will poll for progress
     return new Response(
       JSON.stringify({
         success: true,
-        summary: {
-          totalNamespaces: namespacesToProcess.length,
-          totalLanguages: TARGET_LANGUAGES.length,
-          successCount,
-          errorCount,
-          totalCost: parseFloat(totalCost.toFixed(2)),
-          totalTimeSeconds: parseFloat((totalTime / 1000).toFixed(1)),
-          jobId: currentJobId,
-          status: finalStatus
-        },
-        results,
-        errors
+        message: 'Translation job started',
+        jobId: currentJobId,
+        namespacesCount: namespacesToProcess.length,
+        languagesCount: TARGET_LANGUAGES.length,
+        totalTranslations: namespacesToProcess.length * TARGET_LANGUAGES.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('[Generate All] Fatal error:', error);
-    
-    // Always try to mark job as failed on error
-    if (currentJobId) {
-      try {
-        await serviceClient
-          .from('translation_generation_jobs')
-          .update({
-            status: 'failed',
-            error_message: error instanceof Error ? error.message : 'Unknown error',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', currentJobId);
-        console.log(`[Generate All] Marked job ${currentJobId} as failed`);
-      } catch (updateError) {
-        console.error('[Generate All] Failed to update job status:', updateError);
-      }
-    }
-    
+
+  } catch (error: any) {
+    console.error('[Generate All] Error:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: error.message || 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

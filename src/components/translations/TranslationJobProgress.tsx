@@ -16,6 +16,7 @@ interface TranslationJob {
   failed_languages: string[] | null;
   error_message: string | null;
   started_at: string;
+  updated_at: string;
   completed_at: string | null;
 }
 
@@ -131,9 +132,16 @@ function RunningJobCard({ job }: { job: TranslationJob }) {
   const progress = totalTranslations > 0 ? (completedCount / totalTranslations) * 100 : 0;
   
   const elapsed = Math.floor((now - new Date(job.started_at).getTime()) / 1000);
-  const lastUpdate = Math.floor((now - new Date(job.started_at).getTime()) / 1000);
-  const isStale = lastUpdate > 10 * 60; // 10 minutes without update = stale
-  const estimatedRemaining = progress > 0 ? Math.floor((elapsed / progress) * (100 - progress)) : null;
+  const lastUpdateTime = job.updated_at || job.started_at;
+  const lastUpdate = Math.floor((now - new Date(lastUpdateTime).getTime()) / 1000);
+  const isStale = lastUpdate > 5 * 60; // 5 minutes without update = stale
+  
+  // Calculate ETA based on time since last update and progress rate
+  const timeSinceLastUpdate = lastUpdate;
+  const progressRate = job.progress_percentage > 0 ? elapsed / job.progress_percentage : 0;
+  const estimatedRemaining = job.progress_percentage > 0 && progressRate > 0 
+    ? Math.floor(progressRate * (100 - job.progress_percentage))
+    : null;
 
   // Update elapsed time every second
   useEffect(() => {
