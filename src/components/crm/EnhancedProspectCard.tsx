@@ -17,13 +17,15 @@ import {
   Linkedin,
   DollarSign,
   Clock,
-  MoreHorizontal
+  MoreHorizontal,
+  Sparkles
 } from 'lucide-react';
 import type { CRMProspect } from '@/types/crm-enterprise';
 import { formatDistanceToNow } from 'date-fns';
 import { RottingIndicator } from './RottingIndicator';
 import { NextActivityBadge } from './NextActivityBadge';
 import { ProspectActionsMenu } from './ProspectActionsMenu';
+import { CompanyEnrichButton } from './CompanyEnrichButton';
 
 interface EnhancedProspectCardProps {
   prospect: CRMProspect;
@@ -177,6 +179,10 @@ export function EnhancedProspectCard({
                 {prospect.company_size}
               </Badge>
             )}
+            {/* Company Enrich Button */}
+            <CompanyEnrichButton 
+              prospect={prospect}
+            />
           </div>
         )}
 

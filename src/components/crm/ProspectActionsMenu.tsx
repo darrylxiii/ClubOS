@@ -23,12 +23,14 @@ import {
   Edit,
   UserPlus,
   ArrowRight,
+  Video,
 } from 'lucide-react';
 import { CloseWonDialog } from './CloseWonDialog';
 import { CloseLostDialog } from './CloseLostDialog';
 import { ConvertToPartnerDialog } from './ConvertToPartnerDialog';
 import { SnoozeDialog } from './SnoozeDialog';
 import { ActivityQuickAdd } from './ActivityQuickAdd';
+import { ScheduleMeetingDialog } from './ScheduleMeetingDialog';
 import type { CRMProspect, ProspectStage } from '@/types/crm-enterprise';
 
 interface ProspectActionsMenuProps {
@@ -65,6 +67,7 @@ export function ProspectActionsMenu({
   const [showConvertDialog, setShowConvertDialog] = useState(false);
   const [showSnoozeDialog, setShowSnoozeDialog] = useState(false);
   const [showActivityAdd, setShowActivityAdd] = useState(false);
+  const [showScheduleMeeting, setShowScheduleMeeting] = useState(false);
 
   const handleCloseWon = async (data: { dealValue: number; reason: string; reasonCategory: string; notes: string }) => {
     await onUpdateProspect(prospect.id, {
@@ -123,6 +126,10 @@ export function ProspectActionsMenu({
           <DropdownMenuItem onClick={() => setShowActivityAdd(true)}>
             <Calendar className="w-4 h-4 mr-2" />
             Add Activity
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setShowScheduleMeeting(true)}>
+            <Video className="w-4 h-4 mr-2" />
+            Schedule Meeting
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => window.open(`mailto:${prospect.email}`)}>
             <Mail className="w-4 h-4 mr-2" />
@@ -238,6 +245,12 @@ export function ProspectActionsMenu({
           onSuccess={() => setShowActivityAdd(false)}
         />
       )}
+
+      <ScheduleMeetingDialog
+        open={showScheduleMeeting}
+        onClose={() => setShowScheduleMeeting(false)}
+        prospect={prospect}
+      />
     </>
   );
 }
