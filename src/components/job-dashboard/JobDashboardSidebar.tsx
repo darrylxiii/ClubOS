@@ -4,7 +4,6 @@ import { EnhancedStatsGrid } from "./EnhancedStatsGrid";
 import { JobTeamPanel } from "@/components/partner/JobTeamPanel";
 import { InlineDocumentsCard } from "./InlineDocumentsCard";
 import { UpcomingInterviewsCompact } from "./UpcomingInterviewsCompact";
-import { QuickResponseTimeTracker } from "./QuickResponseTimeTracker";
 import { InlineActivityFeed } from "./InlineActivityFeed";
 import { motion } from "framer-motion";
 
@@ -76,13 +75,6 @@ export const JobDashboardSidebar = memo(({
       {/* Real Activity Feed (replaced mock CandidateEngagementStream) */}
       <InlineActivityFeed jobId={job.id} initialLimit={5} />
 
-      {/* Quick Response Time Tracker */}
-      {metrics && stages.length > 0 && (
-        <QuickResponseTimeTracker
-          avgDaysInStage={metrics.avgDaysInStage}
-          stages={stages}
-        />
-      )}
       
       {/* Team Panel - Compact */}
       <JobTeamPanel jobId={job.id} />
