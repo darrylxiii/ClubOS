@@ -39,7 +39,7 @@ export const SecurityAlertsWidget = () => {
         .from('threat_events')
         .select('severity')
         .gte('created_at', oneDayAgo)
-        .eq('resolved', false);
+        .eq('is_resolved', false);
 
       const threats = (data || []) as Array<{ severity: string | null }>;
 

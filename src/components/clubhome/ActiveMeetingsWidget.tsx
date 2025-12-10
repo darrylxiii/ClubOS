@@ -43,12 +43,11 @@ export const ActiveMeetingsWidget = () => {
       const startOfDay = new Date(now);
       startOfDay.setHours(0, 0, 0, 0);
 
-      // Get active meetings (started but not ended)
+      // Get active meetings (in progress)
       const { data: activeMeetings } = await supabase
         .from('meetings')
         .select('id')
-        .not('started_at', 'is', null)
-        .is('ended_at', null);
+        .eq('status', 'in_progress');
 
       // Get participants in active meetings
       const { data: participants } = await supabase
@@ -60,8 +59,8 @@ export const ActiveMeetingsWidget = () => {
       const { data: todayMeetings } = await supabase
         .from('meetings')
         .select('id')
-        .gte('scheduled_at', startOfDay.toISOString())
-        .lt('scheduled_at', new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000).toISOString());
+        .gte('scheduled_start', startOfDay.toISOString())
+        .lt('scheduled_start', new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000).toISOString());
 
       setStats({
         activeMeetings: activeMeetings?.length || 0,
