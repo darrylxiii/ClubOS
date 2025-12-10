@@ -22,12 +22,13 @@ const TARGET_LANGUAGES = SUPPORTED_LANGUAGES.filter(l => l !== 'en');
 export default function TranslationManager() {
   const queryClient = useQueryClient();
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
+  const [isSyncingKeys, setIsSyncingKeys] = useState(false);
   const [generatingNamespace, setGeneratingNamespace] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('generate');
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const logIdRef = useRef(0);
   const seedTranslations = useSeedTranslations();
-  const { data: coverageData, isLoading: coverageLoading } = useTranslationCoverage();
+  const { data: coverageData, isLoading: coverageLoading, refetch: refetchCoverage } = useTranslationCoverage();
 
   // Helper to add logs
   const addLog = useCallback((level: 'info' | 'warn' | 'error', message: string, details?: string, source?: string) => {
@@ -270,6 +271,58 @@ export default function TranslationManager() {
   const handleJobComplete = () => {
     queryClient.invalidateQueries({ queryKey: ['translation-coverage'] });
     queryClient.invalidateQueries({ queryKey: ['translation-coverage-analysis'] });
+    refetchCoverage();
+  };
+
+  const syncMissingKeys = async () => {
+    setIsSyncingKeys(true);
+    addLog('info', 'Syncing missing translation keys...', undefined, 'sync');
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-translation-keys', {
+        body: { mode: 'detect' }
+      });
+      
+      if (error) {
+        addLog('error', 'Sync failed', error.message, 'sync');
+        toast.error(`Sync failed: ${error.message}`);
+        return;
+      }
+      
+      const { summary, results } = data;
+      const incompleteCount = summary?.incompleteTranslations || 0;
+      
+      if (incompleteCount > 0) {
+        addLog('warn', `Found ${incompleteCount} incomplete translations`, 
+          JSON.stringify(results.filter((r: any) => r.status !== 'complete').slice(0, 5), null, 2), 'sync');
+        
+        // Now trigger generation for missing keys
+        addLog('info', 'Triggering translation for missing keys...', undefined, 'sync');
+        
+        const { error: genError } = await supabase.functions.invoke('generate-all-translations', {
+          body: { generateAll: true }
+        });
+        
+        if (genError) {
+          addLog('error', 'Generation failed after sync', genError.message, 'sync');
+          toast.error(`Generation failed: ${genError.message}`);
+        } else {
+          addLog('info', '✓ Translation sync complete', undefined, 'sync');
+          toast.success(`Synced translations for ${incompleteCount} language/namespace combinations`);
+        }
+      } else {
+        addLog('info', '✓ All translations are complete', undefined, 'sync');
+        toast.success('All translations are already synced!');
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['translation-coverage'] });
+      refetchCoverage();
+    } catch (error: any) {
+      addLog('error', 'Sync error', error.message, 'sync');
+      toast.error(error.message);
+    } finally {
+      setIsSyncingKeys(false);
+    }
   };
 
   const getCoverageForNamespace = (namespace: string) => {
@@ -296,6 +349,10 @@ export default function TranslationManager() {
             <Button variant="outline" onClick={() => seedTranslations.mutate()} disabled={seedTranslations.isPending}>
               {seedTranslations.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
               Seed English
+            </Button>
+            <Button variant="secondary" onClick={syncMissingKeys} disabled={isSyncingKeys || !englishQuery.data?.exists || isAnyLoading}>
+              {isSyncingKeys ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              Sync Missing Keys
             </Button>
             <Button onClick={generateEverything} disabled={isGeneratingAll || !englishQuery.data?.exists || isAnyLoading} size="lg">
               {isGeneratingAll ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}

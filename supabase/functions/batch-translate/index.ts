@@ -232,7 +232,7 @@ Rules:
       current[keys[keys.length - 1]] = value;
     }
 
-    // Store in database using UPSERT
+    // Store in database using MERGE (not replace)
     logger.info(`Storing ${targetLanguage} translation for ${namespace}...`);
     
     const authHeader = req.headers.get('Authorization');
@@ -246,13 +246,39 @@ Rules:
       userId = user?.id;
     }
 
-    // UPSERT: Insert or update on conflict
+    // First, check if translation exists and MERGE instead of replacing
+    const { data: existing } = await supabase
+      .from('translations')
+      .select('translations')
+      .eq('namespace', namespace)
+      .eq('language', targetLanguage)
+      .eq('is_active', true)
+      .single();
+
+    // Deep merge function
+    const deepMerge = (target: any, source: any): any => {
+      const result = { ...target };
+      for (const key of Object.keys(source)) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+          result[key] = deepMerge(result[key] || {}, source[key]);
+        } else {
+          result[key] = source[key];
+        }
+      }
+      return result;
+    };
+
+    // Merge new translations with existing (if any)
+    const mergedTranslations = existing?.translations 
+      ? deepMerge(existing.translations, translationObject)
+      : translationObject;
+
     const { error: upsertError } = await supabase
       .from('translations')
       .upsert({
         namespace,
         language: targetLanguage,
-        translations: translationObject,
+        translations: mergedTranslations,
         version: 1,
         generated_by: userId,
         generated_at: new Date().toISOString(),
@@ -265,7 +291,9 @@ Rules:
     if (upsertError) {
       logger.error('Failed to upsert translation', upsertError);
     } else {
-      logger.info(`✓ Stored ${targetLanguage} translation for ${namespace}`);
+      const newKeysCount = Object.keys(translationObject).length;
+      const totalKeysCount = Object.keys(mergedTranslations).length;
+      logger.info(`✓ Merged ${newKeysCount} keys into ${namespace}:${targetLanguage} (total: ${totalKeysCount})`);
     }
 
     logger.logSuccess(200, { translatedCount: translatedPairs.length });

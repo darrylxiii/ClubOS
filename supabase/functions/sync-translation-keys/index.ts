@@ -66,6 +66,27 @@ serve(async (req) => {
       return keys;
     };
 
+    // Helper to get value by dot-notation key
+    const getValueByKey = (obj: any, key: string): any => {
+      const parts = key.split('.');
+      let value = obj;
+      for (const part of parts) {
+        value = value?.[part];
+      }
+      return value;
+    };
+
+    // Helper to set value by dot-notation key
+    const setValueByKey = (obj: any, key: string, value: any): void => {
+      const parts = key.split('.');
+      let current = obj;
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (!current[parts[i]]) current[parts[i]] = {};
+        current = current[parts[i]];
+      }
+      current[parts[parts.length - 1]] = value;
+    };
+
     for (const enTrans of englishTranslations) {
       const ns = enTrans.namespace;
       const englishKeys = getKeys(enTrans.translations);
@@ -121,19 +142,9 @@ serve(async (req) => {
             // Extract only missing key values from English
             const missingTranslations: any = {};
             for (const key of missingKeys) {
-              const parts = key.split('.');
-              let value = enTrans.translations;
-              for (const part of parts) {
-                value = value?.[part];
-              }
+              const value = getValueByKey(enTrans.translations, key);
               if (value) {
-                // Rebuild nested structure
-                let current = missingTranslations;
-                for (let i = 0; i < parts.length - 1; i++) {
-                  if (!current[parts[i]]) current[parts[i]] = {};
-                  current = current[parts[i]];
-                }
-                current[parts[parts.length - 1]] = value;
+                setValueByKey(missingTranslations, key, value);
               }
             }
 
