@@ -45,6 +45,10 @@ const EmployeeDetailPage = lazy(() => import("@/pages/admin/EmployeeDetailPage")
 const EmployeeManagement = lazy(() => import("@/pages/admin/EmployeeManagement"));
 const MyPerformance = lazy(() => import("@/pages/MyPerformance"));
 const TeamPerformance = lazy(() => import("@/pages/TeamPerformance"));
+const TranslationEditor = lazy(() => import("@/pages/admin/TranslationEditor"));
+const TranslationCoverage = lazy(() => import("@/pages/admin/TranslationCoverage"));
+const BrandTermManager = lazy(() => import("@/pages/admin/BrandTermManager"));
+const TranslationAuditLog = lazy(() => import("@/pages/admin/TranslationAuditLog"));
 
 export const adminRoutes = (
   <>
@@ -439,6 +443,54 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <TeamPerformance />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/translation-editor"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <TranslationEditor />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/translation-coverage"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <TranslationCoverage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/brand-terms"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <BrandTermManager />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/translation-audit"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <TranslationAuditLog />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>

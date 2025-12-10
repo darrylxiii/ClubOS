@@ -23,10 +23,12 @@ import { ClubPilotTasksWidget } from "./ClubPilotTasksWidget";
 import { MessagesPreviewWidget } from "./MessagesPreviewWidget";
 import { TimeTrackingWidget } from "./TimeTrackingWidget";
 import { T } from "@/components/T";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 
 export const CandidateHome = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { stats: roleStats, loading } = useRoleStats('user', user?.id);
   const [profileCompletion, setProfileCompletion] = useState(0);
 
@@ -72,8 +74,8 @@ export const CandidateHome = () => {
 
       {/* Quick Tips & Resources */}
       <DashboardSection
-        title="Quick Tips & Resources"
-        description="Expert advice to accelerate your career journey"
+        title={t('common:home.quickTips.title', 'Quick Tips & Resources')}
+        description={t('common:home.quickTips.subtitle', 'Expert advice to accelerate your career journey')}
       >
         <QuickTipsCarousel tips={quickTips} />
       </DashboardSection>
@@ -91,28 +93,29 @@ export const CandidateHome = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <Badge variant="secondary" className="gap-1 bg-premium/20 text-premium-foreground border-premium/30 text-xs">
                     <Briefcase className="h-3 w-3" />
-                    New Feature
+                    <T k="common:badges.newFeature" fallback="New Feature" />
                   </Badge>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold mb-2">💼 Introducing Club Projects</h3>
+                <h3 className="text-lg sm:text-xl font-bold mb-2">
+                  💼 <T k="common:clubProjects.title" fallback="Introducing Club Projects" />
+                </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Earn while you search. Join our premium freelance marketplace and get matched 
-                  with high-value projects using Club AI.
+                  <T k="common:clubProjects.description" fallback="Earn while you search. Join our premium freelance marketplace and get matched with high-value projects using Club AI." />
                 </p>
                 <div className="flex flex-wrap gap-2 text-xs sm:text-sm text-muted-foreground mb-4">
                   <div className="flex items-center gap-1">
-                    ✓ AI-powered matching
+                    ✓ <T k="common:clubProjects.features.aiMatching" fallback="AI-powered matching" />
                   </div>
                   <div className="flex items-center gap-1">
-                    ✓ €100-150/hr avg rate
+                    ✓ <T k="common:clubProjects.features.avgRate" fallback="€100-150/hr avg rate" />
                   </div>
                   <div className="flex items-center gap-1 hidden sm:flex">
-                    ✓ &lt;24h time to hire
+                    ✓ <T k="common:clubProjects.features.timeToHire" fallback="<24h time to hire" />
                   </div>
                 </div>
                 <Button asChild className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                   <Link to="/projects">
-                    Explore Projects
+                    <T k="common:clubProjects.cta" fallback="Explore Projects" />
                   </Link>
                 </Button>
               </div>
