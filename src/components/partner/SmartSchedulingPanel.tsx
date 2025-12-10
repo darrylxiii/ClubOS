@@ -18,6 +18,7 @@ interface SmartSchedulingPanelProps {
   interviewers: string[];
   candidateEmail?: string;
   duration: number;
+  calendarConnectionId?: string;
   onSelectSlot: (slot: TimeSlot) => void;
 }
 
@@ -25,22 +26,50 @@ export const SmartSchedulingPanel = ({
   interviewers,
   candidateEmail,
   duration,
+  calendarConnectionId,
   onSelectSlot,
 }: SmartSchedulingPanelProps) => {
   const [loading, setLoading] = useState(false);
   const [suggestedSlots, setSuggestedSlots] = useState<TimeSlot[]>([]);
+  const [usingGoogleCalendar, setUsingGoogleCalendar] = useState(false);
 
   useEffect(() => {
     if (interviewers.length > 0) {
       findOptimalSlots();
     }
-  }, [interviewers, duration]);
+  }, [interviewers, duration, calendarConnectionId]);
 
   const findOptimalSlots = async () => {
     setLoading(true);
     try {
-      // Fetch existing bookings for all interviewers
-      const { data: bookings, error } = await supabase
+      let busySlots: { start: string; end: string }[] = [];
+
+      // Try to fetch real Google Calendar availability if connected
+      if (calendarConnectionId) {
+        try {
+          const timeMin = new Date().toISOString();
+          const timeMax = addDays(new Date(), 14).toISOString();
+
+          const { data, error } = await supabase.functions.invoke('google-calendar-events', {
+            body: {
+              action: 'findFreeSlots',
+              connectionId: calendarConnectionId,
+              timeMin,
+              timeMax,
+            },
+          });
+
+          if (!error && data?.busySlots) {
+            busySlots = data.busySlots;
+            setUsingGoogleCalendar(true);
+          }
+        } catch (err) {
+          console.error('Failed to fetch Google Calendar availability:', err);
+        }
+      }
+
+      // Also fetch existing bookings for all interviewers
+      const { data: bookings, error: bookingsError } = await supabase
         .from('bookings')
         .select('scheduled_start, scheduled_end, user_id')
         .in('user_id', interviewers)
@@ -48,7 +77,16 @@ export const SmartSchedulingPanel = ({
         .lte('scheduled_start', addDays(new Date(), 14).toISOString())
         .eq('status', 'confirmed');
 
-      if (error) throw error;
+      if (bookingsError) throw bookingsError;
+
+      // Combine Google Calendar busy slots with booking conflicts
+      const allBusySlots = [
+        ...busySlots,
+        ...(bookings?.map((b) => ({
+          start: b.scheduled_start,
+          end: b.scheduled_end,
+        })) || []),
+      ];
 
       // Generate time slots for next 14 days
       const slots: TimeSlot[] = [];
@@ -67,16 +105,16 @@ export const SmartSchedulingPanel = ({
           const slotStart = setMinutes(setHours(date, hour), 0);
           const slotEnd = new Date(slotStart.getTime() + duration * 60000);
 
-          // Check for conflicts
-          const conflicts = bookings?.filter((booking) => {
-            const bookingStart = new Date(booking.scheduled_start);
-            const bookingEnd = new Date(booking.scheduled_end);
+          // Check for conflicts with busy slots
+          const conflicts = allBusySlots.filter((busy) => {
+            const busyStart = new Date(busy.start);
+            const busyEnd = new Date(busy.end);
             return (
-              (slotStart >= bookingStart && slotStart < bookingEnd) ||
-              (slotEnd > bookingStart && slotEnd <= bookingEnd) ||
-              (slotStart <= bookingStart && slotEnd >= bookingEnd)
+              (slotStart >= busyStart && slotStart < busyEnd) ||
+              (slotEnd > busyStart && slotEnd <= busyEnd) ||
+              (slotStart <= busyStart && slotEnd >= busyEnd)
             );
-          }).length || 0;
+          }).length;
 
           // Calculate confidence score
           let confidence = 100;
@@ -84,14 +122,14 @@ export const SmartSchedulingPanel = ({
           if (hour < 10 || hour > 15) confidence -= 10; // Prefer mid-day slots
           if (dayOfWeek === 1 || dayOfWeek === 5) confidence -= 5; // Slight penalty for Mon/Fri
 
-          // Only include slots with some availability
-          if (conflicts < interviewers.length) {
+          // Only include slots with no conflicts or minimal conflicts
+          if (conflicts === 0) {
             slots.push({
               date: slotStart,
               time: format(slotStart, 'HH:mm'),
               confidence: Math.max(confidence, 0),
               conflicts,
-              reason: getReasonText(conflicts, interviewers.length, hour),
+              reason: getReasonText(conflicts, interviewers.length, hour, usingGoogleCalendar),
             });
           }
         }
@@ -110,14 +148,18 @@ export const SmartSchedulingPanel = ({
     }
   };
 
-  const getReasonText = (conflicts: number, totalInterviewers: number, hour: number) => {
-    const available = totalInterviewers - conflicts;
-    let reason = `${available}/${totalInterviewers} interviewers available`;
+  const getReasonText = (conflicts: number, totalInterviewers: number, hour: number, usingCalendar: boolean) => {
+    let reason = '';
+    
+    if (usingCalendar) {
+      reason = 'Available on your Google Calendar';
+    } else {
+      const available = totalInterviewers - conflicts;
+      reason = `${available}/${totalInterviewers} interviewers available`;
+    }
 
     if (conflicts === 0) {
-      reason += ' • Perfect timing';
-    } else if (conflicts < totalInterviewers / 2) {
-      reason += ' • Good availability';
+      reason += ' • No conflicts';
     }
 
     if (hour >= 10 && hour <= 14) {
@@ -152,8 +194,9 @@ export const SmartSchedulingPanel = ({
           <div className="text-center space-y-3">
             <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
             <p className="text-sm text-muted-foreground">
-              Analyzing {interviewers.length} interviewer
-              {interviewers.length !== 1 ? 's' : ''} availability...
+              {calendarConnectionId 
+                ? 'Checking your Google Calendar availability...' 
+                : `Analyzing ${interviewers.length} interviewer${interviewers.length !== 1 ? 's' : ''} availability...`}
             </p>
           </div>
         </CardContent>
@@ -167,9 +210,16 @@ export const SmartSchedulingPanel = ({
         <CardTitle className="flex items-center gap-2 text-base">
           <Sparkles className="w-5 h-5 text-primary" />
           Smart Scheduling Assistant
+          {usingGoogleCalendar && (
+            <Badge variant="outline" className="ml-2 text-xs">
+              Google Calendar
+            </Badge>
+          )}
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          AI-suggested time slots based on availability and optimal scheduling
+          {usingGoogleCalendar 
+            ? 'AI-suggested slots based on your Google Calendar availability'
+            : 'AI-suggested time slots based on booking availability'}
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -221,7 +271,9 @@ export const SmartSchedulingPanel = ({
 
         <div className="pt-3 border-t">
           <p className="text-xs text-muted-foreground">
-            💡 Tip: Slots are ranked by availability, time of day, and interviewer preferences
+            💡 {usingGoogleCalendar 
+              ? 'Slots are ranked by your calendar availability and optimal scheduling times'
+              : 'Connect your Google Calendar for more accurate availability'}
           </p>
         </div>
       </CardContent>
