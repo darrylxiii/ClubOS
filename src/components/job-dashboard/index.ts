@@ -1,3 +1,11 @@
+// Core Components
+export { DashboardHeader } from './DashboardHeader';
+export { MetricsStrip } from './MetricsStrip';
+export { KanbanPipeline } from './KanbanPipeline';
+export { InsightsPanel } from './InsightsPanel';
+export { CompactSidebar } from './CompactSidebar';
+
+// Legacy Components (kept for tabs/secondary views)
 export { JobDashboardSidebar } from './JobDashboardSidebar';
 export { JobSummaryCard } from './JobSummaryCard';
 export { EnhancedStatsGrid } from './EnhancedStatsGrid';
