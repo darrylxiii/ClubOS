@@ -1,16 +1,21 @@
 import { useState, useEffect, memo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Upload, ExternalLink, FolderOpen } from "lucide-react";
+import { FileText, Upload, FolderOpen, Eye, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { JobDocuments } from "@/components/partner/JobDocuments";
+import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface DocumentItem {
   id: string;
   file_name: string;
   file_url: string;
   file_type: string;
+  uploaded_at?: string;
+  uploaded_by?: string;
+  uploader_name?: string;
 }
 
 interface InlineDocumentsCardProps {
@@ -27,19 +32,35 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
       setLoading(true);
       const { data, error } = await supabase
         .from('jobs')
-        .select('job_description_url, supporting_documents')
+        .select('job_description_url, supporting_documents, updated_at, created_by')
         .eq('id', jobId)
         .single();
       
       if (!error && data) {
         const docs: DocumentItem[] = [];
         
+        // Fetch uploader name for job description
+        let jdUploaderName = 'Unknown';
+        if (data.created_by) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', data.created_by)
+            .maybeSingle();
+          if (profile?.full_name) {
+            jdUploaderName = profile.full_name;
+          }
+        }
+        
         if (data.job_description_url) {
           docs.push({
             id: 'jd-main',
             file_name: 'Job Description',
             file_url: data.job_description_url,
-            file_type: 'application/pdf'
+            file_type: 'application/pdf',
+            uploaded_at: data.updated_at,
+            uploaded_by: data.created_by,
+            uploader_name: jdUploaderName
           });
         }
         
@@ -50,7 +71,10 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
                 id: `supporting-${index}`,
                 file_name: doc.name || doc.file_name || `Document ${index + 1}`,
                 file_url: doc.url || doc.file_url,
-                file_type: doc.type || doc.file_type || 'application/pdf'
+                file_type: doc.type || doc.file_type || 'application/pdf',
+                uploaded_at: doc.uploaded_at,
+                uploaded_by: doc.uploaded_by,
+                uploader_name: doc.uploader_name || 'Unknown'
               });
             }
           });
@@ -76,8 +100,75 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
     }
   };
 
-  const handleOpenDocument = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
+  const handleViewDocument = async (doc: DocumentItem) => {
+    try {
+      // For external URLs, open directly
+      if (doc.file_url.startsWith('http')) {
+        window.open(doc.file_url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      // For storage paths, get signed URL
+      const { data, error } = await supabase.storage
+        .from('job-documents')
+        .createSignedUrl(doc.file_url, 3600);
+
+      if (error) throw error;
+      
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (err) {
+      console.error('Error viewing document:', err);
+      toast.error('Failed to open document');
+    }
+  };
+
+  const handleDownloadDocument = async (doc: DocumentItem) => {
+    try {
+      // For external URLs
+      if (doc.file_url.startsWith('http')) {
+        const link = document.createElement('a');
+        link.href = doc.file_url;
+        link.download = doc.file_name;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+
+      // For storage paths, download blob
+      const { data, error } = await supabase.storage
+        .from('job-documents')
+        .download(doc.file_url);
+
+      if (error) throw error;
+      
+      if (data) {
+        const url = URL.createObjectURL(data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.file_name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast.success('Document downloaded');
+      }
+    } catch (err) {
+      console.error('Error downloading document:', err);
+      toast.error('Failed to download document');
+    }
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return null;
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy');
+    } catch {
+      return null;
+    }
   };
 
   return (
@@ -88,7 +179,7 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
             <FolderOpen className="w-3.5 h-3.5" />
             Documents
           </h4>
-        <Dialog open={showFullDialog} onOpenChange={handleDialogChange}>
+          <Dialog open={showFullDialog} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
               <Button variant="ghost" size="sm" className="h-6 text-xs">
                 View All
@@ -106,7 +197,7 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
         {loading ? (
           <div className="space-y-2">
             {[1, 2].map((i) => (
-              <div key={i} className="h-10 bg-muted/30 rounded animate-pulse" />
+              <div key={i} className="h-14 bg-muted/30 rounded animate-pulse" />
             ))}
           </div>
         ) : documents.length === 0 ? (
@@ -125,17 +216,49 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
           </div>
         ) : (
           <div className="space-y-2">
-            {documents.map((doc) => (
-              <div 
-                key={doc.id}
-                onClick={() => handleOpenDocument(doc.file_url)}
-                className="flex items-center gap-2 p-2 rounded-lg bg-background/40 border border-border/20 hover:bg-background/60 transition-all cursor-pointer group"
-              >
-                <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm truncate flex-1">{doc.file_name}</span>
-                <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-            ))}
+            {documents.map((doc) => {
+              const dateStr = formatDate(doc.uploaded_at);
+              const subtitle = [dateStr, doc.uploader_name !== 'Unknown' && `by ${doc.uploader_name}`]
+                .filter(Boolean)
+                .join(' • ');
+              
+              return (
+                <div 
+                  key={doc.id}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-background/40 border border-border/20 hover:bg-background/60 transition-all group"
+                >
+                  <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm truncate block">{doc.file_name}</span>
+                    {subtitle && (
+                      <span className="text-[10px] text-muted-foreground truncate block">
+                        {subtitle}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => handleViewDocument(doc)}
+                      title="View"
+                    >
+                      <Eye className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => handleDownloadDocument(doc)}
+                      title="Download"
+                    >
+                      <Download className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
             {documents.length >= 3 && (
               <Button 
                 variant="ghost" 
