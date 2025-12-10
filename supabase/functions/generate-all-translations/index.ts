@@ -36,6 +36,17 @@ serve(async (req) => {
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
   const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
+  // Set maximum execution timeout (25 minutes to allow cleanup before edge function timeout)
+  const MAX_EXECUTION_MS = 25 * 60 * 1000;
+  const startTime = Date.now();
+  let currentJobId: string | null = null;
+
+  const checkTimeout = () => {
+    if (Date.now() - startTime > MAX_EXECUTION_MS) {
+      throw new Error('Job timeout - exceeded maximum execution time');
+    }
+  };
+
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -103,7 +114,7 @@ serve(async (req) => {
     let completedItems = 0;
 
     // Create or resume job
-    let currentJobId = jobId;
+    currentJobId = jobId || null;
     let completedLanguages: string[] = [];
     
     if (!currentJobId) {
@@ -267,7 +278,10 @@ serve(async (req) => {
           if (index < TARGET_LANGUAGES.length - 1) {
             await new Promise(resolve => setTimeout(resolve, 2000));
           }
-        } catch (error: any) {
+        // Check for timeout before each language
+        checkTimeout();
+        
+      } catch (error: any) {
           console.error(`[ERROR] Failed ${langKey}:`, error.message);
           errors.push({ namespace: ns, language: lang, error: error.message || 'Translation failed' });
           results.push({ namespace: ns, language: lang, status: 'error', error: error.message });
@@ -320,6 +334,24 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('[Generate All] Fatal error:', error);
+    
+    // Always try to mark job as failed on error
+    if (currentJobId) {
+      try {
+        await serviceClient
+          .from('translation_generation_jobs')
+          .update({
+            status: 'failed',
+            error_message: error instanceof Error ? error.message : 'Unknown error',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentJobId);
+        console.log(`[Generate All] Marked job ${currentJobId} as failed`);
+      } catch (updateError) {
+        console.error('[Generate All] Failed to update job status:', updateError);
+      }
+    }
+    
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
