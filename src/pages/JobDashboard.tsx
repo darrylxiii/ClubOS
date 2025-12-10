@@ -162,25 +162,32 @@ export default function JobDashboard() {
     try {
       const { data } = await supabase
         .from('job_team_assignments')
-        .select(`id, user_id, team_role`)
+        .select(`
+          id, 
+          job_role,
+          company_member_id,
+          company_members!job_team_assignments_company_member_id_fkey (
+            user_id,
+            profiles:user_id (
+              id,
+              full_name,
+              avatar_url
+            )
+          )
+        `)
         .eq('job_id', jobId);
       
       if (data && data.length > 0) {
-        const userIds = data.map(d => d.user_id).filter(Boolean);
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, full_name, avatar_url')
-          .in('id', userIds);
-        
         const members = data.map(m => {
-          const profile = profiles?.find(p => p.id === m.user_id);
+          const companyMember = m.company_members as any;
+          const profile = companyMember?.profiles;
           return {
-            id: m.user_id,
+            id: companyMember?.user_id || m.id,
             name: profile?.full_name || 'Team Member',
             avatar_url: profile?.avatar_url,
-            role: m.team_role
+            role: m.job_role
           };
-        });
+        }).filter(m => m.id);
         setTeamMembers(members);
       }
     } catch (error) {
