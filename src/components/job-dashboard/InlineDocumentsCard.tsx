@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Upload, ExternalLink, FolderOpen } from "lucide-react";
@@ -22,54 +22,59 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
   const [loading, setLoading] = useState(true);
   const [showFullDialog, setShowFullDialog] = useState(false);
 
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        // Fetch documents from the jobs table (job_description_url and supporting_documents)
-        const { data, error } = await supabase
-          .from('jobs')
-          .select('job_description_url, supporting_documents')
-          .eq('id', jobId)
-          .single();
+  const fetchDocuments = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('job_description_url, supporting_documents')
+        .eq('id', jobId)
+        .single();
+      
+      if (!error && data) {
+        const docs: DocumentItem[] = [];
         
-        if (!error && data) {
-          const docs: DocumentItem[] = [];
-          
-          // Add job description document if exists
-          if (data.job_description_url) {
-            docs.push({
-              id: 'jd-main',
-              file_name: 'Job Description',
-              file_url: data.job_description_url,
-              file_type: 'application/pdf'
-            });
-          }
-          
-          // Add supporting documents if they exist
-          if (data.supporting_documents && Array.isArray(data.supporting_documents)) {
-            data.supporting_documents.forEach((doc: any, index: number) => {
-              if (doc?.url || doc?.file_url) {
-                docs.push({
-                  id: `supporting-${index}`,
-                  file_name: doc.name || doc.file_name || `Document ${index + 1}`,
-                  file_url: doc.url || doc.file_url,
-                  file_type: doc.type || doc.file_type || 'application/pdf'
-                });
-              }
-            });
-          }
-          
-          setDocuments(docs.slice(0, 3)); // Limit to 3 for preview
+        if (data.job_description_url) {
+          docs.push({
+            id: 'jd-main',
+            file_name: 'Job Description',
+            file_url: data.job_description_url,
+            file_type: 'application/pdf'
+          });
         }
-      } catch (err) {
-        console.error('Error fetching documents:', err);
-      } finally {
-        setLoading(false);
+        
+        if (data.supporting_documents && Array.isArray(data.supporting_documents)) {
+          data.supporting_documents.forEach((doc: any, index: number) => {
+            if (doc?.url || doc?.file_url) {
+              docs.push({
+                id: `supporting-${index}`,
+                file_name: doc.name || doc.file_name || `Document ${index + 1}`,
+                file_url: doc.url || doc.file_url,
+                file_type: doc.type || doc.file_type || 'application/pdf'
+              });
+            }
+          });
+        }
+        
+        setDocuments(docs.slice(0, 3));
       }
-    };
-
-    fetchDocuments();
+    } catch (err) {
+      console.error('Error fetching documents:', err);
+    } finally {
+      setLoading(false);
+    }
   }, [jobId]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
+
+  const handleDialogChange = (open: boolean) => {
+    setShowFullDialog(open);
+    if (!open) {
+      fetchDocuments();
+    }
+  };
 
   const handleOpenDocument = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -83,7 +88,7 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
             <FolderOpen className="w-3.5 h-3.5" />
             Documents
           </h4>
-          <Dialog open={showFullDialog} onOpenChange={setShowFullDialog}>
+        <Dialog open={showFullDialog} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
               <Button variant="ghost" size="sm" className="h-6 text-xs">
                 View All
@@ -93,7 +98,7 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
               <DialogHeader>
                 <DialogTitle>Job Documents</DialogTitle>
               </DialogHeader>
-              <JobDocuments jobId={jobId} onUpdate={() => {}} />
+              <JobDocuments jobId={jobId} onUpdate={fetchDocuments} />
             </DialogContent>
           </Dialog>
         </div>
