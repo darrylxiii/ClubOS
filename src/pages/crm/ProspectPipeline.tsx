@@ -56,8 +56,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
-// Primary stages (visible by default)
-const PRIMARY_STAGES = ['new', 'contacted', 'replied', 'qualified', 'meeting_booked', 'closed_won'];
+// Hot leads only - prospects who have replied or shown interest
+const PRIMARY_STAGES = ['replied', 'qualified', 'meeting_booked', 'proposal_sent', 'negotiation', 'closed_won'];
 
 function ProspectPipelineContent() {
   const [searchQuery, setSearchQuery] = useState('');
