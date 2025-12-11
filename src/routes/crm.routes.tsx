@@ -24,6 +24,8 @@ const CRMAnalytics = lazy(() => import("@/pages/crm/CRMAnalytics"));
 const LeadScoringConfig = lazy(() => import("@/pages/crm/LeadScoringConfig"));
 const CRMAutomations = lazy(() => import("@/pages/crm/CRMAutomations"));
 const ProspectAuditTrail = lazy(() => import("@/pages/crm/ProspectAuditTrail"));
+const CRMIntegrations = lazy(() => import("@/pages/crm/CRMIntegrations"));
+const CRMSettings = lazy(() => import("@/pages/crm/CRMSettings"));
 
 export const crmRoutes = (
   <>
@@ -39,5 +41,7 @@ export const crmRoutes = (
     <Route path="/crm/lead-scoring" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><LeadScoringConfig /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/crm/automations" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CRMAutomations /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/crm/audit-trail" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ProspectAuditTrail /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/crm/integrations" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CRMIntegrations /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/crm/settings" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CRMSettings /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );
