@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { listCampaigns, getCampaignAnalytics, getAccount } from "../_shared/instantly-client.ts";
+import { listCampaigns, getAllCampaignsAnalytics, getAccount, CampaignAnalytics, mapCampaignStatus } from "../_shared/instantly-client.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -36,7 +36,6 @@ serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const campaignId = url.searchParams.get('campaign_id');
     const includeAccount = url.searchParams.get('include_account') === 'true';
 
     // Get account info if requested
@@ -48,108 +47,82 @@ serve(async (req) => {
       }
     }
 
-    // If specific campaign requested
-    if (campaignId) {
-      const analyticsResponse = await getCampaignAnalytics(campaignId);
-      
-      if (analyticsResponse.error) {
-        return new Response(
-          JSON.stringify({ error: 'Failed to fetch campaign analytics', details: analyticsResponse.error }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({
-          campaign_id: campaignId,
-          analytics: analyticsResponse.data,
-          account: accountInfo,
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Get all campaigns with analytics
-    const campaignsResponse = await listCampaigns({ limit: 100 });
+    // Fetch all campaigns analytics in one efficient call
+    const analyticsResponse = await getAllCampaignsAnalytics();
     
-    if (campaignsResponse.error) {
+    if (analyticsResponse.error) {
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch campaigns', details: campaignsResponse.error }),
+        JSON.stringify({ error: 'Failed to fetch analytics', details: analyticsResponse.error }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const campaigns = campaignsResponse.data?.items || [];
+    const allAnalytics = analyticsResponse.data || [];
     
     // Aggregate analytics
     const aggregateAnalytics = {
-      total_campaigns: campaigns.length,
-      active_campaigns: campaigns.filter(c => c.status === 'active').length,
+      total_campaigns: allAnalytics.length,
+      active_campaigns: allAnalytics.filter(a => a.campaign_status === 1 || a.campaign_status === 4).length,
+      paused_campaigns: allAnalytics.filter(a => a.campaign_status === 2 || a.campaign_status === -2).length,
+      completed_campaigns: allAnalytics.filter(a => a.campaign_status === 3).length,
       total_leads: 0,
+      total_contacted: 0,
       total_sent: 0,
       total_opened: 0,
       total_clicked: 0,
       total_replied: 0,
       total_bounced: 0,
       total_unsubscribed: 0,
+      total_opportunities: 0,
       open_rate: 0,
       click_rate: 0,
       reply_rate: 0,
       bounce_rate: 0,
+      interest_rate: 0,
     };
 
-    const campaignAnalytics: Array<{
-      id: string;
-      name: string;
-      status: string;
-      analytics: {
-        leads_count: number;
-        sent: number;
-        opened: number;
-        clicked: number;
-        replied: number;
-        bounced: number;
-        unsubscribed: number;
-        open_rate: number;
-        reply_rate: number;
+    const campaignAnalytics = allAnalytics.map((analytics: CampaignAnalytics) => {
+      const sent = analytics.emails_sent || 0;
+      const opened = analytics.emails_opened || 0;
+      const clicked = analytics.emails_clicked || 0;
+      const replied = analytics.emails_replied || 0;
+      const bounced = analytics.emails_bounced || 0;
+      const contacted = analytics.contacted_count || analytics.leads_contacted || 0;
+      const opportunities = analytics.total_opportunities || 0;
+
+      // Aggregate totals
+      aggregateAnalytics.total_leads += analytics.total_leads || 0;
+      aggregateAnalytics.total_contacted += contacted;
+      aggregateAnalytics.total_sent += sent;
+      aggregateAnalytics.total_opened += opened;
+      aggregateAnalytics.total_clicked += clicked;
+      aggregateAnalytics.total_replied += replied;
+      aggregateAnalytics.total_bounced += bounced;
+      aggregateAnalytics.total_unsubscribed += analytics.emails_unsubscribed || 0;
+      aggregateAnalytics.total_opportunities += opportunities;
+
+      return {
+        id: analytics.campaign_id,
+        name: analytics.campaign_name,
+        status: mapCampaignStatus(analytics.campaign_status),
+        analytics: {
+          total_leads: analytics.total_leads || 0,
+          contacted_count: contacted,
+          emails_sent: sent,
+          emails_opened: opened,
+          emails_clicked: clicked,
+          emails_replied: replied,
+          emails_bounced: bounced,
+          emails_unsubscribed: analytics.emails_unsubscribed || 0,
+          total_opportunities: opportunities,
+          open_rate: sent > 0 ? (opened / sent) * 100 : 0,
+          click_rate: sent > 0 ? (clicked / sent) * 100 : 0,
+          reply_rate: sent > 0 ? (replied / sent) * 100 : 0,
+          bounce_rate: sent > 0 ? (bounced / sent) * 100 : 0,
+          interest_rate: contacted > 0 ? (opportunities / contacted) * 100 : 0,
+        },
       };
-    }> = [];
-
-    // Fetch analytics for each campaign
-    for (const campaign of campaigns) {
-      const analyticsResponse = await getCampaignAnalytics(campaign.id);
-      const analytics = analyticsResponse.data;
-
-      if (analytics) {
-        const campaignData = {
-          id: campaign.id,
-          name: campaign.name,
-          status: campaign.status,
-          analytics: {
-            leads_count: analytics.leads_count || 0,
-            sent: analytics.sent || 0,
-            opened: analytics.opened || 0,
-            clicked: analytics.clicked || 0,
-            replied: analytics.replied || 0,
-            bounced: analytics.bounced || 0,
-            unsubscribed: analytics.unsubscribed || 0,
-            open_rate: analytics.sent > 0 ? (analytics.opened / analytics.sent) * 100 : 0,
-            reply_rate: analytics.sent > 0 ? (analytics.replied / analytics.sent) * 100 : 0,
-          },
-        };
-
-        campaignAnalytics.push(campaignData);
-
-        // Aggregate
-        aggregateAnalytics.total_leads += analytics.leads_count || 0;
-        aggregateAnalytics.total_sent += analytics.sent || 0;
-        aggregateAnalytics.total_opened += analytics.opened || 0;
-        aggregateAnalytics.total_clicked += analytics.clicked || 0;
-        aggregateAnalytics.total_replied += analytics.replied || 0;
-        aggregateAnalytics.total_bounced += analytics.bounced || 0;
-        aggregateAnalytics.total_unsubscribed += analytics.unsubscribed || 0;
-      }
-    }
+    });
 
     // Calculate aggregate rates
     if (aggregateAnalytics.total_sent > 0) {
@@ -157,6 +130,9 @@ serve(async (req) => {
       aggregateAnalytics.click_rate = (aggregateAnalytics.total_clicked / aggregateAnalytics.total_sent) * 100;
       aggregateAnalytics.reply_rate = (aggregateAnalytics.total_replied / aggregateAnalytics.total_sent) * 100;
       aggregateAnalytics.bounce_rate = (aggregateAnalytics.total_bounced / aggregateAnalytics.total_sent) * 100;
+    }
+    if (aggregateAnalytics.total_contacted > 0) {
+      aggregateAnalytics.interest_rate = (aggregateAnalytics.total_opportunities / aggregateAnalytics.total_contacted) * 100;
     }
 
     // Store analytics snapshot in database

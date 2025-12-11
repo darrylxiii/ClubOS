@@ -144,16 +144,50 @@ export async function getCampaign(campaignId: string) {
   return instantlyRequest<InstantlyCampaign>(`/campaigns/${campaignId}`);
 }
 
+// Campaign Analytics Response from Instantly API
+export interface CampaignAnalytics {
+  campaign_id: string;
+  campaign_name: string;
+  campaign_status: number; // 0=draft, 1=active, 2=paused, 3=completed, 4=running_subsequences, -1=accounts_unhealthy, -2=bounce_protect
+  total_leads: number;
+  leads_contacted: number;
+  contacted_count: number;
+  new_leads_contacted: number;
+  completed: number;
+  emails_sent: number;
+  emails_opened: number;
+  emails_clicked: number;
+  emails_replied: number;
+  emails_bounced: number;
+  emails_unsubscribed: number;
+  total_opportunities: number;
+  total_opportunity_value: number;
+}
+
+// Map numeric status to string
+export function mapCampaignStatus(status: number): string {
+  const statusMap: Record<number, string> = {
+    0: 'draft',
+    1: 'active',
+    2: 'paused',
+    3: 'completed',
+    4: 'active', // Running Subsequences - treat as active
+    [-1]: 'error', // Accounts Unhealthy
+    [-2]: 'paused', // Bounce Protect
+  };
+  return statusMap[status] || 'unknown';
+}
+
 export async function getCampaignAnalytics(campaignId: string) {
-  return instantlyRequest<{
-    sent: number;
-    opened: number;
-    clicked: number;
-    replied: number;
-    bounced: number;
-    unsubscribed: number;
-    leads_count: number;
-  }>(`/campaigns/${campaignId}/analytics`);
+  // Correct endpoint: /campaigns/analytics with query param
+  return instantlyRequest<CampaignAnalytics>('/campaigns/analytics', {
+    params: { id: campaignId },
+  });
+}
+
+// Get analytics for ALL campaigns in one API call (more efficient)
+export async function getAllCampaignsAnalytics() {
+  return instantlyRequest<CampaignAnalytics[]>('/campaigns/analytics');
 }
 
 // =====================================================

@@ -8917,6 +8917,8 @@ export type Database = {
       crm_campaigns: {
         Row: {
           company_id: string | null
+          completed_count: number | null
+          contacted_count: number | null
           created_at: string
           description: string | null
           end_date: string | null
@@ -8926,6 +8928,7 @@ export type Database = {
           leads_count: number | null
           metadata: Json | null
           name: string
+          new_leads_contacted: number | null
           open_rate: number | null
           owner_id: string | null
           reply_rate: number | null
@@ -8942,6 +8945,7 @@ export type Database = {
           total_clicked: number | null
           total_opened: number | null
           total_opens: number | null
+          total_opportunities: number | null
           total_prospects: number | null
           total_replied: number | null
           total_replies: number | null
@@ -8951,6 +8955,8 @@ export type Database = {
         }
         Insert: {
           company_id?: string | null
+          completed_count?: number | null
+          contacted_count?: number | null
           created_at?: string
           description?: string | null
           end_date?: string | null
@@ -8960,6 +8966,7 @@ export type Database = {
           leads_count?: number | null
           metadata?: Json | null
           name: string
+          new_leads_contacted?: number | null
           open_rate?: number | null
           owner_id?: string | null
           reply_rate?: number | null
@@ -8976,6 +8983,7 @@ export type Database = {
           total_clicked?: number | null
           total_opened?: number | null
           total_opens?: number | null
+          total_opportunities?: number | null
           total_prospects?: number | null
           total_replied?: number | null
           total_replies?: number | null
@@ -8985,6 +8993,8 @@ export type Database = {
         }
         Update: {
           company_id?: string | null
+          completed_count?: number | null
+          contacted_count?: number | null
           created_at?: string
           description?: string | null
           end_date?: string | null
@@ -8994,6 +9004,7 @@ export type Database = {
           leads_count?: number | null
           metadata?: Json | null
           name?: string
+          new_leads_contacted?: number | null
           open_rate?: number | null
           owner_id?: string | null
           reply_rate?: number | null
@@ -9010,6 +9021,7 @@ export type Database = {
           total_clicked?: number | null
           total_opened?: number | null
           total_opens?: number | null
+          total_opportunities?: number | null
           total_prospects?: number | null
           total_replied?: number | null
           total_replies?: number | null

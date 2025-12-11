@@ -10,7 +10,10 @@ import {
   ChevronDown,
   ChevronUp,
   RefreshCw,
-  ExternalLink
+  Star,
+  CheckCircle,
+  XCircle,
+  Clock
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,15 +46,53 @@ export function InstantlyCampaignCard({
   const bounceRate = campaign.total_sent > 0 
     ? (campaign.total_bounced / campaign.total_sent) * 100 
     : 0;
+  const interestRate = campaign.contacted_count > 0
+    ? (campaign.total_opportunities / campaign.contacted_count) * 100
+    : 0;
 
-  const getStatusColor = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500/20 text-green-500 border-green-500/30';
-      case 'paused': return 'bg-amber-500/20 text-amber-500 border-amber-500/30';
-      case 'completed': return 'bg-blue-500/20 text-blue-500 border-blue-500/30';
-      default: return 'bg-muted/20 text-muted-foreground border-muted/30';
+      case 'active': 
+        return { 
+          color: 'bg-green-500/20 text-green-500 border-green-500/30',
+          icon: Play,
+          label: 'Active'
+        };
+      case 'paused': 
+        return { 
+          color: 'bg-amber-500/20 text-amber-500 border-amber-500/30',
+          icon: Pause,
+          label: 'Paused'
+        };
+      case 'completed': 
+        return { 
+          color: 'bg-blue-500/20 text-blue-500 border-blue-500/30',
+          icon: CheckCircle,
+          label: 'Completed'
+        };
+      case 'draft': 
+        return { 
+          color: 'bg-muted/20 text-muted-foreground border-muted/30',
+          icon: Clock,
+          label: 'Draft'
+        };
+      case 'error': 
+        return { 
+          color: 'bg-red-500/20 text-red-500 border-red-500/30',
+          icon: XCircle,
+          label: 'Error'
+        };
+      default: 
+        return { 
+          color: 'bg-muted/20 text-muted-foreground border-muted/30',
+          icon: Clock,
+          label: status
+        };
     }
   };
+
+  const statusConfig = getStatusConfig(campaign.status);
+  const StatusIcon = statusConfig.icon;
 
   return (
     <motion.div
@@ -65,10 +106,9 @@ export function InstantlyCampaignCard({
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold text-lg truncate">{campaign.name}</h3>
-              <Badge variant="outline" className={getStatusColor(campaign.status)}>
-                {campaign.status === 'active' && <Play className="h-3 w-3 mr-1" />}
-                {campaign.status === 'paused' && <Pause className="h-3 w-3 mr-1" />}
-                {campaign.status}
+              <Badge variant="outline" className={statusConfig.color}>
+                <StatusIcon className="h-3 w-3 mr-1" />
+                {statusConfig.label}
               </Badge>
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -102,7 +142,7 @@ export function InstantlyCampaignCard({
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-5 gap-3 mb-4">
           <div className="text-center p-2 rounded-lg bg-muted/20">
             <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
               <Mail className="h-3 w-3" />
@@ -123,6 +163,13 @@ export function InstantlyCampaignCard({
               <span className="text-xs">Replies</span>
             </div>
             <div className="font-semibold">{replyRate.toFixed(1)}%</div>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-primary/10">
+            <div className="flex items-center justify-center gap-1 text-primary mb-1">
+              <Star className="h-3 w-3" />
+              <span className="text-xs">Interested</span>
+            </div>
+            <div className="font-semibold">{campaign.total_opportunities}</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-red-500/10">
             <div className="flex items-center justify-center gap-1 text-red-500 mb-1">
@@ -148,6 +195,13 @@ export function InstantlyCampaignCard({
             </div>
             <Progress value={replyRate} className="h-1.5 [&>div]:bg-emerald-500" />
           </div>
+          <div>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-muted-foreground">Interest Rate</span>
+              <span>{interestRate.toFixed(1)}%</span>
+            </div>
+            <Progress value={interestRate} className="h-1.5 [&>div]:bg-primary" />
+          </div>
         </div>
 
         {/* Expanded Details */}
@@ -163,6 +217,10 @@ export function InstantlyCampaignCard({
                 <h4 className="text-sm font-medium mb-2">Detailed Stats</h4>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
+                    <span className="text-muted-foreground">Contacted</span>
+                    <span>{campaign.contacted_count.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-muted-foreground">Opened</span>
                     <span>{campaign.total_opened.toLocaleString()}</span>
                   </div>
@@ -173,6 +231,10 @@ export function InstantlyCampaignCard({
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Replied</span>
                     <span>{campaign.total_replied.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Interested</span>
+                    <span className="text-primary font-medium">{campaign.total_opportunities}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Bounced</span>
@@ -200,6 +262,14 @@ export function InstantlyCampaignCard({
                         ? formatDistanceToNow(new Date(campaign.last_synced_at), { addSuffix: true })
                         : 'Never'}
                     </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">New Contacted</span>
+                    <span>{campaign.new_leads_contacted.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Completed</span>
+                    <span>{campaign.completed_count.toLocaleString()}</span>
                   </div>
                 </div>
               </div>

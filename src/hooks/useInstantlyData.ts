@@ -14,6 +14,10 @@ export interface InstantlyCampaign {
   total_replied: number;
   total_bounced: number;
   total_unsubscribed: number;
+  total_opportunities: number;
+  contacted_count: number;
+  completed_count: number;
+  new_leads_contacted: number;
   last_synced_at: string | null;
   sync_status: string | null;
   created_at: string;
@@ -40,16 +44,21 @@ export interface InstantlyLead {
 export interface InstantlyStats {
   totalCampaigns: number;
   activeCampaigns: number;
+  pausedCampaigns: number;
+  completedCampaigns: number;
   totalLeads: number;
+  totalContacted: number;
   totalSent: number;
   totalOpened: number;
   totalClicked: number;
   totalReplied: number;
   totalBounced: number;
+  totalOpportunities: number;
   openRate: number;
   clickRate: number;
   replyRate: number;
   bounceRate: number;
+  interestRate: number;
 }
 
 export interface SyncLog {
@@ -73,7 +82,7 @@ export function useInstantlyData() {
   const fetchCampaigns = useCallback(async (): Promise<InstantlyCampaign[]> => {
     const { data, error } = await supabase
       .from('crm_campaigns')
-      .select('id, name, status, external_id, leads_count, total_sent, total_opened, total_clicked, total_replied, total_bounced, total_unsubscribed, last_synced_at, sync_status, created_at')
+      .select('id, name, status, external_id, leads_count, total_sent, total_opened, total_clicked, total_replied, total_bounced, total_unsubscribed, total_opportunities, contacted_count, completed_count, new_leads_contacted, last_synced_at, sync_status, created_at')
       .not('external_id', 'is', null)
       .order('created_at', { ascending: false });
 
@@ -81,7 +90,13 @@ export function useInstantlyData() {
       console.error('Error fetching campaigns:', error);
       return [];
     }
-    return (data || []) as InstantlyCampaign[];
+    return (data || []).map(c => ({
+      ...c,
+      total_opportunities: (c as any).total_opportunities || 0,
+      contacted_count: (c as any).contacted_count || 0,
+      completed_count: (c as any).completed_count || 0,
+      new_leads_contacted: (c as any).new_leads_contacted || 0,
+    })) as InstantlyCampaign[];
   }, []);
 
   const fetchLeads = useCallback(async (campaignId?: string): Promise<InstantlyLead[]> => {
@@ -125,20 +140,27 @@ export function useInstantlyData() {
     const totalReplied = campaignsData.reduce((sum, c) => sum + (c.total_replied || 0), 0);
     const totalBounced = campaignsData.reduce((sum, c) => sum + (c.total_bounced || 0), 0);
     const totalLeads = campaignsData.reduce((sum, c) => sum + (c.leads_count || 0), 0);
+    const totalOpportunities = campaignsData.reduce((sum, c) => sum + (c.total_opportunities || 0), 0);
+    const totalContacted = campaignsData.reduce((sum, c) => sum + (c.contacted_count || 0), 0);
 
     return {
       totalCampaigns: campaignsData.length,
       activeCampaigns: campaignsData.filter(c => c.status === 'active').length,
+      pausedCampaigns: campaignsData.filter(c => c.status === 'paused').length,
+      completedCampaigns: campaignsData.filter(c => c.status === 'completed').length,
       totalLeads,
+      totalContacted,
       totalSent,
       totalOpened,
       totalClicked,
       totalReplied,
       totalBounced,
+      totalOpportunities,
       openRate: totalSent > 0 ? (totalOpened / totalSent) * 100 : 0,
       clickRate: totalSent > 0 ? (totalClicked / totalSent) * 100 : 0,
       replyRate: totalSent > 0 ? (totalReplied / totalSent) * 100 : 0,
       bounceRate: totalSent > 0 ? (totalBounced / totalSent) * 100 : 0,
+      interestRate: totalContacted > 0 ? (totalOpportunities / totalContacted) * 100 : 0,
     };
   }, []);
 
