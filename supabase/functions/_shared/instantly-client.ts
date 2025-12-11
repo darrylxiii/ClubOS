@@ -144,24 +144,29 @@ export async function getCampaign(campaignId: string) {
   return instantlyRequest<InstantlyCampaign>(`/campaigns/${campaignId}`);
 }
 
-// Campaign Analytics Response from Instantly API
+// Campaign Analytics Response from Instantly API V2
+// Exact field names from: https://developer.instantly.ai/api/v2/campaign/getcampaignanalyticsoverview
 export interface CampaignAnalytics {
   campaign_id: string;
   campaign_name: string;
-  campaign_status: number; // 0=draft, 1=active, 2=paused, 3=completed, 4=running_subsequences, -1=accounts_unhealthy, -2=bounce_protect
-  total_leads: number;
-  leads_contacted: number;
+  campaign_status: number; // 0=Draft, 1=Active, 2=Paused, 3=Completed, 4=Running Subsequences, -99=Account Suspended, -1=Accounts Unhealthy, -2=Bounce Protect
+  campaign_is_evergreen?: boolean;
+  leads_count: number;
   contacted_count: number;
-  new_leads_contacted: number;
-  completed: number;
-  emails_sent: number;
-  emails_opened: number;
-  emails_clicked: number;
-  emails_replied: number;
-  emails_bounced: number;
-  emails_unsubscribed: number;
+  open_count: number;
+  reply_count: number;
+  link_click_count: number;
+  bounced_count: number;
+  unsubscribed_count: number;
+  completed_count: number;
+  emails_sent_count: number;
+  new_leads_contacted_count: number;
   total_opportunities: number;
   total_opportunity_value: number;
+  // Unique metrics
+  open_count_unique?: number;
+  reply_count_unique?: number;
+  link_click_count_unique?: number;
 }
 
 // Map numeric status to string

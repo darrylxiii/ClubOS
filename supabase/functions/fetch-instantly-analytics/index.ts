@@ -82,23 +82,24 @@ serve(async (req) => {
     };
 
     const campaignAnalytics = allAnalytics.map((analytics: CampaignAnalytics) => {
-      const sent = analytics.emails_sent || 0;
-      const opened = analytics.emails_opened || 0;
-      const clicked = analytics.emails_clicked || 0;
-      const replied = analytics.emails_replied || 0;
-      const bounced = analytics.emails_bounced || 0;
-      const contacted = analytics.contacted_count || analytics.leads_contacted || 0;
+      // Use correct field names from Instantly API V2
+      const sent = analytics.emails_sent_count || 0;
+      const opened = analytics.open_count || 0;
+      const clicked = analytics.link_click_count || 0;
+      const replied = analytics.reply_count || 0;
+      const bounced = analytics.bounced_count || 0;
+      const contacted = analytics.contacted_count || 0;
       const opportunities = analytics.total_opportunities || 0;
 
       // Aggregate totals
-      aggregateAnalytics.total_leads += analytics.total_leads || 0;
+      aggregateAnalytics.total_leads += analytics.leads_count || 0;
       aggregateAnalytics.total_contacted += contacted;
       aggregateAnalytics.total_sent += sent;
       aggregateAnalytics.total_opened += opened;
       aggregateAnalytics.total_clicked += clicked;
       aggregateAnalytics.total_replied += replied;
       aggregateAnalytics.total_bounced += bounced;
-      aggregateAnalytics.total_unsubscribed += analytics.emails_unsubscribed || 0;
+      aggregateAnalytics.total_unsubscribed += analytics.unsubscribed_count || 0;
       aggregateAnalytics.total_opportunities += opportunities;
 
       return {
@@ -106,14 +107,14 @@ serve(async (req) => {
         name: analytics.campaign_name,
         status: mapCampaignStatus(analytics.campaign_status),
         analytics: {
-          total_leads: analytics.total_leads || 0,
+          total_leads: analytics.leads_count || 0,
           contacted_count: contacted,
           emails_sent: sent,
           emails_opened: opened,
           emails_clicked: clicked,
           emails_replied: replied,
           emails_bounced: bounced,
-          emails_unsubscribed: analytics.emails_unsubscribed || 0,
+          emails_unsubscribed: analytics.unsubscribed_count || 0,
           total_opportunities: opportunities,
           open_rate: sent > 0 ? (opened / sent) * 100 : 0,
           click_rate: sent > 0 ? (clicked / sent) * 100 : 0,
