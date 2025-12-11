@@ -26,10 +26,12 @@ const CRMAutomations = lazy(() => import("@/pages/crm/CRMAutomations"));
 const ProspectAuditTrail = lazy(() => import("@/pages/crm/ProspectAuditTrail"));
 const CRMIntegrations = lazy(() => import("@/pages/crm/CRMIntegrations"));
 const CRMSettings = lazy(() => import("@/pages/crm/CRMSettings"));
+const EmailSequencingHub = lazy(() => import("@/pages/EmailSequencingHub"));
 
 export const crmRoutes = (
   <>
     <Route path="/crm" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CRMDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/crm/pipeline" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ProspectPipeline /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/crm/prospects" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ProspectPipeline /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/crm/prospects/:prospectId" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ProspectDetail /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/crm/inbox" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ReplyInbox /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
@@ -43,5 +45,6 @@ export const crmRoutes = (
     <Route path="/crm/audit-trail" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ProspectAuditTrail /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/crm/integrations" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CRMIntegrations /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/crm/settings" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CRMSettings /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/email-sequences" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EmailSequencingHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );
