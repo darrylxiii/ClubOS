@@ -70,22 +70,35 @@ serve(async (req) => {
       try {
         const analytics = analyticsMap.get(campaign.id);
         
+        // Log analytics data for debugging
+        if (analytics) {
+          console.log(`[sync-instantly-campaigns] Analytics for ${campaign.name}:`, {
+            sent: analytics.emails_sent_count,
+            opened: analytics.open_count,
+            replied: analytics.reply_count,
+            bounced: analytics.bounced_count,
+            opportunities: analytics.total_opportunities,
+            status: analytics.campaign_status
+          });
+        }
+        
+        // Map using EXACT field names from Instantly API V2
         const campaignData = {
           name: analytics?.campaign_name || campaign.name,
           external_id: campaign.id,
           source: 'instantly',
           status: analytics ? mapCampaignStatus(analytics.campaign_status) : mapCampaignStatus(campaign.status as number),
-          total_sent: analytics?.emails_sent || 0,
-          total_opened: analytics?.emails_opened || 0,
-          total_clicked: analytics?.emails_clicked || 0,
-          total_replied: analytics?.emails_replied || 0,
-          total_bounced: analytics?.emails_bounced || 0,
-          total_unsubscribed: analytics?.emails_unsubscribed || 0,
+          total_sent: analytics?.emails_sent_count || 0,
+          total_opened: analytics?.open_count || 0,
+          total_clicked: analytics?.link_click_count || 0,
+          total_replied: analytics?.reply_count || 0,
+          total_bounced: analytics?.bounced_count || 0,
+          total_unsubscribed: analytics?.unsubscribed_count || 0,
           total_opportunities: analytics?.total_opportunities || 0,
-          contacted_count: analytics?.contacted_count || analytics?.leads_contacted || 0,
-          completed_count: analytics?.completed || 0,
-          new_leads_contacted: analytics?.new_leads_contacted || 0,
-          leads_count: analytics?.total_leads || 0,
+          contacted_count: analytics?.contacted_count || 0,
+          completed_count: analytics?.completed_count || 0,
+          new_leads_contacted: analytics?.new_leads_contacted_count || 0,
+          leads_count: analytics?.leads_count || 0,
           last_synced_at: new Date().toISOString(),
           sync_status: 'synced',
         };
