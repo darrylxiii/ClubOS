@@ -8943,6 +8943,10 @@ export type Database = {
           total_bounced: number | null
           total_bounces: number | null
           total_clicked: number | null
+          total_closed: number | null
+          total_interested: number | null
+          total_meeting_booked: number | null
+          total_meeting_completed: number | null
           total_opened: number | null
           total_opens: number | null
           total_opportunities: number | null
@@ -8981,6 +8985,10 @@ export type Database = {
           total_bounced?: number | null
           total_bounces?: number | null
           total_clicked?: number | null
+          total_closed?: number | null
+          total_interested?: number | null
+          total_meeting_booked?: number | null
+          total_meeting_completed?: number | null
           total_opened?: number | null
           total_opens?: number | null
           total_opportunities?: number | null
@@ -9019,6 +9027,10 @@ export type Database = {
           total_bounced?: number | null
           total_bounces?: number | null
           total_clicked?: number | null
+          total_closed?: number | null
+          total_interested?: number | null
+          total_meeting_booked?: number | null
+          total_meeting_completed?: number | null
           total_opened?: number | null
           total_opens?: number | null
           total_opportunities?: number | null
@@ -13481,6 +13493,74 @@ export type Database = {
             columns: ["assessment_result_id"]
             isOneToOne: false
             referencedRelation: "assessment_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instantly_sequence_steps: {
+        Row: {
+          bounce_count: number | null
+          campaign_id: string | null
+          click_count: number | null
+          click_rate: number | null
+          created_at: string | null
+          external_campaign_id: string
+          id: string
+          open_count: number | null
+          open_rate: number | null
+          reply_count: number | null
+          reply_rate: number | null
+          sent_count: number | null
+          step_number: number
+          subject_line: string | null
+          synced_at: string | null
+          variant_id: string | null
+          variant_label: string | null
+        }
+        Insert: {
+          bounce_count?: number | null
+          campaign_id?: string | null
+          click_count?: number | null
+          click_rate?: number | null
+          created_at?: string | null
+          external_campaign_id: string
+          id?: string
+          open_count?: number | null
+          open_rate?: number | null
+          reply_count?: number | null
+          reply_rate?: number | null
+          sent_count?: number | null
+          step_number: number
+          subject_line?: string | null
+          synced_at?: string | null
+          variant_id?: string | null
+          variant_label?: string | null
+        }
+        Update: {
+          bounce_count?: number | null
+          campaign_id?: string | null
+          click_count?: number | null
+          click_rate?: number | null
+          created_at?: string | null
+          external_campaign_id?: string
+          id?: string
+          open_count?: number | null
+          open_rate?: number | null
+          reply_count?: number | null
+          reply_rate?: number | null
+          sent_count?: number | null
+          step_number?: number
+          subject_line?: string | null
+          synced_at?: string | null
+          variant_id?: string | null
+          variant_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instantly_sequence_steps_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "crm_campaigns"
             referencedColumns: ["id"]
           },
         ]

@@ -196,6 +196,38 @@ export async function getAllCampaignsAnalytics() {
 }
 
 // =====================================================
+// Sequence Step Analytics (Phase 2)
+// =====================================================
+
+export interface SequenceStepAnalytics {
+  step_number: number;
+  variant_id?: string;
+  variant_label?: string;
+  subject_line?: string;
+  sent_count: number;
+  open_count: number;
+  reply_count: number;
+  click_count: number;
+  bounce_count: number;
+  open_rate?: number;
+  reply_rate?: number;
+  click_rate?: number;
+}
+
+export interface CampaignSequenceAnalytics {
+  campaign_id: string;
+  campaign_name: string;
+  steps: SequenceStepAnalytics[];
+}
+
+// Get sequence step analytics for a specific campaign
+export async function getCampaignSequenceSteps(campaignId: string) {
+  return instantlyRequest<CampaignSequenceAnalytics>('/campaigns/analytics/steps', {
+    params: { id: campaignId },
+  });
+}
+
+// =====================================================
 // Lead Endpoints
 // =====================================================
 
