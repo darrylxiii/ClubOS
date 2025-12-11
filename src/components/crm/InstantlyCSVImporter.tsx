@@ -22,13 +22,14 @@ interface FieldMapping {
 
 const CRM_FIELDS = [
   { value: "company_name", label: "Company Name", required: true },
+  { value: "full_name", label: "Full Name", required: true },
   { value: "first_name", label: "First Name", required: false },
   { value: "last_name", label: "Last Name", required: false },
   { value: "email", label: "Email", required: true },
   { value: "phone", label: "Phone", required: false },
-  { value: "title", label: "Title", required: false },
+  { value: "job_title", label: "Job Title", required: false },
   { value: "linkedin_url", label: "LinkedIn URL", required: false },
-  { value: "website", label: "Website", required: false },
+  { value: "company_domain", label: "Company Domain", required: false },
   { value: "notes", label: "Notes", required: false },
   { value: "skip", label: "Skip this field", required: false },
 ];
@@ -77,8 +78,10 @@ export function InstantlyCSVImporter() {
         const lowerHeader = header.toLowerCase();
         let crmField = "skip";
         
-        if (lowerHeader.includes("company") || lowerHeader.includes("organization")) {
+        if (lowerHeader.includes("company") && lowerHeader.includes("name")) {
           crmField = "company_name";
+        } else if (lowerHeader === "name" || lowerHeader === "full name" || lowerHeader === "fullname") {
+          crmField = "full_name";
         } else if (lowerHeader.includes("first") && lowerHeader.includes("name")) {
           crmField = "first_name";
         } else if (lowerHeader.includes("last") && lowerHeader.includes("name")) {
@@ -87,14 +90,16 @@ export function InstantlyCSVImporter() {
           crmField = "email";
         } else if (lowerHeader.includes("phone")) {
           crmField = "phone";
-        } else if (lowerHeader.includes("title") || lowerHeader.includes("position")) {
-          crmField = "title";
+        } else if (lowerHeader.includes("title") || lowerHeader.includes("position") || lowerHeader.includes("job")) {
+          crmField = "job_title";
         } else if (lowerHeader.includes("linkedin")) {
           crmField = "linkedin_url";
-        } else if (lowerHeader.includes("website") || lowerHeader.includes("url")) {
-          crmField = "website";
+        } else if (lowerHeader.includes("domain") || lowerHeader.includes("website")) {
+          crmField = "company_domain";
         } else if (lowerHeader.includes("note")) {
           crmField = "notes";
+        } else if (lowerHeader.includes("company") || lowerHeader.includes("organization")) {
+          crmField = "company_name";
         }
         
         return { csvField: header, crmField };
@@ -134,18 +139,32 @@ export function InstantlyCSVImporter() {
         }
       });
 
-      if (!prospect.company_name || !prospect.email) {
+      if (!prospect.email) {
         failed++;
         continue;
       }
 
+      // Ensure full_name is set
+      const fullName = prospect.full_name || 
+        [prospect.first_name, prospect.last_name].filter(Boolean).join(' ') || 
+        prospect.email.split('@')[0];
+
       const { error } = await supabase
         .from("crm_prospects")
         .insert({
-          ...prospect,
+          company_name: prospect.company_name || null,
+          first_name: prospect.first_name || null,
+          last_name: prospect.last_name || null,
+          full_name: fullName,
+          email: prospect.email,
+          phone: prospect.phone || null,
+          job_title: prospect.job_title || null,
+          linkedin_url: prospect.linkedin_url || null,
+          company_domain: prospect.company_domain || null,
+          notes: prospect.notes || null,
           owner_id: user.id,
           stage: "new",
-          score: 50,
+          lead_score: 50,
           source: "instantly_import",
         });
 
@@ -173,8 +192,9 @@ export function InstantlyCSVImporter() {
     setFileName("");
   };
 
-  const requiredFieldsMapped = fieldMappings.some(m => m.crmField === "company_name") && 
-                               fieldMappings.some(m => m.crmField === "email");
+  const requiredFieldsMapped = fieldMappings.some(m => m.crmField === "email") &&
+                               (fieldMappings.some(m => m.crmField === "full_name") || 
+                                fieldMappings.some(m => m.crmField === "first_name"));
 
   return (
     <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">

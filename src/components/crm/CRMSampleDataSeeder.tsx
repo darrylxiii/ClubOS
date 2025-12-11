@@ -113,19 +113,21 @@ export function CRMSampleDataSeeder() {
         const score = Math.floor(Math.random() * 60) + 40;
         const campaignId = campaigns?.[Math.floor(Math.random() * (campaigns?.length || 1))]?.id;
 
+        const fullName = `${name.first} ${name.last}`;
         const { error } = await supabase.from("crm_prospects").insert({
           company_name: company,
           first_name: name.first,
           last_name: name.last,
+          full_name: fullName,
           email: generateEmail(name.first, company),
           phone: generatePhone(),
-          title: ["CEO", "CTO", "VP Engineering", "Head of Product", "Director"][Math.floor(Math.random() * 5)],
+          job_title: ["CEO", "CTO", "VP Engineering", "Head of Product", "Director"][Math.floor(Math.random() * 5)],
           stage,
-          score,
+          lead_score: score,
           owner_id: user.id,
           campaign_id: campaignId || null,
           source: ["linkedin", "referral", "cold_outreach", "inbound", "event"][Math.floor(Math.random() * 5)],
-          website: `https://${company.toLowerCase().replace(/\s+/g, "")}.com`,
+          company_domain: `${company.toLowerCase().replace(/\s+/g, "")}.com`,
           linkedin_url: `https://linkedin.com/company/${company.toLowerCase().replace(/\s+/g, "-")}`,
         });
         if (!error) prospectCount++;
@@ -177,9 +179,10 @@ export function CRMSampleDataSeeder() {
 
     setSeeding(true);
     
-    await supabase.from("crm_activities").delete().eq("performed_by", user.id);
-    await supabase.from("crm_prospects").delete().eq("owner_id", user.id);
-    await supabase.from("crm_campaigns").delete().eq("owner_id", user.id);
+    // Delete in order: activities first, then prospects, then campaigns
+    await supabase.from("crm_activities").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from("crm_prospects").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from("crm_campaigns").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     
     setSeeding(false);
     setResults([]);
