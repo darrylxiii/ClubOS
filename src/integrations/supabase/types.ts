@@ -8767,6 +8767,30 @@ export type Database = {
           },
         ]
       }
+      crm_analytics_snapshots: {
+        Row: {
+          created_at: string | null
+          data: Json
+          id: string
+          snapshot_date: string
+          snapshot_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          data: Json
+          id?: string
+          snapshot_date: string
+          snapshot_type: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          snapshot_date?: string
+          snapshot_type?: string
+        }
+        Relationships: []
+      }
       crm_assignment_rules: {
         Row: {
           assign_to_role: string | null
@@ -8898,6 +8922,8 @@ export type Database = {
           end_date: string | null
           external_id: string | null
           id: string
+          last_synced_at: string | null
+          leads_count: number | null
           metadata: Json | null
           name: string
           open_rate: number | null
@@ -8907,14 +8933,20 @@ export type Database = {
           source: string
           start_date: string | null
           status: string
+          sync_status: string | null
           target_company_size: string[] | null
           target_industry: string[] | null
           target_persona: string | null
+          total_bounced: number | null
           total_bounces: number | null
+          total_clicked: number | null
+          total_opened: number | null
           total_opens: number | null
           total_prospects: number | null
+          total_replied: number | null
           total_replies: number | null
           total_sent: number | null
+          total_unsubscribed: number | null
           updated_at: string
         }
         Insert: {
@@ -8924,6 +8956,8 @@ export type Database = {
           end_date?: string | null
           external_id?: string | null
           id?: string
+          last_synced_at?: string | null
+          leads_count?: number | null
           metadata?: Json | null
           name: string
           open_rate?: number | null
@@ -8933,14 +8967,20 @@ export type Database = {
           source?: string
           start_date?: string | null
           status?: string
+          sync_status?: string | null
           target_company_size?: string[] | null
           target_industry?: string[] | null
           target_persona?: string | null
+          total_bounced?: number | null
           total_bounces?: number | null
+          total_clicked?: number | null
+          total_opened?: number | null
           total_opens?: number | null
           total_prospects?: number | null
+          total_replied?: number | null
           total_replies?: number | null
           total_sent?: number | null
+          total_unsubscribed?: number | null
           updated_at?: string
         }
         Update: {
@@ -8950,6 +8990,8 @@ export type Database = {
           end_date?: string | null
           external_id?: string | null
           id?: string
+          last_synced_at?: string | null
+          leads_count?: number | null
           metadata?: Json | null
           name?: string
           open_rate?: number | null
@@ -8959,14 +9001,20 @@ export type Database = {
           source?: string
           start_date?: string | null
           status?: string
+          sync_status?: string | null
           target_company_size?: string[] | null
           target_industry?: string[] | null
           target_persona?: string | null
+          total_bounced?: number | null
           total_bounces?: number | null
+          total_clicked?: number | null
+          total_opened?: number | null
           total_opens?: number | null
           total_prospects?: number | null
+          total_replied?: number | null
           total_replies?: number | null
           total_sent?: number | null
+          total_unsubscribed?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -9173,6 +9221,60 @@ export type Database = {
           },
         ]
       }
+      crm_email_threads: {
+        Row: {
+          campaign_id: string | null
+          created_at: string | null
+          id: string
+          instantly_thread_id: string | null
+          last_message_at: string | null
+          message_count: number | null
+          prospect_id: string | null
+          status: string | null
+          subject: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string | null
+          id?: string
+          instantly_thread_id?: string | null
+          last_message_at?: string | null
+          message_count?: number | null
+          prospect_id?: string | null
+          status?: string | null
+          subject?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string | null
+          id?: string
+          instantly_thread_id?: string | null
+          last_message_at?: string | null
+          message_count?: number | null
+          prospect_id?: string | null
+          status?: string | null
+          subject?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_email_threads_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "crm_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_email_threads_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "crm_prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_import_logs: {
         Row: {
           campaign_id: string | null
@@ -9285,9 +9387,34 @@ export type Database = {
           },
         ]
       }
+      crm_integration_settings: {
+        Row: {
+          id: string
+          integration: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          integration: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          integration?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       crm_prospects: {
         Row: {
           assigned_at: string | null
+          bounced_at: string | null
           campaign_id: string | null
           close_probability: number | null
           closed_at: string | null
@@ -9319,8 +9446,12 @@ export type Database = {
           full_name: string
           id: string
           industry: string | null
+          instantly_lead_id: string | null
+          interest_indicated_at: string | null
+          is_interested: boolean | null
           job_title: string | null
           last_activity_at: string | null
+          last_clicked_at: string | null
           last_contacted_at: string | null
           last_name: string | null
           last_opened_at: string | null
@@ -9328,6 +9459,8 @@ export type Database = {
           lead_score: number | null
           linkedin_url: string | null
           location: string | null
+          meeting_booked_at: string | null
+          meeting_link: string | null
           next_activity_at: string | null
           next_activity_id: string | null
           next_followup_at: string | null
@@ -9340,10 +9473,12 @@ export type Database = {
           stage: string
           stakeholder_id: string | null
           tags: string[] | null
+          unsubscribed_at: string | null
           updated_at: string
         }
         Insert: {
           assigned_at?: string | null
+          bounced_at?: string | null
           campaign_id?: string | null
           close_probability?: number | null
           closed_at?: string | null
@@ -9375,8 +9510,12 @@ export type Database = {
           full_name: string
           id?: string
           industry?: string | null
+          instantly_lead_id?: string | null
+          interest_indicated_at?: string | null
+          is_interested?: boolean | null
           job_title?: string | null
           last_activity_at?: string | null
+          last_clicked_at?: string | null
           last_contacted_at?: string | null
           last_name?: string | null
           last_opened_at?: string | null
@@ -9384,6 +9523,8 @@ export type Database = {
           lead_score?: number | null
           linkedin_url?: string | null
           location?: string | null
+          meeting_booked_at?: string | null
+          meeting_link?: string | null
           next_activity_at?: string | null
           next_activity_id?: string | null
           next_followup_at?: string | null
@@ -9396,10 +9537,12 @@ export type Database = {
           stage?: string
           stakeholder_id?: string | null
           tags?: string[] | null
+          unsubscribed_at?: string | null
           updated_at?: string
         }
         Update: {
           assigned_at?: string | null
+          bounced_at?: string | null
           campaign_id?: string | null
           close_probability?: number | null
           closed_at?: string | null
@@ -9431,8 +9574,12 @@ export type Database = {
           full_name?: string
           id?: string
           industry?: string | null
+          instantly_lead_id?: string | null
+          interest_indicated_at?: string | null
+          is_interested?: boolean | null
           job_title?: string | null
           last_activity_at?: string | null
+          last_clicked_at?: string | null
           last_contacted_at?: string | null
           last_name?: string | null
           last_opened_at?: string | null
@@ -9440,6 +9587,8 @@ export type Database = {
           lead_score?: number | null
           linkedin_url?: string | null
           location?: string | null
+          meeting_booked_at?: string | null
+          meeting_link?: string | null
           next_activity_at?: string | null
           next_activity_id?: string | null
           next_followup_at?: string | null
@@ -9452,6 +9601,7 @@ export type Database = {
           stage?: string
           stakeholder_id?: string | null
           tags?: string[] | null
+          unsubscribed_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -9592,6 +9742,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      crm_sync_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          created_records: number | null
+          direction: string | null
+          errors: Json | null
+          failed_records: number | null
+          id: string
+          pushed_records: number | null
+          source: string
+          started_at: string | null
+          sync_type: string
+          synced_records: number | null
+          total_records: number | null
+          triggered_by: string | null
+          updated_records: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_records?: number | null
+          direction?: string | null
+          errors?: Json | null
+          failed_records?: number | null
+          id?: string
+          pushed_records?: number | null
+          source: string
+          started_at?: string | null
+          sync_type: string
+          synced_records?: number | null
+          total_records?: number | null
+          triggered_by?: string | null
+          updated_records?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_records?: number | null
+          direction?: string | null
+          errors?: Json | null
+          failed_records?: number | null
+          id?: string
+          pushed_records?: number | null
+          source?: string
+          started_at?: string | null
+          sync_type?: string
+          synced_records?: number | null
+          total_records?: number | null
+          triggered_by?: string | null
+          updated_records?: number | null
+        }
+        Relationships: []
       }
       crm_touchpoints: {
         Row: {
@@ -13268,6 +13472,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      instantly_webhook_logs: {
+        Row: {
+          created_at: string | null
+          error: string | null
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          error?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          processed?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          error?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed?: boolean | null
+        }
+        Relationships: []
       }
       intelligence_processing_errors: {
         Row: {
