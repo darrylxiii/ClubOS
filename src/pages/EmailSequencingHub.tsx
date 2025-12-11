@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Zap, Users, ArrowRight } from 'lucide-react';
+import { Mail, Zap, Users, ArrowRight, TrendingUp } from 'lucide-react';
 import { useInstantlyData } from '@/hooks/useInstantlyData';
 import { InstantlyConnectionStatus } from '@/components/instantly/InstantlyConnectionStatus';
 import { InstantlyStatsOverview } from '@/components/instantly/InstantlyStatsOverview';
 import { InstantlyCampaignCard } from '@/components/instantly/InstantlyCampaignCard';
 import { InstantlyLeadsTable } from '@/components/instantly/InstantlyLeadsTable';
 import { InstantlySyncLogs } from '@/components/instantly/InstantlySyncLogs';
+import { SequencePerformanceChart } from '@/components/instantly/SequencePerformanceChart';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -107,6 +108,10 @@ export default function EmailSequencingHub() {
               <Zap className="h-4 w-4 mr-2" />
               Campaigns ({campaigns.length})
             </TabsTrigger>
+            <TabsTrigger value="sequences">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Sequence Analytics
+            </TabsTrigger>
             <TabsTrigger value="leads">
               <Users className="h-4 w-4 mr-2" />
               All Leads ({leads.length})
@@ -137,6 +142,25 @@ export default function EmailSequencingHub() {
                     onViewLeads={handleViewLeads}
                     onSync={() => syncLeads(campaign.id)}
                     syncing={syncing}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="sequences" className="space-y-6">
+            {/* All Campaigns Sequence Performance */}
+            <SequencePerformanceChart />
+            
+            {/* Per-Campaign Sequence Charts */}
+            {campaigns.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Per-Campaign Breakdown</h3>
+                {campaigns.slice(0, 3).map((campaign) => (
+                  <SequencePerformanceChart
+                    key={campaign.id}
+                    campaignId={campaign.id}
+                    externalCampaignId={campaign.external_id || undefined}
                   />
                 ))}
               </div>

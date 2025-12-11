@@ -15,6 +15,10 @@ export interface InstantlyCampaign {
   total_bounced: number;
   total_unsubscribed: number;
   total_opportunities: number;
+  total_interested: number;
+  total_meeting_booked: number;
+  total_meeting_completed: number;
+  total_closed: number;
   contacted_count: number;
   completed_count: number;
   new_leads_contacted: number;
@@ -54,6 +58,10 @@ export interface InstantlyStats {
   totalReplied: number;
   totalBounced: number;
   totalOpportunities: number;
+  totalInterested: number;
+  totalMeetingBooked: number;
+  totalMeetingCompleted: number;
+  totalClosed: number;
   openRate: number;
   clickRate: number;
   replyRate: number;
@@ -82,7 +90,7 @@ export function useInstantlyData() {
   const fetchCampaigns = useCallback(async (): Promise<InstantlyCampaign[]> => {
     const { data, error } = await supabase
       .from('crm_campaigns')
-      .select('id, name, status, external_id, leads_count, total_sent, total_opened, total_clicked, total_replied, total_bounced, total_unsubscribed, total_opportunities, contacted_count, completed_count, new_leads_contacted, last_synced_at, sync_status, created_at')
+      .select('id, name, status, external_id, leads_count, total_sent, total_opened, total_clicked, total_replied, total_bounced, total_unsubscribed, total_opportunities, total_interested, total_meeting_booked, total_meeting_completed, total_closed, contacted_count, completed_count, new_leads_contacted, last_synced_at, sync_status, created_at')
       .not('external_id', 'is', null)
       .order('created_at', { ascending: false });
 
@@ -93,6 +101,10 @@ export function useInstantlyData() {
     return (data || []).map(c => ({
       ...c,
       total_opportunities: (c as any).total_opportunities || 0,
+      total_interested: (c as any).total_interested || 0,
+      total_meeting_booked: (c as any).total_meeting_booked || 0,
+      total_meeting_completed: (c as any).total_meeting_completed || 0,
+      total_closed: (c as any).total_closed || 0,
       contacted_count: (c as any).contacted_count || 0,
       completed_count: (c as any).completed_count || 0,
       new_leads_contacted: (c as any).new_leads_contacted || 0,
@@ -142,6 +154,10 @@ export function useInstantlyData() {
     const totalLeads = campaignsData.reduce((sum, c) => sum + (c.leads_count || 0), 0);
     const totalOpportunities = campaignsData.reduce((sum, c) => sum + (c.total_opportunities || 0), 0);
     const totalContacted = campaignsData.reduce((sum, c) => sum + (c.contacted_count || 0), 0);
+    const totalInterested = campaignsData.reduce((sum, c) => sum + (c.total_interested || 0), 0);
+    const totalMeetingBooked = campaignsData.reduce((sum, c) => sum + (c.total_meeting_booked || 0), 0);
+    const totalMeetingCompleted = campaignsData.reduce((sum, c) => sum + (c.total_meeting_completed || 0), 0);
+    const totalClosed = campaignsData.reduce((sum, c) => sum + (c.total_closed || 0), 0);
 
     return {
       totalCampaigns: campaignsData.length,
@@ -156,6 +172,10 @@ export function useInstantlyData() {
       totalReplied,
       totalBounced,
       totalOpportunities,
+      totalInterested,
+      totalMeetingBooked,
+      totalMeetingCompleted,
+      totalClosed,
       openRate: totalSent > 0 ? (totalOpened / totalSent) * 100 : 0,
       clickRate: totalSent > 0 ? (totalClicked / totalSent) * 100 : 0,
       replyRate: totalSent > 0 ? (totalReplied / totalSent) * 100 : 0,
