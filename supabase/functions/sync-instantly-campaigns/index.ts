@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { listCampaigns, getCampaignAnalytics, type InstantlyCampaign } from "../_shared/instantly-client.ts";
+import { listCampaigns, getAllCampaignsAnalytics, mapCampaignStatus, type CampaignAnalytics } from "../_shared/instantly-client.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,19 +17,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Optional: Get user context for manual triggers
-    const authHeader = req.headers.get('Authorization');
-    let userId: string | null = null;
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user } } = await supabase.auth.getUser(token);
-      userId = user?.id || null;
-    }
-
     console.log('[sync-instantly-campaigns] Starting sync...');
 
     // Fetch all campaigns from Instantly
-    const allCampaigns: InstantlyCampaign[] = [];
+    const allCampaigns: Array<{ id: string; name: string; status: string | number; created_at?: string }> = [];
     let hasMore = true;
     let startingAfter: string | undefined;
 
@@ -56,123 +47,83 @@ serve(async (req) => {
       }
     }
 
-    console.log(`[sync-instantly-campaigns] Found ${allCampaigns.length} campaigns in Instantly`);
+    console.log(`[sync-instantly-campaigns] Found ${allCampaigns.length} campaigns`);
+
+    // Fetch ALL analytics in one efficient call
+    const analyticsResponse = await getAllCampaignsAnalytics();
+    const analyticsMap = new Map<string, CampaignAnalytics>();
+    
+    if (analyticsResponse.data && Array.isArray(analyticsResponse.data)) {
+      for (const analytics of analyticsResponse.data) {
+        analyticsMap.set(analytics.campaign_id, analytics);
+      }
+    }
+
+    console.log(`[sync-instantly-campaigns] Fetched analytics for ${analyticsMap.size} campaigns`);
 
     // Sync each campaign
-    let synced = 0;
     let created = 0;
     let updated = 0;
-    const errors: { campaign_id: string; error: string }[] = [];
+    const errors: string[] = [];
 
     for (const campaign of allCampaigns) {
       try {
-        // Fetch analytics for the campaign
-        const analyticsResponse = await getCampaignAnalytics(campaign.id);
-        const analytics = analyticsResponse.data;
+        const analytics = analyticsMap.get(campaign.id);
+        
+        const campaignData = {
+          name: analytics?.campaign_name || campaign.name,
+          external_id: campaign.id,
+          source: 'instantly',
+          status: analytics ? mapCampaignStatus(analytics.campaign_status) : mapCampaignStatus(campaign.status as number),
+          total_sent: analytics?.emails_sent || 0,
+          total_opened: analytics?.emails_opened || 0,
+          total_clicked: analytics?.emails_clicked || 0,
+          total_replied: analytics?.emails_replied || 0,
+          total_bounced: analytics?.emails_bounced || 0,
+          total_unsubscribed: analytics?.emails_unsubscribed || 0,
+          total_opportunities: analytics?.total_opportunities || 0,
+          contacted_count: analytics?.contacted_count || analytics?.leads_contacted || 0,
+          completed_count: analytics?.completed || 0,
+          new_leads_contacted: analytics?.new_leads_contacted || 0,
+          leads_count: analytics?.total_leads || 0,
+          last_synced_at: new Date().toISOString(),
+          sync_status: 'synced',
+        };
 
-        // Check if campaign exists in CRM
         const { data: existing } = await supabase
           .from('crm_campaigns')
           .select('id')
           .eq('external_id', campaign.id)
           .maybeSingle();
 
-        // Map Instantly status to CRM status
-        const statusMap: Record<string, string> = {
-          'active': 'active',
-          'paused': 'paused',
-          'completed': 'completed',
-          'draft': 'draft',
-        };
-
-        const campaignData = {
-          name: campaign.name,
-          external_id: campaign.id,
-          source: 'instantly',
-          status: statusMap[campaign.status] || 'active',
-          total_sent: analytics?.sent || campaign.sent_count || 0,
-          total_opened: analytics?.opened || campaign.open_count || 0,
-          total_clicked: analytics?.clicked || campaign.click_count || 0,
-          total_replied: analytics?.replied || campaign.reply_count || 0,
-          total_bounced: analytics?.bounced || campaign.bounce_count || 0,
-          total_unsubscribed: analytics?.unsubscribed || campaign.unsubscribe_count || 0,
-          leads_count: analytics?.leads_count || campaign.leads_count || 0,
-          last_synced_at: new Date().toISOString(),
-          sync_status: 'synced',
-          updated_at: new Date().toISOString(),
-        };
-
         if (existing) {
-          // Update existing campaign
-          const { error: updateError } = await supabase
-            .from('crm_campaigns')
-            .update(campaignData)
-            .eq('id', existing.id);
-
-          if (updateError) {
-            errors.push({ campaign_id: campaign.id, error: updateError.message });
-          } else {
-            updated++;
-          }
+          const { error } = await supabase.from('crm_campaigns').update(campaignData).eq('id', existing.id);
+          if (error) errors.push(`Update ${campaign.name}: ${error.message}`);
+          else updated++;
         } else {
-          // Create new campaign
-          const { error: insertError } = await supabase
-            .from('crm_campaigns')
-            .insert({
-              ...campaignData,
-              created_at: campaign.created_at || new Date().toISOString(),
-            });
-
-          if (insertError) {
-            errors.push({ campaign_id: campaign.id, error: insertError.message });
-          } else {
-            created++;
-          }
+          const { error } = await supabase.from('crm_campaigns').insert(campaignData);
+          if (error) errors.push(`Insert ${campaign.name}: ${error.message}`);
+          else created++;
         }
-
-        synced++;
       } catch (err) {
-        errors.push({ campaign_id: campaign.id, error: String(err) });
+        errors.push(`${campaign.id}: ${String(err)}`);
       }
     }
 
-    // Log sync activity
-    const { error: logError } = await supabase
-      .from('crm_sync_logs')
-      .insert({
-        sync_type: 'campaigns',
-        source: 'instantly',
-        total_records: allCampaigns.length,
-        synced_records: synced,
-        created_records: created,
-        updated_records: updated,
-        failed_records: errors.length,
-        errors: errors.length > 0 ? errors : null,
-        triggered_by: userId,
-        completed_at: new Date().toISOString(),
-      });
-    
-    if (logError) {
-      console.error('[sync-instantly-campaigns] Failed to log sync:', logError);
-    }
+    // Log sync
+    await supabase.from('crm_sync_logs').insert({
+      sync_type: 'instantly_campaigns',
+      synced_records: created + updated,
+      failed_records: errors.length,
+      errors: errors.length > 0 ? errors : null,
+    });
 
-    console.log(`[sync-instantly-campaigns] Sync complete: ${synced} synced, ${created} created, ${updated} updated, ${errors.length} errors`);
+    console.log(`[sync-instantly-campaigns] Complete: ${created} created, ${updated} updated, ${errors.length} errors`);
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        stats: {
-          total: allCampaigns.length,
-          synced,
-          created,
-          updated,
-          errors: errors.length,
-        },
-        errors: errors.slice(0, 10),
-      }),
+      JSON.stringify({ success: true, total: allCampaigns.length, created, updated, errors: errors.length > 0 ? errors.slice(0, 5) : undefined }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('[sync-instantly-campaigns] Error:', error);
     return new Response(

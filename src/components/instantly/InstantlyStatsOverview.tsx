@@ -7,7 +7,8 @@ import {
   MessageSquare, 
   AlertTriangle,
   TrendingUp,
-  Zap
+  Zap,
+  Star
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,8 +22,8 @@ interface InstantlyStatsOverviewProps {
 export function InstantlyStatsOverview({ stats, loading }: InstantlyStatsOverviewProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-        {Array.from({ length: 8 }).map((_, i) => (
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-4">
+        {Array.from({ length: 9 }).map((_, i) => (
           <Skeleton key={i} className="h-24 rounded-xl" />
         ))}
       </div>
@@ -43,6 +44,7 @@ export function InstantlyStatsOverview({ stats, loading }: InstantlyStatsOvervie
     {
       label: 'Total Leads',
       value: stats.totalLeads.toLocaleString(),
+      subValue: `${stats.totalContacted.toLocaleString()} contacted`,
       icon: Users,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
@@ -88,16 +90,24 @@ export function InstantlyStatsOverview({ stats, loading }: InstantlyStatsOvervie
     },
     {
       label: 'Interested',
-      value: stats.totalReplied,
-      subValue: 'Hot leads',
-      icon: TrendingUp,
+      value: stats.totalOpportunities.toLocaleString(),
+      subValue: `${stats.interestRate.toFixed(1)}% rate`,
+      icon: Star,
       color: 'text-primary',
       bgColor: 'bg-primary/10',
+    },
+    {
+      label: 'Hot Leads',
+      value: stats.totalReplied.toLocaleString(),
+      subValue: 'Ready for CRM',
+      icon: TrendingUp,
+      color: 'text-orange-500',
+      bgColor: 'bg-orange-500/10',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-4">
       {statCards.map((stat, index) => (
         <motion.div
           key={stat.label}
