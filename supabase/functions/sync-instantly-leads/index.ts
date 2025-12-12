@@ -1,44 +1,46 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { listLeads, createLead, type InstantlyLead } from "../_shared/instantly-client.ts";
+import { 
+  listLeads, 
+  createLead, 
+  type InstantlyLead,
+  LEAD_INTEREST_STATUS,
+  LEAD_STATUS,
+} from "../_shared/instantly-client.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Map Instantly lead status to CRM stage
+// Map Instantly V2 lead to CRM stage using numeric status codes
 function mapInstantlyStatusToStage(lead: InstantlyLead): string {
-  if (lead.is_bounced) return 'closed_lost';
-  if (lead.is_unsubscribed) return 'unsubscribed';
-  
-  const status = lead.lead_status?.toLowerCase() || lead.status?.toLowerCase();
-  
-  switch (status) {
-    case 'interested':
-      return 'qualified';
-    case 'meeting_booked':
-    case 'meeting booked':
-      return 'meeting_booked';
-    case 'meeting_completed':
-    case 'meeting completed':
-      return 'demo_completed';
-    case 'not_interested':
-    case 'not interested':
-      return 'closed_lost';
-    case 'wrong_person':
-    case 'wrong person':
-      return 'closed_lost';
-    case 'out_of_office':
-    case 'out of office':
-      return 'contacted'; // Keep in pipeline
-    default:
-      // Engagement-based fallback
-      if (lead.reply_count && lead.reply_count > 0) return 'replied';
-      if (lead.open_count && lead.open_count > 0) return 'opened';
-      if (lead.sent_count && lead.sent_count > 0) return 'contacted';
-      return 'new';
+  // Check interest status first (V2 API uses lt_interest_status)
+  if (lead.lt_interest_status !== undefined) {
+    switch (lead.lt_interest_status) {
+      case LEAD_INTEREST_STATUS.INTERESTED:
+        return 'qualified';
+      case LEAD_INTEREST_STATUS.MEETING_BOOKED:
+        return 'meeting_booked';
+      case LEAD_INTEREST_STATUS.MEETING_COMPLETED:
+        return 'demo_completed';
+      case LEAD_INTEREST_STATUS.NOT_INTERESTED:
+        return 'closed_lost';
+      case LEAD_INTEREST_STATUS.WRONG_PERSON:
+        return 'closed_lost';
+      case LEAD_INTEREST_STATUS.OUT_OF_OFFICE:
+        return 'contacted'; // Keep in pipeline for follow-up
+    }
   }
+
+  // Check lead status (V2 API uses numeric status)
+  if (lead.status === LEAD_STATUS.BOUNCED) return 'closed_lost';
+  if (lead.status === LEAD_STATUS.UNSUBSCRIBED) return 'unsubscribed';
+
+  // Engagement-based fallback using V2 field names
+  if (lead.email_reply_count > 0) return 'replied';
+  if (lead.email_open_count > 0) return 'opened';
+  return 'contacted';
 }
 
 serve(async (req) => {
@@ -110,7 +112,7 @@ serve(async (req) => {
           }
 
           const leads = response.data?.items || [];
-          hasMore = response.data?.has_more || false;
+          hasMore = !!response.data?.next_starting_after;
           startingAfter = response.data?.next_starting_after;
 
           // Get CRM campaign ID
@@ -134,20 +136,21 @@ serve(async (req) => {
                 .maybeSingle();
 
               const prospectData = {
-                first_name: lead.first_name,
-                last_name: lead.last_name,
+                first_name: lead.first_name || null,
+                last_name: lead.last_name || null,
                 full_name: fullName,
-                company_name: lead.company_name,
-                company_domain: lead.website || email.split('@')[1],
-                phone: lead.phone,
+                company_name: lead.company_name || null,
+                company_domain: lead.company_domain || lead.website || email.split('@')[1],
+                phone: lead.phone || null,
                 stage,
-                emails_sent: lead.sent_count || 0,
-                emails_opened: lead.open_count || 0,
-                emails_clicked: lead.click_count || 0,
-                emails_replied: lead.reply_count || 0,
-                email_status: lead.is_bounced ? 'bounced' : 'valid',
+                emails_opened: lead.email_open_count || 0,
+                emails_clicked: lead.email_click_count || 0,
+                emails_replied: lead.email_reply_count || 0,
+                email_status: lead.status === LEAD_STATUS.BOUNCED ? 'bounced' : 'valid',
                 instantly_lead_id: lead.id,
-                last_contacted_at: lead.last_contacted_at,
+                last_contacted_at: lead.timestamp_last_contact || null,
+                is_interested: (lead.lt_interest_status || 0) > 0,
+                interest_indicated_at: lead.timestamp_last_interest_change || null,
                 updated_at: new Date().toISOString(),
               };
 
@@ -172,8 +175,8 @@ serve(async (req) => {
                     ...prospectData,
                     source: 'instantly',
                     campaign_id: crmCampaign?.id,
-                    custom_fields: lead.custom_variables || {},
-                  });
+                custom_fields: lead.payload || {},
+              });
 
                 if (insertError) {
                   errors.push({ email, error: insertError.message });
