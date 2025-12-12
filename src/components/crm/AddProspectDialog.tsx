@@ -78,7 +78,7 @@ export function AddProspectDialog({
           linkedin_url: formData.linkedin_url || null,
           location: formData.location || null,
           deal_value: formData.deal_value ? parseFloat(formData.deal_value) : null,
-          campaign_id: formData.campaign_id || null,
+          campaign_id: formData.campaign_id && formData.campaign_id !== 'none' ? formData.campaign_id : null,
           source: formData.source,
           notes: formData.notes || null,
           stage: defaultStage,
@@ -258,7 +258,7 @@ export function AddProspectDialog({
                   <SelectValue placeholder="Select campaign" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {campaigns.map(campaign => (
                     <SelectItem key={campaign.id} value={campaign.id}>
                       {campaign.name}
