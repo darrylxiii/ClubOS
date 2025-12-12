@@ -9096,10 +9096,12 @@ export type Database = {
           created_at: string
           external_id: string | null
           extracted_data: Json | null
+          follow_up_priority: string | null
           from_email: string
           from_name: string | null
           id: string
           in_reply_to: string | null
+          intent_score: number | null
           is_actioned: boolean | null
           is_archived: boolean | null
           is_read: boolean | null
@@ -9111,6 +9113,7 @@ export type Database = {
           prospect_id: string
           received_at: string
           sentiment_score: number | null
+          smart_category: string | null
           subject: string | null
           suggested_action: string | null
           suggested_reply: string | null
@@ -9136,10 +9139,12 @@ export type Database = {
           created_at?: string
           external_id?: string | null
           extracted_data?: Json | null
+          follow_up_priority?: string | null
           from_email: string
           from_name?: string | null
           id?: string
           in_reply_to?: string | null
+          intent_score?: number | null
           is_actioned?: boolean | null
           is_archived?: boolean | null
           is_read?: boolean | null
@@ -9151,6 +9156,7 @@ export type Database = {
           prospect_id: string
           received_at?: string
           sentiment_score?: number | null
+          smart_category?: string | null
           subject?: string | null
           suggested_action?: string | null
           suggested_reply?: string | null
@@ -9176,10 +9182,12 @@ export type Database = {
           created_at?: string
           external_id?: string | null
           extracted_data?: Json | null
+          follow_up_priority?: string | null
           from_email?: string
           from_name?: string | null
           id?: string
           in_reply_to?: string | null
+          intent_score?: number | null
           is_actioned?: boolean | null
           is_archived?: boolean | null
           is_read?: boolean | null
@@ -9191,6 +9199,7 @@ export type Database = {
           prospect_id?: string
           received_at?: string
           sentiment_score?: number | null
+          smart_category?: string | null
           subject?: string | null
           suggested_action?: string | null
           suggested_reply?: string | null
@@ -9676,6 +9685,99 @@ export type Database = {
             columns: ["stakeholder_id"]
             isOneToOne: false
             referencedRelation: "company_stakeholders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_reply_intelligence: {
+        Row: {
+          analysis_model: string | null
+          analysis_version: string | null
+          buying_signals: Json | null
+          competitor_mentions: string[] | null
+          competitor_sentiment: string | null
+          conversion_probability: number | null
+          created_at: string | null
+          follow_up_priority: string | null
+          follow_up_timing: string | null
+          id: string
+          intent_score: number | null
+          meeting_interest_level: string | null
+          objections_detected: Json | null
+          preferred_meeting_times: Json | null
+          prospect_id: string | null
+          questions_asked: Json | null
+          raw_analysis: Json | null
+          recommended_channel: string | null
+          referral_contact: Json | null
+          referral_opportunity: boolean | null
+          reply_id: string | null
+          smart_replies: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          analysis_model?: string | null
+          analysis_version?: string | null
+          buying_signals?: Json | null
+          competitor_mentions?: string[] | null
+          competitor_sentiment?: string | null
+          conversion_probability?: number | null
+          created_at?: string | null
+          follow_up_priority?: string | null
+          follow_up_timing?: string | null
+          id?: string
+          intent_score?: number | null
+          meeting_interest_level?: string | null
+          objections_detected?: Json | null
+          preferred_meeting_times?: Json | null
+          prospect_id?: string | null
+          questions_asked?: Json | null
+          raw_analysis?: Json | null
+          recommended_channel?: string | null
+          referral_contact?: Json | null
+          referral_opportunity?: boolean | null
+          reply_id?: string | null
+          smart_replies?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          analysis_model?: string | null
+          analysis_version?: string | null
+          buying_signals?: Json | null
+          competitor_mentions?: string[] | null
+          competitor_sentiment?: string | null
+          conversion_probability?: number | null
+          created_at?: string | null
+          follow_up_priority?: string | null
+          follow_up_timing?: string | null
+          id?: string
+          intent_score?: number | null
+          meeting_interest_level?: string | null
+          objections_detected?: Json | null
+          preferred_meeting_times?: Json | null
+          prospect_id?: string | null
+          questions_asked?: Json | null
+          raw_analysis?: Json | null
+          recommended_channel?: string | null
+          referral_contact?: Json | null
+          referral_opportunity?: boolean | null
+          reply_id?: string | null
+          smart_replies?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_reply_intelligence_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "crm_prospects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_reply_intelligence_reply_id_fkey"
+            columns: ["reply_id"]
+            isOneToOne: false
+            referencedRelation: "crm_email_replies"
             referencedColumns: ["id"]
           },
         ]
