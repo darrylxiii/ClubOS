@@ -228,8 +228,41 @@ export async function getCampaignSequenceSteps(campaignId: string) {
 }
 
 // =====================================================
-// Lead Endpoints
+// Lead Endpoints (V2 API - POST /leads/list)
 // =====================================================
+
+// Lead status codes from Instantly V2 API
+export const LEAD_STATUS = {
+  ACTIVE: 1,
+  PAUSED: 2,
+  COMPLETED: 3,
+  BOUNCED: -1,
+  UNSUBSCRIBED: -2,
+} as const;
+
+// Lead interest status codes from Instantly V2 API
+export const LEAD_INTEREST_STATUS = {
+  INTERESTED: 1,
+  MEETING_BOOKED: 2,
+  MEETING_COMPLETED: 3,
+  NOT_INTERESTED: -1,
+  WRONG_PERSON: -2,
+  OUT_OF_OFFICE: -3,
+} as const;
+
+// Lead filter types for POST /leads/list
+export const LEAD_FILTERS = {
+  ALL: undefined,
+  INTERESTED: 'FILTER_LEAD_INTERESTED',
+  NOT_INTERESTED: 'FILTER_LEAD_NOT_INTERESTED', 
+  MEETING_BOOKED: 'FILTER_LEAD_MEETING_BOOKED',
+  MEETING_COMPLETED: 'FILTER_LEAD_MEETING_COMPLETED',
+  OUT_OF_OFFICE: 'FILTER_LEAD_OUT_OF_OFFICE',
+  WRONG_PERSON: 'FILTER_LEAD_WRONG_PERSON',
+  REPLIED: 'FILTER_LEAD_REPLIED',
+  OPENED: 'FILTER_LEAD_OPENED',
+  BOUNCED: 'FILTER_LEAD_BOUNCED',
+} as const;
 
 export interface InstantlyLead {
   id: string;
@@ -237,35 +270,73 @@ export interface InstantlyLead {
   first_name?: string;
   last_name?: string;
   company_name?: string;
+  company_domain?: string;
   phone?: string;
   website?: string;
-  custom_variables?: Record<string, string>;
-  status: string;
-  lead_status?: string;
-  campaign_id: string;
-  // Engagement
-  sent_count?: number;
-  open_count?: number;
-  click_count?: number;
-  reply_count?: number;
-  is_bounced?: boolean;
-  is_unsubscribed?: boolean;
-  last_contacted_at?: string;
-  created_at: string;
-  updated_at: string;
+  payload?: Record<string, unknown>; // Custom variables
+  campaign?: string; // Campaign ID
+  // Lead status (1=Active, 2=Paused, 3=Completed, -1=Bounced, -2=Unsubscribed)
+  status: number;
+  // Interest status (1=Interested, 2=Meeting Booked, 3=Meeting Completed, -1=Not Interested, -2=Wrong Person, -3=OOO)
+  lt_interest_status?: number;
+  // Engagement metrics
+  email_open_count: number;
+  email_reply_count: number;
+  email_click_count: number;
+  // Timestamps
+  timestamp_last_contact?: string;
+  timestamp_last_reply?: string;
+  timestamp_last_interest_change?: string;
+  timestamp_created: string;
+  timestamp_updated: string;
 }
 
 export interface ListLeadsParams {
   campaign_id?: string;
+  filter?: string; // Use LEAD_FILTERS constants
   limit?: number;
   starting_after?: string;
   email?: string;
-  status?: string;
 }
 
+// V2 API uses POST /leads/list with JSON body
 export async function listLeads(params: ListLeadsParams = {}) {
-  return instantlyRequest<{ items: InstantlyLead[]; has_more: boolean; next_starting_after?: string }>('/leads', {
-    params: params as Record<string, string | number | boolean | undefined>,
+  return instantlyRequest<{ items: InstantlyLead[]; next_starting_after?: string }>('/leads/list', {
+    method: 'POST',
+    body: {
+      campaign: params.campaign_id,
+      filter: params.filter,
+      limit: params.limit || 100,
+      starting_after: params.starting_after,
+      email: params.email,
+    },
+  });
+}
+
+// Convenience function to fetch ONLY interested leads
+export async function listInterestedLeads(campaignId?: string, limit = 100) {
+  return listLeads({
+    campaign_id: campaignId,
+    filter: LEAD_FILTERS.INTERESTED,
+    limit,
+  });
+}
+
+// Fetch leads that have replied
+export async function listRepliedLeads(campaignId?: string, limit = 100) {
+  return listLeads({
+    campaign_id: campaignId,
+    filter: LEAD_FILTERS.REPLIED,
+    limit,
+  });
+}
+
+// Fetch leads with meetings booked
+export async function listMeetingBookedLeads(campaignId?: string, limit = 100) {
+  return listLeads({
+    campaign_id: campaignId,
+    filter: LEAD_FILTERS.MEETING_BOOKED,
+    limit,
   });
 }
 
