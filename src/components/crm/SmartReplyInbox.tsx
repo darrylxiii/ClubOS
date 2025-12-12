@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { VirtualReplyList } from "./VirtualReplyList";
 import { ReplyDetailDrawer } from "./ReplyDetailDrawer";
 import { SmartReplyButtons } from "@/components/email/SmartReplyButtons";
+import { BulkReplyActions } from "./BulkReplyActions";
 import type { CRMEmailReply } from "@/types/crm-enterprise";
 
 // Smart category tabs configuration
@@ -385,6 +386,12 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
           ) : null}
         </AnimatePresence>
       )}
+
+      {/* Bulk Actions Bar */}
+      <BulkReplyActions 
+        selectedIds={selectedIds} 
+        onClearSelection={() => setSelectedIds(new Set())} 
+      />
     </Card>
   );
 }

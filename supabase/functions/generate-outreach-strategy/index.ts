@@ -100,14 +100,14 @@ Respond with a JSON object:
   "key_recommendations": ["string"]
 }`;
 
-    const aiResponse = await fetch('https://api.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Create an outreach strategy for ${industry || 'technology companies'} targeting ${target_persona || 'decision makers'}. Goal: ${goal || 'book meetings'}.` },

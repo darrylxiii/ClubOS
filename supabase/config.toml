@@ -774,3 +774,12 @@ verify_jwt = true
 
 [functions.seed-crm-data]
 verify_jwt = true
+
+# =============================================================================
+# CRM Scheduled Tasks (Cron Jobs - configure via pg_cron)
+# These functions are designed to run on schedule:
+# - generate-daily-outreach-insights: Daily at 6 AM UTC
+# - sync-instantly-account-health: Hourly
+# - calculate-lead-conversion-score: Daily recalculation
+# - crm-activity-reminder: Daily check for stale prospects
+# =============================================================================

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import { useCRMKeyboardShortcuts } from '@/hooks/useCRMKeyboardShortcuts';
 import { 
   Mail, 
   Zap, 
@@ -31,6 +33,7 @@ import { CampaignROIDashboard } from '@/components/crm/CampaignROIDashboard';
 import { OutreachKPIGrid } from '@/components/crm/OutreachKPIGrid';
 import { AIInsightsPanel } from '@/components/crm/AIInsightsPanel';
 import { OutreachActivityFeed } from '@/components/crm/OutreachActivityFeed';
+import { DeliverabilityAlerts } from '@/components/crm/DeliverabilityAlerts';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
 import { useCRMEmailReplies } from '@/hooks/useCRMEmailReplies';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,6 +42,41 @@ export default function EmailSequencingHub() {
   const [activeTab, setActiveTab] = useState('command-center');
   const { campaigns, loading: campaignsLoading, refetch: refetchCampaigns } = useCRMCampaigns({ limit: 100 });
   const { replies, loading: repliesLoading } = useCRMEmailReplies({ isActioned: false, limit: 100 });
+
+  // Keyboard shortcuts
+  const { shortcuts, showHelp, setShowHelp } = useCRMKeyboardShortcuts({
+    onSearch: () => toast.info('Search: Press Cmd+K'),
+    onRefresh: () => refetchCampaigns(),
+    enabled: true,
+  });
+
+  const tabs = [
+    { id: 'command-center', label: 'Command Center', icon: Brain },
+    { id: 'smart-inbox', label: 'Smart Inbox', icon: MessageSquare },
+    { id: 'lead-queue', label: 'Lead Priority', icon: Target },
+    { id: 'ab-testing', label: 'A/B Testing', icon: FlaskConical },
+    { id: 'send-timing', label: 'Send Timing', icon: Clock },
+    { id: 'account-health', label: 'Account Health', icon: BarChart3 },
+    { id: 'roi', label: 'ROI Analysis', icon: DollarSign },
+    { id: 'strategist', label: 'QUIN Strategist', icon: Sparkles },
+  ];
+
+  // Tab navigation with keyboard
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      // Number keys to switch tabs
+      const tabIndex = parseInt(e.key) - 1;
+      if (tabIndex >= 0 && tabIndex < tabs.length) {
+        setActiveTab(tabs[tabIndex].id);
+        toast.success(`Switched to ${tabs[tabIndex].label}`);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const loading = campaignsLoading || repliesLoading;
 
@@ -58,18 +96,6 @@ export default function EmailSequencingHub() {
     { label: 'Reply Rate', value: `${replyRate}%`, icon: Zap, color: 'text-primary', bgColor: 'bg-primary/10' },
     { label: 'Hot Leads', value: hotLeads, icon: Target, color: 'text-red-500', bgColor: 'bg-red-500/10' },
   ];
-
-  const tabs = [
-    { id: 'command-center', label: 'Command Center', icon: Brain },
-    { id: 'smart-inbox', label: 'Smart Inbox', icon: MessageSquare },
-    { id: 'lead-queue', label: 'Lead Priority', icon: Target },
-    { id: 'ab-testing', label: 'A/B Testing', icon: FlaskConical },
-    { id: 'send-timing', label: 'Send Timing', icon: Clock },
-    { id: 'account-health', label: 'Account Health', icon: BarChart3 },
-    { id: 'roi', label: 'ROI Analysis', icon: DollarSign },
-    { id: 'strategist', label: 'QUIN Strategist', icon: Sparkles },
-  ];
-
   return (
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist']}>
@@ -160,8 +186,9 @@ export default function EmailSequencingHub() {
                     <AIInsightsPanel />
                   </div>
                 </div>
-                {/* Right Column - Activity Feed */}
+                {/* Right Column - Activity Feed & Alerts */}
                 <div className="space-y-6">
+                  <DeliverabilityAlerts />
                   <OutreachActivityFeed />
                 </div>
               </div>
