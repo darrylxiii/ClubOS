@@ -28,12 +28,16 @@ import {
 interface CampaignROI {
   id: string;
   campaign_id: string;
+  campaign_name?: string;
   total_cost: number;
   total_revenue: number;
   roi_percentage: number;
   cost_per_lead: number;
   cost_per_meeting: number;
   cost_per_conversion: number;
+  leads_generated?: number;
+  meetings_booked?: number;
+  conversions?: number;
   calculated_at: string;
 }
 

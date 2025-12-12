@@ -203,9 +203,9 @@ export function ABTestAnalyzer() {
                       <div className="flex items-center gap-2 mb-1">
                         <Trophy className="w-4 h-4 text-yellow-500" />
                         <span className="font-medium">{variant.variant_name}</span>
-                        {variant.confidence_level && (
+                        {variant.statistical_significance && (
                           <Badge className="bg-green-500/10 text-green-500">
-                            {variant.confidence_level}% confidence
+                            {variant.statistical_significance}% confidence
                           </Badge>
                         )}
                       </div>
@@ -283,7 +283,7 @@ export function ABTestAnalyzer() {
                             </span>
                           </div>
                           <span className="text-xs text-muted-foreground">
-                            {variant.emails_sent} sent
+                            {variant.sends} sent
                           </span>
                         </div>
                       );

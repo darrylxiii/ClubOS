@@ -26,7 +26,7 @@ const CRMAutomations = lazy(() => import("@/pages/crm/CRMAutomations"));
 const ProspectAuditTrail = lazy(() => import("@/pages/crm/ProspectAuditTrail"));
 const CRMIntegrations = lazy(() => import("@/pages/crm/CRMIntegrations"));
 const CRMSettings = lazy(() => import("@/pages/crm/CRMSettings"));
-const EmailSequencingHub = lazy(() => import("@/pages/EmailSequencingHub"));
+const EmailSequencingHub = lazy(() => import("@/pages/crm/EmailSequencingHub"));
 
 export const crmRoutes = (
   <>
