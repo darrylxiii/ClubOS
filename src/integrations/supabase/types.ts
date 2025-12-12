@@ -8600,6 +8600,98 @@ export type Database = {
           },
         ]
       }
+      crm_ab_test_insights: {
+        Row: {
+          applicable_segments: Json | null
+          confidence_score: number | null
+          generated_at: string | null
+          id: string
+          insight_content: string
+          insight_type: string
+          sample_size: number | null
+        }
+        Insert: {
+          applicable_segments?: Json | null
+          confidence_score?: number | null
+          generated_at?: string | null
+          id?: string
+          insight_content: string
+          insight_type: string
+          sample_size?: number | null
+        }
+        Update: {
+          applicable_segments?: Json | null
+          confidence_score?: number | null
+          generated_at?: string | null
+          id?: string
+          insight_content?: string
+          insight_type?: string
+          sample_size?: number | null
+        }
+        Relationships: []
+      }
+      crm_ab_test_variants: {
+        Row: {
+          campaign_id: string | null
+          content: string
+          conversion_rate: number | null
+          conversions: number | null
+          created_at: string | null
+          id: string
+          is_winner: boolean | null
+          open_rate: number | null
+          opens: number | null
+          replies: number | null
+          reply_rate: number | null
+          sends: number | null
+          statistical_significance: number | null
+          variant_name: string
+          variant_type: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          content: string
+          conversion_rate?: number | null
+          conversions?: number | null
+          created_at?: string | null
+          id?: string
+          is_winner?: boolean | null
+          open_rate?: number | null
+          opens?: number | null
+          replies?: number | null
+          reply_rate?: number | null
+          sends?: number | null
+          statistical_significance?: number | null
+          variant_name: string
+          variant_type?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          content?: string
+          conversion_rate?: number | null
+          conversions?: number | null
+          created_at?: string | null
+          id?: string
+          is_winner?: boolean | null
+          open_rate?: number | null
+          opens?: number | null
+          replies?: number | null
+          reply_rate?: number | null
+          sends?: number | null
+          statistical_significance?: number | null
+          variant_name?: string
+          variant_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_ab_test_variants_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "crm_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_activities: {
         Row: {
           activity_type: Database["public"]["Enums"]["crm_activity_type"]
@@ -8910,6 +9002,110 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_campaign_benchmarks: {
+        Row: {
+          avg_bounce_rate: number | null
+          avg_conversion_rate: number | null
+          avg_open_rate: number | null
+          avg_reply_rate: number | null
+          avg_unsubscribe_rate: number | null
+          campaign_type: string | null
+          company_size: string | null
+          id: string
+          industry: string
+          sample_campaigns: number | null
+          top_performer_open_rate: number | null
+          top_performer_reply_rate: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_bounce_rate?: number | null
+          avg_conversion_rate?: number | null
+          avg_open_rate?: number | null
+          avg_reply_rate?: number | null
+          avg_unsubscribe_rate?: number | null
+          campaign_type?: string | null
+          company_size?: string | null
+          id?: string
+          industry: string
+          sample_campaigns?: number | null
+          top_performer_open_rate?: number | null
+          top_performer_reply_rate?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_bounce_rate?: number | null
+          avg_conversion_rate?: number | null
+          avg_open_rate?: number | null
+          avg_reply_rate?: number | null
+          avg_unsubscribe_rate?: number | null
+          campaign_type?: string | null
+          company_size?: string | null
+          id?: string
+          industry?: string
+          sample_campaigns?: number | null
+          top_performer_open_rate?: number | null
+          top_performer_reply_rate?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      crm_campaign_roi: {
+        Row: {
+          attribution_model: string | null
+          calculated_at: string | null
+          campaign_id: string | null
+          cost_per_conversion: number | null
+          cost_per_lead: number | null
+          cost_per_meeting: number | null
+          id: string
+          roi_percentage: number | null
+          total_conversions: number | null
+          total_cost: number | null
+          total_leads: number | null
+          total_meetings: number | null
+          total_revenue: number | null
+        }
+        Insert: {
+          attribution_model?: string | null
+          calculated_at?: string | null
+          campaign_id?: string | null
+          cost_per_conversion?: number | null
+          cost_per_lead?: number | null
+          cost_per_meeting?: number | null
+          id?: string
+          roi_percentage?: number | null
+          total_conversions?: number | null
+          total_cost?: number | null
+          total_leads?: number | null
+          total_meetings?: number | null
+          total_revenue?: number | null
+        }
+        Update: {
+          attribution_model?: string | null
+          calculated_at?: string | null
+          campaign_id?: string | null
+          cost_per_conversion?: number | null
+          cost_per_lead?: number | null
+          cost_per_meeting?: number | null
+          id?: string
+          roi_percentage?: number | null
+          total_conversions?: number | null
+          total_cost?: number | null
+          total_leads?: number | null
+          total_meetings?: number | null
+          total_revenue?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_campaign_roi_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "crm_campaigns"
             referencedColumns: ["id"]
           },
         ]
@@ -9441,6 +9637,101 @@ export type Database = {
           setting_key?: string
           setting_value?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      crm_lead_predictions: {
+        Row: {
+          confidence_interval: number | null
+          conversion_probability: number | null
+          created_at: string | null
+          engagement_velocity: number | null
+          feature_importance: Json | null
+          id: string
+          optimal_contact_time: string | null
+          prediction_model_version: string | null
+          prospect_id: string | null
+          recommended_action: string | null
+          response_pattern: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          confidence_interval?: number | null
+          conversion_probability?: number | null
+          created_at?: string | null
+          engagement_velocity?: number | null
+          feature_importance?: Json | null
+          id?: string
+          optimal_contact_time?: string | null
+          prediction_model_version?: string | null
+          prospect_id?: string | null
+          recommended_action?: string | null
+          response_pattern?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          confidence_interval?: number | null
+          conversion_probability?: number | null
+          created_at?: string | null
+          engagement_velocity?: number | null
+          feature_importance?: Json | null
+          id?: string
+          optimal_contact_time?: string | null
+          prediction_model_version?: string | null
+          prospect_id?: string | null
+          recommended_action?: string | null
+          response_pattern?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_lead_predictions_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "crm_prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_outreach_insights: {
+        Row: {
+          affected_campaigns: Json | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          insight_content: string
+          insight_title: string
+          insight_type: string
+          is_actionable: boolean | null
+          is_read: boolean | null
+          recommendations: Json | null
+          severity: string | null
+        }
+        Insert: {
+          affected_campaigns?: Json | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          insight_content: string
+          insight_title: string
+          insight_type: string
+          is_actionable?: boolean | null
+          is_read?: boolean | null
+          recommendations?: Json | null
+          severity?: string | null
+        }
+        Update: {
+          affected_campaigns?: Json | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          insight_content?: string
+          insight_title?: string
+          insight_type?: string
+          is_actionable?: boolean | null
+          is_read?: boolean | null
+          recommendations?: Json | null
+          severity?: string | null
         }
         Relationships: []
       }
@@ -13595,6 +13886,116 @@ export type Database = {
             columns: ["assessment_result_id"]
             isOneToOne: false
             referencedRelation: "assessment_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instantly_account_health: {
+        Row: {
+          alerts: Json | null
+          bounce_rate: number | null
+          created_at: string | null
+          daily_limit: number | null
+          domain: string | null
+          email: string
+          emails_sent_today: number | null
+          health_score: number | null
+          id: string
+          inbox_placement_rate: number | null
+          is_connected: boolean | null
+          last_checked_at: string | null
+          spam_rate: number | null
+          updated_at: string | null
+          warmup_progress: number | null
+          warmup_status: string | null
+        }
+        Insert: {
+          alerts?: Json | null
+          bounce_rate?: number | null
+          created_at?: string | null
+          daily_limit?: number | null
+          domain?: string | null
+          email: string
+          emails_sent_today?: number | null
+          health_score?: number | null
+          id?: string
+          inbox_placement_rate?: number | null
+          is_connected?: boolean | null
+          last_checked_at?: string | null
+          spam_rate?: number | null
+          updated_at?: string | null
+          warmup_progress?: number | null
+          warmup_status?: string | null
+        }
+        Update: {
+          alerts?: Json | null
+          bounce_rate?: number | null
+          created_at?: string | null
+          daily_limit?: number | null
+          domain?: string | null
+          email?: string
+          emails_sent_today?: number | null
+          health_score?: number | null
+          id?: string
+          inbox_placement_rate?: number | null
+          is_connected?: boolean | null
+          last_checked_at?: string | null
+          spam_rate?: number | null
+          updated_at?: string | null
+          warmup_progress?: number | null
+          warmup_status?: string | null
+        }
+        Relationships: []
+      }
+      instantly_send_time_analytics: {
+        Row: {
+          campaign_id: string | null
+          day_of_week: number | null
+          hour_of_day: number | null
+          id: string
+          open_count: number | null
+          open_rate: number | null
+          reply_count: number | null
+          reply_rate: number | null
+          sample_size: number | null
+          synced_at: string | null
+          timezone: string | null
+          total_sent: number | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          day_of_week?: number | null
+          hour_of_day?: number | null
+          id?: string
+          open_count?: number | null
+          open_rate?: number | null
+          reply_count?: number | null
+          reply_rate?: number | null
+          sample_size?: number | null
+          synced_at?: string | null
+          timezone?: string | null
+          total_sent?: number | null
+        }
+        Update: {
+          campaign_id?: string | null
+          day_of_week?: number | null
+          hour_of_day?: number | null
+          id?: string
+          open_count?: number | null
+          open_rate?: number | null
+          reply_count?: number | null
+          reply_rate?: number | null
+          sample_size?: number | null
+          synced_at?: string | null
+          timezone?: string | null
+          total_sent?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instantly_send_time_analytics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "crm_campaigns"
             referencedColumns: ["id"]
           },
         ]
