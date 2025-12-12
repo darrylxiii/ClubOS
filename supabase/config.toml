@@ -45,6 +45,31 @@ verify_jwt = true
 [functions.calculate-speaking-metrics]
 verify_jwt = true
 
+# CRM Intelligence Functions (Phase 3-10)
+[functions.generate-personalized-follow-up]
+verify_jwt = true
+
+[functions.calculate-lead-conversion-score]
+verify_jwt = true
+
+[functions.sync-instantly-account-health]
+verify_jwt = true
+
+[functions.generate-ab-test-variants]
+verify_jwt = true
+
+[functions.calculate-optimal-send-time]
+verify_jwt = true
+
+[functions.generate-outreach-strategy]
+verify_jwt = true
+
+[functions.calculate-campaign-roi]
+verify_jwt = true
+
+[functions.generate-daily-outreach-insights]
+verify_jwt = true
+
 # =============================================================================
 # GDPR & Compliance Functions (JWT Required)
 # =============================================================================
@@ -726,9 +751,6 @@ verify_jwt = false
 [functions.compile-meeting-transcript]
 verify_jwt = true
 
-[functions.analyze-meeting-recording-advanced]
-verify_jwt = true
-
 # =============================================================================
 # Interview Description Generation (JWT Required)
 # =============================================================================
@@ -738,12 +760,6 @@ verify_jwt = true
 # =============================================================================
 # CRM Functions (JWT Required)
 # =============================================================================
-[functions.analyze-email-reply]
-verify_jwt = true
-
-[functions.import-instantly-campaign]
-verify_jwt = true
-
 [functions.sync-partner-funnel-to-crm]
 verify_jwt = true
 
