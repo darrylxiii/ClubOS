@@ -145,10 +145,36 @@ i18n
     load: 'currentOnly',
   });
 
-// Apply RTL for Arabic on language change
+// Font URLs for languages that require special fonts
+const LANGUAGE_FONTS: Record<string, string> = {
+  zh: 'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700&display=swap',
+  ar: 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap',
+};
+
+// Track loaded fonts to avoid duplicate loads
+const loadedFonts = new Set<string>();
+
+// Load font dynamically when needed
+const loadFontForLanguage = (lng: string) => {
+  const fontUrl = LANGUAGE_FONTS[lng];
+  if (fontUrl && !loadedFonts.has(lng)) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = fontUrl;
+    document.head.appendChild(link);
+    loadedFonts.add(lng);
+    console.log(`[i18n] Loaded font for language: ${lng}`);
+  }
+};
+
+// Apply RTL for Arabic on language change and load fonts dynamically
 i18n.on('languageChanged', (lng) => {
   document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
   document.documentElement.lang = lng;
+  
+  // Load font dynamically if needed (Chinese, Arabic)
+  loadFontForLanguage(lng);
+  
   console.log(`[i18n] Language changed to: ${lng}`);
 });
 
