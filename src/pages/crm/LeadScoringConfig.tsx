@@ -4,10 +4,14 @@ import { LeadScoreHistory } from '@/components/crm/LeadScoreHistory';
 import { ProspectScoreCard } from '@/components/crm/ProspectScoreCard';
 import { motion } from 'framer-motion';
 import { Zap, History, BarChart3 } from 'lucide-react';
+import { AppLayout } from '@/components/AppLayout';
+import { RoleGate } from '@/components/RoleGate';
 
 export default function LeadScoringConfig() {
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+    <AppLayout>
+      <RoleGate allowedRoles={['admin', 'strategist']}>
+        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -85,7 +89,9 @@ export default function LeadScoringConfig() {
             />
           </div>
         </TabsContent>
-      </Tabs>
-    </div>
+        </Tabs>
+      </div>
+    </RoleGate>
+  </AppLayout>
   );
 }

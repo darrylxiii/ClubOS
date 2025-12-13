@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { AppLayout } from '@/components/AppLayout';
 
 export default function MeetingNotes() {
   const { meetingId } = useParams();
@@ -103,7 +104,7 @@ export default function MeetingNotes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <AppLayout>
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           <Button 
             variant="ghost" 
@@ -119,13 +120,13 @@ export default function MeetingNotes() {
             <Skeleton className="h-96" />
           </div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
   if (!recording) {
     return (
-      <div className="min-h-screen bg-background">
+      <AppLayout>
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           <Button 
             variant="ghost" 
@@ -143,7 +144,7 @@ export default function MeetingNotes() {
             </AlertDescription>
           </Alert>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
@@ -152,7 +153,7 @@ export default function MeetingNotes() {
   const decisionGuidance = analysis.decisionGuidance || {};
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppLayout>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <Button 
           variant="ghost" 
@@ -457,6 +458,6 @@ export default function MeetingNotes() {
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

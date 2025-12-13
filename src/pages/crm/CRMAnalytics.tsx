@@ -7,6 +7,8 @@ import { CRMCohortAnalysis } from "@/components/crm/CRMCohortAnalysis";
 import { CRMTeamLeaderboard } from "@/components/crm/CRMTeamLeaderboard";
 import { CRMReportExporter } from "@/components/crm/CRMReportExporter";
 import { BarChart3 } from "lucide-react";
+import { AppLayout } from "@/components/AppLayout";
+import { RoleGate } from "@/components/RoleGate";
 
 type DateRangeType = 'week' | 'month' | '3months' | '6months' | 'year';
 
@@ -14,7 +16,9 @@ export default function CRMAnalytics() {
   const [dateRange, setDateRange] = useState<DateRangeType>('month');
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+    <AppLayout>
+      <RoleGate allowedRoles={['admin', 'strategist']}>
+        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -59,7 +63,9 @@ export default function CRMAnalytics() {
           <CRMTeamLeaderboard dateRange={dateRange} />
           <CRMReportExporter />
         </div>
+        </div>
       </div>
-    </div>
+    </RoleGate>
+  </AppLayout>
   );
 }

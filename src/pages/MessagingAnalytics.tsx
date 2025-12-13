@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { MessageSquare, Send, Download, Clock, TrendingUp, Users } from 'lucide-react';
 import { format, subDays } from 'date-fns';
+import { AppLayout } from '@/components/AppLayout';
 
 export default function MessagingAnalytics() {
   const { user } = useAuth();
@@ -180,7 +181,8 @@ export default function MessagingAnalytics() {
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--secondary))', 'hsl(var(--muted))'];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <AppLayout>
+      <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Messaging Analytics</h1>
         <p className="text-muted-foreground">Insights into your communication patterns</p>
@@ -332,7 +334,8 @@ export default function MessagingAnalytics() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
-    </div>
+        </Tabs>
+      </div>
+    </AppLayout>
   );
 }

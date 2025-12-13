@@ -5,6 +5,8 @@ import { EmailContactLookup } from "@/components/crm/EmailContactLookup";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileSpreadsheet, Sparkles, Mail, Plug, CheckCircle2 } from "lucide-react";
+import { AppLayout } from "@/components/AppLayout";
+import { RoleGate } from "@/components/RoleGate";
 
 const integrations = [
   {
@@ -32,7 +34,9 @@ const integrations = [
 
 export default function CRMIntegrations() {
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+    <AppLayout>
+      <RoleGate allowedRoles={['admin', 'strategist']}>
+        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Plug className="h-6 w-6 text-primary" />
@@ -96,7 +100,9 @@ export default function CRMIntegrations() {
         <TabsContent value="email" className="mt-6">
           <EmailContactLookup />
         </TabsContent>
-      </Tabs>
-    </div>
+        </Tabs>
+      </div>
+    </RoleGate>
+  </AppLayout>
   );
 }
