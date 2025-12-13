@@ -326,8 +326,9 @@ Respond ONLY with valid JSON, no additional text.`;
                            analysis.classification === 'referral' ? 'referral' :
                            analysis.classification === 'unsubscribe' ? 'unsubscribe' :
                            'neutral',
-            // Never auto-change stage from AI analysis - stages are manual action only
-            // Removed auto-qualification logic
+            stage: analysis.classification === 'hot_lead' ? 'qualified' :
+                   analysis.classification === 'unsubscribe' ? 'unsubscribed' :
+                   undefined,
             lead_score: analysis.intent_score ? Math.min(100, (analysis.intent_score + 20)) : undefined,
             updated_at: new Date().toISOString(),
           })
