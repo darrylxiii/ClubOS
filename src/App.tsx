@@ -69,6 +69,11 @@ const LanguageSync = memo(() => {
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
+// PWA Components
+const InstallPromptBanner = lazy(() => import("./components/pwa/InstallPromptBanner").then(m => ({ default: m.InstallPromptBanner })));
+const UpdateAvailableBanner = lazy(() => import("./components/pwa/UpdateAvailableBanner").then(m => ({ default: m.UpdateAvailableBanner })));
+const Install = lazy(() => import("./pages/Install"));
+
 // Lazy load ALL other routes (public + protected) to reduce initial bundle
 const SharedProfile = lazy(() => import("./pages/SharedProfile"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
@@ -218,7 +223,25 @@ const App = () => {
             <Sonner />
             <LanguageSync />
             <TranslationDebugger />
+            {/* PWA Banners */}
+            <Suspense fallback={null}>
+              <InstallPromptBanner />
+              <UpdateAvailableBanner />
+            </Suspense>
             <Routes>
+            {/* Install Page - Public */}
+            <Route
+              path="/install"
+              element={
+                <PublicProviders>
+                  <RouteErrorBoundary>
+                    <Suspense fallback={<PageLoader />}>
+                      <Install />
+                    </Suspense>
+                  </RouteErrorBoundary>
+                </PublicProviders>
+              }
+            />
             {/* Public Routes - Minimal providers for fastest FCP */}
             <Route
               path="/"
