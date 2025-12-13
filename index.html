@@ -23,8 +23,23 @@
     </script>
     <!-- End Google Tag Manager -->
     
-    <!-- RB2B Visitor Identification -->
-    <script>!function(key) {if (window.reb2b) return;window.reb2b = {loaded: true};var s = document.createElement("script");s.async = true;s.src = "https://ddwl4m2hdecbv.cloudfront.net/b/" + key + "/" + key + ".js.gz";document.getElementsByTagName("script")[0].parentNode.insertBefore(s, document.getElementsByTagName("script")[0]);}("XOE9GHVJ8VOM");</script>
+    <!-- RB2B Visitor Identification - Deferred to improve FCP -->
+    <script>
+      function loadRB2B() {
+        if (window.reb2b) return;
+        window.reb2b = {loaded: true};
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://ddwl4m2hdecbv.cloudfront.net/b/XOE9GHVJ8VOM/XOE9GHVJ8VOM.js.gz";
+        document.getElementsByTagName("script")[0].parentNode.insertBefore(s, document.getElementsByTagName("script")[0]);
+      }
+      // Defer RB2B loading until after page becomes interactive
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(loadRB2B, { timeout: 4000 });
+      } else {
+        setTimeout(loadRB2B, 3000);
+      }
+    </script>
     <!-- End RB2B -->
     
     <meta charset="UTF-8" />
@@ -153,7 +168,15 @@
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
     
-    <div id="root"></div>
+    <div id="root">
+      <!-- Inline critical first paint content - will be replaced by React -->
+      <div id="initial-loader" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:hsl(30 20% 96%);">
+        <svg width="48" height="48" viewBox="0 0 100 100" style="animation:spin 1s linear infinite;">
+          <circle cx="50" cy="50" r="40" stroke="hsl(45 100% 51%)" stroke-width="4" fill="none" stroke-dasharray="251" stroke-dashoffset="50" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <style>#initial-loader{opacity:1;transition:opacity .2s}@keyframes spin{to{transform:rotate(360deg)}}</style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
