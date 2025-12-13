@@ -64,13 +64,32 @@ export function useBandwidthMonitor() {
   }, []);
 
   useEffect(() => {
-    // Initial measurement
-    measureBandwidth();
+    // Defer initial measurement to avoid blocking TTI
+    const startMonitoring = () => {
+      measureBandwidth();
+      // Monitor every 10 seconds (reduced frequency)
+      return setInterval(measureBandwidth, 10000);
+    };
 
-    // Monitor every 5 seconds
-    const interval = setInterval(measureBandwidth, 5000);
-
-    return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | undefined;
+    
+    if (typeof requestIdleCallback === 'function') {
+      const id = requestIdleCallback(() => {
+        interval = startMonitoring();
+      }, { timeout: 5000 });
+      return () => {
+        cancelIdleCallback(id);
+        if (interval) clearInterval(interval);
+      };
+    } else {
+      const timeout = setTimeout(() => {
+        interval = startMonitoring();
+      }, 3000);
+      return () => {
+        clearTimeout(timeout);
+        if (interval) clearInterval(interval);
+      };
+    }
   }, [measureBandwidth]);
 
   const getVideoConstraints = useCallback(() => {
