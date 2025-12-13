@@ -1,12 +1,26 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-5NB2QWND');</script>
+    <!-- Google Tag Manager - Deferred to improve initial page load -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function loadGTM() {
+        if (window.gtmLoaded) return;
+        window.gtmLoaded = true;
+        window.dataLayer.push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
+        var f = document.getElementsByTagName('script')[0],
+            j = document.createElement('script');
+        j.async = true;
+        j.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-5NB2QWND';
+        f.parentNode.insertBefore(j, f);
+      }
+      // Load GTM after page becomes interactive (saves ~107KB on initial load)
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(loadGTM, { timeout: 3000 });
+      } else {
+        setTimeout(loadGTM, 2000);
+      }
+    </script>
     <!-- End Google Tag Manager -->
     
     <!-- RB2B Visitor Identification -->
