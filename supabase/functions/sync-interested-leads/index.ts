@@ -3,7 +3,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { 
   listInterestedLeads, 
   listMeetingBookedLeads,
-  listRepliedLeads,
   type InstantlyLead,
   LEAD_INTEREST_STATUS,
   LEAD_STATUS,
@@ -16,48 +15,54 @@ const corsHeaders = {
 
 /**
  * Maps Instantly V2 lead to CRM stage based on interest status
+ * ONLY positive/interested leads should be imported
+ * - Interested → "replied" (manual action to qualify)
+ * - Meeting Booked → "meeting_booked"
+ * - NOT_INTERESTED/WRONG_PERSON/OOO → NOT imported (return null)
  */
-function mapLeadToStage(lead: InstantlyLead): string {
+function mapLeadToStage(lead: InstantlyLead): string | null {
   // Check interest status first (most important for CRM)
   if (lead.lt_interest_status !== undefined) {
     switch (lead.lt_interest_status) {
       case LEAD_INTEREST_STATUS.INTERESTED:
-        return 'qualified';
+        return 'replied'; // Changed from 'qualified' - user manually qualifies
       case LEAD_INTEREST_STATUS.MEETING_BOOKED:
         return 'meeting_booked';
       case LEAD_INTEREST_STATUS.MEETING_COMPLETED:
         return 'demo_completed';
+      // Negative statuses - do NOT import into CRM
       case LEAD_INTEREST_STATUS.NOT_INTERESTED:
-        return 'closed_lost';
+        return 'negative_reply'; // New stage for tracking
       case LEAD_INTEREST_STATUS.WRONG_PERSON:
-        return 'closed_lost';
+        return 'negative_reply';
       case LEAD_INTEREST_STATUS.OUT_OF_OFFICE:
-        return 'contacted'; // Keep in pipeline, follow up later
+        return null; // Do not import OOO - manage in Instantly
     }
   }
 
-  // Check lead status
-  if (lead.status === LEAD_STATUS.BOUNCED) return 'closed_lost';
-  if (lead.status === LEAD_STATUS.UNSUBSCRIBED) return 'unsubscribed';
-
-  // Engagement-based fallback
-  if (lead.email_reply_count > 0) return 'replied';
-  if (lead.email_open_count > 0) return 'opened';
-  return 'contacted';
+  // Without explicit interest status, do not import
+  // Only explicitly interested leads should come into CRM
+  return null;
 }
 
 /**
- * Determines if a lead is "hot" and should be in CRM
+ * Determines if a lead should be in CRM
+ * ONLY sync leads explicitly marked as INTERESTED or MEETING_BOOKED
+ * Raw replies without interest status stay in Instantly
  */
-function isHotLead(lead: InstantlyLead): boolean {
-  // Interested or meeting booked/completed
+function shouldImportLead(lead: InstantlyLead): boolean {
+  // Only interested or meeting booked/completed leads
   if (lead.lt_interest_status && lead.lt_interest_status > 0) {
     return true;
   }
-  // Has replied (even without interest status set)
-  if (lead.email_reply_count > 0) {
-    return true;
+  // Negative interest statuses can optionally be tracked
+  if (lead.lt_interest_status === LEAD_INTEREST_STATUS.NOT_INTERESTED ||
+      lead.lt_interest_status === LEAD_INTEREST_STATUS.WRONG_PERSON) {
+    return true; // Import to negative_reply stage for tracking
   }
+  // Do NOT import:
+  // - Raw replies without interest status (manage in Instantly)
+  // - OOO auto-replies (manage in Instantly)
   return false;
 }
 
@@ -108,10 +113,10 @@ serve(async (req) => {
 
       console.log(`[sync-interested-leads] Campaign ${instantlyCampaignId} → CRM ID: ${crmCampaign?.id}`);
 
-      // Fetch interested leads
+    // Fetch ONLY interested and meeting booked leads (not raw replies)
       const interestedResponse = await listInterestedLeads(instantlyCampaignId, 100);
       const meetingBookedResponse = await listMeetingBookedLeads(instantlyCampaignId, 100);
-      const repliedResponse = await listRepliedLeads(instantlyCampaignId, 100);
+      // Removed: listRepliedLeads - raw replies stay in Instantly
 
       // Combine all leads and deduplicate by email
       const allLeads = new Map<string, InstantlyLead>();
@@ -130,19 +135,24 @@ serve(async (req) => {
 
       addLeads(interestedResponse.data?.items);
       addLeads(meetingBookedResponse.data?.items);
-      addLeads(repliedResponse.data?.items);
 
-      console.log(`[sync-interested-leads] Found ${allLeads.size} unique hot leads for campaign ${instantlyCampaignId}`);
+      console.log(`[sync-interested-leads] Found ${allLeads.size} interested/meeting-booked leads for campaign ${instantlyCampaignId}`);
 
       // Process each lead
       for (const [email, lead] of allLeads) {
         try {
-          if (!isHotLead(lead)) {
+          if (!shouldImportLead(lead)) {
             skipped++;
             continue;
           }
 
           const stage = mapLeadToStage(lead);
+          
+          // Skip if stage is null (e.g., OOO leads)
+          if (!stage) {
+            skipped++;
+            continue;
+          }
           const fullName = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || email.split('@')[0];
           const companyDomain = lead.company_domain || lead.website || email.split('@')[1];
 

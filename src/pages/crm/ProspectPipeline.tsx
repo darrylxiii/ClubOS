@@ -57,7 +57,8 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 // Hot leads only - prospects who have replied or shown interest
-const PRIMARY_STAGES = ['replied', 'qualified', 'meeting_booked', 'proposal_sent', 'negotiation', 'closed_won'];
+// Negative replies shown separately at the end for tracking
+const PRIMARY_STAGES = ['replied', 'qualified', 'meeting_booked', 'proposal_sent', 'negotiation', 'closed_won', 'negative_reply'];
 
 function ProspectPipelineContent() {
   const [searchQuery, setSearchQuery] = useState('');
