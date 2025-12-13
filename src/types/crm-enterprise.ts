@@ -35,6 +35,7 @@ export type ProspectStage =
   | 'contacted' 
   | 'opened' 
   | 'replied' 
+  | 'negative_reply'  // NEW: For tracking negative replies separately
   | 'qualified' 
   | 'meeting_booked' 
   | 'proposal_sent' 
@@ -315,6 +316,7 @@ export const PROSPECT_STAGES: { value: ProspectStage; label: string; color: stri
   { value: 'contacted', label: 'Contacted', color: 'blue' },
   { value: 'opened', label: 'Opened', color: 'cyan' },
   { value: 'replied', label: 'Replied', color: 'purple' },
+  { value: 'negative_reply', label: 'Negative Replies', color: 'red' },
   { value: 'qualified', label: 'Qualified', color: 'green' },
   { value: 'meeting_booked', label: 'Meeting Booked', color: 'emerald' },
   { value: 'proposal_sent', label: 'Proposal Sent', color: 'orange' },
