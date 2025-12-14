@@ -1,3 +1,5 @@
+import { supabase } from '@/integrations/supabase/client';
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 type ErrorType = 'react' | 'api' | 'edge_function' | 'database' | 'network' | 'unknown';
 type Severity = 'info' | 'warning' | 'error' | 'critical';
@@ -168,7 +170,6 @@ class Logger {
     }
     
     try {
-      const { supabase } = await import('@/integrations/supabase/client');
       const { data: { user } } = await supabase.auth.getUser();
       
       const records = batch.map(log => ({
