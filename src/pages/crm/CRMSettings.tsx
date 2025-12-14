@@ -1,13 +1,15 @@
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CRMSampleDataSeeder } from "@/components/crm/CRMSampleDataSeeder";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Settings, Database, Keyboard, Bell, Users } from "lucide-react";
+import { CRMSampleDataSeeder } from "@/components/crm/CRMSampleDataSeeder";
+import { Settings, Database, Keyboard, Bell } from "lucide-react";
 import { useState } from "react";
 import { CRMKeyboardShortcutsHelp } from "@/components/crm/CRMKeyboardShortcutsHelp";
+import { StageCustomizationPanel } from "@/components/crm/StageCustomizationPanel";
+import { CRMTeamManagement } from "@/components/crm/CRMTeamManagement";
+import { CRMNotificationSettings } from "@/components/crm/CRMNotificationSettings";
 
 export default function CRMSettings() {
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -47,43 +49,8 @@ export default function CRMSettings() {
             </TabsList>
 
             <TabsContent value="general" className="mt-6 space-y-6">
-              <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
-                <CardHeader>
-                  <CardTitle>Pipeline Stages</CardTitle>
-                  <CardDescription>
-                    Customize the stages in your sales pipeline
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {["New", "Contacted", "Qualified", "Proposal", "Negotiation", "Won", "Lost"].map((stage) => (
-                      <Badge key={stage} variant="outline" className="text-sm py-1 px-3">
-                        {stage}
-                      </Badge>
-                    ))}
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-4">
-                    Stage customization coming soon
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Team Settings
-                  </CardTitle>
-                  <CardDescription>
-                    Manage team access and permissions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Team management coming soon
-                  </p>
-                </CardContent>
-              </Card>
+              <StageCustomizationPanel />
+              <CRMTeamManagement />
             </TabsContent>
 
             <TabsContent value="data" className="mt-6 space-y-6">
@@ -110,22 +77,7 @@ export default function CRMSettings() {
             </TabsContent>
 
             <TabsContent value="notifications" className="mt-6 space-y-6">
-              <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5" />
-                    Notification Preferences
-                  </CardTitle>
-                  <CardDescription>
-                    Configure when and how you receive notifications
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Notification settings coming soon
-                  </p>
-                </CardContent>
-              </Card>
+              <CRMNotificationSettings />
             </TabsContent>
           </Tabs>
 
