@@ -1,0 +1,2 @@
+# Ignore authentication storage state files
+*.json
