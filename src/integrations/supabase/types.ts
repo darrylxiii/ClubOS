@@ -706,6 +706,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_impersonation_sessions: {
+        Row: {
+          actions_performed: Json | null
+          admin_id: string
+          created_at: string | null
+          ended_at: string | null
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          reason: string | null
+          started_at: string
+          target_user_id: string
+        }
+        Insert: {
+          actions_performed?: Json | null
+          admin_id: string
+          created_at?: string | null
+          ended_at?: string | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          reason?: string | null
+          started_at?: string
+          target_user_id: string
+        }
+        Update: {
+          actions_performed?: Json | null
+          admin_id?: string
+          created_at?: string | null
+          ended_at?: string | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          reason?: string | null
+          started_at?: string
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       admin_member_approval_actions: {
         Row: {
           action_data: Json | null
@@ -13219,6 +13258,54 @@ export type Database = {
           is_healthy?: boolean
           response_time_ms?: number | null
           status_code?: number | null
+        }
+        Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          enabled: boolean | null
+          flag_key: string
+          id: string
+          metadata: Json | null
+          name: string
+          rollout_percentage: number | null
+          target_company_ids: string[] | null
+          target_roles: string[] | null
+          target_user_ids: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          flag_key: string
+          id?: string
+          metadata?: Json | null
+          name: string
+          rollout_percentage?: number | null
+          target_company_ids?: string[] | null
+          target_roles?: string[] | null
+          target_user_ids?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          flag_key?: string
+          id?: string
+          metadata?: Json | null
+          name?: string
+          rollout_percentage?: number | null
+          target_company_ids?: string[] | null
+          target_roles?: string[] | null
+          target_user_ids?: string[] | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -34308,6 +34395,10 @@ export type Database = {
       detect_impossible_travel: { Args: never; Returns: number }
       detect_slipping_deals: { Args: never; Returns: undefined }
       detect_suspicious_logins: { Args: never; Returns: number }
+      end_impersonation_session: {
+        Args: { p_session_id: string }
+        Returns: boolean
+      }
       end_user_session: {
         Args: { p_session_id?: string; p_user_id: string }
         Returns: undefined
@@ -34461,6 +34552,7 @@ export type Database = {
         }
         Returns: number
       }
+      get_maintenance_mode: { Args: never; Returns: Json }
       get_ml_training_data: {
         Args: { limit_count?: number; offset_count?: number }
         Returns: {
@@ -34635,6 +34727,10 @@ export type Database = {
       }
       is_dossier_share_valid: { Args: { _token: string }; Returns: boolean }
       is_email_suppressed: { Args: { check_email: string }; Returns: boolean }
+      is_feature_enabled: {
+        Args: { p_flag_key: string; p_user_id?: string }
+        Returns: boolean
+      }
       is_manager_of: { Args: { target_manager_id: string }; Returns: boolean }
       is_meeting_participant: {
         Args: { _meeting_id: string; _user_id: string }
@@ -34812,6 +34908,10 @@ export type Database = {
           title: string
         }[]
       }
+      start_impersonation_session: {
+        Args: { p_reason?: string; p_target_user_id: string }
+        Returns: string
+      }
       submit_timesheet: {
         Args: { p_timesheet_id: string; p_user_notes?: string }
         Returns: boolean
@@ -34827,6 +34927,10 @@ export type Database = {
           domain: string
           synced_count: number
         }[]
+      }
+      toggle_maintenance_mode: {
+        Args: { p_enabled: boolean; p_eta?: string; p_message?: string }
+        Returns: boolean
       }
       track_share_link_view: { Args: { _token: string }; Returns: string }
       track_slot_view: {
