@@ -785,4 +785,10 @@ verify_jwt = true
 # - sync-instantly-account-health: Hourly
 # - calculate-lead-conversion-score: Daily recalculation
 # - crm-activity-reminder: Daily check for stale prospects
+
+# =============================================================================
+# Push Notifications (JWT Required for sending)
+# =============================================================================
+[functions.send-push-notification]
+verify_jwt = true
 # =============================================================================
