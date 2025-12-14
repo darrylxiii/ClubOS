@@ -137,8 +137,8 @@ export default defineConfig(({ mode }) => ({
         ],
         // Precache pages for offline access
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        // Skip waiting when new SW is available
-        skipWaiting: true,
+        // Let the user control when to update (don't auto-skip waiting)
+        skipWaiting: false,
         clientsClaim: true,
         // Clean up old caches
         cleanupOutdatedCaches: true
