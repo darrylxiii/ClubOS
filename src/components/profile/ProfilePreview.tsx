@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,10 +17,12 @@ import {
   Linkedin,
   Twitter,
   Mail,
-  Check
+  Check,
+  Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import QRCode from "qrcode";
 
 interface ProfilePreviewProps {
   profile: {
@@ -38,14 +40,34 @@ interface ProfilePreviewProps {
 export function ProfilePreview({ profile, achievements }: ProfilePreviewProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
 
   const profileUrl = `${window.location.origin}/profile/${profile.id}`;
+
+  useEffect(() => {
+    if (open) {
+      QRCode.toDataURL(profileUrl, {
+        width: 200,
+        margin: 2,
+        color: { dark: '#0E0E10', light: '#F5F4EF' }
+      }).then(setQrCodeUrl).catch(console.error);
+    }
+  }, [open, profileUrl]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(profileUrl);
     setCopied(true);
     toast.success("Profile link copied!");
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadQR = () => {
+    if (!qrCodeUrl) return;
+    const link = document.createElement('a');
+    link.download = `${profile.full_name}-qr-code.png`;
+    link.href = qrCodeUrl;
+    link.click();
+    toast.success("QR code downloaded!");
   };
 
   const handleShare = (platform: string) => {
@@ -189,10 +211,20 @@ export function ProfilePreview({ profile, achievements }: ProfilePreviewProps) {
               </div>
 
               <div className="p-4 glass rounded-lg border border-accent/30 text-center">
-                <QrCode className="w-12 h-12 mx-auto mb-2 text-accent" />
-                <p className="text-sm text-muted-foreground">
-                  QR Code generation coming soon
-                </p>
+                {qrCodeUrl ? (
+                  <div className="space-y-3">
+                    <img src={qrCodeUrl} alt="Profile QR Code" className="mx-auto rounded-lg" />
+                    <Button onClick={handleDownloadQR} variant="outline" size="sm" className="gap-2">
+                      <Download className="w-4 h-4" />
+                      Download QR Code
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <QrCode className="w-12 h-12 mx-auto mb-2 text-accent animate-pulse" />
+                    <p className="text-sm text-muted-foreground">Generating QR code...</p>
+                  </>
+                )}
               </div>
             </div>
           </div>
