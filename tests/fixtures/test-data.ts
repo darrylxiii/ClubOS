@@ -15,8 +15,8 @@ export const testUsers = {
     fullName: 'Test Partner',
   },
   admin: {
-    email: 'test.admin@example.com',
-    password: 'TestPassword123!',
+    email: 'admin@thequantumclub.com',
+    password: 'Test123456!!',
     fullName: 'Test Admin',
   },
   strategist: {
@@ -48,6 +48,21 @@ export const testBooking = {
   description: 'Technical interview for Senior Software Engineer position',
 };
 
+export const testApplication = {
+  coverLetter: 'I am excited to apply for this position...',
+  resumeFile: 'test-resume.pdf',
+};
+
+export const testProfile = {
+  firstName: 'Test',
+  lastName: 'User',
+  phone: '+31612345678',
+  bio: 'Experienced software engineer with 5+ years of experience.',
+  location: 'Amsterdam, Netherlands',
+  linkedIn: 'https://linkedin.com/in/testuser',
+  portfolio: 'https://testuser.dev',
+};
+
 export function generateUniqueEmail(prefix: string = 'test'): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(7);
@@ -56,4 +71,10 @@ export function generateUniqueEmail(prefix: string = 'test'): string {
 
 export function generateTestPassword(): string {
   return `Test${Math.random().toString(36).substring(2, 8)}123!`;
+}
+
+export function generateRandomName(): string {
+  const firstNames = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey'];
+  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Davis'];
+  return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
 }
