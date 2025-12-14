@@ -2,6 +2,7 @@ import { Component, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Home, RefreshCw } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { logErrorToDatabase } from '@/utils/errorReporting';
 
 interface Props {
   children: ReactNode;
@@ -29,11 +30,9 @@ export class RouteErrorBoundary extends Component<Props, State> {
     });
     
     // Enhanced error reporting
-    import('@/utils/errorReporting').then(({ logErrorToDatabase }) => {
-      logErrorToDatabase(error, 'error', 'RouteErrorBoundary', {
-        componentStack: errorInfo.componentStack,
-        errorType: 'route',
-      });
+    logErrorToDatabase(error, 'error', 'RouteErrorBoundary', {
+      componentStack: errorInfo.componentStack,
+      errorType: 'route',
     });
     
     logger.error('Route chunk failed to load', error, { 

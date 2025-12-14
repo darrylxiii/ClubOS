@@ -3,7 +3,8 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { toast } from "sonner";
-import { Briefcase, Building2, MapPin, Users, DollarSign, ArrowRight, Check, Share2, Download } from "lucide-react";
+import { Briefcase, Building2, MapPin, Users, DollarSign, ArrowRight, Check, Share2, Download, Loader2 as DownloadLoader } from "lucide-react";
+import { exportToCSV } from "@/utils/analyticsExport";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -254,7 +255,16 @@ function ApplicationCard({ application }: { application: Application }) {
               className="min-h-[44px] min-w-[44px]"
               onClick={(e) => {
                 e.stopPropagation();
-                toast.info("Export application history feature coming soon");
+                const exportData = [{
+                  company: application.company_name,
+                  position: application.position,
+                  stage: application.stages[application.current_stage_index]?.title || 'Unknown',
+                  status: application.status,
+                  applied_at: new Date(application.applied_at).toLocaleDateString(),
+                  days_in_process: Math.ceil((Date.now() - new Date(application.applied_at).getTime()) / (1000 * 60 * 60 * 24))
+                }];
+                exportToCSV(exportData, `application-${application.id}`);
+                toast.success("Application exported");
               }}
             >
               <Download className="w-4 h-4" />

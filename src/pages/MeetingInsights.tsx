@@ -112,8 +112,34 @@ export default function MeetingInsights() {
   };
 
   const createTask = async (actionItem: ActionItem) => {
-    toast.info('Task creation coming soon - copy action item to create manually');
-    await navigator.clipboard.writeText(actionItem.task);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please sign in to create tasks');
+        return;
+      }
+
+      const { error } = await supabase.from('pilot_tasks').insert({
+        user_id: user.id,
+        title: actionItem.task,
+        description: `From meeting: ${meeting?.title || meetingId}`,
+        priority_score: actionItem.priority === 'high' ? 90 : actionItem.priority === 'medium' ? 60 : 30,
+        status: 'pending',
+        task_type: 'action_item',
+        source: 'meeting_insights',
+        metadata: { 
+          meeting_id: meetingId, 
+          owner: actionItem.owner,
+          priority: actionItem.priority
+        }
+      });
+
+      if (error) throw error;
+      toast.success('Task added to Club Pilot');
+    } catch (error) {
+      console.error('Error creating task:', error);
+      toast.error('Failed to create task');
+    }
   };
 
   const getSentimentColor = (sentiment: string) => {

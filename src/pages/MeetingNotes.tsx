@@ -95,11 +95,47 @@ export default function MeetingNotes() {
   };
 
   const exportPDF = () => {
-    toast.info('PDF export coming soon');
+    if (!recording) return;
+    
+    // Create a printable version of the meeting notes
+    const printContent = `
+      Meeting Notes: ${meeting?.title || 'Untitled'}
+      Date: ${meeting?.scheduled_start ? format(new Date(meeting.scheduled_start), 'MMM d, yyyy') : 'Unknown'}
+      Duration: ${Math.round((recording.duration_seconds || 0) / 60)} minutes
+      
+      Executive Summary:
+      ${analysis.executiveSummary || 'No summary available'}
+      
+      Action Items:
+      ${(analysis.actionItems || []).map((item: any) => `- ${item.task} (${item.owner}, Due: ${item.deadline})`).join('\n')}
+      
+      Key Moments:
+      ${(analysis.keyMoments || []).map((m: any) => `[${m.timestamp}] ${m.type}: ${m.description}`).join('\n')}
+    `;
+    
+    // Create blob and download
+    const blob = new Blob([printContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `meeting-notes-${meetingId}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    toast.success('Meeting notes exported');
   };
 
-  const shareWithTeam = () => {
-    toast.info('Team sharing coming soon');
+  const shareWithTeam = async () => {
+    if (!recording) return;
+    
+    const shareUrl = `${window.location.origin}/meetings/notes/${meetingId}`;
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Link copied to clipboard');
+    } catch {
+      toast.error('Failed to copy link');
+    }
   };
 
   if (loading) {
