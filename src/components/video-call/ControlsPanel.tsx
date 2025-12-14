@@ -138,8 +138,9 @@ export function ControlsPanel({
                 meetingInteractions.hoverScale,
                 isActive && !isDangerous && "bg-white/10 hover:bg-white/20 text-white",
                 !isActive && !isDangerous && "bg-white/10 hover:bg-white/20 text-white",
-                isDangerous && isActive && `bg-rose-500/90 hover:bg-rose-600 text-white shadow-[${meetingShadows.glowRed}]`,
+                isDangerous && isActive && "bg-rose-500/90 hover:bg-rose-600 text-white",
               )}
+              style={isDangerous && isActive ? { boxShadow: '0 0 24px rgba(244,63,94,0.5)' } : undefined}
             >
               {children}
             </Button>
@@ -173,12 +174,14 @@ export function ControlsPanel({
       className="fixed bottom-8 left-1/2 -translate-x-1/2 animate-in slide-in-from-bottom duration-500"
       style={{ zIndex: meetingZIndex.controls }}
     >
-      <div className={cn(
-        meetingBackdrop.medium,
-        "border border-white/10 rounded-full px-8 py-4",
-        `shadow-[${meetingShadows.xl}]`,
-        "flex items-center gap-3"
-      )}>
+      <div 
+        className={cn(
+          meetingBackdrop.medium,
+          "border border-white/10 rounded-full px-8 py-4",
+          "flex items-center gap-3"
+        )}
+        style={{ boxShadow: '0 16px 64px rgba(0,0,0,0.5)' }}
+      >
         {/* Core Controls - Always Visible */}
         
         {/* Audio Control */}
@@ -247,10 +250,9 @@ export function ControlsPanel({
           <DropdownMenuContent 
             className={cn(
               meetingBackdrop.dark,
-              "border border-white/20",
-              `shadow-[${meetingShadows.lg}]`
+              "border border-white/20"
             )}
-            style={{ zIndex: meetingZIndex.dropdown }}
+            style={{ zIndex: meetingZIndex.dropdown, boxShadow: '0 12px 48px rgba(0,0,0,0.4)' }}
             sideOffset={20}
             align="center"
           >
@@ -298,11 +300,10 @@ export function ControlsPanel({
             className={cn(
               meetingBackdrop.dark,
               "border border-white/20",
-              `shadow-[${meetingShadows.lg}]`,
               "min-w-[280px]"
             )}
-            style={{ zIndex: meetingZIndex.dropdown }}
-            align="end" 
+            style={{ zIndex: meetingZIndex.dropdown, boxShadow: '0 12px 48px rgba(0,0,0,0.4)' }}
+            align="end"
             sideOffset={20}
           >
             {/* Meeting Actions */}

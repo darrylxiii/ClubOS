@@ -2587,6 +2587,36 @@ export type Database = {
         }
         Relationships: []
       }
+      biometric_settings: {
+        Row: {
+          auto_lock_timeout_minutes: number | null
+          biometric_enabled: boolean | null
+          created_at: string
+          id: string
+          last_biometric_auth: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_lock_timeout_minutes?: number | null
+          biometric_enabled?: boolean | null
+          created_at?: string
+          id?: string
+          last_biometric_auth?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_lock_timeout_minutes?: number | null
+          biometric_enabled?: boolean | null
+          created_at?: string
+          id?: string
+          last_biometric_auth?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       blind_spot_sessions: {
         Row: {
           awareness_gaps: Json | null

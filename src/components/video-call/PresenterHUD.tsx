@@ -27,10 +27,9 @@ export function PresenterHUD({ participantName, onStopSharing, participantCount,
           "fixed top-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full",
           "bg-gradient-to-r from-rose-500/90 to-rose-600/90",
           meetingBackdrop.heavy,
-          "border border-white/10",
-          `shadow-[${meetingShadows.glowRed}]`
+          "border border-white/10"
         )}
-        style={{ zIndex: meetingZIndex.panels }}
+        style={{ zIndex: meetingZIndex.panels, boxShadow: '0 0 24px rgba(244,63,94,0.5)' }}
       >
         <div className="flex items-center gap-3">
           <motion.div
@@ -70,12 +69,12 @@ export function PresenterHUD({ participantName, onStopSharing, participantCount,
         className={cn(
           "fixed rounded-2xl overflow-hidden",
           meetingBackdrop.medium,
-          "border border-white/20",
-          `shadow-[${meetingShadows.xl}]`
+          "border border-white/20"
         )}
         style={{ 
           zIndex: meetingZIndex.panels,
           width: isMinimized ? '300px' : '400px',
+          boxShadow: '0 16px 64px rgba(0,0,0,0.5)',
         }}
       >
         {/* Drag Handle */}
@@ -145,11 +144,8 @@ export function PresenterHUD({ participantName, onStopSharing, participantCount,
             {/* Stop Sharing Button */}
             <Button
               onClick={onStopSharing}
-              className={cn(
-                "w-full gap-2 bg-rose-500/90 hover:bg-rose-600 text-white",
-                `shadow-[${meetingShadows.glowRed}]`,
-                "transition-all duration-300 hover:scale-105"
-              )}
+              className="w-full gap-2 bg-rose-500/90 hover:bg-rose-600 text-white transition-all duration-300 hover:scale-105"
+              style={{ boxShadow: '0 0 24px rgba(244,63,94,0.5)' }}
             >
               <MonitorOff className="h-4 w-4" />
               Stop Sharing
