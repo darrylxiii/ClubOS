@@ -1,0 +1,189 @@
+# Fastlane Fastfile for The Quantum Club
+# https://docs.fastlane.tools
+
+default_platform(:ios)
+
+# ==================== iOS ====================
+platform :ios do
+
+  desc "Sync certificates and provisioning profiles"
+  lane :sync_certs do
+    match(
+      type: "appstore",
+      readonly: true
+    )
+    match(
+      type: "development",
+      readonly: true
+    )
+  end
+
+  desc "Build iOS app for TestFlight"
+  lane :beta do
+    # Increment build number
+    increment_build_number(
+      xcodeproj: "ios/App/App.xcodeproj"
+    )
+    
+    # Sync certificates
+    sync_certs
+    
+    # Build the app
+    build_app(
+      workspace: "ios/App/App.xcworkspace",
+      scheme: "App",
+      export_method: "app-store",
+      output_directory: "./build/ios",
+      output_name: "TheQuantumClub.ipa"
+    )
+    
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+    
+    # Notify team
+    slack(
+      message: "iOS Beta build uploaded to TestFlight! 🚀",
+      slack_url: ENV["SLACK_WEBHOOK_URL"]
+    ) if ENV["SLACK_WEBHOOK_URL"]
+  end
+
+  desc "Deploy iOS app to App Store"
+  lane :release do
+    # Increment version
+    increment_version_number(
+      xcodeproj: "ios/App/App.xcodeproj",
+      bump_type: "patch"
+    )
+    increment_build_number(
+      xcodeproj: "ios/App/App.xcodeproj"
+    )
+    
+    # Sync certificates
+    sync_certs
+    
+    # Build the app
+    build_app(
+      workspace: "ios/App/App.xcworkspace",
+      scheme: "App",
+      export_method: "app-store",
+      output_directory: "./build/ios",
+      output_name: "TheQuantumClub.ipa"
+    )
+    
+    # Upload to App Store
+    upload_to_app_store(
+      skip_screenshots: true,
+      skip_metadata: false,
+      precheck_include_in_app_purchases: false
+    )
+  end
+
+  desc "Take screenshots for App Store"
+  lane :screenshots do
+    capture_screenshots(
+      workspace: "ios/App/App.xcworkspace",
+      scheme: "App"
+    )
+    upload_to_app_store(
+      skip_binary_upload: true,
+      skip_metadata: true
+    )
+  end
+
+end
+
+# ==================== Android ====================
+platform :android do
+
+  desc "Build Android app for internal testing"
+  lane :beta do
+    # Increment version code
+    increment_version_code(
+      gradle_file_path: "android/app/build.gradle"
+    )
+    
+    # Build the app bundle
+    gradle(
+      project_dir: "android",
+      task: "bundle",
+      build_type: "Release"
+    )
+    
+    # Upload to Play Store internal track
+    upload_to_play_store(
+      track: "internal",
+      aab: "android/app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+    
+    # Notify team
+    slack(
+      message: "Android Beta build uploaded to Play Store Internal! 🚀",
+      slack_url: ENV["SLACK_WEBHOOK_URL"]
+    ) if ENV["SLACK_WEBHOOK_URL"]
+  end
+
+  desc "Deploy Android app to Play Store"
+  lane :release do
+    # Increment version
+    increment_version_name(
+      gradle_file_path: "android/app/build.gradle",
+      bump_type: "patch"
+    )
+    increment_version_code(
+      gradle_file_path: "android/app/build.gradle"
+    )
+    
+    # Build the app bundle
+    gradle(
+      project_dir: "android",
+      task: "bundle",
+      build_type: "Release"
+    )
+    
+    # Upload to Play Store production
+    upload_to_play_store(
+      track: "production",
+      aab: "android/app/build/outputs/bundle/release/app-release.aab"
+    )
+  end
+
+  desc "Build APK for testing"
+  lane :build_apk do
+    gradle(
+      project_dir: "android",
+      task: "assemble",
+      build_type: "Release"
+    )
+    
+    # Copy APK to build directory
+    sh("mkdir -p ../build/android")
+    sh("cp ../android/app/build/outputs/apk/release/app-release.apk ../build/android/TheQuantumClub.apk")
+  end
+
+end
+
+# ==================== Shared ====================
+
+desc "Run tests"
+lane :test do
+  sh("cd .. && npm run test")
+end
+
+desc "Build web assets"
+lane :build_web do
+  sh("cd .. && npm run build")
+  sh("cd .. && npx cap sync")
+end
+
+error do |lane, exception|
+  slack(
+    message: "Error in lane #{lane}: #{exception.message}",
+    success: false,
+    slack_url: ENV["SLACK_WEBHOOK_URL"]
+  ) if ENV["SLACK_WEBHOOK_URL"]
+end
