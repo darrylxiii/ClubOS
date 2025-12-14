@@ -95,7 +95,13 @@ export const AchievementHero = () => {
     <div className="relative overflow-hidden">
       {/* Quantum Background Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/10 to-pink-500/10 animate-pulse-slow" />
-      <div className="absolute inset-0 bg-[url('/quantum-grid.svg')] opacity-5" />
+      <div 
+        className="absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 19px, hsl(var(--foreground) / 0.3) 19px, hsl(var(--foreground) / 0.3) 20px),
+                           repeating-linear-gradient(90deg, transparent, transparent 19px, hsl(var(--foreground) / 0.3) 19px, hsl(var(--foreground) / 0.3) 20px)`
+        }}
+      />
 
       <div className="container mx-auto px-4 py-12 relative z-10">
         <Card className="glass-strong border-primary/20 overflow-hidden">
