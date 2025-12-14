@@ -1,4 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
+import { logger } from '@/lib/logger';
+import { logCriticalError } from '@/utils/errorReporting';
 
 interface Props {
   children: ReactNode;
@@ -28,21 +30,17 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({ errorInfo });
     
     // Log to database with enhanced error reporting
-    import('@/utils/errorReporting').then(({ logCriticalError }) => {
-      logCriticalError(error, 'ErrorBoundary', {
-        componentStack: errorInfo.componentStack,
-        errorType: 'react',
-      });
+    logCriticalError(error, 'ErrorBoundary', {
+      componentStack: errorInfo.componentStack,
+      errorType: 'react',
     });
     
     // Also log via logger
-    import('@/lib/logger').then(({ logger }) => {
-      logger.error('React Error Boundary', error, { 
-        componentStack: errorInfo.componentStack,
-        errorType: 'react',
-        severity: 'error',
-        componentName: 'ErrorBoundary'
-      });
+    logger.error('React Error Boundary', error, { 
+      componentStack: errorInfo.componentStack,
+      errorType: 'react',
+      severity: 'error',
+      componentName: 'ErrorBoundary'
     });
   }
 
