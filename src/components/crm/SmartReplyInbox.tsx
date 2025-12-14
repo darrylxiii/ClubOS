@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Flame, Sun, ThumbsUp, HelpCircle, ThumbsDown, Plane, 
   Archive, RefreshCw, Sparkles, Mail, Filter, Search,
-  CheckCircle, Clock, Zap
+  CheckCircle, Clock, Zap, AlarmClock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { VirtualReplyList } from "./VirtualReplyList";
 import { ReplyDetailDrawer } from "./ReplyDetailDrawer";
 import { SmartReplyButtons } from "@/components/email/SmartReplyButtons";
 import { BulkReplyActions } from "./BulkReplyActions";
+import { SnoozeDialog } from "./SnoozeDialog";
 import type { CRMEmailReply } from "@/types/crm-enterprise";
 
 // Smart category tabs configuration
@@ -43,6 +44,8 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [smartReplies, setSmartReplies] = useState<{ professional?: string; friendly?: string; decline?: string } | null>(null);
+  const [snoozeDialogOpen, setSnoozeDialogOpen] = useState(false);
+  const [replyToSnooze, setReplyToSnooze] = useState<CRMEmailReply | null>(null);
 
   // Fetch replies with real-time subscription
   const { data: replies = [], isLoading, refetch } = useQuery({
@@ -161,6 +164,35 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['smart-reply-inbox'] })
   });
+
+  // Snooze mutation
+  const snoozeMutation = useMutation({
+    mutationFn: async ({ replyId, snoozeUntil }: { replyId: string; snoozeUntil: Date }) => {
+      const { error } = await supabase
+        .from('crm_email_replies')
+        .update({ 
+          snoozed_until: snoozeUntil.toISOString(),
+          is_archived: true // Temporarily hide from inbox
+        })
+        .eq('id', replyId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['smart-reply-inbox'] });
+      toast.success('Reply snoozed');
+      setSnoozeDialogOpen(false);
+      setReplyToSnooze(null);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to snooze: ${error.message}`);
+    }
+  });
+
+  const handleSnooze = (snoozeUntil: Date) => {
+    if (replyToSnooze) {
+      snoozeMutation.mutate({ replyId: replyToSnooze.id, snoozeUntil });
+    }
+  };
 
   // Generate smart replies
   const generateSmartRepliesMutation = useMutation({
@@ -352,7 +384,10 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
             setIsDrawerOpen(false);
           }
         }}
-        onSnooze={() => toast.info('Snooze feature coming soon')}
+        onSnooze={() => {
+          setReplyToSnooze(selectedReply);
+          setSnoozeDialogOpen(true);
+        }}
         onMarkActioned={(action) => toast.success(`Marked as ${action}`)}
       />
 
@@ -391,6 +426,16 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
       <BulkReplyActions 
         selectedIds={selectedIds} 
         onClearSelection={() => setSelectedIds(new Set())} 
+      />
+
+      {/* Snooze Dialog */}
+      <SnoozeDialog
+        open={snoozeDialogOpen}
+        onClose={() => {
+          setSnoozeDialogOpen(false);
+          setReplyToSnooze(null);
+        }}
+        onSnooze={handleSnooze}
       />
     </Card>
   );
