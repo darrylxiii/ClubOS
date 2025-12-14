@@ -29,6 +29,11 @@ const config: CapacitorConfig = {
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
+    NativeBiometric: {
+      useFallback: true,
+      fallbackTitle: 'Use PIN',
+      maxAttempts: 3,
+    },
   },
   ios: {
     scheme: 'thequantumclub',
