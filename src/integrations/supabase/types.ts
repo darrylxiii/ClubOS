@@ -562,6 +562,48 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_account_actions: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          new_status: Database["public"]["Enums"]["account_status_enum"] | null
+          previous_status:
+            | Database["public"]["Enums"]["account_status_enum"]
+            | null
+          reason: string | null
+          target_user_id: string
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_status?: Database["public"]["Enums"]["account_status_enum"] | null
+          previous_status?:
+            | Database["public"]["Enums"]["account_status_enum"]
+            | null
+          reason?: string | null
+          target_user_id: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_status?: Database["public"]["Enums"]["account_status_enum"] | null
+          previous_status?:
+            | Database["public"]["Enums"]["account_status_enum"]
+            | null
+          reason?: string | null
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       admin_alert_preferences: {
         Row: {
           admin_id: string | null
@@ -24514,6 +24556,9 @@ export type Database = {
           assigned_strategist_id: string | null
           available_hours_per_week: number | null
           avatar_url: string | null
+          ban_reason: string | null
+          banned_at: string | null
+          banned_by: string | null
           bio: string | null
           blocked_companies: Json | null
           career_preferences: string | null
@@ -24531,6 +24576,10 @@ export type Database = {
           email: string | null
           email_verified: boolean | null
           employment_type_preference: string | null
+          force_password_reset: boolean | null
+          force_password_reset_at: string | null
+          force_password_reset_by: string | null
+          force_password_reset_reason: string | null
           freelance_availability_status: string | null
           freelance_categories: string[] | null
           freelance_hourly_rate_max: number | null
@@ -24593,6 +24642,9 @@ export type Database = {
           spotify_user_id: string | null
           stealth_mode_enabled: boolean | null
           stealth_mode_level: number | null
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
           twitter_connected: boolean | null
           twitter_username: string | null
           updated_at: string | null
@@ -24618,6 +24670,9 @@ export type Database = {
           assigned_strategist_id?: string | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
           bio?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
@@ -24635,6 +24690,10 @@ export type Database = {
           email?: string | null
           email_verified?: boolean | null
           employment_type_preference?: string | null
+          force_password_reset?: boolean | null
+          force_password_reset_at?: string | null
+          force_password_reset_by?: string | null
+          force_password_reset_reason?: string | null
           freelance_availability_status?: string | null
           freelance_categories?: string[] | null
           freelance_hourly_rate_max?: number | null
@@ -24697,6 +24756,9 @@ export type Database = {
           spotify_user_id?: string | null
           stealth_mode_enabled?: boolean | null
           stealth_mode_level?: number | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           twitter_connected?: boolean | null
           twitter_username?: string | null
           updated_at?: string | null
@@ -24722,6 +24784,9 @@ export type Database = {
           assigned_strategist_id?: string | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
           bio?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
@@ -24739,6 +24804,10 @@ export type Database = {
           email?: string | null
           email_verified?: boolean | null
           employment_type_preference?: string | null
+          force_password_reset?: boolean | null
+          force_password_reset_at?: string | null
+          force_password_reset_by?: string | null
+          force_password_reset_reason?: string | null
           freelance_availability_status?: string | null
           freelance_categories?: string[] | null
           freelance_hourly_rate_max?: number | null
@@ -24801,6 +24870,9 @@ export type Database = {
           spotify_user_id?: string | null
           stealth_mode_enabled?: boolean | null
           stealth_mode_level?: number | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           twitter_connected?: boolean | null
           twitter_username?: string | null
           updated_at?: string | null
@@ -34041,6 +34113,10 @@ export type Database = {
       archive_expired_documents: { Args: never; Returns: undefined }
       auto_delete_old_audit_logs: { Args: never; Returns: undefined }
       backfill_deal_stages: { Args: never; Returns: number }
+      ban_user: {
+        Args: { p_reason?: string; p_target_user_id: string }
+        Returns: boolean
+      }
       calculate_activity_level: {
         Args: { last_activity: string }
         Returns: string
@@ -34129,6 +34205,7 @@ export type Database = {
         Args: { _board_id: string; _user_id: string }
         Returns: boolean
       }
+      can_modify_user: { Args: { target_user_id: string }; Returns: boolean }
       can_view_stealth_job: {
         Args: { _job_id: string; _user_id: string }
         Returns: boolean
@@ -34205,6 +34282,10 @@ export type Database = {
       cleanup_old_webrtc_signals: { Args: never; Returns: undefined }
       cleanup_stale_channel_participants: { Args: never; Returns: undefined }
       cleanup_stale_voice_participants: { Args: never; Returns: number }
+      clear_force_password_reset: {
+        Args: { p_target_user_id: string }
+        Returns: boolean
+      }
       cosine_similarity: { Args: { a: string; b: string }; Returns: number }
       create_user_session: {
         Args: {
@@ -34215,6 +34296,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      demote_from_super_admin: {
+        Args: { p_target_user_id: string }
+        Returns: boolean
       }
       detect_brute_force_attacks: { Args: never; Returns: number }
       detect_churn_risk: { Args: { p_user_id: string }; Returns: string }
@@ -34251,6 +34336,10 @@ export type Database = {
           fixed_name: string
           user_id: string
         }[]
+      }
+      force_user_password_reset: {
+        Args: { p_reason?: string; p_target_user_id: string }
+        Returns: boolean
       }
       generate_api_key: {
         Args: {
@@ -34557,6 +34646,7 @@ export type Database = {
       }
       is_pure_candidate: { Args: { check_user_id: string }; Returns: boolean }
       is_server_admin: { Args: { check_server_id: string }; Returns: boolean }
+      is_super_admin: { Args: { check_user_id?: string }; Returns: boolean }
       is_team_member: { Args: { check_user_id: string }; Returns: boolean }
       is_tqc_team_email_for_job: {
         Args: { check_email: string; check_job_id?: string }
@@ -34604,6 +34694,10 @@ export type Database = {
       }
       process_timesheet_approval: {
         Args: { p_action: string; p_comment?: string; p_timesheet_id: string }
+        Returns: boolean
+      }
+      promote_to_super_admin: {
+        Args: { p_target_user_id: string }
         Returns: boolean
       }
       queue_webhook_delivery: {
@@ -34722,6 +34816,10 @@ export type Database = {
         Args: { p_timesheet_id: string; p_user_notes?: string }
         Returns: boolean
       }
+      suspend_user: {
+        Args: { p_reason?: string; p_target_user_id: string }
+        Returns: boolean
+      }
       sync_existing_partner_domains: {
         Args: never
         Returns: {
@@ -34761,6 +34859,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      unban_user: { Args: { p_target_user_id: string }; Returns: boolean }
       unregister_listener: {
         Args: {
           p_ip_address?: string
@@ -34773,6 +34872,7 @@ export type Database = {
         Args: { p_reminder_id: string }
         Returns: undefined
       }
+      unsuspend_user: { Args: { p_target_user_id: string }; Returns: boolean }
       update_achievement_leaderboard_for_user: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -34819,6 +34919,12 @@ export type Database = {
       }
     }
     Enums: {
+      account_status_enum:
+        | "active"
+        | "suspended"
+        | "banned"
+        | "pending_review"
+        | "read_only"
       achievement_category:
         | "influence"
         | "innovation"
@@ -34837,6 +34943,7 @@ export type Database = {
         | "partner"
         | "company_admin"
         | "recruiter"
+        | "super_admin"
       application_source_enum:
         | "direct"
         | "club_sync"
@@ -35009,6 +35116,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_status_enum: [
+        "active",
+        "suspended",
+        "banned",
+        "pending_review",
+        "read_only",
+      ],
       achievement_category: [
         "influence",
         "innovation",
@@ -35028,6 +35142,7 @@ export const Constants = {
         "partner",
         "company_admin",
         "recruiter",
+        "super_admin",
       ],
       application_source_enum: [
         "direct",
