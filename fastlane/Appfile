@@ -1,0 +1,24 @@
+# Fastlane Appfile for The Quantum Club
+# https://docs.fastlane.tools/advanced/Appfile/
+
+# iOS Configuration
+app_identifier("app.lovable.ed1ccbeab8dd4007bcc4b3329d10bf67")
+apple_id("YOUR_APPLE_ID@email.com") # Your Apple Developer email
+
+# Team Configuration
+team_id("YOUR_TEAM_ID") # Your Apple Developer Team ID
+itc_team_id("YOUR_ITC_TEAM_ID") # App Store Connect Team ID (if different)
+
+# For multiple environments, use:
+# for_platform :ios do
+#   for_lane :beta do
+#     app_identifier "app.lovable.ed1ccbeab8dd4007bcc4b3329d10bf67.beta"
+#   end
+#   for_lane :release do
+#     app_identifier "app.lovable.ed1ccbeab8dd4007bcc4b3329d10bf67"
+#   end
+# end
+
+# Android Configuration (referenced in Fastfile)
+# json_key_file("path/to/your/google-play-service-account.json")
+# package_name("app.lovable.ed1ccbeab8dd4007bcc4b3329d10bf67")
