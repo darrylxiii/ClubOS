@@ -45,10 +45,12 @@ export function UnifiedMeetingSidebar({ activePanel, onClose, children, title }:
             "fixed right-0 top-0 bottom-0 w-[420px]",
             meetingBackdrop.dark,
             "border-l border-white/10",
-            `shadow-[${meetingShadows.xl}]`,
             "flex flex-col"
           )}
-          style={{ zIndex: meetingZIndex.panels + 1 }}
+          style={{ 
+            zIndex: meetingZIndex.panels + 1,
+            boxShadow: meetingShadows.xl 
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
