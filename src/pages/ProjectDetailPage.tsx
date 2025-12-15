@@ -51,16 +51,16 @@ export default function ProjectDetailPage() {
 
   const isFreelancer = userProfile?.open_to_freelance_work === true;
 
-  // Fetch project details
+  // Fetch project details from marketplace_projects
   const { data: project, isLoading } = useQuery({
     queryKey: ["project", projectId],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
-        .from("projects")
+        .from("marketplace_projects")
         .select(`
           *,
           company:companies(id, name, logo_url, description, website, size, industry),
-          posted_by:profiles!projects_posted_by_fkey(id, full_name, avatar_url, current_title)
+          posted_by:profiles!marketplace_projects_posted_by_fkey(id, full_name, avatar_url, current_title)
         `)
         .eq("id", projectId)
         .single();
@@ -70,14 +70,14 @@ export default function ProjectDetailPage() {
     },
   });
 
-  // Fetch similar projects
+  // Fetch similar projects from marketplace_projects
   const { data: similarProjects } = useQuery({
     queryKey: ["similar-projects", projectId, project?.category],
     queryFn: async () => {
       if (!project?.category) return [];
       
       const { data, error } = await (supabase as any)
-        .from("projects")
+        .from("marketplace_projects")
         .select("*")
         .eq("status", "open")
         .eq("visibility", "public")

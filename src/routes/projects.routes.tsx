@@ -13,6 +13,13 @@ const ContractDetailPage = lazy(() => import("@/pages/ContractDetailPage"));
 const ContractSignaturePage = lazy(() => import("@/pages/ContractSignaturePage"));
 const TimeTrackingPage = lazy(() => import("@/pages/TimeTrackingPage"));
 
+// New Club Projects pages
+const PostProjectPage = lazy(() => import("@/pages/PostProjectPage"));
+const FreelancerSetupPage = lazy(() => import("@/pages/FreelancerSetupPage"));
+const GigMarketplacePage = lazy(() => import("@/pages/GigMarketplacePage"));
+const ProjectProposalsPage = lazy(() => import("@/pages/ProjectProposalsPage"));
+const ProjectDisputesPage = lazy(() => import("@/pages/ProjectDisputesPage"));
+
 const PageLoader = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-background">
     <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
@@ -30,6 +37,66 @@ export const projectsRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <ProjectsPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/projects/new" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PostProjectPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/projects/freelancer/setup" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <FreelancerSetupPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/projects/gigs" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <GigMarketplacePage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/projects/proposals" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <ProjectProposalsPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/projects/disputes" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <ProjectDisputesPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
@@ -54,6 +121,18 @@ export const projectsRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <ProjectApplyPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/projects/:projectId/proposals" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <ProjectProposalsPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
