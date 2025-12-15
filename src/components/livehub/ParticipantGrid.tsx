@@ -1,8 +1,9 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Mic, MicOff, Volume2, Monitor, Video, VideoOff, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Volume2, Monitor, Video, VideoOff, Loader2, User } from 'lucide-react';
 import { SpeakingBadge } from '@/components/shared/AudioLevelIndicator';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Participant {
   id: string;
@@ -42,11 +43,42 @@ const ParticipantGrid = ({
   localStream,
   remoteStreams
 }: ParticipantGridProps) => {
+  const { user } = useAuth();
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const [videoStates, setVideoStates] = useState<Map<string, VideoState>>(new Map());
   const retryTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const mountedRef = useRef(true);
   const retryIntervalsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Ensure current user is ALWAYS in the participants list - fix for missing self-view
+  const allParticipants = useMemo(() => {
+    if (!currentUserId) return participants;
+    
+    const hasCurrentUser = participants.some(p => p.user_id === currentUserId);
+    
+    if (hasCurrentUser) {
+      return participants;
+    }
+    
+    // Current user not found in participants list - add synthetic entry
+    // This fixes the bug where user doesn't see their own card
+    console.log('[ParticipantGrid] Adding synthetic local participant - user not in DB list yet');
+    
+    const localParticipant: Participant = {
+      id: `local-${currentUserId}`,
+      user_id: currentUserId,
+      is_muted: false,
+      is_speaking: currentUserSpeaking || false,
+      is_video_on: channelType === 'video' && !!localStream?.getVideoTracks().length,
+      is_screen_sharing: false,
+      user: {
+        full_name: user?.user_metadata?.full_name || user?.email || 'You',
+        avatar_url: user?.user_metadata?.avatar_url || null
+      }
+    };
+    
+    return [localParticipant, ...participants];
+  }, [participants, currentUserId, currentUserSpeaking, channelType, localStream, user]);
 
   // Attach stream to video element immediately - don't wait for track verification
   const attachStreamImmediately = useCallback((videoEl: HTMLVideoElement, stream: MediaStream, participantId: string) => {
@@ -220,7 +252,7 @@ const ParticipantGrid = ({
   useEffect(() => {
     const cleanupFns: (() => void)[] = [];
 
-    participants.forEach(participant => {
+    allParticipants.forEach(participant => {
       // For video channels, check if participant wants video on
       const showVideo = participant.is_video_on && channelType === 'video';
       if (!showVideo) return;
@@ -260,7 +292,7 @@ const ParticipantGrid = ({
     return () => {
       cleanupFns.forEach(fn => fn());
     };
-  }, [localStream, remoteStreams, participants, currentUserId, channelType, attachStreamImmediately]);
+  }, [localStream, remoteStreams, allParticipants, currentUserId, channelType, attachStreamImmediately]);
 
   // Handle visibility change - retry video play on tab focus
   useEffect(() => {
@@ -294,7 +326,7 @@ const ParticipantGrid = ({
 
   // Clean up video states when participants change
   useEffect(() => {
-    const currentParticipantIds = new Set(participants.map(p => p.id));
+    const currentParticipantIds = new Set(allParticipants.map(p => p.id));
     setVideoStates(prev => {
       const newStates = new Map<string, VideoState>();
       prev.forEach((state, participantId) => {
@@ -307,7 +339,7 @@ const ParticipantGrid = ({
       }
       return prev;
     });
-  }, [participants]);
+  }, [allParticipants]);
 
   // Ref callback
   const setVideoRef = useCallback((participantId: string, el: HTMLVideoElement | null) => {
@@ -319,7 +351,7 @@ const ParticipantGrid = ({
   }, []);
 
   const getGridCols = () => {
-    const count = participants.length;
+    const count = allParticipants.length;
     if (count === 1) return 'grid-cols-1';
     if (count === 2) return 'grid-cols-2';
     if (count <= 4) return 'grid-cols-2';
@@ -367,7 +399,7 @@ const ParticipantGrid = ({
 
   return (
     <div className={`grid ${getGridCols()} gap-4 p-4`}>
-      {participants.map((participant) => {
+      {allParticipants.map((participant) => {
         const isCurrentUser = participant.user_id === currentUserId;
         const isSpeaking = isCurrentUser ? currentUserSpeaking : participant.is_speaking;
         const videoState = videoStates.get(participant.id);
