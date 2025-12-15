@@ -806,4 +806,16 @@ verify_jwt = true
 # =============================================================================
 [functions.bulk-send-emails]
 verify_jwt = true
+
+# =============================================================================
+# Club Projects - Connects System
+# =============================================================================
+[functions.purchase-connects]
+verify_jwt = true
+
+[functions.add-connects]
+verify_jwt = false
+
+[functions.deduct-connects]
+verify_jwt = true
 # =============================================================================
