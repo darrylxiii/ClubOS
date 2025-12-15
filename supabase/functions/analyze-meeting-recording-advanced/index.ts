@@ -75,11 +75,15 @@ serve(async (req) => {
     let companyName = '';
     
     if (recording.candidate_id) {
-      const { data: candidate } = await supabase
+      const { data: candidate, error: candidateError } = await supabase
         .from('candidate_profiles')
         .select('first_name, last_name')
         .eq('id', recording.candidate_id)
-        .single();
+        .maybeSingle();
+      
+      if (candidateError) {
+        console.error('Error fetching candidate for recording analysis:', candidateError);
+      }
       
       if (candidate) {
         candidateName = `${candidate.first_name} ${candidate.last_name}`.trim();
@@ -87,11 +91,15 @@ serve(async (req) => {
     }
     
     if (recording.job_id) {
-      const { data: job } = await supabase
+      const { data: job, error: jobError } = await supabase
         .from('jobs')
         .select('title, companies(name)')
         .eq('id', recording.job_id)
-        .single();
+        .maybeSingle();
+      
+      if (jobError) {
+        console.error('Error fetching job for recording analysis:', jobError);
+      }
       
       if (job && job.companies) {
         jobTitle = job.title;
