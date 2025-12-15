@@ -18,7 +18,10 @@ import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
 import { CalendarIntegrationSettings } from "@/components/settings/CalendarIntegrationSettings";
 import { ResumeUploadModal } from "@/components/candidate/ResumeUploadModal";
 import { useExchangeRates } from "@/hooks/useExchangeRates";
-import { FreelanceProjectsSettings } from "@/components/settings/FreelanceProjectsSettings";
+import { EnhancedFreelanceSettings } from "@/components/settings/freelance";
+import { TimeTrackingSettings } from "@/components/settings/TimeTrackingSettings";
+import { APIIntegrationSettings } from "@/components/settings/APIIntegrationSettings";
+import { CommunicationSettings } from "@/components/settings/CommunicationSettings";
 import { useTranslation } from 'react-i18next';
 
 const Settings = () => {
@@ -134,7 +137,7 @@ const Settings = () => {
     }
     
     const tabParam = urlParams.get('tab');
-    if (tabParam && ['profile', 'compensation', 'freelance', 'connections', 'calendar', 'notifications', 'privacy', 'security', 'preferences'].includes(tabParam)) {
+    if (tabParam && ['profile', 'compensation', 'freelance', 'connections', 'calendar', 'notifications', 'privacy', 'security', 'preferences', 'time-tracking', 'api', 'communication'].includes(tabParam)) {
       return tabParam;
     }
     const hash = location.hash.replace('#', '');
@@ -529,15 +532,18 @@ const Settings = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="compensation">Compensation</TabsTrigger>
             <TabsTrigger value="freelance">Freelance</TabsTrigger>
+            <TabsTrigger value="time-tracking">Time Tracking</TabsTrigger>
             <TabsTrigger value="connections">Connections</TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
+            <TabsTrigger value="communication">Communication</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="privacy">Privacy</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="api">API</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
           </TabsList>
 
@@ -598,11 +604,11 @@ const Settings = () => {
           </TabsContent>
 
           <TabsContent value="freelance" className="space-y-4">
-            <FreelanceProjectsSettings
-              userId={user?.id || ""}
-              profile={profile}
-              onSave={loadProfile}
-            />
+            <EnhancedFreelanceSettings />
+          </TabsContent>
+
+          <TabsContent value="time-tracking" className="space-y-4">
+            <TimeTrackingSettings />
           </TabsContent>
 
           <TabsContent value="connections" className="space-y-4">
@@ -617,6 +623,10 @@ const Settings = () => {
 
           <TabsContent value="calendar" className="space-y-4">
             <CalendarIntegrationSettings />
+          </TabsContent>
+
+          <TabsContent value="communication" className="space-y-4">
+            <CommunicationSettings />
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-4">
@@ -660,6 +670,10 @@ const Settings = () => {
                 </Button>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="api" className="space-y-4">
+            <APIIntegrationSettings />
           </TabsContent>
 
           <TabsContent value="preferences" className="space-y-4">
