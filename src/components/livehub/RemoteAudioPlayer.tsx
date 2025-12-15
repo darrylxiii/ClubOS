@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import { audioUnlock } from '@/hooks/useAudioUnlock';
 
 interface RemoteAudioPlayerProps {
   userId: string;
@@ -22,6 +23,9 @@ const getSharedAudioContext = async (): Promise<AudioContext> => {
       latency: sharedAudioContext.baseLatency,
       sampleRate: sharedAudioContext.sampleRate
     });
+    
+    // Register with global audio unlock
+    audioUnlock.registerAudioContext(sharedAudioContext);
   }
   
   if (sharedAudioContext.state === 'suspended') {
@@ -57,18 +61,33 @@ export function RemoteAudioPlayer({
   const [hasSetup, setHasSetup] = useState(false);
   const streamIdRef = useRef<string | null>(null);
   const retryCountRef = useRef(0);
-  const maxRetries = 5;
+  const maxRetries = 10; // Increased retries
+  const retryIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   // Audio level monitoring interval
   const levelMonitorRef = useRef<number | null>(null);
+  
+  // Cleanup unregister function
+  const unregisterRef = useRef<(() => void) | null>(null);
 
   // Create audio element on mount
   useEffect(() => {
     const audio = new Audio();
     audio.autoplay = true;
+    (audio as any).playsInline = true; // playsInline is not in HTMLAudioElement types but works
+    audio.muted = false; // Important: not muted
     audioRef.current = audio;
     
+    // Register with global audio unlock system
+    unregisterRef.current = audioUnlock.registerAudioElement(audio);
+    
     return () => {
+      if (retryIntervalRef.current) {
+        clearInterval(retryIntervalRef.current);
+      }
+      if (unregisterRef.current) {
+        unregisterRef.current();
+      }
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.srcObject = null;
@@ -114,6 +133,30 @@ export function RemoteAudioPlayer({
     audioContextUsedRef.current = null;
   }, []);
 
+  // Aggressive play attempt with retries
+  const attemptPlay = useCallback(async (audio: HTMLAudioElement): Promise<boolean> => {
+    try {
+      // Force enable all audio tracks
+      const audioTracks = (audio.srcObject as MediaStream)?.getAudioTracks() || [];
+      audioTracks.forEach(track => {
+        if (!track.enabled) {
+          console.log(`[RemoteAudio] Force-enabling audio track for ${userId}`);
+          track.enabled = true;
+        }
+      });
+      
+      // Ensure not muted
+      audio.muted = false;
+      audio.volume = isDeafened ? 0 : volume;
+      
+      await audio.play();
+      return true;
+    } catch (e: any) {
+      console.warn(`[RemoteAudio] Play attempt failed for ${userId}:`, e.message);
+      return false;
+    }
+  }, [userId, volume, isDeafened]);
+
   // Setup audio playback with fallback strategy
   const setupAudioPlayback = useCallback(async () => {
     if (!stream || !audioRef.current) {
@@ -128,8 +171,8 @@ export function RemoteAudioPlayer({
     }
 
     // Check if this is the same stream we already setup
-    if (streamIdRef.current === stream.id && hasSetup) {
-      console.log(`[RemoteAudio] Already setup for stream ${stream.id}`);
+    if (streamIdRef.current === stream.id && hasSetup && isPlaying) {
+      console.log(`[RemoteAudio] Already playing stream ${stream.id}`);
       return;
     }
 
@@ -137,45 +180,76 @@ export function RemoteAudioPlayer({
       streamId: stream.id,
       audioTracks: audioTracks.length,
       trackLabels: audioTracks.map(t => t.label),
-      trackStates: audioTracks.map(t => ({ enabled: t.enabled, readyState: t.readyState }))
+      trackStates: audioTracks.map(t => ({ enabled: t.enabled, readyState: t.readyState, muted: t.muted }))
     });
 
     // Cleanup previous setup
     cleanupAudioNodes();
+    if (retryIntervalRef.current) {
+      clearInterval(retryIntervalRef.current);
+      retryIntervalRef.current = null;
+    }
+    
     streamIdRef.current = stream.id;
+    retryCountRef.current = 0;
+
+    // CRITICAL: Force enable all audio tracks immediately
+    audioTracks.forEach(track => {
+      track.enabled = true;
+      console.log(`[RemoteAudio] Enabled audio track: ${track.label}, muted: ${track.muted}`);
+    });
 
     try {
       // STRATEGY 1: HTML Audio Element (most compatible - PRIMARY)
       const audio = audioRef.current;
       audio.srcObject = stream;
       audio.volume = isDeafened ? 0 : volume;
-      
-      // Enable audio tracks
-      audioTracks.forEach(track => {
-        if (!track.enabled) {
-          console.log(`[RemoteAudio] Enabling audio track for ${userId}`);
-          track.enabled = true;
-        }
-      });
+      audio.muted = false;
 
-      // Try to play
-      try {
-        await audio.play();
+      // Try to play immediately
+      const playSuccess = await attemptPlay(audio);
+      
+      if (playSuccess) {
         setIsPlaying(true);
         setHasSetup(true);
-        retryCountRef.current = 0;
         console.log(`[RemoteAudio] HTML Audio playing for ${userId}`);
-      } catch (playError: any) {
-        console.warn(`[RemoteAudio] HTML Audio play failed for ${userId}:`, playError.message);
+      } else {
+        // Set up aggressive retry interval
+        console.log(`[RemoteAudio] Setting up retry interval for ${userId}`);
         
-        if (playError.name === 'NotAllowedError') {
-          if (retryCountRef.current === 0) {
-            toast.info('Click anywhere to enable audio from other participants', {
+        retryIntervalRef.current = setInterval(async () => {
+          if (!audioRef.current || isPlaying) {
+            if (retryIntervalRef.current) {
+              clearInterval(retryIntervalRef.current);
+              retryIntervalRef.current = null;
+            }
+            return;
+          }
+          
+          retryCountRef.current++;
+          console.log(`[RemoteAudio] Retry ${retryCountRef.current}/${maxRetries} for ${userId}`);
+          
+          const success = await attemptPlay(audioRef.current);
+          if (success) {
+            setIsPlaying(true);
+            setHasSetup(true);
+            if (retryIntervalRef.current) {
+              clearInterval(retryIntervalRef.current);
+              retryIntervalRef.current = null;
+            }
+            console.log(`[RemoteAudio] Successfully playing after retry for ${userId}`);
+          } else if (retryCountRef.current >= maxRetries) {
+            if (retryIntervalRef.current) {
+              clearInterval(retryIntervalRef.current);
+              retryIntervalRef.current = null;
+            }
+            console.warn(`[RemoteAudio] Max retries reached for ${userId}`);
+            toast.error('Click anywhere to enable audio', {
               id: 'audio-autoplay-blocked',
-              duration: 5000,
+              duration: 10000,
             });
           }
-        }
+        }, 500);
       }
 
       // STRATEGY 2: AudioContext for gain control and monitoring (supplementary)
@@ -213,9 +287,13 @@ export function RemoteAudioPlayer({
             const normalizedLevel = Math.min(average / 128, 1);
             onAudioLevelChange(normalizedLevel);
             
-            // Log if audio is detected
+            // Log if audio is detected but not playing
             if (normalizedLevel > 0.05 && !isPlaying) {
-              console.log(`[RemoteAudio] Audio detected for ${userId}, level: ${normalizedLevel.toFixed(2)}`);
+              console.log(`[RemoteAudio] Audio detected for ${userId}, level: ${normalizedLevel.toFixed(2)}, but not playing!`);
+              // Try to force play again
+              if (audioRef.current && audioRef.current.paused) {
+                audioRef.current.play().catch(() => {});
+              }
             }
           }, 100);
         }
@@ -228,15 +306,8 @@ export function RemoteAudioPlayer({
 
     } catch (err: any) {
       console.error(`[RemoteAudio] Error setting up audio for ${userId}:`, err);
-      
-      if (retryCountRef.current < maxRetries) {
-        retryCountRef.current++;
-        const delay = 500 * retryCountRef.current;
-        console.log(`[RemoteAudio] Retrying in ${delay}ms (attempt ${retryCountRef.current})`);
-        setTimeout(() => setupAudioPlayback(), delay);
-      }
     }
-  }, [stream, userId, volume, isDeafened, cleanupAudioNodes, hasSetup, onAudioLevelChange, isPlaying]);
+  }, [stream, userId, volume, isDeafened, cleanupAudioNodes, hasSetup, onAudioLevelChange, isPlaying, attemptPlay]);
 
   // Setup audio when stream changes
   useEffect(() => {
@@ -251,6 +322,7 @@ export function RemoteAudioPlayer({
     // Reset setup state for new stream
     if (streamIdRef.current !== stream.id) {
       setHasSetup(false);
+      setIsPlaying(false);
       streamIdRef.current = null;
     }
 
@@ -268,6 +340,10 @@ export function RemoteAudioPlayer({
 
     const handleTrackUnmute = () => {
       console.log(`[RemoteAudio] Audio track unmuted for ${userId}`);
+      // Try to play when track unmutes
+      if (audioRef.current && audioRef.current.paused) {
+        audioRef.current.play().catch(() => {});
+      }
     };
 
     audioTracks.forEach(track => {
@@ -307,11 +383,12 @@ export function RemoteAudioPlayer({
     }
   }, [volume, isDeafened]);
 
-  // Handle user interaction to enable audio
+  // Handle user interaction to enable audio - PERSISTENT listener
   useEffect(() => {
     const handleUserInteraction = async () => {
       if (!isPlaying && audioRef.current && stream) {
         try {
+          audioRef.current.muted = false;
           await audioRef.current.play();
           setIsPlaying(true);
           console.log(`[RemoteAudio] Started playing after user interaction for ${userId}`);
@@ -330,11 +407,16 @@ export function RemoteAudioPlayer({
       }
     };
 
-    document.addEventListener('click', handleUserInteraction, { once: true });
-    document.addEventListener('keydown', handleUserInteraction, { once: true });
+    // Keep listeners active until audio is playing
+    if (!isPlaying) {
+      document.addEventListener('click', handleUserInteraction);
+      document.addEventListener('touchstart', handleUserInteraction);
+      document.addEventListener('keydown', handleUserInteraction);
+    }
 
     return () => {
       document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
       document.removeEventListener('keydown', handleUserInteraction);
     };
   }, [isPlaying, stream, userId]);

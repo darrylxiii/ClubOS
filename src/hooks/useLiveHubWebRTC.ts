@@ -134,12 +134,8 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     console.log(`[WebRTC] Updating ${type} tracks for all peers, track count:`, stream.getTracks().length);
 
     for (const [userId, peer] of peersRef.current.entries()) {
-      // Skip if peer is busy with an offer
-      if (peer.offerLock || peer.makingOffer) {
-        console.log(`[WebRTC] Skipping track update for ${userId} - offer in progress`);
-        continue;
-      }
-
+      // CRITICAL FIX: Don't skip track updates even if offer is in progress
+      // Queue tracks to be added after current negotiation completes
       const senders = peer.connection.getSenders();
       let addedNewTrack = false;
 
@@ -154,6 +150,12 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
           } catch (e) {
             console.error(`[WebRTC] Error adding ${type} track:`, e);
           }
+        } else {
+          // Track exists, make sure it's enabled
+          if (existingSender.track && !existingSender.track.enabled) {
+            existingSender.track.enabled = true;
+            console.log(`[WebRTC] Re-enabled ${track.kind} track for ${userId}`);
+          }
         }
       }
 
@@ -163,25 +165,38 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
         type
       });
 
-      // Force renegotiation with proper locking if we added new tracks
-      if (addedNewTrack && peer.connection.signalingState === 'stable' && !peer.isPolite) {
+      // Force renegotiation if we added new tracks and signaling is stable
+      if (addedNewTrack && peer.connection.signalingState === 'stable') {
         console.log(`[WebRTC] Forcing renegotiation for ${userId} after adding tracks`);
 
-        // Use locking
-        if (!peer.offerLock && !peer.makingOffer) {
+        // Short delay to let all tracks settle
+        setTimeout(async () => {
+          // Double-check state before creating offer
+          if (peer.connection.signalingState !== 'stable' || peer.offerLock || peer.makingOffer) {
+            console.log(`[WebRTC] Skipping renegotiation - not ready for ${userId}`);
+            return;
+          }
+
+          // Only initiator (higher user ID) creates offers
+          if (user!.id <= userId) {
+            console.log(`[WebRTC] Skipping renegotiation - not initiator for ${userId}`);
+            return;
+          }
+
           peer.offerLock = true;
           peer.makingOffer = true;
           try {
             const offer = await peer.connection.createOffer();
             await peer.connection.setLocalDescription(offer);
             await sendSignal('offer', userId, peer.connection.localDescription);
+            console.log(`[WebRTC] Renegotiation offer sent to ${userId}`);
           } catch (err) {
             console.error('[WebRTC] Renegotiation error:', err);
           } finally {
             peer.offerLock = false;
             peer.makingOffer = false;
           }
-        }
+        }, 200);
       }
     }
   };

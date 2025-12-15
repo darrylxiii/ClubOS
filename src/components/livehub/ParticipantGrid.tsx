@@ -46,117 +46,61 @@ const ParticipantGrid = ({
   const [videoStates, setVideoStates] = useState<Map<string, VideoState>>(new Map());
   const retryTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const mountedRef = useRef(true);
+  const retryIntervalsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
-  // Helper to verify video tracks in a stream
-  const verifyVideoTracks = useCallback((stream: MediaStream | null, participantId: string): boolean => {
-    if (!stream) {
-      console.log('[Video] No stream for', participantId);
-      return false;
+  // Attach stream to video element immediately - don't wait for track verification
+  const attachStreamImmediately = useCallback((videoEl: HTMLVideoElement, stream: MediaStream, participantId: string) => {
+    // Clear any existing retry
+    const existingRetry = retryIntervalsRef.current.get(participantId);
+    if (existingRetry) {
+      clearInterval(existingRetry);
+      retryIntervalsRef.current.delete(participantId);
     }
 
-    const videoTracks = stream.getVideoTracks();
-    if (videoTracks.length === 0) {
-      console.warn('[Video] Stream has no video tracks', { participantId, streamId: stream.id });
-      return false;
-    }
-
-    // Accept tracks that are either live, or muted but will unmute
-    const activeTrack = videoTracks.find(t => t.enabled && (t.readyState === 'live' || t.muted));
-    if (!activeTrack) {
-      console.warn('[Video] No active video track', { 
-        participantId, 
-        tracks: videoTracks.map(t => ({ label: t.label, enabled: t.enabled, readyState: t.readyState, muted: t.muted }))
-      });
-      return false;
-    }
-
-    console.log('[Video] Valid video track found', { 
+    console.log('[Video] Attaching stream immediately', { 
       participantId, 
-      trackLabel: activeTrack.label,
-      muted: activeTrack.muted,
-      settings: activeTrack.getSettings?.()
+      streamId: stream.id,
+      videoTracks: stream.getVideoTracks().length,
+      trackStates: stream.getVideoTracks().map(t => ({
+        label: t.label,
+        enabled: t.enabled,
+        readyState: t.readyState,
+        muted: t.muted
+      }))
     });
-    return true;
-  }, []);
 
-  // Attach stream to video element with verification and retry
-  const attachStream = useCallback((videoEl: HTMLVideoElement, stream: MediaStream, participantId: string) => {
-    // Clear any existing retry timeout
-    const existingTimeout = retryTimeoutsRef.current.get(participantId);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
-      retryTimeoutsRef.current.delete(participantId);
-    }
-
-    // Verify tracks first
-    if (!verifyVideoTracks(stream, participantId)) {
-      if (mountedRef.current) {
-        setVideoStates(prev => new Map(prev).set(participantId, 'no-tracks'));
-      }
-      
-      // Set up listener for when tracks are added to the stream
-      const handleTrackAdded = (event: MediaStreamTrackEvent) => {
-        console.log('[Video] Track added to stream via event:', { 
-          participantId, 
-          trackKind: event.track.kind,
-          trackLabel: event.track.label 
-        });
-        if (event.track.kind === 'video') {
-          // Re-attempt attachment when video track is added
-          attachStream(videoEl, stream, participantId);
-        }
-      };
-      
-      stream.addEventListener('addtrack', handleTrackAdded);
-      
-      // Also retry on interval - more aggressive retry for instant video
-      let retryCount = 0;
-      const maxRetries = 20; // 10 seconds of retries
-      const retryInterval = setInterval(() => {
-        retryCount++;
-        if (verifyVideoTracks(stream, participantId)) {
-          clearInterval(retryInterval);
-          stream.removeEventListener('addtrack', handleTrackAdded);
-          attachStream(videoEl, stream, participantId);
-        } else if (retryCount >= maxRetries) {
-          clearInterval(retryInterval);
-          stream.removeEventListener('addtrack', handleTrackAdded);
-          console.warn('[Video] Max retries reached for', participantId);
-        }
-      }, 500);
-      
-      // Store cleanup function
-      const cleanup = () => {
-        clearInterval(retryInterval);
-        stream.removeEventListener('addtrack', handleTrackAdded);
-      };
-      retryTimeoutsRef.current.set(participantId, cleanup as any);
-      
-      return;
-    }
-
-    // Check if already attached to same stream with same tracks
-    if (videoEl.srcObject === stream) {
-      // Stream is same but check if tracks have changed
-      const currentVideoTracks = stream.getVideoTracks();
-      if (currentVideoTracks.length > 0 && currentVideoTracks[0].readyState === 'live') {
-        // Already attached and working - just update state
-        if (mountedRef.current) {
-          setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
-        }
-        return;
-      }
-    }
-
-    console.log('[Video] Attaching stream', { participantId, streamId: stream.id });
+    // Set loading state
     if (mountedRef.current) {
       setVideoStates(prev => new Map(prev).set(participantId, 'loading'));
     }
 
+    // Attach stream immediately
     videoEl.srcObject = stream;
+    
+    // Force enable all video tracks
+    stream.getVideoTracks().forEach(track => {
+      if (!track.enabled) {
+        console.log('[Video] Force-enabling video track:', track.label);
+        track.enabled = true;
+      }
+    });
 
-    // Handle metadata loaded
-    videoEl.onloadedmetadata = () => {
+    // Handle when video can play
+    const handleCanPlay = () => {
+      console.log('[Video] Can play', { participantId });
+      if (mountedRef.current) {
+        setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
+      }
+    };
+
+    const handleLoadedData = () => {
+      console.log('[Video] Loaded data', { participantId });
+      if (mountedRef.current) {
+        setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
+      }
+    };
+
+    const handleLoadedMetadata = () => {
       console.log('[Video] Metadata loaded', { 
         participantId, 
         width: videoEl.videoWidth, 
@@ -164,16 +108,14 @@ const ParticipantGrid = ({
       });
     };
 
-    // Handle when video can play
-    videoEl.oncanplay = () => {
-      console.log('[Video] Can play', { participantId });
-    };
+    videoEl.onloadedmetadata = handleLoadedMetadata;
+    videoEl.oncanplay = handleCanPlay;
+    videoEl.onloadeddata = handleLoadedData;
 
     // Listen for track unmute (important for WebRTC tracks that start muted)
-    const videoTracks = stream.getVideoTracks();
-    videoTracks.forEach(track => {
+    stream.getVideoTracks().forEach(track => {
       track.onunmute = () => {
-        console.log('[Video] Track unmuted, attempting play:', { participantId, trackLabel: track.label });
+        console.log('[Video] Track unmuted:', { participantId, trackLabel: track.label });
         videoEl.play().catch(() => {});
         if (mountedRef.current) {
           setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
@@ -191,34 +133,97 @@ const ParticipantGrid = ({
       });
     }
 
-    // Play and handle result
-    videoEl.play()
-      .then(() => {
+    // Aggressive play attempt with multiple retries
+    const attemptPlay = async () => {
+      try {
+        await videoEl.play();
         console.log('[Video] Playing successfully', { participantId });
         if (mountedRef.current) {
           setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
         }
-      })
-      .catch(err => {
-        console.error('[Video] Play failed:', { participantId, error: err.message });
-        if (mountedRef.current) {
-          setVideoStates(prev => new Map(prev).set(participantId, 'error'));
-        }
+        return true;
+      } catch (err: any) {
+        console.warn('[Video] Play failed:', { participantId, error: err.message });
+        return false;
+      }
+    };
+
+    // Try immediately
+    attemptPlay().then(success => {
+      if (!success) {
+        // Set up retry interval
+        let retryCount = 0;
+        const maxRetries = 20;
         
-        // Retry on autoplay errors
-        if (err.name === 'NotAllowedError') {
-          const timeout = setTimeout(() => {
-            videoEl.play().catch(() => {});
-          }, 500);
-          retryTimeoutsRef.current.set(participantId, timeout as any);
-        }
+        const interval = setInterval(async () => {
+          retryCount++;
+          
+          // Check if we have video tracks now
+          const videoTracks = stream.getVideoTracks();
+          if (videoTracks.length === 0) {
+            console.log('[Video] Still waiting for video tracks...', { participantId, retryCount });
+            if (retryCount >= maxRetries) {
+              clearInterval(interval);
+              retryIntervalsRef.current.delete(participantId);
+              if (mountedRef.current) {
+                setVideoStates(prev => new Map(prev).set(participantId, 'no-tracks'));
+              }
+            }
+            return;
+          }
+
+          // Force enable tracks
+          videoTracks.forEach(t => { t.enabled = true; });
+
+          const playSuccess = await attemptPlay();
+          if (playSuccess) {
+            clearInterval(interval);
+            retryIntervalsRef.current.delete(participantId);
+          } else if (retryCount >= maxRetries) {
+            clearInterval(interval);
+            retryIntervalsRef.current.delete(participantId);
+            if (mountedRef.current) {
+              setVideoStates(prev => new Map(prev).set(participantId, 'error'));
+            }
+          }
+        }, 300); // More aggressive retry - every 300ms
+
+        retryIntervalsRef.current.set(participantId, interval);
+      }
+    });
+
+    // Listen for new tracks being added to the stream
+    const handleTrackAdded = (event: MediaStreamTrackEvent) => {
+      console.log('[Video] Track added to stream:', { 
+        participantId, 
+        trackKind: event.track.kind,
+        trackLabel: event.track.label 
       });
-  }, [verifyVideoTracks]);
+      if (event.track.kind === 'video') {
+        event.track.enabled = true;
+        videoEl.play().catch(() => {});
+      }
+    };
+    
+    stream.addEventListener('addtrack', handleTrackAdded);
+
+    // Return cleanup
+    return () => {
+      stream.removeEventListener('addtrack', handleTrackAdded);
+      videoEl.onloadedmetadata = null;
+      videoEl.oncanplay = null;
+      videoEl.onloadeddata = null;
+    };
+  }, []);
 
   // Effect to handle stream changes
   useEffect(() => {
+    const cleanupFns: (() => void)[] = [];
+
     participants.forEach(participant => {
-      if (!participant.is_video_on || channelType !== 'video') return;
+      // For video channels, check if participant wants video on
+      const showVideo = participant.is_video_on && channelType === 'video';
+      if (!showVideo) return;
 
       const videoEl = videoRefs.current.get(participant.id);
       if (!videoEl) return;
@@ -226,6 +231,7 @@ const ParticipantGrid = ({
       let streamToAttach: MediaStream | null = null;
 
       if (participant.user_id === currentUserId) {
+        // For current user, use localStream directly
         streamToAttach = localStream || null;
       } else if (remoteStreams) {
         const streams = remoteStreams.get(participant.user_id);
@@ -233,14 +239,14 @@ const ParticipantGrid = ({
       }
 
       if (streamToAttach) {
-        attachStream(videoEl, streamToAttach, participant.id);
+        const cleanup = attachStreamImmediately(videoEl, streamToAttach, participant.id);
+        if (cleanup) cleanupFns.push(cleanup);
       } else {
         // No stream yet, set loading state
         if (mountedRef.current) {
           setVideoStates(prev => new Map(prev).set(participant.id, 'loading'));
         }
         
-        // Log for debugging
         console.log('[Video] Waiting for stream', { 
           participantId: participant.id, 
           userId: participant.user_id,
@@ -250,7 +256,11 @@ const ParticipantGrid = ({
         });
       }
     });
-  }, [localStream, remoteStreams, participants, currentUserId, channelType, attachStream]);
+
+    return () => {
+      cleanupFns.forEach(fn => fn());
+    };
+  }, [localStream, remoteStreams, participants, currentUserId, channelType, attachStreamImmediately]);
 
   // Handle visibility change - retry video play on tab focus
   useEffect(() => {
@@ -270,13 +280,15 @@ const ParticipantGrid = ({
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [videoStates]);
 
-  // Cleanup retry timeouts and mark unmounted
+  // Cleanup on unmount
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       retryTimeoutsRef.current.forEach(timeout => clearTimeout(timeout));
       retryTimeoutsRef.current.clear();
+      retryIntervalsRef.current.forEach(interval => clearInterval(interval));
+      retryIntervalsRef.current.clear();
     };
   }, []);
 
@@ -290,7 +302,6 @@ const ParticipantGrid = ({
           newStates.set(participantId, state);
         }
       });
-      // Only update if something was actually removed
       if (newStates.size !== prev.size) {
         return newStates;
       }
@@ -298,7 +309,7 @@ const ParticipantGrid = ({
     });
   }, [participants]);
 
-  // Ref callback - NO STATE UPDATES HERE to prevent infinite loops
+  // Ref callback
   const setVideoRef = useCallback((participantId: string, el: HTMLVideoElement | null) => {
     if (el) {
       videoRefs.current.set(participantId, el);
@@ -416,6 +427,7 @@ const ParticipantGrid = ({
             <div className="absolute bottom-2 left-2 right-2 bg-card/50 backdrop-blur-md rounded-lg px-3 py-1.5 flex items-center justify-between border border-border/20">
               <span className="text-sm font-medium truncate">
                 {participant.user?.full_name || 'Unknown User'}
+                {isCurrentUser && ' (You)'}
               </span>
               <div className="flex items-center gap-1">
                 {participant.is_screen_sharing && (
