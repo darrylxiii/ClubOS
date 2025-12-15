@@ -17,11 +17,15 @@ export function generateOAuthState(): string {
   crypto.getRandomValues(array);
   const state = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   
-  // Store state and expiry in sessionStorage
-  sessionStorage.setItem(OAUTH_STATE_KEY, state);
-  sessionStorage.setItem(OAUTH_STATE_EXPIRY_KEY, String(Date.now() + STATE_EXPIRY_MS));
+  // Store state and expiry in localStorage (survives redirects better than sessionStorage)
+  try {
+    localStorage.setItem(OAUTH_STATE_KEY, state);
+    localStorage.setItem(OAUTH_STATE_EXPIRY_KEY, String(Date.now() + STATE_EXPIRY_MS));
+    console.log('[OAuth CSRF] State generated and stored in localStorage');
+  } catch (e) {
+    console.warn('[OAuth CSRF] Failed to store state in localStorage:', e);
+  }
   
-  console.log('[OAuth CSRF] State generated and stored');
   return state;
 }
 
@@ -34,15 +38,14 @@ export function validateOAuthState(returnedState: string | null): boolean {
     return false;
   }
 
-  const storedState = sessionStorage.getItem(OAUTH_STATE_KEY);
-  const expiryStr = sessionStorage.getItem(OAUTH_STATE_EXPIRY_KEY);
+  const storedState = localStorage.getItem(OAUTH_STATE_KEY);
+  const expiryStr = localStorage.getItem(OAUTH_STATE_EXPIRY_KEY);
   
-  // Clean up stored state
-  sessionStorage.removeItem(OAUTH_STATE_KEY);
-  sessionStorage.removeItem(OAUTH_STATE_EXPIRY_KEY);
+  // Clean up stored state immediately
+  clearOAuthState();
 
   if (!storedState) {
-    console.warn('[OAuth CSRF] No stored state found');
+    console.warn('[OAuth CSRF] No stored state found in localStorage');
     return false;
   }
 
@@ -53,7 +56,7 @@ export function validateOAuthState(returnedState: string | null): boolean {
 
   // Constant-time comparison to prevent timing attacks
   if (!constantTimeCompare(storedState, returnedState)) {
-    console.error('[OAuth CSRF] State mismatch - possible CSRF attack');
+    console.warn('[OAuth CSRF] State mismatch');
     return false;
   }
 
@@ -65,8 +68,12 @@ export function validateOAuthState(returnedState: string | null): boolean {
  * Clear any stored OAuth state (for cleanup)
  */
 export function clearOAuthState(): void {
-  sessionStorage.removeItem(OAUTH_STATE_KEY);
-  sessionStorage.removeItem(OAUTH_STATE_EXPIRY_KEY);
+  try {
+    localStorage.removeItem(OAUTH_STATE_KEY);
+    localStorage.removeItem(OAUTH_STATE_EXPIRY_KEY);
+  } catch (e) {
+    console.warn('[OAuth CSRF] Failed to clear state from localStorage:', e);
+  }
 }
 
 /**
@@ -89,12 +96,16 @@ function constantTimeCompare(a: string, b: string): boolean {
  * Check if there's a pending OAuth flow
  */
 export function hasPendingOAuthFlow(): boolean {
-  const storedState = sessionStorage.getItem(OAUTH_STATE_KEY);
-  const expiryStr = sessionStorage.getItem(OAUTH_STATE_EXPIRY_KEY);
-  
-  if (!storedState || !expiryStr) {
+  try {
+    const storedState = localStorage.getItem(OAUTH_STATE_KEY);
+    const expiryStr = localStorage.getItem(OAUTH_STATE_EXPIRY_KEY);
+    
+    if (!storedState || !expiryStr) {
+      return false;
+    }
+    
+    return Date.now() <= parseInt(expiryStr, 10);
+  } catch (e) {
     return false;
   }
-  
-  return Date.now() <= parseInt(expiryStr, 10);
 }
