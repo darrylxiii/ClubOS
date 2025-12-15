@@ -24,6 +24,8 @@ import {
   Pencil,
   ListTodo,
   Eye,
+  Euro,
+  TrendingUp,
 } from 'lucide-react';
 import type { CRMProspect } from '@/types/crm-enterprise';
 import { formatDistanceToNow } from 'date-fns';
@@ -32,6 +34,7 @@ import { NextActivityBadge } from './NextActivityBadge';
 import { ProspectActionsMenu } from './ProspectActionsMenu';
 import { CompanyEnrichButton } from './CompanyEnrichButton';
 import { CreatePilotTaskButton } from './CreatePilotTaskButton';
+import { useStageProbabilities, formatCurrencyCompact } from '@/hooks/useCRMPipelineMetrics';
 
 interface EnhancedProspectCardProps {
   prospect: CRMProspect;
@@ -79,7 +82,13 @@ export function EnhancedProspectCard({
   onConvertToPartner
 }: EnhancedProspectCardProps) {
   const [showActions, setShowActions] = useState(false);
-
+  const { data: stageProbabilities } = useStageProbabilities();
+  
+  // Calculate weighted value based on stage probability
+  const stageProb = stageProbabilities?.[prospect.stage];
+  const probability = stageProb?.probability_weight || 10;
+  const annualValue = (prospect as any).estimated_annual_value || prospect.deal_value || 0;
+  const weightedValue = annualValue * (probability / 100);
   const {
     attributes,
     listeners,
@@ -231,13 +240,40 @@ export function EnhancedProspectCard({
           </div>
         )}
 
-        {/* Deal Value & Sentiment */}
-        <div className="flex items-center gap-2 mb-2">
-          {prospect.deal_value && (
-            <Badge variant="outline" className="text-xs bg-green-500/10 text-green-400 border-green-500/30">
-              <DollarSign className="w-3 h-3 mr-0.5" />
-              {prospect.deal_value.toLocaleString()}
-            </Badge>
+        {/* Deal Value, Weighted Value & Sentiment */}
+        <div className="flex flex-wrap items-center gap-1.5 mb-2">
+          {annualValue > 0 && (
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge variant="outline" className="text-xs bg-green-500/10 text-green-400 border-green-500/30">
+                  <Euro className="w-3 h-3 mr-0.5" />
+                  {formatCurrencyCompact(annualValue)}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <div className="text-xs">
+                  <div>Annual Value: {formatCurrencyCompact(annualValue)}</div>
+                  <div className="text-muted-foreground">Estimated yearly revenue potential</div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {weightedValue > 0 && (
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-400 border-purple-500/30">
+                  <TrendingUp className="w-3 h-3 mr-0.5" />
+                  {formatCurrencyCompact(weightedValue)}
+                  <span className="ml-0.5 opacity-70">({probability}%)</span>
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <div className="text-xs">
+                  <div>Weighted Value: {formatCurrencyCompact(weightedValue)}</div>
+                  <div className="text-muted-foreground">Based on {probability}% stage probability</div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
           )}
           {prospect.reply_sentiment && prospect.reply_sentiment !== 'neutral' && (
             <Badge

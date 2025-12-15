@@ -2,8 +2,11 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProspectCard } from './ProspectCard';
+import { TrendingUp } from 'lucide-react';
 import type { CRMProspect, ProspectStage } from '@/types/crm-enterprise';
+import { useStageProbabilities, formatCurrencyCompact } from '@/hooks/useCRMPipelineMetrics';
 
 interface StageConfig {
   value: ProspectStage;
@@ -33,8 +36,17 @@ export function ProspectKanbanColumn({ stage, prospects }: ProspectKanbanColumnP
   const { setNodeRef, isOver } = useDroppable({
     id: stage.value,
   });
+  const { data: stageProbabilities } = useStageProbabilities();
 
   const colorClass = stageColorMap[stage.color] || stageColorMap.gray;
+  
+  // Get probability for this stage
+  const stageProb = stageProbabilities?.[stage.value];
+  const probability = stageProb?.probability_weight || 10;
+
+  // Calculate total and weighted values for this stage
+  const totalValue = prospects.reduce((sum, p) => sum + ((p as any).estimated_annual_value || p.deal_value || 0), 0);
+  const weightedValue = totalValue * (probability / 100);
 
   return (
     <motion.div
@@ -47,10 +59,33 @@ export function ProspectKanbanColumn({ stage, prospects }: ProspectKanbanColumnP
         "flex items-center justify-between px-3 py-2 rounded-lg mb-3 border",
         colorClass
       )}>
-        <span className="font-medium text-sm">{stage.label}</span>
-        <span className="text-xs font-bold bg-background/30 px-2 py-0.5 rounded-full">
-          {prospects.length}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-sm">{stage.label}</span>
+          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400">
+            {probability}%
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {weightedValue > 0 && (
+            <Tooltip>
+              <TooltipTrigger>
+                <span className="text-[10px] text-green-400 font-medium flex items-center gap-0.5">
+                  <TrendingUp className="w-3 h-3" />
+                  {formatCurrencyCompact(weightedValue)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <div className="text-xs">
+                  <div>Total: {formatCurrencyCompact(totalValue)}</div>
+                  <div className="text-muted-foreground">Weighted: {formatCurrencyCompact(weightedValue)}</div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          <span className="text-xs font-bold bg-background/30 px-2 py-0.5 rounded-full">
+            {prospects.length}
+          </span>
+        </div>
       </div>
 
       {/* Drop Zone */}
