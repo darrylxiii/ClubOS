@@ -39,14 +39,12 @@ export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProp
   const hasFeeConfigured = (feePercentage !== null && feePercentage !== undefined && feePercentage > 0) 
     || (feeFixed !== null && feeFixed !== undefined && feeFixed > 0);
   
-  // Calculate weighted value based on fee type
-  let feeAmount = 0;
-  const baseSalary = deal.estimated_value || 0;
-  if (feeType === 'fixed' && feeFixed) {
-    feeAmount = feeFixed;
-  } else if (feePercentage) {
-    feeAmount = baseSalary * (feePercentage / 100);
-  }
+  // Calculate weighted value - estimated_value is ALREADY the fee amount (salary × fee%)
+  // For fixed fees, use the fixed amount directly
+  // Then apply stage probability for weighted value
+  const feeAmount = feeType === 'fixed' && feeFixed 
+    ? feeFixed 
+    : (deal.estimated_value || 0);
   const weightedValue = feeAmount * (deal.deal_probability / 100);
   
   const feeConfig = FEE_TYPE_CONFIG[feeType];
