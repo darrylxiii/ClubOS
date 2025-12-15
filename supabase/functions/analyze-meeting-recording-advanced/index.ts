@@ -25,12 +25,12 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch recording details
+    // Fetch recording details (use left join to avoid failure if meeting is missing)
     const { data: recording, error: recordingError } = await supabase
       .from('meeting_recordings_extended')
       .select(`
         *,
-        meetings!inner(
+        meetings(
           title,
           meeting_type,
           candidate_id,
@@ -41,9 +41,27 @@ serve(async (req) => {
         )
       `)
       .eq('id', recordingId)
-      .single();
+      .maybeSingle();
 
-    if (recordingError) throw recordingError;
+    if (recordingError) {
+      console.error('Error fetching recording:', recordingError);
+      throw recordingError;
+    }
+    
+    if (!recording) {
+      throw new Error(`Recording not found: ${recordingId}`);
+    }
+    
+    // Handle case where meeting might not exist
+    const meetingData = recording.meetings || {
+      title: 'Meeting Recording',
+      meeting_type: 'general',
+      candidate_id: null,
+      job_id: null,
+      application_id: null,
+      scheduled_start: null,
+      scheduled_end: null
+    };
 
     // Update status to processing
     await supabase
@@ -91,7 +109,7 @@ serve(async (req) => {
 Meeting Context:
 ${candidateName ? `- Candidate: ${candidateName}` : ''}
 ${jobTitle ? `- Position: ${jobTitle}${companyName ? ` at ${companyName}` : ''}` : ''}
-- Meeting Type: ${recording.meetings.meeting_type || 'general'}
+- Meeting Type: ${meetingData.meeting_type || 'general'}
 - Duration: ${durationMinutes} minutes
 
 Full Transcript:
@@ -256,7 +274,7 @@ CRITICAL REQUIREMENTS:
         meeting_id: recording.meeting_id,
         job_title: jobTitle || 'Interview',
         company_name: companyName,
-        interview_date: recording.meetings.scheduled_start,
+        interview_date: meetingData.scheduled_start,
         overall_score: aiAnalysis.candidateEvaluation?.overallFit || 'pending',
         recommendation: aiAnalysis.decisionGuidance?.recommendation || 'pending'
       });
@@ -269,7 +287,7 @@ CRITICAL REQUIREMENTS:
         meeting_id: recording.meeting_id,
         candidate_name: candidateName || 'Candidate',
         candidate_id: recording.candidate_id,
-        interview_stage: recording.meetings.meeting_type || 'interview',
+        interview_stage: meetingData.meeting_type || 'interview',
         overall_score: aiAnalysis.candidateEvaluation?.overallFit || 'pending',
         recommendation: aiAnalysis.decisionGuidance?.recommendation || 'pending'
       });
@@ -279,7 +297,7 @@ CRITICAL REQUIREMENTS:
     if (aiAnalysis.actionItems && Array.isArray(aiAnalysis.actionItems)) {
       const tasks = aiAnalysis.actionItems.map((item: any) => ({
         title: item.task,
-        description: `From meeting: ${recording.meetings.title}`,
+        description: `From meeting: ${meetingData.title}`,
         priority: item.priority || 'medium',
         status: 'todo',
         user_id: recording.host_id,
