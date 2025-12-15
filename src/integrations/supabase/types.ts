@@ -13462,6 +13462,574 @@ export type Database = {
           },
         ]
       }
+      freelance_contracts: {
+        Row: {
+          activated_at: string | null
+          auto_approve_after_hours: number | null
+          auto_renew: boolean | null
+          budget_cap: number | null
+          client_id: string
+          client_signed_at: string | null
+          company_id: string | null
+          completed_at: string | null
+          contract_number: string | null
+          created_at: string | null
+          currency: string | null
+          deliverables: Json | null
+          description: string | null
+          end_date: string | null
+          engagement_type: Database["public"]["Enums"]["engagement_type"]
+          escrow_amount: number | null
+          escrow_funded: boolean | null
+          escrow_required: boolean | null
+          fixed_price: number | null
+          freelancer_id: string
+          freelancer_signed_at: string | null
+          hourly_markup_percentage: number | null
+          hourly_rate: number | null
+          id: string
+          ip_assignment_signed: boolean | null
+          last_activity_at: string | null
+          nda_signed: boolean | null
+          nda_signed_at: string | null
+          pause_reason: string | null
+          paused_at: string | null
+          payment_schedule: string | null
+          payment_terms_days: number | null
+          platform_fee_percentage: number | null
+          project_id: string
+          proposal_id: string | null
+          renewal_terms: string | null
+          requires_timesheet_approval: boolean | null
+          special_terms: Json | null
+          start_date: string | null
+          status: string | null
+          stripe_payment_intent_id: string | null
+          terminated_at: string | null
+          terminated_by: string | null
+          termination_reason: string | null
+          terms_and_conditions: string | null
+          title: string
+          total_amount_earned: number | null
+          total_amount_paid: number | null
+          total_hours_worked: number | null
+          total_platform_fees: number | null
+          updated_at: string | null
+          weekly_hour_limit: number | null
+        }
+        Insert: {
+          activated_at?: string | null
+          auto_approve_after_hours?: number | null
+          auto_renew?: boolean | null
+          budget_cap?: number | null
+          client_id: string
+          client_signed_at?: string | null
+          company_id?: string | null
+          completed_at?: string | null
+          contract_number?: string | null
+          created_at?: string | null
+          currency?: string | null
+          deliverables?: Json | null
+          description?: string | null
+          end_date?: string | null
+          engagement_type: Database["public"]["Enums"]["engagement_type"]
+          escrow_amount?: number | null
+          escrow_funded?: boolean | null
+          escrow_required?: boolean | null
+          fixed_price?: number | null
+          freelancer_id: string
+          freelancer_signed_at?: string | null
+          hourly_markup_percentage?: number | null
+          hourly_rate?: number | null
+          id?: string
+          ip_assignment_signed?: boolean | null
+          last_activity_at?: string | null
+          nda_signed?: boolean | null
+          nda_signed_at?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
+          payment_schedule?: string | null
+          payment_terms_days?: number | null
+          platform_fee_percentage?: number | null
+          project_id: string
+          proposal_id?: string | null
+          renewal_terms?: string | null
+          requires_timesheet_approval?: boolean | null
+          special_terms?: Json | null
+          start_date?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          terminated_at?: string | null
+          terminated_by?: string | null
+          termination_reason?: string | null
+          terms_and_conditions?: string | null
+          title: string
+          total_amount_earned?: number | null
+          total_amount_paid?: number | null
+          total_hours_worked?: number | null
+          total_platform_fees?: number | null
+          updated_at?: string | null
+          weekly_hour_limit?: number | null
+        }
+        Update: {
+          activated_at?: string | null
+          auto_approve_after_hours?: number | null
+          auto_renew?: boolean | null
+          budget_cap?: number | null
+          client_id?: string
+          client_signed_at?: string | null
+          company_id?: string | null
+          completed_at?: string | null
+          contract_number?: string | null
+          created_at?: string | null
+          currency?: string | null
+          deliverables?: Json | null
+          description?: string | null
+          end_date?: string | null
+          engagement_type?: Database["public"]["Enums"]["engagement_type"]
+          escrow_amount?: number | null
+          escrow_funded?: boolean | null
+          escrow_required?: boolean | null
+          fixed_price?: number | null
+          freelancer_id?: string
+          freelancer_signed_at?: string | null
+          hourly_markup_percentage?: number | null
+          hourly_rate?: number | null
+          id?: string
+          ip_assignment_signed?: boolean | null
+          last_activity_at?: string | null
+          nda_signed?: boolean | null
+          nda_signed_at?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
+          payment_schedule?: string | null
+          payment_terms_days?: number | null
+          platform_fee_percentage?: number | null
+          project_id?: string
+          proposal_id?: string | null
+          renewal_terms?: string | null
+          requires_timesheet_approval?: boolean | null
+          special_terms?: Json | null
+          start_date?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          terminated_at?: string | null
+          terminated_by?: string | null
+          termination_reason?: string | null
+          terms_and_conditions?: string | null
+          title?: string
+          total_amount_earned?: number | null
+          total_amount_paid?: number | null
+          total_hours_worked?: number | null
+          total_platform_fees?: number | null
+          updated_at?: string | null
+          weekly_hour_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "freelance_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "project_proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_terminated_by_fkey"
+            columns: ["terminated_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_terminated_by_fkey"
+            columns: ["terminated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_contracts_terminated_by_fkey"
+            columns: ["terminated_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      freelance_profiles: {
+        Row: {
+          active_projects_count: number | null
+          auto_respond_message: string | null
+          availability_hours_per_week: number | null
+          available_from_date: string | null
+          avg_project_rating: number | null
+          avg_response_time_hours: number | null
+          categories: string[] | null
+          certifications: Json | null
+          completion_rate_percentage: number | null
+          connects_balance: number | null
+          connects_last_refreshed_at: string | null
+          created_at: string | null
+          education: Json | null
+          featured_until: string | null
+          freelance_status: string | null
+          hourly_rate_currency: string | null
+          hourly_rate_max: number | null
+          hourly_rate_min: number | null
+          id: string
+          instant_payout_enabled: boolean | null
+          is_accepting_invites: boolean | null
+          is_open_to_retainers: boolean | null
+          is_verified: boolean | null
+          job_success_score: number | null
+          language_proficiencies: Json | null
+          max_concurrent_projects: number | null
+          min_project_value: number | null
+          on_time_delivery_rate: number | null
+          payout_schedule: string | null
+          portfolio_items: Json | null
+          preferred_engagement_types: string[] | null
+          preferred_industries: string[] | null
+          preferred_project_duration: string[] | null
+          professional_summary: string | null
+          professional_title: string | null
+          profile_completeness: number | null
+          profile_views_count: number | null
+          project_rate_preference: string | null
+          search_appearances_count: number | null
+          stripe_connect_account_id: string | null
+          stripe_connect_onboarded: boolean | null
+          subcategories: string[] | null
+          talent_level: Database["public"]["Enums"]["freelancer_level"] | null
+          timezone_preference: string | null
+          total_completed_projects: number | null
+          total_project_earnings: number | null
+          updated_at: string | null
+          verification_date: string | null
+          verification_type: string | null
+          video_intro_url: string | null
+          years_freelancing: number | null
+        }
+        Insert: {
+          active_projects_count?: number | null
+          auto_respond_message?: string | null
+          availability_hours_per_week?: number | null
+          available_from_date?: string | null
+          avg_project_rating?: number | null
+          avg_response_time_hours?: number | null
+          categories?: string[] | null
+          certifications?: Json | null
+          completion_rate_percentage?: number | null
+          connects_balance?: number | null
+          connects_last_refreshed_at?: string | null
+          created_at?: string | null
+          education?: Json | null
+          featured_until?: string | null
+          freelance_status?: string | null
+          hourly_rate_currency?: string | null
+          hourly_rate_max?: number | null
+          hourly_rate_min?: number | null
+          id: string
+          instant_payout_enabled?: boolean | null
+          is_accepting_invites?: boolean | null
+          is_open_to_retainers?: boolean | null
+          is_verified?: boolean | null
+          job_success_score?: number | null
+          language_proficiencies?: Json | null
+          max_concurrent_projects?: number | null
+          min_project_value?: number | null
+          on_time_delivery_rate?: number | null
+          payout_schedule?: string | null
+          portfolio_items?: Json | null
+          preferred_engagement_types?: string[] | null
+          preferred_industries?: string[] | null
+          preferred_project_duration?: string[] | null
+          professional_summary?: string | null
+          professional_title?: string | null
+          profile_completeness?: number | null
+          profile_views_count?: number | null
+          project_rate_preference?: string | null
+          search_appearances_count?: number | null
+          stripe_connect_account_id?: string | null
+          stripe_connect_onboarded?: boolean | null
+          subcategories?: string[] | null
+          talent_level?: Database["public"]["Enums"]["freelancer_level"] | null
+          timezone_preference?: string | null
+          total_completed_projects?: number | null
+          total_project_earnings?: number | null
+          updated_at?: string | null
+          verification_date?: string | null
+          verification_type?: string | null
+          video_intro_url?: string | null
+          years_freelancing?: number | null
+        }
+        Update: {
+          active_projects_count?: number | null
+          auto_respond_message?: string | null
+          availability_hours_per_week?: number | null
+          available_from_date?: string | null
+          avg_project_rating?: number | null
+          avg_response_time_hours?: number | null
+          categories?: string[] | null
+          certifications?: Json | null
+          completion_rate_percentage?: number | null
+          connects_balance?: number | null
+          connects_last_refreshed_at?: string | null
+          created_at?: string | null
+          education?: Json | null
+          featured_until?: string | null
+          freelance_status?: string | null
+          hourly_rate_currency?: string | null
+          hourly_rate_max?: number | null
+          hourly_rate_min?: number | null
+          id?: string
+          instant_payout_enabled?: boolean | null
+          is_accepting_invites?: boolean | null
+          is_open_to_retainers?: boolean | null
+          is_verified?: boolean | null
+          job_success_score?: number | null
+          language_proficiencies?: Json | null
+          max_concurrent_projects?: number | null
+          min_project_value?: number | null
+          on_time_delivery_rate?: number | null
+          payout_schedule?: string | null
+          portfolio_items?: Json | null
+          preferred_engagement_types?: string[] | null
+          preferred_industries?: string[] | null
+          preferred_project_duration?: string[] | null
+          professional_summary?: string | null
+          professional_title?: string | null
+          profile_completeness?: number | null
+          profile_views_count?: number | null
+          project_rate_preference?: string | null
+          search_appearances_count?: number | null
+          stripe_connect_account_id?: string | null
+          stripe_connect_onboarded?: boolean | null
+          subcategories?: string[] | null
+          talent_level?: Database["public"]["Enums"]["freelancer_level"] | null
+          timezone_preference?: string | null
+          total_completed_projects?: number | null
+          total_project_earnings?: number | null
+          updated_at?: string | null
+          verification_date?: string | null
+          verification_type?: string | null
+          video_intro_url?: string | null
+          years_freelancing?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "freelance_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "freelance_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelance_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      freelancer_gigs: {
+        Row: {
+          avg_delivery_time_days: number | null
+          avg_rating: number | null
+          boost_expires_at: string | null
+          boost_level: number | null
+          category: string
+          click_count: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          description: string | null
+          extras: Json | null
+          faq: Json | null
+          freelancer_id: string
+          gallery_images: Json | null
+          id: string
+          impressions_count: number | null
+          is_featured: boolean | null
+          last_order_at: string | null
+          order_count: number | null
+          packages: Json
+          published_at: string | null
+          rejection_reason: string | null
+          requirements_form: Json | null
+          response_time_hours: number | null
+          review_count: number | null
+          slug: string | null
+          status: string | null
+          subcategory: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          video_url: string | null
+          view_count: number | null
+        }
+        Insert: {
+          avg_delivery_time_days?: number | null
+          avg_rating?: number | null
+          boost_expires_at?: string | null
+          boost_level?: number | null
+          category: string
+          click_count?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          description?: string | null
+          extras?: Json | null
+          faq?: Json | null
+          freelancer_id: string
+          gallery_images?: Json | null
+          id?: string
+          impressions_count?: number | null
+          is_featured?: boolean | null
+          last_order_at?: string | null
+          order_count?: number | null
+          packages?: Json
+          published_at?: string | null
+          rejection_reason?: string | null
+          requirements_form?: Json | null
+          response_time_hours?: number | null
+          review_count?: number | null
+          slug?: string | null
+          status?: string | null
+          subcategory?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          video_url?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          avg_delivery_time_days?: number | null
+          avg_rating?: number | null
+          boost_expires_at?: string | null
+          boost_level?: number | null
+          category?: string
+          click_count?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          description?: string | null
+          extras?: Json | null
+          faq?: Json | null
+          freelancer_id?: string
+          gallery_images?: Json | null
+          id?: string
+          impressions_count?: number | null
+          is_featured?: boolean | null
+          last_order_at?: string | null
+          order_count?: number | null
+          packages?: Json
+          published_at?: string | null
+          rejection_reason?: string | null
+          requirements_form?: Json | null
+          response_time_hours?: number | null
+          review_count?: number | null
+          slug?: string | null
+          status?: string | null
+          subcategory?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          video_url?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "freelancer_gigs_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "freelancer_gigs_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelancer_gigs_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       funnel_analytics: {
         Row: {
           action: string
@@ -13580,6 +14148,185 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      gig_orders: {
+        Row: {
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          client_id: string
+          client_rating: number | null
+          client_review: string | null
+          completed_at: string | null
+          created_at: string | null
+          currency: string | null
+          delivered_at: string | null
+          delivery_deadline: string | null
+          delivery_files: Json | null
+          delivery_message: string | null
+          extras_selected: Json | null
+          extras_total: number | null
+          freelancer_id: string
+          freelancer_rating: number | null
+          freelancer_review: string | null
+          gig_id: string
+          id: string
+          max_revisions: number | null
+          order_number: string | null
+          package_price: number
+          package_selected: string
+          payment_status: string | null
+          platform_fee: number
+          requirements_responses: Json | null
+          revision_count: number | null
+          status: string | null
+          stripe_payment_intent_id: string | null
+          subtotal: number
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          client_id: string
+          client_rating?: number | null
+          client_review?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          delivered_at?: string | null
+          delivery_deadline?: string | null
+          delivery_files?: Json | null
+          delivery_message?: string | null
+          extras_selected?: Json | null
+          extras_total?: number | null
+          freelancer_id: string
+          freelancer_rating?: number | null
+          freelancer_review?: string | null
+          gig_id: string
+          id?: string
+          max_revisions?: number | null
+          order_number?: string | null
+          package_price: number
+          package_selected: string
+          payment_status?: string | null
+          platform_fee: number
+          requirements_responses?: Json | null
+          revision_count?: number | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          subtotal: number
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          client_id?: string
+          client_rating?: number | null
+          client_review?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          delivered_at?: string | null
+          delivery_deadline?: string | null
+          delivery_files?: Json | null
+          delivery_message?: string | null
+          extras_selected?: Json | null
+          extras_total?: number | null
+          freelancer_id?: string
+          freelancer_rating?: number | null
+          freelancer_review?: string | null
+          gig_id?: string
+          id?: string
+          max_revisions?: number | null
+          order_number?: string | null
+          package_price?: number
+          package_selected?: string
+          payment_status?: string | null
+          platform_fee?: number
+          requirements_responses?: Json | null
+          revision_count?: number | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gig_orders_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "gig_orders_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gig_orders_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gig_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "gig_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gig_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gig_orders_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "gig_orders_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gig_orders_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gig_orders_gig_id_fkey"
+            columns: ["gig_id"]
+            isOneToOne: false
+            referencedRelation: "freelancer_gigs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hashtags: {
         Row: {
@@ -17731,6 +18478,262 @@ export type Database = {
           valid_until?: string | null
         }
         Relationships: []
+      }
+      marketplace_projects: {
+        Row: {
+          ai_match_score: number | null
+          ai_recommendations: Json | null
+          assigned_freelancer_id: string | null
+          attachments: Json | null
+          auto_accept_proposals: boolean | null
+          boost_expires_at: string | null
+          boost_level: number | null
+          budget_currency: string | null
+          budget_max: number | null
+          budget_min: number | null
+          budget_visibility: string | null
+          category: string | null
+          closed_at: string | null
+          closed_reason: string | null
+          club_ai_match_enabled: boolean | null
+          company_id: string | null
+          contract_id: string | null
+          created_at: string | null
+          deliverables: Json | null
+          description: string | null
+          detailed_scope: Json | null
+          end_date_target: string | null
+          engagement_type: Database["public"]["Enums"]["engagement_type"] | null
+          escrow_amount: number | null
+          escrow_funded: boolean | null
+          estimated_hours: number | null
+          experience_level: string | null
+          hourly_markup_percentage: number | null
+          id: string
+          invite_count: number | null
+          is_featured: boolean | null
+          location_requirement: string | null
+          max_proposals: number | null
+          nda_template_id: string | null
+          platform_fee_percentage: number | null
+          posted_by: string | null
+          preferred_skills: string[] | null
+          priority_level: number | null
+          project_type: string | null
+          proposal_count: number | null
+          proposal_deadline: string | null
+          published_at: string | null
+          remote_policy: string | null
+          requires_interview: boolean | null
+          requires_nda: boolean | null
+          requires_portfolio: boolean | null
+          screening_questions: Json | null
+          skills_required: string[] | null
+          slug: string | null
+          start_date_target: string | null
+          status: Database["public"]["Enums"]["project_status"] | null
+          subcategory: string | null
+          success_criteria: Json | null
+          tags: string[] | null
+          timeline_weeks: number | null
+          timezone_overlap_hours: number | null
+          timezone_requirement: string | null
+          title: string
+          total_spent: number | null
+          updated_at: string | null
+          view_count: number | null
+          visibility: string | null
+        }
+        Insert: {
+          ai_match_score?: number | null
+          ai_recommendations?: Json | null
+          assigned_freelancer_id?: string | null
+          attachments?: Json | null
+          auto_accept_proposals?: boolean | null
+          boost_expires_at?: string | null
+          boost_level?: number | null
+          budget_currency?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          budget_visibility?: string | null
+          category?: string | null
+          closed_at?: string | null
+          closed_reason?: string | null
+          club_ai_match_enabled?: boolean | null
+          company_id?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          deliverables?: Json | null
+          description?: string | null
+          detailed_scope?: Json | null
+          end_date_target?: string | null
+          engagement_type?:
+            | Database["public"]["Enums"]["engagement_type"]
+            | null
+          escrow_amount?: number | null
+          escrow_funded?: boolean | null
+          estimated_hours?: number | null
+          experience_level?: string | null
+          hourly_markup_percentage?: number | null
+          id?: string
+          invite_count?: number | null
+          is_featured?: boolean | null
+          location_requirement?: string | null
+          max_proposals?: number | null
+          nda_template_id?: string | null
+          platform_fee_percentage?: number | null
+          posted_by?: string | null
+          preferred_skills?: string[] | null
+          priority_level?: number | null
+          project_type?: string | null
+          proposal_count?: number | null
+          proposal_deadline?: string | null
+          published_at?: string | null
+          remote_policy?: string | null
+          requires_interview?: boolean | null
+          requires_nda?: boolean | null
+          requires_portfolio?: boolean | null
+          screening_questions?: Json | null
+          skills_required?: string[] | null
+          slug?: string | null
+          start_date_target?: string | null
+          status?: Database["public"]["Enums"]["project_status"] | null
+          subcategory?: string | null
+          success_criteria?: Json | null
+          tags?: string[] | null
+          timeline_weeks?: number | null
+          timezone_overlap_hours?: number | null
+          timezone_requirement?: string | null
+          title: string
+          total_spent?: number | null
+          updated_at?: string | null
+          view_count?: number | null
+          visibility?: string | null
+        }
+        Update: {
+          ai_match_score?: number | null
+          ai_recommendations?: Json | null
+          assigned_freelancer_id?: string | null
+          attachments?: Json | null
+          auto_accept_proposals?: boolean | null
+          boost_expires_at?: string | null
+          boost_level?: number | null
+          budget_currency?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          budget_visibility?: string | null
+          category?: string | null
+          closed_at?: string | null
+          closed_reason?: string | null
+          club_ai_match_enabled?: boolean | null
+          company_id?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          deliverables?: Json | null
+          description?: string | null
+          detailed_scope?: Json | null
+          end_date_target?: string | null
+          engagement_type?:
+            | Database["public"]["Enums"]["engagement_type"]
+            | null
+          escrow_amount?: number | null
+          escrow_funded?: boolean | null
+          estimated_hours?: number | null
+          experience_level?: string | null
+          hourly_markup_percentage?: number | null
+          id?: string
+          invite_count?: number | null
+          is_featured?: boolean | null
+          location_requirement?: string | null
+          max_proposals?: number | null
+          nda_template_id?: string | null
+          platform_fee_percentage?: number | null
+          posted_by?: string | null
+          preferred_skills?: string[] | null
+          priority_level?: number | null
+          project_type?: string | null
+          proposal_count?: number | null
+          proposal_deadline?: string | null
+          published_at?: string | null
+          remote_policy?: string | null
+          requires_interview?: boolean | null
+          requires_nda?: boolean | null
+          requires_portfolio?: boolean | null
+          screening_questions?: Json | null
+          skills_required?: string[] | null
+          slug?: string | null
+          start_date_target?: string | null
+          status?: Database["public"]["Enums"]["project_status"] | null
+          subcategory?: string | null
+          success_criteria?: Json | null
+          tags?: string[] | null
+          timeline_weeks?: number | null
+          timezone_overlap_hours?: number | null
+          timezone_requirement?: string | null
+          title?: string
+          total_spent?: number | null
+          updated_at?: string | null
+          view_count?: number | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_projects_assigned_freelancer_id_fkey"
+            columns: ["assigned_freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "marketplace_projects_assigned_freelancer_id_fkey"
+            columns: ["assigned_freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_projects_assigned_freelancer_id_fkey"
+            columns: ["assigned_freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_projects_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_projects_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_projects_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "marketplace_projects_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_projects_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       match_scores: {
         Row: {
@@ -25066,6 +26069,78 @@ export type Database = {
           },
         ]
       }
+      project_activity_log: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          contract_id: string | null
+          created_at: string | null
+          id: string
+          is_system_generated: boolean | null
+          project_id: string | null
+          user_id: string | null
+          visibility: string | null
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          contract_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_system_generated?: boolean | null
+          project_id?: string | null
+          user_id?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          contract_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_system_generated?: boolean | null
+          project_id?: string | null
+          user_id?: string | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_activity_log_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "freelance_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_activity_log_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_activity_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_activity_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_activity_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_contracts: {
         Row: {
           client_id: string | null
@@ -25180,6 +26255,788 @@ export type Database = {
           {
             foreignKeyName: "project_contracts_freelancer_id_fkey"
             columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_disputes: {
+        Row: {
+          against_user_id: string
+          amount_in_dispute: number | null
+          appeal_deadline: string | null
+          appeal_notes: string | null
+          assigned_mediator_id: string | null
+          client_response: string | null
+          client_response_at: string | null
+          closed_at: string | null
+          contract_id: string
+          created_at: string | null
+          description: string
+          dispute_type: string
+          escalated_at: string | null
+          escalation_level: number | null
+          evidence_files: Json | null
+          evidence_links: Json | null
+          freelancer_response: string | null
+          freelancer_response_at: string | null
+          id: string
+          is_appealed: boolean | null
+          mediator_notes: string | null
+          milestone_id: string | null
+          priority: string | null
+          project_id: string | null
+          raised_by: string
+          requested_amount: number | null
+          requested_outcome: string | null
+          resolution_accepted_by_other: boolean | null
+          resolution_accepted_by_raiser: boolean | null
+          resolution_amount: number | null
+          resolution_notes: string | null
+          resolution_type: string | null
+          resolved_at: string | null
+          sla_deadline: string | null
+          status: Database["public"]["Enums"]["dispute_status"] | null
+          timeline_of_events: Json | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          against_user_id: string
+          amount_in_dispute?: number | null
+          appeal_deadline?: string | null
+          appeal_notes?: string | null
+          assigned_mediator_id?: string | null
+          client_response?: string | null
+          client_response_at?: string | null
+          closed_at?: string | null
+          contract_id: string
+          created_at?: string | null
+          description: string
+          dispute_type: string
+          escalated_at?: string | null
+          escalation_level?: number | null
+          evidence_files?: Json | null
+          evidence_links?: Json | null
+          freelancer_response?: string | null
+          freelancer_response_at?: string | null
+          id?: string
+          is_appealed?: boolean | null
+          mediator_notes?: string | null
+          milestone_id?: string | null
+          priority?: string | null
+          project_id?: string | null
+          raised_by: string
+          requested_amount?: number | null
+          requested_outcome?: string | null
+          resolution_accepted_by_other?: boolean | null
+          resolution_accepted_by_raiser?: boolean | null
+          resolution_amount?: number | null
+          resolution_notes?: string | null
+          resolution_type?: string | null
+          resolved_at?: string | null
+          sla_deadline?: string | null
+          status?: Database["public"]["Enums"]["dispute_status"] | null
+          timeline_of_events?: Json | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          against_user_id?: string
+          amount_in_dispute?: number | null
+          appeal_deadline?: string | null
+          appeal_notes?: string | null
+          assigned_mediator_id?: string | null
+          client_response?: string | null
+          client_response_at?: string | null
+          closed_at?: string | null
+          contract_id?: string
+          created_at?: string | null
+          description?: string
+          dispute_type?: string
+          escalated_at?: string | null
+          escalation_level?: number | null
+          evidence_files?: Json | null
+          evidence_links?: Json | null
+          freelancer_response?: string | null
+          freelancer_response_at?: string | null
+          id?: string
+          is_appealed?: boolean | null
+          mediator_notes?: string | null
+          milestone_id?: string | null
+          priority?: string | null
+          project_id?: string | null
+          raised_by?: string
+          requested_amount?: number | null
+          requested_outcome?: string | null
+          resolution_accepted_by_other?: boolean | null
+          resolution_accepted_by_raiser?: boolean | null
+          resolution_amount?: number | null
+          resolution_notes?: string | null
+          resolution_type?: string | null
+          resolved_at?: string | null
+          sla_deadline?: string | null
+          status?: Database["public"]["Enums"]["dispute_status"] | null
+          timeline_of_events?: Json | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_disputes_against_user_id_fkey"
+            columns: ["against_user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_disputes_against_user_id_fkey"
+            columns: ["against_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_disputes_against_user_id_fkey"
+            columns: ["against_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_disputes_assigned_mediator_id_fkey"
+            columns: ["assigned_mediator_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_disputes_assigned_mediator_id_fkey"
+            columns: ["assigned_mediator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_disputes_assigned_mediator_id_fkey"
+            columns: ["assigned_mediator_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_disputes_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "freelance_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_disputes_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_disputes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_disputes_raised_by_fkey"
+            columns: ["raised_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_disputes_raised_by_fkey"
+            columns: ["raised_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_disputes_raised_by_fkey"
+            columns: ["raised_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_invitations: {
+        Row: {
+          created_at: string | null
+          decline_reason: string | null
+          expires_at: string | null
+          freelancer_id: string
+          id: string
+          invited_by: string
+          message: string | null
+          project_id: string
+          responded_at: string | null
+          status: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          decline_reason?: string | null
+          expires_at?: string | null
+          freelancer_id: string
+          id?: string
+          invited_by: string
+          message?: string | null
+          project_id: string
+          responded_at?: string | null
+          status?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          decline_reason?: string | null
+          expires_at?: string | null
+          freelancer_id?: string
+          id?: string
+          invited_by?: string
+          message?: string | null
+          project_id?: string
+          responded_at?: string | null
+          status?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_invitations_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_invitations_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_invitations_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_invitations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_milestones: {
+        Row: {
+          acceptance_criteria: Json | null
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          contract_id: string
+          created_at: string | null
+          currency: string | null
+          deliverable_description: string | null
+          description: string | null
+          due_date: string | null
+          escrow_funded: boolean | null
+          escrow_funded_at: string | null
+          estimated_hours: number | null
+          feedback_from_client: string | null
+          feedback_rating: number | null
+          id: string
+          is_bonus: boolean | null
+          max_revisions: number | null
+          milestone_number: number
+          paid_at: string | null
+          payment_reference: string | null
+          project_id: string | null
+          revision_count: number | null
+          revision_requests: Json | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["milestone_status"] | null
+          stripe_payment_intent_id: string | null
+          submission_notes: string | null
+          submitted_at: string | null
+          submitted_files: Json | null
+          time_spent_hours: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          acceptance_criteria?: Json | null
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          contract_id: string
+          created_at?: string | null
+          currency?: string | null
+          deliverable_description?: string | null
+          description?: string | null
+          due_date?: string | null
+          escrow_funded?: boolean | null
+          escrow_funded_at?: string | null
+          estimated_hours?: number | null
+          feedback_from_client?: string | null
+          feedback_rating?: number | null
+          id?: string
+          is_bonus?: boolean | null
+          max_revisions?: number | null
+          milestone_number: number
+          paid_at?: string | null
+          payment_reference?: string | null
+          project_id?: string | null
+          revision_count?: number | null
+          revision_requests?: Json | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["milestone_status"] | null
+          stripe_payment_intent_id?: string | null
+          submission_notes?: string | null
+          submitted_at?: string | null
+          submitted_files?: Json | null
+          time_spent_hours?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          acceptance_criteria?: Json | null
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          contract_id?: string
+          created_at?: string | null
+          currency?: string | null
+          deliverable_description?: string | null
+          description?: string | null
+          due_date?: string | null
+          escrow_funded?: boolean | null
+          escrow_funded_at?: string | null
+          estimated_hours?: number | null
+          feedback_from_client?: string | null
+          feedback_rating?: number | null
+          id?: string
+          is_bonus?: boolean | null
+          max_revisions?: number | null
+          milestone_number?: number
+          paid_at?: string | null
+          payment_reference?: string | null
+          project_id?: string | null
+          revision_count?: number | null
+          revision_requests?: Json | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["milestone_status"] | null
+          stripe_payment_intent_id?: string | null
+          submission_notes?: string | null
+          submitted_at?: string | null
+          submitted_files?: Json | null
+          time_spent_hours?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_milestones_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_milestones_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_milestones_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_milestones_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "freelance_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_milestones_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_proposals: {
+        Row: {
+          accepted_at: string | null
+          ai_enhancement_applied: boolean | null
+          answers_to_screening: Json | null
+          attachments: Json | null
+          availability_statement: string | null
+          boost_expires_at: string | null
+          client_notes: string | null
+          club_ai_confidence: number | null
+          connects_used: number | null
+          cover_letter: string | null
+          created_at: string | null
+          freelancer_id: string
+          hours_per_week_available: number | null
+          id: string
+          internal_notes: string | null
+          interview_booking_id: string | null
+          interview_scheduled_at: string | null
+          is_ai_generated: boolean | null
+          is_boosted: boolean | null
+          match_explanation: string | null
+          match_factors: Json | null
+          match_score: number | null
+          portfolio_highlights: Json | null
+          project_id: string
+          proposal_type: string | null
+          proposed_deliverables: Json | null
+          proposed_milestones: Json | null
+          proposed_rate: number | null
+          proposed_rate_type: string | null
+          proposed_start_date: string | null
+          proposed_timeline_weeks: number | null
+          proposed_total: number | null
+          questions_for_client: Json | null
+          rejected_at: string | null
+          rejection_feedback: string | null
+          rejection_reason: string | null
+          relevant_experience: Json | null
+          reviewed_at: string | null
+          shortlisted_at: string | null
+          status: Database["public"]["Enums"]["proposal_status"] | null
+          submitted_at: string | null
+          updated_at: string | null
+          video_introduction_url: string | null
+          view_count: number | null
+          viewed_by_client_at: string | null
+          withdrawal_reason: string | null
+          withdrawn_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          ai_enhancement_applied?: boolean | null
+          answers_to_screening?: Json | null
+          attachments?: Json | null
+          availability_statement?: string | null
+          boost_expires_at?: string | null
+          client_notes?: string | null
+          club_ai_confidence?: number | null
+          connects_used?: number | null
+          cover_letter?: string | null
+          created_at?: string | null
+          freelancer_id: string
+          hours_per_week_available?: number | null
+          id?: string
+          internal_notes?: string | null
+          interview_booking_id?: string | null
+          interview_scheduled_at?: string | null
+          is_ai_generated?: boolean | null
+          is_boosted?: boolean | null
+          match_explanation?: string | null
+          match_factors?: Json | null
+          match_score?: number | null
+          portfolio_highlights?: Json | null
+          project_id: string
+          proposal_type?: string | null
+          proposed_deliverables?: Json | null
+          proposed_milestones?: Json | null
+          proposed_rate?: number | null
+          proposed_rate_type?: string | null
+          proposed_start_date?: string | null
+          proposed_timeline_weeks?: number | null
+          proposed_total?: number | null
+          questions_for_client?: Json | null
+          rejected_at?: string | null
+          rejection_feedback?: string | null
+          rejection_reason?: string | null
+          relevant_experience?: Json | null
+          reviewed_at?: string | null
+          shortlisted_at?: string | null
+          status?: Database["public"]["Enums"]["proposal_status"] | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          video_introduction_url?: string | null
+          view_count?: number | null
+          viewed_by_client_at?: string | null
+          withdrawal_reason?: string | null
+          withdrawn_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          ai_enhancement_applied?: boolean | null
+          answers_to_screening?: Json | null
+          attachments?: Json | null
+          availability_statement?: string | null
+          boost_expires_at?: string | null
+          client_notes?: string | null
+          club_ai_confidence?: number | null
+          connects_used?: number | null
+          cover_letter?: string | null
+          created_at?: string | null
+          freelancer_id?: string
+          hours_per_week_available?: number | null
+          id?: string
+          internal_notes?: string | null
+          interview_booking_id?: string | null
+          interview_scheduled_at?: string | null
+          is_ai_generated?: boolean | null
+          is_boosted?: boolean | null
+          match_explanation?: string | null
+          match_factors?: Json | null
+          match_score?: number | null
+          portfolio_highlights?: Json | null
+          project_id?: string
+          proposal_type?: string | null
+          proposed_deliverables?: Json | null
+          proposed_milestones?: Json | null
+          proposed_rate?: number | null
+          proposed_rate_type?: string | null
+          proposed_start_date?: string | null
+          proposed_timeline_weeks?: number | null
+          proposed_total?: number | null
+          questions_for_client?: Json | null
+          rejected_at?: string | null
+          rejection_feedback?: string | null
+          rejection_reason?: string | null
+          relevant_experience?: Json | null
+          reviewed_at?: string | null
+          shortlisted_at?: string | null
+          status?: Database["public"]["Enums"]["proposal_status"] | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          video_introduction_url?: string | null
+          view_count?: number | null
+          viewed_by_client_at?: string | null
+          withdrawal_reason?: string | null
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_proposals_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_proposals_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_proposals_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_proposals_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_reviews: {
+        Row: {
+          communication_rating: number | null
+          contract_id: string | null
+          created_at: string | null
+          expertise_rating: number | null
+          helpful_count: number | null
+          id: string
+          improvement_areas: string[] | null
+          is_featured: boolean | null
+          is_public: boolean | null
+          is_verified_project: boolean | null
+          overall_rating: number
+          private_feedback: string | null
+          professionalism_rating: number | null
+          project_duration_weeks: number | null
+          project_highlights: string[] | null
+          project_id: string | null
+          project_value: number | null
+          quality_rating: number | null
+          reported_count: number | null
+          response_at: string | null
+          response_text: string | null
+          review_text: string | null
+          review_type: string
+          reviewee_id: string
+          reviewer_id: string
+          timeliness_rating: number | null
+          updated_at: string | null
+          value_rating: number | null
+          visibility_after_days: number | null
+          would_recommend: boolean | null
+          would_work_again: boolean | null
+        }
+        Insert: {
+          communication_rating?: number | null
+          contract_id?: string | null
+          created_at?: string | null
+          expertise_rating?: number | null
+          helpful_count?: number | null
+          id?: string
+          improvement_areas?: string[] | null
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          is_verified_project?: boolean | null
+          overall_rating: number
+          private_feedback?: string | null
+          professionalism_rating?: number | null
+          project_duration_weeks?: number | null
+          project_highlights?: string[] | null
+          project_id?: string | null
+          project_value?: number | null
+          quality_rating?: number | null
+          reported_count?: number | null
+          response_at?: string | null
+          response_text?: string | null
+          review_text?: string | null
+          review_type: string
+          reviewee_id: string
+          reviewer_id: string
+          timeliness_rating?: number | null
+          updated_at?: string | null
+          value_rating?: number | null
+          visibility_after_days?: number | null
+          would_recommend?: boolean | null
+          would_work_again?: boolean | null
+        }
+        Update: {
+          communication_rating?: number | null
+          contract_id?: string | null
+          created_at?: string | null
+          expertise_rating?: number | null
+          helpful_count?: number | null
+          id?: string
+          improvement_areas?: string[] | null
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          is_verified_project?: boolean | null
+          overall_rating?: number
+          private_feedback?: string | null
+          professionalism_rating?: number | null
+          project_duration_weeks?: number | null
+          project_highlights?: string[] | null
+          project_id?: string | null
+          project_value?: number | null
+          quality_rating?: number | null
+          reported_count?: number | null
+          response_at?: string | null
+          response_text?: string | null
+          review_text?: string | null
+          review_type?: string
+          reviewee_id?: string
+          reviewer_id?: string
+          timeliness_rating?: number | null
+          updated_at?: string | null
+          value_rating?: number | null
+          visibility_after_days?: number | null
+          would_recommend?: boolean | null
+          would_work_again?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_reviews_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "freelance_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_reviews_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_reviews_reviewee_id_fkey"
+            columns: ["reviewee_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_reviews_reviewee_id_fkey"
+            columns: ["reviewee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_reviews_reviewee_id_fkey"
+            columns: ["reviewee_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
@@ -27256,6 +29113,76 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_freelancers: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          freelancer_id: string
+          id: string
+          list_name: string | null
+          notes: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          freelancer_id: string
+          id?: string
+          list_name?: string | null
+          notes?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          freelancer_id?: string
+          id?: string
+          list_name?: string | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_freelancers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "saved_freelancers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_freelancers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_freelancers_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "saved_freelancers_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_freelancers_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -35129,6 +37056,26 @@ export type Database = {
         | "linkedin"
         | "note"
         | "sms"
+      dispute_status:
+        | "open"
+        | "under_review"
+        | "mediation"
+        | "resolved"
+        | "closed"
+      engagement_type: "hourly" | "fixed" | "milestone" | "retainer"
+      freelancer_level:
+        | "standard"
+        | "rising_star"
+        | "top_rated"
+        | "top_rated_plus"
+        | "expert_vetted"
+      milestone_status:
+        | "pending"
+        | "in_progress"
+        | "submitted"
+        | "revision_requested"
+        | "approved"
+        | "paid"
       notification_type:
         | "mention"
         | "reply"
@@ -35138,6 +37085,23 @@ export type Database = {
         | "server_invite"
         | "role_change"
         | "achievement"
+      project_status:
+        | "draft"
+        | "open"
+        | "in_review"
+        | "active"
+        | "paused"
+        | "completed"
+        | "cancelled"
+      proposal_status:
+        | "draft"
+        | "submitted"
+        | "viewed"
+        | "shortlisted"
+        | "interviewing"
+        | "accepted"
+        | "rejected"
+        | "withdrawn"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -35332,6 +37296,29 @@ export const Constants = {
         "note",
         "sms",
       ],
+      dispute_status: [
+        "open",
+        "under_review",
+        "mediation",
+        "resolved",
+        "closed",
+      ],
+      engagement_type: ["hourly", "fixed", "milestone", "retainer"],
+      freelancer_level: [
+        "standard",
+        "rising_star",
+        "top_rated",
+        "top_rated_plus",
+        "expert_vetted",
+      ],
+      milestone_status: [
+        "pending",
+        "in_progress",
+        "submitted",
+        "revision_requested",
+        "approved",
+        "paid",
+      ],
       notification_type: [
         "mention",
         "reply",
@@ -35341,6 +37328,25 @@ export const Constants = {
         "server_invite",
         "role_change",
         "achievement",
+      ],
+      project_status: [
+        "draft",
+        "open",
+        "in_review",
+        "active",
+        "paused",
+        "completed",
+        "cancelled",
+      ],
+      proposal_status: [
+        "draft",
+        "submitted",
+        "viewed",
+        "shortlisted",
+        "interviewing",
+        "accepted",
+        "rejected",
+        "withdrawn",
       ],
     },
   },
