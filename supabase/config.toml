@@ -559,6 +559,15 @@ verify_jwt = false
 [functions.release-milestone-payment]
 verify_jwt = true
 
+[functions.setup-freelancer-stripe-connect]
+verify_jwt = true
+
+[functions.create-project-escrow]
+verify_jwt = true
+
+[functions.verify-stripe-connect-status]
+verify_jwt = true
+
 [functions.sync-revenue-metrics]
 verify_jwt = false
 

@@ -1,11 +1,18 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[RELEASE-MILESTONE-PAYMENT] ${step}${detailsStr}`);
+};
+
+const PLATFORM_FEE_PERCENTAGE = 12; // 12% platform fee
 
 interface PaymentInput {
   milestoneId: string;
@@ -13,61 +20,37 @@ interface PaymentInput {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Create Supabase client with service role
+    logStep("Function started");
+
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
+      { auth: { persistSession: false } }
     );
 
-    // Get auth header
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Missing authorization header" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+    if (!authHeader) throw new Error("No authorization header provided");
 
-    // Verify user
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-    
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    const user = userData.user;
+    if (!user) throw new Error("User not authenticated");
+    logStep("User authenticated", { userId: user.id });
 
     const { milestoneId, contractId }: PaymentInput = await req.json();
-
     if (!milestoneId || !contractId) {
-      return new Response(
-        JSON.stringify({ error: "milestoneId and contractId are required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      throw new Error("milestoneId and contractId are required");
     }
+    logStep("Request data", { milestoneId, contractId });
 
     // Fetch milestone
     const { data: milestone, error: milestoneError } = await supabaseClient
@@ -77,106 +60,143 @@ serve(async (req) => {
       .single();
 
     if (milestoneError || !milestone) {
-      return new Response(
-        JSON.stringify({ error: "Milestone not found", details: milestoneError }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      throw new Error(`Milestone not found: ${milestoneError?.message}`);
     }
 
     // Verify milestone is approved
     if (milestone.status !== "approved") {
-      return new Response(
-        JSON.stringify({ error: "Milestone must be approved before payment release" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      throw new Error("Milestone must be approved before payment release");
     }
+    logStep("Milestone verified", { status: milestone.status, amount: milestone.amount });
 
-    // Fetch contract
+    // Fetch contract from freelance_contracts (fixed table name)
     const { data: contract, error: contractError } = await supabaseClient
-      .from("project_contracts")
-      .select("*")
+      .from("freelance_contracts")
+      .select(`
+        *,
+        freelance_profile:freelance_profiles!inner(
+          stripe_connect_account_id,
+          stripe_connect_onboarded
+        )
+      `)
       .eq("id", contractId)
       .single();
 
     if (contractError || !contract) {
-      return new Response(
-        JSON.stringify({ error: "Contract not found", details: contractError }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      throw new Error(`Contract not found: ${contractError?.message}`);
     }
 
-    // Update milestone with payment timestamp
+    // Verify user is the client (only client can release payment)
+    if (contract.client_id !== user.id) {
+      throw new Error("Only the client can release milestone payments");
+    }
+    logStep("Contract verified", { contractId: contract.id });
+
+    // Verify freelancer has Stripe Connect set up
+    const freelanceProfile = (contract as any).freelance_profile;
+    if (!freelanceProfile?.stripe_connect_account_id) {
+      throw new Error("Freelancer has not set up their payment account");
+    }
+    if (!freelanceProfile.stripe_connect_onboarded) {
+      throw new Error("Freelancer has not completed payment onboarding");
+    }
+    logStep("Freelancer payment account verified", { 
+      accountId: freelanceProfile.stripe_connect_account_id 
+    });
+
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+
+    // Calculate amounts
+    const amountInCents = Math.round((milestone.amount || 0) * 100);
+    const platformFee = Math.round(amountInCents * (PLATFORM_FEE_PERCENTAGE / 100));
+    const freelancerAmount = amountInCents - platformFee;
+
+    logStep("Payment calculation", { 
+      total: amountInCents, 
+      platformFee, 
+      freelancerAmount 
+    });
+
+    // Create transfer to freelancer's connected account
+    const transfer = await stripe.transfers.create({
+      amount: freelancerAmount,
+      currency: "eur",
+      destination: freelanceProfile.stripe_connect_account_id,
+      metadata: {
+        contract_id: contractId,
+        milestone_id: milestoneId,
+        client_id: user.id,
+        freelancer_id: contract.freelancer_id,
+        platform_fee: platformFee.toString(),
+        type: "milestone_payment",
+      },
+      description: `Milestone payment: ${milestone.title}`,
+    });
+
+    logStep("Transfer created", { transferId: transfer.id, amount: freelancerAmount });
+
+    // Update milestone with payment info
     const { error: updateError } = await supabaseClient
       .from("project_milestones")
       .update({
         paid_at: new Date().toISOString(),
         status: "paid",
+        stripe_transfer_id: transfer.id,
         updated_at: new Date().toISOString(),
       })
       .eq("id", milestoneId);
 
     if (updateError) {
-      console.error("Error updating milestone:", updateError);
-      return new Response(
-        JSON.stringify({ error: "Failed to update milestone", details: updateError }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      logStep("Warning: Could not update milestone", { error: updateError.message });
     }
 
-    // Create payment transaction record
-    const { error: transactionError } = await supabaseClient
+    // Record the transaction
+    await supabaseClient
       .from("payment_transactions")
       .insert({
-        contract_id: contractId,
-        milestone_id: milestoneId,
+        invoice_id: null,
         transaction_date: new Date().toISOString(),
         amount: milestone.amount,
-        currency_code: contract.currency || "EUR",
-        payment_method: "automatic",
+        currency_code: "EUR",
+        payment_method: "stripe",
+        payment_reference: transfer.id,
         status: "completed",
-        notes: `Automatic payment for milestone: ${milestone.title}`,
-        processed_by: user.id,
+        notes: `Milestone payment for: ${milestone.title}. Platform fee: €${(platformFee / 100).toFixed(2)}`,
       });
 
-    if (transactionError) {
-      console.error("Error creating payment transaction:", transactionError);
-      // Don't fail the request if transaction logging fails
-    }
+    logStep("Payment transaction recorded");
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Payment released successfully",
-        milestoneId,
-        amount: milestone.amount,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  } catch (error: unknown) {
-    console.error("Error releasing milestone payment:", error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: "Internal server error", details: message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    // Update contract escrow balance
+    const newEscrowBalance = (contract.escrow_amount || 0) - milestone.amount;
+    await supabaseClient
+      .from("freelance_contracts")
+      .update({
+        escrow_amount: Math.max(0, newEscrowBalance),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", contractId);
+
+    logStep("Escrow balance updated", { newBalance: newEscrowBalance });
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: "Payment released successfully",
+      transferId: transfer.id,
+      milestoneId,
+      amount: milestone.amount,
+      freelancerReceived: freelancerAmount / 100,
+      platformFee: platformFee / 100,
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });
 
