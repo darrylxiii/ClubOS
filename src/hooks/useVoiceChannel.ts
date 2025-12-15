@@ -332,39 +332,13 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
   // Load channel metadata when channelId changes
   useEffect(() => {
     if (channelId) {
-      loadChannel();
+      loadChannelData();
     } else {
       setChannel(null);
     }
   }, [channelId]);
 
-  const loadChannel = async () => {
-    if (!channelId) return;
-
-    const { data, error } = await supabase
-      .from('live_channels')
-      .select('*')
-      .eq('id', channelId)
-      .single();
-
-    if (error) {
-      console.error('Error loading channel:', error);
-      return;
-    }
-
-    setChannel(data);
-  };
-
-  // Load channel metadata when channelId changes
-  useEffect(() => {
-    if (channelId) {
-      loadChannel();
-    } else {
-      setChannel(null);
-    }
-  }, [channelId]);
-
-  const loadChannel = async () => {
+  const loadChannelData = async () => {
     if (!channelId) return;
 
     const { data, error } = await supabase
@@ -990,19 +964,12 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
     toggleScreenShare,
     startRecording,
     stopRecording: async () => {
-      // Placeholder if not implemented in logic, but keeping interface consistent
       console.log('stopRecording called');
-      setIsConnected(true); // Dummy
     },
     stopScreenShare,
     setPushToTalkActive,
     sendReaction,
     sendWhiteboardEvent,
-    forceReconnect: () => {
-      // Force WebRTC reconnect
-      // Note: This function would need to be implemented in useLiveHubWebRTC
-      console.log('Force reconnect requested');
-    },
     // Audio diagnostics
     audioDiagnostics,
     hasAudioIssues,

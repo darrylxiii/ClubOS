@@ -32,8 +32,8 @@ export function CRMAutomationLogs() {
   const { data: logs = [], isLoading, refetch } = useQuery({
     queryKey: ['crm-automation-logs'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('crm_automation_logs')
+      const { data, error } = await (supabase
+        .from('crm_automation_logs' as any)
         .select(`
           id,
           status,
@@ -43,7 +43,7 @@ export function CRMAutomationLogs() {
           prospect:crm_prospects!triggered_by_record_id(first_name, last_name)
         `)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(100) as any);
 
       if (error) throw error;
 

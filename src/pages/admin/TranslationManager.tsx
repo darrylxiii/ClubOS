@@ -1,26 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Languages, Download, Loader2, CheckCircle, AlertCircle, Sparkles, TrendingUp, BarChart3, RefreshCw, Trash2 } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { useSeedTranslations } from '@/hooks/use-seed-translations';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useTranslationCoverage } from '@/hooks/use-translation-coverage';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AppLayout } from '@/components/AppLayout';
-import { ALL_NAMESPACES, SUPPORTED_LANGUAGES } from '@/i18n/config';
-import { TranslationLoadingState, QueryState } from '@/components/translations/TranslationLoadingState';
-import { TranslationDebugPanel, LogEntry } from '@/components/translations/TranslationDebugPanel';
-import { TranslationJobProgress } from '@/components/translations/TranslationJobProgress';
-
-const TARGET_LANGUAGES = SUPPORTED_LANGUAGES.filter(l => l !== 'en');
-
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -417,7 +396,7 @@ export default function TranslationManager() {
   const hasEnglish = englishQuery.data?.exists;
   const overallCompletion = coverageData?.overallCompletion || 0;
 
-  // New Status Card Component for Overview
+  // Status Card Component
   const StatusCard = ({ title, status, description, action, variant = "default" }: any) => (
     <Card className={`border-l-4 ${status === 'success' ? 'border-l-green-500' : status === 'warning' ? 'border-l-yellow-500' : 'border-l-gray-300'}`}>
       <CardContent className="pt-6">
@@ -434,216 +413,223 @@ export default function TranslationManager() {
             <div className="h-6 w-6 rounded-full bg-muted" />
           )}
         </div>
-        {action}
+        {action && (
+          <Button onClick={action.onClick} variant="outline" size="sm" className="w-full">
+            {action.label}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-8 space-y-8 max-w-6xl">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-bold tracking-tight">Translation Center</h1>
-          <p className="text-xl text-muted-foreground">
-            Manage your application's global reach from one place.
-          </p>
-        </div>
-
-        {/* --- MAIN ACTION AREA --- */}
-        <div className="grid gap-6 md:grid-cols-3">
-
-          {/* Step 1: English Source */}
-          <StatusCard
-            title="1. Source Content"
-            status={hasEnglish ? 'success' : 'warning'}
-            description="English is the master language. We need to load it into the database first."
-            action={
-              <Button
-                onClick={() => seedTranslations.mutate()}
-                disabled={seedTranslations.isPending || hasEnglish}
-                className="w-full"
-                variant={hasEnglish ? "outline" : "default"}
-              >
-                {seedTranslations.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : hasEnglish ? <CheckCircle className="mr-2 h-4 w-4" /> : <Download className="mr-2 h-4 w-4" />}
-                {hasEnglish ? "English Loaded" : "Load English Source"}
-              </Button>
-            }
-          />
-
-          {/* Step 2: Sync & Generate */}
-          <StatusCard
-            title="2. AI Translation"
-            status={overallCompletion === 100 ? 'success' : 'warning'}
-            description="Automatically generate translations for all supported languages using AI."
-            action={
-              <Button
-                onClick={generateEverything}
-                disabled={isGeneratingAll || !hasEnglish || isAnyLoading}
-                className="w-full relative overflow-hidden group"
-                variant={overallCompletion === 100 ? "outline" : "default"}
-              >
-                {isGeneratingAll && (
-                  <div className="absolute inset-0 bg-primary/10 animate-progress" />
-                )}
-                <div className="relative flex items-center justify-center">
-                  {isGeneratingAll ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                  {overallCompletion === 100 ? "Regenerate All" : "Auto-Translate Everything"}
-                </div>
-              </Button>
-            }
-          />
-
-          {/* Step 3: Status Overview */}
-          <StatusCard
-            title="3. Global Status"
-            status={overallCompletion > 90 ? 'success' : 'warning'}
-            description={`${overallCompletion}% of your content is translated across ${TARGET_LANGUAGES.length} languages.`}
-            action={
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Completion</span>
-                  <span className="font-medium">{overallCompletion}%</span>
-                </div>
-                <Progress value={overallCompletion} className="h-2" />
-              </div>
-            }
-          />
-        </div>
-
-        {/* --- TABS SECTION --- */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="bg-card rounded-xl border shadow-sm">
-          <div className="p-4 border-b bg-muted/30">
-            <TabsList>
-              <TabsTrigger value="overview"><Globe className="h-4 w-4 mr-2" />Detailed Overview</TabsTrigger>
-              <TabsTrigger value="details"><Languages className="h-4 w-4 mr-2" />Namespace Details</TabsTrigger>
-            </TabsList>
+      <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Globe className="h-8 w-8 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold">Translation Manager</h1>
+              <p className="text-muted-foreground">Manage translations across all languages</p>
+            </div>
           </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ['db-namespaces'] });
+                queryClient.invalidateQueries({ queryKey: ['languages'] });
+                queryClient.invalidateQueries({ queryKey: ['english-translations-exist'] });
+                queryClient.invalidateQueries({ queryKey: ['translation-coverage'] });
+              }}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+        </div>
 
-          <TabsContent value="overview" className="p-6 m-0">
-            {/* Overall Health Chart */}
-            <div className="grid gap-8 md:grid-cols-2">
-              <div className='space-y-6'>
-                <h3 className="text-lg font-semibold flex items-center"><TrendingUp className="mr-2 h-5 w-5 text-primary" /> Language Health</h3>
-                {coverageLoading ? <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-8 bg-muted animate-pulse rounded" />)}</div> : (
-                  <div className="space-y-4">
-                    {Object.entries(coverageData?.byLanguage || {}).map(([lang, data]: any) => (
-                      <div key={lang} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="font-medium uppercase flex items-center gap-2">
-                            {lang === 'en' ? '🇬🇧' : <span className="bg-muted px-1.5 rounded textxs">{lang}</span>}
-                            {lang === 'en' ? 'English (Source)' : lang}
-                          </span>
-                          <span className={data.percentage < 100 ? "text-yellow-600 font-bold" : "text-green-600 font-bold"}>
-                            {data.percentage}%
-                          </span>
-                        </div>
-                        <Progress value={data.percentage} className="h-2" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+        {/* Loading State */}
+        {isAnyLoading && (
+          <TranslationLoadingState queries={queryStates} onRetry={handleRetryQuery} />
+        )}
 
-              <div className='bg-muted/30 p-6 rounded-lg border'>
-                <h3 className="text-lg font-semibold flex items-center mb-4"><AlertCircle className="mr-2 h-5 w-5 text-primary" /> Action Items</h3>
-                {!hasEnglish ? (
-                  <div className="flex gap-4 items-start text-sm">
-                    <div className="bg-yellow-100 p-2 rounded-full text-yellow-700 mt-0.5">1</div>
+        {/* Main Content */}
+        {!isAnyLoading && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="namespaces">Namespaces</TabsTrigger>
+              <TabsTrigger value="jobs">Active Jobs</TabsTrigger>
+              <TabsTrigger value="debug">Debug</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-6">
+              {/* Coverage Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Translation Coverage
+                  </CardTitle>
+                  <CardDescription>
+                    Overall progress: {overallCompletion.toFixed(1)}% complete
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Progress value={overallCompletion} className="h-3" />
+                  <div className="mt-4 grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <p className="font-medium">Missing Source Content</p>
-                      <p className="text-muted-foreground mt-1">Run "Load English Source" to initialize the database.</p>
+                      <p className="text-2xl font-bold">{namespacesToShow.length}</p>
+                      <p className="text-xs text-muted-foreground">Namespaces</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{TARGET_LANGUAGES.length}</p>
+                      <p className="text-xs text-muted-foreground">Languages</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{englishQuery.data?.count || 0}</p>
+                      <p className="text-xs text-muted-foreground">English Keys</p>
                     </div>
                   </div>
-                ) : coverageData?.missingKeys?.length > 0 ? (
-                  <div className="space-y-4">
-                    <div className="flex gap-4 items-start text-sm">
-                      <div className="bg-blue-100 p-2 rounded-full text-blue-700 mt-0.5">1</div>
-                      <div>
-                        <p className="font-medium">{coverageData.missingKeys.length} Missing Translations</p>
-                        <p className="text-muted-foreground mt-1">Some recent keys haven't been translated yet.</p>
-                        <Button size="sm" variant="secondary" onClick={syncMissingKeys} className="mt-2 h-8" disabled={isSyncingKeys}>
-                          {isSyncingKeys ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <RefreshCw className="h-3 w-3 mr-2" />}
-                          Fix Automatically
+                </CardContent>
+                <CardFooter className="flex gap-2">
+                  <Button
+                    onClick={generateEverything}
+                    disabled={isGeneratingAll || !hasEnglish}
+                    className="flex-1"
+                  >
+                    {isGeneratingAll ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Generate All Translations
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={syncMissingKeys}
+                    disabled={isSyncingKeys}
+                    variant="outline"
+                  >
+                    {isSyncingKeys ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              {/* Status Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <StatusCard
+                  title="English Source"
+                  status={hasEnglish ? 'success' : 'warning'}
+                  description={hasEnglish ? `${englishQuery.data?.count} keys loaded` : 'No English keys found'}
+                  action={!hasEnglish ? {
+                    label: 'Seed English',
+                    onClick: () => seedTranslations.mutate()
+                  } : undefined}
+                />
+                <StatusCard
+                  title="Namespaces"
+                  status="success"
+                  description={`${namespacesToShow.length} namespaces configured`}
+                />
+                <StatusCard
+                  title="Languages"
+                  status="success"
+                  description={`${TARGET_LANGUAGES.length} target languages`}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="namespaces" className="space-y-4">
+              {namespacesToShow.map((ns) => {
+                const coverage = getCoverageForNamespace(ns);
+                return (
+                  <Card key={ns}>
+                    <CardContent className="pt-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium">{ns}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Progress value={coverage.percentage} className="h-2 flex-1" />
+                            <span className="text-xs text-muted-foreground w-16">
+                              {coverage.completed}/{coverage.total}
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => generateForNamespace(ns)}
+                          disabled={generatingNamespace === ns || !hasEnglish}
+                          className="ml-4"
+                        >
+                          {generatingNamespace === ns ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-1" />
+                              Generate
+                            </>
+                          )}
                         </Button>
                       </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                    <div className="h-12 w-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-3">
-                      <CheckCircle className="h-6 w-6" />
-                    </div>
-                    <p className="font-medium">Everything looks good!</p>
-                    <p className="text-sm text-muted-foreground">Your translations are up to date.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="details" className="p-6 m-0">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {namespacesToShow.map((namespace) => {
-                const { completed, total, percentage, hasEnglish } = getCoverageForNamespace(namespace);
-                const isGenerating = generatingNamespace === namespace;
-
-                return (
-                  <Card key={namespace} className={`shadow-sm hover:shadow-md transition-shadow ${!hasEnglish ? 'opacity-60 bg-muted/50' : ''}`}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="capitalize text-base font-semibold">{namespace}</CardTitle>
-                        {percentage === 100 && <CheckCircle className="h-4 w-4 text-green-500" />}
-                      </div>
-                      <CardDescription className="text-xs">
-                        Namespace
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pb-3">
-                      <div className="flex justify-between text-xs mb-2">
-                        <span>{completed} / {total} langs</span>
-                        <span>{Math.round(percentage)}%</span>
-                      </div>
-                      <Progress value={percentage} className="h-1.5" />
                     </CardContent>
-                    <CardFooter className="pt-0">
-                      <Button
-                        onClick={() => generateForNamespace(namespace)}
-                        disabled={isGenerating || isGeneratingAll || !hasEnglish}
-                        size="sm"
-                        variant="ghost"
-                        className="w-full h-8 text-xs ml-auto"
-                      >
-                        {isGenerating ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-2 h-3 w-3" />}
-                        {percentage === 100 ? 'Regenerate' : 'Translate'}
-                      </Button>
-                    </CardFooter>
                   </Card>
                 );
               })}
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
 
-        {/* --- ADVANCED SECTION (Collapsed) --- */}
-        <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced} className="border rounded-lg bg-muted/20">
-          <CollapsibleTrigger className="flex items-center gap-2 p-4 w-full text-sm font-medium hover:bg-muted/50 transition-colors">
-            {showAdvanced ? <ArrowRight className="h-4 w-4 rotate-90 transition-transform" /> : <ArrowRight className="h-4 w-4 transition-transform" />}
-            <Settings2 className="h-4 w-4" />
-            Advanced & Logs
-          </CollapsibleTrigger>
-          <CollapsibleContent className="p-4 border-t space-y-4">
-            {/* Loading State Indicator */}
-            <div className="bg-card p-4 rounded border">
-              <TranslationLoadingState queries={queryStates} onRetry={handleRetryQuery} />
-            </div>
+            <TabsContent value="jobs">
+              <TranslationJobProgress onJobComplete={handleJobComplete} />
+            </TabsContent>
 
-            {/* Job Progress */}
-            <TranslationJobProgress onJobComplete={handleJobComplete} onCleanup={cleanupStuckJobs} />
-
-            {/* Raw Logs */}
-            <TranslationDebugPanel logs={logs} onClear={() => setLogs([])} />
-          </CollapsibleContent>
-        </Collapsible>
+            <TabsContent value="debug" className="space-y-4">
+              <TranslationDebugPanel logs={logs} onClear={() => setLogs([])} />
+              
+              <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full">
+                    <Settings2 className="h-4 w-4 mr-2" />
+                    Advanced Options
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-4 space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Cleanup</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={cleanupStuckJobs}
+                        disabled={isCleaningJobs}
+                      >
+                        {isCleaningJobs ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Trash2 className="h-4 w-4 mr-2" />
+                        )}
+                        Cleanup Stuck Jobs
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </AppLayout>
   );

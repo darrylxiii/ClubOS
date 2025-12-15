@@ -46,7 +46,6 @@ const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉', '👏', '�
 
 const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannelProps) => {
   const { user } = useAuth();
-  const { voice } = useActiveCall(); // Use global context
   const [channel, setChannel] = useState<Channel | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [pushToTalkEnabled, setPushToTalkEnabled] = useState(false);
@@ -54,7 +53,10 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
   const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
   const [showRecordingSettings, setShowRecordingSettings] = useState(false);
 
-  // Destructure from the shared voice object
+  // Use the voice channel hook directly
+  const voice = useVoiceChannel(channelId, { pushToTalkEnabled });
+
+  // Destructure from the hook
   const {
     isConnected,
     isMuted,
@@ -77,7 +79,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     toggleVideo,
     toggleScreenShare,
     startRecording,
-    stopRecording, // Ensure this exists in hook return
+    stopRecording,
     setPushToTalkActive,
     sendReaction,
     sendWhiteboardEvent,

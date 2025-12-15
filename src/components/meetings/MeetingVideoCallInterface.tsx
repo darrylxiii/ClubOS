@@ -871,8 +871,7 @@ export function MeetingVideoCallInterface({
 
       {/* Participant Count & Video Quality */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
-        <MeetingConnectionIndicator />
-        <RecordingIndicator isRecording={isRecording} />
+        {isRecording && <RecordingIndicator />}
         {/* Video Quality Indicator */}
         {videoStats && videoStats.qualityLimitationReason !== 'none' && (
           <div className="backdrop-blur-2xl bg-yellow-500/20 border border-yellow-500/30 px-3 py-2 rounded-full text-xs text-yellow-300 shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center gap-2">

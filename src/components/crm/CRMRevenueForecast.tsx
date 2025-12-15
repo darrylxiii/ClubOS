@@ -42,7 +42,7 @@ export function CRMRevenueForecast() {
 
   useEffect(() => {
     async function fetchSettings() {
-      const { data } = await supabase.from('crm_settings').select('monthly_revenue_target').single();
+      const { data } = await (supabase.from('crm_settings' as any).select('monthly_revenue_target').single() as any);
       if (data?.monthly_revenue_target) {
         setMonthlyTarget(data.monthly_revenue_target);
       }
