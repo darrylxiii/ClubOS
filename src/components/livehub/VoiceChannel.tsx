@@ -102,12 +102,13 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
   });
 
   // Auto-recording for Live Hub (integrates with meeting_recordings_extended)
+  // Default to OFF to prevent unwanted auto-start - user must explicitly enable
   const autoRecording = useLiveHubAutoRecording({
     channelId,
     channelName: channel?.name || 'Live Hub',
     localStream,
     remoteStreams,
-    autoRecord: channel?.auto_record ?? true,
+    autoRecord: channel?.auto_record ?? false, // Changed from true to false - no auto-start
     enabled: isConnected
   });
 
@@ -281,46 +282,28 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
           )}
         </div>
 
-        {isConnected && channel.auto_record && (
+        {/* Unified Recording Controls - Only show ONE recording system */}
+        {isConnected && (
           <div className="flex items-center gap-2">
-            {recording.isRecording ? (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleStopRecording}
-                  className="gap-2"
-                >
-                  <Square className="w-4 h-4 fill-current" />
-                  Stop Recording ({Math.floor(recording.recordingDuration / 60)}:{String(recording.recordingDuration % 60).padStart(2, '0')})
-                </Button>
-                {recording.isPaused ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={recording.resumeRecording}
-                  >
-                    Resume
-                  </Button>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={recording.pauseRecording}
-                  >
-                    Pause
-                  </Button>
-                )}
-              </>
+            {autoRecording.isRecording ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={autoRecording.stopRecording}
+                className="gap-2 border-destructive text-destructive"
+              >
+                <Square className="w-4 h-4 fill-current" />
+                Stop Recording {Math.floor(autoRecording.recordingDuration / 60)}:{String(autoRecording.recordingDuration % 60).padStart(2, '0')}
+              </Button>
             ) : (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowRecordingSettings(true)}
+                onClick={() => autoRecording.startRecording()}
                 className="gap-2"
               >
                 <Circle className="w-4 h-4" />
-                Start Recording
+                Record
               </Button>
             )}
           </div>

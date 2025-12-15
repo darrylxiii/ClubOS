@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Database } from '@/integrations/supabase/types';
@@ -17,14 +17,18 @@ type CallInvitation = Database['public']['Tables']['call_invitations']['Row'] & 
 /**
  * Global call signaling hook that subscribes to ALL incoming calls
  * for the current user across all their conversations.
+ * Fixed to prevent subscription cycling loop by using refs.
  */
 export function useGlobalCallSignaling() {
   const { user } = useAuth();
   const [incomingInvitations, setIncomingInvitations] = useState<CallInvitation[]>([]);
-  const [userConversationIds, setUserConversationIds] = useState<string[]>([]);
+  
+  // Use ref to prevent subscription cycling - store conversation IDs without causing re-renders
+  const userConversationIdsRef = useRef<string[]>([]);
+  const isLoadingRef = useRef(false);
 
-  // Load user's conversations
-  const loadUserConversations = useCallback(async () => {
+  // Load user's conversations - stable callback
+  const loadUserConversations = useCallback(async (): Promise<string[]> => {
     if (!user) return [];
 
     const { data, error } = await supabase
@@ -38,73 +42,82 @@ export function useGlobalCallSignaling() {
     }
 
     const ids = data?.map(p => p.conversation_id) || [];
-    setUserConversationIds(ids);
+    userConversationIdsRef.current = ids;
     return ids;
   }, [user]);
 
-  // Load active ringing invitations for all user's conversations
+  // Load active ringing invitations - stable callback using ref
   const loadInvitations = useCallback(async () => {
-    if (!user) return;
+    if (!user || isLoadingRef.current) return;
+    
+    isLoadingRef.current = true;
 
-    const conversationIds = userConversationIds.length > 0 
-      ? userConversationIds 
-      : await loadUserConversations();
+    try {
+      let conversationIds = userConversationIdsRef.current;
+      
+      if (conversationIds.length === 0) {
+        conversationIds = await loadUserConversations();
+      }
 
-    if (conversationIds.length === 0) {
-      console.log('[GlobalCallSignaling] No conversations found for user');
-      return;
+      if (conversationIds.length === 0) {
+        setIncomingInvitations([]);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('call_invitations')
+        .select('*')
+        .in('conversation_id', conversationIds)
+        .eq('status', 'ringing')
+        .neq('caller_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('[GlobalCallSignaling] Error loading invitations:', error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        setIncomingInvitations([]);
+        return;
+      }
+
+      // Fetch caller information for each invitation
+      const invitationsWithCallers = await Promise.all(
+        data.map(async (inv) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url, email')
+            .eq('id', inv.caller_id)
+            .single();
+
+          return {
+            ...inv,
+            caller: profile || undefined
+          };
+        })
+      );
+
+      setIncomingInvitations(invitationsWithCallers);
+    } finally {
+      isLoadingRef.current = false;
     }
+  }, [user, loadUserConversations]);
 
-    const { data, error } = await supabase
-      .from('call_invitations')
-      .select('*')
-      .in('conversation_id', conversationIds)
-      .eq('status', 'ringing')
-      .neq('caller_id', user.id) // Exclude calls I initiated
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('[GlobalCallSignaling] Error loading invitations:', error);
-      return;
-    }
-
-    if (!data || data.length === 0) {
-      setIncomingInvitations([]);
-      return;
-    }
-
-    console.log('[GlobalCallSignaling] Found ringing invitations:', data.length);
-
-    // Fetch caller information for each invitation
-    const invitationsWithCallers = await Promise.all(
-      data.map(async (inv) => {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name, avatar_url, email')
-          .eq('id', inv.caller_id)
-          .single();
-
-        return {
-          ...inv,
-          caller: profile || undefined
-        };
-      })
-    );
-
-    setIncomingInvitations(invitationsWithCallers);
-  }, [user, userConversationIds, loadUserConversations]);
-
-  // Initial load and subscribe to realtime changes
+  // Single effect for initial load and subscription - minimal dependencies
   useEffect(() => {
     if (!user) return;
 
-    // Initial load
-    loadUserConversations().then(() => loadInvitations());
+    let mounted = true;
 
-    // Subscribe to ALL call_invitations changes (not filtered by conversation)
-    // We'll filter client-side based on user's conversations
+    // Initial load
+    loadUserConversations().then(() => {
+      if (mounted) loadInvitations();
+    });
+
+    // Single stable subscription
     const channel = supabase
-      .channel('global-call-invitations')
+      .channel(`global-call-invitations-${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -112,20 +125,17 @@ export function useGlobalCallSignaling() {
           schema: 'public',
           table: 'call_invitations'
         },
-        (payload) => {
-          console.log('[GlobalCallSignaling] Realtime update:', payload.eventType);
-          // Reload invitations on any change
-          loadInvitations();
+        () => {
+          if (mounted) loadInvitations();
         }
       )
-      .subscribe((status) => {
-        console.log('[GlobalCallSignaling] Subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
+      mounted = false;
       channel.unsubscribe();
     };
-  }, [user, loadInvitations, loadUserConversations]);
+  }, [user?.id]); // Only depend on user.id, not callbacks
 
   // Accept a call
   const acceptCall = useCallback(async (invitationId: string) => {
