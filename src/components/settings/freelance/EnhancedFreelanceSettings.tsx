@@ -19,31 +19,40 @@ import { FreelanceVideoIntro } from "./FreelanceVideoIntro";
 import { StripeConnectOnboarding } from "@/components/projects/payments/StripeConnectOnboarding";
 import { ConnectsSystem } from "@/components/projects/connects/ConnectsSystem";
 
-interface EnhancedFreelanceSettingsProps {
-  userId: string;
-  profile: any;
-  onSave: () => Promise<void>;
-}
-
-export function EnhancedFreelanceSettings({ userId, profile, onSave }: EnhancedFreelanceSettingsProps) {
+export function EnhancedFreelanceSettings() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Fetch user profile
+  const { data: profile } = useQuery({
+    queryKey: ["profile-settings", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user!.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   // Fetch freelance profile data
   const { data: freelanceProfile, isLoading, refetch } = useQuery({
-    queryKey: ["freelance-profile-settings", userId],
+    queryKey: ["freelance-profile-settings", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("freelance_profiles")
         .select("*")
-        .eq("id", userId)
+        .eq("id", user!.id)
         .maybeSingle();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!userId,
+    enabled: !!user?.id,
   });
 
   const isOpenToFreelance = profile?.open_to_freelance_work || false;
@@ -165,23 +174,23 @@ export function EnhancedFreelanceSettings({ userId, profile, onSave }: EnhancedF
 
         <TabsContent value="overview" className="space-y-4">
           <FreelanceAvailabilitySection 
-            userId={userId} 
+            userId={user?.id || ''} 
             freelanceProfile={freelanceProfile}
-            onUpdate={() => { refetch(); onSave(); }}
+            onUpdate={() => refetch()}
           />
           <FreelanceRatesSection 
-            userId={userId} 
+            userId={user?.id || ''} 
             freelanceProfile={freelanceProfile}
-            onUpdate={() => { refetch(); onSave(); }}
+            onUpdate={() => refetch()}
           />
         </TabsContent>
 
         <TabsContent value="payments" className="space-y-4">
           <StripeConnectOnboarding />
           <FreelancePayoutSettings 
-            userId={userId} 
+            userId={user?.id || ''} 
             freelanceProfile={freelanceProfile}
-            onUpdate={() => { refetch(); onSave(); }}
+            onUpdate={() => refetch()}
           />
         </TabsContent>
 
@@ -191,25 +200,25 @@ export function EnhancedFreelanceSettings({ userId, profile, onSave }: EnhancedF
 
         <TabsContent value="portfolio" className="space-y-4">
           <FreelancePortfolioSection 
-            userId={userId} 
+            userId={user?.id || ''} 
             freelanceProfile={freelanceProfile}
-            onUpdate={() => { refetch(); onSave(); }}
+            onUpdate={() => refetch()}
           />
         </TabsContent>
 
         <TabsContent value="video" className="space-y-4">
           <FreelanceVideoIntro 
-            userId={userId} 
+            userId={user?.id || ''} 
             freelanceProfile={freelanceProfile}
-            onUpdate={() => { refetch(); onSave(); }}
+            onUpdate={() => refetch()}
           />
         </TabsContent>
 
         <TabsContent value="certifications" className="space-y-4">
           <FreelanceCertificationsSection 
-            userId={userId} 
+            userId={user?.id || ''} 
             freelanceProfile={freelanceProfile}
-            onUpdate={() => { refetch(); onSave(); }}
+            onUpdate={() => refetch()}
           />
         </TabsContent>
       </Tabs>
