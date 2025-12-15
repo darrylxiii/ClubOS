@@ -134,7 +134,7 @@ const Settings = () => {
     }
     
     const tabParam = urlParams.get('tab');
-    if (tabParam && ['profile', 'compensation', 'connections', 'notifications', 'privacy', 'security', 'preferences'].includes(tabParam)) {
+    if (tabParam && ['profile', 'compensation', 'freelance', 'connections', 'calendar', 'notifications', 'privacy', 'security', 'preferences'].includes(tabParam)) {
       return tabParam;
     }
     const hash = location.hash.replace('#', '');
@@ -529,11 +529,12 @@ const Settings = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="compensation">Compensation</TabsTrigger>
             <TabsTrigger value="freelance">Freelance</TabsTrigger>
             <TabsTrigger value="connections">Connections</TabsTrigger>
+            <TabsTrigger value="calendar">Calendar</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="privacy">Privacy</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
@@ -612,6 +613,9 @@ const Settings = () => {
               onDisconnectSocial={handleDisconnectSocial}
               onUpdate={handleSocialUpdate}
             />
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-4">
             <CalendarIntegrationSettings />
           </TabsContent>
 

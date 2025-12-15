@@ -83,7 +83,8 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
+      // Update profiles table first
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           open_to_freelance_work: openToFreelance,
@@ -96,7 +97,53 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
         })
         .eq('id', userId);
 
-      if (error) throw error;
+      if (profileError) {
+        console.error('Error updating profiles:', profileError);
+        throw profileError;
+      }
+
+      // Check if freelance_profiles record exists (uses profile id as primary key)
+      const { data: existingFreelanceProfile } = await supabase
+        .from('freelance_profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+      // Update or create freelance_profiles record
+      if (existingFreelanceProfile) {
+        const { error: freelanceError } = await supabase
+          .from('freelance_profiles')
+          .update({
+            freelance_status: openToFreelance ? availabilityStatus : 'not_accepting',
+            categories: categories,
+            preferred_engagement_types: engagementTypes,
+            preferred_project_duration: projectDurations,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId);
+
+        if (freelanceError) {
+          console.error('Error updating freelance_profiles:', freelanceError);
+          // Don't throw - profiles was updated successfully
+        }
+      } else if (openToFreelance) {
+        // Create new freelance_profiles record if enabling freelance
+        // id references profiles.id, so we use userId as the id
+        const { error: createError } = await supabase
+          .from('freelance_profiles')
+          .insert({
+            id: userId,
+            freelance_status: availabilityStatus,
+            categories: categories,
+            preferred_engagement_types: engagementTypes,
+            preferred_project_duration: projectDurations,
+          });
+
+        if (createError) {
+          console.error('Error creating freelance_profiles:', createError);
+          // Don't throw - profiles was updated successfully
+        }
+      }
 
       toast.success('Freelance settings saved successfully');
       await onSave();
