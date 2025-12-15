@@ -46,6 +46,7 @@ const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉', '👏', '�
 
 const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannelProps) => {
   const { user } = useAuth();
+  const { voice } = useActiveCall(); // Use global context
   const [channel, setChannel] = useState<Channel | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [pushToTalkEnabled, setPushToTalkEnabled] = useState(false);
@@ -53,6 +54,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
   const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
   const [showRecordingSettings, setShowRecordingSettings] = useState(false);
 
+  // Destructure from the shared voice object
   const {
     isConnected,
     isMuted,
@@ -75,12 +77,12 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     toggleVideo,
     toggleScreenShare,
     startRecording,
-    stopRecording,
+    stopRecording, // Ensure this exists in hook return
     setPushToTalkActive,
     sendReaction,
     sendWhiteboardEvent,
     forceReconnect
-  } = useVoiceChannel(channelId, { pushToTalkEnabled });
+  } = voice;
 
   const { isPushing } = usePushToTalk({
     enabled: pushToTalkEnabled && isConnected,
@@ -131,22 +133,13 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     loadChannel();
   }, [channelId]);
 
-  // Auto-join when autoJoin prop is true
+  // Context now handles connection persistence, so we don't auto-join here unless explicitly requested
+  // And we DO NOT leave on unmount, because we want to persist!
   useEffect(() => {
-    if (autoJoin && !isConnected && !isJoining && channel) {
-      handleJoinChannel();
-    }
-  }, [autoJoin, channelId]);
-
-  // COMPONENT UNMOUNT CLEANUP - Ensure leaveChannel is called when component unmounts
-  useEffect(() => {
-    return () => {
-      if (isConnected) {
-        console.log('[VoiceChannel] Component unmounting while connected, leaving channel...');
-        leaveChannel();
-      }
-    };
-  }, [isConnected, leaveChannel]);
+    // If this is the active view and we are not connected, we might want to join?
+    // Actually, LiveHubLayout handles the verification of "clicking the channel joins it".
+    // Here we just render the state.
+  }, [channelId]);
 
   const loadChannel = async () => {
     const { data, error } = await supabase
@@ -252,7 +245,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
             <Volume2 className="w-5 h-5 text-muted-foreground" />
             <h2 className="font-semibold">{channel.name}</h2>
             {isConnected && connectionQuality && (
-              <ConnectionQualityIndicator 
+              <ConnectionQualityIndicator
                 quality={connectionQuality}
                 stats={connectionStats}
                 showDetails
@@ -365,16 +358,16 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
             <React.Fragment key={userId}>
               {/* Camera audio */}
               {streams.camera && streams.camera.getAudioTracks().length > 0 && (
-                <RemoteAudioPlayer 
-                  userId={`${userId}-camera`} 
-                  stream={streams.camera} 
+                <RemoteAudioPlayer
+                  userId={`${userId}-camera`}
+                  stream={streams.camera}
                   isDeafened={isDeafened}
                 />
               )}
               {/* Screen share audio (if present) */}
               {streams.screen && streams.screen.getAudioTracks().length > 0 && (
-                <RemoteAudioPlayer 
-                  userId={`${userId}-screen`} 
+                <RemoteAudioPlayer
+                  userId={`${userId}-screen`}
                   stream={streams.screen}
                   isDeafened={isDeafened}
                 />

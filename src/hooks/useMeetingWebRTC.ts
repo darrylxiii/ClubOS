@@ -7,6 +7,8 @@ import { useMobileOptimizations } from './useMobileOptimizations';
 import { toast } from 'sonner';
 import { optimizeSessionDescription } from '@/utils/sdpMunger';
 
+import { DEFAULT_RTC_CONFIG } from '@/utils/webrtcConfig';
+
 interface MeetingWebRTCConfig {
   meetingId: string;
   participantId: string; // Can be user ID or guest session ID
@@ -15,40 +17,7 @@ interface MeetingWebRTCConfig {
   onParticipantLeft: (participantId: string) => void;
 }
 
-// Professional TURN/STUN servers for enterprise-grade connectivity
-const ICE_SERVERS = [
-  // Google STUN servers for NAT discovery
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun2.l.google.com:19302' },
-  { urls: 'stun:stun3.l.google.com:19302' },
-  { urls: 'stun:stun4.l.google.com:19302' },
-  
-  // FREE OpenRelay TURN servers (no signup required)
-  {
-    urls: 'turn:openrelay.metered.ca:80',
-    username: 'openrelayproject',
-    credential: 'openrelayproject'
-  },
-  {
-    urls: 'turn:openrelay.metered.ca:443',
-    username: 'openrelayproject',
-    credential: 'openrelayproject'
-  },
-  {
-    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-    username: 'openrelayproject',
-    credential: 'openrelayproject'
-  }
-];
-
-const RTC_CONFIG = {
-  iceServers: ICE_SERVERS,
-  iceTransportPolicy: 'all' as RTCIceTransportPolicy,
-  bundlePolicy: 'max-bundle' as RTCBundlePolicy,
-  rtcpMuxPolicy: 'require' as RTCRtcpMuxPolicy,
-  iceCandidatePoolSize: 10
-};
+const RTC_CONFIG = DEFAULT_RTC_CONFIG;
 
 export function useMeetingWebRTC({
   meetingId,
@@ -64,7 +33,7 @@ export function useMeetingWebRTC({
   const [participants, setParticipants] = useState<string[]>([]);
   const [error, setError] = useState<{ message: string; recoverable: boolean } | null>(null);
   const [channelStatus, setChannelStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
-  
+
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
   const signalChannel = useRef<RealtimeChannel | null>(null);
   const hasJoinedRef = useRef(false);
@@ -75,19 +44,20 @@ export function useMeetingWebRTC({
   const mediaReadyRef = useRef(false);
   const localStreamRef = useRef<MediaStream | null>(null);
   const pendingJoinSignals = useRef<string[]>([]);
+  const pendingCandidates = useRef<Map<string, RTCIceCandidateInit[]>>(new Map()); // Buffer for early candidates
   const leftParticipantsRef = useRef<Set<string>>(new Set()); // Track who has left to prevent reconnection
   const { stats, getVideoConstraints } = useBandwidthMonitor();
-  
+
   // Video optimization hooks
   const { configureSimulcast, adaptToNetworkConditions, setScreenShareContentHint, getSimulcastStats } = useSimulcast();
   const { isMobile, isTablet, videoSettings, connectionType, getMediaConstraints, getSDPOptions } = useMobileOptimizations({ enableBatterySaving: true });
-  
+
   // Video stats state
-  const [videoStats, setVideoStats] = useState({ 
-    framesSent: 0, 
-    framesReceived: 0, 
-    qualityLimitationReason: 'none' as string, 
-    availableBandwidth: 0 
+  const [videoStats, setVideoStats] = useState({
+    framesSent: 0,
+    framesReceived: 0,
+    qualityLimitationReason: 'none' as string,
+    availableBandwidth: 0
   });
 
   // Helper: Wait for channel to be ready with timeout
@@ -98,13 +68,13 @@ export function useMeetingWebRTC({
         resolve();
         return;
       }
-      
+
       console.log('[WebRTC] ⏳ Waiting for channel to be ready...');
       const timer = setTimeout(() => {
         console.warn('[WebRTC] ⚠️ Channel subscription timeout');
         reject(new Error('Channel subscription timeout'));
       }, timeout);
-      
+
       const checkState = setInterval(() => {
         if (channel?.state === 'joined') {
           clearTimeout(timer);
@@ -123,17 +93,17 @@ export function useMeetingWebRTC({
       console.log('[WebRTC] No video sender found for:', targetParticipantId);
       return;
     }
-    
+
     // Apply simulcast for 3-layer adaptive quality
     const simulcastConfigured = await configureSimulcast(videoSender, undefined, isScreenShare);
-    
+
     if (!simulcastConfigured) {
       // Fallback: adaptive bitrate based on device type and connection
       const params = videoSender.getParameters();
       if (!params.encodings || params.encodings.length === 0) {
         params.encodings = [{}];
       }
-      
+
       // Set bitrate based on device type and connection
       let maxBitrate = 2500000; // 2.5 Mbps default
       if (isMobile || connectionType === '2g') {
@@ -141,10 +111,10 @@ export function useMeetingWebRTC({
       } else if (isTablet || connectionType === '3g') {
         maxBitrate = 800000; // 800 Kbps for tablet/3G
       }
-      
+
       params.encodings[0].maxBitrate = maxBitrate;
       params.encodings[0].networkPriority = 'medium' as RTCPriorityType;
-      
+
       try {
         await videoSender.setParameters(params);
         console.log('[WebRTC] 🎥 Video sender configured with fallback bitrate:', maxBitrate / 1000, 'kbps');
@@ -152,21 +122,21 @@ export function useMeetingWebRTC({
         console.warn('[WebRTC] Failed to set video sender parameters:', error);
       }
     }
-    
+
     // Apply content hint for screen sharing
     if (isScreenShare && videoSender.track) {
       setScreenShareContentHint(videoSender.track, 'detail');
     }
   }, [configureSimulcast, setScreenShareContentHint, isMobile, isTablet, connectionType]);
-  
+
   // Set VP9/VP8 codec preference for better quality
   const setVP9Preference = useCallback((pc: RTCPeerConnection) => {
     try {
       const transceivers = pc.getTransceivers();
-      const videoTransceiver = transceivers.find(t => 
+      const videoTransceiver = transceivers.find(t =>
         t.receiver.track?.kind === 'video' || t.sender.track?.kind === 'video'
       );
-      
+
       if (videoTransceiver && RTCRtpSender.getCapabilities) {
         const codecs = RTCRtpSender.getCapabilities('video')?.codecs || [];
         const preferredCodecs = [
@@ -174,7 +144,7 @@ export function useMeetingWebRTC({
           ...codecs.filter(c => c.mimeType === 'video/VP8'),
           ...codecs.filter(c => c.mimeType === 'video/H264')
         ];
-        
+
         if (preferredCodecs.length > 0 && videoTransceiver.setCodecPreferences) {
           videoTransceiver.setCodecPreferences(preferredCodecs);
           console.log('[WebRTC] 🎬 VP9/VP8 codec preference set');
@@ -184,18 +154,18 @@ export function useMeetingWebRTC({
       console.warn('[WebRTC] Failed to set codec preferences:', error);
     }
   }, []);
-  
+
   // Monitor video stats for adaptive quality
   const monitorVideoStats = useCallback(async (pc: RTCPeerConnection, targetParticipantId: string) => {
     try {
       const stats = await pc.getStats();
-      let localVideoStats = { 
-        framesSent: 0, 
-        framesReceived: 0, 
-        qualityLimitationReason: 'none', 
-        availableBandwidth: 0 
+      let localVideoStats = {
+        framesSent: 0,
+        framesReceived: 0,
+        qualityLimitationReason: 'none',
+        availableBandwidth: 0
       };
-      
+
       stats.forEach(report => {
         if (report.type === 'outbound-rtp' && report.kind === 'video') {
           localVideoStats.framesSent = report.framesSent || 0;
@@ -208,9 +178,9 @@ export function useMeetingWebRTC({
           localVideoStats.availableBandwidth = (report.availableOutgoingBitrate || 0) / 1000;
         }
       });
-      
+
       setVideoStats(localVideoStats);
-      
+
       // Adaptive quality based on bandwidth
       const videoSender = pc.getSenders().find(s => s.track?.kind === 'video');
       if (videoSender && localVideoStats.availableBandwidth > 0) {
@@ -227,22 +197,22 @@ export function useMeetingWebRTC({
       console.log('[WebRTC] 🎬 STEP 1: Requesting media permissions...');
       setError(null);
       setChannelStatus('connecting');
-      
+
       // 1. Get local media FIRST with mobile-optimized constraints
       const constraints = getMediaConstraints();
-      console.log('[WebRTC] 📱 Using constraints:', { 
+      console.log('[WebRTC] 📱 Using constraints:', {
         device: isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop',
         video: videoSettings,
-        connection: connectionType 
+        connection: connectionType
       });
-      
+
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      
+
       console.log('[WebRTC] ✅ STEP 2: Media acquired, setting state...');
       setLocalStream(stream);
       localStreamRef.current = stream;
       mediaReadyRef.current = true;
-      
+
       // Add tracks to existing peer connections (if any were created before media was ready)
       if (peerConnections.current.size > 0) {
         console.log('[WebRTC] Adding tracks to', peerConnections.current.size, 'existing peer connections');
@@ -252,12 +222,12 @@ export function useMeetingWebRTC({
           });
         });
       }
-      
+
       // 2. WAIT for channel to be FULLY ready (increased timeout, no fallback)
       console.log('[WebRTC] ⏳ STEP 3: Waiting for signaling channel...');
       await waitForChannelReady(signalChannel.current, 10000);
       setChannelStatus('connected');
-      
+
       // 3. ONLY NOW send join signal
       if (!hasJoinedRef.current) {
         console.log('[WebRTC] 📢 STEP 4: Sending join signal...');
@@ -268,7 +238,7 @@ export function useMeetingWebRTC({
         hasJoinedRef.current = true;
         console.log('[WebRTC] ✅ Join signal sent, ready for peer connections');
       }
-      
+
       // 4. Process pending offers that arrived early
       if (pendingJoinSignals.current.length > 0) {
         console.log('[WebRTC] 📋 Processing', pendingJoinSignals.current.length, 'queued signals');
@@ -277,25 +247,25 @@ export function useMeetingWebRTC({
         }
         pendingJoinSignals.current = [];
       }
-      
+
       return stream;
     } catch (error: any) {
       console.error('[WebRTC] ❌ Media initialization failed:', error);
       setChannelStatus('error');
-      
+
       // Specific error messages
       const recoverable = error.name !== 'NotAllowedError' && error.name !== 'PermissionDeniedError';
       setError({
-        message: error.name === 'NotFoundError' 
+        message: error.name === 'NotFoundError'
           ? 'No camera or microphone detected'
           : error.name === 'NotAllowedError'
-          ? 'Camera/microphone access denied. Click "Allow" in browser.'
-          : error.name === 'NotReadableError'
-          ? 'Camera/microphone is being used by another app'
-          : `Failed to access media: ${error.message}`,
+            ? 'Camera/microphone access denied. Click "Allow" in browser.'
+            : error.name === 'NotReadableError'
+              ? 'Camera/microphone is being used by another app'
+              : `Failed to access media: ${error.message}`,
         recoverable
       });
-      
+
       throw error;
     }
   }, [getVideoConstraints, participantName, meetingId]);
@@ -307,15 +277,15 @@ export function useMeetingWebRTC({
       console.log('[WebRTC] ♻️ Reusing existing peer connection for:', targetParticipantId);
       return peerConnections.current.get(targetParticipantId)!;
     }
-    
+
     const currentStream = localStreamRef.current;
     if (!currentStream || !mediaReadyRef.current) {
       console.error('[WebRTC] ❌ Cannot create peer connection, media not ready! | Local stream ref:', !!localStreamRef.current, '| Media ready flag:', mediaReadyRef.current);
       throw new Error('Media not initialized');
     }
-    
+
     console.log('[WebRTC] 🆕 Creating peer connection for:', targetParticipantId, '| Media ready:', mediaReadyRef.current, '| Tracks:', currentStream.getTracks().length);
-    
+
     const pc = new RTCPeerConnection(RTC_CONFIG);
 
     // Store the connection immediately to prevent duplicates
@@ -336,16 +306,16 @@ export function useMeetingWebRTC({
         muted: t.muted
       }))
     });
-    
+
     currentStream.getTracks().forEach(track => {
       console.log('[WebRTC] 📹 Adding track:', track.kind, 'ID:', track.id, 'enabled:', track.enabled, 'ready:', track.readyState);
       const sender = pc.addTrack(track, currentStream);
       console.log('[WebRTC] ✅ Track added, sender:', sender.track?.kind, 'track ID:', sender.track?.id);
     });
-    
+
     // Configure VP9 codec preference
     setVP9Preference(pc);
-    
+
     // Configure video sender with simulcast after tracks added
     setTimeout(() => {
       if (currentStream.getVideoTracks().length > 0) {
@@ -367,12 +337,12 @@ export function useMeetingWebRTC({
           videoEnabled: videoTracks[0]?.enabled,
           audioEnabled: audioTracks[0]?.enabled
         });
-        
+
         // Log each track
         remoteStream.getTracks().forEach(track => {
           console.log('[WebRTC] 📹 Track:', track.kind, 'ID:', track.id, 'Enabled:', track.enabled, 'Ready:', track.readyState);
         });
-        
+
         console.log('[WebRTC] 🎥 Calling onRemoteStream for participant:', targetParticipantId);
         onRemoteStream(targetParticipantId, remoteStream);
       } else {
@@ -396,7 +366,7 @@ export function useMeetingWebRTC({
     pc.oniceconnectionstatechange = () => {
       const iceState = pc.iceConnectionState;
       console.log('[WebRTC] 🧊 ICE state for', targetParticipantId, ':', iceState);
-      
+
       // Don't reconnect if participant has left
       if (leftParticipantsRef.current.has(targetParticipantId)) {
         console.log('[WebRTC] 🚫 Skipping reconnection for left participant:', targetParticipantId);
@@ -406,7 +376,7 @@ export function useMeetingWebRTC({
         }
         return;
       }
-      
+
       switch (iceState) {
         case 'checking':
           toast.info(`Connecting to ${targetParticipantId.slice(0, 8)}...`, { id: `conn-${targetParticipantId}` });
@@ -422,7 +392,7 @@ export function useMeetingWebRTC({
           toast.warning(`Connection unstable with ${targetParticipantId.slice(0, 8)}`, { id: `conn-${targetParticipantId}` });
           console.log('[WebRTC] 🔄 Attempting ICE restart...');
           pc.restartIce();
-          
+
           // Check if participant is still in meeting before retrying
           setTimeout(async () => {
             if (pc.iceConnectionState === 'disconnected' && !leftParticipantsRef.current.has(targetParticipantId)) {
@@ -432,7 +402,7 @@ export function useMeetingWebRTC({
                 .eq('meeting_id', meetingId)
                 .or(`user_id.eq.${targetParticipantId},session_token.eq.${targetParticipantId}`)
                 .maybeSingle();
-              
+
               if (data?.left_at !== null) {
                 console.log('[WebRTC] 👋 Participant has left, stopping reconnection');
                 leftParticipantsRef.current.add(targetParticipantId);
@@ -444,7 +414,7 @@ export function useMeetingWebRTC({
           break;
         case 'failed':
           toast.error(`Failed to connect to ${targetParticipantId.slice(0, 8)}`, { id: `conn-${targetParticipantId}` });
-          
+
           // Verify participant is still in meeting before full reconnection
           setTimeout(async () => {
             if (pc.iceConnectionState === 'failed' && !leftParticipantsRef.current.has(targetParticipantId)) {
@@ -454,7 +424,7 @@ export function useMeetingWebRTC({
                 .eq('meeting_id', meetingId)
                 .or(`user_id.eq.${targetParticipantId},session_token.eq.${targetParticipantId}`)
                 .maybeSingle();
-              
+
               if (data?.left_at !== null) {
                 console.log('[WebRTC] 👋 Participant has left, stopping reconnection');
                 leftParticipantsRef.current.add(targetParticipantId);
@@ -480,9 +450,9 @@ export function useMeetingWebRTC({
     pc.onnegotiationneeded = async () => {
       try {
         console.log('[WebRTC] 🔄 Negotiation needed for:', targetParticipantId);
-        
+
         const offer = await pc.createOffer();
-        
+
         // Apply SDP optimization with FEC and DTX enabled
         const optimizedOffer = optimizeSessionDescription(offer, {
           enableOpusFEC: true,
@@ -490,15 +460,15 @@ export function useMeetingWebRTC({
           opusMaxAverageBitrate: 64000,
           preferredVideoCodec: 'VP9'
         });
-        
+
         await pc.setLocalDescription(optimizedOffer);
-        
+
         await sendSignal({
           type: 'offer',
           receiverId: targetParticipantId,
           data: optimizedOffer
         });
-        
+
         console.log('[WebRTC] ✅ Renegotiation offer sent');
       } catch (error) {
         console.error('[WebRTC] ❌ Renegotiation failed:', error);
@@ -509,7 +479,7 @@ export function useMeetingWebRTC({
     pc.onconnectionstatechange = () => {
       console.log('[WebRTC] Connection state:', pc.connectionState, 'for:', targetParticipantId);
       setConnectionState(pc.connectionState);
-      
+
       if (pc.connectionState === 'failed') {
         setError({ message: 'Connection lost, reconnecting...', recoverable: true });
       } else if (pc.connectionState === 'disconnected') {
@@ -526,7 +496,7 @@ export function useMeetingWebRTC({
   const monitorConnectionStats = async (targetParticipantId: string) => {
     const pc = peerConnections.current.get(targetParticipantId);
     if (!pc) return;
-    
+
     try {
       const stats = await pc.getStats();
       stats.forEach(report => {
@@ -537,7 +507,7 @@ export function useMeetingWebRTC({
             protocol: report.protocol,
             currentRoundTripTime: report.currentRoundTripTime
           });
-          
+
           // Alert if using TURN relay
           if (report.localCandidateType === 'relay' || report.remoteCandidateType === 'relay') {
             console.log('[WebRTC] ⚠️ Using TURN relay - direct P2P not possible');
@@ -554,13 +524,13 @@ export function useMeetingWebRTC({
   const adaptVideoQuality = useCallback(async (targetParticipantId: string) => {
     const pc = peerConnections.current.get(targetParticipantId);
     if (!pc) return;
-    
+
     try {
       const stats = await pc.getStats();
       let packetsLost = 0;
       let packetsReceived = 0;
       let rtt = 0;
-      
+
       stats.forEach(report => {
         if (report.type === 'inbound-rtp' && report.kind === 'video') {
           packetsLost = report.packetsLost || 0;
@@ -570,9 +540,9 @@ export function useMeetingWebRTC({
           rtt = (report.currentRoundTripTime || 0) * 1000;
         }
       });
-      
+
       const packetLossRate = packetsReceived > 0 ? (packetsLost / (packetsLost + packetsReceived)) * 100 : 0;
-      
+
       // Determine quality based on network conditions
       let recommendedQuality: 'high' | 'medium' | 'low';
       if (packetLossRate < 2 && rtt < 150) {
@@ -582,15 +552,15 @@ export function useMeetingWebRTC({
       } else {
         recommendedQuality = 'low';
       }
-      
+
       // Apply quality settings
       const senders = pc.getSenders();
       const videoSender = senders.find(s => s.track?.kind === 'video');
-      
+
       if (videoSender) {
         const params = videoSender.getParameters();
         if (!params.encodings) params.encodings = [{}];
-        
+
         switch (recommendedQuality) {
           case 'high':
             params.encodings[0].maxBitrate = 2500000;
@@ -605,7 +575,7 @@ export function useMeetingWebRTC({
             params.encodings[0].scaleResolutionDownBy = 4;
             break;
         }
-        
+
         await videoSender.setParameters(params);
         console.log('[WebRTC] 🎥 Adapted to', recommendedQuality, 'quality | Packet loss:', packetLossRate.toFixed(2), '% | RTT:', rtt.toFixed(0), 'ms');
       }
@@ -622,7 +592,7 @@ export function useMeetingWebRTC({
         monitorVideoStats(pc, participantId);
       });
     }, 5000);
-    
+
     return () => clearInterval(interval);
   }, [adaptVideoQuality, monitorVideoStats]);
 
@@ -633,10 +603,10 @@ export function useMeetingWebRTC({
     data: any;
   }) => {
     const signalKey = `${signal.type}-${signal.receiverId || 'broadcast'}-${Date.now()}`;
-    
+
     try {
       console.log('[WebRTC] 📤 Sending signal:', signal.type, 'to:', signal.receiverId || 'broadcast', 'from:', participantId);
-      
+
       await supabase.from('webrtc_signals').insert({
         meeting_id: meetingId,
         sender_id: participantId,
@@ -644,28 +614,28 @@ export function useMeetingWebRTC({
         signal_type: signal.type,
         signal_data: signal.data
       });
-      
+
       console.log('[WebRTC] ✅ Signal sent successfully:', signal.type);
-      
+
       // Remove from retry queue if it was there
       signalRetryQueue.current.delete(signalKey);
     } catch (error) {
       console.error('[WebRTC] ❌ Failed to send signal:', signal.type, error);
-      
+
       // Add to retry queue for critical signals
       if (['join', 'offer', 'answer'].includes(signal.type)) {
         const existing = signalRetryQueue.current.get(signalKey);
         const retries = existing ? existing.retries + 1 : 1;
-        
+
         if (retries <= 3) {
           signalRetryQueue.current.set(signalKey, {
             signal,
             retries,
             timestamp: Date.now()
           });
-          
+
           console.log('[WebRTC] 🔄 Signal queued for retry:', signal.type, 'attempt:', retries);
-          
+
           // Retry after exponential backoff
           setTimeout(() => sendSignal(signal), Math.min(1000 * Math.pow(2, retries), 5000));
         } else {
@@ -679,7 +649,7 @@ export function useMeetingWebRTC({
   // Handle incoming offer - simplified pattern
   const handleOffer = async (senderId: string, offer: RTCSessionDescriptionInit) => {
     console.log('[WebRTC] 📞 Handling offer from:', senderId, '| Media ready:', mediaReadyRef.current);
-    
+
     // Check if media is ready before handling offer
     if (!mediaReadyRef.current || !localStreamRef.current) {
       console.warn('[WebRTC] ⚠️ Received offer but media not ready yet. Queuing sender:', senderId);
@@ -688,7 +658,7 @@ export function useMeetingWebRTC({
       }
       return;
     }
-    
+
     let pc = peerConnections.current.get(senderId);
     if (!pc) {
       console.log('[WebRTC] 🆕 Creating new peer connection for offer from:', senderId);
@@ -699,27 +669,41 @@ export function useMeetingWebRTC({
     try {
       console.log('[WebRTC] 📝 Setting remote description (offer) from:', senderId);
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      
+
       console.log('[WebRTC] 🎤 Creating answer for:', senderId);
       const answer = await pc.createAnswer();
-      
+
       // Apply SDP optimization with FEC enabled
       const optimizedAnswer = optimizeSessionDescription(answer, {
         enableOpusFEC: true,
         enableOpusDTX: false,
         opusMaxAverageBitrate: 64000
       });
-      
+
       await pc.setLocalDescription(optimizedAnswer);
-      
+
       console.log('[WebRTC] 📤 Sending answer to:', senderId);
       await sendSignal({
         type: 'answer',
         receiverId: senderId,
         data: optimizedAnswer
       });
-      
+
       console.log('[WebRTC] ✅ Answer sent successfully to:', senderId);
+
+      // Flush any queued ICE candidates
+      const candidates = pendingCandidates.current.get(senderId);
+      if (candidates && candidates.length > 0) {
+        console.log('[WebRTC] 🧊 Flushing', candidates.length, 'queued candidates for', senderId);
+        for (const candidate of candidates) {
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          } catch (e) {
+            console.warn('[WebRTC] Failed to add queued candidate:', e);
+          }
+        }
+        pendingCandidates.current.delete(senderId);
+      }
     } catch (error) {
       console.error('[WebRTC] ❌ Error handling offer from:', senderId, error);
     }
@@ -728,12 +712,27 @@ export function useMeetingWebRTC({
   // Handle incoming answer
   const handleAnswer = async (senderId: string, answer: RTCSessionDescriptionInit) => {
     console.log('[WebRTC] Handling answer from:', senderId);
-    
+
     const pc = peerConnections.current.get(senderId);
     if (pc && pc.signalingState === 'have-local-offer') {
       try {
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
+
         console.log('[WebRTC] Answer processed successfully from:', senderId);
+
+        // Flush any queued ICE candidates
+        const candidates = pendingCandidates.current.get(senderId);
+        if (candidates && candidates.length > 0) {
+          console.log('[WebRTC] 🧊 Flushing', candidates.length, 'queued candidates for', senderId);
+          for (const candidate of candidates) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            } catch (e) {
+              console.warn('[WebRTC] Failed to add queued candidate:', e);
+            }
+          }
+          pendingCandidates.current.delete(senderId);
+        }
       } catch (error) {
         console.error('[WebRTC] Error setting remote description:', error);
       }
@@ -745,9 +744,11 @@ export function useMeetingWebRTC({
   // Handle ICE candidate
   const handleIceCandidate = async (senderId: string, candidate: RTCIceCandidateInit) => {
     console.log('[WebRTC] Handling ICE candidate from:', senderId);
-    
+
     const pc = peerConnections.current.get(senderId);
-    if (pc && pc.remoteDescription) {
+
+    // If PC exists and has remote description, add immediately
+    if (pc && pc.remoteDescription && pc.remoteDescription.type) {
       try {
         await pc.addIceCandidate(new RTCIceCandidate(candidate));
         console.log('[WebRTC] ICE candidate added successfully');
@@ -755,7 +756,10 @@ export function useMeetingWebRTC({
         console.error('[WebRTC] Error adding ICE candidate:', error);
       }
     } else {
-      console.warn('[WebRTC] Cannot add ICE candidate, remote description not set yet');
+      // Otherwise queue it
+      console.warn('[WebRTC] Remote description not ready, queuing candidate for:', senderId);
+      const current = pendingCandidates.current.get(senderId) || [];
+      pendingCandidates.current.set(senderId, [...current, candidate]);
     }
   };
 
@@ -766,66 +770,66 @@ export function useMeetingWebRTC({
       console.log('[WebRTC] ⏸️ Skipping participant poll, media not ready');
       return;
     }
-    
+
     try {
       const { data: participants, error } = await supabase
         .from('meeting_participants')
         .select('user_id, session_token, left_at')
         .eq('meeting_id', meetingId)
         .is('left_at', null);
-      
+
       if (error) {
         console.error('[WebRTC] ❌ Failed to poll participants:', error);
         return;
       }
-      
+
       if (participants) {
         console.log('[WebRTC] 📊 Polled participants:', participants.length);
-        
+
         const newParticipantIds = participants
           .map(p => p.user_id || p.session_token)
-          .filter((id): id is string => 
-            id !== null && 
-            id !== participantId && 
+          .filter((id): id is string =>
+            id !== null &&
+            id !== participantId &&
             !leftParticipantsRef.current.has(id) // Skip participants who have left
           );
-        
+
         // Check for new participants
         for (const newId of newParticipantIds) {
           const currentParticipants = Array.from(peerConnections.current.keys());
           if (!currentParticipants.includes(newId)) {
             console.log('[WebRTC] 🆕 New participant found via polling:', newId);
-            
+
             // Check if we already have a connection
             if (peerConnections.current.has(newId)) {
               console.log('[WebRTC] Already have connection to:', newId);
               continue;
             }
-            
+
             // Use wrapper to respect media-ready check
             await handleParticipantJoin(newId);
           }
         }
-        
+
         // Remove participants who have left from our local state
         const activeParticipantIds = new Set(newParticipantIds);
         const currentConnections = Array.from(peerConnections.current.keys());
-        
+
         for (const connectedId of currentConnections) {
           if (!activeParticipantIds.has(connectedId)) {
             console.log('[WebRTC] 👋 Participant no longer in meeting (detected by poll):', connectedId);
             leftParticipantsRef.current.add(connectedId);
-            
+
             const pc = peerConnections.current.get(connectedId);
             if (pc) {
               pc.close();
               peerConnections.current.delete(connectedId);
             }
-            
+
             onParticipantLeft(connectedId);
           }
         }
-        
+
         setParticipants(newParticipantIds);
       }
     } catch (error) {
@@ -840,7 +844,7 @@ export function useMeetingWebRTC({
       console.log('[WebRTC] ⏸️ Skipping signal poll, media not ready');
       return;
     }
-    
+
     try {
       const { data: signals, error } = await supabase
         .from('webrtc_signals')
@@ -851,15 +855,15 @@ export function useMeetingWebRTC({
         .eq('processed', false)
         .order('created_at', { ascending: true })
         .limit(10);
-      
+
       if (error) {
         console.error('[WebRTC] ❌ Failed to poll signals:', error);
         return;
       }
-      
+
       if (signals && signals.length > 0) {
         console.log('[WebRTC] 📊 Processing', signals.length, 'signals from polling');
-        
+
         for (const signal of signals) {
           // Process signal - cast signal_data to appropriate type via unknown
           switch (signal.signal_type) {
@@ -876,7 +880,7 @@ export function useMeetingWebRTC({
               await handleIceCandidate(signal.sender_id, signal.signal_data as unknown as RTCIceCandidateInit);
               break;
           }
-          
+
           // Mark as processed
           await supabase
             .from('webrtc_signals')
@@ -893,13 +897,13 @@ export function useMeetingWebRTC({
   useEffect(() => {
     if (channelStatus === 'disconnected' || channelStatus === 'error') {
       console.log('[WebRTC] 🔄 Starting fallback polling due to channel issues');
-      
+
       // Poll participants and signals every 2 seconds
       pollingInterval.current = setInterval(() => {
         pollParticipants();
         pollSignals();
       }, 2000);
-      
+
       return () => {
         if (pollingInterval.current) {
           clearInterval(pollingInterval.current);
@@ -918,13 +922,13 @@ export function useMeetingWebRTC({
       console.log('[WebRTC] Ignoring own join signal');
       return;
     }
-    
+
     // Check if participant has left - don't reconnect
     if (leftParticipantsRef.current.has(newParticipantId)) {
       console.log('[WebRTC] 🚫 Ignoring join from participant who has left:', newParticipantId);
       return;
     }
-    
+
     // Double-check media is ready before proceeding
     if (!mediaReadyRef.current || !localStreamRef.current) {
       console.error('[WebRTC] ❌ handleParticipantJoinInternal called but media not ready!');
@@ -966,39 +970,39 @@ export function useMeetingWebRTC({
       console.error('[WebRTC] ❌ Error verifying participant approval:', error);
       return;
     }
-    
+
     const currentStream = localStreamRef.current;
     console.log('[WebRTC] ✅ Media confirmed ready | Stream tracks:', currentStream.getTracks().length);
-    
+
     // Check if we already have a connection
     if (peerConnections.current.has(newParticipantId)) {
       console.log('[WebRTC] Already have connection to:', newParticipantId);
       return;
     }
-    
+
     // Create peer connection with tracks for BOTH peers
     const pc = createPeerConnection(newParticipantId);
     setParticipants(prev => [...new Set([...prev, newParticipantId])]);
-    
+
     // Only higher ID initiates offer to prevent simultaneous offers
     const shouldInitiate = participantId > newParticipantId;
-    
+
     if (shouldInitiate) {
       console.log('[WebRTC] 📞 Initiating offer (higher ID) to:', newParticipantId);
-      
+
       try {
         console.log('[WebRTC] 🎬 Creating offer with', currentStream.getTracks().length, 'tracks');
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-        
+
         console.log('[WebRTC] ✅ Offer created, sending to:', newParticipantId);
-        
+
         await sendSignal({
           type: 'offer',
           receiverId: newParticipantId,
           data: offer
         });
-        
+
         console.log('[WebRTC] ✅ Offer sent successfully to:', newParticipantId);
       } catch (error) {
         console.error('[WebRTC] ❌ Failed to create/send offer to:', newParticipantId, error);
@@ -1018,7 +1022,7 @@ export function useMeetingWebRTC({
       }
       return;
     }
-    
+
     console.log('[WebRTC] ✅ Media is ready (stream in ref), processing join from:', newParticipantId);
     await handleParticipantJoinInternal(newParticipantId);
   };
@@ -1042,13 +1046,13 @@ export function useMeetingWebRTC({
         },
         async (payload: any) => {
           const signal = payload.new;
-          
+
           // Ignore own signals
           if (signal.sender_id === participantId) {
             console.log('[WebRTC] 🔄 Ignoring own signal:', signal.signal_type);
             return;
           }
-          
+
           // Ignore signals meant for others
           if (signal.receiver_id && signal.receiver_id !== participantId) {
             console.log('[WebRTC] 📭 Ignoring signal for others:', signal.signal_type, 'from:', signal.sender_id, 'to:', signal.receiver_id);
@@ -1076,20 +1080,20 @@ export function useMeetingWebRTC({
               break;
             case 'leave':
               console.log('[WebRTC] 👋 LEAVE signal received from:', signal.sender_id);
-              
+
               // Mark as left to prevent reconnection
               leftParticipantsRef.current.add(signal.sender_id);
-              
+
               // Clean up peer connection
               const pc = peerConnections.current.get(signal.sender_id);
               if (pc) {
                 pc.close();
                 peerConnections.current.delete(signal.sender_id);
               }
-              
+
               // Remove from participants list
               setParticipants(prev => prev.filter(p => p !== signal.sender_id));
-              
+
               // Notify UI
               onParticipantLeft(signal.sender_id);
               toast.info(`${signal.sender_id.slice(0, 8)} left the meeting`, { duration: 2000 });
@@ -1133,14 +1137,14 @@ export function useMeetingWebRTC({
     const setupChannel = async () => {
       console.log('[WebRTC] ⏳ Waiting for channel to be ready...');
       setChannelStatus('connecting');
-      
+
       // Wait for channel to be subscribed with timeout
       const channelReady = await Promise.race([
         new Promise<boolean>((resolve) => {
           const checkSubscription = () => {
             const state = channel.state;
             console.log('[WebRTC] 📡 Current channel state:', state);
-            
+
             if (state === 'joined') {
               console.log('[WebRTC] ✅ Channel ready and joined');
               setChannelStatus('connected');
@@ -1184,7 +1188,7 @@ export function useMeetingWebRTC({
     };
 
     setupChannel();
-    
+
     // Fallback: Send join signal after timeout if media init hangs
     const mediaInitTimeout = setTimeout(() => {
       if (!mediaReadyRef.current && channel.state === 'joined' && !hasJoinedRef.current) {
@@ -1196,14 +1200,14 @@ export function useMeetingWebRTC({
 
     return () => {
       clearTimeout(mediaInitTimeout);
-      
+
       // Announce leave
       console.log('[WebRTC] 👋 Leaving meeting, sending leave signal');
       sendSignal({
         type: 'leave',
         data: {}
       });
-      
+
       channel.unsubscribe();
       signalChannel.current = null;
       hasJoinedRef.current = false;
@@ -1220,7 +1224,7 @@ export function useMeetingWebRTC({
         videoTrack.enabled = newState;
         setIsVideoEnabled(newState);
         console.log('[WebRTC] Video toggled:', newState ? 'ON' : 'OFF');
-        
+
         // Notify peers about video state change
         await sendSignal({
           type: 'video-state',
@@ -1248,7 +1252,7 @@ export function useMeetingWebRTC({
         audioTrack.enabled = newState;
         setIsAudioEnabled(newState);
         console.log('[WebRTC] Audio toggled:', newState ? 'ON' : 'OFF');
-        
+
         // Notify peers about audio state change
         await sendSignal({
           type: 'audio-state',
@@ -1260,19 +1264,19 @@ export function useMeetingWebRTC({
 
   // Screen sharing
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
-  
+
   const toggleScreenShare = useCallback(async () => {
     if (screenStream) {
       // Stop screen sharing
       screenStream.getTracks().forEach(track => track.stop());
       setScreenStream(null);
-      
+
       // Notify peers to stop displaying screen share
       await sendSignal({
         type: 'screen-share-stop',
         data: {}
       });
-      
+
       return false;
     } else {
       // Start screen sharing
@@ -1284,15 +1288,15 @@ export function useMeetingWebRTC({
           } as any,
           audio: false
         });
-        
+
         setScreenStream(stream);
-        
+
         // Replace video track in all peer connections
         const screenTrack = stream.getVideoTracks()[0];
-        
+
         // Apply content hint for screen sharing optimization
         setScreenShareContentHint(screenTrack, 'detail');
-        
+
         peerConnections.current.forEach(async (pc) => {
           const sender = pc.getSenders().find(s => s.track?.kind === 'video');
           if (sender) {
@@ -1301,17 +1305,17 @@ export function useMeetingWebRTC({
             await configureVideoSender(pc, '', true);
           }
         });
-        
+
         // Notify peers about screen share
         await sendSignal({
           type: 'screen-share-start',
           data: {}
         });
-        
+
         // Handle when user stops sharing via browser UI
         screenTrack.onended = async () => {
           setScreenStream(null);
-          
+
           // Restore camera track
           const currentStream = localStreamRef.current;
           if (currentStream) {
@@ -1323,13 +1327,13 @@ export function useMeetingWebRTC({
               }
             });
           }
-          
+
           await sendSignal({
             type: 'screen-share-stop',
             data: {}
           });
         };
-        
+
         return true;
       } catch (error) {
         console.error('[WebRTC] Failed to start screen share:', error);
@@ -1370,7 +1374,7 @@ export function useMeetingWebRTC({
   // Cleanup with robust teardown
   const cleanup = useCallback(() => {
     console.log('[WebRTC] Cleaning up all resources...');
-    
+
     try {
       // Stop all local tracks
       const currentStream = localStreamRef.current;
@@ -1381,7 +1385,7 @@ export function useMeetingWebRTC({
         });
         localStreamRef.current = null;
       }
-      
+
       // Stop screen share if active
       if (screenStream) {
         screenStream.getTracks().forEach(track => {
@@ -1389,17 +1393,17 @@ export function useMeetingWebRTC({
           console.log('[WebRTC] Stopped screen share track');
         });
       }
-      
+
       // Close all peer connections
       peerConnections.current.forEach((pc, id) => {
         console.log('[WebRTC] Closing peer connection:', id);
         pc.close();
       });
       peerConnections.current.clear();
-      
+
       // Clear refs
       leftParticipantsRef.current.clear();
-      
+
       // Unsubscribe from channel and send leave signal
       if (signalChannel.current) {
         // Send leave signal before unsubscribing
@@ -1407,11 +1411,11 @@ export function useMeetingWebRTC({
           type: 'leave',
           data: {}
         });
-        
+
         signalChannel.current.unsubscribe();
         signalChannel.current = null;
       }
-      
+
       // Mark as left in database
       void supabase
         .from('meeting_participants')
@@ -1419,12 +1423,12 @@ export function useMeetingWebRTC({
         .eq('meeting_id', meetingId)
         .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
         .is('left_at', null);
-      
+
       setLocalStream(null);
       setScreenStream(null);
       setParticipants([]);
       setError(null);
-      
+
       console.log('[WebRTC] Cleanup complete');
     } catch (err) {
       console.error('[WebRTC] Error during cleanup:', err);
@@ -1454,7 +1458,7 @@ export function useMeetingWebRTC({
     cleanup,
     retryConnection: async () => {
       console.log('[WebRTC] 🔄 Manual retry triggered, attempt:', reconnectAttempts.current + 1);
-      
+
       if (reconnectAttempts.current >= maxReconnectAttempts) {
         setError({ message: 'Failed to connect after multiple attempts. Please refresh the page.', recoverable: false });
         toast.error('Connection failed after multiple attempts');
@@ -1464,24 +1468,24 @@ export function useMeetingWebRTC({
       reconnectAttempts.current++;
       setError(null);
       setChannelStatus('connecting');
-      
+
       toast.info(`Reconnecting (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})...`);
 
       // Clean up existing connections
       peerConnections.current.forEach((pc) => pc.close());
       peerConnections.current.clear();
       setParticipants([]);
-      
+
       // Unsubscribe from old channel
       if (signalChannel.current) {
         signalChannel.current.unsubscribe();
         signalChannel.current = null;
       }
-      
+
       // Reset flags
       hasJoinedRef.current = false;
       mediaReadyRef.current = false;
-      
+
       // Re-initialize media
       try {
         await initializeMedia();

@@ -3,10 +3,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
-import { 
-  Users, 
-  Mail, 
-  Calendar, 
+import {
+  Users,
+  Mail,
+  Calendar,
   TrendingUp,
   DollarSign,
   Target,
@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import { useCRMAnalytics } from '@/hooks/useCRMAnalytics';
 import { CRMFunnelChart } from './CRMFunnelChart';
-import { CRMRevenueForecast } from './CRMRevenueForecast';
+import { CRMRevenueForecast } from "./CRMRevenueForecast";
+import { CampaignROIDashboard } from "@/components/analytics/CampaignROIDashboard";
 import { CRMTrendChart } from './CRMTrendChart';
 import { CRMCampaignStats } from './CRMCampaignStats';
 import { formatCurrency } from '@/lib/revenueCalculations';
@@ -126,9 +127,17 @@ export function CRMAnalyticsOverview() {
       </div>
 
       {/* Trends and Campaign Performance */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <CRMTrendChart dateRange={dateRange} />
-        <CRMCampaignStats dateRange={dateRange} />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <div className="col-span-4">
+          <CRMRevenueForecast />
+        </div>
+        <div className="col-span-3">
+          {/* Future: Sales Rep Leaderboard or Activity Feed */}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <CampaignROIDashboard />
       </div>
     </div>
   );

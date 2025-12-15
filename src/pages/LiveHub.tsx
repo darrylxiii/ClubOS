@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from '@/components/AppLayout';
+import { ActiveCallProvider } from '@/contexts/ActiveCallContext';
 import LiveHubLayout from '@/components/livehub/LiveHubLayout';
 
 const LiveHub = () => {
@@ -18,7 +19,9 @@ const LiveHub = () => {
 
   return (
     <AppLayout>
-      <LiveHubLayout />
+      <ActiveCallProvider>
+        <LiveHubLayout />
+      </ActiveCallProvider>
     </AppLayout>
   );
 };

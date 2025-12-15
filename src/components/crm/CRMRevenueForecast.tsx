@@ -3,15 +3,17 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
-import { 
-  TrendingUp, 
-  DollarSign, 
-  Target, 
+import {
+  TrendingUp,
+  DollarSign,
+  Target,
   Calendar,
   ArrowUpRight,
   ArrowDownRight,
   Zap
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useCRMDeals } from '@/hooks/useCRMDeals';
 import { formatCurrency } from '@/lib/revenueCalculations';
 
@@ -32,17 +34,33 @@ export function CRMRevenueForecast() {
     );
   }
 
-  const monthlyTarget = 100000; // Could be fetched from settings
+  /* 
+    Ideally, we would use a hook like useCRMSettings() here.
+    For now, we'll fetch it directly or use a default if the hook doesn't exist yet.
+  */
+  const [monthlyTarget, setMonthlyTarget] = useState(100000);
+
+  useEffect(() => {
+    async function fetchSettings() {
+      const { data } = await supabase.from('crm_settings').select('monthly_revenue_target').single();
+      if (data?.monthly_revenue_target) {
+        setMonthlyTarget(data.monthly_revenue_target);
+      }
+    }
+    fetchSettings();
+  }, []);
+
   const progress = metrics ? (metrics.wonValue / monthlyTarget) * 100 : 0;
 
   // Forecast calculation
   const daysInMonth = 30;
   const dayOfMonth = new Date().getDate();
-  const projectedRevenue = metrics 
-    ? (metrics.wonValue / dayOfMonth) * daysInMonth 
+  const projectedRevenue = metrics
+    ? (metrics.wonValue / dayOfMonth) * daysInMonth
     : 0;
 
   const forecastVsTarget = ((projectedRevenue / monthlyTarget) * 100) - 100;
+
 
   return (
     <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
@@ -114,20 +132,18 @@ export function CRMRevenueForecast() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className={`p-4 rounded-lg border ${
-            forecastVsTarget >= 0 
-              ? 'bg-gradient-to-br from-green-500/10 to-transparent border-green-500/20' 
-              : 'bg-gradient-to-br from-orange-500/10 to-transparent border-orange-500/20'
-          }`}
+          className={`p-4 rounded-lg border ${forecastVsTarget >= 0
+            ? 'bg-gradient-to-br from-green-500/10 to-transparent border-green-500/20'
+            : 'bg-gradient-to-br from-orange-500/10 to-transparent border-orange-500/20'
+            }`}
         >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Projected Month-End</p>
               <p className="text-xl font-bold">{formatCurrency(projectedRevenue)}</p>
             </div>
-            <div className={`flex items-center gap-1 text-sm ${
-              forecastVsTarget >= 0 ? 'text-green-500' : 'text-orange-500'
-            }`}>
+            <div className={`flex items-center gap-1 text-sm ${forecastVsTarget >= 0 ? 'text-green-500' : 'text-orange-500'
+              }`}>
               {forecastVsTarget >= 0 ? (
                 <ArrowUpRight className="w-4 h-4" />
               ) : (

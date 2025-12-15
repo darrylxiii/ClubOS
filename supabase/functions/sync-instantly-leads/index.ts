@@ -1,8 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { 
-  listLeads, 
-  createLead, 
+import {
+  listLeads,
+  createLead,
   type InstantlyLead,
   LEAD_INTEREST_STATUS,
   LEAD_STATUS,
@@ -90,7 +90,7 @@ serve(async (req) => {
           .select('external_id')
           .eq('source', 'instantly')
           .not('external_id', 'is', null);
-        
+
         campaignIds = campaigns?.map(c => c.external_id).filter(Boolean) || [];
       }
 
@@ -131,7 +131,7 @@ serve(async (req) => {
               // Check if prospect exists
               const { data: existing } = await supabase
                 .from('crm_prospects')
-                .select('id, instantly_lead_id')
+                .select('id, instantly_lead_id, stage, deal_value, close_probability, currency, owner_id')
                 .eq('email', email)
                 .maybeSingle();
 
@@ -154,7 +154,18 @@ serve(async (req) => {
                 updated_at: new Date().toISOString(),
               };
 
+              // Auto-Deal Logic: If qualified (Interested), ensure it has deal attributes
+              if (stage === 'qualified') {
+                // Default deal values for "Interested" leads
+                (prospectData as any).deal_value = (existing as any)?.deal_value || 5000;
+                (prospectData as any).close_probability = (existing as any)?.close_probability || 20;
+                (prospectData as any).currency = (existing as any)?.currency || 'USD';
+              }
+
               if (existing) {
+                // Check for transition to qualified to trigger task
+                const isTransitioningToQualified = stage === 'qualified' && (existing as any).stage !== 'qualified';
+
                 // Update existing prospect
                 const { error: updateError } = await supabase
                   .from('crm_prospects')
@@ -165,23 +176,51 @@ serve(async (req) => {
                   errors.push({ email, error: updateError.message });
                 } else {
                   instantlyUpdated++;
+
+                  // Create Task if transitioning (AUTO-TASK)
+                  if (isTransitioningToQualified) {
+                    await supabase.from('crm_activities').insert({
+                      prospect_id: existing.id,
+                      activity_type: 'task',
+                      subject: '🔥 HOT LEAD: Follow up immediately',
+                      description: `Lead marked as ${stage} in Instantly. Reply count: ${lead.email_reply_count}`,
+                      priority: 1, // High priority
+                      due_date: new Date().toISOString().split('T')[0], // Due today
+                      owner_id: (existing as any).owner_id // Assign to prospect owner
+                    });
+                  }
                 }
               } else {
                 // Create new prospect
-                const { error: insertError } = await supabase
+                const { data: newProspect, error: insertError } = await supabase
                   .from('crm_prospects')
                   .insert({
                     email,
                     ...prospectData,
                     source: 'instantly',
                     campaign_id: crmCampaign?.id,
-                custom_fields: lead.payload || {},
-              });
+                    custom_fields: lead.payload || {},
+                  })
+                  .select('id, owner_id') // Select ID for task creation
+                  .single();
 
                 if (insertError) {
                   errors.push({ email, error: insertError.message });
                 } else {
                   instantlyImported++;
+
+                  // Create Task if born qualified (AUTO-TASK)
+                  if (stage === 'qualified' && newProspect) {
+                    await supabase.from('crm_activities').insert({
+                      prospect_id: newProspect.id,
+                      activity_type: 'task',
+                      subject: '🔥 HOT LEAD: Follow up immediately',
+                      description: `Lead imported as ${stage} from Instantly. Reply count: ${lead.email_reply_count}`,
+                      priority: 1,
+                      due_date: new Date().toISOString().split('T')[0],
+                      owner_id: newProspect.owner_id
+                    });
+                  }
                 }
               }
             } catch (err) {
@@ -236,12 +275,12 @@ serve(async (req) => {
               // Update CRM with Instantly lead ID
               await supabase
                 .from('crm_prospects')
-                .update({ 
+                .update({
                   instantly_lead_id: response.data.id,
                   updated_at: new Date().toISOString(),
                 })
                 .eq('id', prospect.id);
-              
+
               crmPushed++;
             }
           } catch (err) {
@@ -268,7 +307,7 @@ serve(async (req) => {
         triggered_by: userId,
         completed_at: new Date().toISOString(),
       });
-    
+
     if (logError) {
       console.error('[sync-instantly-leads] Failed to log sync:', logError);
     }

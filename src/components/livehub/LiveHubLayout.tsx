@@ -15,6 +15,7 @@ import { DirectMessageView } from './DirectMessageView';
 import { UserStatusSelector } from './UserStatusSelector';
 import { useLiveHubPresence } from '@/hooks/useLiveHubPresence';
 import { useUserPresenceExtended } from '@/hooks/useUserPresenceExtended';
+import { useActiveCall } from '@/contexts/ActiveCallContext';
 import { Button } from '@/components/ui/button';
 import { Search, Settings, Bell } from 'lucide-react';
 import MobileLiveHubLayout from './MobileLiveHubLayout';
@@ -31,16 +32,24 @@ const LiveHubLayout = () => {
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
   const [showRoleManager, setShowRoleManager] = useState(false);
   const [showChannelSettings, setShowChannelSettings] = useState(false);
-  
+
   // Initialize user presence
   useUserPresenceExtended();
   const { onlineMembers } = useLiveHubPresence();
+
+  const { activeChannelId, joinCall } = useActiveCall(); // Use global context
 
   const handleChannelSelect = (channelId: string, channelType: string, shouldAutoJoin = false) => {
     setSelectedChannelId(channelId);
     setSelectedChannelType(channelType);
     setAutoJoin(shouldAutoJoin);
     setSelectedConversationId(null); // Clear DM selection
+
+    // If it's a voice/video channel and we want to auto-join (user clicked it), 
+    // tell the global context to join.
+    if ((channelType === 'voice' || channelType === 'video') && shouldAutoJoin) {
+      joinCall(channelId);
+    }
   };
 
   const handleConversationSelect = (conversationId: string) => {
@@ -88,7 +97,7 @@ const LiveHubLayout = () => {
       <ServerSidebar />
 
       {/* Channel List - second column */}
-      <ChannelList 
+      <ChannelList
         selectedChannelId={selectedChannelId}
         selectedConversationId={selectedConversationId}
         connectedChannelId={connectedChannelId}
@@ -142,7 +151,7 @@ const LiveHubLayout = () => {
             selectedChannelType === 'stage' ? (
               <StageChannel channelId={selectedChannelId} />
             ) : selectedChannelType === 'voice' || selectedChannelType === 'video' ? (
-              <VoiceChannel 
+              <VoiceChannel
                 channelId={selectedChannelId}
                 channelType={selectedChannelType as 'voice' | 'video'}
                 autoJoin={autoJoin}
@@ -162,28 +171,28 @@ const LiveHubLayout = () => {
       </div>
 
       {/* Member List - rightmost */}
-      <MemberList 
+      <MemberList
         onlineMembers={onlineMembers}
         channelType={selectedChannelType}
         channelId={selectedChannelId}
       />
 
       {/* Dialogs */}
-      <SearchDialog 
-        open={showSearch} 
+      <SearchDialog
+        open={showSearch}
         onOpenChange={setShowSearch}
         onChannelSelect={handleChannelSelect}
       />
-      <VoiceSettingsDialog 
-        open={showVoiceSettings} 
-        onOpenChange={setShowVoiceSettings} 
+      <VoiceSettingsDialog
+        open={showVoiceSettings}
+        onOpenChange={setShowVoiceSettings}
       />
-      <AdminRoleManager 
-        open={showRoleManager} 
-        onOpenChange={setShowRoleManager} 
+      <AdminRoleManager
+        open={showRoleManager}
+        onOpenChange={setShowRoleManager}
       />
-      <ChannelSettingsDialog 
-        open={showChannelSettings} 
+      <ChannelSettingsDialog
+        open={showChannelSettings}
         onOpenChange={setShowChannelSettings}
         channelId={selectedChannelId}
       />

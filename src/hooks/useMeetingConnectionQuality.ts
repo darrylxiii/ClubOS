@@ -22,9 +22,11 @@ interface PeerStats {
 const QUALITY_THRESHOLDS = {
   excellent: { packetLoss: 1, latency: 50, jitter: 10 },
   good: { packetLoss: 3, latency: 150, jitter: 30 },
-  fair: { packetLoss: 5, latency: 300, jitter: 50 },
-  poor: { packetLoss: 100, latency: 1000, jitter: 100 }
+  fair: { packetLoss: 8, latency: 300, jitter: 50 },
+  poor: { packetLoss: 15, latency: 500, jitter: 100 }
 };
+
+export type AdaptiveAction = 'none' | 'downgrade-quality' | 'audio-only';
 
 /**
  * Multi-peer connection quality monitoring for meetings
@@ -48,7 +50,8 @@ export function useMeetingConnectionQuality({
 
   const [peerStats, setPeerStats] = useState<Map<string, PeerStats>>(new Map());
   const [worstQuality, setWorstQuality] = useState<ConnectionQuality>('disconnected');
-  
+  const [suggestedAction, setSuggestedAction] = useState<AdaptiveAction>('none');
+
   const monitorIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousStatsRef = useRef<Map<string, {
     packetsReceived: number;
@@ -56,24 +59,24 @@ export function useMeetingConnectionQuality({
     bytesReceived: number;
     timestamp: number;
   }>>(new Map());
-  
+
   const lastQualityRef = useRef<ConnectionQuality>('disconnected');
   const logCountRef = useRef(0);
 
   const calculateQuality = useCallback((packetLoss: number, latency: number, jitter: number): ConnectionQuality => {
-    if (packetLoss <= QUALITY_THRESHOLDS.excellent.packetLoss && 
-        latency <= QUALITY_THRESHOLDS.excellent.latency &&
-        jitter <= QUALITY_THRESHOLDS.excellent.jitter) {
+    if (packetLoss <= QUALITY_THRESHOLDS.excellent.packetLoss &&
+      latency <= QUALITY_THRESHOLDS.excellent.latency &&
+      jitter <= QUALITY_THRESHOLDS.excellent.jitter) {
       return 'excellent';
     }
-    if (packetLoss <= QUALITY_THRESHOLDS.good.packetLoss && 
-        latency <= QUALITY_THRESHOLDS.good.latency &&
-        jitter <= QUALITY_THRESHOLDS.good.jitter) {
+    if (packetLoss <= QUALITY_THRESHOLDS.good.packetLoss &&
+      latency <= QUALITY_THRESHOLDS.good.latency &&
+      jitter <= QUALITY_THRESHOLDS.good.jitter) {
       return 'good';
     }
-    if (packetLoss <= QUALITY_THRESHOLDS.fair.packetLoss && 
-        latency <= QUALITY_THRESHOLDS.fair.latency &&
-        jitter <= QUALITY_THRESHOLDS.fair.jitter) {
+    if (packetLoss <= QUALITY_THRESHOLDS.fair.packetLoss &&
+      latency <= QUALITY_THRESHOLDS.fair.latency &&
+      jitter <= QUALITY_THRESHOLDS.fair.jitter) {
       return 'fair';
     }
     return 'poor';
@@ -116,7 +119,7 @@ export function useMeetingConnectionQuality({
         const newPacketsReceived = currentPacketsReceived - prevStats.packetsReceived;
         const newPacketsLost = currentPacketsLost - prevStats.packetsLost;
         const totalNewPackets = newPacketsReceived + newPacketsLost;
-        
+
         if (totalNewPackets > 0) {
           packetLoss = (newPacketsLost / totalNewPackets) * 100;
         }
@@ -198,6 +201,15 @@ export function useMeetingConnectionQuality({
       timestamp: now
     });
 
+    // Calculate suggested action
+    let newAction: AdaptiveAction = 'none';
+    if (avgPacketLoss > 15 || maxLatency > 1000) {
+      newAction = 'audio-only';
+    } else if (avgPacketLoss > 5 || maxLatency > 400) {
+      newAction = 'downgrade-quality';
+    }
+    setSuggestedAction(newAction);
+
     // Notify on quality change
     if (overallQuality !== lastQualityRef.current) {
       lastQualityRef.current = overallQuality;
@@ -208,7 +220,7 @@ export function useMeetingConnectionQuality({
     logCountRef.current++;
     if (logCountRef.current >= 10 && (worstQualityValue === 'poor' || worstQualityValue === 'fair')) {
       logCountRef.current = 0;
-      
+
       // Log quality issues (fire-and-forget, non-blocking)
       console.warn('[MeetingQuality] Quality degraded:', {
         quality: worstQualityValue,
@@ -237,7 +249,7 @@ export function useMeetingConnectionQuality({
   // Clean up old peer stats
   useEffect(() => {
     const currentPeerIds = new Set(peerConnections.keys());
-    
+
     previousStatsRef.current.forEach((_, peerId) => {
       if (!currentPeerIds.has(peerId)) {
         previousStatsRef.current.delete(peerId);
@@ -247,7 +259,7 @@ export function useMeetingConnectionQuality({
 
   const getRecommendedActions = useCallback((): string[] => {
     const actions: string[] = [];
-    
+
     if (overallStats.packetLoss > 5) {
       actions.push('High packet loss detected - check your network');
     }
@@ -257,7 +269,7 @@ export function useMeetingConnectionQuality({
     if (overallStats.jitter > 30) {
       actions.push('Network instability - close other applications');
     }
-    
+
     return actions;
   }, [overallStats]);
 
@@ -267,6 +279,7 @@ export function useMeetingConnectionQuality({
     quality: overallStats.quality,
     worstQuality,
     recommendedActions: getRecommendedActions(),
+    suggestedAction,
     isMonitoring: !!monitorIntervalRef.current
   };
 }

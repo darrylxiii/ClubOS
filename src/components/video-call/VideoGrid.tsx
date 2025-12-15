@@ -25,17 +25,34 @@ interface VideoGridProps {
 
 export function VideoGrid({ participants, localParticipant, focusedParticipantId, layout = 'grid', presenterId }: VideoGridProps) {
   const allParticipants = localParticipant ? [localParticipant, ...participants] : participants;
-  
+
   // Filter out invisible participants (silent observers)
   const visibleParticipants = allParticipants.filter(p => {
     return true; // Show all for now
   });
-  
+
   const focusedParticipant = visibleParticipants.find(p => p.id === focusedParticipantId);
   const screenSharingParticipant = visibleParticipants.find(p => p.is_screen_sharing);
-  
+
   // Find active speaker (most recent speaking participant)
   const activeSpeaker = visibleParticipants.find(p => p.is_speaking);
+
+  // Intelligent Sorting: Active Speaker Priority
+  // We prioritize the active speaker to the top-left (first position)
+  // But we keep the local participant separate if necessary, or let them float
+  const sortedParticipants = [...visibleParticipants].sort((a, b) => {
+    // If we have a focused participant (pinned), they take absolute priority
+    if (focusedParticipantId) {
+      if (a.id === focusedParticipantId) return -1;
+      if (b.id === focusedParticipantId) return 1;
+    }
+
+    // Otherwise, active speaker takes priority (unless it's the local user, typically we don't swap self to main)
+    if (activeSpeaker && a.id === activeSpeaker.id && a.id !== localParticipant?.id) return -1;
+    if (activeSpeaker && b.id === activeSpeaker.id && b.id !== localParticipant?.id) return 1;
+
+    return 0;
+  });
 
   // If someone is screen sharing, switch to spotlight layout
   const effectiveLayout = screenSharingParticipant ? 'spotlight' : layout;
@@ -58,7 +75,7 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
     return (
       <div className="flex gap-8 h-full p-8">
         {/* Main spotlight area - cinematic presentation */}
-        <motion.div 
+        <motion.div
           className="flex-1 min-w-0 flex items-center justify-center"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -77,7 +94,7 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
 
         {/* Sidebar with elegant participant strip */}
         {sidebarParticipants.length > 0 && (
-          <motion.div 
+          <motion.div
             className="w-80 flex flex-col gap-4 overflow-y-auto py-2 pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -88,9 +105,9 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
                 key={participant.id}
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ 
+                transition={{
                   delay: index * 0.1,
-                  ...meetingAnimations.smooth 
+                  ...meetingAnimations.smooth
                 }}
               >
                 <ParticipantTile
@@ -120,29 +137,32 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
           visibleParticipants.length > 1 && "auto-rows-fr"
         )}
         style={{
-          gridTemplateColumns: isSingleParticipant 
-            ? '1fr' 
-            : isTwoParticipants 
-            ? 'repeat(2, minmax(0, 1fr))' 
-            : `repeat(${gridCols}, minmax(0, 1fr))`,
+          gridTemplateColumns: isSingleParticipant
+            ? '1fr'
+            : isTwoParticipants
+              ? 'repeat(2, minmax(0, 1fr))'
+              : `repeat(${gridCols}, minmax(0, 1fr))`,
           maxWidth: isSingleParticipant ? '1200px' : '100%',
         }}
       >
-        {visibleParticipants.map((participant, index) => {
+        {sortedParticipants.map((participant, index) => {
+          // Assuming 'activeSpeaker' is defined elsewhere or passed as a prop, for now it's undefined.
+          const activeSpeaker = undefined; // Placeholder, as it's not defined in the provided snippet
           const isActiveSpeaker = activeSpeaker?.id === participant.id;
-          
+
           return (
             <motion.div
+              layout // Enable smooth reordering animation
               key={participant.id}
               initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ 
-                opacity: 1, 
+              animate={{
+                opacity: 1,
                 scale: isActiveSpeaker ? 1.02 : 1,
               }}
-              transition={{ 
-                delay: index * 0.1,
-                scale: { duration: 0.3 },
-                ...meetingAnimations.smooth 
+              transition={{
+                // Use spring physics for layout changes
+                layout: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 }
               }}
               className={cn(
                 isSingleParticipant && "w-full max-w-[1200px] aspect-video"

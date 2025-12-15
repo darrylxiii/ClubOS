@@ -35,6 +35,8 @@ export interface InstantlyLead {
   company_name: string | null;
   stage: string;
   lead_score: number | null;
+  deal_value: number | null;
+  currency: string | null;
   instantly_lead_id: string | null;
   last_opened_at: string | null;
   last_clicked_at: string | null;
@@ -44,6 +46,14 @@ export interface InstantlyLead {
   campaign_id: string | null;
   created_at: string;
 }
+// ... (rest of file)
+
+// ... inside fetchLeads
+let query = supabase
+  .from('crm_prospects')
+  .select('id, email, first_name, last_name, company_name, stage, lead_score, deal_value, currency, instantly_lead_id, last_opened_at, last_clicked_at, last_replied_at, bounced_at, is_interested, campaign_id, created_at')
+  .not('instantly_lead_id', 'is', null)
+  .order('created_at', { ascending: false });
 
 export interface InstantlyStats {
   totalCampaigns: number;
@@ -114,7 +124,7 @@ export function useInstantlyData() {
   const fetchLeads = useCallback(async (campaignId?: string): Promise<InstantlyLead[]> => {
     let query = supabase
       .from('crm_prospects')
-      .select('id, email, first_name, last_name, company_name, stage, lead_score, instantly_lead_id, last_opened_at, last_clicked_at, last_replied_at, bounced_at, is_interested, campaign_id, created_at')
+      .select('id, email, first_name, last_name, company_name, stage, lead_score, deal_value, currency, instantly_lead_id, last_opened_at, last_clicked_at, last_replied_at, bounced_at, is_interested, campaign_id, created_at')
       .not('instantly_lead_id', 'is', null)
       .order('created_at', { ascending: false });
 
@@ -214,9 +224,9 @@ export function useInstantlyData() {
     setSyncing(true);
     try {
       const { data, error } = await supabase.functions.invoke('sync-instantly-campaigns');
-      
+
       if (error) throw error;
-      
+
       toast.success(`Synced ${data?.created + data?.updated || 0} campaigns from Instantly`);
       await loadData();
     } catch (error: any) {
@@ -233,9 +243,9 @@ export function useInstantlyData() {
       const { data, error } = await supabase.functions.invoke('sync-instantly-leads', {
         body: campaignId ? { campaignId } : undefined,
       });
-      
+
       if (error) throw error;
-      
+
       toast.success(`Synced ${data?.synced || 0} leads from Instantly`);
       await loadData();
     } catch (error: any) {

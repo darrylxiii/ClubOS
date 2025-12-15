@@ -34,7 +34,7 @@ export function useMeetingAutoRecording({
     recordingId: null,
     hasConsent: false
   });
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const autoStartAttemptedRef = useRef(false);
@@ -49,7 +49,7 @@ export function useMeetingAutoRecording({
     try {
       // Combine local and all remote streams
       const tracks: MediaStreamTrack[] = [...localStream.getTracks()];
-      
+
       remoteStreams.forEach(({ stream }) => {
         tracks.push(...stream.getTracks());
       });
@@ -60,6 +60,12 @@ export function useMeetingAutoRecording({
       }
 
       const combinedStream = new MediaStream(tracks);
+
+      // WARNING: MediaRecorder typically only records the first video track (usually local or whoever joined first).
+      // A full grid recording requires a server-side MCU or canvas composition.
+      if (tracks.filter(t => t.kind === 'video').length > 1) {
+        console.warn('[AutoRecording] Multiple video tracks detected. MediaRecorder may only record one track. Grid recording requires server-side composition.');
+      }
 
       // Check for supported mime types
       let mimeType = 'video/webm;codecs=vp9,opus';
@@ -86,7 +92,7 @@ export function useMeetingAutoRecording({
 
       recorder.start(1000); // Chunk every 1 second
       mediaRecorderRef.current = recorder;
-      
+
       const startTime = Date.now();
       setState(prev => ({
         ...prev,
@@ -116,22 +122,22 @@ export function useMeetingAutoRecording({
 
     return new Promise<string | null>((resolve) => {
       const recorder = mediaRecorderRef.current!;
-      
+
       recorder.onstop = async () => {
         console.log('[AutoRecording] Recording stopped, processing...');
-        
+
         const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
-        const durationSeconds = state.recordingStartTime 
-          ? Math.round((Date.now() - state.recordingStartTime) / 1000) 
+        const durationSeconds = state.recordingStartTime
+          ? Math.round((Date.now() - state.recordingStartTime) / 1000)
           : 0;
 
         // Upload to storage
         const recordingId = await uploadRecording(blob, durationSeconds);
-        
+
         // Cleanup
         recordedChunksRef.current = [];
         mediaRecorderRef.current = null;
-        
+
         setState({
           isRecording: false,
           recordingStartTime: null,
@@ -158,9 +164,9 @@ export function useMeetingAutoRecording({
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('meeting-recordings')
-        .upload(filePath, blob, { 
+        .upload(filePath, blob, {
           contentType: 'video/webm',
-          upsert: false 
+          upsert: false
         });
 
       if (uploadError) {
@@ -230,7 +236,7 @@ export function useMeetingAutoRecording({
   const triggerAnalysis = async (recordingId: string) => {
     try {
       console.log('[AutoRecording] Triggering AI analysis for:', recordingId);
-      
+
       // Update status to transcribing
       await supabase
         .from('meeting_recordings_extended')
@@ -246,9 +252,9 @@ export function useMeetingAutoRecording({
         console.error('[AutoRecording] Analysis trigger failed:', error);
         await supabase
           .from('meeting_recordings_extended')
-          .update({ 
+          .update({
             processing_status: 'failed',
-            processing_error: error.message 
+            processing_error: error.message
           })
           .eq('id', recordingId);
       } else {

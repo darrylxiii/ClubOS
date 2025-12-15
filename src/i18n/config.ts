@@ -5,8 +5,8 @@ import SupabaseBackend from './supabase-backend';
 
 // All namespaces available in the database
 const ALL_NAMESPACES = [
-  'common', 'auth', 'onboarding', 'admin', 'analytics', 
-  'candidates', 'compliance', 'contracts', 'jobs', 
+  'common', 'auth', 'onboarding', 'admin', 'analytics',
+  'candidates', 'compliance', 'contracts', 'jobs',
   'meetings', 'messages', 'partner', 'settings'
 ];
 
@@ -66,26 +66,26 @@ export const clearTranslationCache = (language?: string) => {
 // Force reload all translations for a language
 export const forceReloadLanguage = async (language: string): Promise<void> => {
   console.log(`[i18n] Force reloading language: ${language}`);
-  
+
   // Clear cache for this language
   clearTranslationCache(language);
-  
+
   // Clear i18next's internal cache for this language
   ALL_NAMESPACES.forEach(ns => {
     if (i18n.hasResourceBundle(language, ns)) {
       i18n.removeResourceBundle(language, ns);
     }
   });
-  
+
   // Reload all namespaces for this language
   await Promise.all(
-    ALL_NAMESPACES.map(ns => 
+    ALL_NAMESPACES.map(ns =>
       i18n.reloadResources(language, ns).catch(err => {
         console.warn(`[i18n] Failed to reload ${language}/${ns}:`, err);
       })
     )
   );
-  
+
   console.log(`[i18n] Finished reloading ${language}`);
 };
 
@@ -93,20 +93,35 @@ export const forceReloadLanguage = async (language: string): Promise<void> => {
 export const changeLanguageWithReload = async (language: string): Promise<boolean> => {
   try {
     console.log(`[i18n] Changing language to: ${language}`);
-    
+
     // Force reload the new language
     await forceReloadLanguage(language);
-    
+
     // Change the language
     await i18n.changeLanguage(language);
-    
+
     // Dispatch event for components to react
     window.dispatchEvent(new CustomEvent('languageChanged', { detail: language }));
-    
+
     return true;
   } catch (error) {
     console.error('[i18n] Language change failed:', error);
     return false;
+  }
+};
+
+import commonEn from '@/i18n/locales/en/common.json';
+import authEn from '@/i18n/locales/en/auth.json';
+import onboardingEn from '@/i18n/locales/en/onboarding.json';
+
+
+
+// Define default resources
+const resources = {
+  en: {
+    common: commonEn,
+    auth: authEn,
+    onboarding: onboardingEn,
   }
 };
 
@@ -115,32 +130,33 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    resources, // Add local resources here
     fallbackLng: 'en',
     supportedLngs: SUPPORTED_LANGUAGES,
     defaultNS: 'common',
     ns: ALL_NAMESPACES,
-    
+
     interpolation: {
       escapeValue: false, // React already escapes
     },
-    
+
     detection: {
       order: ['querystring', 'localStorage', 'navigator'],
       lookupQuerystring: 'lang',
       lookupLocalStorage: 'i18nextLng',
       caches: ['localStorage'],
     },
-    
+
     react: {
       useSuspense: false,
     },
-    
+
     // Preload primary language
     preload: ['en'],
-    
+
     // Load namespaces on demand
     partialBundledLanguages: true,
-    
+
     // Don't use internal cache - we manage our own
     load: 'currentOnly',
   });
@@ -171,10 +187,10 @@ const loadFontForLanguage = (lng: string) => {
 i18n.on('languageChanged', (lng) => {
   document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
   document.documentElement.lang = lng;
-  
+
   // Load font dynamically if needed (Chinese, Arabic)
   loadFontForLanguage(lng);
-  
+
   console.log(`[i18n] Language changed to: ${lng}`);
 });
 

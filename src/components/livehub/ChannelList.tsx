@@ -10,6 +10,8 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import CreateChannelDialog from './CreateChannelDialog';
 import { DirectMessageList } from './DirectMessageList';
+import { UserVoiceDock } from './UserVoiceDock';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Channel {
   id: string;
@@ -47,6 +49,8 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
   const [serverId, setServerId] = useState<string | null>(null);
   const { getUnreadCount } = useLiveHubUnread();
 
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     ensureMembership();
     subscribeToChanges();
@@ -54,6 +58,7 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
 
   const ensureMembership = async () => {
     try {
+      setIsLoading(true);
       // Call RPC to ensure user is member of default server
       const { error: rpcError } = await supabase.rpc('join_default_server');
       if (rpcError) {
@@ -64,11 +69,13 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
           console.error('Retry failed:', retryError);
         }
       }
-      
+
       // Load channels after ensuring membership
       await loadChannels();
     } catch (error) {
       console.error('Error ensuring membership:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -102,7 +109,7 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
     }
 
     setChannels(data || []);
-    
+
     // Load participants for voice/video channels
     if (data) {
       loadChannelParticipants(data.filter(c => ['voice', 'video', 'stage'].includes(c.channel_type)));
@@ -111,7 +118,7 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
 
   const loadChannelParticipants = async (voiceChannels: Channel[]) => {
     const participantMap: Record<string, ChannelParticipant[]> = {};
-    
+
     for (const channel of voiceChannels) {
       const { data } = await supabase
         .from('live_channel_participants')
@@ -126,12 +133,12 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
           )
         `)
         .eq('channel_id', channel.id);
-      
+
       if (data) {
         participantMap[channel.id] = data as any;
       }
     }
-    
+
     setChannelParticipants(participantMap);
   };
 
@@ -226,128 +233,143 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
       {/* Channels */}
       <ScrollArea className="flex-1">
         <div className="py-2">
-          {/* Direct Messages Section */}
-          <div className="mb-3">
-            <button
-              onClick={() => setShowDMs(!showDMs)}
-              className="w-full px-4 py-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground uppercase tracking-wide transition-colors"
-            >
-              {showDMs ? (
-                <ChevronDown className="w-3 h-3 shrink-0" />
-              ) : (
-                <ChevronRight className="w-3 h-3 shrink-0" />
-              )}
-              <MessageSquare className="w-3 h-3" />
-              <span className="truncate">Direct Messages</span>
-            </button>
+          {isLoading ? (
+            <div className="space-y-4 px-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <div className="space-y-1 pl-2">
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Direct Messages Section */}
+              <div className="mb-3">
+                <button
+                  onClick={() => setShowDMs(!showDMs)}
+                  className="w-full px-4 py-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground uppercase tracking-wide transition-colors"
+                >
+                  {showDMs ? (
+                    <ChevronDown className="w-3 h-3 shrink-0" />
+                  ) : (
+                    <ChevronRight className="w-3 h-3 shrink-0" />
+                  )}
+                  <MessageSquare className="w-3 h-3" />
+                  <span className="truncate">Direct Messages</span>
+                </button>
 
-            {showDMs && (
-              <DirectMessageList
-                onSelectConversation={onConversationSelect}
-                selectedConversationId={selectedConversationId || undefined}
-              />
-            )}
-          </div>
-
-          <Separator className="my-2" />
-
-          {/* Channel Categories */}
-          {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
-            <div key={category} className="mb-3">
-              <button
-                onClick={() => toggleCategory(category)}
-                className="w-full px-4 py-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground uppercase tracking-wide transition-colors"
-              >
-                {expandedCategories.has(category) ? (
-                  <ChevronDown className="w-3 h-3 shrink-0" />
-                ) : (
-                  <ChevronRight className="w-3 h-3 shrink-0" />
+                {showDMs && (
+                  <DirectMessageList
+                    onSelectConversation={onConversationSelect}
+                    selectedConversationId={selectedConversationId || undefined}
+                  />
                 )}
-                <span className="truncate">{category}</span>
-              </button>
+              </div>
 
-              {expandedCategories.has(category) && (
-                <div className="space-y-0.5 px-2">
-                  {categoryChannels.map((channel) => {
-                    const participants = channelParticipants[channel.id] || [];
-                    const isVoiceType = ['voice', 'video', 'stage'].includes(channel.channel_type);
-                    
-                    return (
-                      <div key={channel.id}>
-                        <button
-                          onClick={() => {
-                            const shouldAutoJoin = isVoiceType;
-                            onChannelSelect(channel.id, channel.channel_type, shouldAutoJoin);
-                          }}
-                          className={`relative w-full px-2 py-1.5 flex items-center gap-2 text-sm rounded group ${
-                            selectedChannelId === channel.id
-                              ? 'bg-primary/10 text-primary'
-                              : getUnreadCount(channel.id) > 0
-                              ? 'text-foreground font-semibold'
-                              : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                          }`}
-                        >
-                          {getChannelIcon(channel.channel_type)}
-                          <span className="flex-1 truncate text-left">{channel.name}</span>
-                          {connectedChannelId === channel.id && (
-                            <Badge className="bg-green-500 text-white text-[10px] px-1.5 py-0">LIVE</Badge>
-                          )}
-                          {channel.channel_type === 'text' && getUnreadCount(channel.id) > 0 && (
-                            <UnreadBadge count={getUnreadCount(channel.id)} />
-                          )}
-                          {isVoiceType && participants.length > 0 && connectedChannelId !== channel.id && (
-                            <span className="text-xs text-muted-foreground">
-                              {participants.length}
-                            </span>
-                          )}
-                        </button>
-                        
-                        {/* Inline participant preview for voice channels */}
-                        {isVoiceType && participants.length > 0 && (
-                          <div className="ml-8 mt-1 space-y-1">
-                            {participants.slice(0, 3).map((participant) => (
-                              <div
-                                key={participant.id}
-                                className="flex items-center gap-2 text-xs text-muted-foreground py-0.5"
-                              >
-                                <div className="w-4 h-4 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                                  {participant.profiles?.avatar_url ? (
-                                    <img 
-                                      src={participant.profiles.avatar_url} 
-                                      alt=""
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <span className="text-[8px]">
-                                      {participant.profiles?.full_name?.charAt(0) || '?'}
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="truncate flex-1">
-                                  {participant.profiles?.full_name || 'Unknown'}
+              <Separator className="my-2" />
+
+              {/* Channel Categories */}
+              {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
+                <div key={category} className="mb-3">
+                  <button
+                    onClick={() => toggleCategory(category)}
+                    className="w-full px-4 py-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground uppercase tracking-wide transition-colors"
+                  >
+                    {expandedCategories.has(category) ? (
+                      <ChevronDown className="w-3 h-3 shrink-0" />
+                    ) : (
+                      <ChevronRight className="w-3 h-3 shrink-0" />
+                    )}
+                    <span className="truncate">{category}</span>
+                  </button>
+
+                  {expandedCategories.has(category) && (
+                    <div className="space-y-0.5 px-2">
+                      {categoryChannels.map((channel) => {
+                        const participants = channelParticipants[channel.id] || [];
+                        const isVoiceType = ['voice', 'video', 'stage'].includes(channel.channel_type);
+
+                        return (
+                          <div key={channel.id}>
+                            <button
+                              onClick={() => {
+                                const shouldAutoJoin = isVoiceType;
+                                onChannelSelect(channel.id, channel.channel_type, shouldAutoJoin);
+                              }}
+                              className={`relative w-full px-2 py-1.5 flex items-center gap-2 text-sm rounded group ${selectedChannelId === channel.id
+                                ? 'bg-primary/10 text-primary'
+                                : getUnreadCount(channel.id) > 0
+                                  ? 'text-foreground font-semibold'
+                                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                                }`}
+                            >
+                              {getChannelIcon(channel.channel_type)}
+                              <span className="flex-1 truncate text-left">{channel.name}</span>
+                              {connectedChannelId === channel.id && (
+                                <Badge className="bg-green-500 text-white text-[10px] px-1.5 py-0">LIVE</Badge>
+                              )}
+                              {channel.channel_type === 'text' && getUnreadCount(channel.id) > 0 && (
+                                <UnreadBadge count={getUnreadCount(channel.id)} />
+                              )}
+                              {isVoiceType && participants.length > 0 && connectedChannelId !== channel.id && (
+                                <span className="text-xs text-muted-foreground">
+                                  {participants.length}
                                 </span>
-                                {participant.is_speaking && (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                              )}
+                            </button>
+
+                            {/* Inline participant preview for voice channels */}
+                            {isVoiceType && participants.length > 0 && (
+                              <div className="ml-8 mt-1 space-y-1">
+                                {participants.slice(0, 3).map((participant) => (
+                                  <div
+                                    key={participant.id}
+                                    className="flex items-center gap-2 text-xs text-muted-foreground py-0.5"
+                                  >
+                                    <div className="w-4 h-4 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                                      {participant.profiles?.avatar_url ? (
+                                        <img
+                                          src={participant.profiles.avatar_url}
+                                          alt=""
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <span className="text-[8px]">
+                                          {participant.profiles?.full_name?.charAt(0) || '?'}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="truncate flex-1">
+                                      {participant.profiles?.full_name || 'Unknown'}
+                                    </span>
+                                    {participant.is_speaking && (
+                                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                    )}
+                                    {participant.is_muted && (
+                                      <Volume2 className="w-3 h-3 opacity-50" />
+                                    )}
+                                  </div>
+                                ))}
+                                {participants.length > 3 && (
+                                  <div className="text-xs text-muted-foreground ml-6">
+                                    +{participants.length - 3} more
+                                  </div>
                                 )}
-                                {participant.is_muted && (
-                                  <Volume2 className="w-3 h-3 opacity-50" />
-                                )}
-                              </div>
-                            ))}
-                            {participants.length > 3 && (
-                              <div className="text-xs text-muted-foreground ml-6">
-                                +{participants.length - 3} more
                               </div>
                             )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
+              ))}
+            </>
+          )}
         </div>
       </ScrollArea>
 
@@ -356,6 +378,16 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
         onOpenChange={setShowCreateDialog}
         serverId={serverId}
         onChannelCreated={loadChannels}
+      />
+
+      <UserVoiceDock
+        onNavigateToCall={(channelId) => {
+          // Navigate to the voice channel view without auto-joining (connection already managed)
+          // Actually, passing 'true' to autoJoin matches existing logic, but 'false' is safer since we are ALREADY joined.
+          // Let's rely on LiveHubLayout not double-joining.
+          // BUT: We need to find channelType. For now assume voice since UserVoiceDock only shows for voice.
+          onChannelSelect(channelId, 'voice', false);
+        }}
       />
     </div>
   );

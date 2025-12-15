@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
     strictPort: false, // Allow Vite to use next available port if 8080 is busy
   },
   plugins: [
-    react(), 
+    react(),
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -141,7 +141,9 @@ export default defineConfig(({ mode }) => ({
         skipWaiting: false,
         clientsClaim: true,
         // Clean up old caches
-        cleanupOutdatedCaches: true
+        cleanupOutdatedCaches: true,
+        // Increase limit to 5MB for og-image.png etc
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024
       },
       devOptions: {
         enabled: false // Disable in dev to avoid issues
@@ -161,29 +163,29 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: (id) => {
           // Core React libraries
-          if (id.includes('node_modules/react') || 
-              id.includes('node_modules/react-dom') || 
-              id.includes('node_modules/react-router-dom')) {
+          if (id.includes('node_modules/react') ||
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/react-router-dom')) {
             return 'react-vendor';
           }
-          
+
           // Radix UI components - split by category
           if (id.includes('@radix-ui')) {
             return 'ui-vendor';
           }
-          
+
           // Chart/data viz libraries - let Vite handle automatically to avoid circular deps
-          
+
           // Form libraries
           if (id.includes('react-hook-form') || id.includes('zod')) {
             return 'forms';
           }
-          
+
           // Supabase
           if (id.includes('@supabase')) {
             return 'supabase';
           }
-          
+
           // Framer Motion
           if (id.includes('framer-motion')) {
             return 'motion';

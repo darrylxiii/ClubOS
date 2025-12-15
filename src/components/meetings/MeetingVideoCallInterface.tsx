@@ -132,7 +132,7 @@ export function MeetingVideoCallInterface({
         audioTracks: stream.getAudioTracks().length,
         totalTracks: stream.getTracks().length
       });
-      
+
       // Fetch participant name from database
       const { data: participant } = await supabase
         .from('meeting_participants')
@@ -140,9 +140,9 @@ export function MeetingVideoCallInterface({
         .eq('meeting_id', meeting.id)
         .or(`user_id.eq.${remoteParticipantId},session_token.eq.${remoteParticipantId}`)
         .single();
-      
+
       console.log('[Meeting] 👤 Found participant info:', participant);
-      
+
       // Determine display name
       let displayName = `Participant ${remoteParticipantId.slice(0, 6)}`;
       if (participant) {
@@ -155,13 +155,13 @@ export function MeetingVideoCallInterface({
             .select('full_name, email')
             .eq('id', participant.user_id)
             .single();
-          
+
           if (profile) {
             displayName = profile.full_name || profile.email || displayName;
           }
         }
       }
-      
+
       console.log('[Meeting] ✅ Setting display name:', displayName, 'for participant:', remoteParticipantId);
       console.log('[Meeting] 🎥 About to update remoteStreams Map with:', {
         participantId: remoteParticipantId,
@@ -169,7 +169,7 @@ export function MeetingVideoCallInterface({
         streamId: stream.id,
         hasTracks: stream.getTracks().length > 0
       });
-      
+
       setRemoteStreams(prev => {
         const newMap = new Map(prev).set(remoteParticipantId, {
           stream,
@@ -198,17 +198,34 @@ export function MeetingVideoCallInterface({
   });
 
   // Connection quality monitoring
-  const { overallStats, worstQuality } = useMeetingConnectionQuality({
+  const { overallStats, worstQuality, suggestedAction } = useMeetingConnectionQuality({
     peerConnections: peerConnections || new Map(),
     meetingId: meeting.id,
     userId: participantId,
     enabled: !showDiagnostics && !!peerConnections
   });
 
+  // Adaptive Quality Director (Auto-Downgrade)
+  useEffect(() => {
+    if (suggestedAction === 'audio-only' && isVideoEnabled) {
+      console.warn('[Meeting] 📉 Critical network quality detected. Switching to Audio Only.');
+      toggleVideo();
+      toast.warning('Poor connection detected', {
+        description: 'Turning off video to preserve audio quality.'
+      });
+    } else if (suggestedAction === 'downgrade-quality' && isVideoEnabled) {
+      // Logic for downgrading bitrate is handled internally by WebRTC hook,
+      // but we can notify the user
+      // toast.info('Network unstable', {
+      //   description: 'Reducing video quality to maintain connection.'
+      // });
+    }
+  }, [suggestedAction, isVideoEnabled, toggleVideo]);
+
   // Auto-recording - records all meetings automatically
-  const { 
-    isRecording: isAutoRecording, 
-    stopRecording: stopAutoRecording 
+  const {
+    isRecording: isAutoRecording,
+    stopRecording: stopAutoRecording
   } = useMeetingAutoRecording({
     meetingId: meeting.id,
     participantId,
@@ -221,14 +238,14 @@ export function MeetingVideoCallInterface({
 
   const handleDiagnosticsComplete = async () => {
     setShowDiagnostics(false);
-    
+
     try {
       console.log('[Meeting] 🎬 Initializing media for meeting:', meeting.title, '| Participant ID:', participantId, '| Is Guest:', isGuest);
       await initializeMedia();
       toast.success('Joined meeting room');
     } catch (error: any) {
       console.error('[Meeting] ❌ Failed to initialize media:', error);
-      
+
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         setPermissionDenied(true);
         toast.error('Camera/microphone access denied');
@@ -296,7 +313,7 @@ export function MeetingVideoCallInterface({
 
       // Combine local and all remote streams
       const tracks: MediaStreamTrack[] = [...localStream.getTracks()];
-      
+
       remoteStreams.forEach(({ stream }) => {
         tracks.push(...stream.getTracks());
       });
@@ -345,9 +362,9 @@ export function MeetingVideoCallInterface({
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('meeting-recordings')
-        .upload(filePath, blob, { 
+        .upload(filePath, blob, {
           contentType: 'video/webm',
-          upsert: false 
+          upsert: false
         });
 
       if (uploadError) throw uploadError;
@@ -458,17 +475,17 @@ export function MeetingVideoCallInterface({
       // If we're in the call UI but marked as left, fix it
       if (data && data.left_at !== null) {
         console.warn('[Meeting] ⚠️ Participant incorrectly marked as left - auto-fixing...');
-        
+
         await supabase
           .from('meeting_participants')
-          .update({ 
-            left_at: null, 
+          .update({
+            left_at: null,
             status: 'accepted',
             last_seen: new Date().toISOString()
           })
           .eq('meeting_id', meeting.id)
           .or(`user_id.eq.${participantId},session_token.eq.${participantId}`);
-        
+
         toast.success('Reconnected to meeting');
       }
     };
@@ -504,14 +521,14 @@ export function MeetingVideoCallInterface({
               emoji: reactionData.emoji,
               name: reactionData.participantName
             };
-            
+
             setReactions(prev => [...prev, newReaction]);
-            
+
             // Show toast
             toast(`${reactionData.participantName} reacted with ${reactionData.emoji}`, {
               duration: 2000
             });
-            
+
             // Remove after animation
             setTimeout(() => {
               setReactions(prev => prev.filter(r => r.id !== newReaction.id));
@@ -542,10 +559,10 @@ export function MeetingVideoCallInterface({
     };
 
     checkPendingRequests();
-    
+
     // Poll and subscribe to changes
     const pollInterval = setInterval(checkPendingRequests, 2000);
-    
+
     const channel = supabase
       .channel(`pending-requests-check-${meeting.id}`)
       .on(
@@ -585,13 +602,13 @@ export function MeetingVideoCallInterface({
       console.log('[Meeting] 👥 Accepted participants in DB:', count);
       console.log('[Meeting] 📊 Participant details:', data);
       console.log('[Meeting] 🔗 WebRTC connected participants:', participants.length);
-      
+
       // Count connected WebRTC participants + local participant as the active count
       const activeParticipantCount = participants.length + 1; // +1 for local
       console.log('[Meeting] 🎯 Active participants (WebRTC + local):', activeParticipantCount);
-      
+
       setTotalParticipants(activeParticipantCount);
-      
+
       // CRITICAL FIX: Allow meeting to start with 1 participant (solo user)
       // This fixes the "waiting for more participants" deadlock
       if (activeParticipantCount >= 1 && !meetingStarted) {
@@ -817,14 +834,14 @@ export function MeetingVideoCallInterface({
                 <p className="text-sm text-muted-foreground">{error.message}</p>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Button onClick={handleRetryConnection} className="w-full" size="lg">
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Retry Connection
               </Button>
             </div>
-            
+
             <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
               <p className="font-medium mb-2 text-foreground">Troubleshooting tips:</p>
               <ul className="list-disc list-inside space-y-1">
@@ -838,12 +855,12 @@ export function MeetingVideoCallInterface({
           </Card>
         </div>
       )}
-      
+
       {/* Recording Consent Banner - Shows when auto-recording is active */}
       {isAutoRecording && !showDiagnostics && (
         <RecordingConsentBanner meetingTitle={meeting.title} />
       )}
-      
+
       {/* Meeting Info Header - Simplified */}
       <div className="absolute top-6 left-6 z-50 animate-in slide-in-from-left duration-500">
         <div className="backdrop-blur-2xl bg-black/50 border border-white/10 px-6 py-3 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] space-y-2">
@@ -853,16 +870,18 @@ export function MeetingVideoCallInterface({
       </div>
 
       {/* Participant Count & Video Quality */}
-      <div className="absolute top-6 right-6 z-50 animate-in slide-in-from-right duration-500 flex items-center gap-2">
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+        <MeetingConnectionIndicator />
+        <RecordingIndicator isRecording={isRecording} />
         {/* Video Quality Indicator */}
         {videoStats && videoStats.qualityLimitationReason !== 'none' && (
           <div className="backdrop-blur-2xl bg-yellow-500/20 border border-yellow-500/30 px-3 py-2 rounded-full text-xs text-yellow-300 shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center gap-2">
-            {videoStats.qualityLimitationReason === 'bandwidth' ? '📶 Low bandwidth' : 
-             videoStats.qualityLimitationReason === 'cpu' ? '🔥 High CPU' : 
-             videoStats.qualityLimitationReason}
+            {videoStats.qualityLimitationReason === 'bandwidth' ? '📶 Low bandwidth' :
+              videoStats.qualityLimitationReason === 'cpu' ? '🔥 High CPU' :
+                videoStats.qualityLimitationReason}
           </div>
         )}
-        
+
         {/* Participant Count */}
         <div className="backdrop-blur-2xl bg-black/50 border border-white/10 px-4 py-2 rounded-full text-sm text-white shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center gap-2">
           <Users className="h-4 w-4 text-white/80" />
@@ -881,7 +900,7 @@ export function MeetingVideoCallInterface({
           presenterId={isScreenSharing ? participantId : undefined}
         />
       </div>
-      
+
       {/* Waiting Room Overlay - Premium design */}
       {!meetingStarted && totalParticipants <= 1 && (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-950/95 via-gray-900/90 to-black/95 backdrop-blur-xl z-[1000] animate-in fade-in duration-500">
@@ -892,7 +911,7 @@ export function MeetingVideoCallInterface({
               </div>
               <div className="absolute -inset-4 bg-primary/20 rounded-full blur-2xl opacity-50 animate-pulse" />
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="text-3xl font-bold text-white tracking-tight">
                 {pendingRequestsCount > 0 ? 'Guest Approval Required' : 'Waiting for others to join'}
@@ -969,10 +988,10 @@ export function MeetingVideoCallInterface({
       )}
 
       {/* On-Screen Reactions */}
-      <OnScreenReactions reactions={reactions.map(r => ({ 
-        id: r.id, 
+      <OnScreenReactions reactions={reactions.map(r => ({
+        id: r.id,
         reaction_type: r.emoji,
-        participant_name: r.name 
+        participant_name: r.name
       }))} />
 
       {/* Controls Panel */}
@@ -1008,8 +1027,8 @@ export function MeetingVideoCallInterface({
         onOpenMeetingInfo={() => setShowMeetingDetails(true)}
         onEnablePiP={handleEnablePiP}
         onOpenInterviewIntelligence={
-          ['host', 'interviewer', 'observer'].includes(userRole) 
-            ? () => setShowInterviewIntelligence(true) 
+          ['host', 'interviewer', 'observer'].includes(userRole)
+            ? () => setShowInterviewIntelligence(true)
             : undefined
         }
         onOpenBreakoutRooms={() => setShowBreakoutRooms(true)}
@@ -1045,8 +1064,8 @@ export function MeetingVideoCallInterface({
       )}
 
       {/* Host Approval Panel */}
-      <HostApprovalPanel 
-        meetingId={meeting.id} 
+      <HostApprovalPanel
+        meetingId={meeting.id}
         isHost={meeting.host_id === participantId}
       />
 
@@ -1056,8 +1075,8 @@ export function MeetingVideoCallInterface({
           <SheetHeader className="p-4 border-b">
             <SheetTitle>Meeting Chat</SheetTitle>
           </SheetHeader>
-          <MeetingChatSidebar 
-            meetingId={meeting.id} 
+          <MeetingChatSidebar
+            meetingId={meeting.id}
             participantId={participantId}
             participantName={participantName}
           />

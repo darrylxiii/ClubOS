@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Search, 
-  Filter, 
-  Eye, 
-  MousePointer, 
+import {
+  Search,
+  Filter,
+  Eye,
+  MousePointer,
   MessageSquare,
   AlertTriangle,
   Star,
@@ -44,7 +44,7 @@ export function InstantlyLeadsTable({ leads, onPromoteToCRM }: InstantlyLeadsTab
 
   const filteredLeads = useMemo(() => {
     return leads.filter(lead => {
-      const matchesSearch = 
+      const matchesSearch =
         lead.email?.toLowerCase().includes(search.toLowerCase()) ||
         lead.first_name?.toLowerCase().includes(search.toLowerCase()) ||
         lead.last_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -56,12 +56,13 @@ export function InstantlyLeadsTable({ leads, onPromoteToCRM }: InstantlyLeadsTab
       if (statusFilter === 'replied') return matchesSearch && lead.last_replied_at;
       if (statusFilter === 'interested') return matchesSearch && lead.is_interested;
       if (statusFilter === 'bounced') return matchesSearch && lead.bounced_at;
-      
+
       return matchesSearch;
     });
   }, [leads, search, statusFilter]);
 
   const getLeadStatus = (lead: InstantlyLead) => {
+    if (lead.stage === 'qualified' || (lead.deal_value || 0) > 0) return { label: 'Deal Created', color: 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0' };
     if (lead.bounced_at) return { label: 'Bounced', color: 'bg-red-500/20 text-red-500' };
     if (lead.is_interested) return { label: 'Interested', color: 'bg-emerald-500/20 text-emerald-500' };
     if (lead.last_replied_at) return { label: 'Replied', color: 'bg-green-500/20 text-green-500' };
@@ -70,96 +71,19 @@ export function InstantlyLeadsTable({ leads, onPromoteToCRM }: InstantlyLeadsTab
     return { label: 'Sent', color: 'bg-muted/20 text-muted-foreground' };
   };
 
-  const getEngagementIcons = (lead: InstantlyLead) => {
-    const icons = [];
-    if (lead.last_opened_at) icons.push(<Eye key="eye" className="h-3 w-3 text-blue-500" />);
-    if (lead.last_clicked_at) icons.push(<MousePointer key="click" className="h-3 w-3 text-amber-500" />);
-    if (lead.last_replied_at) icons.push(<MessageSquare key="reply" className="h-3 w-3 text-green-500" />);
-    if (lead.is_interested) icons.push(<Star key="star" className="h-3 w-3 text-emerald-500" />);
-    if (lead.bounced_at) icons.push(<AlertTriangle key="bounce" className="h-3 w-3 text-red-500" />);
-    return icons;
-  };
+  // ... (rest of component)
 
-  return (
-    <Card className="p-4 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-      {/* Filters */}
-      <div className="flex items-center gap-4 mb-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by email, name, or company..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Leads</SelectItem>
-            <SelectItem value="opened">Opened</SelectItem>
-            <SelectItem value="clicked">Clicked</SelectItem>
-            <SelectItem value="replied">Replied</SelectItem>
-            <SelectItem value="interested">Interested</SelectItem>
-            <SelectItem value="bounced">Bounced</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <div className="text-sm text-muted-foreground">
-          {filteredLeads.length} leads
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="rounded-lg border border-border/30 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/20">
-              <TableHead>Lead</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Engagement</TableHead>
-              <TableHead>Last Activity</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredLeads.slice(0, 50).map((lead, index) => {
-              const status = getLeadStatus(lead);
-              const engagementIcons = getEngagementIcons(lead);
-              
-              return (
-                <motion.tr
-                  key={lead.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.02 }}
-                  className="hover:bg-muted/10"
-                >
                   <TableCell>
-                    <div>
-                      <div className="font-medium">
-                        {lead.first_name || lead.last_name 
-                          ? `${lead.first_name || ''} ${lead.last_name || ''}`.trim()
-                          : 'Unknown'}
-                      </div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        {lead.email}
-                      </div>
+                    <div className="flex flex-col gap-1">
+                      <Badge variant="outline" className={status.color}>
+                        {status.label}
+                      </Badge>
+                      {(lead.deal_value || 0) > 0 && (
+                        <span className="text-xs font-medium text-emerald-500 text-center">
+                          {(lead.deal_value || 0).toLocaleString('en-US', { style: 'currency', currency: lead.currency || 'USD', maximumFractionDigits: 0 })}
+                        </span>
+                      )}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">{lead.company_name || '-'}</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={status.color}>
-                      {status.label}
-                    </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
@@ -192,18 +116,20 @@ export function InstantlyLeadsTable({ leads, onPromoteToCRM }: InstantlyLeadsTab
                       </Button>
                     )}
                   </TableCell>
-                </motion.tr>
+                </motion.tr >
               );
-            })}
-          </TableBody>
-        </Table>
-      </div>
+})}
+          </TableBody >
+        </Table >
+      </div >
 
-      {filteredLeads.length > 50 && (
-        <div className="text-center text-sm text-muted-foreground mt-4">
-          Showing 50 of {filteredLeads.length} leads
-        </div>
-      )}
-    </Card>
+{
+  filteredLeads.length > 50 && (
+    <div className="text-center text-sm text-muted-foreground mt-4">
+      Showing 50 of {filteredLeads.length} leads
+    </div>
+  )
+}
+    </Card >
   );
 }

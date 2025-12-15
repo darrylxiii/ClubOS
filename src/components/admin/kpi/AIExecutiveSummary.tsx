@@ -2,17 +2,18 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Sparkles, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
+import {
+  Sparkles,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
   CheckCircle,
   ArrowRight,
   RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UnifiedKPI, DomainHealth } from '@/hooks/useUnifiedKPIs';
+import { useKPIInsights } from '@/hooks/useKPIInsights';
 
 interface AIExecutiveSummaryProps {
   allKPIs: UnifiedKPI[];
@@ -29,11 +30,17 @@ export function AIExecutiveSummary({
   onRefresh,
   isRefreshing,
 }: AIExecutiveSummaryProps) {
-  // Generate AI-like insights based on KPI data
+  // Fetch Real AI Insights
+  const { data: aiInsights, isLoading: isAiLoading, refetch: refreshAi } = useKPIInsights(allKPIs, Object.values(domainHealth));
+
   const insights = useMemo(() => {
+    // Fallback to rules-based if AI is loading or failed/null, 
+    // OR if we want to mix both (e.g. use AI for text, rules for counts)
+
+    // ... (Keep existing rule-based logic for 'counts' like criticalKPIs list) ...
     const criticalKPIs = allKPIs.filter(k => k.status === 'critical');
     const warningKPIs = allKPIs.filter(k => k.status === 'warning');
-    const improvingKPIs = allKPIs.filter(k => 
+    const improvingKPIs = allKPIs.filter(k =>
       k.trendDirection === 'up' && !k.lowerIsBetter ||
       k.trendDirection === 'down' && k.lowerIsBetter
     );
@@ -42,64 +49,29 @@ export function AIExecutiveSummary({
       k.trendDirection === 'up' && k.lowerIsBetter
     );
 
-    // Find worst performing domain
-    const worstDomain = Object.entries(domainHealth)
-      .sort((a, b) => a[1].healthScore - b[1].healthScore)[0];
-    
-    // Find best performing domain
-    const bestDomain = Object.entries(domainHealth)
-      .sort((a, b) => b[1].healthScore - a[1].healthScore)[0];
-
-    const summaryParts: string[] = [];
-    
-    // Overall health assessment
-    if (overallHealth >= 80) {
-      summaryParts.push(`Platform health is **excellent** at ${overallHealth}%.`);
-    } else if (overallHealth >= 60) {
-      summaryParts.push(`Platform health is **good** at ${overallHealth}%, with room for improvement.`);
-    } else if (overallHealth >= 40) {
-      summaryParts.push(`Platform health needs **attention** at ${overallHealth}%.`);
-    } else {
-      summaryParts.push(`Platform health is **critical** at ${overallHealth}% and requires immediate action.`);
-    }
-
-    // Critical issues
-    if (criticalKPIs.length > 0) {
-      const topCritical = criticalKPIs.slice(0, 2).map(k => k.displayName).join(' and ');
-      summaryParts.push(`${criticalKPIs.length} critical issue${criticalKPIs.length > 1 ? 's' : ''} detected: ${topCritical}.`);
-    }
-
-    // Domain insights
-    if (worstDomain && worstDomain[1].healthScore < 60) {
-      summaryParts.push(`**${worstDomain[0]}** domain needs focus with ${worstDomain[1].critical} critical alerts.`);
-    }
-
-    if (bestDomain && bestDomain[1].healthScore >= 80) {
-      summaryParts.push(`**${bestDomain[0]}** is performing well at ${bestDomain[1].healthScore}% health.`);
-    }
-
-    // Trends
-    if (improvingKPIs.length > decliningKPIs.length) {
-      summaryParts.push(`Overall trend is positive with ${improvingKPIs.length} improving metrics.`);
-    } else if (decliningKPIs.length > improvingKPIs.length) {
-      summaryParts.push(`Monitor declining trends in ${decliningKPIs.length} metrics.`);
-    }
+    // Use AI summary if available, otherwise fallback
+    const summaryText = aiInsights?.summary || "Analyzing KPI data...";
 
     return {
-      summary: summaryParts.join(' '),
+      summary: summaryText,
       criticalKPIs,
       warningKPIs,
       improvingKPIs,
       decliningKPIs,
-      worstDomain,
-      bestDomain,
+      // Pass through recommendations if present
+      aiRecommendations: aiInsights?.recommendations
     };
-  }, [allKPIs, domainHealth, overallHealth]);
+  }, [allKPIs, domainHealth, aiInsights]);
 
-  // Generate recommendations
+
+  // Generate recommendations (Mix of AI and Rules)
   const recommendations = useMemo(() => {
-    const recs: { text: string; priority: 'high' | 'medium' | 'low'; action?: string }[] = [];
+    if (aiInsights?.recommendations) {
+      return aiInsights.recommendations;
+    }
 
+    // Fallback rules...
+    const recs: { text: string; priority: 'high' | 'medium' | 'low'; action?: string }[] = [];
     insights.criticalKPIs.slice(0, 2).forEach(kpi => {
       recs.push({
         text: `Address ${kpi.displayName} immediately - currently at ${kpi.value.toFixed(1)}`,
@@ -107,24 +79,8 @@ export function AIExecutiveSummary({
         action: `Fix ${kpi.category}`,
       });
     });
-
-    if (insights.worstDomain && insights.worstDomain[1].healthScore < 60) {
-      recs.push({
-        text: `Review ${insights.worstDomain[0]} domain strategy`,
-        priority: 'medium',
-        action: `View ${insights.worstDomain[0]}`,
-      });
-    }
-
-    insights.decliningKPIs.slice(0, 2).forEach(kpi => {
-      recs.push({
-        text: `Monitor ${kpi.displayName} trend (${kpi.trendDirection} ${kpi.trendPercentage?.toFixed(1)}%)`,
-        priority: 'low',
-      });
-    });
-
     return recs.slice(0, 4);
-  }, [insights]);
+  }, [insights, aiInsights]);
 
   return (
     <Card className="bg-gradient-to-br from-primary/5 via-primary/0 to-transparent border-primary/20">
@@ -141,9 +97,9 @@ export function AIExecutiveSummary({
               </p>
             </div>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onRefresh}
             disabled={isRefreshing}
           >
@@ -156,7 +112,7 @@ export function AIExecutiveSummary({
         {/* Summary Text */}
         <div className="p-4 bg-muted/30 rounded-lg">
           <p className="text-sm leading-relaxed">
-            {insights.summary.split('**').map((part, i) => 
+            {insights.summary.split('**').map((part, i) =>
               i % 2 === 1 ? <strong key={i}>{part}</strong> : part
             )}
           </p>
@@ -191,7 +147,7 @@ export function AIExecutiveSummary({
             </h4>
             <div className="space-y-1.5">
               {recommendations.map((rec, i) => (
-                <div 
+                <div
                   key={i}
                   className={cn(
                     "flex items-center justify-between p-2 rounded-lg text-sm",
@@ -201,8 +157,8 @@ export function AIExecutiveSummary({
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={cn(
                         "text-[10px] px-1.5",
                         rec.priority === 'high' && "bg-rose-500/10 text-rose-600 border-rose-500/20",

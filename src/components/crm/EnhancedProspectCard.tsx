@@ -9,10 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { 
-  Building, 
-  Mail, 
-  Zap, 
+import {
+  Building,
+  Mail,
+  Zap,
   Calendar,
   GripVertical,
   Phone,
@@ -23,6 +23,7 @@ import {
   Sparkles,
   Pencil,
   ListTodo,
+  Eye,
 } from 'lucide-react';
 import type { CRMProspect } from '@/types/crm-enterprise';
 import { formatDistanceToNow } from 'date-fns';
@@ -67,8 +68,8 @@ const sentimentEmojis: Record<string, string> = {
   negative: '👎',
 };
 
-export function EnhancedProspectCard({ 
-  prospect, 
+export function EnhancedProspectCard({
+  prospect,
   isDragging,
   isSelected = false,
   onSelect,
@@ -151,9 +152,9 @@ export function EnhancedProspectCard({
               {getInitials(prospect.full_name)}
             </AvatarFallback>
           </Avatar>
-          
+
           <div className="min-w-0 flex-1">
-            <Link 
+            <Link
               to={`/crm/prospects/${prospect.id}`}
               className="font-medium text-sm hover:text-primary transition-colors line-clamp-1"
             >
@@ -173,6 +174,53 @@ export function EnhancedProspectCard({
               <Zap className="w-3 h-3" />
               {prospect.lead_score}
             </div>
+
+            {/* Win Probability Badge (ML) */}
+            {prospect.predicted_win_probability !== undefined && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className={cn(
+                    "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border",
+                    prospect.predicted_win_probability >= 70 ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
+                      prospect.predicted_win_probability >= 40 ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                        "bg-gray-500/10 text-gray-400 border-gray-500/20"
+                  )}>
+                    <Sparkles className="w-3 h-3" />
+                    {prospect.predicted_win_probability}%
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  Win Probability
+                  <div className="text-[10px] text-muted-foreground">
+                    Velocity Score: {prospect.velocity_score || 0}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Win Probability Badge (ML) */}
+            {prospect.predicted_win_probability !== undefined && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className={cn(
+                    "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border",
+                    prospect.predicted_win_probability >= 70 ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
+                      prospect.predicted_win_probability >= 40 ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                        "bg-gray-500/10 text-gray-400 border-gray-500/20"
+                  )}>
+                    <Sparkles className="w-3 h-3" />
+                    {prospect.predicted_win_probability}%
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  Win Probability
+                  <div className="text-[10px] text-muted-foreground">
+                    Velocity Score: {prospect.velocity_score || 0}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             {onUpdateProspect && onDeleteProspect && onConvertToPartner && (
               <ProspectActionsMenu
                 prospect={prospect}
@@ -200,7 +248,7 @@ export function EnhancedProspectCard({
               </Badge>
             )}
             {/* Company Enrich Button */}
-            <CompanyEnrichButton 
+            <CompanyEnrichButton
               prospect={prospect}
             />
           </div>
@@ -215,8 +263,8 @@ export function EnhancedProspectCard({
             </Badge>
           )}
           {prospect.reply_sentiment && prospect.reply_sentiment !== 'neutral' && (
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={cn("text-xs", sentimentBadgeColors[prospect.reply_sentiment])}
             >
               {sentimentEmojis[prospect.reply_sentiment]} {prospect.reply_sentiment}
@@ -226,11 +274,11 @@ export function EnhancedProspectCard({
 
         {/* Rotting Indicator */}
         <div className="flex items-center gap-2 mb-2">
-          <RottingIndicator 
+          <RottingIndicator
             lastContactedAt={prospect.last_activity_at}
             showLabel
           />
-          <NextActivityBadge 
+          <NextActivityBadge
             nextActivityAt={(prospect as any).next_activity_at}
           />
         </div>
@@ -262,15 +310,27 @@ export function EnhancedProspectCard({
             !showActions && "pointer-events-none"
           )}
         >
+          {/* Email Button */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button size="sm" variant="outline" className="h-8 w-8 p-0" asChild>
-                <a href={`mailto:${prospect.email}`}>
+                <Link to={`/crm/inbox?email=${encodeURIComponent(prospect.email)}`}>
                   <Mail className="w-4 h-4" />
-                </a>
+                </Link>
               </Button>
             </TooltipTrigger>
             <TooltipContent>Send Email</TooltipContent>
+          </Tooltip>
+          {/* View Prospect Details */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="sm" variant="outline" className="h-8 w-8 p-0 ml-1" asChild>
+                <Link to={`/crm/prospects/${prospect.id}`}>
+                  <Eye className="w-4 h-4" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>View Details</TooltipContent>
           </Tooltip>
 
           {prospect.phone && (

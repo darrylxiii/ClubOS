@@ -19,14 +19,37 @@ import { TranslationJobProgress } from '@/components/translations/TranslationJob
 
 const TARGET_LANGUAGES = SUPPORTED_LANGUAGES.filter(l => l !== 'en');
 
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Languages, Download, Loader2, CheckCircle, AlertCircle, Sparkles, TrendingUp, BarChart3, RefreshCw, Trash2, ArrowRight, Settings2, Globe } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { useSeedTranslations } from '@/hooks/use-seed-translations';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useTranslationCoverage } from '@/hooks/use-translation-coverage';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AppLayout } from '@/components/AppLayout';
+import { ALL_NAMESPACES, SUPPORTED_LANGUAGES } from '@/i18n/config';
+import { TranslationLoadingState, QueryState } from '@/components/translations/TranslationLoadingState';
+import { TranslationDebugPanel, LogEntry } from '@/components/translations/TranslationDebugPanel';
+import { TranslationJobProgress } from '@/components/translations/TranslationJobProgress';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
+const TARGET_LANGUAGES = SUPPORTED_LANGUAGES.filter(l => l !== 'en');
+
 export default function TranslationManager() {
   const queryClient = useQueryClient();
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [isSyncingKeys, setIsSyncingKeys] = useState(false);
   const [generatingNamespace, setGeneratingNamespace] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('generate');
+  const [activeTab, setActiveTab] = useState('overview');
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isCleaningJobs, setIsCleaningJobs] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const logIdRef = useRef(0);
   const seedTranslations = useSeedTranslations();
   const { data: coverageData, isLoading: coverageLoading, refetch: refetchCoverage } = useTranslationCoverage();
@@ -36,41 +59,41 @@ export default function TranslationManager() {
     const cleanupStaleJobs = async () => {
       const { data, error } = await supabase
         .from('translation_generation_jobs')
-        .update({ 
-          status: 'failed', 
+        .update({
+          status: 'failed',
           error_message: 'Job timed out and was cleaned up automatically',
           updated_at: new Date().toISOString()
         })
         .eq('status', 'running')
         .lt('updated_at', new Date(Date.now() - 30 * 60 * 1000).toISOString())
         .select();
-      
+
       if (data && data.length > 0) {
         addLog('warn', `Auto-cleaned ${data.length} stale jobs`, undefined, 'cleanup');
       }
     };
-    
+
     cleanupStaleJobs();
   }, []);
 
   const cleanupStuckJobs = async () => {
     setIsCleaningJobs(true);
     addLog('info', 'Cleaning up stuck jobs...', undefined, 'cleanup');
-    
+
     try {
       const { data, error } = await supabase
         .from('translation_generation_jobs')
-        .update({ 
-          status: 'failed', 
+        .update({
+          status: 'failed',
           error_message: 'Job timed out and was cleaned up manually',
           updated_at: new Date().toISOString()
         })
         .eq('status', 'running')
         .lt('updated_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
         .select();
-      
+
       if (error) throw error;
-      
+
       if (data && data.length > 0) {
         addLog('info', `✓ Cleaned up ${data.length} stuck jobs`, undefined, 'cleanup');
         toast.success(`Cleaned up ${data.length} stuck jobs`);
@@ -104,12 +127,12 @@ export default function TranslationManager() {
         .select('namespace')
         .eq('language', 'en')
         .eq('is_active', true);
-      
+
       if (error) {
         addLog('error', 'Failed to fetch namespaces', error.message, 'namespaces');
         throw error;
       }
-      
+
       const namespaces = [...new Set(data.map(t => t.namespace))];
       addLog('info', `Loaded ${namespaces.length} namespaces`, `Duration: ${Date.now() - start}ms`, 'namespaces');
       return { namespaces, duration: Date.now() - start };
@@ -128,12 +151,12 @@ export default function TranslationManager() {
         .eq('is_active', true)
         .neq('code', 'en')
         .order('code');
-      
+
       if (error) {
         addLog('error', 'Failed to fetch languages', error.message, 'languages');
         throw error;
       }
-      
+
       addLog('info', `Loaded ${data.length} languages`, `Duration: ${Date.now() - start}ms`, 'languages');
       return { languages: data, duration: Date.now() - start };
     },
@@ -149,14 +172,14 @@ export default function TranslationManager() {
         .from('translations')
         .select('*', { count: 'exact', head: true })
         .eq('language', 'en');
-      
+
       if (error) {
         addLog('error', 'Failed to check English', error.message, 'english');
         throw error;
       }
-      
+
       const exists = count !== null && count > 0;
-      addLog(exists ? 'info' : 'warn', 
+      addLog(exists ? 'info' : 'warn',
         exists ? `Found ${count} English translations` : 'No English translations found',
         `Duration: ${Date.now() - start}ms`, 'english');
       return { exists, count, duration: Date.now() - start };
@@ -173,19 +196,19 @@ export default function TranslationManager() {
         .from('translations')
         .select('namespace, language')
         .eq('is_active', true);
-      
+
       if (error) {
         addLog('error', 'Failed to fetch coverage', error.message, 'coverage');
         throw error;
       }
-      
+
       const coverageMap: Record<string, Record<string, boolean>> = {};
       data.forEach(t => {
         if (!coverageMap[t.namespace]) coverageMap[t.namespace] = {};
         coverageMap[t.namespace][t.language] = true;
       });
-      
-      addLog('info', `Coverage calculated for ${Object.keys(coverageMap).length} namespaces`, 
+
+      addLog('info', `Coverage calculated for ${Object.keys(coverageMap).length} namespaces`,
         `Duration: ${Date.now() - start}ms`, 'coverage');
       return { coverageMap, duration: Date.now() - start };
     },
@@ -245,21 +268,21 @@ export default function TranslationManager() {
       toast.error('Please seed English translations first');
       return;
     }
-    
+
     setGeneratingNamespace(namespace);
     addLog('info', `Starting translation for "${namespace}"...`, undefined, 'generate');
-    
+
     try {
-      const { data, error } = await supabase.functions.invoke('generate-all-translations', { 
-        body: { namespace } 
+      const { data, error } = await supabase.functions.invoke('generate-all-translations', {
+        body: { namespace }
       });
-      
+
       if (error) {
         addLog('error', `Translation failed for "${namespace}"`, error.message, 'generate');
         toast.error(error.message || 'Translation failed');
         return;
       }
-      
+
       if (data?.summary) {
         const { successCount, errorCount } = data.summary;
         if (errorCount > 0) {
@@ -270,7 +293,7 @@ export default function TranslationManager() {
           toast.success(`✓ Generated ${successCount} translations for "${namespace}"`);
         }
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ['translation-coverage'] });
     } catch (error: any) {
       addLog('error', 'Unexpected error', error.message, 'generate');
@@ -285,27 +308,27 @@ export default function TranslationManager() {
       toast.error('Please seed English translations first');
       return;
     }
-    
+
     setIsGeneratingAll(true);
     const namespaceCount = namespacesQuery.data?.namespaces?.length || ALL_NAMESPACES.length;
     addLog('info', `Starting full generation (${namespaceCount} namespaces × ${TARGET_LANGUAGES.length} languages)...`, undefined, 'generate');
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('generate-all-translations', {
         body: { generateAll: true }
       });
-      
+
       if (error) {
         addLog('error', 'Full generation failed', error.message, 'generate');
         toast.error(`Failed: ${error.message}`);
         return;
       }
-      
+
       if (data?.summary) {
         const { successCount, errorCount, status, jobId } = data.summary;
-        addLog('info', `Generation complete: ${status}`, 
+        addLog('info', `Generation complete: ${status}`,
           `Success: ${successCount}, Errors: ${errorCount}, Job: ${jobId}`, 'generate');
-        
+
         if (status === 'completed') {
           toast.success(`✓ Generated ${successCount} translations across all namespaces`);
         } else if (status === 'partial') {
@@ -314,7 +337,7 @@ export default function TranslationManager() {
           toast.error(`Generation failed with ${errorCount} errors`);
         }
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ['translation-coverage'] });
       queryClient.invalidateQueries({ queryKey: ['translation-coverage-analysis'] });
     } catch (error: any) {
@@ -334,32 +357,32 @@ export default function TranslationManager() {
   const syncMissingKeys = async () => {
     setIsSyncingKeys(true);
     addLog('info', 'Syncing missing translation keys...', undefined, 'sync');
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('sync-translation-keys', {
         body: { mode: 'detect' }
       });
-      
+
       if (error) {
         addLog('error', 'Sync failed', error.message, 'sync');
         toast.error(`Sync failed: ${error.message}`);
         return;
       }
-      
+
       const { summary, results } = data;
       const incompleteCount = summary?.incompleteTranslations || 0;
-      
+
       if (incompleteCount > 0) {
-        addLog('warn', `Found ${incompleteCount} incomplete translations`, 
+        addLog('warn', `Found ${incompleteCount} incomplete translations`,
           JSON.stringify(results.filter((r: any) => r.status !== 'complete').slice(0, 5), null, 2), 'sync');
-        
+
         // Now trigger generation for missing keys
         addLog('info', 'Triggering translation for missing keys...', undefined, 'sync');
-        
+
         const { error: genError } = await supabase.functions.invoke('generate-all-translations', {
           body: { generateAll: true }
         });
-        
+
         if (genError) {
           addLog('error', 'Generation failed after sync', genError.message, 'sync');
           toast.error(`Generation failed: ${genError.message}`);
@@ -371,7 +394,7 @@ export default function TranslationManager() {
         addLog('info', '✓ All translations are complete', undefined, 'sync');
         toast.success('All translations are already synced!');
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ['translation-coverage'] });
       refetchCoverage();
     } catch (error: any) {
@@ -391,181 +414,236 @@ export default function TranslationManager() {
 
   const namespacesToShow = namespacesQuery.data?.namespaces || ALL_NAMESPACES;
   const isAnyLoading = queryStates.some(q => q.status === 'loading');
+  const hasEnglish = englishQuery.data?.exists;
+  const overallCompletion = coverageData?.overallCompletion || 0;
+
+  // New Status Card Component for Overview
+  const StatusCard = ({ title, status, description, action, variant = "default" }: any) => (
+    <Card className={`border-l-4 ${status === 'success' ? 'border-l-green-500' : status === 'warning' ? 'border-l-yellow-500' : 'border-l-gray-300'}`}>
+      <CardContent className="pt-6">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h3 className="font-semibold text-lg">{title}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+          </div>
+          {status === 'success' ? (
+            <CheckCircle className="h-6 w-6 text-green-500" />
+          ) : status === 'warning' ? (
+            <AlertCircle className="h-6 w-6 text-yellow-500" />
+          ) : (
+            <div className="h-6 w-6 rounded-full bg-muted" />
+          )}
+        </div>
+        {action}
+      </CardContent>
+    </Card>
+  );
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Translation Manager</h1>
-            <p className="text-muted-foreground mt-2">
-              Enterprise AI translation system • {namespacesToShow.length} namespaces • {TARGET_LANGUAGES.length} languages
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => seedTranslations.mutate()} disabled={seedTranslations.isPending}>
-              {seedTranslations.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-              Seed English
-            </Button>
-            <Button variant="secondary" onClick={syncMissingKeys} disabled={isSyncingKeys || !englishQuery.data?.exists || isAnyLoading}>
-              {isSyncingKeys ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-              Sync Missing Keys
-            </Button>
-            <Button onClick={generateEverything} disabled={isGeneratingAll || !englishQuery.data?.exists || isAnyLoading} size="lg">
-              {isGeneratingAll ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-              Generate ALL
-            </Button>
-          </div>
+      <div className="container mx-auto py-8 space-y-8 max-w-6xl">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-4xl font-bold tracking-tight">Translation Center</h1>
+          <p className="text-xl text-muted-foreground">
+            Manage your application's global reach from one place.
+          </p>
         </div>
 
-        {/* Loading State Indicator */}
-        <TranslationLoadingState queries={queryStates} onRetry={handleRetryQuery} />
+        {/* --- MAIN ACTION AREA --- */}
+        <div className="grid gap-6 md:grid-cols-3">
 
-        {/* Job Progress (Real-time) */}
-        <TranslationJobProgress onJobComplete={handleJobComplete} onCleanup={cleanupStuckJobs} />
+          {/* Step 1: English Source */}
+          <StatusCard
+            title="1. Source Content"
+            status={hasEnglish ? 'success' : 'warning'}
+            description="English is the master language. We need to load it into the database first."
+            action={
+              <Button
+                onClick={() => seedTranslations.mutate()}
+                disabled={seedTranslations.isPending || hasEnglish}
+                className="w-full"
+                variant={hasEnglish ? "outline" : "default"}
+              >
+                {seedTranslations.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : hasEnglish ? <CheckCircle className="mr-2 h-4 w-4" /> : <Download className="mr-2 h-4 w-4" />}
+                {hasEnglish ? "English Loaded" : "Load English Source"}
+              </Button>
+            }
+          />
 
-        {/* Debug Panel */}
-        <TranslationDebugPanel logs={logs} onClear={() => setLogs([])} />
+          {/* Step 2: Sync & Generate */}
+          <StatusCard
+            title="2. AI Translation"
+            status={overallCompletion === 100 ? 'success' : 'warning'}
+            description="Automatically generate translations for all supported languages using AI."
+            action={
+              <Button
+                onClick={generateEverything}
+                disabled={isGeneratingAll || !hasEnglish || isAnyLoading}
+                className="w-full relative overflow-hidden group"
+                variant={overallCompletion === 100 ? "outline" : "default"}
+              >
+                {isGeneratingAll && (
+                  <div className="absolute inset-0 bg-primary/10 animate-progress" />
+                )}
+                <div className="relative flex items-center justify-center">
+                  {isGeneratingAll ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                  {overallCompletion === 100 ? "Regenerate All" : "Auto-Translate Everything"}
+                </div>
+              </Button>
+            }
+          />
 
-        {!englishQuery.isLoading && !englishQuery.data?.exists && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Setup Required</AlertTitle>
-            <AlertDescription>
-              Click "Seed English" to add English source translations before generating other languages.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="generate"><Sparkles className="h-4 w-4 mr-2" />Generate</TabsTrigger>
-            <TabsTrigger value="coverage"><BarChart3 className="h-4 w-4 mr-2" />Coverage</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="generate" className="space-y-4 mt-6">
-            {isAnyLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          {/* Step 3: Status Overview */}
+          <StatusCard
+            title="3. Global Status"
+            status={overallCompletion > 90 ? 'success' : 'warning'}
+            description={`${overallCompletion}% of your content is translated across ${TARGET_LANGUAGES.length} languages.`}
+            action={
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Completion</span>
+                  <span className="font-medium">{overallCompletion}%</span>
+                </div>
+                <Progress value={overallCompletion} className="h-2" />
               </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-                {namespacesToShow.map((namespace) => {
-                  const { completed, total, percentage, hasEnglish } = getCoverageForNamespace(namespace);
-                  const isGenerating = generatingNamespace === namespace;
-                  
-                  return (
-                    <Card key={namespace} className={!hasEnglish ? 'opacity-60' : ''}>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="capitalize flex items-center justify-between text-base">
-                          {namespace}
-                          {percentage === 100 && <CheckCircle className="h-4 w-4 text-green-500" />}
-                        </CardTitle>
-                        <CardDescription>
-                          {hasEnglish ? `${completed}/${total} languages` : 'No English source'}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <Progress value={percentage} className="h-2" />
-                        <Button 
-                          onClick={() => generateForNamespace(namespace)} 
-                          disabled={isGenerating || isGeneratingAll || !hasEnglish} 
-                          size="sm" 
-                          className="w-full"
-                          variant={percentage === 100 ? 'outline' : 'default'}
-                        >
-                          {isGenerating ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : percentage === 100 ? (
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                          ) : (
-                            <Languages className="mr-2 h-4 w-4" />
-                          )}
-                          {percentage === 100 ? 'Regenerate' : 'Generate'}
+            }
+          />
+        </div>
+
+        {/* --- TABS SECTION --- */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="bg-card rounded-xl border shadow-sm">
+          <div className="p-4 border-b bg-muted/30">
+            <TabsList>
+              <TabsTrigger value="overview"><Globe className="h-4 w-4 mr-2" />Detailed Overview</TabsTrigger>
+              <TabsTrigger value="details"><Languages className="h-4 w-4 mr-2" />Namespace Details</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="overview" className="p-6 m-0">
+            {/* Overall Health Chart */}
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className='space-y-6'>
+                <h3 className="text-lg font-semibold flex items-center"><TrendingUp className="mr-2 h-5 w-5 text-primary" /> Language Health</h3>
+                {coverageLoading ? <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-8 bg-muted animate-pulse rounded" />)}</div> : (
+                  <div className="space-y-4">
+                    {Object.entries(coverageData?.byLanguage || {}).map(([lang, data]: any) => (
+                      <div key={lang} className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium uppercase flex items-center gap-2">
+                            {lang === 'en' ? '🇬🇧' : <span className="bg-muted px-1.5 rounded textxs">{lang}</span>}
+                            {lang === 'en' ? 'English (Source)' : lang}
+                          </span>
+                          <span className={data.percentage < 100 ? "text-yellow-600 font-bold" : "text-green-600 font-bold"}>
+                            {data.percentage}%
+                          </span>
+                        </div>
+                        <Progress value={data.percentage} className="h-2" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className='bg-muted/30 p-6 rounded-lg border'>
+                <h3 className="text-lg font-semibold flex items-center mb-4"><AlertCircle className="mr-2 h-5 w-5 text-primary" /> Action Items</h3>
+                {!hasEnglish ? (
+                  <div className="flex gap-4 items-start text-sm">
+                    <div className="bg-yellow-100 p-2 rounded-full text-yellow-700 mt-0.5">1</div>
+                    <div>
+                      <p className="font-medium">Missing Source Content</p>
+                      <p className="text-muted-foreground mt-1">Run "Load English Source" to initialize the database.</p>
+                    </div>
+                  </div>
+                ) : coverageData?.missingKeys?.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="flex gap-4 items-start text-sm">
+                      <div className="bg-blue-100 p-2 rounded-full text-blue-700 mt-0.5">1</div>
+                      <div>
+                        <p className="font-medium">{coverageData.missingKeys.length} Missing Translations</p>
+                        <p className="text-muted-foreground mt-1">Some recent keys haven't been translated yet.</p>
+                        <Button size="sm" variant="secondary" onClick={syncMissingKeys} className="mt-2 h-8" disabled={isSyncingKeys}>
+                          {isSyncingKeys ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <RefreshCw className="h-3 w-3 mr-2" />}
+                          Fix Automatically
                         </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                    <div className="h-12 w-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-3">
+                      <CheckCircle className="h-6 w-6" />
+                    </div>
+                    <p className="font-medium">Everything looks good!</p>
+                    <p className="text-sm text-muted-foreground">Your translations are up to date.</p>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </TabsContent>
 
-          <TabsContent value="coverage" className="space-y-4 mt-6">
-            {coverageLoading ? (
-              <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>
-            ) : coverageData ? (
-              <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle><TrendingUp className="h-5 w-5 inline mr-2" />Overall Coverage</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between mb-4">
-                      <p className="text-3xl font-bold">{coverageData.overallCompletion}%</p>
-                      <Badge variant={coverageData.overallCompletion === 100 ? 'default' : 'secondary'}>
-                        {coverageData.overallCompletion === 100 ? 'Complete' : 'In Progress'}
-                      </Badge>
-                    </div>
-                    <Progress value={coverageData.overallCompletion} className="h-3" />
-                  </CardContent>
-                </Card>
+          <TabsContent value="details" className="p-6 m-0">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {namespacesToShow.map((namespace) => {
+                const { completed, total, percentage, hasEnglish } = getCoverageForNamespace(namespace);
+                const isGenerating = generatingNamespace === namespace;
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Card>
-                    <CardHeader><CardTitle>By Language</CardTitle></CardHeader>
-                    <CardContent className="space-y-3">
-                      {Object.entries(coverageData.byLanguage).map(([lang, data]) => (
-                        <div key={lang} className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="font-medium uppercase">{lang}</span>
-                            <span className="text-muted-foreground">{data.percentage}%</span>
-                          </div>
-                          <Progress value={data.percentage} className="h-2" />
-                        </div>
-                      ))}
+                return (
+                  <Card key={namespace} className={`shadow-sm hover:shadow-md transition-shadow ${!hasEnglish ? 'opacity-60 bg-muted/50' : ''}`}>
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="capitalize text-base font-semibold">{namespace}</CardTitle>
+                        {percentage === 100 && <CheckCircle className="h-4 w-4 text-green-500" />}
+                      </div>
+                      <CardDescription className="text-xs">
+                        Namespace
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pb-3">
+                      <div className="flex justify-between text-xs mb-2">
+                        <span>{completed} / {total} langs</span>
+                        <span>{Math.round(percentage)}%</span>
+                      </div>
+                      <Progress value={percentage} className="h-1.5" />
                     </CardContent>
+                    <CardFooter className="pt-0">
+                      <Button
+                        onClick={() => generateForNamespace(namespace)}
+                        disabled={isGenerating || isGeneratingAll || !hasEnglish}
+                        size="sm"
+                        variant="ghost"
+                        className="w-full h-8 text-xs ml-auto"
+                      >
+                        {isGenerating ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-2 h-3 w-3" />}
+                        {percentage === 100 ? 'Regenerate' : 'Translate'}
+                      </Button>
+                    </CardFooter>
                   </Card>
-
-                  <Card>
-                    <CardHeader><CardTitle>Missing Translations</CardTitle></CardHeader>
-                    <CardContent>
-                      {coverageData.missingKeys.length === 0 ? (
-                        <div className="flex items-center gap-2 text-green-600 py-4">
-                          <CheckCircle className="h-5 w-5" />
-                          <span>All translations complete!</span>
-                        </div>
-                      ) : (
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                          {coverageData.missingKeys.slice(0, 20).map((missing, idx) => (
-                            <div key={idx} className="flex justify-between p-2 rounded bg-muted/50">
-                              <div>
-                                <p className="text-sm font-medium">{missing.namespace}:{missing.key}</p>
-                                <p className="text-xs text-muted-foreground">Missing in: {missing.missingIn?.join(', ') || 'unknown'}</p>
-                              </div>
-                              <Badge variant="destructive">{missing.missingIn?.length || 0} langs</Badge>
-                            </div>
-                          ))}
-                          {coverageData.missingKeys.length > 20 && (
-                            <p className="text-sm text-muted-foreground text-center py-2">
-                              +{coverageData.missingKeys.length - 20} more...
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </>
-            ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No translation data available</p>
-                </CardContent>
-              </Card>
-            )}
+                );
+              })}
+            </div>
           </TabsContent>
         </Tabs>
+
+        {/* --- ADVANCED SECTION (Collapsed) --- */}
+        <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced} className="border rounded-lg bg-muted/20">
+          <CollapsibleTrigger className="flex items-center gap-2 p-4 w-full text-sm font-medium hover:bg-muted/50 transition-colors">
+            {showAdvanced ? <ArrowRight className="h-4 w-4 rotate-90 transition-transform" /> : <ArrowRight className="h-4 w-4 transition-transform" />}
+            <Settings2 className="h-4 w-4" />
+            Advanced & Logs
+          </CollapsibleTrigger>
+          <CollapsibleContent className="p-4 border-t space-y-4">
+            {/* Loading State Indicator */}
+            <div className="bg-card p-4 rounded border">
+              <TranslationLoadingState queries={queryStates} onRetry={handleRetryQuery} />
+            </div>
+
+            {/* Job Progress */}
+            <TranslationJobProgress onJobComplete={handleJobComplete} onCleanup={cleanupStuckJobs} />
+
+            {/* Raw Logs */}
+            <TranslationDebugPanel logs={logs} onClear={() => setLogs([])} />
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </AppLayout>
   );

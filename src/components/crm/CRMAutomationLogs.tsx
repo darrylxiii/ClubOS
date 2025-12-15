@@ -6,81 +6,69 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
+import {
   History, CheckCircle, XCircle, Clock, RefreshCw, Search,
-  Mail, Bell, UserPlus, Tag
+  Mail, Bell, UserPlus, Tag, Plus, Zap, Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AutomationLog {
   id: string;
   automationName: string;
-  automationId: string;
   status: 'success' | 'failed' | 'pending';
   action: string;
   prospectName: string;
-  prospectId: string;
   executedAt: string;
   duration: number;
   errorMessage?: string;
 }
 
 export function CRMAutomationLogs() {
-  const [logs] = useState<AutomationLog[]>([
-    {
-      id: '1',
-      automationName: 'Hot Lead Alert',
-      automationId: '1',
-      status: 'success',
-      action: 'notify_user',
-      prospectName: 'John Smith',
-      prospectId: 'p1',
-      executedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-      duration: 234,
-    },
-    {
-      id: '2',
-      automationName: 'Follow-up Reminder',
-      automationId: '2',
-      status: 'success',
-      action: 'create_task',
-      prospectName: 'Sarah Johnson',
-      prospectId: 'p2',
-      executedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-      duration: 156,
-    },
-    {
-      id: '3',
-      automationName: 'Welcome Email',
-      automationId: '3',
-      status: 'failed',
-      action: 'send_email',
-      prospectName: 'Michael Chen',
-      prospectId: 'p3',
-      executedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-      duration: 1230,
-      errorMessage: 'SMTP connection timeout',
-    },
-    {
-      id: '4',
-      automationName: 'Stage Update',
-      automationId: '4',
-      status: 'success',
-      action: 'update_stage',
-      prospectName: 'Emily Davis',
-      prospectId: 'p4',
-      executedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-      duration: 89,
-    },
-  ]);
-
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { data: logs = [], isLoading, refetch } = useQuery({
+    queryKey: ['crm-automation-logs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('crm_automation_logs')
+        .select(`
+          id,
+          status,
+          created_at,
+          details,
+          automation:crm_automations(name, actions),
+          prospect:crm_prospects!triggered_by_record_id(first_name, last_name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      return data.map((log: any) => {
+        // Parse action type from the automation definition or log details
+        const firstAction = log.automation?.actions?.[0]?.type || 'unknown';
+
+        return {
+          id: log.id,
+          automationName: log.automation?.name || 'Unknown Automation',
+          status: log.status,
+          action: firstAction,
+          prospectName: log.prospect ? `${log.prospect.first_name || ''} ${log.prospect.last_name || ''}`.trim() : 'Unknown Prospect',
+          executedAt: log.created_at,
+          duration: log.details?.duration || 0,
+          errorMessage: log.details?.logs?.find((l: any) => l.error)?.error
+        } as AutomationLog;
+      });
+    }
+  });
 
   const filteredLogs = logs.filter(log => {
     if (statusFilter !== 'all' && log.status !== statusFilter) return false;
     if (searchQuery && !log.automationName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !log.prospectName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      !log.prospectName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
@@ -99,7 +87,8 @@ export function CRMAutomationLogs() {
       case 'notify_user': return <Bell className="h-4 w-4" />;
       case 'assign_owner': return <UserPlus className="h-4 w-4" />;
       case 'update_stage': return <Tag className="h-4 w-4" />;
-      default: return null;
+      case 'create_task': return <Plus className="h-4 w-4" />;
+      default: return <Zap className="h-4 w-4" />;
     }
   };
 
@@ -123,8 +112,13 @@ export function CRMAutomationLogs() {
                 {failedCount} Failed
               </Badge>
             </div>
-            <Button variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isLoading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
           </div>
