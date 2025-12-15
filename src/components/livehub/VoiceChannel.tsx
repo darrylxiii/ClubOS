@@ -26,6 +26,7 @@ import { LiveReactions } from './LiveReactions';
 import { Whiteboard } from './Whiteboard';
 import { RecordingSettingsDialog, RecordingSettings } from './RecordingSettingsDialog';
 import { ConnectionQualityIndicator } from './ConnectionQualityIndicator';
+import { AudioUnlockBanner } from './AudioUnlockBanner';
 import { toast } from 'sonner';
 
 interface VoiceChannelProps {
@@ -509,6 +510,9 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
           </div>
         </div>
       )}
+
+      {/* Audio Unlock Banner - shows if audio autoplay is blocked */}
+      {isConnected && <AudioUnlockBanner />}
 
       {/* Recording Settings Dialog */}
       <RecordingSettingsDialog
