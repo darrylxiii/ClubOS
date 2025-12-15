@@ -20,7 +20,7 @@ import {
   Users
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Deal } from "@/hooks/useDealPipeline";
+import { Deal, usePipelineMetrics } from "@/hooks/useDealPipeline";
 import { formatCurrency } from "@/lib/revenueCalculations";
 
 interface RevenueSource {
@@ -83,11 +83,12 @@ interface RevenuePreCalculationProps {
 }
 
 export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationProps) {
+  // Use the same source of truth as the header stats
+  const { data: metrics } = usePipelineMetrics();
+  
   const calculations = useMemo(() => {
     if (!deals || deals.length === 0) return null;
 
-    let totalPipeline = 0;
-    let weightedPipeline = 0;
     let highConfidenceValue = 0;
     let mediumConfidenceValue = 0;
     let lowConfidenceValue = 0;
@@ -115,30 +116,24 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
         percentageFeeCount++;
       }
 
-      // Determine salary source and confidence
-      let baseSalary = 0;
+      // Determine source and confidence - estimated_value IS already the fee amount
       let source: RevenueSource;
+      let feeAmount = 0;
 
       if (deal.deal_value_override && deal.deal_value_override > 0) {
-        baseSalary = (deal.deal_value_override * 100) / (feePercentage || 20);
+        feeAmount = deal.deal_value_override;
         source = REVENUE_SOURCES.override;
+      } else if (feeType === 'fixed' && feeFixed > 0) {
+        feeAmount = feeFixed;
+        source = REVENUE_SOURCES.actual;
       } else if (deal.estimated_value && deal.estimated_value > 0) {
-        baseSalary = (deal.estimated_value * 100) / (feePercentage || 20);
+        // estimated_value is already salary × fee% from the SQL function
+        feeAmount = deal.estimated_value;
         source = REVENUE_SOURCES.candidate_avg;
       } else {
-        baseSalary = 60000; // Default fallback
+        feeAmount = 12000; // Default fallback (60k × 20%)
         source = REVENUE_SOURCES.company_default;
         missingSalaryCount++;
-      }
-
-      // Calculate revenue based on fee type
-      let feeAmount = 0;
-      if (feeType === 'fixed' && feeFixed > 0) {
-        feeAmount = feeFixed;
-      } else if (feePercentage > 0) {
-        feeAmount = baseSalary * (feePercentage / 100);
-      } else {
-        feeAmount = baseSalary * 0.20; // Default 20%
       }
       
       const probability = deal.deal_probability || 50;
@@ -156,14 +151,10 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
         lowConfidenceValue += weightedValue;
       }
 
-      totalPipeline += feeAmount;
-      weightedPipeline += weightedValue;
-
       return {
         dealId: deal.id,
         title: deal.title,
         company: deal.company_name,
-        baseSalary,
         feeType,
         feePercentage,
         feeFixed,
@@ -177,11 +168,14 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
     });
 
     // Calculate overall confidence
-    const avgConfidence = dealCalculations.reduce((sum, d) => sum + d.confidence, 0) / dealCalculations.length;
+    const avgConfidence = dealCalculations.length > 0 
+      ? dealCalculations.reduce((sum, d) => sum + d.confidence, 0) / dealCalculations.length
+      : 0;
 
     return {
-      totalPipeline,
-      weightedPipeline,
+      // Use metrics from SQL source of truth for main totals
+      totalPipeline: metrics?.total_pipeline || 0,
+      weightedPipeline: metrics?.weighted_pipeline || 0,
       highConfidenceValue,
       mediumConfidenceValue,
       lowConfidenceValue,
@@ -194,7 +188,7 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
       dealCalculations,
       dealCount: deals.length,
     };
-  }, [deals]);
+  }, [deals, metrics]);
 
   if (!calculations) return null;
 

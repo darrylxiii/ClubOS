@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useDealPipeline, useDealStages } from "@/hooks/useDealPipeline";
+import { useDealPipeline, useDealStages, usePipelineMetrics } from "@/hooks/useDealPipeline";
 import { formatCurrency } from "@/lib/revenueCalculations";
 import { TrendingUp, DollarSign, Target, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -7,26 +7,22 @@ import { Badge } from "@/components/ui/badge";
 export function RevenueIntelligenceDashboard() {
   const { data: deals, isLoading } = useDealPipeline();
   const { data: stages } = useDealStages();
+  // Use single source of truth from SQL function
+  const { data: metrics, isLoading: metricsLoading } = usePipelineMetrics();
 
-  if (isLoading) {
+  if (isLoading || metricsLoading) {
     return <div className="text-muted-foreground">Loading revenue intelligence...</div>;
   }
 
-  // Calculate metrics
-  const totalPipelineValue = deals?.reduce((sum, deal) => sum + (deal.estimated_value || 0), 0) || 0;
-  
-  const weightedPipelineValue = deals?.reduce((sum, deal) => {
-    const stage = stages?.find(s => s.name === deal.deal_stage);
-    const probability = stage?.probability_weight || deal.deal_probability || 0;
-    return sum + ((deal.estimated_value || 0) * probability / 100);
-  }, 0) || 0;
+  // Use metrics from SQL source of truth
+  const totalPipelineValue = metrics?.total_pipeline || 0;
+  const weightedPipelineValue = metrics?.weighted_pipeline || 0;
+  const avgDealSize = metrics?.avg_deal_size || 0;
 
   const dealsWithoutFee = deals?.filter(deal => {
     const companies = deal.companies as any;
     return !companies?.placement_fee_percentage;
   }).length || 0;
-
-  const avgDealSize = deals && deals.length > 0 ? totalPipelineValue / deals.length : 0;
 
   // Calculate Q4 forecast (deals expected to close this quarter)
   const now = new Date();
