@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 interface DisputeCenterProps {
-  contractId: string;
+  contractId?: string;
 }
 
 interface Dispute {

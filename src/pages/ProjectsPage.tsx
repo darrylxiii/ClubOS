@@ -10,11 +10,28 @@ import { ProjectList } from "@/components/projects/ProjectList";
 import { FreelancerDashboard } from "@/components/projects/FreelancerDashboard";
 import { ClientDashboard } from "@/components/projects/ClientDashboard";
 import { useNavigate } from "react-router-dom";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function ProjectsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>("browse");
+
+  // Check user roles from user_roles table
+  const { data: userRoles, isLoading: loadingRoles } = useQuery({
+    queryKey: ["user-roles-projects", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      
+      if (error) throw error;
+      return data?.map(r => r.role) || [];
+    },
+    enabled: !!user?.id,
+  });
 
   // Check if user is open to freelance work
   const { data: profile, isLoading: loadingProfile } = useQuery({
@@ -35,13 +52,13 @@ export default function ProjectsPage() {
 
   const isFreelancer = profile?.open_to_freelance_work === true;
   const isAvailable = profile?.freelance_availability_status === 'available';
-  const isPartnerOrAdmin = false; // Will be determined from user metadata
+  const isPartnerOrAdmin = userRoles?.includes('admin') || userRoles?.includes('partner') || userRoles?.includes('strategist');
 
-  if (loadingProfile) {
+  if (loadingProfile || loadingRoles) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <LoadingSpinner size="lg" />
         </div>
       </AppLayout>
     );

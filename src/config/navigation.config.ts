@@ -150,10 +150,14 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
-      title: "Projects",
+      title: "Club Projects",
       icon: Layers,
+      badge: "New",
       items: [
         { name: "Browse Projects", icon: Layers, path: "/projects" },
+        { name: "Freelancer Setup", icon: User, path: "/projects/freelancer/setup" },
+        { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs" },
+        { name: "My Proposals", icon: FileText, path: "/projects/proposals" },
         { name: "My Contracts", icon: FileSignature, path: "/contracts" },
         { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
       ],
@@ -196,10 +200,13 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
-      title: "Projects",
+      title: "Club Projects",
       icon: Layers,
+      badge: "New",
       items: [
         { name: "Browse Projects", icon: Layers, path: "/projects" },
+        { name: "Post Project", icon: Plus, path: "/projects/new" },
+        { name: "Find Talent", icon: Users, path: "/projects" },
         { name: "Contracts", icon: FileSignature, path: "/contracts" },
         { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
       ],
@@ -334,10 +341,15 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
-      title: "Projects",
+      title: "Club Projects",
       icon: Layers,
+      badge: "New",
       items: [
         { name: "All Projects", icon: Layers, path: "/projects" },
+        { name: "Post Project", icon: Plus, path: "/projects/new" },
+        { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs" },
+        { name: "Proposals", icon: FileText, path: "/projects/proposals" },
+        { name: "Disputes", icon: AlertTriangle, path: "/projects/disputes" },
         { name: "Contracts", icon: FileSignature, path: "/contracts" },
         { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
       ],

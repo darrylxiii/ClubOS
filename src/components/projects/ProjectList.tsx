@@ -38,10 +38,10 @@ export function ProjectList({ userRole, isFreelancer }: ProjectListProps) {
   });
 
   const { data: projects, isLoading } = useQuery({
-    queryKey: ["projects", "open"],
+    queryKey: ["marketplace-projects", "open"],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
-        .from("projects")
+        .from("marketplace_projects")
         .select(`
           *,
           company:companies(name, logo_url)
