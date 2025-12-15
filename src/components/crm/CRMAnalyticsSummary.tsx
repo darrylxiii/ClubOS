@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { useCRMAnalytics } from "@/hooks/useCRMAnalytics";
+import { useCRMPipelineMetrics, formatCurrencyCompact } from "@/hooks/useCRMPipelineMetrics";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Euro, TrendingUp, Target } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Users, Euro, TrendingUp, Target, Scale, Briefcase } from "lucide-react";
 
 interface CRMAnalyticsSummaryProps {
   dateRange?: 'week' | 'month' | '3months' | '6months' | 'year';
@@ -10,42 +12,65 @@ interface CRMAnalyticsSummaryProps {
 
 export function CRMAnalyticsSummary({ dateRange = 'month' }: CRMAnalyticsSummaryProps) {
   const { data, loading } = useCRMAnalytics({ dateRange });
+  const { data: pipelineMetrics, isLoading: pipelineLoading } = useCRMPipelineMetrics();
 
   const stats = [
     {
       label: 'Total Prospects',
-      value: data?.overview.totalProspects || 0,
+      value: pipelineMetrics?.prospect_count || data?.overview.totalProspects || 0,
       icon: Users,
       color: 'text-blue-400',
-      format: (v: number) => v.toString()
+      format: (v: number) => v.toString(),
+      tooltip: 'Active prospects in pipeline'
     },
     {
-      label: 'Total Revenue',
-      value: data?.overview.totalRevenue || 0,
+      label: 'Total Pipeline',
+      value: pipelineMetrics?.total_pipeline || 0,
+      icon: Briefcase,
+      color: 'text-cyan-400',
+      format: (v: number) => formatCurrencyCompact(v),
+      tooltip: 'Sum of all estimated annual values'
+    },
+    {
+      label: 'Weighted Pipeline',
+      value: pipelineMetrics?.weighted_pipeline || 0,
+      icon: Scale,
+      color: 'text-purple-400',
+      format: (v: number) => formatCurrencyCompact(v),
+      tooltip: 'Expected value based on stage probabilities'
+    },
+    {
+      label: 'Avg Deal Size',
+      value: pipelineMetrics?.avg_deal_size || 0,
       icon: Euro,
       color: 'text-green-400',
-      format: (v: number) => `€${(v / 1000).toFixed(0)}k`
+      format: (v: number) => formatCurrencyCompact(v),
+      tooltip: 'Average estimated annual value per prospect'
     },
     {
       label: 'Conversion Rate',
       value: data?.overview.conversionRate || 0,
       icon: TrendingUp,
       color: 'text-amber-400',
-      format: (v: number) => `${v.toFixed(1)}%`
+      format: (v: number) => `${v.toFixed(1)}%`,
+      tooltip: 'Percentage of prospects that convert to clients'
     },
     {
       label: 'Deals Won',
       value: data?.overview.dealsWon || 0,
       icon: Target,
-      color: 'text-purple-400',
-      format: (v: number) => v.toString()
+      color: 'text-emerald-400',
+      format: (v: number) => v.toString(),
+      tooltip: 'Total closed won deals'
     }
   ];
 
-  if (loading) {
+  const isLoading = loading || pipelineLoading;
+
+  if (isLoading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map(i => (
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        {[1, 2, 3, 4, 5, 6].map(i => (
           <Skeleton key={i} className="h-24 w-full" />
         ))}
       </div>
@@ -53,7 +78,7 @@ export function CRMAnalyticsSummary({ dateRange = 'month' }: CRMAnalyticsSummary
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (
@@ -61,21 +86,28 @@ export function CRMAnalyticsSummary({ dateRange = 'month' }: CRMAnalyticsSummary
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ delay: index * 0.05 }}
           >
-            <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
-                    <p className="text-2xl font-bold">{stat.format(stat.value)}</p>
-                  </div>
-                  <div className={`p-2 rounded-lg bg-muted/30 ${stat.color}`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50 hover:border-border transition-colors cursor-default">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
+                        <p className="text-xl font-bold">{stat.format(stat.value)}</p>
+                      </div>
+                      <div className={`p-2 rounded-lg bg-muted/30 ${stat.color}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-xs">{stat.tooltip}</p>
+              </TooltipContent>
+            </Tooltip>
           </motion.div>
         );
       })}

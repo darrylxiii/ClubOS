@@ -9848,6 +9848,7 @@ export type Database = {
       }
       crm_prospects: {
         Row: {
+          annual_value_source: string | null
           assigned_at: string | null
           bounced_at: string | null
           campaign_id: string | null
@@ -9875,6 +9876,7 @@ export type Database = {
           emails_replied: number | null
           emails_sent: number | null
           engagement_score: number | null
+          estimated_annual_value: number | null
           expected_close_date: string | null
           external_id: string | null
           first_name: string | null
@@ -9912,6 +9914,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          annual_value_source?: string | null
           assigned_at?: string | null
           bounced_at?: string | null
           campaign_id?: string | null
@@ -9939,6 +9942,7 @@ export type Database = {
           emails_replied?: number | null
           emails_sent?: number | null
           engagement_score?: number | null
+          estimated_annual_value?: number | null
           expected_close_date?: string | null
           external_id?: string | null
           first_name?: string | null
@@ -9976,6 +9980,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          annual_value_source?: string | null
           assigned_at?: string | null
           bounced_at?: string | null
           campaign_id?: string | null
@@ -10003,6 +10008,7 @@ export type Database = {
           emails_replied?: number | null
           emails_sent?: number | null
           engagement_score?: number | null
+          estimated_annual_value?: number | null
           expected_close_date?: string | null
           external_id?: string | null
           first_name?: string | null
@@ -10183,6 +10189,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      crm_stage_probabilities: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_terminal: boolean | null
+          probability_weight: number
+          stage: string
+          stage_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_terminal?: boolean | null
+          probability_weight?: number
+          stage: string
+          stage_order: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_terminal?: boolean | null
+          probability_weight?: number
+          stage?: string
+          stage_order?: number
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       crm_suppression_list: {
         Row: {
@@ -34220,6 +34256,15 @@ export type Database = {
           overall_score: number
           pipeline_velocity_score: number
           response_time_score: number
+        }[]
+      }
+      calculate_crm_weighted_pipeline: {
+        Args: never
+        Returns: {
+          avg_deal_size: number
+          prospect_count: number
+          total_pipeline: number
+          weighted_pipeline: number
         }[]
       }
       calculate_current_mrr: { Args: never; Returns: number }

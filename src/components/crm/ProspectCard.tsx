@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   User, 
   Building, 
@@ -11,10 +12,13 @@ import {
   Zap, 
   Calendar,
   GripVertical,
-  ExternalLink
+  ExternalLink,
+  Euro,
+  TrendingUp
 } from 'lucide-react';
 import type { CRMProspect } from '@/types/crm-enterprise';
 import { formatDistanceToNow } from 'date-fns';
+import { useStageProbabilities, formatCurrencyCompact } from '@/hooks/useCRMPipelineMetrics';
 
 interface ProspectCardProps {
   prospect: CRMProspect;
@@ -40,6 +44,14 @@ const sentimentEmojis: Record<string, string> = {
 };
 
 export function ProspectCard({ prospect, isDragging }: ProspectCardProps) {
+  const { data: stageProbabilities } = useStageProbabilities();
+  
+  // Calculate weighted value
+  const stageProb = stageProbabilities?.[prospect.stage];
+  const probability = stageProb?.probability_weight || 10;
+  const annualValue = (prospect as any).estimated_annual_value || prospect.deal_value || 0;
+  const weightedValue = annualValue * (probability / 100);
+
   const {
     attributes,
     listeners,
@@ -107,6 +119,33 @@ export function ProspectCard({ prospect, isDragging }: ProspectCardProps) {
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
             <Building className="w-3 h-3" />
             <span className="truncate">{prospect.company_name}</span>
+          </div>
+        )}
+
+        {/* Value Display */}
+        {annualValue > 0 && (
+          <div className="flex items-center gap-2 mb-2">
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge variant="outline" className="text-xs bg-green-500/10 text-green-400 border-green-500/30">
+                  <Euro className="w-3 h-3 mr-0.5" />
+                  {formatCurrencyCompact(annualValue)}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>Annual Value</TooltipContent>
+            </Tooltip>
+            {weightedValue > 0 && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-400 border-purple-500/30">
+                    <TrendingUp className="w-3 h-3 mr-0.5" />
+                    {formatCurrencyCompact(weightedValue)}
+                    <span className="ml-0.5 opacity-70">({probability}%)</span>
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>Weighted Value ({probability}% probability)</TooltipContent>
+              </Tooltip>
+            )}
           </div>
         )}
 

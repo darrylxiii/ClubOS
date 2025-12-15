@@ -4,10 +4,11 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { EnhancedProspectCard } from './EnhancedProspectCard';
-import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import type { CRMProspect, ProspectStage } from '@/types/crm-enterprise';
-
+import { useStageProbabilities, formatCurrencyCompact } from '@/hooks/useCRMPipelineMetrics';
 interface StageConfig {
   value: ProspectStage;
   label: string;
@@ -88,14 +89,20 @@ export function EnhancedKanbanColumn({
   const { setNodeRef, isOver } = useDroppable({
     id: stage.value,
   });
+  const { data: stageProbabilities } = useStageProbabilities();
 
   const gradientClass = stageGradients[stage.color] || stageGradients.gray;
   const borderClass = stageBorderColors[stage.color] || stageBorderColors.gray;
   const textClass = stageTextColors[stage.color] || stageTextColors.gray;
   const dotClass = stageDotColors[stage.color] || stageDotColors.gray;
 
-  // Calculate total deal value for this stage
-  const totalDealValue = prospects.reduce((sum, p) => sum + (p.deal_value || 0), 0);
+  // Get probability for this stage
+  const stageProb = stageProbabilities?.[stage.value];
+  const probability = stageProb?.probability_weight || 10;
+
+  // Calculate total and weighted values for this stage
+  const totalValue = prospects.reduce((sum, p) => sum + ((p as any).estimated_annual_value || p.deal_value || 0), 0);
+  const weightedValue = totalValue * (probability / 100);
 
   if (isCollapsed) {
     return (
@@ -164,11 +171,39 @@ export function EnhancedKanbanColumn({
           <span className={cn("font-medium text-sm", textClass)}>{stage.label}</span>
         </div>
         <div className="flex items-center gap-2">
-          {totalDealValue > 0 && (
-            <span className="text-[10px] text-muted-foreground font-medium">
-              ${(totalDealValue / 1000).toFixed(0)}k
-            </span>
+          {/* Stage Probability Badge */}
+          <Tooltip>
+            <TooltipTrigger>
+              <span className={cn(
+                "text-[10px] font-medium px-1.5 py-0.5 rounded",
+                "bg-purple-500/20 text-purple-400"
+              )}>
+                {probability}%
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <div className="text-xs">Stage win probability</div>
+            </TooltipContent>
+          </Tooltip>
+          
+          {/* Weighted Value */}
+          {weightedValue > 0 && (
+            <Tooltip>
+              <TooltipTrigger>
+                <span className="text-[10px] text-green-400 font-medium flex items-center gap-0.5">
+                  <TrendingUp className="w-3 h-3" />
+                  {formatCurrencyCompact(weightedValue)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <div className="text-xs">
+                  <div>Total: {formatCurrencyCompact(totalValue)}</div>
+                  <div className="text-muted-foreground">Weighted: {formatCurrencyCompact(weightedValue)}</div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
           )}
+          
           <motion.span
             key={prospects.length}
             initial={{ scale: 1.3 }}
