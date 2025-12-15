@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Search,
-  Filter,
   Eye,
   MousePointer,
   MessageSquare,
@@ -71,8 +70,88 @@ export function InstantlyLeadsTable({ leads, onPromoteToCRM }: InstantlyLeadsTab
     return { label: 'Sent', color: 'bg-muted/20 text-muted-foreground' };
   };
 
-  // ... (rest of component)
+  const getEngagementIcons = (lead: InstantlyLead) => {
+    const icons = [];
+    if (lead.last_opened_at) icons.push(<Eye key="opened" className="h-4 w-4 text-blue-500" />);
+    if (lead.last_clicked_at) icons.push(<MousePointer key="clicked" className="h-4 w-4 text-amber-500" />);
+    if (lead.last_replied_at) icons.push(<MessageSquare key="replied" className="h-4 w-4 text-green-500" />);
+    if (lead.is_interested) icons.push(<Star key="interested" className="h-4 w-4 text-emerald-500" />);
+    if (lead.bounced_at) icons.push(<AlertTriangle key="bounced" className="h-4 w-4 text-red-500" />);
+    return icons;
+  };
 
+  const displayLeads = filteredLeads.slice(0, 50);
+
+  return (
+    <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
+      {/* Filters */}
+      <div className="p-4 border-b border-border/50 flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search leads..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Leads</SelectItem>
+            <SelectItem value="opened">Opened</SelectItem>
+            <SelectItem value="clicked">Clicked</SelectItem>
+            <SelectItem value="replied">Replied</SelectItem>
+            <SelectItem value="interested">Interested</SelectItem>
+            <SelectItem value="bounced">Bounced</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Contact</TableHead>
+              <TableHead>Company</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Engagement</TableHead>
+              <TableHead>Last Activity</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {displayLeads.map((lead, index) => {
+              const status = getLeadStatus(lead);
+              const engagementIcons = getEngagementIcons(lead);
+
+              return (
+                <motion.tr
+                  key={lead.id || lead.email}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.02 }}
+                  className="group hover:bg-muted/30"
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Mail className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">
+                          {lead.first_name} {lead.last_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{lead.email}</p>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">{lead.company_name || '-'}</span>
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <Badge variant="outline" className={status.color}>
@@ -116,20 +195,18 @@ export function InstantlyLeadsTable({ leads, onPromoteToCRM }: InstantlyLeadsTab
                       </Button>
                     )}
                   </TableCell>
-                </motion.tr >
+                </motion.tr>
               );
-})}
-          </TableBody >
-        </Table >
-      </div >
+            })}
+          </TableBody>
+        </Table>
+      </div>
 
-{
-  filteredLeads.length > 50 && (
-    <div className="text-center text-sm text-muted-foreground mt-4">
-      Showing 50 of {filteredLeads.length} leads
-    </div>
-  )
-}
-    </Card >
+      {filteredLeads.length > 50 && (
+        <div className="text-center text-sm text-muted-foreground p-4 border-t border-border/50">
+          Showing 50 of {filteredLeads.length} leads
+        </div>
+      )}
+    </Card>
   );
 }

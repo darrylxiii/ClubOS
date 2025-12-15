@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export const JobCardSkeleton = () => (
   <Card>
@@ -61,7 +62,7 @@ export const ProfileSkeleton = () => (
 );
 
 export const TableRowSkeleton = () => (
-  <div className="flex items-center gap-4 p-4 border-b">
+  <div className="flex items-center gap-4 p-4 border-b border-border/50">
     <Skeleton className="h-10 w-10 rounded" />
     <div className="flex-1 space-y-2">
       <Skeleton className="h-4 w-3/4" />
@@ -72,7 +73,7 @@ export const TableRowSkeleton = () => (
 );
 
 export const MessageSkeleton = () => (
-  <div className="flex gap-3 p-4 border-b">
+  <div className="flex gap-3 p-4 border-b border-border/50">
     <Skeleton className="h-12 w-12 rounded-full" />
     <div className="flex-1 space-y-2">
       <div className="flex items-center justify-between">
@@ -113,5 +114,34 @@ export const ListSkeleton = ({ count = 3 }: { count?: number }) => (
         </CardContent>
       </Card>
     ))}
+  </div>
+);
+
+// Unified page loading skeleton - use this for full page loads
+export const PageLoadingSkeleton = () => (
+  <div className="flex-1 flex items-center justify-center min-h-[400px]">
+    <div className="flex flex-col items-center gap-4">
+      <LoadingSpinner size="xl" />
+      <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
+    </div>
+  </div>
+);
+
+// Card loading skeleton for smaller sections
+export const CardLoadingSkeleton = () => (
+  <Card>
+    <CardContent className="py-8">
+      <div className="flex items-center justify-center">
+        <LoadingSpinner size="md" />
+      </div>
+    </CardContent>
+  </Card>
+);
+
+// Compact inline loading for buttons and small elements
+export const InlineLoadingSkeleton = () => (
+  <div className="flex items-center gap-2">
+    <LoadingSpinner size="sm" />
+    <span className="text-sm text-muted-foreground">Loading...</span>
   </div>
 );
