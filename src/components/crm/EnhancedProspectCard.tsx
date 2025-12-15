@@ -176,46 +176,23 @@ export function EnhancedProspectCard({
             </div>
 
             {/* Win Probability Badge (ML) */}
-            {prospect.predicted_win_probability !== undefined && (
+            {(prospect as any).predicted_win_probability !== undefined && (
               <Tooltip>
                 <TooltipTrigger>
                   <div className={cn(
                     "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border",
-                    prospect.predicted_win_probability >= 70 ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
-                      prospect.predicted_win_probability >= 40 ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                    (prospect as any).predicted_win_probability >= 70 ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
+                      (prospect as any).predicted_win_probability >= 40 ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
                         "bg-gray-500/10 text-gray-400 border-gray-500/20"
                   )}>
                     <Sparkles className="w-3 h-3" />
-                    {prospect.predicted_win_probability}%
+                    {(prospect as any).predicted_win_probability}%
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="text-xs">
                   Win Probability
                   <div className="text-[10px] text-muted-foreground">
-                    Velocity Score: {prospect.velocity_score || 0}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* Win Probability Badge (ML) */}
-            {prospect.predicted_win_probability !== undefined && (
-              <Tooltip>
-                <TooltipTrigger>
-                  <div className={cn(
-                    "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border",
-                    prospect.predicted_win_probability >= 70 ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
-                      prospect.predicted_win_probability >= 40 ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
-                        "bg-gray-500/10 text-gray-400 border-gray-500/20"
-                  )}>
-                    <Sparkles className="w-3 h-3" />
-                    {prospect.predicted_win_probability}%
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="text-xs">
-                  Win Probability
-                  <div className="text-[10px] text-muted-foreground">
-                    Velocity Score: {prospect.velocity_score || 0}
+                    Velocity Score: {(prospect as any).velocity_score || 0}
                   </div>
                 </TooltipContent>
               </Tooltip>

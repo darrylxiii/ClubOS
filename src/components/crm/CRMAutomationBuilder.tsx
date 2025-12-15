@@ -53,12 +53,12 @@ export function CRMAutomationBuilder() {
   const { data: automations = [], isLoading } = useQuery({
     queryKey: ['crm-automations'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('crm_automations')
+      const { data, error } = await (supabase
+        .from('crm_automations' as any)
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as any);
       if (error) throw error;
-      return data as CRMAutomation[];
+      return (data || []) as CRMAutomation[];
     }
   });
 
@@ -72,7 +72,7 @@ export function CRMAutomationBuilder() {
         actions: [{ type: 'create_task', config: { subject: 'Follow up', priority: 'high' } }],
         is_active: false
       };
-      const { data, error } = await supabase.from('crm_automations').insert(newAutomation).select().single();
+      const { data, error } = await (supabase.from('crm_automations' as any).insert(newAutomation).select().single() as any);
       if (error) throw error;
       return data;
     },
@@ -86,7 +86,7 @@ export function CRMAutomationBuilder() {
   // Update Mutation
   const updateMutation = useMutation({
     mutationFn: async (vars: { id: string, updates: Partial<CRMAutomation> }) => {
-      const { error } = await supabase.from('crm_automations').update(vars.updates).eq('id', vars.id);
+      const { error } = await (supabase.from('crm_automations' as any).update(vars.updates).eq('id', vars.id) as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -97,7 +97,7 @@ export function CRMAutomationBuilder() {
   // Delete Mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('crm_automations').delete().eq('id', id);
+      const { error } = await (supabase.from('crm_automations' as any).delete().eq('id', id) as any);
       if (error) throw error;
     },
     onSuccess: () => {

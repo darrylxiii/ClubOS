@@ -18,13 +18,13 @@ export const useCampaignPerformance = () => {
     return useQuery({
         queryKey: ['campaign-performance'],
         queryFn: async () => {
-            const { data, error } = await supabase
-                .from('campaign_performance')
+            const { data, error } = await (supabase
+                .from('campaign_performance' as any)
                 .select('*')
-                .order('total_revenue', { ascending: false });
+                .order('total_revenue', { ascending: false }) as any);
 
             if (error) throw error;
-            return data as CampaignPerformance[];
+            return (data || []) as CampaignPerformance[];
         },
         refetchInterval: 30000, // Refresh every 30s
     });
