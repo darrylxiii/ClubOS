@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,6 @@ export const UserSelectCombobox = ({
   companyId 
 }: UserSelectComboboxProps) => {
   const [open, setOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
   
   // CRITICAL: Pass companyId directly - undefined means "wait", string means "filter by company"
   // Do NOT convert undefined to null here - that triggers wrong code path
@@ -55,19 +54,24 @@ export const UserSelectCombobox = ({
     }
   };
 
-  // Filter users based on search
-  const filteredUsers = users?.filter(user => {
-    if (!searchValue) return true;
-    const searchLower = searchValue.toLowerCase();
-    return (
-      user.full_name?.toLowerCase().includes(searchLower) ||
-      user.email?.toLowerCase().includes(searchLower) ||
-      user.current_title?.toLowerCase().includes(searchLower)
-    );
-  });
+  const handleSelect = useCallback((userId: string) => {
+    const user = users?.find(u => u.id === userId);
+    if (user) {
+      onChange(user.id === value?.id ? null : user);
+    }
+    setOpen(false);
+  }, [users, value, onChange]);
+
+  // Create searchable string for each user (used by cmdk's built-in filter)
+  const getSearchableValue = (user: AvailableUser) => {
+    return [user.full_name, user.email, user.current_title, user.role]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+  };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -110,14 +114,18 @@ export const UserSelectCombobox = ({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
-        <Command shouldFilter={false}>
+      <PopoverContent 
+        className="w-[400px] p-0 z-[100]" 
+        align="start"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        sideOffset={4}
+      >
+        <Command className="rounded-lg border-0">
           <CommandInput 
-            placeholder="Search users..." 
-            value={searchValue}
-            onValueChange={setSearchValue}
+            placeholder="Search by name, email, or role..." 
+            className="h-10"
           />
-          <CommandList>
+          <CommandList className="max-h-[280px] overflow-y-auto overscroll-contain">
             {isLoading ? (
               <div className="flex items-center justify-center py-6">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -126,26 +134,20 @@ export const UserSelectCombobox = ({
               <div className="py-6 text-center text-sm text-destructive">
                 Error loading users. Please try again.
               </div>
-            ) : filteredUsers?.length === 0 ? (
+            ) : !users?.length ? (
               <CommandEmpty>
-                {searchValue 
-                  ? `No users found matching "${searchValue}"` 
-                  : companyId 
-                    ? "No available users in this company." 
-                    : "No users found."}
+                {companyId 
+                  ? "No available users in this company." 
+                  : "No users found."}
               </CommandEmpty>
             ) : (
-              <CommandGroup heading={`${filteredUsers?.length || 0} users available`}>
-                {filteredUsers?.map((user) => (
+              <CommandGroup heading={`${users?.length || 0} users available`}>
+                {users?.map((user) => (
                   <CommandItem
                     key={user.id}
-                    value={user.id}
-                    onSelect={() => {
-                      onChange(user.id === value?.id ? null : user);
-                      setOpen(false);
-                      setSearchValue("");
-                    }}
-                    className="flex items-center gap-3 py-3 cursor-pointer"
+                    value={getSearchableValue(user)}
+                    onSelect={() => handleSelect(user.id)}
+                    className="flex items-center gap-3 py-2.5 px-2 cursor-pointer aria-selected:bg-accent"
                   >
                     <Check
                       className={cn(
@@ -155,19 +157,19 @@ export const UserSelectCombobox = ({
                     />
                     <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={user.avatar_url || undefined} />
-                      <AvatarFallback>
+                      <AvatarFallback className="text-xs">
                         {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col flex-1 min-w-0">
-                      <span className="font-medium truncate">{user.full_name || 'Unknown'}</span>
+                      <span className="font-medium truncate text-sm">{user.full_name || 'Unknown'}</span>
                       <span className="text-xs text-muted-foreground truncate">{user.email}</span>
                       {user.current_title && (
                         <span className="text-xs text-muted-foreground truncate">{user.current_title}</span>
                       )}
                     </div>
                     {user.role && (
-                      <Badge variant={getRoleBadgeVariant(user.role)} className="ml-auto flex-shrink-0">
+                      <Badge variant={getRoleBadgeVariant(user.role)} className="ml-auto flex-shrink-0 text-xs">
                         {user.role}
                       </Badge>
                     )}
