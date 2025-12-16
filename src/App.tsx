@@ -116,6 +116,7 @@ import ResetPasswordNew from "./pages/ResetPasswordNew";
 const LiveHub = lazy(() => import("./pages/LiveHub"));
 const CommunicationIntelligence = lazy(() => import("./pages/CommunicationIntelligence"));
 const MyCommunications = lazy(() => import("./pages/MyCommunications"));
+const PartnerRelationships = lazy(() => import("./pages/PartnerRelationships"));
 
 // PageLoader with aggressive timeout and emergency fallback
 const PageLoader = () => {
@@ -476,6 +477,9 @@ const App = () => {
                       <Route path="/support/tickets" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SupportTicketList /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/support/tickets/new" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SupportTicketNew /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/help" element={<RouteErrorBoundary><Suspense fallback={<PageLoader />}><KnowledgeBase /></Suspense></RouteErrorBoundary>} />
+                      
+                      {/* Communication Intelligence */}
+                      <Route path="/partner/relationships" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><PartnerRelationships /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       
                       {/* Remaining Misc Routes */}
                       <Route path="/live-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><LiveHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
