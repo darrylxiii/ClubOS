@@ -129,8 +129,8 @@ export function DatabaseViewSwitcher({
             </div>
             <div className="space-y-2">
               <Label>View type</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['table', 'board', 'gallery'] as ViewType[]).map((type) => (
+              <div className="grid grid-cols-4 gap-2">
+                {(['table', 'board', 'gallery', 'calendar'] as ViewType[]).map((type) => (
                   <Button
                     key={type}
                     variant={newViewType === type ? 'secondary' : 'outline'}

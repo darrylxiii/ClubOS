@@ -3,6 +3,7 @@ import { useWorkspaceDatabase, ViewType } from '@/hooks/useWorkspaceDatabase';
 import { DatabaseTableView } from './views/DatabaseTableView';
 import { DatabaseBoardView } from './views/DatabaseBoardView';
 import { DatabaseGalleryView } from './views/DatabaseGalleryView';
+import { DatabaseCalendarView } from './views/DatabaseCalendarView';
 import { DatabaseViewSwitcher } from './DatabaseViewSwitcher';
 import { DatabaseFilterBar, FilterCondition, applyFilters } from './DatabaseFilterBar';
 import { DatabaseSortMenu, SortCondition, applySorts } from './DatabaseSortMenu';
@@ -115,6 +116,8 @@ export function DatabaseBlock({ databaseId, pageId, onDatabaseCreated, className
         return <DatabaseBoardView {...viewProps} groupByColumnId={activeView.config?.groupBy as string} />;
       case 'gallery':
         return <DatabaseGalleryView {...viewProps} />;
+      case 'calendar':
+        return <DatabaseCalendarView {...viewProps} />;
       default:
         return <DatabaseTableView {...viewProps} />;
     }
