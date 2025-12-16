@@ -117,6 +117,7 @@ const LiveHub = lazy(() => import("./pages/LiveHub"));
 const CommunicationIntelligence = lazy(() => import("./pages/CommunicationIntelligence"));
 const MyCommunications = lazy(() => import("./pages/MyCommunications"));
 const PartnerRelationships = lazy(() => import("./pages/PartnerRelationships"));
+const CommunicationAnalyticsPage = lazy(() => import("./pages/CommunicationAnalyticsPage"));
 
 // PageLoader with aggressive timeout and emergency fallback
 const PageLoader = () => {
@@ -486,6 +487,7 @@ const App = () => {
                       <Route path="/club-ai" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ClubAI /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/communication-intelligence" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CommunicationIntelligence /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/my-communications" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><MyCommunications /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/communication-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CommunicationAnalyticsPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/social-management" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SocialManagement /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/partner-onboarding" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><PartnerOnboarding /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/whatsapp-import" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><WhatsAppImport /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
