@@ -22099,6 +22099,105 @@ export type Database = {
           },
         ]
       }
+      page_comments: {
+        Row: {
+          block_id: string | null
+          content: string
+          created_at: string
+          id: string
+          page_id: string
+          parent_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          block_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          page_id: string
+          parent_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          block_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          page_id?: string
+          parent_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_comments_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "page_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_mentions: {
+        Row: {
+          comment_id: string | null
+          created_at: string
+          id: string
+          mentioned_by: string
+          mentioned_user_id: string
+          page_id: string
+          read_at: string | null
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          mentioned_by: string
+          mentioned_user_id: string
+          page_id: string
+          read_at?: string | null
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          mentioned_by?: string
+          mentioned_user_id?: string
+          page_id?: string
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_mentions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "page_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_mentions_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_permissions: {
         Row: {
           accepted_at: string | null
@@ -22133,6 +22232,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "page_permissions_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_presence: {
+        Row: {
+          cursor_position: Json | null
+          id: string
+          is_editing: boolean | null
+          last_seen_at: string
+          page_id: string
+          user_id: string
+        }
+        Insert: {
+          cursor_position?: Json | null
+          id?: string
+          is_editing?: boolean | null
+          last_seen_at?: string
+          page_id: string
+          user_id: string
+        }
+        Update: {
+          cursor_position?: Json | null
+          id?: string
+          is_editing?: boolean | null
+          last_seen_at?: string
+          page_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_presence_page_id_fkey"
             columns: ["page_id"]
             isOneToOne: false
             referencedRelation: "workspace_pages"

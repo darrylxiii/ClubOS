@@ -19,11 +19,14 @@ import {
   ImageIcon,
   Link,
   History,
+  MessageSquare,
 } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
 import { CoverPicker } from './CoverPicker';
 import { EnhancedShareDialog } from './EnhancedShareDialog';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
+import { CommentsPanel } from './CommentsPanel';
+import { PresenceIndicator } from './PresenceIndicator';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -48,6 +51,7 @@ export function PageHeader({
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -170,6 +174,18 @@ export function PageHeader({
 
           {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Presence Indicator */}
+            <PresenceIndicator pageId={page.id} />
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowComments(true)}
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Comments
+            </Button>
+
             <Button
               variant="ghost"
               size="sm"
@@ -212,6 +228,10 @@ export function PageHeader({
                 <DropdownMenuItem onClick={() => setShowShareDialog(true)}>
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowComments(true)}>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Comments
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setShowVersionHistory(true)}>
                   <History className="h-4 w-4 mr-2" />
@@ -267,6 +287,13 @@ export function PageHeader({
         pageId={page.id}
         open={showVersionHistory}
         onOpenChange={setShowVersionHistory}
+      />
+
+      {/* Comments Panel */}
+      <CommentsPanel
+        pageId={page.id}
+        open={showComments}
+        onOpenChange={setShowComments}
       />
     </div>
   );
