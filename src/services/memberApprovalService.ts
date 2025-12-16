@@ -5,7 +5,8 @@ import {
   ApprovalWorkflowData,
   ApprovalWorkflowResult,
   StaffAssignment,
-  PipelineAssignment
+  PipelineAssignment,
+  ExistingApplication
 } from "@/types/approval";
 import { mergeService } from "@/services/mergeService";
 
@@ -27,6 +28,32 @@ export const memberApprovalService = {
 
       if (error) throw error;
 
+      // Get existing applications for each candidate
+      const candidateIds = (data || []).map(item => item.candidate_id);
+      let applicationsMap: Record<string, ExistingApplication[]> = {};
+
+      if (candidateIds.length > 0) {
+        const { data: applications } = await supabase
+          .from('applications')
+          .select('candidate_id, job_id, position, company_name, status')
+          .in('candidate_id', candidateIds);
+
+        if (applications) {
+          applicationsMap = applications.reduce((acc, app) => {
+            if (!acc[app.candidate_id]) {
+              acc[app.candidate_id] = [];
+            }
+            acc[app.candidate_id].push({
+              job_id: app.job_id,
+              job_title: app.position,
+              company_name: app.company_name,
+              status: app.status,
+            });
+            return acc;
+          }, {} as Record<string, ExistingApplication[]>);
+        }
+      }
+
       return (data || []).map(item => ({
         candidate_id: item.candidate_id,
         candidate_name: item.candidate_name,
@@ -36,6 +63,7 @@ export const memberApprovalService = {
         profile_name: item.profile_name,
         confidence_score: item.confidence_score,
         match_type: item.match_type as 'email_match' | 'partial_link' | 'manual',
+        existing_applications: applicationsMap[item.candidate_id] || [],
       }));
     } catch (error) {
       console.error('Error fetching merge suggestions:', error);
@@ -250,6 +278,18 @@ export const memberApprovalService = {
     stageIndex: number = 0
   ): Promise<string | null> {
     try {
+      // Check for existing application (duplicate prevention)
+      const { data: existingApp } = await supabase
+        .from('applications')
+        .select('id, status, position')
+        .eq('candidate_id', candidateId)
+        .eq('job_id', jobId)
+        .maybeSingle();
+
+      if (existingApp) {
+        throw new Error(`Candidate is already in the "${existingApp.position}" pipeline (Status: ${existingApp.status})`);
+      }
+
       // Get job details
       const { data: job, error: jobError } = await supabase
         .from('jobs')
@@ -300,7 +340,7 @@ export const memberApprovalService = {
           candidate_linkedin_url: candidate.linkedin_url,
           candidate_title: candidate.current_title,
           candidate_resume_url: candidate.resume_url,
-          application_source: 'admin_added',
+          application_source: 'other',
           sourced_by: adminId,
           status: 'submitted',
           current_stage_index: stageIndex,

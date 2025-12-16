@@ -6,7 +6,8 @@ import {
   CandidateProfileData, 
   AssignmentType,
   StaffAssignment,
-  PipelineAssignment
+  PipelineAssignment,
+  ExistingApplication
 } from "@/types/approval";
 import { ApprovalStepIndicator } from "./ApprovalStepIndicator";
 import { MergeDetectionStep } from "./MergeDetectionStep";
@@ -36,6 +37,9 @@ export const MemberApprovalWorkflowDialog = ({
   const [mergeActions, setMergeActions] = useState<Array<{ candidateId: string; userId: string }>>([]);
   const [profileData, setProfileData] = useState<CandidateProfileData | null>(null);
   
+  // Track existing applications from merged candidates
+  const [existingApplications, setExistingApplications] = useState<ExistingApplication[]>([]);
+  
   // Dual-path assignment state
   const [assignmentType, setAssignmentType] = useState<AssignmentType>('skip');
   const [staffAssignment, setStaffAssignment] = useState<StaffAssignment | null>(null);
@@ -48,8 +52,12 @@ export const MemberApprovalWorkflowDialog = ({
   // Prevent duplicate submissions
   const submissionInProgress = useRef(false);
 
-  const handleMergeSelection = (merges: Array<{ candidateId: string; userId: string }>) => {
+  const handleMergeSelection = (
+    merges: Array<{ candidateId: string; userId: string }>,
+    applications: ExistingApplication[]
+  ) => {
     setMergeActions(merges);
+    setExistingApplications(applications);
     setCompletedSteps([...completedSteps, 'detect']);
     if (merges.length > 0) {
       // Skip to assignment after merge
@@ -61,6 +69,7 @@ export const MemberApprovalWorkflowDialog = ({
 
   const handleSkipMerge = () => {
     setMergeActions([]);
+    setExistingApplications([]);
     setCompletedSteps([...completedSteps, 'detect']);
     setCurrentStep('create');
   };
@@ -180,6 +189,7 @@ export const MemberApprovalWorkflowDialog = ({
         {currentStep === 'assign' && (
           <AssignmentTypeStep
             requestType={request.request_type}
+            existingApplications={existingApplications}
             onAssign={handleAssignment}
             onBack={() => setCurrentStep(mergeActions.length > 0 ? 'detect' : 'create')}
           />

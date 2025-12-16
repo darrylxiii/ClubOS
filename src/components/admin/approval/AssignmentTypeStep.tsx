@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { AppRole, StaffAssignment, PipelineAssignment, AssignmentType } from "@/types/approval";
+import { AppRole, StaffAssignment, PipelineAssignment, AssignmentType, ExistingApplication } from "@/types/approval";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Briefcase, Users, UserPlus, Loader2, Building2, GitBranch } from "lucide-react";
+import { Briefcase, Users, UserPlus, Loader2, Building2, GitBranch, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Company {
   id: string;
@@ -21,6 +22,7 @@ interface Job {
 
 interface AssignmentTypeStepProps {
   requestType: 'candidate' | 'partner';
+  existingApplications?: ExistingApplication[];
   onAssign: (
     assignmentType: AssignmentType,
     staffAssignment: StaffAssignment | null,
@@ -46,7 +48,12 @@ const DEFAULT_STAGES = [
   { name: 'Offer', order: 4 },
 ];
 
-export const AssignmentTypeStep = ({ requestType, onAssign, onBack }: AssignmentTypeStepProps) => {
+export const AssignmentTypeStep = ({ 
+  requestType, 
+  existingApplications = [],
+  onAssign, 
+  onBack 
+}: AssignmentTypeStepProps) => {
   const [assignmentType, setAssignmentType] = useState<AssignmentType>(
     requestType === 'partner' ? 'staff' : 'candidate'
   );
@@ -64,6 +71,15 @@ export const AssignmentTypeStep = ({ requestType, onAssign, onBack }: Assignment
   
   const [loading, setLoading] = useState(true);
 
+  // Check if selected job already has the candidate
+  const isJobAlreadyAssigned = (jobId: string): boolean => {
+    return existingApplications.some(app => app.job_id === jobId);
+  };
+
+  const getExistingAppForJob = (jobId: string): ExistingApplication | undefined => {
+    return existingApplications.find(app => app.job_id === jobId);
+  };
+
   useEffect(() => {
     loadCompanies();
   }, []);
@@ -76,6 +92,13 @@ export const AssignmentTypeStep = ({ requestType, onAssign, onBack }: Assignment
       setSelectedJobId('');
     }
   }, [pipelineCompanyId]);
+
+  // Reset job selection if selected job is already assigned
+  useEffect(() => {
+    if (selectedJobId && isJobAlreadyAssigned(selectedJobId)) {
+      setSelectedJobId('');
+    }
+  }, [selectedJobId, existingApplications]);
 
   const loadCompanies = async () => {
     try {
@@ -146,7 +169,10 @@ export const AssignmentTypeStep = ({ requestType, onAssign, onBack }: Assignment
   };
 
   const isCandidateValid = () => {
-    return !!selectedJobId && !!pipelineCompanyId;
+    if (!selectedJobId || !pipelineCompanyId) return false;
+    // Also invalid if job is already assigned
+    if (isJobAlreadyAssigned(selectedJobId)) return false;
+    return true;
   };
 
   const canContinue = () => {
@@ -170,6 +196,22 @@ export const AssignmentTypeStep = ({ requestType, onAssign, onBack }: Assignment
         <Users className="w-5 h-5 text-primary" />
         <h3 className="text-lg font-semibold">Assign Role or Pipeline</h3>
       </div>
+
+      {/* Show existing applications warning */}
+      {existingApplications.length > 0 && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            This candidate is already in {existingApplications.length} pipeline(s): {' '}
+            {existingApplications.map((app, idx) => (
+              <span key={idx}>
+                <strong>{app.job_title}</strong> ({app.status})
+                {idx < existingApplications.length - 1 && ', '}
+              </span>
+            ))}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <RadioGroup
         value={assignmentType}
@@ -284,21 +326,34 @@ export const AssignmentTypeStep = ({ requestType, onAssign, onBack }: Assignment
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   >
                     <option value="">Select a job...</option>
-                    {jobs.map((job) => (
-                      <option key={job.id} value={job.id}>
-                        {job.title} {job.location && `(${job.location})`}
-                      </option>
-                    ))}
+                    {jobs.map((job) => {
+                      const existingApp = getExistingAppForJob(job.id);
+                      const isDisabled = !!existingApp;
+                      return (
+                        <option key={job.id} value={job.id} disabled={isDisabled}>
+                          {job.title} {job.location && `(${job.location})`}
+                          {isDisabled && ` - Already assigned (${existingApp?.status})`}
+                        </option>
+                      );
+                    })}
                   </select>
                   {jobs.length === 0 && (
                     <p className="text-sm text-muted-foreground">
                       No active jobs found for this company
                     </p>
                   )}
+                  {selectedJobId && isJobAlreadyAssigned(selectedJobId) && (
+                    <Alert variant="destructive" className="mt-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>
+                        Candidate is already in this pipeline. Please select a different job.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
               )}
 
-              {selectedJobId && (
+              {selectedJobId && !isJobAlreadyAssigned(selectedJobId) && (
                 <div className="space-y-2">
                   <Label htmlFor="stage">
                     <GitBranch className="w-4 h-4 inline mr-1" />
