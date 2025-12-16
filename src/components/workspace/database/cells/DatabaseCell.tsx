@@ -7,15 +7,20 @@ import { CheckboxCell } from './CheckboxCell';
 import { SelectCell } from './SelectCell';
 import { MultiSelectCell } from './MultiSelectCell';
 import { UrlCell } from './UrlCell';
+import { PersonCell } from './PersonCell';
+import { RelationCell } from './RelationCell';
+import { FormulaCell } from './FormulaCell';
 
 interface DatabaseCellProps {
   column: DatabaseColumn;
   value: unknown;
   onChange: (value: unknown) => void;
   onAddOption?: (option: { value: string; color: string }) => void;
+  rowData?: Record<string, unknown>;
+  columnTypes?: Record<string, string>;
 }
 
-export function DatabaseCell({ column, value, onChange, onAddOption }: DatabaseCellProps) {
+export function DatabaseCell({ column, value, onChange, onAddOption, rowData = {}, columnTypes = {} }: DatabaseCellProps) {
   switch (column.column_type) {
     case 'text':
     case 'email':
@@ -50,13 +55,33 @@ export function DatabaseCell({ column, value, onChange, onAddOption }: DatabaseC
       return <UrlCell value={value as string} onChange={onChange} />;
     
     case 'person':
-      return <TextCell value={value as string} onChange={onChange} placeholder="Person..." />;
+      return (
+        <PersonCell 
+          value={value as any} 
+          onChange={onChange} 
+          multiple={false}
+        />
+      );
     
     case 'relation':
-      return <TextCell value={value as string} onChange={onChange} placeholder="Link..." />;
+      return (
+        <RelationCell 
+          value={value as any} 
+          onChange={onChange}
+          relationDatabaseId={(column.options as any)?.relationDatabaseId}
+          multiple={true}
+        />
+      );
     
     case 'formula':
-      return <TextCell value={value as string} onChange={onChange} readOnly />;
+      return (
+        <FormulaCell 
+          formula={(column.options as any)?.formula || ''} 
+          rowData={rowData}
+          columnTypes={columnTypes}
+          readOnly={true}
+        />
+      );
     
     default:
       return <TextCell value={value as string} onChange={onChange} />;

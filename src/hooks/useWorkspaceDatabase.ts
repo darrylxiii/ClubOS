@@ -8,7 +8,7 @@ export type ColumnType =
   | 'person' | 'url' | 'email' | 'phone' | 'relation' | 'formula' 
   | 'created_time' | 'updated_time';
 
-export type ViewType = 'table' | 'board' | 'gallery' | 'list' | 'calendar';
+export type ViewType = 'table' | 'board' | 'gallery' | 'list' | 'calendar' | 'timeline';
 
 export interface DatabaseColumn {
   id: string;
@@ -267,21 +267,32 @@ export function useWorkspaceDatabase(databaseId?: string | null) {
   const addView = async (name: string, viewType: ViewType) => {
     if (!databaseId) return null;
     try {
+      // Timeline is not yet supported in database schema, map to 'list' for storage
+      const dbViewType = viewType === 'timeline' ? 'list' : viewType;
+      
       const maxPosition = Math.max(...views.map(v => v.position), -1);
       const { data, error } = await supabase
         .from('workspace_database_views')
         .insert({
           database_id: databaseId,
           name,
-          view_type: viewType,
+          view_type: dbViewType as any,
           position: maxPosition + 1,
+          config: viewType === 'timeline' ? { actualViewType: 'timeline' } : {},
         })
         .select()
         .single();
 
       if (error) throw error;
-      setViews(prev => [...prev, data as DatabaseView]);
-      return data;
+      
+      // Restore timeline type from config if needed
+      const viewData = data as DatabaseView;
+      if ((data.config as any)?.actualViewType === 'timeline') {
+        viewData.view_type = 'timeline';
+      }
+      
+      setViews(prev => [...prev, viewData]);
+      return viewData;
     } catch (err) {
       console.error('Error adding view:', err);
       toast.error('Failed to add view');

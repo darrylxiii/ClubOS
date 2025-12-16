@@ -17,7 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DatabaseView, ViewType } from '@/hooks/useWorkspaceDatabase';
-import { Table2, LayoutGrid, GalleryHorizontal, List, Calendar, Plus, ChevronDown } from 'lucide-react';
+import { Table2, LayoutGrid, GalleryHorizontal, List, Calendar, Plus, ChevronDown, GanttChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DatabaseViewSwitcherProps {
@@ -33,6 +33,7 @@ const viewIcons: Record<ViewType, React.ReactNode> = {
   gallery: <GalleryHorizontal className="h-4 w-4" />,
   list: <List className="h-4 w-4" />,
   calendar: <Calendar className="h-4 w-4" />,
+  timeline: <GanttChart className="h-4 w-4" />,
 };
 
 const viewLabels: Record<ViewType, string> = {
@@ -41,6 +42,7 @@ const viewLabels: Record<ViewType, string> = {
   gallery: 'Gallery',
   list: 'List',
   calendar: 'Calendar',
+  timeline: 'Timeline',
 };
 
 export function DatabaseViewSwitcher({
@@ -129,8 +131,8 @@ export function DatabaseViewSwitcher({
             </div>
             <div className="space-y-2">
               <Label>View type</Label>
-              <div className="grid grid-cols-4 gap-2">
-                {(['table', 'board', 'gallery', 'calendar'] as ViewType[]).map((type) => (
+              <div className="grid grid-cols-5 gap-2">
+                {(['table', 'board', 'gallery', 'calendar', 'timeline'] as ViewType[]).map((type) => (
                   <Button
                     key={type}
                     variant={newViewType === type ? 'secondary' : 'outline'}
