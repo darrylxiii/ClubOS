@@ -36060,6 +36060,185 @@ export type Database = {
           },
         ]
       }
+      workspace_database_columns: {
+        Row: {
+          column_type: Database["public"]["Enums"]["workspace_db_column_type"]
+          created_at: string | null
+          database_id: string
+          id: string
+          is_primary: boolean | null
+          is_visible: boolean | null
+          name: string
+          options: Json | null
+          position: number
+          updated_at: string | null
+          width: number | null
+        }
+        Insert: {
+          column_type?: Database["public"]["Enums"]["workspace_db_column_type"]
+          created_at?: string | null
+          database_id: string
+          id?: string
+          is_primary?: boolean | null
+          is_visible?: boolean | null
+          name: string
+          options?: Json | null
+          position?: number
+          updated_at?: string | null
+          width?: number | null
+        }
+        Update: {
+          column_type?: Database["public"]["Enums"]["workspace_db_column_type"]
+          created_at?: string | null
+          database_id?: string
+          id?: string
+          is_primary?: boolean | null
+          is_visible?: boolean | null
+          name?: string
+          options?: Json | null
+          position?: number
+          updated_at?: string | null
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_database_columns_database_id_fkey"
+            columns: ["database_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_databases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_database_rows: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          database_id: string
+          id: string
+          position: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          database_id: string
+          id?: string
+          position?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          database_id?: string
+          id?: string
+          position?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_database_rows_database_id_fkey"
+            columns: ["database_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_databases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_database_views: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          database_id: string
+          id: string
+          is_default: boolean | null
+          name: string
+          position: number
+          updated_at: string | null
+          view_type: Database["public"]["Enums"]["workspace_db_view_type"]
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          database_id: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          position?: number
+          updated_at?: string | null
+          view_type?: Database["public"]["Enums"]["workspace_db_view_type"]
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          database_id?: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          position?: number
+          updated_at?: string | null
+          view_type?: Database["public"]["Enums"]["workspace_db_view_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_database_views_database_id_fkey"
+            columns: ["database_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_databases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_databases: {
+        Row: {
+          cover_url: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_inline: boolean | null
+          name: string
+          page_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_inline?: boolean | null
+          name?: string
+          page_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_inline?: boolean | null
+          name?: string
+          page_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_databases_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_pages: {
         Row: {
           content: Json | null
@@ -37666,6 +37845,27 @@ export type Database = {
         | "accepted"
         | "rejected"
         | "withdrawn"
+      workspace_db_column_type:
+        | "text"
+        | "number"
+        | "date"
+        | "checkbox"
+        | "select"
+        | "multi_select"
+        | "person"
+        | "url"
+        | "email"
+        | "phone"
+        | "relation"
+        | "formula"
+        | "created_time"
+        | "updated_time"
+      workspace_db_view_type:
+        | "table"
+        | "board"
+        | "gallery"
+        | "list"
+        | "calendar"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -37912,6 +38112,23 @@ export const Constants = {
         "rejected",
         "withdrawn",
       ],
+      workspace_db_column_type: [
+        "text",
+        "number",
+        "date",
+        "checkbox",
+        "select",
+        "multi_select",
+        "person",
+        "url",
+        "email",
+        "phone",
+        "relation",
+        "formula",
+        "created_time",
+        "updated_time",
+      ],
+      workspace_db_view_type: ["table", "board", "gallery", "list", "calendar"],
     },
   },
 } as const
