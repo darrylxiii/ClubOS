@@ -37275,7 +37275,7 @@ export type Database = {
         Args: { _module_id: string; _user_id: string }
         Returns: boolean
       }
-      is_page_owner: { Args: { _page_id: string }; Returns: boolean }
+      is_page_owner: { Args: { p_page_id: string }; Returns: boolean }
       is_pure_candidate: { Args: { check_user_id: string }; Returns: boolean }
       is_server_admin: { Args: { check_server_id: string }; Returns: boolean }
       is_super_admin: { Args: { check_user_id?: string }; Returns: boolean }
