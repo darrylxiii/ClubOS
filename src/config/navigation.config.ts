@@ -49,6 +49,9 @@ import {
   Database,
   AlertTriangle,
   Contact,
+  NotebookPen,
+  Star,
+  Layout,
   type LucideIcon,
 } from "lucide-react";
 
@@ -106,6 +109,16 @@ const baseNavigationGroups: NavigationGroup[] = [
       { name: "Club Pilot", icon: Sparkles, path: "/club-pilot" },
       { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
       { name: "Club Radio", icon: Video, path: "/club-dj" },
+    ],
+  },
+  {
+    title: "Quantum OS",
+    icon: NotebookPen,
+    badge: "New",
+    items: [
+      { name: "All Pages", icon: FileText, path: "/pages" },
+      { name: "Favorites", icon: Star, path: "/pages?tab=favorites" },
+      { name: "Templates", icon: Layout, path: "/pages?tab=templates" },
     ],
   },
   {
@@ -433,11 +446,12 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   }
   groups.push(communicationGroup);
   
-  // 4. Add remaining base sections (Learning, AI & Tools, Settings, Support)
+  // 4. Add remaining base sections (Learning, AI & Tools, Quantum OS, Settings, Support)
   groups.push(baseNavigationGroups[2]); // Learning
   groups.push(baseNavigationGroups[3]); // AI & Tools
-  groups.push(baseNavigationGroups[4]); // Settings
-  groups.push(baseNavigationGroups[5]); // Support
+  groups.push(baseNavigationGroups[4]); // Quantum OS
+  groups.push(baseNavigationGroups[5]); // Settings
+  groups.push(baseNavigationGroups[6]); // Support
   
   return groups;
 }
