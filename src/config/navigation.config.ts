@@ -332,11 +332,12 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "Games & Assessments",
       icon: Gamepad2,
       items: [
-        { name: "Values Poker", icon: Trophy, path: "/values-poker" },
-        { name: "Swipe Game", icon: Play, path: "/swipe-game" },
-        { name: "Pressure Cooker", icon: Flame, path: "/pressure-cooker" },
-        { name: "Blind Spot Detector", icon: Eye, path: "/blind-spot-detector" },
-        { name: "Miljoenenjacht", icon: DollarSign, path: "/miljoenenjacht" },
+        { name: "Assessments Hub", icon: ClipboardCheck, path: "/admin/assessments" },
+        { name: "Values Poker", icon: Trophy, path: "/admin/games/values-poker" },
+        { name: "Swipe Game", icon: Play, path: "/admin/games/swipe-game" },
+        { name: "Pressure Cooker", icon: Flame, path: "/admin/games/pressure-cooker" },
+        { name: "Blind Spot Detector", icon: Eye, path: "/admin/games/blind-spot" },
+        { name: "Miljoenenjacht", icon: DollarSign, path: "/admin/games/miljoenenjacht" },
       ],
     },
     {

@@ -54,6 +54,13 @@ const WhatsAppAnalytics = lazy(() => import("@/pages/admin/WhatsAppAnalytics"));
 const WhatsAppSettings = lazy(() => import("@/pages/admin/WhatsAppSettings"));
 const CompanyRelationships = lazy(() => import("@/pages/admin/CompanyRelationships"));
 
+// Game Admin Pages
+const ValuesPokerAdmin = lazy(() => import("@/pages/admin/games/ValuesPokerAdmin"));
+const SwipeGameAdmin = lazy(() => import("@/pages/admin/games/SwipeGameAdmin"));
+const PressureCookerAdmin = lazy(() => import("@/pages/admin/games/PressureCookerAdmin"));
+const BlindSpotAdmin = lazy(() => import("@/pages/admin/games/BlindSpotAdmin"));
+const MiljoenenjachtAdmin = lazy(() => import("@/pages/admin/games/MiljoenenjachtAdmin"));
+
 export const adminRoutes = (
   <>
     <Route
@@ -543,6 +550,66 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <CompanyRelationships />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/games/values-poker"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <ValuesPokerAdmin />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/games/swipe-game"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <SwipeGameAdmin />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/games/pressure-cooker"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PressureCookerAdmin />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/games/blind-spot"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <BlindSpotAdmin />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/games/miljoenenjacht"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <MiljoenenjachtAdmin />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
