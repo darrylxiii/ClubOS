@@ -100,8 +100,9 @@ async function pullFromInstantly(supabase: any): Promise<{ imported: number; tot
     if (existingInstantlyIds.has(entry.id)) return false;
     
     const value = entry.bl_value.toLowerCase();
-    if (entry.bl_type === 'email' && existingEmails.has(value)) return false;
-    if (entry.bl_type === 'domain' && existingDomains.has(value)) return false;
+    // is_domain: true = domain, false = email (API V2 format)
+    if (!entry.is_domain && existingEmails.has(value)) return false;
+    if (entry.is_domain && existingDomains.has(value)) return false;
     
     return true;
   });
@@ -112,10 +113,10 @@ async function pullFromInstantly(supabase: any): Promise<{ imported: number; tot
     return { imported: 0, total: allEntries.length };
   }
   
-  // Insert new entries
+  // Insert new entries (is_domain: true = domain, false = email)
   const insertData = newEntries.map(entry => ({
-    email: entry.bl_type === 'email' ? entry.bl_value.toLowerCase() : null,
-    domain: entry.bl_type === 'domain' ? entry.bl_value.toLowerCase() : null,
+    email: !entry.is_domain ? entry.bl_value.toLowerCase() : null,
+    domain: entry.is_domain ? entry.bl_value.toLowerCase() : null,
     source: 'instantly_blocklist',
     reason: 'Imported from Instantly block list',
     instantly_entry_id: entry.id,
@@ -156,10 +157,10 @@ async function pushToInstantly(supabase: any): Promise<{ pushed: number }> {
   
   console.log(`[sync-instantly-blocklist] Entries to push: ${unsyncedEntries.length}`);
   
-  // Prepare entries for Instantly
+  // Prepare entries for Instantly (is_domain: true = domain, false = email)
   const entriesToPush = unsyncedEntries.map((entry: any) => ({
     bl_value: entry.email || entry.domain,
-    bl_type: entry.email ? 'email' : 'domain',
+    is_domain: !entry.email, // if no email, it's a domain
   }));
   
   // Push to Instantly in batches of 100
