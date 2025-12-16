@@ -26,6 +26,7 @@ import {
   Users,
   Home,
   Target,
+  Brain,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -65,6 +66,7 @@ const allCommands: CommandItem[] = [
   
   // AI & Tools
   { id: "club-ai", label: "Club AI Assistant", icon: Sparkles, path: "/club-ai", category: "AI & Tools", roles: ["user", "partner", "admin", "strategist"] },
+  { id: "communication-intelligence", label: "Communication Intelligence", icon: Brain, path: "/communication-intelligence", category: "AI & Tools", roles: ["admin", "strategist"] },
   { id: "unified-tasks", label: "Tasks", icon: ListTodo, path: "/unified-tasks", category: "AI & Tools", roles: ["user", "partner", "admin", "strategist"] },
   { id: "club-pilot", label: "Club Pilot (AI Tasks)", icon: Sparkles, path: "/club-pilot", category: "AI & Tools", roles: ["user", "partner", "admin", "strategist"] },
   
