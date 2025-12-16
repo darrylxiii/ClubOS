@@ -12,7 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 export default function JoinWorkspacePage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { data: invitation, isLoading: invLoading } = useInvitationByToken(token);
   const acceptInvitation = useAcceptInvitation();
 
