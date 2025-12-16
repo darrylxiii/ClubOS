@@ -22137,7 +22137,9 @@ export type Database = {
       page_templates: {
         Row: {
           category: string | null
+          company_id: string | null
           content: Json | null
+          cover_url: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
@@ -22145,10 +22147,16 @@ export type Database = {
           id: string
           is_system: boolean | null
           name: string
+          source_type: string | null
+          updated_at: string | null
+          usage_count: number | null
+          visibility: string | null
         }
         Insert: {
           category?: string | null
+          company_id?: string | null
           content?: Json | null
+          cover_url?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -22156,10 +22164,16 @@ export type Database = {
           id?: string
           is_system?: boolean | null
           name: string
+          source_type?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          visibility?: string | null
         }
         Update: {
           category?: string | null
+          company_id?: string | null
           content?: Json | null
+          cover_url?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -22167,8 +22181,27 @@ export type Database = {
           id?: string
           is_system?: boolean | null
           name?: string
+          source_type?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          visibility?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "page_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       page_versions: {
         Row: {
@@ -31983,6 +32016,55 @@ export type Database = {
         }
         Relationships: []
       }
+      template_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          company_id: string | null
+          id: string
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          company_id?: string | null
+          id?: string
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          company_id?: string | null
+          id?: string
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_assignments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_assignments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_assignments_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "page_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       threat_events: {
         Row: {
           attack_details: Json | null
@@ -36927,6 +37009,10 @@ export type Database = {
           }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
       has_strategist_role: { Args: { check_user_id: string }; Returns: boolean }
+      increment_template_usage: {
+        Args: { template_id: string }
+        Returns: undefined
+      }
       is_company_blocked_by_candidate: {
         Args: { _candidate_id: string; _company_email: string }
         Returns: boolean
