@@ -49,6 +49,7 @@ const TranslationEditor = lazy(() => import("@/pages/admin/TranslationEditor"));
 const TranslationCoverage = lazy(() => import("@/pages/admin/TranslationCoverage"));
 const BrandTermManager = lazy(() => import("@/pages/admin/BrandTermManager"));
 const TranslationAuditLog = lazy(() => import("@/pages/admin/TranslationAuditLog"));
+const TemplateManagement = lazy(() => import("@/pages/admin/TemplateManagement"));
 
 export const adminRoutes = (
   <>
@@ -491,6 +492,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <TranslationAuditLog />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/templates"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <TemplateManagement />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>

@@ -319,6 +319,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Translation Manager", icon: Languages, path: "/admin/translations" },
         { name: "Language Manager", icon: Globe, path: "/admin/languages" },
         { name: "Target Companies", icon: Target, path: "/admin/target-companies" },
+        { name: "Page Templates", icon: FileText, path: "/admin/templates" },
       ],
     },
     {
