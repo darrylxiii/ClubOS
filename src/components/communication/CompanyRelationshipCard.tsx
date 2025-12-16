@@ -111,21 +111,56 @@ export function CompanyRelationshipCard({ relationship, onSendMessage }: Company
             </div>
             <div className="p-2 rounded-lg bg-muted/50">
               <p className="text-lg font-bold">{relationship.total_communications || 0}</p>
-              <p className="text-xs text-muted-foreground">Messages</p>
+              <p className="text-xs text-muted-foreground">Emails</p>
             </div>
             <div className="p-2 rounded-lg bg-muted/50">
-              <div className="flex items-center justify-center">
-                {avgSentiment > 0 ? (
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                ) : avgSentiment < 0 ? (
-                  <TrendingDown className="h-5 w-5 text-red-500" />
-                ) : (
-                  <span className="text-lg font-bold">—</span>
-                )}
+              <div className="flex items-center justify-center gap-1">
+                {avgSentiment > 0.2 ? (
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                ) : avgSentiment < -0.2 ? (
+                  <TrendingDown className="h-4 w-4 text-red-500" />
+                ) : null}
+                <span className={cn(
+                  "text-lg font-bold",
+                  avgSentiment > 0.2 && "text-green-500",
+                  avgSentiment < -0.2 && "text-red-500"
+                )}>
+                  {avgSentiment !== 0 ? `${Math.round(avgSentiment * 100)}%` : '—'}
+                </span>
               </div>
               <p className="text-xs text-muted-foreground">Sentiment</p>
             </div>
           </div>
+
+          {/* Sentiment Breakdown */}
+          {relationship.sentiment_breakdown && (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground">Breakdown:</span>
+              <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
+                +{relationship.sentiment_breakdown.positive || 0}
+              </Badge>
+              <Badge variant="outline" className="bg-muted text-muted-foreground">
+                {relationship.sentiment_breakdown.neutral || 0}
+              </Badge>
+              <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20">
+                -{relationship.sentiment_breakdown.negative || 0}
+              </Badge>
+            </div>
+          )}
+
+          {/* Email Health Score */}
+          {relationship.email_health_score !== null && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Email Health</span>
+              <Badge variant={
+                relationship.email_health_score >= 80 ? 'default' :
+                relationship.email_health_score >= 60 ? 'secondary' :
+                'destructive'
+              }>
+                {relationship.email_health_score}/100
+              </Badge>
+            </div>
+          )}
 
           {/* Last Contact */}
           <div className="flex items-center justify-between text-sm">

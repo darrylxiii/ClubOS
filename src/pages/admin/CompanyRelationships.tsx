@@ -1,41 +1,46 @@
 import { useState } from 'react';
-import { RefreshCw, Download, Building2 } from 'lucide-react';
+import { RefreshCw, Download, Building2, Users, Mail, TrendingUp } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Button } from '@/components/ui/button';
 import { PageTitle } from '@/components/ui/typography';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { CompanyRelationshipGrid } from '@/components/communication/CompanyRelationshipGrid';
+import { CompanyContactManager } from '@/components/communication/CompanyContactManager';
+import { ContactSentimentList } from '@/components/communication/ContactSentimentList';
 import { QUINAdvisorWidget } from '@/components/communication/QUINAdvisorWidget';
 import { useCompanyRelationships } from '@/hooks/useCompanyRelationships';
 import { useToast } from '@/hooks/use-toast';
 
 export default function CompanyRelationships() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
   const { relationships, companies, stats, loading, refetch } = useCompanyRelationships(selectedCompanyId);
   const { toast } = useToast();
 
   const handleSendMessage = (companyId: string, channel: 'whatsapp' | 'email') => {
-    // Find company name
     const company = relationships.find(r => r.company_id === companyId);
     toast({
       title: `Opening ${channel}`,
       description: `Preparing to contact ${company?.company_name || 'company'}...`
     });
-    // TODO: Integrate with actual messaging system
   };
 
   const handleExport = () => {
     const csvContent = [
-      ['Company', 'Risk Level', 'Engagement', 'Response Rate', 'Messages', 'Last Contact', 'Active Jobs', 'Placements'].join(','),
+      ['Company', 'Risk Level', 'Engagement', 'Response Rate', 'Sentiment', 'Emails', 'Last Contact', 'Active Jobs', 'Placements', 'Health Score'].join(','),
       ...relationships.map(r => [
         `"${r.company_name}"`,
         r.risk_level,
         r.engagement_score?.toFixed(1) || '0',
         `${Math.round((r.response_rate || 0) * 100)}%`,
+        r.avg_sentiment ? `${Math.round(r.avg_sentiment * 100)}%` : 'N/A',
         r.total_communications || 0,
         r.last_outbound_at || 'Never',
         r.active_jobs,
-        r.total_placements
+        r.total_placements,
+        r.email_health_score ?? 'N/A'
       ].join(','))
     ].join('\n');
 
@@ -52,6 +57,10 @@ export default function CompanyRelationships() {
       description: `Exported ${relationships.length} company relationships`
     });
   };
+
+  const selectedCompany = selectedCompanyId 
+    ? companies.find(c => c.id === selectedCompanyId)
+    : null;
 
   return (
     <RoleGate allowedRoles={['admin', 'strategist']}>
@@ -82,19 +91,131 @@ export default function CompanyRelationships() {
             </div>
           </div>
 
-          {/* Main Content */}
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Mail className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">
+                      {relationships.reduce((sum, r) => sum + (r.total_communications || 0), 0)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Total Emails Tracked</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/10">
+                    <TrendingUp className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">
+                      {stats.avgSentiment !== 0 ? `${Math.round(stats.avgSentiment * 100)}%` : '—'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Avg Sentiment</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-yellow-500/10">
+                    <Users className="h-5 w-5 text-yellow-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.needsAttention + stats.atRisk}</p>
+                    <p className="text-xs text-muted-foreground">Need Attention</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-red-500/10">
+                    <Building2 className="h-5 w-5 text-red-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.critical}</p>
+                    <p className="text-xs text-muted-foreground">Critical</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Content with Tabs */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Grid - 3 columns on large screens */}
             <div className="lg:col-span-3">
-              <CompanyRelationshipGrid
-                relationships={relationships}
-                companies={companies}
-                stats={stats}
-                loading={loading}
-                selectedCompanyId={selectedCompanyId}
-                onCompanyChange={setSelectedCompanyId}
-                onSendMessage={handleSendMessage}
-              />
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="mb-4">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="contacts">Contacts</TabsTrigger>
+                  <TabsTrigger value="sentiment">Sentiment Analysis</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="overview">
+                  <CompanyRelationshipGrid
+                    relationships={relationships}
+                    companies={companies}
+                    stats={stats}
+                    loading={loading}
+                    selectedCompanyId={selectedCompanyId}
+                    onCompanyChange={setSelectedCompanyId}
+                    onSendMessage={handleSendMessage}
+                  />
+                </TabsContent>
+
+                <TabsContent value="contacts">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Company Contacts</CardTitle>
+                      <CardDescription>
+                        Manage contacts for each partner company. Add emails manually or auto-detect from communications.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {selectedCompanyId && selectedCompany ? (
+                        <CompanyContactManager
+                          companyId={selectedCompanyId}
+                          companyName={selectedCompany.name}
+                        />
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          Select a company from the Overview tab to manage contacts.
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="sentiment">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Per-Person Sentiment</CardTitle>
+                      <CardDescription>
+                        View sentiment analysis for individual contacts within each company.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {selectedCompanyId ? (
+                        <ContactSentimentList companyId={selectedCompanyId} />
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          Select a company from the Overview tab to view individual contact sentiment.
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Sidebar - QUIN Advisor */}
