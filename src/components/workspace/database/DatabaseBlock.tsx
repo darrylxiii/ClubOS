@@ -4,6 +4,7 @@ import { DatabaseTableView } from './views/DatabaseTableView';
 import { DatabaseBoardView } from './views/DatabaseBoardView';
 import { DatabaseGalleryView } from './views/DatabaseGalleryView';
 import { DatabaseCalendarView } from './views/DatabaseCalendarView';
+import { DatabaseTimelineView } from './views/DatabaseTimelineView';
 import { DatabaseViewSwitcher } from './DatabaseViewSwitcher';
 import { DatabaseFilterBar, FilterCondition, applyFilters } from './DatabaseFilterBar';
 import { DatabaseSortMenu, SortCondition, applySorts } from './DatabaseSortMenu';
@@ -109,6 +110,15 @@ export function DatabaseBlock({ databaseId, pageId, onDatabaseCreated, className
       onDeleteRow: deleteRow,
     };
 
+    // Timeline-specific props
+    const timelineProps = {
+      columns,
+      rows: processedRows,
+      onRowUpdate: (rowId: string, data: Record<string, unknown>) => updateRow(rowId, data),
+      onRowDelete: deleteRow,
+      onAddRow: addRow,
+    };
+
     switch (activeView.view_type) {
       case 'table':
         return <DatabaseTableView {...viewProps} />;
@@ -118,6 +128,8 @@ export function DatabaseBlock({ databaseId, pageId, onDatabaseCreated, className
         return <DatabaseGalleryView {...viewProps} />;
       case 'calendar':
         return <DatabaseCalendarView {...viewProps} />;
+      case 'timeline':
+        return <DatabaseTimelineView {...timelineProps} />;
       default:
         return <DatabaseTableView {...viewProps} />;
     }
