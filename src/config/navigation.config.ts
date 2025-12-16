@@ -310,6 +310,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "Intelligence & ML",
       icon: Brain,
       items: [
+        { name: "Communication Intelligence", icon: Brain, path: "/communication-intelligence", roles: ['admin', 'strategist'] },
         { name: "Hiring Intelligence", icon: Brain, path: "/hiring-intelligence" },
         { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
         { name: "Enhanced ML", icon: Sparkles, path: "/enhanced-ml" },
