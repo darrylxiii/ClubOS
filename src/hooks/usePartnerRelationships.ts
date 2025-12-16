@@ -52,7 +52,7 @@ export function usePartnerRelationships() {
 
       if (!profile?.company_id) return;
 
-      // Get all candidates in partner's pipelines
+      // Get all candidates in partner's pipelines with proper joins
       const { data: applications } = await supabase
         .from('applications')
         .select(`
@@ -61,8 +61,15 @@ export function usePartnerRelationships() {
           candidate_email,
           position,
           status,
-          job_id
+          job_id,
+          jobs!inner(company_id),
+          candidate_profiles(
+            full_name,
+            email,
+            avatar_url
+          )
         `)
+        .eq('jobs.company_id', profile.company_id)
         .not('candidate_id', 'is', null);
 
       if (!applications?.length) {
@@ -85,6 +92,7 @@ export function usePartnerRelationships() {
         .filter(a => a.candidate_id)
         .map(app => {
           const score = scores?.find(s => s.entity_id === app.candidate_id);
+          const candidateProfile = app.candidate_profiles as { full_name?: string; email?: string; avatar_url?: string } | null;
           return {
             id: score?.id || crypto.randomUUID(),
             entity_type: 'candidate' as const,
@@ -101,8 +109,9 @@ export function usePartnerRelationships() {
             recommended_action: score?.recommended_action || 'Send a follow-up message',
             created_at: score?.created_at || new Date().toISOString(),
             updated_at: score?.updated_at || new Date().toISOString(),
-            candidate_name: app.candidate_full_name || 'Unknown Candidate',
-            candidate_email: app.candidate_email || undefined,
+            candidate_name: candidateProfile?.full_name || app.candidate_full_name || 'Unknown Candidate',
+            candidate_email: candidateProfile?.email || app.candidate_email || undefined,
+            candidate_avatar: candidateProfile?.avatar_url,
             job_title: app.position,
             pipeline_stage: app.status
           };
