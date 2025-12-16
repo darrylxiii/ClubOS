@@ -5997,6 +5997,310 @@ export type Database = {
         }
         Relationships: []
       }
+      communication_intelligence_queue: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["communication_entity_type"]
+          id: string
+          last_error: string | null
+          priority: number | null
+          processed_at: string | null
+          processing_type: string
+          scheduled_for: string | null
+          source_communication_id: string | null
+          status: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["communication_entity_type"]
+          id?: string
+          last_error?: string | null
+          priority?: number | null
+          processed_at?: string | null
+          processing_type: string
+          scheduled_for?: string | null
+          source_communication_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["communication_entity_type"]
+          id?: string
+          last_error?: string | null
+          priority?: number | null
+          processed_at?: string | null
+          processing_type?: string
+          scheduled_for?: string | null
+          source_communication_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_intelligence_queue_source_communication_id_fkey"
+            columns: ["source_communication_id"]
+            isOneToOne: false
+            referencedRelation: "unified_communications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communication_relationship_scores: {
+        Row: {
+          avg_response_time_hours: number | null
+          avg_sentiment: number | null
+          conversion_probability: number | null
+          created_at: string | null
+          days_since_contact: number | null
+          engagement_score: number | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["communication_entity_type"]
+          health_score: number | null
+          id: string
+          inbound_count: number | null
+          key_topics: string[] | null
+          last_inbound_at: string | null
+          last_negative_interaction: string | null
+          last_outbound_at: string | null
+          last_positive_interaction: string | null
+          next_best_time: string | null
+          outbound_count: number | null
+          owner_id: string | null
+          preferred_channel:
+            | Database["public"]["Enums"]["communication_channel"]
+            | null
+          recommended_action: string | null
+          recommended_channel:
+            | Database["public"]["Enums"]["communication_channel"]
+            | null
+          relationship_summary: string | null
+          response_rate: number | null
+          risk_factors: string[] | null
+          risk_level:
+            | Database["public"]["Enums"]["relationship_risk_level"]
+            | null
+          sentiment_trend: string | null
+          total_communications: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_response_time_hours?: number | null
+          avg_sentiment?: number | null
+          conversion_probability?: number | null
+          created_at?: string | null
+          days_since_contact?: number | null
+          engagement_score?: number | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["communication_entity_type"]
+          health_score?: number | null
+          id?: string
+          inbound_count?: number | null
+          key_topics?: string[] | null
+          last_inbound_at?: string | null
+          last_negative_interaction?: string | null
+          last_outbound_at?: string | null
+          last_positive_interaction?: string | null
+          next_best_time?: string | null
+          outbound_count?: number | null
+          owner_id?: string | null
+          preferred_channel?:
+            | Database["public"]["Enums"]["communication_channel"]
+            | null
+          recommended_action?: string | null
+          recommended_channel?:
+            | Database["public"]["Enums"]["communication_channel"]
+            | null
+          relationship_summary?: string | null
+          response_rate?: number | null
+          risk_factors?: string[] | null
+          risk_level?:
+            | Database["public"]["Enums"]["relationship_risk_level"]
+            | null
+          sentiment_trend?: string | null
+          total_communications?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_response_time_hours?: number | null
+          avg_sentiment?: number | null
+          conversion_probability?: number | null
+          created_at?: string | null
+          days_since_contact?: number | null
+          engagement_score?: number | null
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["communication_entity_type"]
+          health_score?: number | null
+          id?: string
+          inbound_count?: number | null
+          key_topics?: string[] | null
+          last_inbound_at?: string | null
+          last_negative_interaction?: string | null
+          last_outbound_at?: string | null
+          last_positive_interaction?: string | null
+          next_best_time?: string | null
+          outbound_count?: number | null
+          owner_id?: string | null
+          preferred_channel?:
+            | Database["public"]["Enums"]["communication_channel"]
+            | null
+          recommended_action?: string | null
+          recommended_channel?:
+            | Database["public"]["Enums"]["communication_channel"]
+            | null
+          relationship_summary?: string | null
+          response_rate?: number | null
+          risk_factors?: string[] | null
+          risk_level?:
+            | Database["public"]["Enums"]["relationship_risk_level"]
+            | null
+          sentiment_trend?: string | null
+          total_communications?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_relationship_scores_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "communication_relationship_scores_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_relationship_scores_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communication_workflows: {
+        Row: {
+          actions: Json
+          cooldown_hours: number | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_system: boolean | null
+          max_executions_per_entity: number | null
+          name: string
+          priority: number | null
+          target_channels:
+            | Database["public"]["Enums"]["communication_channel"][]
+            | null
+          target_entity_types:
+            | Database["public"]["Enums"]["communication_entity_type"][]
+            | null
+          trigger_conditions: Json
+          trigger_type: Database["public"]["Enums"]["workflow_trigger_type"]
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          actions?: Json
+          cooldown_hours?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          max_executions_per_entity?: number | null
+          name: string
+          priority?: number | null
+          target_channels?:
+            | Database["public"]["Enums"]["communication_channel"][]
+            | null
+          target_entity_types?:
+            | Database["public"]["Enums"]["communication_entity_type"][]
+            | null
+          trigger_conditions?: Json
+          trigger_type: Database["public"]["Enums"]["workflow_trigger_type"]
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          actions?: Json
+          cooldown_hours?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          max_executions_per_entity?: number | null
+          name?: string
+          priority?: number | null
+          target_channels?:
+            | Database["public"]["Enums"]["communication_channel"][]
+            | null
+          target_entity_types?:
+            | Database["public"]["Enums"]["communication_entity_type"][]
+            | null
+          trigger_conditions?: Json
+          trigger_type?: Database["public"]["Enums"]["workflow_trigger_type"]
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_workflows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "communication_workflows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_workflows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_workflows_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "communication_workflows_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_workflows_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           benefits: Json | null
@@ -10531,6 +10835,109 @@ export type Database = {
             columns: ["prospect_id"]
             isOneToOne: false
             referencedRelation: "crm_prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cross_channel_patterns: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          confidence: number
+          created_at: string | null
+          details: Json | null
+          detected_at: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["communication_entity_type"]
+          evidence: Json | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          pattern_type: Database["public"]["Enums"]["communication_pattern_type"]
+          resolution_action: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          confidence: number
+          created_at?: string | null
+          details?: Json | null
+          detected_at?: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["communication_entity_type"]
+          evidence?: Json | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          pattern_type: Database["public"]["Enums"]["communication_pattern_type"]
+          resolution_action?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          confidence?: number
+          created_at?: string | null
+          details?: Json | null
+          detected_at?: string | null
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["communication_entity_type"]
+          evidence?: Json | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          pattern_type?: Database["public"]["Enums"]["communication_pattern_type"]
+          resolution_action?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cross_channel_patterns_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "cross_channel_patterns_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cross_channel_patterns_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cross_channel_patterns_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "cross_channel_patterns_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cross_channel_patterns_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -33219,6 +33626,90 @@ export type Database = {
         }
         Relationships: []
       }
+      unified_communications: {
+        Row: {
+          ai_analysis: Json | null
+          channel: Database["public"]["Enums"]["communication_channel"]
+          content_preview: string | null
+          content_summary: string | null
+          created_at: string | null
+          direction: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["communication_entity_type"]
+          has_attachment: boolean | null
+          id: string
+          intent: string | null
+          intent_confidence: number | null
+          is_first_contact: boolean | null
+          key_topics: string[] | null
+          mentioned_entities: Json | null
+          original_timestamp: string
+          processed_at: string | null
+          recipient_id: string | null
+          response_time_seconds: number | null
+          sender_id: string | null
+          sentiment_score: number | null
+          source_id: string
+          source_table: string
+          subject: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_analysis?: Json | null
+          channel: Database["public"]["Enums"]["communication_channel"]
+          content_preview?: string | null
+          content_summary?: string | null
+          created_at?: string | null
+          direction: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["communication_entity_type"]
+          has_attachment?: boolean | null
+          id?: string
+          intent?: string | null
+          intent_confidence?: number | null
+          is_first_contact?: boolean | null
+          key_topics?: string[] | null
+          mentioned_entities?: Json | null
+          original_timestamp: string
+          processed_at?: string | null
+          recipient_id?: string | null
+          response_time_seconds?: number | null
+          sender_id?: string | null
+          sentiment_score?: number | null
+          source_id: string
+          source_table: string
+          subject?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_analysis?: Json | null
+          channel?: Database["public"]["Enums"]["communication_channel"]
+          content_preview?: string | null
+          content_summary?: string | null
+          created_at?: string | null
+          direction?: string
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["communication_entity_type"]
+          has_attachment?: boolean | null
+          id?: string
+          intent?: string | null
+          intent_confidence?: number | null
+          is_first_contact?: boolean | null
+          key_topics?: string[] | null
+          mentioned_entities?: Json | null
+          original_timestamp?: string
+          processed_at?: string | null
+          recipient_id?: string | null
+          response_time_seconds?: number | null
+          sender_id?: string | null
+          sentiment_score?: number | null
+          source_id?: string
+          source_table?: string
+          subject?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       unified_posts: {
         Row: {
           comments_count: number | null
@@ -36833,6 +37324,56 @@ export type Database = {
           },
         ]
       }
+      workflow_executions: {
+        Row: {
+          actions_executed: Json | null
+          completed_at: string | null
+          created_at: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["communication_entity_type"]
+          error_message: string | null
+          id: string
+          started_at: string | null
+          status: string
+          trigger_event: Json | null
+          workflow_id: string | null
+        }
+        Insert: {
+          actions_executed?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["communication_entity_type"]
+          error_message?: string | null
+          id?: string
+          started_at?: string | null
+          status: string
+          trigger_event?: Json | null
+          workflow_id?: string | null
+        }
+        Update: {
+          actions_executed?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["communication_entity_type"]
+          error_message?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          trigger_event?: Json | null
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_executions_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "communication_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_api_keys: {
         Row: {
           created_at: string
@@ -38846,6 +39387,31 @@ export type Database = {
       board_member_role: "owner" | "admin" | "editor" | "viewer"
       board_visibility: "personal" | "shared" | "company"
       club_sync_status_enum: "not_offered" | "pending" | "accepted" | "declined"
+      communication_channel:
+        | "whatsapp"
+        | "email"
+        | "meeting"
+        | "phone"
+        | "linkedin"
+        | "in_person"
+        | "other"
+      communication_entity_type:
+        | "candidate"
+        | "prospect"
+        | "partner"
+        | "company"
+        | "stakeholder"
+      communication_pattern_type:
+        | "going_cold"
+        | "highly_engaged"
+        | "channel_preference"
+        | "response_time_change"
+        | "sentiment_shift"
+        | "objection_raising"
+        | "ready_to_convert"
+        | "needs_escalation"
+        | "ghosting"
+        | "re_engaged"
       company_achievement_type: "custom" | "platform_generated"
       crm_activity_outcome:
         | "completed"
@@ -38918,6 +39484,25 @@ export type Database = {
         | "accepted"
         | "rejected"
         | "withdrawn"
+      relationship_risk_level: "low" | "medium" | "high" | "critical"
+      workflow_action_type:
+        | "send_whatsapp"
+        | "send_email"
+        | "create_task"
+        | "assign_strategist"
+        | "update_stage"
+        | "schedule_meeting"
+        | "alert_admin"
+        | "add_tag"
+        | "webhook"
+      workflow_trigger_type:
+        | "message_received"
+        | "no_response"
+        | "sentiment_change"
+        | "pattern_detected"
+        | "meeting_completed"
+        | "stage_change"
+        | "manual"
       workspace_db_column_type:
         | "text"
         | "number"
@@ -39107,6 +39692,34 @@ export const Constants = {
       board_member_role: ["owner", "admin", "editor", "viewer"],
       board_visibility: ["personal", "shared", "company"],
       club_sync_status_enum: ["not_offered", "pending", "accepted", "declined"],
+      communication_channel: [
+        "whatsapp",
+        "email",
+        "meeting",
+        "phone",
+        "linkedin",
+        "in_person",
+        "other",
+      ],
+      communication_entity_type: [
+        "candidate",
+        "prospect",
+        "partner",
+        "company",
+        "stakeholder",
+      ],
+      communication_pattern_type: [
+        "going_cold",
+        "highly_engaged",
+        "channel_preference",
+        "response_time_change",
+        "sentiment_shift",
+        "objection_raising",
+        "ready_to_convert",
+        "needs_escalation",
+        "ghosting",
+        "re_engaged",
+      ],
       company_achievement_type: ["custom", "platform_generated"],
       crm_activity_outcome: [
         "completed",
@@ -39186,6 +39799,27 @@ export const Constants = {
         "accepted",
         "rejected",
         "withdrawn",
+      ],
+      relationship_risk_level: ["low", "medium", "high", "critical"],
+      workflow_action_type: [
+        "send_whatsapp",
+        "send_email",
+        "create_task",
+        "assign_strategist",
+        "update_stage",
+        "schedule_meeting",
+        "alert_admin",
+        "add_tag",
+        "webhook",
+      ],
+      workflow_trigger_type: [
+        "message_received",
+        "no_response",
+        "sentiment_change",
+        "pattern_detected",
+        "meeting_completed",
+        "stage_change",
+        "manual",
       ],
       workspace_db_column_type: [
         "text",
