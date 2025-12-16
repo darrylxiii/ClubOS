@@ -52,6 +52,7 @@ import {
   NotebookPen,
   Star,
   Layout,
+  Phone,
   type LucideIcon,
 } from "lucide-react";
 
@@ -87,6 +88,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     icon: MessageSquare,
     items: [
       { name: "Live Hub", icon: Radio, path: "/live-hub" },
+      { name: "WhatsApp", icon: Phone, path: "/whatsapp", badge: "New" },
       { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
@@ -249,6 +251,17 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
     },
   ],
   admin: [
+    {
+      title: "WhatsApp",
+      icon: Phone,
+      badge: "New",
+      items: [
+        { name: "WhatsApp Inbox", icon: MessageSquare, path: "/whatsapp" },
+        { name: "Analytics", icon: BarChart3, path: "/admin/whatsapp-analytics" },
+        { name: "Settings", icon: Settings, path: "/admin/whatsapp-settings" },
+      ],
+      roles: ['admin', 'strategist'],
+    },
     {
       title: "CRM & Outreach",
       icon: Contact,
