@@ -94,13 +94,9 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
             <Code className="h-4 w-4 mr-2" />
             Code Block
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => editor.insertBlocks(
-            [{ type: 'paragraph', content: [{ type: 'text', text: '', styles: {} }] }],
-            editor.getTextCursorPosition().block,
-            'after'
-          )}>
+          <DropdownMenuItem onClick={() => insertBlock('callout', { variant: 'info' })}>
             <Quote className="h-4 w-4 mr-2" />
-            Quote
+            Quote Block
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

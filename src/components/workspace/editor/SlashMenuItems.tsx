@@ -111,9 +111,13 @@ const insertColumns = (editor: any, columnCount: number = 2) => ({
 export function getCustomSlashMenuItems(
   editor: any
 ): DefaultReactSuggestionItem[] {
+  // Get default items and filter out Divider to prevent duplicate key warning
+  const defaultItems = getDefaultReactSlashMenuItems(editor)
+    .filter(item => item.title !== 'Divider');
+  
   return [
-    // Get all default BlockNote items first
-    ...getDefaultReactSlashMenuItems(editor),
+    // Get filtered default BlockNote items first
+    ...defaultItems,
     // Add our custom blocks
     insertCallout(editor, 'info'),
     insertCallout(editor, 'warning'),

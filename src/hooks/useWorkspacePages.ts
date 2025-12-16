@@ -161,11 +161,44 @@ export function useWorkspacePages() {
       if (error) throw error;
       return data as WorkspacePage;
     },
-    onSuccess: () => {
+    onMutate: async (variables) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['workspace-page', variables.id] });
+      await queryClient.cancelQueries({ queryKey: ['workspace-pages'] });
+      
+      // Snapshot previous values
+      const previousPage = queryClient.getQueryData(['workspace-page', variables.id]);
+      const previousPages = queryClient.getQueryData(['workspace-pages', user?.id]);
+      
+      // Optimistically update the single page
+      queryClient.setQueryData(['workspace-page', variables.id], (old: WorkspacePage | undefined) => {
+        if (!old) return old;
+        return { ...old, ...variables.updates };
+      });
+      
+      // Optimistically update the pages list
+      queryClient.setQueryData(['workspace-pages', user?.id], (old: WorkspacePage[] | undefined) => {
+        if (!old) return old;
+        return old.map(page => 
+          page.id === variables.id ? { ...page, ...variables.updates } : page
+        );
+      });
+      
+      return { previousPage, previousPages };
+    },
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['workspace-pages'] });
       queryClient.invalidateQueries({ queryKey: ['workspace-favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-page', variables.id] });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousPage) {
+        queryClient.setQueryData(['workspace-page', variables.id], context.previousPage);
+      }
+      if (context?.previousPages) {
+        queryClient.setQueryData(['workspace-pages', user?.id], context.previousPages);
+      }
       toast.error('Failed to update page');
       console.error('Update page error:', error);
     },
