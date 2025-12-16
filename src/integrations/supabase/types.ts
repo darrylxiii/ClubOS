@@ -6797,6 +6797,108 @@ export type Database = {
           },
         ]
       }
+      company_contacts: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string
+          full_name: string | null
+          id: string
+          is_primary: boolean | null
+          phone: string | null
+          profile_id: string | null
+          role: string | null
+          source: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          full_name?: string | null
+          id?: string
+          is_primary?: boolean | null
+          phone?: string | null
+          profile_id?: string | null
+          role?: string | null
+          source?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_primary?: boolean | null
+          phone?: string | null
+          profile_id?: string | null
+          role?: string | null
+          source?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "company_contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "company_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_departments: {
         Row: {
           color_hex: string | null
@@ -6860,6 +6962,48 @@ export type Database = {
             columns: ["parent_department_id"]
             isOneToOne: false
             referencedRelation: "company_departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_domains: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          domain: string
+          id: string
+          is_blocked: boolean | null
+          is_primary: boolean | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          domain: string
+          id?: string
+          is_blocked?: boolean | null
+          is_primary?: boolean | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          domain?: string
+          id?: string
+          is_blocked?: boolean | null
+          is_primary?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_domains_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_domains_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
             referencedColumns: ["id"]
           },
         ]
@@ -6931,6 +7075,81 @@ export type Database = {
             foreignKeyName: "company_email_domains_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_email_sentiment: {
+        Row: {
+          avg_response_time_hours: number | null
+          avg_sentiment_score: number | null
+          company_id: string | null
+          health_score: number | null
+          health_status: string | null
+          id: string
+          inbound_count: number | null
+          last_email_at: string | null
+          last_inbound_at: string | null
+          last_outbound_at: string | null
+          outbound_count: number | null
+          response_rate: number | null
+          sentiment_breakdown: Json | null
+          sentiment_trend: string | null
+          top_topics: Json | null
+          total_emails: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_response_time_hours?: number | null
+          avg_sentiment_score?: number | null
+          company_id?: string | null
+          health_score?: number | null
+          health_status?: string | null
+          id?: string
+          inbound_count?: number | null
+          last_email_at?: string | null
+          last_inbound_at?: string | null
+          last_outbound_at?: string | null
+          outbound_count?: number | null
+          response_rate?: number | null
+          sentiment_breakdown?: Json | null
+          sentiment_trend?: string | null
+          top_topics?: Json | null
+          total_emails?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_response_time_hours?: number | null
+          avg_sentiment_score?: number | null
+          company_id?: string | null
+          health_score?: number | null
+          health_status?: string | null
+          id?: string
+          inbound_count?: number | null
+          last_email_at?: string | null
+          last_inbound_at?: string | null
+          last_outbound_at?: string | null
+          outbound_count?: number | null
+          response_rate?: number | null
+          sentiment_breakdown?: Json | null
+          sentiment_trend?: string | null
+          top_topics?: Json | null
+          total_emails?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_email_sentiment_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_email_sentiment_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
             referencedRelation: "public_companies"
             referencedColumns: ["id"]
           },
@@ -8157,6 +8376,73 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_email_sentiment: {
+        Row: {
+          avg_sentiment_score: number | null
+          company_id: string | null
+          contact_id: string | null
+          email: string
+          id: string
+          inbound_count: number | null
+          last_email_at: string | null
+          last_sentiment: string | null
+          outbound_count: number | null
+          sentiment_trend: string | null
+          total_emails: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_sentiment_score?: number | null
+          company_id?: string | null
+          contact_id?: string | null
+          email: string
+          id?: string
+          inbound_count?: number | null
+          last_email_at?: string | null
+          last_sentiment?: string | null
+          outbound_count?: number | null
+          sentiment_trend?: string | null
+          total_emails?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_sentiment_score?: number | null
+          company_id?: string | null
+          contact_id?: string | null
+          email?: string
+          id?: string
+          inbound_count?: number | null
+          last_email_at?: string | null
+          last_sentiment?: string | null
+          outbound_count?: number | null
+          sentiment_trend?: string | null
+          total_emails?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_email_sentiment_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_email_sentiment_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_email_sentiment_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: true
+            referencedRelation: "company_contacts"
             referencedColumns: ["id"]
           },
         ]
@@ -12545,6 +12831,79 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      email_contact_matches: {
+        Row: {
+          analyzed_at: string | null
+          company_id: string | null
+          contact_id: string | null
+          created_at: string | null
+          direction: string
+          email_address: string
+          email_date: string | null
+          id: string
+          match_confidence: number | null
+          match_type: string
+          message_id: string | null
+          sentiment_label: string | null
+          sentiment_score: number | null
+          subject: string | null
+        }
+        Insert: {
+          analyzed_at?: string | null
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          direction: string
+          email_address: string
+          email_date?: string | null
+          id?: string
+          match_confidence?: number | null
+          match_type: string
+          message_id?: string | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
+          subject?: string | null
+        }
+        Update: {
+          analyzed_at?: string | null
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          direction?: string
+          email_address?: string
+          email_date?: string | null
+          id?: string
+          match_confidence?: number | null
+          match_type?: string
+          message_id?: string | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_contact_matches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_contact_matches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_contact_matches_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "company_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_drafts: {
         Row: {
