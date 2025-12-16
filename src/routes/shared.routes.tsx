@@ -35,6 +35,9 @@ const RadioListen = lazy(() => import("@/pages/RadioListen"));
 const DocumentManagement = lazy(() => import("@/pages/DocumentManagement"));
 const EmailSettings = lazy(() => import("@/pages/EmailSettings"));
 
+// Workspace / Quantum OS Pages
+const WorkspaceList = lazy(() => import("@/pages/WorkspaceList"));
+const WorkspacePage = lazy(() => import("@/pages/WorkspacePage"));
 // Compliance & Legal Pages
 const ComplianceDashboard = lazy(() => import("@/pages/compliance/ComplianceDashboard"));
 const LegalAgreementsPage = lazy(() => import("@/pages/compliance/LegalAgreementsPage"));
@@ -103,6 +106,10 @@ export const sharedRoutes = (
     {/* Documents & Email */}
     <Route path="/documents" element={<ProtectedRoute><DocumentManagement /></ProtectedRoute>} />
     <Route path="/email-settings" element={<ProtectedRoute><EmailSettings /></ProtectedRoute>} />
+    
+    {/* Quantum OS Workspace */}
+    <Route path="/pages" element={<ProtectedRoute><WorkspaceList /></ProtectedRoute>} />
+    <Route path="/pages/:pageId" element={<ProtectedRoute><WorkspacePage /></ProtectedRoute>} />
     
     {/* Compliance & Legal */}
     <Route path="/compliance/dashboard" element={<ProtectedRoute><ComplianceDashboard /></ProtectedRoute>} />

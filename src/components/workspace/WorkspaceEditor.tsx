@@ -3,6 +3,7 @@ import { BlockNoteEditor, PartialBlock } from '@blocknote/core';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/mantine/style.css';
+import { useTheme } from 'next-themes';
 import { WorkspacePage } from '@/hooks/useWorkspacePages';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +21,7 @@ export function WorkspaceEditor({
   className 
 }: WorkspaceEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
+  const { resolvedTheme } = useTheme();
 
   // Parse initial content
   const initialContent = useMemo(() => {
@@ -56,8 +58,7 @@ export function WorkspaceEditor({
         editor={editor}
         onChange={handleChange}
         editable={!readOnly}
-        theme="light"
-        data-theming-css-variables-demo
+        theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
       />
       <style>{`
         .workspace-editor .bn-container {
