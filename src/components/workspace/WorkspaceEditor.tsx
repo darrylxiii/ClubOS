@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback, useState } from 'react';
+import { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { BlockNoteSchema, defaultBlockSpecs, PartialBlock } from '@blocknote/core';
 import { 
   useCreateBlockNote, 
@@ -14,6 +14,11 @@ import { cn } from '@/lib/utils';
 import { customBlockSpecs } from './editor/customBlocks';
 import { EditorToolbar } from './editor/EditorToolbar';
 import { getCustomSlashMenuItems, filterSlashMenuItems } from './editor/SlashMenuItems';
+import { useCollaborativeCursors } from '@/hooks/useCollaborativeCursors';
+import { useRealtimeContentSync } from '@/hooks/useRealtimeContentSync';
+import { CollaborativeCursors } from './CollaborativeCursors';
+import { BlockSelectionHighlight } from './BlockSelectionHighlight';
+import { SyncStatusIndicator } from './SyncStatusIndicator';
 
 // Create schema with custom blocks
 const schema = BlockNoteSchema.create({
@@ -28,16 +33,36 @@ interface WorkspaceEditorProps {
   onContentChange: (content: any[]) => void;
   readOnly?: boolean;
   className?: string;
+  enableCollaboration?: boolean;
 }
 
 export function WorkspaceEditor({ 
   page, 
   onContentChange, 
   readOnly = false,
-  className 
+  className,
+  enableCollaboration = true
 }: WorkspaceEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
   const { resolvedTheme } = useTheme();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Collaboration hooks
+  const { 
+    cursors, 
+    isConnected, 
+    updateCursorPosition, 
+    setTypingStatus, 
+    selectBlock 
+  } = useCollaborativeCursors(enableCollaboration ? page.id : undefined);
+  
+  const { 
+    syncState, 
+    remoteChanges, 
+    broadcastChange, 
+    broadcastFullSync,
+    clearRemoteChanges 
+  } = useRealtimeContentSync(enableCollaboration ? page.id : undefined);
 
   // Parse initial content
   const initialContent = useMemo(() => {
@@ -52,16 +77,65 @@ export function WorkspaceEditor({
     initialContent,
   });
 
+  // Handle cursor movement
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!enableCollaboration || readOnly) return;
+    updateCursorPosition(e.clientX, e.clientY);
+  }, [enableCollaboration, readOnly, updateCursorPosition]);
+
+  // Handle typing status
+  const handleKeyDown = useCallback(() => {
+    if (!enableCollaboration || readOnly) return;
+    setTypingStatus(true);
+  }, [enableCollaboration, readOnly, setTypingStatus]);
+
+  const handleKeyUp = useCallback(() => {
+    if (!enableCollaboration || readOnly) return;
+    // Debounce typing status off
+    setTimeout(() => setTypingStatus(false), 1000);
+  }, [enableCollaboration, readOnly, setTypingStatus]);
+
   // Debounced save
   const handleChange = useCallback(() => {
     if (readOnly) return;
     const content = editor.document;
     onContentChange(content);
-  }, [editor, onContentChange, readOnly]);
+    
+    // Broadcast change to other users
+    if (enableCollaboration) {
+      broadcastChange({ type: 'update', content });
+    }
+  }, [editor, onContentChange, readOnly, enableCollaboration, broadcastChange]);
+
+  // Apply remote changes
+  useEffect(() => {
+    if (remoteChanges.length === 0) return;
+    
+    remoteChanges.forEach(change => {
+      if (change.type === 'replace' && change.content) {
+        // Handle full content replacement from another user
+        // Note: BlockNote doesn't have a direct replaceBlocks API, 
+        // so we'd need to handle this at the page level with a refresh
+        console.log('[Collaboration] Remote full sync received');
+      }
+    });
+    
+    clearRemoteChanges();
+  }, [remoteChanges, clearRemoteChanges]);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Get block selections from cursors
+  const blockSelections = cursors
+    .filter(c => c.blockId)
+    .map(c => ({
+      userId: c.userId,
+      userName: c.userName,
+      color: c.color,
+      blockId: c.blockId!
+    }));
 
   if (!isMounted) {
     return (
@@ -70,7 +144,33 @@ export function WorkspaceEditor({
   }
 
   return (
-    <div className={cn("workspace-editor", className)}>
+    <div 
+      ref={containerRef}
+      className={cn("workspace-editor relative", className)}
+      onMouseMove={handleMouseMove}
+      onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
+    >
+      {/* Collaboration status bar */}
+      {enableCollaboration && (
+        <div className="flex items-center justify-between mb-2 px-1">
+          <div className="flex items-center gap-2">
+            {cursors.length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                {cursors.length} collaborator{cursors.length !== 1 ? 's' : ''} online
+              </span>
+            )}
+          </div>
+          <SyncStatusIndicator
+            isSyncing={syncState.isSyncing}
+            lastSyncedAt={syncState.lastSyncedAt}
+            pendingChanges={syncState.pendingChanges}
+            isConnected={isConnected}
+            onManualSync={() => broadcastFullSync(editor.document)}
+          />
+        </div>
+      )}
+      
       {!readOnly && <EditorToolbar editor={editor} />}
       <BlockNoteView
         editor={editor}
@@ -97,6 +197,17 @@ export function WorkspaceEditor({
           />
         )}
       </BlockNoteView>
+      
+      {/* Collaborative cursors overlay */}
+      {enableCollaboration && containerRef.current && (
+        <CollaborativeCursors cursors={cursors} containerRef={containerRef as React.RefObject<HTMLElement>} />
+      )}
+      
+      {/* Block selection highlights */}
+      {enableCollaboration && blockSelections.length > 0 && (
+        <BlockSelectionHighlight selections={blockSelections} />
+      )}
+      
       <style>{`
         .workspace-editor .bn-container {
           --bn-colors-editor-background: transparent;
