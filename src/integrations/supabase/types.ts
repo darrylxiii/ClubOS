@@ -3639,6 +3639,48 @@ export type Database = {
           },
         ]
       }
+      brand_assets_cache: {
+        Row: {
+          brand_name: string | null
+          colors: Json | null
+          created_at: string | null
+          domain: string
+          expires_at: string | null
+          fetched_at: string | null
+          icon_url: string | null
+          id: string
+          logo_url: string | null
+          primary_color: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          brand_name?: string | null
+          colors?: Json | null
+          created_at?: string | null
+          domain: string
+          expires_at?: string | null
+          fetched_at?: string | null
+          icon_url?: string | null
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          brand_name?: string | null
+          colors?: Json | null
+          created_at?: string | null
+          domain?: string
+          expires_at?: string | null
+          fetched_at?: string | null
+          icon_url?: string | null
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       brand_terms: {
         Row: {
           created_at: string | null

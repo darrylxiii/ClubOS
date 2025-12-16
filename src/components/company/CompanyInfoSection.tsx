@@ -1,7 +1,9 @@
 import { Briefcase, MapPin, Users, Calendar, Globe, Linkedin, Twitter, Instagram, Mail, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CompanyLogo } from "@/components/ui/company-logo";
 
 interface Company {
+  name?: string | null;
   industry: string | null;
   headquarters_location: string | null;
   company_size: string | null;
@@ -12,6 +14,7 @@ interface Company {
   instagram_url: string | null;
   careers_email: string | null;
   careers_page_url: string | null;
+  logo_url?: string | null;
 }
 
 interface CompanyInfoSectionProps {
