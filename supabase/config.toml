@@ -484,6 +484,9 @@ verify_jwt = true
 [functions.aggregate-company-sentiment]
 verify_jwt = true
 
+[functions.populate-email-intelligence]
+verify_jwt = true
+
 # =============================================================================
 # Notifications (Mixed)
 # =============================================================================
