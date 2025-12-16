@@ -28,7 +28,7 @@ import { CoverPicker } from './CoverPicker';
 import { EnhancedShareDialog } from './EnhancedShareDialog';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
 import { CommentsPanel } from './CommentsPanel';
-import { PresenceIndicator } from './PresenceIndicator';
+import { EnhancedPresenceIndicator } from './EnhancedPresenceIndicator';
 import { PageExport } from './PageExport';
 import { BacklinksPanel } from './BacklinksPanel';
 import { AdvancedSearchDialog } from './AdvancedSearchDialog';
@@ -182,8 +182,8 @@ export function PageHeader({
 
           {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Presence Indicator */}
-            <PresenceIndicator pageId={page.id} />
+            {/* Enhanced Presence Indicator with collaboration */}
+            <EnhancedPresenceIndicator pageId={page.id} />
 
             <Button
               variant="ghost"
