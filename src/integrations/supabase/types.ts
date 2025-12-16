@@ -36290,6 +36290,97 @@ export type Database = {
           },
         ]
       }
+      workspace_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          role: Database["public"]["Enums"]["workspace_role"] | null
+          token: string
+          workspace_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          role?: Database["public"]["Enums"]["workspace_role"] | null
+          token?: string
+          workspace_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          role?: Database["public"]["Enums"]["workspace_role"] | null
+          token?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_invitations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          is_active: boolean | null
+          joined_at: string | null
+          role: Database["public"]["Enums"]["workspace_role"]
+          updated_at: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_active?: boolean | null
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["workspace_role"]
+          updated_at?: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_active?: boolean | null
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["workspace_role"]
+          updated_at?: string | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_pages: {
         Row: {
           content: Json | null
@@ -36309,6 +36400,7 @@ export type Database = {
           updated_at: string | null
           user_id: string
           visibility: string | null
+          workspace_id: string | null
         }
         Insert: {
           content?: Json | null
@@ -36328,6 +36420,7 @@ export type Database = {
           updated_at?: string | null
           user_id: string
           visibility?: string | null
+          workspace_id?: string | null
         }
         Update: {
           content?: Json | null
@@ -36347,6 +36440,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           visibility?: string | null
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -36354,6 +36448,13 @@ export type Database = {
             columns: ["parent_page_id"]
             isOneToOne: false
             referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_pages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -36445,6 +36546,72 @@ export type Database = {
             columns: ["database_id"]
             isOneToOne: false
             referencedRelation: "workspace_databases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          company_id: string | null
+          cover_url: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          icon_emoji: string | null
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          settings: Json | null
+          slug: string | null
+          type: Database["public"]["Enums"]["workspace_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          icon_emoji?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          settings?: Json | null
+          slug?: string | null
+          type?: Database["public"]["Enums"]["workspace_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          icon_emoji?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          settings?: Json | null
+          slug?: string | null
+          type?: Database["public"]["Enums"]["workspace_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspaces_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspaces_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
             referencedColumns: ["id"]
           },
         ]
@@ -38008,6 +38175,8 @@ export type Database = {
         | "gallery"
         | "list"
         | "calendar"
+      workspace_role: "owner" | "admin" | "editor" | "member" | "viewer"
+      workspace_type: "personal" | "team" | "company"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -38271,6 +38440,8 @@ export const Constants = {
         "updated_time",
       ],
       workspace_db_view_type: ["table", "board", "gallery", "list", "calendar"],
+      workspace_role: ["owner", "admin", "editor", "member", "viewer"],
+      workspace_type: ["personal", "team", "company"],
     },
   },
 } as const
