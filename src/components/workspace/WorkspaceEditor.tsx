@@ -5,9 +5,6 @@ import {
   SuggestionMenuController,
   SideMenuController,
   SideMenu,
-  DragHandleMenu,
-  RemoveBlockItem,
-  BlockColorsItem,
 } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/mantine/style.css';
@@ -95,12 +92,7 @@ export function WorkspaceEditor({
         {!readOnly && (
           <SideMenuController
             sideMenu={(props) => (
-              <SideMenu {...props}>
-                <DragHandleMenu {...props}>
-                  <RemoveBlockItem {...props}>Delete</RemoveBlockItem>
-                  <BlockColorsItem {...props}>Colors</BlockColorsItem>
-                </DragHandleMenu>
-              </SideMenu>
+              <SideMenu {...props} />
             )}
           />
         )}
