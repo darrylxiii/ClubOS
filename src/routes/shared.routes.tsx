@@ -34,6 +34,7 @@ const Radio = lazy(() => import("@/pages/Radio"));
 const RadioListen = lazy(() => import("@/pages/RadioListen"));
 const DocumentManagement = lazy(() => import("@/pages/DocumentManagement"));
 const EmailSettings = lazy(() => import("@/pages/EmailSettings"));
+const WhatsAppInbox = lazy(() => import("@/pages/WhatsAppInbox"));
 
 // Workspace / Quantum OS Pages
 const WorkspaceList = lazy(() => import("@/pages/WorkspaceList"));
@@ -106,6 +107,9 @@ export const sharedRoutes = (
     {/* Documents & Email */}
     <Route path="/documents" element={<ProtectedRoute><DocumentManagement /></ProtectedRoute>} />
     <Route path="/email-settings" element={<ProtectedRoute><EmailSettings /></ProtectedRoute>} />
+    
+    {/* WhatsApp Business */}
+    <Route path="/whatsapp" element={<ProtectedRoute><WhatsAppInbox /></ProtectedRoute>} />
     
     {/* Quantum OS Workspace */}
     <Route path="/pages" element={<ProtectedRoute><WorkspaceList /></ProtectedRoute>} />
