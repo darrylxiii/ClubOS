@@ -30,6 +30,7 @@
     "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^3.10.0",
     "@mantine/core": "^8.3.10",
+    "@mantine/hooks": "^8.3.10",
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/selfie_segmentation": "^0.1.1675465747",
     "@playwright/test": "^1.56.1",
