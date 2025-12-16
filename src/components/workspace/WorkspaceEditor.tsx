@@ -1,11 +1,21 @@
 import { useEffect, useMemo, useCallback, useState } from 'react';
-import { BlockNoteEditor, PartialBlock } from '@blocknote/core';
+import { BlockNoteSchema, defaultBlockSpecs, PartialBlock } from '@blocknote/core';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/mantine/style.css';
 import { useTheme } from 'next-themes';
 import { WorkspacePage } from '@/hooks/useWorkspacePages';
 import { cn } from '@/lib/utils';
+import { customBlockSpecs } from './editor/customBlocks';
+import { EditorToolbar } from './editor/EditorToolbar';
+
+// Create schema with custom blocks
+const schema = BlockNoteSchema.create({
+  blockSpecs: {
+    ...defaultBlockSpecs,
+    ...customBlockSpecs,
+  } as any,
+});
 
 interface WorkspaceEditorProps {
   page: WorkspacePage;
@@ -26,12 +36,13 @@ export function WorkspaceEditor({
   // Parse initial content
   const initialContent = useMemo(() => {
     if (!page.content || !Array.isArray(page.content) || page.content.length === 0) {
-      return undefined; // Let BlockNote use default content
+      return undefined;
     }
     return page.content as PartialBlock[];
-  }, [page.id]); // Only recalculate when page changes
+  }, [page.id]);
 
   const editor = useCreateBlockNote({
+    schema,
     initialContent,
   });
 
@@ -54,6 +65,7 @@ export function WorkspaceEditor({
 
   return (
     <div className={cn("workspace-editor", className)}>
+      {!readOnly && <EditorToolbar editor={editor} />}
       <BlockNoteView
         editor={editor}
         onChange={handleChange}
@@ -105,6 +117,10 @@ export function WorkspaceEditor({
         }
         
         .workspace-editor .bn-inline-content {
+          min-height: 1.5em;
+        }
+        
+        .workspace-editor .callout-content {
           min-height: 1.5em;
         }
       `}</style>
