@@ -1,0 +1,265 @@
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Bot, X, ChevronUp, ChevronDown, AlertTriangle, TrendingUp, Clock, MessageSquare, Lightbulb, Sparkles, Send } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+import { useCrossChannelPatterns } from '@/hooks/useCrossChannelPatterns';
+
+interface QUINAdvisorWidgetProps {
+  entityType?: string;
+  entityId?: string;
+  context?: 'profile' | 'inbox' | 'pipeline' | 'general';
+  className?: string;
+}
+
+interface Advice {
+  type: 'alert' | 'tip' | 'insight' | 'action';
+  title: string;
+  message: string;
+  priority: 'high' | 'medium' | 'low';
+  actionLabel?: string;
+  onAction?: () => void;
+}
+
+export function QUINAdvisorWidget({
+  entityType,
+  entityId,
+  context = 'general',
+  className
+}: QUINAdvisorWidgetProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [question, setQuestion] = useState('');
+  const [advices, setAdvices] = useState<Advice[]>([]);
+  
+  const { activeAlerts, getHighPriorityAlerts } = useCrossChannelPatterns(entityType, entityId);
+
+  // Generate contextual advices based on patterns and context
+  useEffect(() => {
+    const newAdvices: Advice[] = [];
+
+    // Add pattern-based alerts
+    const highPriority = getHighPriorityAlerts();
+    highPriority.forEach(pattern => {
+      if (pattern.pattern_type === 'going_cold') {
+        newAdvices.push({
+          type: 'alert',
+          title: 'Going Cold Alert',
+          message: `This ${pattern.entity_type} hasn't responded in a while. Consider reaching out via their preferred channel.`,
+          priority: 'high',
+          actionLabel: 'Send Message',
+        });
+      } else if (pattern.pattern_type === 'ready_to_convert') {
+        newAdvices.push({
+          type: 'insight',
+          title: 'High Conversion Signal',
+          message: 'Strong buying signals detected across channels. Now is a good time to move forward.',
+          priority: 'high',
+          actionLabel: 'View Details',
+        });
+      }
+    });
+
+    // Add context-specific tips
+    if (context === 'inbox') {
+      newAdvices.push({
+        type: 'tip',
+        title: 'Response Time Matters',
+        message: 'Replying within 2 hours increases engagement by 40%.',
+        priority: 'low',
+      });
+    }
+
+    if (context === 'profile' && !entityId) {
+      newAdvices.push({
+        type: 'tip',
+        title: 'Complete the Timeline',
+        message: 'Add past interactions to build a complete picture of this relationship.',
+        priority: 'medium',
+      });
+    }
+
+    setAdvices(newAdvices);
+  }, [activeAlerts, context, entityId, getHighPriorityAlerts]);
+
+  const hasAlerts = advices.some(a => a.type === 'alert' && a.priority === 'high');
+
+  const iconConfig = {
+    alert: { icon: AlertTriangle, color: 'text-red-500' },
+    tip: { icon: Lightbulb, color: 'text-yellow-500' },
+    insight: { icon: TrendingUp, color: 'text-green-500' },
+    action: { icon: Clock, color: 'text-blue-500' },
+  };
+
+  if (!isOpen) {
+    return (
+      <motion.button
+        onClick={() => setIsOpen(true)}
+        className={cn(
+          "fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-lg",
+          "bg-gradient-to-br from-primary to-primary/80",
+          "hover:shadow-xl transition-all",
+          hasAlerts && "animate-pulse",
+          className
+        )}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <Bot className="h-6 w-6 text-primary-foreground" />
+        {hasAlerts && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
+            !
+          </span>
+        )}
+      </motion.button>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 20, scale: 0.9 }}
+      className={cn(
+        "fixed bottom-6 right-6 z-50 w-80",
+        className
+      )}
+    >
+      <Card className="shadow-2xl border-primary/20 overflow-hidden">
+        <CardHeader className="p-3 bg-gradient-to-r from-primary to-primary/80">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-white/20">
+                <Bot className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-white">QUIN Advisor</h3>
+                <p className="text-[10px] text-white/70">Communication Intelligence</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-white/80 hover:text-white hover:bg-white/20"
+                onClick={() => setIsMinimized(!isMinimized)}
+              >
+                {isMinimized ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-white/80 hover:text-white hover:bg-white/20"
+                onClick={() => setIsOpen(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+
+        <AnimatePresence>
+          {!isMinimized && (
+            <motion.div
+              initial={{ height: 0 }}
+              animate={{ height: 'auto' }}
+              exit={{ height: 0 }}
+            >
+              <CardContent className="p-0">
+                <ScrollArea className="h-64 p-3">
+                  {advices.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                      <Sparkles className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                      <p className="text-sm text-muted-foreground">No insights yet</p>
+                      <p className="text-xs text-muted-foreground/70">
+                        I'll analyze your communications and provide advice
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {advices.map((advice, index) => {
+                        const config = iconConfig[advice.type];
+                        const Icon = config.icon;
+
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className={cn(
+                              "p-3 rounded-lg border",
+                              advice.priority === 'high' && "bg-red-500/5 border-red-500/20",
+                              advice.priority === 'medium' && "bg-yellow-500/5 border-yellow-500/20",
+                              advice.priority === 'low' && "bg-muted/50 border-border"
+                            )}
+                          >
+                            <div className="flex items-start gap-2">
+                              <Icon className={cn("h-4 w-4 mt-0.5 flex-shrink-0", config.color)} />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="text-xs font-medium">{advice.title}</p>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn(
+                                      "text-[10px] px-1.5",
+                                      advice.priority === 'high' && "border-red-500/50 text-red-500",
+                                      advice.priority === 'medium' && "border-yellow-500/50 text-yellow-500"
+                                    )}
+                                  >
+                                    {advice.priority}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">{advice.message}</p>
+                                {advice.actionLabel && (
+                                  <Button
+                                    variant="link"
+                                    size="sm"
+                                    className="h-auto p-0 mt-2 text-xs"
+                                    onClick={advice.onAction}
+                                  >
+                                    {advice.actionLabel} →
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </ScrollArea>
+
+                {/* Ask QUIN */}
+                <div className="p-3 border-t bg-muted/30">
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      // TODO: Connect to Club AI
+                      setQuestion('');
+                    }}
+                    className="flex gap-2"
+                  >
+                    <Input
+                      value={question}
+                      onChange={(e) => setQuestion(e.target.value)}
+                      placeholder="Ask QUIN anything..."
+                      className="h-8 text-xs"
+                    />
+                    <Button type="submit" size="icon" className="h-8 w-8 flex-shrink-0">
+                      <Send className="h-3 w-3" />
+                    </Button>
+                  </form>
+                </div>
+              </CardContent>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Card>
+    </motion.div>
+  );
+}
