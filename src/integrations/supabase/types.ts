@@ -36069,6 +36069,48 @@ export type Database = {
           },
         ]
       }
+      workspace_api_keys: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          permissions: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          permissions?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          permissions?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       workspace_database_columns: {
         Row: {
           column_type: Database["public"]["Enums"]["workspace_db_column_type"]
@@ -36312,6 +36354,97 @@ export type Database = {
             columns: ["parent_page_id"]
             isOneToOne: false
             referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_webhook_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json | null
+          response_body: string | null
+          response_status: number | null
+          success: boolean
+          webhook_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload?: Json | null
+          response_body?: string | null
+          response_status?: number | null
+          success?: boolean
+          webhook_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          response_body?: string | null
+          response_status?: number | null
+          success?: boolean
+          webhook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_webhook_logs_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_webhooks: {
+        Row: {
+          created_at: string
+          database_id: string
+          events: string[]
+          id: string
+          is_active: boolean
+          last_triggered_at: string | null
+          secret: string | null
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          database_id: string
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          secret?: string | null
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          database_id?: string
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          secret?: string | null
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_webhooks_database_id_fkey"
+            columns: ["database_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_databases"
             referencedColumns: ["id"]
           },
         ]
