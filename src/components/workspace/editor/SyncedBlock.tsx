@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 // Simple synced block using localStorage for now (can be upgraded to database later)
-export const SyncedBlock = () => createReactBlockSpec(
+export const SyncedBlock = createReactBlockSpec(
   {
     type: 'syncedBlock',
     propSchema: {

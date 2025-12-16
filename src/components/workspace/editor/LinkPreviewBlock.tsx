@@ -13,7 +13,7 @@ interface LinkMetadata {
   url: string;
 }
 
-export const LinkPreviewBlock = () => createReactBlockSpec(
+export const LinkPreviewBlock = createReactBlockSpec(
   {
     type: 'linkPreview',
     propSchema: {

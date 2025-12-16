@@ -7,15 +7,14 @@ import { EmbedBlock } from './EmbedBlock';
 import { SyncedBlock } from './SyncedBlock';
 import { LinkPreviewBlock } from './LinkPreviewBlock';
 
-// Export block specs
-// Some blocks are direct exports (createReactBlockSpec result), others are factory functions
+// All exports are createReactBlockSpec results (factory functions) - call them to get BlockSpec
 export const customBlockSpecs = {
-  callout: CalloutBlock,           // Direct export
-  toggle: ToggleBlock,             // Direct export
-  divider: DividerBlock,           // Direct export
-  tableOfContents: TableOfContentsBlock, // Direct export
-  columns: ColumnsBlock,           // Direct export
-  embed: EmbedBlock(),             // Factory function
-  syncedBlock: SyncedBlock(),      // Factory function
-  linkPreview: LinkPreviewBlock(), // Factory function
+  callout: CalloutBlock(),
+  toggle: ToggleBlock(),
+  divider: DividerBlock(),
+  tableOfContents: TableOfContentsBlock(),
+  columns: ColumnsBlock(),
+  embed: EmbedBlock(),
+  syncedBlock: SyncedBlock(),
+  linkPreview: LinkPreviewBlock(),
 };
