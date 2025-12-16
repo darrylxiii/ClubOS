@@ -52,8 +52,24 @@ Deno.serve(async (req) => {
       throw new Error('Candidate profile not found');
     }
 
+    // Handle already merged case - make operation idempotent
     if (candidate.merged_at) {
-      throw new Error('Candidate profile already merged');
+      // If already merged to the same user, return success
+      if (candidate.user_id === userId) {
+        console.log('Candidate already merged to this user - returning success (idempotent)');
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: 'Profile already linked to this account',
+            candidateId,
+            userId,
+            alreadyMerged: true,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      // If merged to a different user, that's an error
+      throw new Error('Candidate profile is already linked to a different user account');
     }
 
     // Validate user exists
