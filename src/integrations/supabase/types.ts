@@ -22101,25 +22101,31 @@ export type Database = {
       }
       page_permissions: {
         Row: {
+          accepted_at: string | null
           created_at: string | null
           email: string | null
           id: string
+          invited_by: string | null
           page_id: string
           permission_level: string | null
           user_id: string | null
         }
         Insert: {
+          accepted_at?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
+          invited_by?: string | null
           page_id: string
           permission_level?: string | null
           user_id?: string | null
         }
         Update: {
+          accepted_at?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
+          invited_by?: string | null
           page_id?: string
           permission_level?: string | null
           user_id?: string | null
@@ -22211,6 +22217,7 @@ export type Database = {
           id: string
           page_id: string
           title: string | null
+          version_number: number
         }
         Insert: {
           content: Json
@@ -22219,6 +22226,7 @@ export type Database = {
           id?: string
           page_id: string
           title?: string | null
+          version_number?: number
         }
         Update: {
           content?: Json
@@ -22227,6 +22235,7 @@ export type Database = {
           id?: string
           page_id?: string
           title?: string | null
+          version_number?: number
         }
         Relationships: [
           {
