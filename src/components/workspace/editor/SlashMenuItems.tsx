@@ -1,0 +1,145 @@
+import { 
+  DefaultReactSuggestionItem,
+  getDefaultReactSlashMenuItems,
+} from '@blocknote/react';
+import { 
+  AlertCircle, 
+  ChevronRight, 
+  Minus, 
+  List, 
+  Columns2,
+  Lightbulb,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+} from 'lucide-react';
+
+// Helper to insert or update a block at cursor position
+const insertBlock = (editor: any, blockConfig: any) => {
+  const currentBlock = editor.getTextCursorPosition().block;
+  const isBlockEmpty = 
+    currentBlock.content !== undefined &&
+    Array.isArray(currentBlock.content) &&
+    currentBlock.content.length === 0;
+
+  if (isBlockEmpty) {
+    editor.updateBlock(currentBlock, blockConfig);
+  } else {
+    editor.insertBlocks([blockConfig], currentBlock, 'after');
+  }
+};
+
+// Custom slash menu item creators
+const insertCallout = (editor: any, variant: string = 'info') => ({
+  title: variant === 'info' ? 'Callout' : `Callout (${variant})`,
+  onItemClick: () => {
+    insertBlock(editor, {
+      type: 'callout',
+      props: { variant },
+    });
+  },
+  aliases: variant === 'info' 
+    ? ['callout', 'alert', 'note', 'info'] 
+    : [`callout-${variant}`, variant],
+  group: 'Advanced',
+  icon: variant === 'info' ? <Lightbulb className="h-4 w-4" /> :
+        variant === 'warning' ? <AlertTriangle className="h-4 w-4" /> :
+        variant === 'success' ? <CheckCircle className="h-4 w-4" /> :
+        variant === 'danger' ? <XCircle className="h-4 w-4" /> :
+        <AlertCircle className="h-4 w-4" />,
+  subtext: `Add a ${variant} callout block`,
+});
+
+const insertToggle = (editor: any) => ({
+  title: 'Toggle',
+  onItemClick: () => {
+    insertBlock(editor, {
+      type: 'toggle',
+      props: { isOpen: false },
+    });
+  },
+  aliases: ['toggle', 'collapse', 'accordion', 'expand', 'dropdown'],
+  group: 'Advanced',
+  icon: <ChevronRight className="h-4 w-4" />,
+  subtext: 'Add a collapsible toggle block',
+});
+
+const insertDivider = (editor: any) => ({
+  title: 'Divider',
+  onItemClick: () => {
+    insertBlock(editor, {
+      type: 'divider',
+      props: { style: 'solid' },
+    });
+  },
+  aliases: ['divider', 'hr', 'line', 'separator', '---'],
+  group: 'Advanced',
+  icon: <Minus className="h-4 w-4" />,
+  subtext: 'Add a horizontal divider',
+});
+
+const insertTableOfContents = (editor: any) => ({
+  title: 'Table of Contents',
+  onItemClick: () => {
+    insertBlock(editor, {
+      type: 'tableOfContents',
+    });
+  },
+  aliases: ['toc', 'contents', 'table of contents', 'outline', 'index'],
+  group: 'Advanced',
+  icon: <List className="h-4 w-4" />,
+  subtext: 'Auto-generated from headings',
+});
+
+const insertColumns = (editor: any, columnCount: number = 2) => ({
+  title: columnCount === 2 ? 'Two Columns' : 'Three Columns',
+  onItemClick: () => {
+    insertBlock(editor, {
+      type: 'columns',
+      props: { columnCount },
+    });
+  },
+  aliases: columnCount === 2 
+    ? ['columns', 'cols', '2col', 'two columns', 'layout'] 
+    : ['3col', 'three columns', '3 columns'],
+  group: 'Advanced',
+  icon: <Columns2 className="h-4 w-4" />,
+  subtext: `Add a ${columnCount}-column layout`,
+});
+
+// Get all custom slash menu items for our blocks
+export function getCustomSlashMenuItems(
+  editor: any
+): DefaultReactSuggestionItem[] {
+  return [
+    // Get all default BlockNote items first
+    ...getDefaultReactSlashMenuItems(editor),
+    // Add our custom blocks
+    insertCallout(editor, 'info'),
+    insertCallout(editor, 'warning'),
+    insertCallout(editor, 'success'),
+    insertCallout(editor, 'danger'),
+    insertToggle(editor),
+    insertDivider(editor),
+    insertTableOfContents(editor),
+    insertColumns(editor, 2),
+    insertColumns(editor, 3),
+  ];
+}
+
+// Simple filter function for suggestion items
+export function filterSlashMenuItems<T extends { title: string; aliases?: string[] }>(
+  items: T[],
+  query: string
+): T[] {
+  if (!query) return items;
+  
+  const lowerQuery = query.toLowerCase();
+  return items.filter((item) => {
+    const titleMatch = item.title.toLowerCase().includes(lowerQuery);
+    const aliasMatch = item.aliases?.some((alias) => 
+      alias.toLowerCase().includes(lowerQuery)
+    );
+    return titleMatch || aliasMatch;
+  });
+}

@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useCallback, useState } from 'react';
 import { BlockNoteSchema, defaultBlockSpecs, PartialBlock } from '@blocknote/core';
-import { useCreateBlockNote } from '@blocknote/react';
+import { 
+  useCreateBlockNote, 
+  SuggestionMenuController,
+  SideMenuController,
+  SideMenu,
+  DragHandleMenu,
+  RemoveBlockItem,
+  BlockColorsItem,
+} from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/mantine/style.css';
 import { useTheme } from 'next-themes';
@@ -8,6 +16,7 @@ import { WorkspacePage } from '@/hooks/useWorkspacePages';
 import { cn } from '@/lib/utils';
 import { customBlockSpecs } from './editor/customBlocks';
 import { EditorToolbar } from './editor/EditorToolbar';
+import { getCustomSlashMenuItems, filterSlashMenuItems } from './editor/SlashMenuItems';
 
 // Create schema with custom blocks
 const schema = BlockNoteSchema.create({
@@ -71,7 +80,31 @@ export function WorkspaceEditor({
         onChange={handleChange}
         editable={!readOnly}
         theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
-      />
+        slashMenu={false}
+        sideMenu={false}
+      >
+        {/* Custom Slash Menu with our blocks */}
+        <SuggestionMenuController
+          triggerCharacter="/"
+          getItems={async (query) =>
+            filterSlashMenuItems(getCustomSlashMenuItems(editor), query)
+          }
+        />
+        
+        {/* Side Menu with Drag Handle for reordering blocks */}
+        {!readOnly && (
+          <SideMenuController
+            sideMenu={(props) => (
+              <SideMenu {...props}>
+                <DragHandleMenu {...props}>
+                  <RemoveBlockItem {...props}>Delete</RemoveBlockItem>
+                  <BlockColorsItem {...props}>Colors</BlockColorsItem>
+                </DragHandleMenu>
+              </SideMenu>
+            )}
+          />
+        )}
+      </BlockNoteView>
       <style>{`
         .workspace-editor .bn-container {
           --bn-colors-editor-background: transparent;
@@ -122,6 +155,49 @@ export function WorkspaceEditor({
         
         .workspace-editor .callout-content {
           min-height: 1.5em;
+        }
+        
+        /* Drag handle styling */
+        .workspace-editor .bn-side-menu {
+          opacity: 0;
+          transition: opacity 0.15s ease;
+        }
+        
+        .workspace-editor [data-node-type="blockContainer"]:hover .bn-side-menu,
+        .workspace-editor .bn-side-menu:hover {
+          opacity: 1;
+        }
+        
+        /* Slash menu styling */
+        .workspace-editor .bn-suggestion-menu {
+          background: hsl(var(--card));
+          border: 1px solid hsl(var(--border));
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          max-height: 400px;
+          overflow-y: auto;
+        }
+        
+        .workspace-editor .bn-suggestion-menu-item {
+          padding: 8px 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .workspace-editor .bn-suggestion-menu-item:hover,
+        .workspace-editor .bn-suggestion-menu-item[data-hovered="true"] {
+          background: hsl(var(--accent));
+        }
+        
+        .workspace-editor .bn-suggestion-menu-item-title {
+          font-weight: 500;
+        }
+        
+        .workspace-editor .bn-suggestion-menu-item-subtitle {
+          font-size: 12px;
+          color: hsl(var(--muted-foreground));
         }
       `}</style>
     </div>
