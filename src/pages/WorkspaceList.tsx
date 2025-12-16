@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
+import { useRole } from '@/contexts/RoleContext';
 import { PageTreeSidebar } from '@/components/workspace/PageTreeSidebar';
 import { PageSearchDialog } from '@/components/workspace/PageSearchDialog';
 import { useWorkspacePages, PageTemplate } from '@/hooks/useWorkspacePages';
@@ -20,7 +21,7 @@ import {
   Sparkles,
   PanelLeftClose,
   PanelLeft,
-  Command,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -42,6 +43,9 @@ export default function WorkspaceList() {
     createPage, 
     isLoading 
   } = useWorkspacePages();
+  
+  const { currentRole } = useRole();
+  const isAdmin = currentRole === 'admin' || currentRole === 'strategist';
 
   // Keyboard shortcuts
   useWorkspaceShortcuts({
@@ -272,6 +276,22 @@ export default function WorkspaceList() {
 
                 {/* Templates */}
                 <TabsContent value="templates">
+                  {/* Admin quick action */}
+                  {isAdmin && (
+                    <div className="flex items-center justify-between mb-6 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                      <div>
+                        <h3 className="font-medium">Template Management</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Create, edit, and import templates for your team
+                        </p>
+                      </div>
+                      <Button onClick={() => navigate('/admin/templates')}>
+                        <Settings className="h-4 w-4 mr-2" />
+                        Manage Templates
+                      </Button>
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {templates.map((template) => (
                       <Card
