@@ -10,6 +10,7 @@ import { usePartnerRelationships } from '@/hooks/usePartnerRelationships';
 import { PartnerRelationshipStats } from '@/components/communication/PartnerRelationshipStats';
 import { PartnerRelationshipGrid } from '@/components/communication/PartnerRelationshipGrid';
 import { QUINAdvisorWidget } from '@/components/communication/QUINAdvisorWidget';
+import { CrossChannelPatternsCard } from '@/components/communication/CrossChannelPatternsCard';
 import { PageTitle, Subtitle } from '@/components/ui/typography';
 
 export default function PartnerRelationships() {
@@ -96,6 +97,15 @@ export default function PartnerRelationships() {
               onScheduleMeeting={handleScheduleMeeting}
               onViewProfile={handleViewProfile}
             />
+          </motion.div>
+
+          {/* Cross-Channel Patterns */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <CrossChannelPatternsCard />
           </motion.div>
 
           {/* QUIN Advisor */}
