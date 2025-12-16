@@ -494,9 +494,9 @@ export async function getAccount() {
 export interface BlockListEntry {
   id: string;
   bl_value: string; // Email or domain
-  bl_type: 'email' | 'domain';
-  workspace_id?: string;
-  created_at?: string;
+  is_domain: boolean; // true = domain, false = email (API V2 format)
+  organization_id?: string;
+  timestamp_created?: string;
 }
 
 export interface ListBlockListParams {
@@ -517,7 +517,7 @@ export async function listBlockList(params: ListBlockListParams = {}) {
 }
 
 // Add entries to Instantly block list
-export async function addToBlockList(entries: Array<{ bl_value: string; bl_type?: 'email' | 'domain' }>) {
+export async function addToBlockList(entries: Array<{ bl_value: string; is_domain?: boolean }>) {
   return instantlyRequest<BlockListEntry[]>('/block-lists-entries', {
     method: 'POST',
     body: { entries },
