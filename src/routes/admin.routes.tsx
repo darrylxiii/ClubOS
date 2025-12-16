@@ -52,6 +52,7 @@ const TranslationAuditLog = lazy(() => import("@/pages/admin/TranslationAuditLog
 const TemplateManagement = lazy(() => import("@/pages/admin/TemplateManagement"));
 const WhatsAppAnalytics = lazy(() => import("@/pages/admin/WhatsAppAnalytics"));
 const WhatsAppSettings = lazy(() => import("@/pages/admin/WhatsAppSettings"));
+const CompanyRelationships = lazy(() => import("@/pages/admin/CompanyRelationships"));
 
 export const adminRoutes = (
   <>
@@ -530,6 +531,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <WhatsAppSettings />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/company-relationships"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <CompanyRelationships />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
