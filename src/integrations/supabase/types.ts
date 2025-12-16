@@ -22099,6 +22099,95 @@ export type Database = {
           },
         ]
       }
+      page_attachments: {
+        Row: {
+          block_id: string | null
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          page_id: string
+          user_id: string
+        }
+        Insert: {
+          block_id?: string | null
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          page_id: string
+          user_id: string
+        }
+        Update: {
+          block_id?: string | null
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          page_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_attachments_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_backlinks: {
+        Row: {
+          block_id: string | null
+          created_at: string | null
+          id: string
+          link_text: string | null
+          source_page_id: string
+          target_page_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          block_id?: string | null
+          created_at?: string | null
+          id?: string
+          link_text?: string | null
+          source_page_id: string
+          target_page_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          block_id?: string | null
+          created_at?: string | null
+          id?: string
+          link_text?: string | null
+          source_page_id?: string
+          target_page_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_backlinks_source_page_id_fkey"
+            columns: ["source_page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_backlinks_target_page_id_fkey"
+            columns: ["target_page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_comments: {
         Row: {
           block_id: string | null
@@ -35984,6 +36073,7 @@ export type Database = {
           is_template: boolean | null
           last_edited_by: string | null
           parent_page_id: string | null
+          search_vector: unknown
           sort_order: number | null
           title: string
           updated_at: string | null
@@ -36002,6 +36092,7 @@ export type Database = {
           is_template?: boolean | null
           last_edited_by?: string | null
           parent_page_id?: string | null
+          search_vector?: unknown
           sort_order?: number | null
           title?: string
           updated_at?: string | null
@@ -36020,6 +36111,7 @@ export type Database = {
           is_template?: boolean | null
           last_edited_by?: string | null
           parent_page_id?: string | null
+          search_vector?: unknown
           sort_order?: number | null
           title?: string
           updated_at?: string | null

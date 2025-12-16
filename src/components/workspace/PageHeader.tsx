@@ -20,6 +20,8 @@ import {
   Link,
   History,
   MessageSquare,
+  Link2,
+  Search,
 } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
 import { CoverPicker } from './CoverPicker';
@@ -27,6 +29,10 @@ import { EnhancedShareDialog } from './EnhancedShareDialog';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
 import { CommentsPanel } from './CommentsPanel';
 import { PresenceIndicator } from './PresenceIndicator';
+import { PageExport } from './PageExport';
+import { BacklinksPanel } from './BacklinksPanel';
+import { AdvancedSearchDialog } from './AdvancedSearchDialog';
+import { FileUploadButton } from './FileUploadButton';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -52,6 +58,8 @@ export function PageHeader({
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showBacklinks, setShowBacklinks] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -180,6 +188,18 @@ export function PageHeader({
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => setShowAdvancedSearch(true)}
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+
+            <FileUploadButton pageId={page.id} />
+
+            <PageExport page={page} />
+
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowComments(true)}
             >
               <MessageSquare className="h-4 w-4 mr-2" />
@@ -232,6 +252,10 @@ export function PageHeader({
                 <DropdownMenuItem onClick={() => setShowComments(true)}>
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Comments
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowBacklinks(true)}>
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Backlinks
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setShowVersionHistory(true)}>
                   <History className="h-4 w-4 mr-2" />
@@ -294,6 +318,19 @@ export function PageHeader({
         pageId={page.id}
         open={showComments}
         onOpenChange={setShowComments}
+      />
+
+      {/* Backlinks Panel */}
+      <BacklinksPanel
+        pageId={page.id}
+        open={showBacklinks}
+        onOpenChange={setShowBacklinks}
+      />
+
+      {/* Advanced Search Dialog */}
+      <AdvancedSearchDialog
+        open={showAdvancedSearch}
+        onOpenChange={setShowAdvancedSearch}
       />
     </div>
   );
