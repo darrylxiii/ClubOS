@@ -16,13 +16,14 @@ import {
   Copy, 
   Trash2, 
   Share2,
-  FileText,
   ImageIcon,
   Link,
+  History,
 } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
 import { CoverPicker } from './CoverPicker';
-import { ShareDialog } from './ShareDialog';
+import { EnhancedShareDialog } from './EnhancedShareDialog';
+import { VersionHistoryPanel } from './VersionHistoryPanel';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -46,6 +47,7 @@ export function PageHeader({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -211,6 +213,10 @@ export function PageHeader({
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowVersionHistory(true)}>
+                  <History className="h-4 w-4 mr-2" />
+                  Version history
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={onDelete}
@@ -248,12 +254,19 @@ export function PageHeader({
         />
       )}
 
-      {/* Share Dialog */}
-      <ShareDialog
+      {/* Enhanced Share Dialog */}
+      <EnhancedShareDialog
         open={showShareDialog}
         onOpenChange={setShowShareDialog}
         page={page}
         onUpdate={onUpdate}
+      />
+
+      {/* Version History Panel */}
+      <VersionHistoryPanel
+        pageId={page.id}
+        open={showVersionHistory}
+        onOpenChange={setShowVersionHistory}
       />
     </div>
   );
