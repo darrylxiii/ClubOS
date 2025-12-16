@@ -53,6 +53,15 @@ import {
   Star,
   Layout,
   Phone,
+  Play,
+  Flame,
+  Eye,
+  Archive,
+  Upload,
+  Edit,
+  Percent,
+  Gamepad2,
+  Heart,
   type LucideIcon,
 } from "lucide-react";
 
@@ -257,6 +266,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       badge: "New",
       items: [
         { name: "WhatsApp Inbox", icon: MessageSquare, path: "/whatsapp" },
+        { name: "WhatsApp Import", icon: Upload, path: "/whatsapp-import" },
         { name: "Analytics", icon: BarChart3, path: "/admin/whatsapp-analytics" },
         { name: "Settings", icon: Settings, path: "/admin/whatsapp-settings" },
       ],
@@ -285,10 +295,20 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       roles: ['admin', 'strategist'],
     },
     {
+      title: "Company Relationships",
+      icon: Building2,
+      items: [
+        { name: "Relationships Dashboard", icon: Building2, path: "/admin/company-relationships" },
+        { name: "Partner Funnel", icon: Target, path: "/partner-funnel" },
+        { name: "Partner Relationships", icon: Link2, path: "/partner-relationships" },
+      ],
+    },
+    {
       title: "Management",
       icon: Building,
       items: [
         { name: "All Candidates", icon: Users, path: "/admin/candidates" },
+        { name: "Archived Candidates", icon: Archive, path: "/archived-candidates" },
         { name: "Member Requests", icon: Users, path: "/admin/member-requests" },
         { name: "Company Management", icon: Building, path: "/admin/companies" },
         { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
@@ -304,6 +324,19 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Funnel Analytics", icon: TrendingUp, path: "/funnel-analytics" },
         { name: "Global Analytics", icon: BarChart3, path: "/admin/global-analytics" },
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
+        { name: "Knowledge Base", icon: BookOpen, path: "/knowledge-base" },
+        { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace" },
+      ],
+    },
+    {
+      title: "Games & Assessments",
+      icon: Gamepad2,
+      items: [
+        { name: "Values Poker", icon: Trophy, path: "/values-poker" },
+        { name: "Swipe Game", icon: Play, path: "/swipe-game" },
+        { name: "Pressure Cooker", icon: Flame, path: "/pressure-cooker" },
+        { name: "Blind Spot Detector", icon: Eye, path: "/blind-spot-detector" },
+        { name: "Miljoenenjacht", icon: DollarSign, path: "/miljoenenjacht" },
       ],
     },
     {
@@ -316,6 +349,18 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
         { name: "Enhanced ML", icon: Sparkles, path: "/enhanced-ml" },
         { name: "Company Intelligence", icon: Building, path: "/company-intelligence" },
+        { name: "Leaderboard", icon: Trophy, path: "/leaderboard" },
+      ],
+    },
+    {
+      title: "Analytics",
+      icon: BarChart3,
+      items: [
+        { name: "Candidate Analytics", icon: BarChart3, path: "/candidate-analytics" },
+        { name: "Messaging Analytics", icon: MessageSquare, path: "/messaging-analytics" },
+        { name: "Communication Analytics", icon: Brain, path: "/communication-analytics" },
+        { name: "Meeting Analytics", icon: Video, path: "/meeting-analytics" },
+        { name: "Social Analytics", icon: TrendingUp, path: "/analytics" },
       ],
     },
     {
@@ -327,14 +372,34 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Website KPIs", icon: Globe, path: "/admin/website-kpis" },
         { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
         { name: "Anti-Hacking Center", icon: Shield, path: "/admin/anti-hacking" },
+        { name: "God Mode", icon: Shield, path: "/admin/god-mode" },
         { name: "User Activity", icon: Activity, path: "/admin/user-activity" },
-        { name: "System Health", icon: Shield, path: "/admin/system-health" },
+        { name: "System Health", icon: Heart, path: "/admin/system-health" },
         { name: "Disaster Recovery", icon: Shield, path: "/admin/comprehensive-dr" },
         { name: "DR Runbooks", icon: FileCheck, path: "/admin/dr-runbooks" },
-        { name: "Translation Manager", icon: Languages, path: "/admin/translations" },
-        { name: "Language Manager", icon: Globe, path: "/admin/languages" },
         { name: "Target Companies", icon: Target, path: "/admin/target-companies" },
         { name: "Page Templates", icon: FileText, path: "/admin/templates" },
+      ],
+    },
+    {
+      title: "Translations",
+      icon: Languages,
+      items: [
+        { name: "Translation Manager", icon: Languages, path: "/admin/translations" },
+        { name: "Translation Editor", icon: Edit, path: "/admin/translation-editor" },
+        { name: "Translation Coverage", icon: BarChart3, path: "/admin/translation-coverage" },
+        { name: "Brand Terms", icon: Shield, path: "/admin/brand-terms" },
+        { name: "Translation Audit", icon: FileCheck, path: "/admin/translation-audit" },
+        { name: "Language Manager", icon: Globe, path: "/admin/languages" },
+      ],
+    },
+    {
+      title: "Audit & Logs",
+      icon: FileCheck,
+      items: [
+        { name: "Admin Audit Log", icon: FileCheck, path: "/admin/audit-log" },
+        { name: "Activity Monitor", icon: Activity, path: "/admin/activity-monitor" },
+        { name: "Error Logs", icon: AlertTriangle, path: "/admin/error-logs" },
       ],
     },
     {
@@ -346,6 +411,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Deal Pipeline Settings", icon: Cog, path: "/admin/deal-pipeline-settings" },
         { name: "Financial Dashboard", icon: CreditCard, path: "/admin/financial" },
         { name: "Revenue Analytics", icon: BarChart3, path: "/revenue-analytics" },
+        { name: "Revenue Shares", icon: Percent, path: "/admin/revenue-shares" },
         { name: "Referral Program", icon: Gift, path: "/referrals" },
       ],
     },
@@ -353,6 +419,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "Employee Management",
       icon: Users,
       items: [
+        { name: "Employee Dashboard", icon: Users, path: "/admin/employee-management" },
         { name: "Employee Profiles", icon: Users, path: "/admin/employees" },
         { name: "My Performance", icon: TrendingUp, path: "/my-performance" },
         { name: "Team Performance", icon: BarChart3, path: "/team-performance" },
