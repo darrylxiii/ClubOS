@@ -35979,6 +35979,545 @@ export type Database = {
           },
         ]
       }
+      whatsapp_analytics: {
+        Row: {
+          account_id: string | null
+          avg_response_time_minutes: number | null
+          conversations_closed: number | null
+          conversations_started: number | null
+          created_at: string | null
+          date: string
+          id: string
+          messages_delivered: number | null
+          messages_failed: number | null
+          messages_read: number | null
+          messages_received: number | null
+          messages_sent: number | null
+          templates_sent: Json | null
+          unique_contacts_reached: number | null
+        }
+        Insert: {
+          account_id?: string | null
+          avg_response_time_minutes?: number | null
+          conversations_closed?: number | null
+          conversations_started?: number | null
+          created_at?: string | null
+          date: string
+          id?: string
+          messages_delivered?: number | null
+          messages_failed?: number | null
+          messages_read?: number | null
+          messages_received?: number | null
+          messages_sent?: number | null
+          templates_sent?: Json | null
+          unique_contacts_reached?: number | null
+        }
+        Update: {
+          account_id?: string | null
+          avg_response_time_minutes?: number | null
+          conversations_closed?: number | null
+          conversations_started?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          messages_delivered?: number | null
+          messages_failed?: number | null
+          messages_read?: number | null
+          messages_received?: number | null
+          messages_sent?: number | null
+          templates_sent?: Json | null
+          unique_contacts_reached?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_analytics_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_business_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_automation_rules: {
+        Row: {
+          account_id: string | null
+          action_config: Json
+          action_type: string
+          created_at: string | null
+          created_by: string | null
+          delay_minutes: number | null
+          description: string | null
+          execution_count: number | null
+          id: string
+          is_active: boolean | null
+          last_executed_at: string | null
+          name: string
+          priority: number | null
+          template_id: string | null
+          trigger_config: Json
+          trigger_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          action_config: Json
+          action_type: string
+          created_at?: string | null
+          created_by?: string | null
+          delay_minutes?: number | null
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_executed_at?: string | null
+          name: string
+          priority?: number | null
+          template_id?: string | null
+          trigger_config: Json
+          trigger_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          action_config?: Json
+          action_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          delay_minutes?: number | null
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_executed_at?: string | null
+          name?: string
+          priority?: number | null
+          template_id?: string | null
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_automation_rules_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_business_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_automation_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_automation_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_automation_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_automation_rules_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_broadcast_campaigns: {
+        Row: {
+          account_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          delivered_count: number | null
+          description: string | null
+          failed_count: number | null
+          id: string
+          name: string
+          read_count: number | null
+          recipient_count: number | null
+          replied_count: number | null
+          scheduled_at: string | null
+          sent_count: number | null
+          started_at: string | null
+          status: string | null
+          target_audience: Json | null
+          template_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          delivered_count?: number | null
+          description?: string | null
+          failed_count?: number | null
+          id?: string
+          name: string
+          read_count?: number | null
+          recipient_count?: number | null
+          replied_count?: number | null
+          scheduled_at?: string | null
+          sent_count?: number | null
+          started_at?: string | null
+          status?: string | null
+          target_audience?: Json | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          delivered_count?: number | null
+          description?: string | null
+          failed_count?: number | null
+          id?: string
+          name?: string
+          read_count?: number | null
+          recipient_count?: number | null
+          replied_count?: number | null
+          scheduled_at?: string | null
+          sent_count?: number | null
+          started_at?: string | null
+          status?: string | null
+          target_audience?: Json | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_broadcast_campaigns_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_business_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_broadcast_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_broadcast_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_broadcast_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_broadcast_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_broadcast_recipients: {
+        Row: {
+          campaign_id: string | null
+          candidate_id: string | null
+          conversation_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          message_id: string | null
+          phone_number: string
+          sent_at: string | null
+          status: string | null
+          template_params: Json | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          candidate_id?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          phone_number: string
+          sent_at?: string | null
+          status?: string | null
+          template_params?: Json | null
+        }
+        Update: {
+          campaign_id?: string | null
+          candidate_id?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          phone_number?: string
+          sent_at?: string | null
+          status?: string | null
+          template_params?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_broadcast_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_broadcast_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_broadcast_recipients_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_broadcast_recipients_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_broadcast_recipients_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_broadcast_recipients_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_broadcast_recipients_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_business_accounts: {
+        Row: {
+          business_account_id: string
+          company_id: string | null
+          created_at: string | null
+          created_by: string | null
+          display_phone_number: string | null
+          id: string
+          is_active: boolean | null
+          messaging_limit: string | null
+          phone_number_id: string
+          quality_rating: string | null
+          updated_at: string | null
+          verified_name: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          business_account_id: string
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          display_phone_number?: string | null
+          id?: string
+          is_active?: boolean | null
+          messaging_limit?: string | null
+          phone_number_id: string
+          quality_rating?: string | null
+          updated_at?: string | null
+          verified_name?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          business_account_id?: string
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          display_phone_number?: string | null
+          id?: string
+          is_active?: boolean | null
+          messaging_limit?: string | null
+          phone_number_id?: string
+          quality_rating?: string | null
+          updated_at?: string | null
+          verified_name?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_business_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_business_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_business_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_business_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_business_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_conversations: {
+        Row: {
+          account_id: string | null
+          assigned_strategist_id: string | null
+          candidate_id: string | null
+          candidate_name: string | null
+          candidate_phone: string
+          conversation_status: string | null
+          created_at: string | null
+          id: string
+          is_pinned: boolean | null
+          last_message_at: string | null
+          last_message_direction: string | null
+          last_message_preview: string | null
+          messaging_window_expires_at: string | null
+          metadata: Json | null
+          profile_picture_url: string | null
+          tags: string[] | null
+          unread_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          assigned_strategist_id?: string | null
+          candidate_id?: string | null
+          candidate_name?: string | null
+          candidate_phone: string
+          conversation_status?: string | null
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          last_message_at?: string | null
+          last_message_direction?: string | null
+          last_message_preview?: string | null
+          messaging_window_expires_at?: string | null
+          metadata?: Json | null
+          profile_picture_url?: string | null
+          tags?: string[] | null
+          unread_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          assigned_strategist_id?: string | null
+          candidate_id?: string | null
+          candidate_name?: string | null
+          candidate_phone?: string
+          conversation_status?: string | null
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          last_message_at?: string | null
+          last_message_direction?: string | null
+          last_message_preview?: string | null
+          messaging_window_expires_at?: string | null
+          metadata?: Json | null
+          profile_picture_url?: string | null
+          tags?: string[] | null
+          unread_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_business_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_assigned_strategist_id_fkey"
+            columns: ["assigned_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_assigned_strategist_id_fkey"
+            columns: ["assigned_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_assigned_strategist_id_fkey"
+            columns: ["assigned_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_imports: {
         Row: {
           company_id: string | null
@@ -36065,6 +36604,231 @@ export type Database = {
             columns: ["uploaded_by"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_messages: {
+        Row: {
+          account_id: string | null
+          ai_analysis: Json | null
+          automation_trigger: string | null
+          candidate_id: string | null
+          content: string | null
+          context_message_id: string | null
+          conversation_id: string | null
+          created_at: string | null
+          direction: string
+          error_code: string | null
+          error_message: string | null
+          id: string
+          intent_classification: string | null
+          interaction_id: string | null
+          is_automated: boolean | null
+          media_filename: string | null
+          media_id: string | null
+          media_mime_type: string | null
+          media_sha256: string | null
+          media_url: string | null
+          message_type: string
+          reaction_emoji: string | null
+          reaction_message_id: string | null
+          sent_by: string | null
+          sentiment_score: number | null
+          status: string | null
+          status_timestamp: string | null
+          template_name: string | null
+          template_params: Json | null
+          updated_at: string | null
+          wa_message_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          ai_analysis?: Json | null
+          automation_trigger?: string | null
+          candidate_id?: string | null
+          content?: string | null
+          context_message_id?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          direction: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          intent_classification?: string | null
+          interaction_id?: string | null
+          is_automated?: boolean | null
+          media_filename?: string | null
+          media_id?: string | null
+          media_mime_type?: string | null
+          media_sha256?: string | null
+          media_url?: string | null
+          message_type: string
+          reaction_emoji?: string | null
+          reaction_message_id?: string | null
+          sent_by?: string | null
+          sentiment_score?: number | null
+          status?: string | null
+          status_timestamp?: string | null
+          template_name?: string | null
+          template_params?: Json | null
+          updated_at?: string | null
+          wa_message_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          ai_analysis?: Json | null
+          automation_trigger?: string | null
+          candidate_id?: string | null
+          content?: string | null
+          context_message_id?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          direction?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          intent_classification?: string | null
+          interaction_id?: string | null
+          is_automated?: boolean | null
+          media_filename?: string | null
+          media_id?: string | null
+          media_mime_type?: string | null
+          media_sha256?: string | null
+          media_url?: string | null
+          message_type?: string
+          reaction_emoji?: string | null
+          reaction_message_id?: string | null
+          sent_by?: string | null
+          sentiment_score?: number | null
+          status?: string | null
+          status_timestamp?: string | null
+          template_name?: string | null
+          template_params?: Json | null
+          updated_at?: string | null
+          wa_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_business_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "company_interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_templates: {
+        Row: {
+          account_id: string | null
+          approval_status: string | null
+          components: Json | null
+          created_at: string | null
+          example_values: Json | null
+          id: string
+          is_active: boolean | null
+          language_code: string | null
+          meta_template_id: string | null
+          quality_score: number | null
+          rejection_reason: string | null
+          template_category: string
+          template_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          approval_status?: string | null
+          components?: Json | null
+          created_at?: string | null
+          example_values?: Json | null
+          id?: string
+          is_active?: boolean | null
+          language_code?: string | null
+          meta_template_id?: string | null
+          quality_score?: number | null
+          rejection_reason?: string | null
+          template_category: string
+          template_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          approval_status?: string | null
+          components?: Json | null
+          created_at?: string | null
+          example_values?: Json | null
+          id?: string
+          is_active?: boolean | null
+          language_code?: string | null
+          meta_template_id?: string | null
+          quality_score?: number | null
+          rejection_reason?: string | null
+          template_category?: string
+          template_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_templates_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_business_accounts"
             referencedColumns: ["id"]
           },
         ]
