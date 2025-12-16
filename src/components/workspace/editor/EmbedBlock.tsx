@@ -240,7 +240,7 @@ const embedColors: Record<string, string> = {
   canva: 'text-blue-500',
 };
 
-export const EmbedBlock = () => createReactBlockSpec(
+export const EmbedBlock = createReactBlockSpec(
   {
     type: 'embed',
     propSchema: {
