@@ -5,13 +5,14 @@ import { TableOfContentsBlock } from './TableOfContentsBlock';
 import { ColumnsBlock } from './ColumnsBlock';
 
 // Export block specs - call the factory functions to get the actual specs
+// Export block specs - invoke factory functions to get actual specs
 export const customBlockSpecs = {
-  callout: CalloutBlock,
-  toggle: ToggleBlock,
-  divider: DividerBlock,
-  tableOfContents: TableOfContentsBlock,
-  columns: ColumnsBlock,
-} as const;
+  callout: CalloutBlock(),
+  toggle: ToggleBlock(),
+  divider: DividerBlock(),
+  tableOfContents: TableOfContentsBlock(),
+  columns: ColumnsBlock(),
+};
 
 export const customSlashMenuItems = [
   {
