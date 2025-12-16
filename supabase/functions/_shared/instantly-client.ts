@@ -491,10 +491,51 @@ export async function getAccount() {
 // Block List Endpoints
 // =====================================================
 
-export async function addToBlockList(emails: string[]) {
-  return instantlyRequest<void>('/block-list', {
+export interface BlockListEntry {
+  id: string;
+  bl_value: string; // Email or domain
+  bl_type: 'email' | 'domain';
+  workspace_id?: string;
+  created_at?: string;
+}
+
+export interface ListBlockListParams {
+  limit?: number;
+  skip?: number;
+  search?: string;
+}
+
+// Get all block list entries from Instantly
+export async function listBlockList(params: ListBlockListParams = {}) {
+  return instantlyRequest<BlockListEntry[]>('/block-lists-entries', {
+    params: {
+      limit: params.limit || 100,
+      skip: params.skip || 0,
+      search: params.search,
+    },
+  });
+}
+
+// Add entries to Instantly block list
+export async function addToBlockList(entries: Array<{ bl_value: string; bl_type?: 'email' | 'domain' }>) {
+  return instantlyRequest<BlockListEntry[]>('/block-lists-entries', {
     method: 'POST',
-    body: { emails },
+    body: { entries },
+  });
+}
+
+// Delete entry from Instantly block list
+export async function deleteFromBlockList(entryId: string) {
+  return instantlyRequest<void>(`/block-lists-entries/${entryId}`, {
+    method: 'DELETE',
+  });
+}
+
+// Bulk delete from Instantly block list
+export async function bulkDeleteFromBlockList(entryIds: string[]) {
+  return instantlyRequest<void>('/block-lists-entries', {
+    method: 'DELETE',
+    body: { ids: entryIds },
   });
 }
 

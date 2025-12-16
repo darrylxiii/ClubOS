@@ -10272,12 +10272,15 @@ export type Database = {
           expires_at: string | null
           gdpr_request_id: string | null
           id: string
+          instantly_entry_id: string | null
+          last_synced_at: string | null
           metadata: Json | null
           notes: string | null
           reason: string
           requested_by: string | null
           source: string | null
           suppressed_at: string
+          sync_status: string | null
         }
         Insert: {
           added_by?: string | null
@@ -10288,12 +10291,15 @@ export type Database = {
           expires_at?: string | null
           gdpr_request_id?: string | null
           id?: string
+          instantly_entry_id?: string | null
+          last_synced_at?: string | null
           metadata?: Json | null
           notes?: string | null
           reason: string
           requested_by?: string | null
           source?: string | null
           suppressed_at?: string
+          sync_status?: string | null
         }
         Update: {
           added_by?: string | null
@@ -10304,12 +10310,15 @@ export type Database = {
           expires_at?: string | null
           gdpr_request_id?: string | null
           id?: string
+          instantly_entry_id?: string | null
+          last_synced_at?: string | null
           metadata?: Json | null
           notes?: string | null
           reason?: string
           requested_by?: string | null
           source?: string | null
           suppressed_at?: string
+          sync_status?: string | null
         }
         Relationships: [
           {
