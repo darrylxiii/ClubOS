@@ -1,0 +1,263 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AppLayout } from '@/components/AppLayout';
+import { RoleGate } from '@/components/RoleGate';
+import { PageTreeSidebar } from '@/components/workspace/PageTreeSidebar';
+import { useWorkspacePages, PageTemplate } from '@/hooks/useWorkspacePages';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  Plus, 
+  Search, 
+  FileText, 
+  Star,
+  Clock,
+  Layout,
+  Sparkles,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+
+export default function WorkspaceList() {
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+  const { 
+    pages, 
+    favorites, 
+    recent, 
+    templates, 
+    createPage, 
+    isLoading 
+  } = useWorkspacePages();
+
+  const filteredPages = pages.filter(page => 
+    page.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleCreatePage = async (template?: PageTemplate) => {
+    const newPage = await createPage.mutateAsync({
+      title: template ? template.name : 'Untitled',
+      content: template ? template.content : [],
+      icon_emoji: template?.icon || undefined,
+    });
+    navigate(`/pages/${newPage.id}`);
+  };
+
+  return (
+    <AppLayout>
+      <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'candidate']}>
+        <div className="flex h-[calc(100vh-64px)]">
+          <PageTreeSidebar />
+          
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-5xl mx-auto p-8">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h1 className="text-3xl font-bold">Quantum OS</h1>
+                  <p className="text-muted-foreground mt-1">
+                    Your personal workspace for notes, docs, and more
+                  </p>
+                </div>
+                <Button onClick={() => handleCreatePage()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Page
+                </Button>
+              </div>
+
+              {/* Search */}
+              <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search pages..."
+                  className="pl-10"
+                />
+              </div>
+
+              <Tabs defaultValue="all" className="w-full">
+                <TabsList className="mb-6">
+                  <TabsTrigger value="all" className="gap-2">
+                    <FileText className="h-4 w-4" />
+                    All Pages
+                  </TabsTrigger>
+                  <TabsTrigger value="favorites" className="gap-2">
+                    <Star className="h-4 w-4" />
+                    Favorites
+                  </TabsTrigger>
+                  <TabsTrigger value="recent" className="gap-2">
+                    <Clock className="h-4 w-4" />
+                    Recent
+                  </TabsTrigger>
+                  <TabsTrigger value="templates" className="gap-2">
+                    <Layout className="h-4 w-4" />
+                    Templates
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* All Pages */}
+                <TabsContent value="all">
+                  {isLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="h-32 bg-muted/50 rounded-lg animate-pulse" />
+                      ))}
+                    </div>
+                  ) : filteredPages.length === 0 ? (
+                    <Card className="p-12 text-center">
+                      <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Create your first page</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Start with a blank page or choose from our templates
+                      </p>
+                      <div className="flex gap-2 justify-center">
+                        <Button onClick={() => handleCreatePage()}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Blank page
+                        </Button>
+                        <Button variant="outline" onClick={() => {}}>
+                          <Layout className="h-4 w-4 mr-2" />
+                          Use template
+                        </Button>
+                      </div>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredPages.map((page) => (
+                        <Card
+                          key={page.id}
+                          className="p-4 cursor-pointer hover:bg-accent/50 transition-colors group"
+                          onClick={() => navigate(`/pages/${page.id}`)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="text-2xl">{page.icon_emoji || '📄'}</span>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium truncate">
+                                {page.title || 'Untitled'}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {format(new Date(page.updated_at), 'MMM d, yyyy')}
+                              </p>
+                            </div>
+                            {page.is_favorite && (
+                              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 shrink-0" />
+                            )}
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Favorites */}
+                <TabsContent value="favorites">
+                  {favorites.length === 0 ? (
+                    <Card className="p-12 text-center">
+                      <Star className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No favorites yet</h3>
+                      <p className="text-muted-foreground">
+                        Click the star icon on any page to add it to your favorites
+                      </p>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {favorites.map((page) => (
+                        <Card
+                          key={page.id}
+                          className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                          onClick={() => navigate(`/pages/${page.id}`)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="text-2xl">{page.icon_emoji || '📄'}</span>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium truncate">
+                                {page.title || 'Untitled'}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {format(new Date(page.updated_at), 'MMM d, yyyy')}
+                              </p>
+                            </div>
+                            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 shrink-0" />
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Recent */}
+                <TabsContent value="recent">
+                  {recent.length === 0 ? (
+                    <Card className="p-12 text-center">
+                      <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No recent pages</h3>
+                      <p className="text-muted-foreground">
+                        Pages you visit will appear here for quick access
+                      </p>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {recent.map((page) => (
+                        <Card
+                          key={page.id}
+                          className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                          onClick={() => navigate(`/pages/${page.id}`)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="text-2xl">{page.icon_emoji || '📄'}</span>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium truncate">
+                                {page.title || 'Untitled'}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {format(new Date(page.updated_at), 'MMM d, yyyy')}
+                              </p>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Templates */}
+                <TabsContent value="templates">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {templates.map((template) => (
+                      <Card
+                        key={template.id}
+                        className="p-4 cursor-pointer hover:bg-accent/50 transition-colors group"
+                        onClick={() => handleCreatePage(template)}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="text-2xl">{template.icon || '📄'}</span>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium">{template.name}</h3>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {template.description}
+                            </p>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          className="w-full mt-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          Use template
+                        </Button>
+                      </Card>
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </div>
+      </RoleGate>
+    </AppLayout>
+  );
+}
