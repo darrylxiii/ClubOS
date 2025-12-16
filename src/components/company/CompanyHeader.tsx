@@ -1,8 +1,8 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ImageIcon, Settings, Eye, Share2, Star } from "lucide-react";
 import { logger } from "@/lib/logger";
+import { CompanyLogo } from "@/components/ui/company-logo";
 
 interface Company {
   id: string;
@@ -12,6 +12,7 @@ interface Company {
   tagline: string | null;
   description: string | null;
   membership_tier: string | null;
+  website_url?: string | null;
 }
 
 interface CompanyHeaderProps {
@@ -79,27 +80,25 @@ export function CompanyHeader({
 
       {/* Avatar */}
       <div className="absolute top-64 left-6 transform -translate-y-1/2 z-10">
-        <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
-          <AvatarImage 
-            src={company.logo_url || undefined}
-            className="object-contain w-full h-full"
-            alt={`${company.name} logo`}
+        <div className="relative">
+          <CompanyLogo 
+            company={company} 
+            size="2xl" 
+            autoFetch={true}
+            className="border-4 border-background shadow-lg"
           />
-          <AvatarFallback className="text-4xl font-black bg-gradient-to-br from-primary to-accent text-white">
-            {company.name.substring(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        {(isAdmin || isCompanyMember) && (
-          <Button
-            size="sm"
-            variant="secondary"
-            className="absolute bottom-0 right-0 rounded-full h-10 w-10 p-0 shadow-lg"
-            onClick={onEditClick}
-            aria-label="Edit company"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
-        )}
+          {(isAdmin || isCompanyMember) && (
+            <Button
+              size="sm"
+              variant="secondary"
+              className="absolute bottom-0 right-0 rounded-full h-10 w-10 p-0 shadow-lg"
+              onClick={onEditClick}
+              aria-label="Edit company"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Company Info */}

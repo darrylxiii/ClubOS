@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, MapPin, Clock, Lock } from "lucide-react";
+import { MapPin, Clock, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { CompanyLogo } from "@/components/ui/company-logo";
 
 interface JobCardProps {
   job: {
@@ -17,6 +18,7 @@ interface JobCardProps {
     companies?: {
       name: string;
       logo_url?: string;
+      website_url?: string;
     } | null;
   };
 }
@@ -32,17 +34,11 @@ export function JobCard({ job }: JobCardProps) {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2">
-              {job.companies?.logo_url ? (
-                <img
-                  src={job.companies.logo_url}
-                  alt={job.companies.name}
-                  className="w-10 h-10 rounded object-cover"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-muted-foreground" />
-                </div>
-              )}
+              <CompanyLogo 
+                company={job.companies} 
+                size="md" 
+                autoFetch={true}
+              />
               <div>
                 <h3 className="font-semibold text-lg leading-tight">{job.title}</h3>
                 <p className="text-sm text-muted-foreground">{job.companies?.name}</p>
