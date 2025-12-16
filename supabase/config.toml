@@ -832,3 +832,21 @@ verify_jwt = false
 verify_jwt = true
 
 # =============================================================================
+# WhatsApp Business API Functions
+# =============================================================================
+[functions.send-whatsapp-message]
+verify_jwt = true
+
+[functions.whatsapp-webhook-receiver]
+verify_jwt = false
+
+[functions.process-whatsapp-message]
+verify_jwt = false
+
+[functions.sync-whatsapp-templates]
+verify_jwt = true
+
+[functions.send-whatsapp-broadcast]
+verify_jwt = true
+
+# =============================================================================
