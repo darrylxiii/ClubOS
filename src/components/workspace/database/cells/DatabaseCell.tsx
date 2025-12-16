@@ -5,15 +5,17 @@ import { NumberCell } from './NumberCell';
 import { DateCell } from './DateCell';
 import { CheckboxCell } from './CheckboxCell';
 import { SelectCell } from './SelectCell';
+import { MultiSelectCell } from './MultiSelectCell';
 import { UrlCell } from './UrlCell';
 
 interface DatabaseCellProps {
   column: DatabaseColumn;
   value: unknown;
   onChange: (value: unknown) => void;
+  onAddOption?: (option: { value: string; color: string }) => void;
 }
 
-export function DatabaseCell({ column, value, onChange }: DatabaseCellProps) {
+export function DatabaseCell({ column, value, onChange, onAddOption }: DatabaseCellProps) {
   switch (column.column_type) {
     case 'text':
     case 'email':
@@ -35,7 +37,14 @@ export function DatabaseCell({ column, value, onChange }: DatabaseCellProps) {
       return <SelectCell value={value as string} onChange={onChange} options={column.options} isMulti={false} />;
     
     case 'multi_select':
-      return <SelectCell value={value as string[]} onChange={onChange} options={column.options} isMulti={true} />;
+      return (
+        <MultiSelectCell 
+          value={value as string[]} 
+          onChange={onChange} 
+          options={column.options}
+          onAddOption={onAddOption}
+        />
+      );
     
     case 'url':
       return <UrlCell value={value as string} onChange={onChange} />;

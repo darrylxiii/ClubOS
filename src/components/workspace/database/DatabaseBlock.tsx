@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useWorkspaceDatabase, ViewType } from '@/hooks/useWorkspaceDatabase';
 import { DatabaseTableView } from './views/DatabaseTableView';
 import { DatabaseBoardView } from './views/DatabaseBoardView';
 import { DatabaseGalleryView } from './views/DatabaseGalleryView';
 import { DatabaseViewSwitcher } from './DatabaseViewSwitcher';
+import { DatabaseFilterBar, FilterCondition, applyFilters } from './DatabaseFilterBar';
+import { DatabaseSortMenu, SortCondition, applySorts } from './DatabaseSortMenu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Database, Loader2 } from 'lucide-react';
@@ -18,6 +20,9 @@ interface DatabaseBlockProps {
 
 export function DatabaseBlock({ databaseId, pageId, onDatabaseCreated, className }: DatabaseBlockProps) {
   const [localDbId, setLocalDbId] = useState(databaseId);
+  const [filters, setFilters] = useState<FilterCondition[]>([]);
+  const [sorts, setSorts] = useState<SortCondition[]>([]);
+  
   const {
     database,
     columns,
@@ -39,6 +44,14 @@ export function DatabaseBlock({ databaseId, pageId, onDatabaseCreated, className
 
   const [isCreating, setIsCreating] = useState(false);
   const [dbName, setDbName] = useState('');
+
+  // Apply filters and sorts to rows
+  const processedRows = useMemo(() => {
+    let result = rows;
+    result = applyFilters(result, filters);
+    result = applySorts(result, sorts);
+    return result;
+  }, [rows, filters, sorts]);
 
   const handleCreateDatabase = async () => {
     setIsCreating(true);
@@ -86,7 +99,7 @@ export function DatabaseBlock({ databaseId, pageId, onDatabaseCreated, className
 
     const viewProps = {
       columns,
-      rows,
+      rows: processedRows,
       onAddColumn: addColumn,
       onUpdateColumn: updateColumn,
       onDeleteColumn: deleteColumn,
@@ -121,6 +134,25 @@ export function DatabaseBlock({ databaseId, pageId, onDatabaseCreated, className
           onViewChange={setActiveViewId}
           onAddView={addView}
         />
+      </div>
+
+      {/* Filter and Sort Bar */}
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-muted/10">
+        <DatabaseFilterBar
+          columns={columns}
+          filters={filters}
+          onFiltersChange={setFilters}
+        />
+        <DatabaseSortMenu
+          columns={columns}
+          sorts={sorts}
+          onSortsChange={setSorts}
+        />
+        {(filters.length > 0 || sorts.length > 0) && (
+          <span className="text-xs text-muted-foreground ml-2">
+            {processedRows.length} of {rows.length} rows
+          </span>
+        )}
       </div>
 
       {/* Database Content */}

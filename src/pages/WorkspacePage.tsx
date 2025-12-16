@@ -4,7 +4,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { WorkspaceEditor } from '@/components/workspace/WorkspaceEditor';
 import { PageHeader } from '@/components/workspace/PageHeader';
-import { PageTreeSidebar } from '@/components/workspace/PageTreeSidebar';
+import { DraggablePageTree } from '@/components/workspace/DraggablePageTree';
 import { PageBreadcrumbs } from '@/components/workspace/PageBreadcrumbs';
 import { PageSearchDialog } from '@/components/workspace/PageSearchDialog';
 import { useWorkspacePage, useWorkspacePages } from '@/hooks/useWorkspacePages';
@@ -88,7 +88,7 @@ export default function WorkspacePage() {
       <AppLayout>
         <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
           <div className="flex h-[calc(100vh-64px)]">
-            {showSidebar && <PageTreeSidebar selectedPageId={pageId} />}
+            {showSidebar && <DraggablePageTree selectedPageId={pageId} />}
             <div className="flex-1 flex items-center justify-center">
               <LoadingSpinner size="lg" />
             </div>
@@ -103,7 +103,7 @@ export default function WorkspacePage() {
       <AppLayout>
         <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
           <div className="flex h-[calc(100vh-64px)]">
-            {showSidebar && <PageTreeSidebar selectedPageId={pageId} />}
+            {showSidebar && <DraggablePageTree selectedPageId={pageId} />}
             <div className="flex-1 flex flex-col items-center justify-center gap-4">
               <FileX className="h-16 w-16 text-muted-foreground" />
               <h2 className="text-xl font-semibold">Page not found</h2>
@@ -126,7 +126,7 @@ export default function WorkspacePage() {
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
         <div className="flex h-[calc(100vh-64px)]">
-          {showSidebar && <PageTreeSidebar selectedPageId={pageId} />}
+          {showSidebar && <DraggablePageTree selectedPageId={pageId} />}
           
           <div className="flex-1 overflow-y-auto">
             {/* Top Bar with breadcrumbs and actions */}
