@@ -22099,6 +22099,141 @@ export type Database = {
           },
         ]
       }
+      page_permissions: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          page_id: string
+          permission_level: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          page_id: string
+          permission_level?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          page_id?: string
+          permission_level?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_permissions_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_templates: {
+        Row: {
+          category: string | null
+          content: Json | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_system: boolean | null
+          name: string
+        }
+        Insert: {
+          category?: string | null
+          content?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_system?: boolean | null
+          name: string
+        }
+        Update: {
+          category?: string | null
+          content?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_system?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
+      page_versions: {
+        Row: {
+          content: Json
+          created_at: string | null
+          edited_by: string | null
+          id: string
+          page_id: string
+          title: string | null
+        }
+        Insert: {
+          content: Json
+          created_at?: string | null
+          edited_by?: string | null
+          id?: string
+          page_id: string
+          title?: string | null
+        }
+        Update: {
+          content?: Json
+          created_at?: string | null
+          edited_by?: string | null
+          id?: string
+          page_id?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_versions_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_visits: {
+        Row: {
+          id: string
+          page_id: string
+          user_id: string
+          visited_at: string | null
+        }
+        Insert: {
+          id?: string
+          page_id: string
+          user_id: string
+          visited_at?: string | null
+        }
+        Update: {
+          id?: string
+          page_id?: string
+          user_id?: string
+          visited_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_visits_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_ai_insights: {
         Row: {
           company_id: string
@@ -35607,6 +35742,71 @@ export type Database = {
             columns: ["uploaded_by"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_pages: {
+        Row: {
+          content: Json | null
+          cover_url: string | null
+          created_at: string | null
+          icon_emoji: string | null
+          icon_url: string | null
+          id: string
+          is_archived: boolean | null
+          is_favorite: boolean | null
+          is_template: boolean | null
+          last_edited_by: string | null
+          parent_page_id: string | null
+          sort_order: number | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          visibility: string | null
+        }
+        Insert: {
+          content?: Json | null
+          cover_url?: string | null
+          created_at?: string | null
+          icon_emoji?: string | null
+          icon_url?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_favorite?: boolean | null
+          is_template?: boolean | null
+          last_edited_by?: string | null
+          parent_page_id?: string | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string | null
+          user_id: string
+          visibility?: string | null
+        }
+        Update: {
+          content?: Json | null
+          cover_url?: string | null
+          created_at?: string | null
+          icon_emoji?: string | null
+          icon_url?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_favorite?: boolean | null
+          is_template?: boolean | null
+          last_edited_by?: string | null
+          parent_page_id?: string | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_pages_parent_page_id_fkey"
+            columns: ["parent_page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
             referencedColumns: ["id"]
           },
         ]
