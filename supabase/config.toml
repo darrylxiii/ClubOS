@@ -473,6 +473,18 @@ verify_jwt = true
 verify_jwt = true
 
 # =============================================================================
+# Email Sentiment Intelligence (JWT Required)
+# =============================================================================
+[functions.analyze-email-sentiment]
+verify_jwt = true
+
+[functions.match-emails-to-companies]
+verify_jwt = true
+
+[functions.aggregate-company-sentiment]
+verify_jwt = true
+
+# =============================================================================
 # Notifications (Mixed)
 # =============================================================================
 [functions.send-note-mention-notification]
