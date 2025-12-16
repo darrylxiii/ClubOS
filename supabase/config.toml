@@ -850,3 +850,10 @@ verify_jwt = true
 verify_jwt = true
 
 # =============================================================================
+# Communication Intelligence (JWT Required)
+# =============================================================================
+[functions.predict-relationship-outcomes]
+verify_jwt = true
+
+[functions.communication-analytics]
+verify_jwt = true
