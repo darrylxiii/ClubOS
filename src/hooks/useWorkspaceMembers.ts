@@ -32,26 +32,32 @@ export function useWorkspaceMembers(workspaceId: string | undefined) {
     queryFn: async () => {
       if (!workspaceId) return [];
 
-      const { data, error } = await supabase
+      // First get the members
+      const { data: membersData, error: membersError } = await supabase
         .from('workspace_members')
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            full_name,
-            email,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('workspace_id', workspaceId)
         .eq('is_active', true)
         .order('joined_at', { ascending: true });
 
-      if (error) throw error;
+      if (membersError) throw membersError;
+      if (!membersData || membersData.length === 0) return [];
 
-      return (data || []).map(m => ({
+      // Then get profiles for all user_ids
+      const userIds = membersData.map(m => m.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Map profiles to members
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+      
+      return membersData.map(m => ({
         ...m,
-        profile: m.profiles,
+        profile: profilesMap.get(m.user_id) || undefined,
       })) as WorkspaceMember[];
     },
     enabled: !!workspaceId && !!user?.id,

@@ -34,25 +34,30 @@ export function useWorkspaceInvitations(workspaceId: string | undefined) {
     queryFn: async () => {
       if (!workspaceId) return [];
 
-      const { data, error } = await supabase
+      // First get invitations
+      const { data: invitationsData, error: invitationsError } = await supabase
         .from('workspace_invitations')
-        .select(`
-          *,
-          profiles:invited_by (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('workspace_id', workspaceId)
         .is('accepted_at', null)
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (invitationsError) throw invitationsError;
+      if (!invitationsData || invitationsData.length === 0) return [];
 
-      return (data || []).map(inv => ({
+      // Get profiles for inviters
+      const inviterIds = [...new Set(invitationsData.map(i => i.invited_by))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', inviterIds);
+
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+
+      return invitationsData.map(inv => ({
         ...inv,
-        inviter_profile: inv.profiles,
+        inviter_profile: profilesMap.get(inv.invited_by) || { full_name: null, avatar_url: null },
       })) as WorkspaceInvitation[];
     },
     enabled: !!workspaceId && !!user?.id,
@@ -253,27 +258,35 @@ export function useInvitationByToken(token: string | undefined) {
     queryFn: async () => {
       if (!token) return null;
 
-      const { data, error } = await supabase
+      // Get the invitation
+      const { data: invData, error: invError } = await supabase
         .from('workspace_invitations')
-        .select(`
-          *,
-          workspaces (*),
-          profiles:invited_by (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('token', token)
         .is('accepted_at', null)
         .gt('expires_at', new Date().toISOString())
         .single();
 
-      if (error) return null;
+      if (invError || !invData) return null;
+
+      // Get workspace details
+      const { data: workspaceData } = await supabase
+        .from('workspaces')
+        .select('name, icon_emoji, type')
+        .eq('id', invData.workspace_id)
+        .single();
+
+      // Get inviter profile
+      const { data: inviterData } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', invData.invited_by)
+        .single();
 
       return {
-        ...data,
-        workspace: data.workspaces,
-        inviter_profile: data.profiles,
+        ...invData,
+        workspace: workspaceData || { name: 'Unknown', icon_emoji: null, type: 'team' },
+        inviter_profile: inviterData || { full_name: null, avatar_url: null },
       } as WorkspaceInvitation;
     },
     enabled: !!token,

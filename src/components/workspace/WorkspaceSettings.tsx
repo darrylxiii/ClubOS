@@ -138,7 +138,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
               {showEmojiPicker && (
                 <div className="absolute top-18 left-0 z-50">
                   <EmojiPicker
-                    onEmojiSelect={(selected) => {
+                    onSelect={(selected) => {
                       setEmoji(selected);
                       setShowEmojiPicker(false);
                       setHasChanges(true);
@@ -267,7 +267,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
                   </div>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive">
+                      <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10">
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete
                       </Button>

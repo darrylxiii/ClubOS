@@ -80,7 +80,7 @@ export function CreateWorkspaceDialog({
               {showEmojiPicker && (
                 <div className="absolute top-14 left-0 z-50">
                   <EmojiPicker
-                    onEmojiSelect={(selected) => {
+                    onSelect={(selected) => {
                       setEmoji(selected);
                       setShowEmojiPicker(false);
                     }}
