@@ -78,10 +78,11 @@ export function useWorkspaceDatabase(databaseId?: string | null) {
       if (colRes.data) setColumns(colRes.data as unknown as DatabaseColumn[]);
       if (rowRes.data) setRows(rowRes.data as unknown as DatabaseRow[]);
       if (viewRes.data) {
-        const views = viewRes.data as unknown as DatabaseView[];
-        setViews(views);
-        const defaultView = views.find((v) => v.is_default) || views[0];
+        const viewsData = viewRes.data as unknown as DatabaseView[];
+        setViews(viewsData);
+        const defaultView = viewsData.find((v) => v.is_default) || viewsData[0];
         if (defaultView) setActiveViewId(defaultView.id);
+      }
     } catch (err) {
       console.error('Error fetching database:', err);
     } finally {
