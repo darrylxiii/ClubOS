@@ -43,17 +43,38 @@ export function usePartnerRelationships() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get partner's company
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('company_id')
-        .eq('id', user.id)
-        .single();
+      // Determine access scope by role
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
 
-      if (!profile?.company_id) return;
+      if (rolesError) {
+        console.warn('Failed to fetch user roles:', rolesError);
+      }
 
-      // Get all candidates in partner's pipelines with proper joins
-      const { data: applications } = await supabase
+      const roles = (userRoles || []).map((r: { role: string }) => r.role);
+      const isAdminOrStrategist = roles.includes('admin') || roles.includes('strategist');
+
+      // Get partner's company (only needed for partners)
+      let companyId: string | null = null;
+      if (!isAdminOrStrategist) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('company_id')
+          .eq('id', user.id)
+          .single();
+
+        companyId = profile?.company_id ?? null;
+        if (!companyId) {
+          setRelationships([]);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Get candidates with proper joins
+      let applicationsQuery = supabase
         .from('applications')
         .select(`
           candidate_id,
@@ -69,8 +90,15 @@ export function usePartnerRelationships() {
             avatar_url
           )
         `)
-        .eq('jobs.company_id', profile.company_id)
         .not('candidate_id', 'is', null);
+
+      // Partners are limited to their own company; admins/strategists see all
+      if (!isAdminOrStrategist) {
+        applicationsQuery = applicationsQuery.eq('jobs.company_id', companyId);
+      }
+
+      const { data: applications, error: applicationsError } = await applicationsQuery;
+      if (applicationsError) throw applicationsError;
 
       if (!applications?.length) {
         setRelationships([]);
