@@ -63,7 +63,7 @@ export function usePartnerRelationships() {
           status,
           job_id,
           jobs!inner(company_id),
-          candidate_profiles(
+          candidate_profiles!applications_candidate_id_fkey(
             full_name,
             email,
             avatar_url
