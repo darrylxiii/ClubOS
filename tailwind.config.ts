@@ -15,6 +15,33 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      fontSize: {
+        // Micro text for badges, timestamps
+        'micro': ['0.6875rem', { lineHeight: '1rem', letterSpacing: '0.01em' }],
+        // Caption/hint text
+        'caption': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.01em' }],
+        // Small body text
+        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
+        // Base body text
+        'base': ['1rem', { lineHeight: '1.5rem' }],
+        // Large body text
+        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
+        // Card headings (h4)
+        'xl': ['1.25rem', { lineHeight: '1.75rem', letterSpacing: '-0.01em' }],
+        // Section titles (h3)
+        '2xl': ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.02em' }],
+        // Page titles (h2)
+        '3xl': ['1.875rem', { lineHeight: '2.25rem', letterSpacing: '-0.02em' }],
+        // Large page titles (h1)
+        '4xl': ['2.25rem', { lineHeight: '2.5rem', letterSpacing: '-0.02em' }],
+        // Display text
+        '5xl': ['3rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
+        '6xl': ['3.75rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
+        '7xl': ['4.5rem', { lineHeight: '1.05', letterSpacing: '-0.02em' }],
+        '8xl': ['6rem', { lineHeight: '1', letterSpacing: '-0.02em' }],
+        '9xl': ['8rem', { lineHeight: '1', letterSpacing: '-0.02em' }],
       },
       colors: {
         border: "hsl(var(--border))",
