@@ -48,7 +48,7 @@ export default function WorkspaceList() {
 
   return (
     <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'candidate']}>
+      <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
         <div className="flex h-[calc(100vh-64px)]">
           <PageTreeSidebar />
           

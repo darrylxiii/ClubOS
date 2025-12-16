@@ -71,7 +71,7 @@ export default function WorkspacePage() {
   if (isLoading) {
     return (
       <AppLayout>
-        <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'candidate']}>
+        <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
           <div className="flex h-[calc(100vh-64px)]">
             <PageTreeSidebar selectedPageId={pageId} />
             <div className="flex-1 flex items-center justify-center">
@@ -86,7 +86,7 @@ export default function WorkspacePage() {
   if (error || !page) {
     return (
       <AppLayout>
-        <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'candidate']}>
+        <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
           <div className="flex h-[calc(100vh-64px)]">
             <PageTreeSidebar selectedPageId={pageId} />
             <div className="flex-1 flex flex-col items-center justify-center gap-4">
@@ -108,7 +108,7 @@ export default function WorkspacePage() {
 
   return (
     <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'candidate']}>
+      <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
         <div className="flex h-[calc(100vh-64px)]">
           <PageTreeSidebar selectedPageId={pageId} />
           
