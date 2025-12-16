@@ -5,12 +5,18 @@ import { useWorkspacePages } from './useWorkspacePages';
 interface UseWorkspaceShortcutsOptions {
   onSearch?: () => void;
   onToggleSidebar?: () => void;
+  onOpenCommandPalette?: () => void;
+  onOpenShortcutsHelp?: () => void;
+  onQuickCapture?: () => void;
   pageId?: string;
 }
 
 export function useWorkspaceShortcuts({
   onSearch,
   onToggleSidebar,
+  onOpenCommandPalette,
+  onOpenShortcutsHelp,
+  onQuickCapture,
   pageId,
 }: UseWorkspaceShortcutsOptions = {}) {
   const navigate = useNavigate();
@@ -40,16 +46,53 @@ export function useWorkspaceShortcuts({
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const modifier = isMac ? e.metaKey : e.ctrlKey;
 
-      // Ignore if user is typing in an input/textarea (except for escape)
+      // Ignore if user is typing in an input/textarea (except for specific shortcuts)
       const target = e.target as HTMLElement;
       const isEditing = target.tagName === 'INPUT' || 
                        target.tagName === 'TEXTAREA' || 
                        target.isContentEditable;
 
+      // Cmd/Ctrl + K - Open command palette (works everywhere)
+      if (modifier && e.key === 'k') {
+        e.preventDefault();
+        onOpenCommandPalette?.();
+        return;
+      }
+
       // Cmd/Ctrl + P - Quick page search
       if (modifier && e.key === 'p') {
         e.preventDefault();
         onSearch?.();
+        return;
+      }
+
+      // Cmd/Ctrl + Shift + C - Quick capture
+      if (modifier && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        onQuickCapture?.();
+        return;
+      }
+
+      // ? - Show shortcuts help (not when editing)
+      if (!isEditing && e.key === '?' && !modifier && !e.shiftKey) {
+        // Allow question mark only with shift key normally
+        if (e.getModifierState('Shift')) {
+          e.preventDefault();
+          onOpenShortcutsHelp?.();
+        }
+        return;
+      }
+
+      // Cmd/Ctrl + / - Show shortcuts help
+      if (modifier && e.key === '/') {
+        if (!isEditing) {
+          e.preventDefault();
+          onOpenShortcutsHelp?.();
+        } else {
+          // Toggle sidebar when editing
+          e.preventDefault();
+          onToggleSidebar?.();
+        }
         return;
       }
 
@@ -67,8 +110,8 @@ export function useWorkspaceShortcuts({
         return;
       }
 
-      // Cmd/Ctrl + / - Toggle sidebar
-      if (modifier && e.key === '/') {
+      // Cmd/Ctrl + \ - Toggle sidebar
+      if (modifier && e.key === '\\') {
         e.preventDefault();
         onToggleSidebar?.();
         return;
@@ -96,6 +139,9 @@ export function useWorkspaceShortcuts({
     handleDuplicatePage,
     onSearch,
     onToggleSidebar,
+    onOpenCommandPalette,
+    onOpenShortcutsHelp,
+    onQuickCapture,
   ]);
 
   return {

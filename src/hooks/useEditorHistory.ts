@@ -110,32 +110,8 @@ export function useEditorHistory({
     setHistoryIndex(0);
   }, []);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const modifier = isMac ? e.metaKey : e.ctrlKey;
-
-      if (modifier && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        undo();
-      }
-
-      if (modifier && e.key === 'z' && e.shiftKey) {
-        e.preventDefault();
-        redo();
-      }
-
-      // Also support Cmd+Y for redo on Windows
-      if (!isMac && e.ctrlKey && e.key === 'y') {
-        e.preventDefault();
-        redo();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo]);
+  // Note: Keyboard shortcuts are handled by BlockNote's built-in undo/redo
+  // This hook provides programmatic access for toolbar buttons and external triggers
 
   return {
     pushState,

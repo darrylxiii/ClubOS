@@ -821,4 +821,14 @@ verify_jwt = true
 
 [functions.sync-instantly-blocklist]
 verify_jwt = true
+
+# =============================================================================
+# Workspace API Functions (JWT Required)
+# =============================================================================
+[functions.workspace-database-api]
+verify_jwt = false
+
+[functions.workspace-webhook-dispatcher]
+verify_jwt = true
+
 # =============================================================================
