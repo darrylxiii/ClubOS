@@ -7,30 +7,43 @@ import { PageHeader } from '@/components/workspace/PageHeader';
 import { DraggablePageTree } from '@/components/workspace/DraggablePageTree';
 import { PageBreadcrumbs } from '@/components/workspace/PageBreadcrumbs';
 import { PageSearchDialog } from '@/components/workspace/PageSearchDialog';
+import { WorkspaceCommandPalette } from '@/components/workspace/WorkspaceCommandPalette';
+import { KeyboardShortcutsHelp } from '@/components/workspace/KeyboardShortcutsHelp';
+import { QuickCapture } from '@/components/workspace/QuickCapture';
 import { useWorkspacePage, useWorkspacePages } from '@/hooks/useWorkspacePages';
 import { useWorkspaceShortcuts } from '@/hooks/useWorkspaceShortcuts';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
-import { FileX, Plus, Search, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { FileX, Plus, Search, PanelLeftClose, PanelLeft, Command, Keyboard, Menu } from 'lucide-react';
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function WorkspacePage() {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { data: page, isLoading, error } = useWorkspacePage(pageId);
   const { updatePage, deletePage, duplicatePage, toggleFavorite, recordVisit, createPage, pages } = useWorkspacePages();
   const lastSavedContent = useRef<string>('');
   
   // UI State
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(!isMobile);
   const [showSearch, setShowSearch] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [showQuickCapture, setShowQuickCapture] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Keyboard shortcuts
   useWorkspaceShortcuts({
     pageId,
     onSearch: () => setShowSearch(true),
-    onToggleSidebar: () => setShowSidebar(prev => !prev),
+    onToggleSidebar: () => isMobile ? setMobileSidebarOpen(prev => !prev) : setShowSidebar(prev => !prev),
+    onOpenCommandPalette: () => setShowCommandPalette(true),
+    onOpenShortcutsHelp: () => setShowShortcutsHelp(true),
+    onQuickCapture: () => setShowQuickCapture(true),
   });
 
   // Record page visit
@@ -83,12 +96,15 @@ export default function WorkspacePage() {
     navigate(`/pages/${newPage.id}`);
   };
 
+  // Mobile sidebar component
+  const SidebarContent = () => <DraggablePageTree selectedPageId={pageId} />;
+
   if (isLoading) {
     return (
       <AppLayout>
         <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
           <div className="flex h-[calc(100vh-64px)]">
-            {showSidebar && <DraggablePageTree selectedPageId={pageId} />}
+            {!isMobile && showSidebar && <SidebarContent />}
             <div className="flex-1 flex items-center justify-center">
               <LoadingSpinner size="lg" />
             </div>
@@ -103,11 +119,11 @@ export default function WorkspacePage() {
       <AppLayout>
         <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
           <div className="flex h-[calc(100vh-64px)]">
-            {showSidebar && <DraggablePageTree selectedPageId={pageId} />}
-            <div className="flex-1 flex flex-col items-center justify-center gap-4">
+            {!isMobile && showSidebar && <SidebarContent />}
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 p-4">
               <FileX className="h-16 w-16 text-muted-foreground" />
               <h2 className="text-xl font-semibold">Page not found</h2>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-center">
                 This page may have been deleted or you don't have access to it.
               </p>
               <Button onClick={handleCreateNewPage}>
@@ -126,37 +142,75 @@ export default function WorkspacePage() {
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
         <div className="flex h-[calc(100vh-64px)]">
-          {showSidebar && <DraggablePageTree selectedPageId={pageId} />}
+          {/* Desktop Sidebar */}
+          {!isMobile && showSidebar && <SidebarContent />}
+          
+          {/* Mobile Sidebar Sheet */}
+          {isMobile && (
+            <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+              <SheetContent side="left" className="p-0 w-[280px]">
+                <SidebarContent />
+              </SheetContent>
+            </Sheet>
+          )}
           
           <div className="flex-1 overflow-y-auto">
             {/* Top Bar with breadcrumbs and actions */}
-            <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b px-4 py-2 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b px-2 sm:px-4 py-2 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setShowSidebar(prev => !prev)}
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => isMobile ? setMobileSidebarOpen(true) : setShowSidebar(prev => !prev)}
                 >
-                  {showSidebar ? (
+                  {isMobile ? (
+                    <Menu className="h-4 w-4" />
+                  ) : showSidebar ? (
                     <PanelLeftClose className="h-4 w-4" />
                   ) : (
                     <PanelLeft className="h-4 w-4" />
                   )}
                 </Button>
-                <PageBreadcrumbs page={page} pages={pages} />
+                <div className="min-w-0 overflow-hidden">
+                  <PageBreadcrumbs page={page} pages={pages} />
+                </div>
               </div>
               
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSearch(true)}
-                className="text-muted-foreground"
-              >
-                <Search className="h-4 w-4 mr-2" />
-                Search
-                <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-muted rounded">⌘P</kbd>
-              </Button>
+              <div className="flex items-center gap-1 shrink-0">
+                {/* Command Palette Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCommandPalette(true)}
+                  className="text-muted-foreground hidden sm:flex"
+                >
+                  <Command className="h-4 w-4 mr-1" />
+                  <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">⌘K</kbd>
+                </Button>
+                
+                {/* Search Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSearch(true)}
+                  className="text-muted-foreground"
+                >
+                  <Search className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-2">Search</span>
+                  <kbd className="hidden sm:inline ml-2 px-1.5 py-0.5 text-xs bg-muted rounded">⌘P</kbd>
+                </Button>
+                
+                {/* Shortcuts Help */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hidden sm:flex"
+                  onClick={() => setShowShortcutsHelp(true)}
+                >
+                  <Keyboard className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="max-w-4xl mx-auto">
@@ -168,7 +222,7 @@ export default function WorkspacePage() {
                 onToggleFavorite={handleToggleFavorite}
               />
               
-              <div className="px-12 pb-24">
+              <div className="px-4 sm:px-12 pb-24">
                 <WorkspaceEditor
                   page={page}
                   onContentChange={handleContentChange}
@@ -178,8 +232,34 @@ export default function WorkspacePage() {
           </div>
         </div>
         
-        {/* Search Dialog */}
+        {/* Mobile Quick Actions FAB */}
+        {isMobile && (
+          <div className="fixed bottom-4 right-4 flex flex-col gap-2">
+            <Button
+              size="icon"
+              className="h-12 w-12 rounded-full shadow-lg"
+              onClick={() => setShowQuickCapture(true)}
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+        
+        {/* Dialogs */}
         <PageSearchDialog open={showSearch} onOpenChange={setShowSearch} />
+        <WorkspaceCommandPalette 
+          open={showCommandPalette} 
+          onOpenChange={setShowCommandPalette}
+          pageId={pageId}
+        />
+        <KeyboardShortcutsHelp 
+          open={showShortcutsHelp} 
+          onOpenChange={setShowShortcutsHelp} 
+        />
+        <QuickCapture 
+          open={showQuickCapture} 
+          onOpenChange={setShowQuickCapture} 
+        />
       </RoleGate>
     </AppLayout>
   );
