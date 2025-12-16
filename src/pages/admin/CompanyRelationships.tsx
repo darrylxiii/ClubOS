@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RefreshCw, Download, Building2, Users, Mail, TrendingUp } from 'lucide-react';
+import { RefreshCw, Download, Building2, Users, Mail, TrendingUp, Zap, Loader2 } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,14 @@ import { CompanyContactManager } from '@/components/communication/CompanyContact
 import { ContactSentimentList } from '@/components/communication/ContactSentimentList';
 import { QUINAdvisorWidget } from '@/components/communication/QUINAdvisorWidget';
 import { useCompanyRelationships } from '@/hooks/useCompanyRelationships';
+import { useEmailIntelligenceSync } from '@/hooks/useEmailIntelligenceSync';
 import { useToast } from '@/hooks/use-toast';
 
 export default function CompanyRelationships() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const { relationships, companies, stats, loading, refetch } = useCompanyRelationships(selectedCompanyId);
+  const { syncEmailIntelligence, isSyncing, lastSyncResults } = useEmailIntelligenceSync();
   const { toast } = useToast();
 
   const handleSendMessage = (companyId: string, channel: 'whatsapp' | 'email') => {
@@ -80,6 +82,22 @@ export default function CompanyRelationships() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={async () => {
+                  await syncEmailIntelligence();
+                  refetch();
+                }}
+                disabled={isSyncing}
+              >
+                {isSyncing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="h-4 w-4 mr-2" />
+                )}
+                {isSyncing ? 'Syncing...' : 'Sync Emails'}
+              </Button>
               <Button variant="outline" size="sm" onClick={() => refetch()}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
