@@ -19,6 +19,13 @@ export interface MemberRequest {
   };
 }
 
+export interface ExistingApplication {
+  job_id: string;
+  job_title: string;
+  company_name: string;
+  status: string;
+}
+
 export interface MergeSuggestionForApproval {
   candidate_id: string;
   candidate_name: string | null;
@@ -28,6 +35,7 @@ export interface MergeSuggestionForApproval {
   profile_name: string | null;
   confidence_score: number | null;
   match_type: 'email_match' | 'partial_link' | 'manual';
+  existing_applications?: ExistingApplication[];
 }
 
 export interface CandidateProfileData {

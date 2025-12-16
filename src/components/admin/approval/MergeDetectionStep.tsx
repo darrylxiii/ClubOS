@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { MergeSuggestionForApproval } from "@/types/approval";
+import { MergeSuggestionForApproval, ExistingApplication } from "@/types/approval";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, UserCheck, AlertCircle } from "lucide-react";
+import { Loader2, UserCheck, AlertCircle, Briefcase } from "lucide-react";
 import { memberApprovalService } from "@/services/memberApprovalService";
 import { formatDistanceToNow } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 interface MergeDetectionStepProps {
   email: string;
   name: string;
-  onSelectMerges: (merges: Array<{ candidateId: string; userId: string }>) => void;
+  onSelectMerges: (merges: Array<{ candidateId: string; userId: string }>, existingApplications: ExistingApplication[]) => void;
   onSkip: () => void;
 }
 
@@ -67,13 +67,16 @@ export const MergeDetectionStep = ({
   };
 
   const handleContinue = () => {
-    const merges = suggestions
-      .filter(s => selectedSuggestions.has(s.candidate_id))
-      .map(s => ({
-        candidateId: s.candidate_id,
-        userId: s.profile_id,
-      }));
-    onSelectMerges(merges);
+    const selectedCandidates = suggestions.filter(s => selectedSuggestions.has(s.candidate_id));
+    const merges = selectedCandidates.map(s => ({
+      candidateId: s.candidate_id,
+      userId: s.profile_id,
+    }));
+    
+    // Collect all existing applications from selected candidates
+    const allExistingApplications = selectedCandidates.flatMap(s => s.existing_applications || []);
+    
+    onSelectMerges(merges, allExistingApplications);
   };
 
   if (loading) {
@@ -146,6 +149,28 @@ export const MergeDetectionStep = ({
                       </Badge>
                     </div>
                   </div>
+                  
+                  {/* Show existing pipelines/applications */}
+                  {suggestion.existing_applications && suggestion.existing_applications.length > 0 && (
+                    <div className="mt-2 pt-2 border-t">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                        <Briefcase className="w-3 h-3" />
+                        <span>Already in pipelines:</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {suggestion.existing_applications.map((app, idx) => (
+                          <Badge 
+                            key={idx} 
+                            variant={app.status === 'submitted' || app.status === 'interview' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {app.job_title} ({app.status})
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   <p className="text-xs text-muted-foreground">
                     Created {formatDistanceToNow(new Date(suggestion.candidate_created_at), { addSuffix: true })}
                   </p>
