@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { PageTreeSidebar } from '@/components/workspace/PageTreeSidebar';
+import { PageSearchDialog } from '@/components/workspace/PageSearchDialog';
 import { useWorkspacePages, PageTemplate } from '@/hooks/useWorkspacePages';
+import { useWorkspaceShortcuts } from '@/hooks/useWorkspaceShortcuts';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Plus, 
   Search, 
@@ -17,13 +18,22 @@ import {
   Clock,
   Layout,
   Sparkles,
+  PanelLeftClose,
+  PanelLeft,
+  Command,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 export default function WorkspaceList() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState('');
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSearch, setShowSearch] = useState(false);
+  
+  const defaultTab = searchParams.get('tab') || 'all';
+  
   const { 
     pages, 
     favorites, 
@@ -32,6 +42,12 @@ export default function WorkspaceList() {
     createPage, 
     isLoading 
   } = useWorkspacePages();
+
+  // Keyboard shortcuts
+  useWorkspaceShortcuts({
+    onSearch: () => setShowSearch(true),
+    onToggleSidebar: () => setShowSidebar(prev => !prev),
+  });
 
   const filteredPages = pages.filter(page => 
     page.title.toLowerCase().includes(search.toLowerCase())
@@ -50,9 +66,39 @@ export default function WorkspaceList() {
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
         <div className="flex h-[calc(100vh-64px)]">
-          <PageTreeSidebar />
+          {showSidebar && <PageTreeSidebar />}
           
           <div className="flex-1 overflow-y-auto">
+            {/* Top Bar */}
+            <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b px-4 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setShowSidebar(prev => !prev)}
+                >
+                  {showSidebar ? (
+                    <PanelLeftClose className="h-4 w-4" />
+                  ) : (
+                    <PanelLeft className="h-4 w-4" />
+                  )}
+                </Button>
+                <span className="text-sm text-muted-foreground">Quantum OS</span>
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSearch(true)}
+                className="text-muted-foreground"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Search
+                <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-muted rounded">⌘P</kbd>
+              </Button>
+            </div>
+
             <div className="max-w-5xl mx-auto p-8">
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
@@ -79,7 +125,7 @@ export default function WorkspaceList() {
                 />
               </div>
 
-              <Tabs defaultValue="all" className="w-full">
+              <Tabs defaultValue={defaultTab} className="w-full">
                 <TabsList className="mb-6">
                   <TabsTrigger value="all" className="gap-2">
                     <FileText className="h-4 w-4" />
@@ -257,6 +303,9 @@ export default function WorkspaceList() {
             </div>
           </div>
         </div>
+        
+        {/* Search Dialog */}
+        <PageSearchDialog open={showSearch} onOpenChange={setShowSearch} />
       </RoleGate>
     </AppLayout>
   );

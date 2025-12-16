@@ -1,22 +1,37 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { WorkspaceEditor } from '@/components/workspace/WorkspaceEditor';
 import { PageHeader } from '@/components/workspace/PageHeader';
 import { PageTreeSidebar } from '@/components/workspace/PageTreeSidebar';
+import { PageBreadcrumbs } from '@/components/workspace/PageBreadcrumbs';
+import { PageSearchDialog } from '@/components/workspace/PageSearchDialog';
 import { useWorkspacePage, useWorkspacePages } from '@/hooks/useWorkspacePages';
+import { useWorkspaceShortcuts } from '@/hooks/useWorkspaceShortcuts';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
-import { FileX, Plus } from 'lucide-react';
+import { FileX, Plus, Search, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
+import { cn } from '@/lib/utils';
 
 export default function WorkspacePage() {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
   const { data: page, isLoading, error } = useWorkspacePage(pageId);
-  const { updatePage, deletePage, duplicatePage, toggleFavorite, recordVisit, createPage } = useWorkspacePages();
+  const { updatePage, deletePage, duplicatePage, toggleFavorite, recordVisit, createPage, pages } = useWorkspacePages();
   const lastSavedContent = useRef<string>('');
+  
+  // UI State
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSearch, setShowSearch] = useState(false);
+
+  // Keyboard shortcuts
+  useWorkspaceShortcuts({
+    pageId,
+    onSearch: () => setShowSearch(true),
+    onToggleSidebar: () => setShowSidebar(prev => !prev),
+  });
 
   // Record page visit
   useEffect(() => {
@@ -73,7 +88,7 @@ export default function WorkspacePage() {
       <AppLayout>
         <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
           <div className="flex h-[calc(100vh-64px)]">
-            <PageTreeSidebar selectedPageId={pageId} />
+            {showSidebar && <PageTreeSidebar selectedPageId={pageId} />}
             <div className="flex-1 flex items-center justify-center">
               <LoadingSpinner size="lg" />
             </div>
@@ -88,7 +103,7 @@ export default function WorkspacePage() {
       <AppLayout>
         <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
           <div className="flex h-[calc(100vh-64px)]">
-            <PageTreeSidebar selectedPageId={pageId} />
+            {showSidebar && <PageTreeSidebar selectedPageId={pageId} />}
             <div className="flex-1 flex flex-col items-center justify-center gap-4">
               <FileX className="h-16 w-16 text-muted-foreground" />
               <h2 className="text-xl font-semibold">Page not found</h2>
@@ -101,6 +116,7 @@ export default function WorkspacePage() {
               </Button>
             </div>
           </div>
+          <PageSearchDialog open={showSearch} onOpenChange={setShowSearch} />
         </RoleGate>
       </AppLayout>
     );
@@ -110,9 +126,39 @@ export default function WorkspacePage() {
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
         <div className="flex h-[calc(100vh-64px)]">
-          <PageTreeSidebar selectedPageId={pageId} />
+          {showSidebar && <PageTreeSidebar selectedPageId={pageId} />}
           
           <div className="flex-1 overflow-y-auto">
+            {/* Top Bar with breadcrumbs and actions */}
+            <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b px-4 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setShowSidebar(prev => !prev)}
+                >
+                  {showSidebar ? (
+                    <PanelLeftClose className="h-4 w-4" />
+                  ) : (
+                    <PanelLeft className="h-4 w-4" />
+                  )}
+                </Button>
+                <PageBreadcrumbs page={page} pages={pages} />
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSearch(true)}
+                className="text-muted-foreground"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Search
+                <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-muted rounded">⌘P</kbd>
+              </Button>
+            </div>
+
             <div className="max-w-4xl mx-auto">
               <PageHeader
                 page={page}
@@ -131,6 +177,9 @@ export default function WorkspacePage() {
             </div>
           </div>
         </div>
+        
+        {/* Search Dialog */}
+        <PageSearchDialog open={showSearch} onOpenChange={setShowSearch} />
       </RoleGate>
     </AppLayout>
   );

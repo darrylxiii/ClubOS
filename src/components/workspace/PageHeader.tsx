@@ -22,7 +22,9 @@ import {
 } from 'lucide-react';
 import { EmojiPicker } from './EmojiPicker';
 import { CoverPicker } from './CoverPicker';
+import { ShareDialog } from './ShareDialog';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface PageHeaderProps {
   page: WorkspacePage;
@@ -43,6 +45,7 @@ export function PageHeader({
   const [title, setTitle] = useState(page.title);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -81,6 +84,12 @@ export function PageHeader({
   const handleCoverSelect = (coverUrl: string | null) => {
     onUpdate({ cover_url: coverUrl });
     setShowCoverPicker(false);
+  };
+
+  const handleCopyLink = async () => {
+    const pageUrl = `${window.location.origin}/pages/${page.id}`;
+    await navigator.clipboard.writeText(pageUrl);
+    toast.success('Link copied to clipboard');
   };
 
   return (
@@ -161,6 +170,15 @@ export function PageHeader({
           <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="ghost"
+              size="sm"
+              onClick={() => setShowShareDialog(true)}
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              Share
+            </Button>
+            
+            <Button
+              variant="ghost"
               size="icon"
               onClick={onToggleFavorite}
               className={cn(
@@ -185,11 +203,11 @@ export function PageHeader({
                   <Copy className="h-4 w-4 mr-2" />
                   Duplicate
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCopyLink}>
                   <Link className="h-4 w-4 mr-2" />
                   Copy link
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowShareDialog(true)}>
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </DropdownMenuItem>
@@ -229,6 +247,14 @@ export function PageHeader({
           currentCover={page.cover_url}
         />
       )}
+
+      {/* Share Dialog */}
+      <ShareDialog
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+        page={page}
+        onUpdate={onUpdate}
+      />
     </div>
   );
 }
