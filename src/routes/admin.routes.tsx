@@ -54,6 +54,16 @@ const WhatsAppAnalytics = lazy(() => import("@/pages/admin/WhatsAppAnalytics"));
 const WhatsAppSettings = lazy(() => import("@/pages/admin/WhatsAppSettings"));
 const CompanyRelationships = lazy(() => import("@/pages/admin/CompanyRelationships"));
 
+// Inventory Pages
+const AssetRegister = lazy(() => import("@/pages/admin/inventory/AssetRegister"));
+const InventoryDashboard = lazy(() => import("@/pages/admin/inventory/InventoryDashboard"));
+const DepreciationSchedule = lazy(() => import("@/pages/admin/inventory/DepreciationSchedule"));
+const IntangibleAssets = lazy(() => import("@/pages/admin/inventory/IntangibleAssets"));
+const KIAOptimization = lazy(() => import("@/pages/admin/inventory/KIAOptimization"));
+
+// Bulk Operations
+const BulkOperationsHub = lazy(() => import("@/pages/admin/BulkOperationsHub"));
+
 // Game Admin Pages
 const ValuesPokerAdmin = lazy(() => import("@/pages/admin/games/ValuesPokerAdmin"));
 const SwipeGameAdmin = lazy(() => import("@/pages/admin/games/SwipeGameAdmin"));
@@ -615,5 +625,12 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
+    {/* Inventory Routes */}
+    <Route path="/admin/inventory" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AssetRegister /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/inventory/dashboard" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><InventoryDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/inventory/depreciation" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><DepreciationSchedule /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/inventory/intangible" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><IntangibleAssets /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/inventory/kia" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><KIAOptimization /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/bulk-operations" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><BulkOperationsHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );

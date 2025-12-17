@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,44 +11,63 @@ import { Send, Loader2, AlertCircle } from "lucide-react";
 import { CandidateSelectorTable } from "./CandidateSelectorTable";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+interface EmailTemplate {
+  id: string;
+  name: string;
+  subject_template: string | null;
+  content_template: string | null;
+}
+
 export const BulkEmailTab = () => {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [templateId, setTemplateId] = useState<string>("");
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
 
-  // Fetch email templates
-  const { data: templates } = useQuery({
-    queryKey: ["email-templates"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("email_templates")
-        .select("id, name, subject, body")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
+  // Fetch email templates on mount
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        // Use any to bypass excessive type instantiation
+        const client = supabase as any;
+        const { data } = await client
+          .from("email_templates")
+          .select("id, name, subject_template, content_template")
+          .eq("is_active", true)
+          .order("name");
+        if (data) {
+          setTemplates(data as EmailTemplate[]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch templates:", err);
+      }
+    };
+    fetchTemplates();
+  }, []);
 
   // Apply template
   const handleTemplateSelect = (id: string) => {
     setTemplateId(id);
-    const template = templates?.find((t) => t.id === id);
+    const template = templates.find((t) => t.id === id);
     if (template) {
-      setSubject(template.subject || "");
-      setMessage(template.body || "");
+      setSubject(String(template.subject_template || ""));
+      setMessage(String(template.content_template || ""));
     }
   };
 
   // Send bulk email mutation
   const sendBulkEmail = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData?.user;
       if (!user) throw new Error("Not authenticated");
 
+      // Use any to bypass type issues
+      const client = supabase as any;
+
       // Log the bulk operation
-      const { data: log, error: logError } = await supabase
+      const { data: log, error: logError } = await client
         .from("bulk_operation_logs")
         .insert({
           operation_type: "email",
@@ -65,7 +84,7 @@ export const BulkEmailTab = () => {
       if (logError) throw logError;
 
       // Get candidate emails
-      const { data: candidates, error: candidatesError } = await supabase
+      const { data: candidates, error: candidatesError } = await client
         .from("candidate_profiles")
         .select("id, email, full_name")
         .in("id", selectedCandidates);
@@ -95,10 +114,10 @@ export const BulkEmailTab = () => {
       }
 
       // Update log
-      await supabase
+      await client
         .from("bulk_operation_logs")
         .update({
-          status: failureCount === 0 ? "completed" : "completed",
+          status: "completed",
           success_count: successCount,
           failure_count: failureCount,
           error_details: errors.length > 0 ? { errors } : {},
@@ -140,7 +159,7 @@ export const BulkEmailTab = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="custom">Custom Email</SelectItem>
-              {templates?.map((template) => (
+              {templates.map((template) => (
                 <SelectItem key={template.id} value={template.id}>
                   {template.name}
                 </SelectItem>
