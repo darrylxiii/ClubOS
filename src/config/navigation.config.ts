@@ -97,7 +97,6 @@ const baseNavigationGroups: NavigationGroup[] = [
     icon: MessageSquare,
     items: [
       { name: "Live Hub", icon: Radio, path: "/live-hub" },
-      { name: "WhatsApp", icon: Phone, path: "/whatsapp", badge: "New" },
       { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
@@ -138,6 +137,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     items: [
       { name: "My Profile", icon: User, path: "/profile" },
       { name: "My Skills", icon: Target, path: "/my-skills" },
+      { name: "My Performance", icon: TrendingUp, path: "/my-performance" },
       { name: "Documents", icon: FolderOpen, path: "/documents" },
       { name: "Email Settings", icon: Mail, path: "/email-settings" },
       { name: "Subscription", icon: CreditCard, path: "/subscription" },
@@ -170,7 +170,8 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Referrals", icon: Gift, path: "/referrals" },
         { name: "Invites", icon: Mail, path: "/invites" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
-        { name: "Analytics", icon: BarChart3, path: "/candidate-analytics" },
+        { name: "My Analytics", icon: BarChart3, path: "/candidate-analytics" },
+        { name: "My Communications", icon: MessageSquare, path: "/my-communications" },
       ],
     },
     {
@@ -187,7 +188,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
-      title: "Social Media",
+      title: "Social",
       icon: Share2,
       items: [
         { name: "Social Feed", icon: Share2, path: "/social-feed" },
@@ -230,7 +231,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "Browse Projects", icon: Layers, path: "/projects" },
         { name: "Post Project", icon: Plus, path: "/projects/new" },
-        { name: "Find Talent", icon: Users, path: "/projects" },
+        { name: "Find Talent", icon: Users, path: "/projects/talent" },
         { name: "Contracts", icon: FileSignature, path: "/contracts" },
         { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
       ],
@@ -251,11 +252,10 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
-      title: "Social Media",
+      title: "Social",
       icon: Share2,
       items: [
         { name: "Social Feed", icon: Share2, path: "/social-feed" },
-        { name: "Social Analytics", icon: TrendingUp, path: "/analytics" },
       ],
     },
   ],
@@ -267,8 +267,8 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "WhatsApp Inbox", icon: MessageSquare, path: "/whatsapp" },
         { name: "WhatsApp Import", icon: Upload, path: "/whatsapp-import" },
-        { name: "Analytics", icon: BarChart3, path: "/admin/whatsapp-analytics" },
-        { name: "Settings", icon: Settings, path: "/admin/whatsapp-settings" },
+        { name: "WhatsApp Analytics", icon: BarChart3, path: "/admin/whatsapp-analytics" },
+        { name: "WhatsApp Settings", icon: Settings, path: "/admin/whatsapp-settings" },
       ],
       roles: ['admin', 'strategist'],
     },
@@ -283,7 +283,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Reply Inbox", icon: Mail, path: "/crm/inbox" },
         { name: "Campaigns", icon: Zap, path: "/crm/campaigns" },
         { name: "Email Sequencing", icon: Mail, path: "/email-sequences" },
-        { name: "Analytics", icon: BarChart3, path: "/crm/analytics" },
+        { name: "CRM Analytics", icon: BarChart3, path: "/crm/analytics" },
         { name: "Lead Scoring", icon: TrendingUp, path: "/crm/lead-scoring" },
         { name: "Automations", icon: Zap, path: "/crm/automations" },
         { name: "Integrations", icon: Link2, path: "/crm/integrations" },
@@ -304,32 +304,31 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
-      title: "Management",
-      icon: Building,
+      title: "Candidate Management",
+      icon: Users,
       items: [
         { name: "All Candidates", icon: Users, path: "/admin/candidates" },
         { name: "Archived Candidates", icon: Archive, path: "/archived-candidates" },
         { name: "Member Requests", icon: Users, path: "/admin/member-requests" },
-        { name: "Company Management", icon: Building, path: "/admin/companies" },
-        { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
         { name: "Merge Dashboard", icon: Link2, path: "/admin/merge" },
-        { name: "Companies", icon: Building, path: "/companies" },
-        { name: "Jobs", icon: Briefcase, path: "/jobs" },
-        { name: "Applications", icon: FileText, path: "/applications" },
         { name: "Global Rejections", icon: TrendingUp, path: "/admin/rejections" },
-        { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
-        { name: "Assessments Hub", icon: ClipboardCheck, path: "/admin/assessments" },
-        { name: "Feedback Database", icon: MessagesSquare, path: "/feedback-database" },
         { name: "Club Sync Requests", icon: Zap, path: "/admin/club-sync-requests" },
-        { name: "Funnel Analytics", icon: TrendingUp, path: "/funnel-analytics" },
-        { name: "Global Analytics", icon: BarChart3, path: "/admin/global-analytics" },
-        { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
-        { name: "Knowledge Base", icon: BookOpen, path: "/knowledge-base" },
-        { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace" },
       ],
     },
     {
-      title: "Games & Assessments",
+      title: "Jobs & Companies",
+      icon: Briefcase,
+      items: [
+        { name: "All Jobs", icon: Briefcase, path: "/jobs" },
+        { name: "All Applications", icon: FileText, path: "/applications" },
+        { name: "Company Management", icon: Building, path: "/admin/companies" },
+        { name: "All Companies", icon: Building, path: "/companies" },
+        { name: "Target Companies", icon: Target, path: "/admin/target-companies" },
+        { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
+      ],
+    },
+    {
+      title: "Assessments & Games",
       icon: Gamepad2,
       items: [
         { name: "Assessments Hub", icon: ClipboardCheck, path: "/admin/assessments" },
@@ -344,12 +343,13 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "Intelligence & ML",
       icon: Brain,
       items: [
-        { name: "My Communications", icon: MessageSquare, path: "/my-communications", roles: ['candidate'] },
-        { name: "Communication Intelligence", icon: Brain, path: "/communication-intelligence", roles: ['admin', 'strategist'] },
+        { name: "Communication Intelligence", icon: Brain, path: "/communication-intelligence" },
         { name: "Hiring Intelligence", icon: Brain, path: "/hiring-intelligence" },
         { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
         { name: "Enhanced ML", icon: Sparkles, path: "/enhanced-ml" },
         { name: "Company Intelligence", icon: Building, path: "/company-intelligence" },
+        { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace" },
+        { name: "Knowledge Base", icon: BookOpen, path: "/knowledge-base" },
         { name: "Leaderboard", icon: Trophy, path: "/leaderboard" },
       ],
     },
@@ -357,11 +357,13 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "Analytics",
       icon: BarChart3,
       items: [
+        { name: "Global Analytics", icon: BarChart3, path: "/admin/global-analytics" },
+        { name: "Funnel Analytics", icon: TrendingUp, path: "/funnel-analytics" },
         { name: "Candidate Analytics", icon: BarChart3, path: "/candidate-analytics" },
         { name: "Messaging Analytics", icon: MessageSquare, path: "/messaging-analytics" },
         { name: "Communication Analytics", icon: Brain, path: "/communication-analytics" },
         { name: "Meeting Analytics", icon: Video, path: "/meeting-analytics" },
-        { name: "Social Analytics", icon: TrendingUp, path: "/analytics" },
+        { name: "Feedback Database", icon: MessagesSquare, path: "/feedback-database" },
       ],
     },
     {
@@ -378,8 +380,11 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "System Health", icon: Heart, path: "/admin/system-health" },
         { name: "Disaster Recovery", icon: Shield, path: "/admin/comprehensive-dr" },
         { name: "DR Runbooks", icon: FileCheck, path: "/admin/dr-runbooks" },
-        { name: "Target Companies", icon: Target, path: "/admin/target-companies" },
+        { name: "Admin Audit Log", icon: FileCheck, path: "/admin/audit-log" },
+        { name: "Error Logs", icon: AlertTriangle, path: "/admin/error-logs" },
+        { name: "Bulk Operations", icon: Users, path: "/admin/bulk-operations" },
         { name: "Page Templates", icon: FileText, path: "/admin/templates" },
+        { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
       ],
     },
     {
@@ -395,17 +400,8 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
-      title: "Audit & Logs",
-      icon: FileCheck,
-      items: [
-        { name: "Admin Audit Log", icon: FileCheck, path: "/admin/audit-log" },
-        { name: "Activity Monitor", icon: Activity, path: "/admin/user-activity" },
-        { name: "Error Logs", icon: AlertTriangle, path: "/admin/error-logs" },
-      ],
-    },
-    {
-      title: "Revenue & Growth",
-      icon: TrendingUp,
+      title: "Revenue & Finance",
+      icon: DollarSign,
       items: [
         { name: "Deal Pipeline", icon: Target, path: "/admin/deals-pipeline" },
         { name: "Company Fees", icon: DollarSign, path: "/admin/company-fees" },
@@ -417,15 +413,14 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
-      title: "Finance & Assets",
-      icon: CreditCard,
+      title: "Inventory & Assets",
+      icon: Database,
       items: [
         { name: "Inventory Dashboard", icon: LayoutDashboard, path: "/admin/inventory/dashboard" },
         { name: "Asset Register", icon: Database, path: "/admin/inventory" },
         { name: "Depreciation Schedule", icon: TrendingUp, path: "/admin/inventory/depreciation" },
         { name: "Intangible Assets", icon: Briefcase, path: "/admin/inventory/intangible" },
         { name: "KIA Optimization", icon: DollarSign, path: "/admin/inventory/kia" },
-        { name: "Bulk Operations", icon: Users, path: "/admin/bulk-operations" },
       ],
     },
     {
@@ -434,7 +429,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "Employee Dashboard", icon: Users, path: "/admin/employee-management" },
         { name: "Employee Profiles", icon: Users, path: "/admin/employees" },
-        { name: "My Performance", icon: TrendingUp, path: "/my-performance" },
         { name: "Team Performance", icon: BarChart3, path: "/team-performance" },
       ],
     },
@@ -457,19 +451,18 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "All Projects", icon: Layers, path: "/projects" },
         { name: "Post Project", icon: Plus, path: "/projects/new" },
         { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs" },
-        { name: "Proposals", icon: FileText, path: "/projects/proposals" },
+        { name: "All Proposals", icon: FileText, path: "/projects/proposals" },
         { name: "Disputes", icon: AlertTriangle, path: "/projects/disputes" },
         { name: "Contracts", icon: FileSignature, path: "/contracts" },
         { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
       ],
     },
     {
-      title: "Social Media",
+      title: "Social",
       icon: Share2,
       items: [
         { name: "Social Feed", icon: Share2, path: "/social-feed" },
-        { name: "Management", icon: BarChart3, path: "/social-management" },
-        { name: "Analytics", icon: TrendingUp, path: "/analytics" },
+        { name: "Social Management", icon: BarChart3, path: "/social-management" },
       ],
     },
   ],
@@ -509,7 +502,7 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   // 1. Add overview section
   const overviewGroup = { 
     ...baseNavigationGroups[0],
-    items: [...baseNavigationGroups[0].items] // Deep copy items array
+    items: [...baseNavigationGroups[0].items]
   };
   
   // Add admin panel for admin role
@@ -522,7 +515,6 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   // 2. Add role-specific sections (Career/Hiring/Management)
   const roleSpecific = roleSpecificGroups[normalizedRole];
   if (roleSpecific) {
-    // Deep copy each group and its items array to prevent mutations
     const deepCopiedRoleGroups = roleSpecific.map(group => ({
       ...group,
       items: [...group.items]
@@ -533,7 +525,7 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   // 3. Add communication section with role-specific items
   const communicationGroup = { 
     ...baseNavigationGroups[1],
-    items: [...baseNavigationGroups[1].items] // Deep copy the items array
+    items: [...baseNavigationGroups[1].items]
   };
   if (normalizedRole === 'partner') {
     communicationGroup.items.push(...partnerSpecificItems);
