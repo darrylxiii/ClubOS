@@ -21,9 +21,9 @@ export const BulkSchedulingTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("booking_links")
-        .select("id, name, slug, duration_minutes")
+        .select("id, title, slug, duration_minutes")
         .eq("is_active", true)
-        .order("name");
+        .order("title");
       if (error) throw error;
       return data;
     },
@@ -100,7 +100,7 @@ export const BulkSchedulingTab = () => {
           const { error } = await supabase.functions.invoke("send-email", {
             body: {
               to: candidate.email,
-              subject: `Schedule your ${selectedLink.name} (${selectedLink.duration_minutes} min)`,
+              subject: `Schedule your ${selectedLink.title} (${selectedLink.duration_minutes} min)`,
               html: emailBody,
             },
           });
@@ -159,7 +159,7 @@ export const BulkSchedulingTab = () => {
             <SelectContent>
               {bookingLinks?.map((link) => (
                 <SelectItem key={link.id} value={link.id}>
-                  {link.name} ({link.duration_minutes} min)
+                  {link.title} ({link.duration_minutes} min)
                 </SelectItem>
               ))}
             </SelectContent>

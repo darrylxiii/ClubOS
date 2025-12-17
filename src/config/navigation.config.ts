@@ -417,6 +417,18 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
+      title: "Finance & Assets",
+      icon: CreditCard,
+      items: [
+        { name: "Inventory Dashboard", icon: LayoutDashboard, path: "/admin/inventory/dashboard" },
+        { name: "Asset Register", icon: Database, path: "/admin/inventory" },
+        { name: "Depreciation Schedule", icon: TrendingUp, path: "/admin/inventory/depreciation" },
+        { name: "Intangible Assets", icon: Briefcase, path: "/admin/inventory/intangible" },
+        { name: "KIA Optimization", icon: DollarSign, path: "/admin/inventory/kia" },
+        { name: "Bulk Operations", icon: Users, path: "/admin/bulk-operations" },
+      ],
+    },
+    {
       title: "Employee Management",
       icon: Users,
       items: [

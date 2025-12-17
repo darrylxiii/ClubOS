@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { AppLayout } from "@/components/AppLayout";
 import { RoleGate } from "@/components/RoleGate";
 import { Mail, ClipboardCheck, Calendar, Download, UserPlus, History } from "lucide-react";
 import { BulkEmailTab } from "@/components/admin/bulk-ops/BulkEmailTab";

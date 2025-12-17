@@ -16832,6 +16832,277 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_assets: {
+        Row: {
+          accumulated_depreciation: number | null
+          annual_depreciation: number | null
+          asset_name: string
+          asset_type: Database["public"]["Enums"]["inventory_asset_type"]
+          assigned_to: string | null
+          capitalization_date: string | null
+          category: Database["public"]["Enums"]["inventory_category"]
+          cost_center: string | null
+          created_at: string | null
+          created_by: string | null
+          current_book_value: number | null
+          depreciation_end_date: string | null
+          depreciation_method:
+            | Database["public"]["Enums"]["inventory_depreciation_method"]
+            | null
+          depreciation_start_date: string | null
+          description: string | null
+          id: string
+          inventory_number: string
+          invoice_file_url: string | null
+          invoice_reference: string | null
+          kia_eligible: boolean | null
+          monthly_depreciation: number | null
+          notes: string | null
+          purchase_date: string
+          purchase_value_excl_vat: number
+          residual_value: number | null
+          status: Database["public"]["Enums"]["inventory_asset_status"] | null
+          supplier: string | null
+          total_purchase_value: number | null
+          updated_at: string | null
+          useful_life_years: number
+          vat_amount: number | null
+        }
+        Insert: {
+          accumulated_depreciation?: number | null
+          annual_depreciation?: number | null
+          asset_name: string
+          asset_type?: Database["public"]["Enums"]["inventory_asset_type"]
+          assigned_to?: string | null
+          capitalization_date?: string | null
+          category?: Database["public"]["Enums"]["inventory_category"]
+          cost_center?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_book_value?: number | null
+          depreciation_end_date?: string | null
+          depreciation_method?:
+            | Database["public"]["Enums"]["inventory_depreciation_method"]
+            | null
+          depreciation_start_date?: string | null
+          description?: string | null
+          id?: string
+          inventory_number: string
+          invoice_file_url?: string | null
+          invoice_reference?: string | null
+          kia_eligible?: boolean | null
+          monthly_depreciation?: number | null
+          notes?: string | null
+          purchase_date: string
+          purchase_value_excl_vat: number
+          residual_value?: number | null
+          status?: Database["public"]["Enums"]["inventory_asset_status"] | null
+          supplier?: string | null
+          total_purchase_value?: number | null
+          updated_at?: string | null
+          useful_life_years?: number
+          vat_amount?: number | null
+        }
+        Update: {
+          accumulated_depreciation?: number | null
+          annual_depreciation?: number | null
+          asset_name?: string
+          asset_type?: Database["public"]["Enums"]["inventory_asset_type"]
+          assigned_to?: string | null
+          capitalization_date?: string | null
+          category?: Database["public"]["Enums"]["inventory_category"]
+          cost_center?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_book_value?: number | null
+          depreciation_end_date?: string | null
+          depreciation_method?:
+            | Database["public"]["Enums"]["inventory_depreciation_method"]
+            | null
+          depreciation_start_date?: string | null
+          description?: string | null
+          id?: string
+          inventory_number?: string
+          invoice_file_url?: string | null
+          invoice_reference?: string | null
+          kia_eligible?: boolean | null
+          monthly_depreciation?: number | null
+          notes?: string | null
+          purchase_date?: string
+          purchase_value_excl_vat?: number
+          residual_value?: number | null
+          status?: Database["public"]["Enums"]["inventory_asset_status"] | null
+          supplier?: string | null
+          total_purchase_value?: number | null
+          updated_at?: string | null
+          useful_life_years?: number
+          vat_amount?: number | null
+        }
+        Relationships: []
+      }
+      inventory_audit_log: {
+        Row: {
+          action: string
+          asset_id: string | null
+          changed_at: string | null
+          changed_by: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+        }
+        Insert: {
+          action: string
+          asset_id?: string | null
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Update: {
+          action?: string
+          asset_id?: string | null
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_audit_log_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_categories: {
+        Row: {
+          category_key: string
+          category_name: string
+          category_name_nl: string | null
+          created_at: string | null
+          default_useful_life_years: number
+          depreciation_method: string
+          description: string | null
+          display_order: number | null
+          id: string
+          kia_eligible: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          category_key: string
+          category_name: string
+          category_name_nl?: string | null
+          created_at?: string | null
+          default_useful_life_years?: number
+          depreciation_method?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          kia_eligible?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          category_key?: string
+          category_name?: string
+          category_name_nl?: string | null
+          created_at?: string | null
+          default_useful_life_years?: number
+          depreciation_method?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          kia_eligible?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      inventory_depreciation_ledger: {
+        Row: {
+          accumulated_depreciation: number
+          asset_id: string
+          book_value_after: number
+          created_at: string | null
+          depreciation_amount: number
+          id: string
+          is_posted: boolean | null
+          period_month: number
+          period_year: number
+          posted_at: string | null
+          posted_by: string | null
+        }
+        Insert: {
+          accumulated_depreciation: number
+          asset_id: string
+          book_value_after: number
+          created_at?: string | null
+          depreciation_amount: number
+          id?: string
+          is_posted?: boolean | null
+          period_month: number
+          period_year: number
+          posted_at?: string | null
+          posted_by?: string | null
+        }
+        Update: {
+          accumulated_depreciation?: number
+          asset_id?: string
+          book_value_after?: number
+          created_at?: string | null
+          depreciation_amount?: number
+          id?: string
+          is_posted?: boolean | null
+          period_month?: number
+          period_year?: number
+          posted_at?: string | null
+          posted_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_depreciation_ledger_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_fiscal_settings: {
+        Row: {
+          default_currency: string | null
+          fiscal_year_start_month: number
+          id: string
+          kia_threshold_max: number | null
+          kia_threshold_min: number | null
+          updated_at: string | null
+          updated_by: string | null
+          vat_percentage: number | null
+        }
+        Insert: {
+          default_currency?: string | null
+          fiscal_year_start_month?: number
+          id?: string
+          kia_threshold_max?: number | null
+          kia_threshold_min?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          vat_percentage?: number | null
+        }
+        Update: {
+          default_currency?: string | null
+          fiscal_year_start_month?: number
+          id?: string
+          kia_threshold_max?: number | null
+          kia_threshold_min?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          vat_percentage?: number | null
+        }
+        Relationships: []
+      }
       invite_codes: {
         Row: {
           code: string
@@ -39233,6 +39504,7 @@ export type Database = {
         Returns: undefined
       }
       generate_dossier_share_token: { Args: never; Returns: string }
+      generate_inventory_number: { Args: never; Returns: string }
       generate_invite_code: { Args: never; Returns: string }
       generate_invoice_number: {
         Args: { p_company_id?: string }
@@ -39951,6 +40223,20 @@ export type Database = {
         | "top_rated"
         | "top_rated_plus"
         | "expert_vetted"
+      inventory_asset_status:
+        | "active"
+        | "fully_depreciated"
+        | "sold"
+        | "written_off"
+      inventory_asset_type: "tangible" | "intangible"
+      inventory_category:
+        | "it_hardware"
+        | "office_furniture"
+        | "software_purchased"
+        | "software_developed"
+        | "development_costs"
+        | "other"
+      inventory_depreciation_method: "linear"
       milestone_status:
         | "pending"
         | "in_progress"
@@ -40263,6 +40549,22 @@ export const Constants = {
         "top_rated_plus",
         "expert_vetted",
       ],
+      inventory_asset_status: [
+        "active",
+        "fully_depreciated",
+        "sold",
+        "written_off",
+      ],
+      inventory_asset_type: ["tangible", "intangible"],
+      inventory_category: [
+        "it_hardware",
+        "office_furniture",
+        "software_purchased",
+        "software_developed",
+        "development_costs",
+        "other",
+      ],
+      inventory_depreciation_method: ["linear"],
       milestone_status: [
         "pending",
         "in_progress",
