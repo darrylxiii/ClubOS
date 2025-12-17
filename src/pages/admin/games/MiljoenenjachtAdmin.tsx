@@ -36,7 +36,7 @@ export default function MiljoenenjachtAdmin() {
             email
           )
         `)
-        .eq("assessment_type", "miljoenenjacht")
+        .eq("assessment_name", "Deal or No Deal")
         .order("completed_at", { ascending: false });
 
       if (error) throw error;
@@ -50,7 +50,7 @@ export default function MiljoenenjachtAdmin() {
       const { data, error } = await supabase
         .from("assessment_results")
         .select("score, time_spent_seconds")
-        .eq("assessment_type", "miljoenenjacht");
+        .eq("assessment_name", "Deal or No Deal");
 
       if (error) throw error;
 

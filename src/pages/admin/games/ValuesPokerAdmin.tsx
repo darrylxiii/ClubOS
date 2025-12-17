@@ -36,7 +36,7 @@ export default function ValuesPokerAdmin() {
             email
           )
         `)
-        .eq("assessment_type", "values_poker")
+        .eq("assessment_name", "Values Poker")
         .order("completed_at", { ascending: false });
 
       if (error) throw error;
@@ -50,7 +50,7 @@ export default function ValuesPokerAdmin() {
       const { data, error } = await supabase
         .from("assessment_results")
         .select("score, time_spent_seconds")
-        .eq("assessment_type", "values_poker");
+        .eq("assessment_name", "Values Poker");
 
       if (error) throw error;
 

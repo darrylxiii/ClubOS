@@ -36,7 +36,7 @@ export default function BlindSpotAdmin() {
             email
           )
         `)
-        .eq("assessment_type", "blind_spot")
+        .eq("assessment_name", "Blind Spot Detector")
         .order("completed_at", { ascending: false });
 
       if (error) throw error;
@@ -50,7 +50,7 @@ export default function BlindSpotAdmin() {
       const { data, error } = await supabase
         .from("assessment_results")
         .select("score, time_spent_seconds")
-        .eq("assessment_type", "blind_spot");
+        .eq("assessment_name", "Blind Spot Detector");
 
       if (error) throw error;
 

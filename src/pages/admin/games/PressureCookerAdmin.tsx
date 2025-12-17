@@ -36,7 +36,7 @@ export default function PressureCookerAdmin() {
             email
           )
         `)
-        .eq("assessment_type", "pressure_cooker")
+        .eq("assessment_name", "Pressure Cooker")
         .order("completed_at", { ascending: false });
 
       if (error) throw error;
@@ -50,7 +50,7 @@ export default function PressureCookerAdmin() {
       const { data, error } = await supabase
         .from("assessment_results")
         .select("score, time_spent_seconds")
-        .eq("assessment_type", "pressure_cooker");
+        .eq("assessment_name", "Pressure Cooker");
 
       if (error) throw error;
 

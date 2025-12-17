@@ -399,7 +399,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: FileCheck,
       items: [
         { name: "Admin Audit Log", icon: FileCheck, path: "/admin/audit-log" },
-        { name: "Activity Monitor", icon: Activity, path: "/admin/activity-monitor" },
+        { name: "Activity Monitor", icon: Activity, path: "/admin/user-activity" },
         { name: "Error Logs", icon: AlertTriangle, path: "/admin/error-logs" },
       ],
     },

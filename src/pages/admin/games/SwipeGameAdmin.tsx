@@ -36,7 +36,7 @@ export default function SwipeGameAdmin() {
             email
           )
         `)
-        .eq("assessment_type", "swipe_game")
+        .eq("assessment_name", "Would You Rather?")
         .order("completed_at", { ascending: false });
 
       if (error) throw error;
@@ -50,7 +50,7 @@ export default function SwipeGameAdmin() {
       const { data, error } = await supabase
         .from("assessment_results")
         .select("score, time_spent_seconds")
-        .eq("assessment_type", "swipe_game");
+        .eq("assessment_name", "Would You Rather?");
 
       if (error) throw error;
 
