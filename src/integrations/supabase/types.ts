@@ -3720,6 +3720,57 @@ export type Database = {
         }
         Relationships: []
       }
+      bulk_operation_logs: {
+        Row: {
+          admin_id: string
+          completed_at: string | null
+          created_at: string | null
+          error_details: Json | null
+          failure_count: number
+          id: string
+          metadata: Json | null
+          operation_type: string
+          started_at: string | null
+          status: string
+          success_count: number
+          target_count: number
+          target_ids: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          error_details?: Json | null
+          failure_count?: number
+          id?: string
+          metadata?: Json | null
+          operation_type: string
+          started_at?: string | null
+          status?: string
+          success_count?: number
+          target_count?: number
+          target_ids?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          error_details?: Json | null
+          failure_count?: number
+          id?: string
+          metadata?: Json | null
+          operation_type?: string
+          started_at?: string | null
+          status?: string
+          success_count?: number
+          target_count?: number
+          target_ids?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       calendar_connections: {
         Row: {
           access_token: string
@@ -8894,6 +8945,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      contract_documents: {
+        Row: {
+          contract_id: string
+          contract_type: string
+          created_at: string | null
+          document_type: string
+          file_name: string
+          file_size_kb: number | null
+          file_url: string
+          id: string
+          is_active: boolean | null
+          mime_type: string | null
+          notes: string | null
+          updated_at: string | null
+          uploaded_by: string
+          version: number | null
+        }
+        Insert: {
+          contract_id: string
+          contract_type: string
+          created_at?: string | null
+          document_type: string
+          file_name: string
+          file_size_kb?: number | null
+          file_url: string
+          id?: string
+          is_active?: boolean | null
+          mime_type?: string | null
+          notes?: string | null
+          updated_at?: string | null
+          uploaded_by: string
+          version?: number | null
+        }
+        Update: {
+          contract_id?: string
+          contract_type?: string
+          created_at?: string | null
+          document_type?: string
+          file_name?: string
+          file_size_kb?: number | null
+          file_url?: string
+          id?: string
+          is_active?: boolean | null
+          mime_type?: string | null
+          notes?: string | null
+          updated_at?: string | null
+          uploaded_by?: string
+          version?: number | null
+        }
+        Relationships: []
       }
       conversation_analytics: {
         Row: {
