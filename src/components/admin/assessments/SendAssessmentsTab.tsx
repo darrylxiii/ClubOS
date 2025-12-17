@@ -29,11 +29,11 @@ export const SendAssessmentsTab = memo(() => {
     try {
       let query = supabase
         .from('candidate_profiles')
-        .select('user_id, full_name, headline, avatar_url')
+        .select('user_id, full_name, current_title, avatar_url')
         .order('full_name');
 
       if (searchQuery) {
-        query = query.or(`full_name.ilike.%${searchQuery}%,headline.ilike.%${searchQuery}%`);
+        query = query.or(`full_name.ilike.%${searchQuery}%,current_title.ilike.%${searchQuery}%`);
       }
 
       const { data, error } = await query.limit(50);
@@ -126,7 +126,7 @@ export const SendAssessmentsTab = memo(() => {
                 />
                 <div className="flex-1">
                   <p className="font-medium">{candidate.full_name}</p>
-                  <p className="text-sm text-muted-foreground">{candidate.headline}</p>
+                  <p className="text-sm text-muted-foreground">{candidate.current_title}</p>
                 </div>
               </div>
             ))}
