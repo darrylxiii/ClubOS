@@ -39188,6 +39188,15 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_daily_user_segments: {
+        Args: { days_back?: number }
+        Returns: {
+          date: string
+          device_type: string
+          sessions: number
+          unique_users: number
+        }[]
+      }
       get_deal_stage_for_job: { Args: { p_job_id: string }; Returns: string }
       get_department_hierarchy: {
         Args: { p_company_id: string }
@@ -39226,6 +39235,17 @@ export type Database = {
           p_start_date?: string
         }
         Returns: Json
+      }
+      get_feature_usage_summary: {
+        Args: never
+        Returns: {
+          avg_duration_ms: number
+          completion_rate: number
+          feature_category: string
+          feature_name: string
+          total_uses: number
+          unique_users: number
+        }[]
       }
       get_historical_conversion_rate: {
         Args: {
@@ -39286,15 +39306,25 @@ export type Database = {
           candidate_count: number
         }[]
       }
-      get_popular_courses: {
-        Args: never
-        Returns: {
-          description: string
-          id: string
-          name: string
-          total_enrollments: number
-        }[]
-      }
+      get_popular_courses:
+        | {
+            Args: never
+            Returns: {
+              description: string
+              id: string
+              name: string
+              total_enrollments: number
+            }[]
+          }
+        | {
+            Args: { limit_count?: number }
+            Returns: {
+              id: string
+              slug: string
+              title: string
+              total_enrollments: number
+            }[]
+          }
       get_realtime_system_health: { Args: never; Returns: Json }
       get_recruiter_stats: {
         Args: { p_days?: number; p_user_id: string }
@@ -39353,6 +39383,15 @@ export type Database = {
         Args: { _user_id: string }
         Returns: {
           role: string
+        }[]
+      }
+      get_user_segments_summary: {
+        Args: never
+        Returns: {
+          avg_anomaly_score: number
+          cluster_id: number
+          segment_label: string
+          user_count: number
         }[]
       }
       get_user_server_ids: { Args: never; Returns: string[] }
