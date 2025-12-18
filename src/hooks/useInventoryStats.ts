@@ -42,6 +42,7 @@ export function useInventoryStats(fiscalYear?: number) {
     const fetchStats = async () => {
       try {
         setLoading(true);
+        const targetYear = fiscalYear || new Date().getFullYear();
 
         // Fetch all assets
         const { data: assets, error: assetsError } = await supabase
@@ -66,8 +67,12 @@ export function useInventoryStats(fiscalYear?: number) {
           .filter(a => a.status === 'active')
           .reduce((sum, a) => sum + (a.annual_depreciation || 0), 0);
 
-        // KIA stats
-        const kiaAssets = assetList.filter(a => a.kia_eligible);
+        // KIA stats - only count assets purchased in current fiscal year
+        const kiaAssets = assetList.filter(a => {
+          if (!a.kia_eligible) return false;
+          const purchaseYear = new Date(a.purchase_date).getFullYear();
+          return purchaseYear === targetYear;
+        });
         const kiaEligibleTotal = kiaAssets.reduce((sum, a) => sum + (a.total_purchase_value || 0), 0);
         const kiaEligibleCount = kiaAssets.length;
 

@@ -4,15 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { TrendingDown, Play, CheckCircle, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { TrendingDown, Play, CheckCircle, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, History } from "lucide-react";
 import { useState } from "react";
 import { useDepreciationLedger, type DepreciationEntry } from "@/hooks/useDepreciationLedger";
+import { useDepreciationRuns } from "@/hooks/useAssetEvents";
 import { CATEGORY_LABELS } from "@/hooks/useInventoryCategories";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GenerateEntriesDialog } from "@/components/admin/inventory/GenerateEntriesDialog";
+import { formatCurrency } from "@/lib/currency";
+import { format } from "date-fns";
 
-const formatCurrency = (v: number) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(v);
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 type SortField = 'asset_name' | 'category' | 'depreciation_amount' | 'accumulated_depreciation' | 'book_value_after' | 'is_posted';
@@ -27,6 +29,7 @@ const DepreciationSchedule = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   
   const { entries, loading, postEntry, bulkPost, getPeriodTotals, refetch } = useDepreciationLedger({ year, month });
+  const { runs, loading: runsLoading } = useDepreciationRuns(year);
   const totals = getPeriodTotals(year, month);
 
   const handleSort = (field: SortField) => {
@@ -213,6 +216,54 @@ const DepreciationSchedule = () => {
                               </Button>
                             )}
                           </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Depreciation Runs History */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Depreciation Run History - {year}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {runsLoading ? (
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+                </div>
+              ) : runs.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">No depreciation runs recorded for {year}.</p>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Period</TableHead>
+                        <TableHead>Run Type</TableHead>
+                        <TableHead className="text-right">Entries</TableHead>
+                        <TableHead className="text-right">Total Depreciation</TableHead>
+                        <TableHead>Run Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {runs.map(run => (
+                        <TableRow key={run.id}>
+                          <TableCell className="font-medium">
+                            {months[run.period_month - 1]} {run.period_year}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">{run.run_type}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right">{run.total_entries}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(run.total_depreciation)}</TableCell>
+                          <TableCell>{format(new Date(run.run_at), 'dd MMM yyyy HH:mm')}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

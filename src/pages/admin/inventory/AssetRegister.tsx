@@ -135,12 +135,14 @@ const AssetRegister = () => {
             </Select>
             
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as AssetStatus | "all")}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="under_maintenance">Under Maintenance</SelectItem>
+                <SelectItem value="disposed">Disposed</SelectItem>
                 <SelectItem value="fully_depreciated">Fully Depreciated</SelectItem>
                 <SelectItem value="sold">Sold</SelectItem>
                 <SelectItem value="written_off">Written Off</SelectItem>

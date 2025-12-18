@@ -28,7 +28,7 @@ interface AssetDetailDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit: (asset: InventoryAsset) => void;
-  onStatusChange: (id: string, status: AssetStatus) => Promise<boolean>;
+  onStatusChange: (id: string, status: AssetStatus) => void | Promise<boolean>;
 }
 
 const formatCurrency = (v: number | null) => 
@@ -78,9 +78,9 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
 
     setStatusChanging(true);
     const previousStatus = asset.status;
-    const success = await onStatusChange(asset.id, newStatus);
+    const result = await Promise.resolve(onStatusChange(asset.id, newStatus));
     
-    if (success) {
+    if (result !== false) {
       await createEvent('status_changed', {}, { status: previousStatus }, { status: newStatus });
     }
     setStatusChanging(false);
