@@ -35,6 +35,9 @@ export interface InventoryAsset {
   depreciation_start_date: string | null;
   depreciation_end_date: string | null;
   capitalization_date: string | null;
+  disposed_at: string | null;
+  disposal_reason: string | null;
+  disposal_value: number | null;
   created_at: string | null;
   updated_at: string | null;
   created_by: string | null;
