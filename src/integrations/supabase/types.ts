@@ -16832,6 +16832,47 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_asset_events: {
+        Row: {
+          asset_id: string
+          created_at: string | null
+          created_by: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          new_value: Json | null
+          previous_value: Json | null
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string | null
+          created_by?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          new_value?: Json | null
+          previous_value?: Json | null
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          new_value?: Json | null
+          previous_value?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_asset_events_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_assets: {
         Row: {
           accumulated_depreciation: number | null
@@ -16851,6 +16892,9 @@ export type Database = {
             | null
           depreciation_start_date: string | null
           description: string | null
+          disposal_reason: string | null
+          disposal_value: number | null
+          disposed_at: string | null
           id: string
           inventory_number: string
           invoice_file_url: string | null
@@ -16886,6 +16930,9 @@ export type Database = {
             | null
           depreciation_start_date?: string | null
           description?: string | null
+          disposal_reason?: string | null
+          disposal_value?: number | null
+          disposed_at?: string | null
           id?: string
           inventory_number: string
           invoice_file_url?: string | null
@@ -16921,6 +16968,9 @@ export type Database = {
             | null
           depreciation_start_date?: string | null
           description?: string | null
+          disposal_reason?: string | null
+          disposal_value?: number | null
+          disposed_at?: string | null
           id?: string
           inventory_number?: string
           invoice_file_url?: string | null
@@ -17069,6 +17119,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      inventory_depreciation_runs: {
+        Row: {
+          id: string
+          metadata: Json | null
+          period_month: number
+          period_year: number
+          run_at: string | null
+          run_by: string | null
+          run_type: string
+          total_depreciation: number
+          total_entries: number
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          period_month: number
+          period_year: number
+          run_at?: string | null
+          run_by?: string | null
+          run_type?: string
+          total_depreciation?: number
+          total_entries?: number
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          period_month?: number
+          period_year?: number
+          run_at?: string | null
+          run_by?: string | null
+          run_type?: string
+          total_depreciation?: number
+          total_entries?: number
+        }
+        Relationships: []
       }
       inventory_fiscal_settings: {
         Row: {
@@ -40228,6 +40314,8 @@ export type Database = {
         | "fully_depreciated"
         | "sold"
         | "written_off"
+        | "under_maintenance"
+        | "disposed"
       inventory_asset_type: "tangible" | "intangible"
       inventory_category:
         | "it_hardware"
@@ -40554,6 +40642,8 @@ export const Constants = {
         "fully_depreciated",
         "sold",
         "written_off",
+        "under_maintenance",
+        "disposed",
       ],
       inventory_asset_type: ["tangible", "intangible"],
       inventory_category: [
