@@ -128,6 +128,25 @@ export function GenerateEntriesDialog({ open, onOpenChange, year, month, onGener
 
       if (error) throw error;
 
+      // Record the depreciation run
+      const totalDepr = entriesToCreate.reduce((sum, e) => sum + e.depreciation_amount, 0);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      await supabase
+        .from('inventory_depreciation_runs')
+        .insert({
+          period_year: year,
+          period_month: month,
+          total_entries: entriesToCreate.length,
+          total_depreciation: totalDepr,
+          run_type: existingEntries.length > 0 ? 'partial' : 'generate',
+          run_by: user?.id || null,
+          metadata: { 
+            skipped_existing: existingEntries.length,
+            adjusted_entries: preview.filter(e => e.adjusted_amount !== e.depreciation_amount).length
+          },
+        });
+
       toast.success(`Created ${entriesToCreate.length} depreciation entries`);
       onGenerated();
       onOpenChange(false);
