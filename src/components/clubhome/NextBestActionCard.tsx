@@ -18,6 +18,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
 
+interface SimpleBooking {
+  id: string;
+  start_time: string;
+}
+
 interface NextAction {
   id: string;
   title: string;
@@ -59,13 +64,12 @@ export const NextBestActionCard = () => {
       }
 
       // Check for upcoming interviews
-      const { data: upcomingMeetings } = await supabase
-        .from('bookings')
-        .select('id, start_time')
-        .eq('attendee_id', user.id)
-        .gte('start_time', new Date().toISOString())
-        .order('start_time', { ascending: true })
-        .limit(1);
+      const bookingsQuery = supabase.from('bookings' as 'profiles').select('id, start_time');
+      const { data: upcomingMeetings } = await bookingsQuery
+        .eq('attendee_id' as 'id', user.id)
+        .gte('start_time' as 'id', new Date().toISOString())
+        .order('start_time' as 'id', { ascending: true })
+        .limit(1) as unknown as { data: SimpleBooking[] | null };
 
       if (upcomingMeetings && upcomingMeetings.length > 0) {
         return {
