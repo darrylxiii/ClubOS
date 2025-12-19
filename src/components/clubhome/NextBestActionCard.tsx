@@ -20,7 +20,7 @@ import { motion } from "framer-motion";
 
 interface SimpleBooking {
   id: string;
-  start_time: string;
+  scheduled_start: string;
 }
 
 interface NextAction {
@@ -64,12 +64,15 @@ export const NextBestActionCard = () => {
       }
 
       // Check for upcoming interviews
-      const bookingsQuery = supabase.from('bookings' as 'profiles').select('id, start_time');
-      const { data: upcomingMeetings } = await bookingsQuery
-        .eq('attendee_id' as 'id', user.id)
-        .gte('start_time' as 'id', new Date().toISOString())
-        .order('start_time' as 'id', { ascending: true })
-        .limit(1) as unknown as { data: SimpleBooking[] | null };
+      const { data } = await supabase
+        .from('bookings')
+        .select('id, scheduled_start')
+        .eq('user_id', user.id)
+        .gte('scheduled_start', new Date().toISOString())
+        .order('scheduled_start', { ascending: true })
+        .limit(1);
+      
+      const upcomingMeetings = data as SimpleBooking[] | null;
 
       if (upcomingMeetings && upcomingMeetings.length > 0) {
         return {
