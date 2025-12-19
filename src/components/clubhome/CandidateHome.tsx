@@ -22,6 +22,10 @@ import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
 import { ClubPilotTasksWidget } from "./ClubPilotTasksWidget";
 import { MessagesPreviewWidget } from "./MessagesPreviewWidget";
 import { TimeTrackingWidget } from "./TimeTrackingWidget";
+import { NextBestActionCard } from "./NextBestActionCard";
+import { ReferralStatsWidget } from "./ReferralStatsWidget";
+import { AchievementsPreviewWidget } from "./AchievementsPreviewWidget";
+import { NotificationsPreviewWidget } from "./NotificationsPreviewWidget";
 import { T } from "@/components/T";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
@@ -71,6 +75,12 @@ export const CandidateHome = () => {
 
       {/* Profile Completion */}
       <ProfileCompletion />
+
+      {/* Next Best Action - QUIN Powered */}
+      <NextBestActionCard />
+
+      {/* Notifications Preview */}
+      <NotificationsPreviewWidget />
 
       {/* Quick Tips & Resources */}
       <DashboardSection
@@ -154,6 +164,12 @@ export const CandidateHome = () => {
       <DashboardSection columns={2}>
         <MessagesPreviewWidget />
         <TimeTrackingWidget role="candidate" />
+      </DashboardSection>
+
+      {/* Referrals & Achievements */}
+      <DashboardSection columns={2}>
+        <ReferralStatsWidget />
+        <AchievementsPreviewWidget />
       </DashboardSection>
 
       {/* Live Pulse & Profile Views */}

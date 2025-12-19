@@ -23,6 +23,8 @@ import { DealPipelineSummaryWidget } from "./DealPipelineSummaryWidget";
 import { KPISummaryWidget } from "./KPISummaryWidget";
 import { SystemErrorsWidget } from "./SystemErrorsWidget";
 import { ActiveMeetingsWidget } from "./ActiveMeetingsWidget";
+import { RevenueOverviewWidget } from "./RevenueOverviewWidget";
+import { WhatsAppPreviewWidget } from "./WhatsAppPreviewWidget";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
 
@@ -104,6 +106,12 @@ const AdminHomeContent = () => {
       <DashboardSection columns={2}>
         <KPISummaryWidget />
         <DealPipelineSummaryWidget />
+      </DashboardSection>
+
+      {/* Revenue & Messages */}
+      <DashboardSection columns={2}>
+        <RevenueOverviewWidget />
+        <WhatsAppPreviewWidget />
       </DashboardSection>
 
       {/* Platform Health & Errors */}

@@ -24,6 +24,7 @@ import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
 import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
 import { TimeTrackingWidget } from "./TimeTrackingWidget";
+import { InterviewTodayWidget } from "./InterviewTodayWidget";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
 
@@ -112,9 +113,14 @@ export const PartnerHome = () => {
         {companyId && <HiringPipelineOverview companyId={companyId} />}
       </DashboardSection>
 
-      {/* Upcoming Meetings & Time Tracking */}
+      {/* Today's Interviews & Upcoming Meetings */}
       <DashboardSection columns={2}>
+        <InterviewTodayWidget />
         <UpcomingMeetingsWidget />
+      </DashboardSection>
+
+      {/* Time Tracking */}
+      <DashboardSection>
         {companyId && <TimeTrackingWidget role="partner" companyId={companyId} />}
       </DashboardSection>
 
