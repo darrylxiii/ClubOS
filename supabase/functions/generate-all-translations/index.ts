@@ -259,6 +259,28 @@ Deno.serve(async (req) => {
 
     console.log(`[Generate All] Processing ${namespacesToProcess.length} namespaces`);
 
+    // Check for existing running jobs (prevent duplicates)
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    const { data: existingJobs, error: existingJobsError } = await serviceClient
+      .from('translation_generation_jobs')
+      .select('id, status, started_at, namespace')
+      .eq('status', 'running')
+      .gt('started_at', thirtyMinutesAgo)
+      .order('started_at', { ascending: false });
+
+    if (existingJobs && existingJobs.length > 0) {
+      console.log(`[Generate All] Found ${existingJobs.length} running job(s), rejecting duplicate request`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'A translation job is already running',
+          existingJobId: existingJobs[0].id,
+          startedAt: existingJobs[0].started_at,
+          runningJobsCount: existingJobs.length
+        }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Create job record
     let currentJobId = jobId;
     

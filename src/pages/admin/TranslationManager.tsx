@@ -248,6 +248,20 @@ export default function TranslationManager() {
       return;
     }
 
+    // Pre-check: Is there already a running job?
+    const { data: runningJobs } = await supabase
+      .from('translation_generation_jobs')
+      .select('id')
+      .eq('status', 'running')
+      .gt('started_at', new Date(Date.now() - 30 * 60 * 1000).toISOString())
+      .limit(1);
+
+    if (runningJobs && runningJobs.length > 0) {
+      addLog('warn', 'A translation job is already running', undefined, 'generate');
+      toast.warning('A translation job is already running. Please wait for it to complete.');
+      return;
+    }
+
     setGeneratingNamespace(namespace);
     addLog('info', `Starting translation for "${namespace}"...`, undefined, 'generate');
 
@@ -257,12 +271,26 @@ export default function TranslationManager() {
       });
 
       if (error) {
+        if (error.message?.includes('already running')) {
+          addLog('warn', 'Job already in progress', error.message, 'generate');
+          toast.info('A translation job is already in progress.');
+          return;
+        }
         addLog('error', `Translation failed for "${namespace}"`, error.message, 'generate');
         toast.error(error.message || 'Translation failed');
         return;
       }
 
-      if (data?.summary) {
+      if (data?.error?.includes('already running')) {
+        addLog('warn', 'Job already in progress', `Existing job: ${data.existingJobId}`, 'generate');
+        toast.info('A translation job is already in progress.');
+        return;
+      }
+
+      if (data?.jobId) {
+        addLog('info', `Translation job started for "${namespace}"`, `Job ID: ${data.jobId}`, 'generate');
+        toast.success(`Translation job started for "${namespace}"!`);
+      } else if (data?.summary) {
         const { successCount, errorCount } = data.summary;
         if (errorCount > 0) {
           addLog('warn', `Completed with ${errorCount} errors`, JSON.stringify(data.errors, null, 2), 'generate');
@@ -288,6 +316,20 @@ export default function TranslationManager() {
       return;
     }
 
+    // Pre-check: Is there already a running job?
+    const { data: runningJobs } = await supabase
+      .from('translation_generation_jobs')
+      .select('id, started_at')
+      .eq('status', 'running')
+      .gt('started_at', new Date(Date.now() - 30 * 60 * 1000).toISOString())
+      .limit(1);
+
+    if (runningJobs && runningJobs.length > 0) {
+      addLog('warn', 'A translation job is already running', `Job ID: ${runningJobs[0].id}`, 'generate');
+      toast.warning('A translation job is already running. Please wait for it to complete.');
+      return;
+    }
+
     setIsGeneratingAll(true);
     const namespaceCount = namespacesQuery.data?.namespaces?.length || ALL_NAMESPACES.length;
     addLog('info', `Starting full generation (${namespaceCount} namespaces × ${TARGET_LANGUAGES.length} languages)...`, undefined, 'generate');
@@ -298,12 +340,28 @@ export default function TranslationManager() {
       });
 
       if (error) {
+        // Handle 409 conflict (duplicate job) gracefully
+        if (error.message?.includes('already running') || error.message?.includes('409')) {
+          addLog('warn', 'Job already in progress', error.message, 'generate');
+          toast.info('A translation job is already in progress. Check the Active Jobs panel.');
+          return;
+        }
         addLog('error', 'Full generation failed', error.message, 'generate');
         toast.error(`Failed: ${error.message}`);
         return;
       }
 
-      if (data?.summary) {
+      // Handle 409 response from edge function
+      if (data?.error?.includes('already running')) {
+        addLog('warn', 'Job already in progress', `Existing job: ${data.existingJobId}`, 'generate');
+        toast.info('A translation job is already in progress. Check the Active Jobs panel.');
+        return;
+      }
+
+      if (data?.jobId) {
+        addLog('info', 'Translation job started', `Job ID: ${data.jobId}`, 'generate');
+        toast.success('Translation job started! Check the progress below.');
+      } else if (data?.summary) {
         const { successCount, errorCount, status, jobId } = data.summary;
         addLog('info', `Generation complete: ${status}`,
           `Success: ${successCount}, Errors: ${errorCount}, Job: ${jobId}`, 'generate');
