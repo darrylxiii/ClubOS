@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
@@ -18,6 +17,7 @@ interface TaskQueueItem {
   id: string;
   type: 'approval' | 'application' | 'security' | 'overdue';
   label: string;
+  shortLabel: string;
   count: number;
   priority: 'high' | 'medium' | 'low';
   link: string;
@@ -54,7 +54,7 @@ const taskConfig = {
   },
 };
 
-const priorityBadge = {
+const priorityStyles = {
   high: 'bg-rose-500 text-white',
   medium: 'bg-amber-500 text-white',
   low: 'bg-muted text-muted-foreground',
@@ -77,32 +77,36 @@ export function UnifiedTaskQueuePanel({
   const allTasks: TaskQueueItem[] = [
     {
       id: 'approvals',
-      type: 'approval' as const,
+      type: 'approval',
       label: 'Member Approvals',
+      shortLabel: 'Approvals',
       count: pendingApprovals,
       priority: getPriority(pendingApprovals, 5),
       link: '/admin/member-approvals',
     },
     {
       id: 'applications',
-      type: 'application' as const,
+      type: 'application',
       label: 'Application Reviews',
+      shortLabel: 'Applications',
       count: pendingApplications,
       priority: getPriority(pendingApplications, 20),
       link: '/applications',
     },
     {
       id: 'security',
-      type: 'security' as const,
+      type: 'security',
       label: 'Security Alerts',
+      shortLabel: 'Security',
       count: securityAlerts,
       priority: getPriority(securityAlerts, 0, true),
       link: '/admin/anti-hacking',
     },
     {
       id: 'overdue',
-      type: 'overdue' as const,
+      type: 'overdue',
       label: 'Overdue Tasks',
+      shortLabel: 'Overdue',
       count: overdueItems,
       priority: getPriority(overdueItems, 3),
       link: '/tasks',
@@ -110,38 +114,37 @@ export function UnifiedTaskQueuePanel({
   ];
   
   const tasks = allTasks.filter(t => t.count > 0);
-
   const totalTasks = pendingApprovals + pendingApplications + securityAlerts + overdueItems;
 
   return (
-    <Card className="glass-card h-full">
-      <CardHeader className="pb-2">
+    <Card className="glass-card h-full flex flex-col">
+      <CardHeader className="pb-2 px-3 pt-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-sm font-medium">
             <ListTodo className="h-4 w-4 text-primary" />
-            Task Queue
+            Tasks
             {totalTasks > 0 && (
-              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">
+              <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
                 {totalTasks}
               </Badge>
             )}
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 px-3 pb-3">
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-6">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : tasks.length === 0 ? (
-          <div className="text-center py-6">
-            <ListTodo className="h-8 w-8 mx-auto text-emerald-500 mb-2" />
-            <p className="text-sm text-muted-foreground">All caught up!</p>
-            <p className="text-xs text-muted-foreground mt-1">No pending tasks</p>
+          <div className="text-center py-4">
+            <ListTodo className="h-6 w-6 mx-auto text-emerald-500 mb-1.5" />
+            <p className="text-xs font-medium text-emerald-600">All caught up!</p>
+            <p className="text-[10px] text-muted-foreground">No pending tasks</p>
           </div>
         ) : (
-          <ScrollArea className="h-[180px] -mx-2 px-2">
-            <div className="space-y-2">
+          <ScrollArea className="h-[180px] -mx-1 px-1">
+            <div className="space-y-1.5">
               {tasks.map((task) => {
                 const config = taskConfig[task.type];
                 const Icon = config.icon;
@@ -151,27 +154,27 @@ export function UnifiedTaskQueuePanel({
                     key={task.id}
                     to={task.link}
                     className={cn(
-                      "flex items-center justify-between p-2 rounded-lg transition-colors hover:bg-muted/70 gap-2",
+                      "flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-muted/80",
                       config.bg
                     )}
                   >
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <div className={cn("p-1.5 rounded-md shrink-0", config.bg)}>
-                        <Icon className={cn("h-3.5 w-3.5", config.color)} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[11px] font-medium truncate" title={task.label}>{task.label}</span>
-                          <Badge className={cn("h-4 px-1 text-[9px] shrink-0", priorityBadge[task.priority])}>
-                            {task.count}
-                          </Badge>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground truncate">
-                          {task.priority === 'high' ? 'Requires attention' : 'Pending review'}
-                        </p>
-                      </div>
+                    <div className={cn("p-1.5 rounded shrink-0", config.bg)}>
+                      <Icon className={cn("h-3.5 w-3.5", config.color)} />
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-medium" title={task.label}>
+                          {task.shortLabel}
+                        </span>
+                        <Badge className={cn("h-4 px-1.5 text-[9px] shrink-0", priorityStyles[task.priority])}>
+                          {task.count}
+                        </Badge>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        {task.priority === 'high' ? 'Needs attention' : 'Pending'}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   </Link>
                 );
               })}

@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Zap, 
   UserCheck, 
@@ -8,22 +9,21 @@ import {
   Activity, 
   FileOutput,
   RefreshCw,
-  Bell,
-  ChevronRight
+  Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface QuickAction {
   id: string;
   label: string;
+  shortLabel: string;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   bg: string;
+  hoverBg: string;
   action: 'link' | 'callback';
   link?: string;
-  shortcut?: string;
 }
 
 interface QuickActionsPanelProps {
@@ -43,61 +43,67 @@ export function QuickActionsPanel({
     {
       id: 'approve-members',
       label: 'Approve Members',
+      shortLabel: 'Members',
       icon: UserCheck,
       color: 'text-blue-500',
-      bg: 'hover:bg-blue-500/10',
+      bg: 'bg-blue-500/10',
+      hoverBg: 'hover:bg-blue-500/20',
       action: 'link',
       link: '/admin/member-approvals',
-      shortcut: '1',
     },
     {
       id: 'review-apps',
-      label: 'Review Apps',
+      label: 'Review Applications',
+      shortLabel: 'Apps',
       icon: FileText,
       color: 'text-purple-500',
-      bg: 'hover:bg-purple-500/10',
+      bg: 'bg-purple-500/10',
+      hoverBg: 'hover:bg-purple-500/20',
       action: 'link',
       link: '/applications',
-      shortcut: '2',
     },
     {
       id: 'security',
       label: 'Security Center',
+      shortLabel: 'Security',
       icon: ShieldCheck,
       color: 'text-rose-500',
-      bg: 'hover:bg-rose-500/10',
+      bg: 'bg-rose-500/10',
+      hoverBg: 'hover:bg-rose-500/20',
       action: 'link',
       link: '/admin/anti-hacking',
-      shortcut: '3',
     },
     {
       id: 'health-check',
-      label: 'Health Check',
+      label: 'Run Health Check',
+      shortLabel: 'Health',
       icon: Activity,
       color: 'text-emerald-500',
-      bg: 'hover:bg-emerald-500/10',
+      bg: 'bg-emerald-500/10',
+      hoverBg: 'hover:bg-emerald-500/20',
       action: 'callback',
-      shortcut: '4',
     },
     {
       id: 'view-logs',
-      label: 'System Logs',
+      label: 'View System Logs',
+      shortLabel: 'Logs',
       icon: FileOutput,
       color: 'text-amber-500',
-      bg: 'hover:bg-amber-500/10',
+      bg: 'bg-amber-500/10',
+      hoverBg: 'hover:bg-amber-500/20',
       action: 'link',
       link: '/admin/audit-log',
-      shortcut: '5',
     },
     {
       id: 'notifications',
       label: 'Notifications',
+      shortLabel: 'Alerts',
       icon: Bell,
       color: 'text-cyan-500',
-      bg: 'hover:bg-cyan-500/10',
+      bg: 'bg-cyan-500/10',
+      hoverBg: 'hover:bg-cyan-500/20',
       action: 'link',
       link: '/notifications',
-      shortcut: '6',
     },
   ];
 
@@ -110,55 +116,57 @@ export function QuickActionsPanel({
   };
 
   return (
-    <Card className="glass-card h-full">
-      <CardHeader className="pb-2">
+    <Card className="glass-card h-full flex flex-col">
+      <CardHeader className="pb-2 px-3 pt-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-sm font-medium">
             <Zap className="h-4 w-4 text-primary" />
-            Quick Actions
+            Actions
           </CardTitle>
           <Button
             variant="ghost"
-            size="sm"
-            className="h-7 text-xs gap-1"
+            size="icon"
+            className="h-7 w-7"
             onClick={onRefreshAll}
             disabled={isRefreshing}
           >
-            <RefreshCw className={cn("h-3 w-3", isRefreshing && "animate-spin")} />
-            Refresh
+            <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-1.5">
-          {actions.map((action) => {
-            const Icon = action.icon;
-            
-            return (
-              <Button
-                key={action.id}
-                variant="ghost"
-                className={cn(
-                  "h-auto p-2 justify-start w-full",
-                  action.bg
-                )}
-                onClick={() => handleAction(action)}
-              >
-                <div className="flex items-center gap-2 w-full min-w-0">
-                  <Icon className={cn("h-4 w-4 shrink-0", action.color)} />
-                  <span className="text-xs font-medium truncate flex-1 text-left" title={action.label}>
+      <CardContent className="flex-1 px-3 pb-3">
+        <TooltipProvider delayDuration={0}>
+          {/* Icon grid for mobile/tablet, list for desktop */}
+          <div className="grid grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-2">
+            {actions.map((action) => {
+              const Icon = action.icon;
+              
+              return (
+                <Tooltip key={action.id}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "h-auto p-2.5 flex-col gap-1.5 w-full",
+                        action.bg,
+                        action.hoverBg
+                      )}
+                      onClick={() => handleAction(action)}
+                    >
+                      <Icon className={cn("h-5 w-5", action.color)} />
+                      <span className="text-[10px] font-medium text-center leading-tight">
+                        {action.shortLabel}
+                      </span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
                     {action.label}
-                  </span>
-                  {action.shortcut && (
-                    <kbd className="text-[9px] px-1 py-0.5 rounded bg-muted text-muted-foreground shrink-0 hidden sm:inline xl:hidden 2xl:inline">
-                      {action.shortcut}
-                    </kbd>
-                  )}
-                </div>
-              </Button>
-            );
-          })}
-        </div>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </TooltipProvider>
       </CardContent>
     </Card>
   );

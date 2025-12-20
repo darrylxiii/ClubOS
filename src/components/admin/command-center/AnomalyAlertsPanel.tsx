@@ -47,10 +47,10 @@ const severityConfig = {
 };
 
 const typeLabels: Record<string, string> = {
-  frustration_spike: 'Frustration Spike',
+  frustration_spike: 'Frustration',
   login_drop: 'Login Drop',
-  application_abandonment: 'App Abandonment',
-  performance_issue: 'Performance Issue',
+  application_abandonment: 'Abandonment',
+  performance_issue: 'Performance',
 };
 
 export function AnomalyAlertsPanel({
@@ -61,14 +61,14 @@ export function AnomalyAlertsPanel({
   onTriggerDetection,
 }: AnomalyAlertsPanelProps) {
   return (
-    <Card className="glass-card h-full">
-      <CardHeader className="pb-2">
+    <Card className="glass-card h-full flex flex-col">
+      <CardHeader className="pb-2 px-3 pt-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-1.5 text-sm font-medium min-w-0">
-            <Brain className="h-4 w-4 text-primary shrink-0" />
-            <span className="truncate">Anomalies</span>
+          <CardTitle className="flex items-center gap-2 text-sm font-medium">
+            <Brain className="h-4 w-4 text-primary" />
+            Anomalies
             {anomalies.length > 0 && (
-              <Badge variant="destructive" className="h-5 px-1.5 text-[10px] shrink-0">
+              <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">
                 {anomalies.length}
               </Badge>
             )}
@@ -76,7 +76,7 @@ export function AnomalyAlertsPanel({
           <Button
             variant="outline"
             size="sm"
-            className="h-7 text-xs gap-1"
+            className="h-7 text-[10px] gap-1 px-2"
             onClick={onTriggerDetection}
             disabled={isDetecting}
           >
@@ -89,20 +89,20 @@ export function AnomalyAlertsPanel({
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 px-3 pb-3">
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-6">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : anomalies.length === 0 ? (
-          <div className="text-center py-6">
-            <Check className="h-8 w-8 mx-auto text-emerald-500 mb-2" />
-            <p className="text-sm text-muted-foreground">No active anomalies</p>
-            <p className="text-xs text-muted-foreground mt-1">System operating normally</p>
+          <div className="text-center py-4">
+            <Check className="h-6 w-6 mx-auto text-emerald-500 mb-1.5" />
+            <p className="text-xs font-medium text-emerald-600">No anomalies</p>
+            <p className="text-[10px] text-muted-foreground">System normal</p>
           </div>
         ) : (
-          <ScrollArea className="h-[180px] -mx-2 px-2">
-            <div className="space-y-2">
+          <ScrollArea className="h-[180px] -mx-1 px-1">
+            <div className="space-y-1.5">
               {anomalies.map((anomaly) => {
                 const config = severityConfig[anomaly.severity];
                 const Icon = config.icon;
@@ -111,30 +111,28 @@ export function AnomalyAlertsPanel({
                   <div
                     key={anomaly.id}
                     className={cn(
-                      "p-2.5 rounded-lg border",
+                      "p-2 rounded-lg border",
                       config.bg,
                       config.border
                     )}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-start gap-2 min-w-0">
-                        <Icon className={cn("h-4 w-4 mt-0.5 shrink-0", config.color)} />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-xs font-medium">
-                              {typeLabels[anomaly.anomaly_type] || anomaly.anomaly_type}
-                            </span>
-                            <Badge className={cn("h-4 px-1 text-[9px]", config.badge)}>
-                              {anomaly.severity}
-                            </Badge>
-                          </div>
-                          <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">
-                            {anomaly.detection_data?.description || `${anomaly.affected_users} users affected`}
-                          </p>
-                          <p className="text-[9px] text-muted-foreground mt-1">
-                            {formatDistanceToNow(new Date(anomaly.detected_at), { addSuffix: true })}
-                          </p>
+                    <div className="flex items-start gap-2">
+                      <Icon className={cn("h-3.5 w-3.5 mt-0.5 shrink-0", config.color)} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-medium">
+                            {typeLabels[anomaly.anomaly_type] || anomaly.anomaly_type}
+                          </span>
+                          <Badge className={cn("h-4 px-1 text-[8px]", config.badge)}>
+                            {anomaly.severity}
+                          </Badge>
                         </div>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                          {anomaly.detection_data?.description || `${anomaly.affected_users} affected`}
+                        </p>
+                        <p className="text-[9px] text-muted-foreground mt-0.5">
+                          {formatDistanceToNow(new Date(anomaly.detected_at), { addSuffix: true })}
+                        </p>
                       </div>
                       <Button
                         variant="ghost"
