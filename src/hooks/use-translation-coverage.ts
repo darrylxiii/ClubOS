@@ -8,6 +8,10 @@ interface CoverageSummary {
   overallCompletion: number;
 }
 
+// All supported languages (English + 7 others)
+const ALL_LANGUAGES = ['en', 'nl', 'de', 'fr', 'es', 'zh', 'ar', 'ru'] as const;
+const OTHER_LANGUAGES = ['nl', 'de', 'fr', 'es', 'zh', 'ar', 'ru'] as const;
+
 // Helper to flatten nested translation object to dot-notation keys
 function flattenKeys(obj: Record<string, any>, prefix = ''): string[] {
   const keys: string[] = [];
@@ -47,55 +51,55 @@ export const useTranslationCoverage = () => {
 
       // Count keys per namespace from English
       const expectedKeysByNamespace: Record<string, Set<string>> = {};
+      let totalEnglishKeys = 0;
       
       englishTranslations.forEach(t => {
         const keys = flattenKeys(t.translations as Record<string, any>);
         expectedKeysByNamespace[t.namespace] = new Set(keys);
+        totalEnglishKeys += keys.length;
       });
 
-      // Calculate coverage by namespace
+      // Calculate coverage by namespace and language
       const byNamespace: Record<string, { translated: number; total: number; percentage: number }> = {};
       const byLanguage: Record<string, { translated: number; total: number; percentage: number }> = {};
       const missingKeys: Array<{ namespace: string; key: string; missingIn: string[] }> = [];
 
       // Initialize English as 100% complete
-      byLanguage['en'] = { translated: 0, total: 0, percentage: 100 };
+      byLanguage['en'] = { 
+        translated: totalEnglishKeys, 
+        total: totalEnglishKeys, 
+        percentage: 100 
+      };
+
+      // Initialize namespace totals (total = English keys only, not multiplied)
       englishTranslations.forEach(t => {
         const keyCount = flattenKeys(t.translations as Record<string, any>).length;
-        byLanguage['en'].translated += keyCount;
-        byLanguage['en'].total += keyCount;
-        
         if (!byNamespace[t.namespace]) {
-          byNamespace[t.namespace] = { translated: 0, total: 0, percentage: 0 };
+          byNamespace[t.namespace] = { translated: 0, total: keyCount, percentage: 0 };
         }
-        // Total = English keys × 8 languages
-        byNamespace[t.namespace].total += keyCount * 8;
-        byNamespace[t.namespace].translated += keyCount; // English is complete
       });
 
       // Track missing keys per namespace/key
       const missingKeyMap: Record<string, Set<string>> = {};
 
       // Calculate coverage for other languages
-      const languages = ['nl', 'de', 'fr', 'es', 'zh', 'ar', 'ru'];
-      
-      languages.forEach(lang => {
-        byLanguage[lang] = { translated: 0, total: 0, percentage: 0 };
+      OTHER_LANGUAGES.forEach(lang => {
+        let langTranslated = 0;
+        let langTotal = 0;
         
         Object.entries(expectedKeysByNamespace).forEach(([ns, expectedKeys]) => {
           const langTranslation = otherTranslations.find(t => t.namespace === ns && t.language === lang);
-          const langKeys = langTranslation ? new Set(flattenKeys(langTranslation.translations as Record<string, any>)) : new Set<string>();
+          const langKeys = langTranslation 
+            ? new Set(flattenKeys(langTranslation.translations as Record<string, any>)) 
+            : new Set<string>();
           
-          byLanguage[lang].total += expectedKeys.size;
-          byLanguage[lang].translated += langKeys.size;
-
-          if (byNamespace[ns]) {
-            byNamespace[ns].translated += langKeys.size;
-          }
-
-          // Track missing keys
+          // Count how many expected keys this language has
+          let matchedKeys = 0;
           expectedKeys.forEach(key => {
-            if (!langKeys.has(key)) {
+            if (langKeys.has(key)) {
+              matchedKeys++;
+            } else {
+              // Track missing key
               const fullKey = `${ns}:${key}`;
               if (!missingKeyMap[fullKey]) {
                 missingKeyMap[fullKey] = new Set();
@@ -103,19 +107,42 @@ export const useTranslationCoverage = () => {
               missingKeyMap[fullKey].add(lang);
             }
           });
+          
+          langTranslated += matchedKeys;
+          langTotal += expectedKeys.size;
         });
 
-        // Calculate percentage
-        if (byLanguage[lang].total > 0) {
-          byLanguage[lang].percentage = (byLanguage[lang].translated / byLanguage[lang].total) * 100;
-        }
+        byLanguage[lang] = {
+          translated: langTranslated,
+          total: langTotal,
+          percentage: langTotal > 0 ? Math.min((langTranslated / langTotal) * 100, 100) : 0
+        };
       });
 
-      // Calculate namespace percentages
-      Object.keys(byNamespace).forEach(ns => {
-        if (byNamespace[ns].total > 0) {
-          byNamespace[ns].percentage = (byNamespace[ns].translated / byNamespace[ns].total) * 100;
-        }
+      // Calculate namespace coverage (average across all languages)
+      Object.entries(expectedKeysByNamespace).forEach(([ns, expectedKeys]) => {
+        let totalTranslatedAcrossLangs = expectedKeys.size; // English is complete
+        
+        OTHER_LANGUAGES.forEach(lang => {
+          const langTranslation = otherTranslations.find(t => t.namespace === ns && t.language === lang);
+          if (langTranslation) {
+            const langKeys = new Set(flattenKeys(langTranslation.translations as Record<string, any>));
+            // Count matches only
+            let matches = 0;
+            expectedKeys.forEach(key => {
+              if (langKeys.has(key)) matches++;
+            });
+            totalTranslatedAcrossLangs += matches;
+          }
+        });
+        
+        // Total possible = keys × all languages (8)
+        const totalPossible = expectedKeys.size * ALL_LANGUAGES.length;
+        byNamespace[ns] = {
+          translated: totalTranslatedAcrossLangs,
+          total: totalPossible,
+          percentage: totalPossible > 0 ? Math.min((totalTranslatedAcrossLangs / totalPossible) * 100, 100) : 0
+        };
       });
 
       // Convert missing key map to array
@@ -128,14 +155,20 @@ export const useTranslationCoverage = () => {
         });
       });
 
-      // Calculate overall completion
+      // Calculate overall completion (average across all languages)
       let totalTranslated = 0;
       let totalExpected = 0;
-      Object.values(byLanguage).forEach(lang => {
-        totalTranslated += lang.translated;
-        totalExpected += lang.total;
+      
+      ALL_LANGUAGES.forEach(lang => {
+        if (byLanguage[lang]) {
+          totalTranslated += byLanguage[lang].translated;
+          totalExpected += byLanguage[lang].total;
+        }
       });
-      const overallCompletion = totalExpected > 0 ? (totalTranslated / totalExpected) * 100 : 0;
+      
+      const overallCompletion = totalExpected > 0 
+        ? Math.min((totalTranslated / totalExpected) * 100, 100) 
+        : 0;
 
       return {
         byNamespace,

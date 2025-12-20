@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { RainbowButton } from "@/components/ui/rainbow-button";
@@ -21,12 +22,14 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({ default: m.OAuthDiagnostics })));
 
 const quantumLogo = "/quantum-logo.svg?v=8";
-const emailSchema = z.string().email("Invalid email address");
-const passwordSchema = z.string().min(12, "Password must be at least 12 characters").regex(/[A-Z]/, "Password must contain at least one uppercase letter").regex(/[a-z]/, "Password must contain at least one lowercase letter").regex(/[0-9]/, "Password must contain at least one number").regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
+const emailSchema = z.string().email();
+const passwordSchema = z.string().min(12).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/);
 
 const Auth = () => {
   const { user, loading, session } = useAuth();
   const { resolvedTheme } = useTheme();
+  const { t } = useTranslation('auth');
+  const { t: tCommon } = useTranslation('common');
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("invite");
   const prefillEmail = searchParams.get("email");
@@ -141,9 +144,9 @@ const Auth = () => {
     if (prefillEmail) {
       setEmail(decodeURIComponent(prefillEmail));
       setIsLogin(true);
-      toast.info("Please enter your password to log in");
+      toast.info(t('login.pleaseEnterPassword'));
     }
-  }, [prefillEmail]);
+  }, [prefillEmail, t]);
 
   const validateInviteCode = async (code: string) => {
     try {
@@ -156,15 +159,15 @@ const Auth = () => {
       if (data?.valid) {
         setInviteValid(true);
         setInviteInfo({ referrerName: data.referrerName });
-        toast.success(data.message || "Valid invite code! Please create your account.");
+        toast.success(data.message || t('invite.validMessage'));
       } else {
         setInviteValid(false);
-        toast.error(data?.message || "Invalid or expired invite code");
+        toast.error(data?.message || t('invite.invalidOrExpired'));
       }
     } catch (error) {
       console.error("Error validating invite:", error);
       setInviteValid(false);
-      toast.error("Error validating invite code. Please try again.");
+      toast.error(t('invite.errorValidating'));
     }
   };
 
@@ -177,7 +180,7 @@ const Auth = () => {
       if (!isLogin) {
         passwordSchema.parse(password);
         if (password !== confirmPassword) {
-          toast.error("Passwords do not match");
+          toast.error(t('errors.passwordMismatch'));
           return;
         }
       }
@@ -186,8 +189,8 @@ const Auth = () => {
         // Check for account lockout before attempting login
         const lockoutStatus = await checkLockout(email);
         if (lockoutStatus.locked) {
-          setLockoutMessage(lockoutStatus.message || 'Account temporarily locked');
-          toast.error(lockoutStatus.message || 'Too many failed attempts. Please try again later.');
+          setLockoutMessage(lockoutStatus.message || t('errors.accountLocked'));
+          toast.error(lockoutStatus.message || t('errors.tooManyAttempts'));
           return;
         }
         setLockoutMessage(null);
@@ -198,13 +201,12 @@ const Auth = () => {
         });
         
         if (error) {
-          // Record failed attempt
           await recordAttempt(email, false);
           
           if (error.message.includes("Invalid login credentials")) {
-            toast.error("Invalid email or password");
+            toast.error(t('errors.invalidCredentials'));
           } else if (error.message.includes("Email not confirmed")) {
-            toast.error("Please verify your email address first");
+            toast.error(t('errors.emailNotVerified'));
             setNeedsEmailVerification(true);
           } else {
             toast.error(error.message);
@@ -224,14 +226,14 @@ const Auth = () => {
             });
             
             if (challengeError) {
-              toast.error("Failed to initiate 2FA verification");
+              toast.error(t('errors.failed2FA'));
               return;
             }
 
             setMfaFactorId(verifiedFactor.id);
             setMfaChallengeId(challengeData.id);
             setMfaRequired(true);
-            toast.info("Please enter your 2FA code");
+            toast.info(t('mfa.pleaseEnter2FA'));
             return;
           }
         }
@@ -241,7 +243,7 @@ const Auth = () => {
         }
       } else {
         if (!fullName.trim()) {
-          toast.error("Please enter your full name");
+          toast.error(t('errors.fullNameRequired'));
           return;
         }
         
@@ -257,7 +259,7 @@ const Auth = () => {
         
         if (error) {
           if (error.message.includes("already registered")) {
-            toast.error("This email is already registered. Try signing in instead.");
+            toast.error(t('errors.alreadyRegistered'));
             setIsLogin(true);
           } else {
             toast.error(error.message);
@@ -266,13 +268,13 @@ const Auth = () => {
         }
 
         if (authData?.user && !authData.session) {
-          toast.success("Verification email sent! Please check your inbox.");
+          toast.success(t('messages.verificationEmailSent'));
           setNeedsEmailVerification(true);
         }
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast.error(error.errors[0].message);
+        toast.error(t('errors.weakPassword'));
       } else if (error instanceof Error) {
         toast.error(error.message);
       }
@@ -309,7 +311,7 @@ const Auth = () => {
       if (error) throw error;
     } catch (error: any) {
       clearOAuthState();
-      toast.error(error.message || "Failed to initiate Google sign-in");
+      toast.error(error.message || t('errors.failedToInitiate', { provider: t('oauth.google') }));
     }
   };
 
@@ -337,7 +339,7 @@ const Auth = () => {
       if (error) throw error;
     } catch (error: any) {
       clearOAuthState();
-      toast.error(error.message || "Failed to initiate Apple sign-in");
+      toast.error(error.message || t('errors.failedToInitiate', { provider: t('oauth.apple') }));
     }
   };
 
@@ -366,13 +368,13 @@ const Auth = () => {
       if (error) throw error;
     } catch (error: any) {
       clearOAuthState();
-      toast.error(error.message || "Failed to initiate LinkedIn sign-in");
+      toast.error(error.message || t('errors.failedToInitiate', { provider: t('oauth.linkedin') }));
     }
   };
 
   const handleVerifyEmail = async () => {
     if (emailVerificationCode.length !== 6) {
-      toast.error("Please enter a valid 6-digit code");
+      toast.error(t('verification.validCode'));
       return;
     }
     
@@ -385,12 +387,12 @@ const Auth = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       
-      toast.success("Email verified! You can now sign in.");
+      toast.success(t('messages.emailVerified'));
       setNeedsEmailVerification(false);
       setEmailVerificationCode("");
       setIsLogin(true);
     } catch (error: any) {
-      toast.error(error.message || "Invalid verification code");
+      toast.error(error.message || t('mfa.invalidCode'));
     } finally {
       setVerificationLoading(false);
     }
@@ -398,12 +400,12 @@ const Auth = () => {
 
   const handleVerifyMFA = async () => {
     if (mfaCode.length !== 6) {
-      toast.error("Please enter a valid 6-digit code");
+      toast.error(t('verification.validCode'));
       return;
     }
     
     if (!mfaFactorId || !mfaChallengeId) {
-      toast.error("No MFA challenge found. Please try signing in again.");
+      toast.error(t('mfa.noChallengeFound'));
       setMfaRequired(false);
       return;
     }
@@ -423,7 +425,7 @@ const Auth = () => {
         navigate("/home");
       }
     } catch (error: any) {
-      toast.error(error.message || "Invalid 2FA code");
+      toast.error(error.message || t('errors.invalid2FACode'));
       setMfaCode("");
     } finally {
       setVerificationLoading(false);
@@ -433,7 +435,7 @@ const Auth = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-2xl font-black uppercase tracking-tight animate-pulse">Loading...</div>
+        <div className="text-2xl font-black uppercase tracking-tight animate-pulse">{tCommon('actions.loading')}</div>
       </div>
     );
   }
@@ -448,11 +450,11 @@ const Auth = () => {
 
           <div className="space-y-3">
             <h1 className="text-4xl tracking-tight text-foreground font-semibold">
-              {isLogin ? "Welcome Back" : "Join The Quantum Club"}
+              {isLogin ? t('login.title') : t('signup.title')}
             </h1>
             <div className="flex items-center justify-center gap-2">
               <Lock className="w-4 h-4 text-foreground/90" />
-              <p className="text-sm text-foreground/90 font-semibold">INVITE ONLY</p>
+              <p className="text-sm text-foreground/90 font-semibold">{t('signup.inviteOnly')}</p>
             </div>
           </div>
 
@@ -460,10 +462,12 @@ const Auth = () => {
             <div className="p-4 rounded-2xl bg-success/10 border border-success/20 space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-success" />
-                <p className="text-sm font-bold text-success">Valid Invitation</p>
+                <p className="text-sm font-bold text-success">{t('invite.valid')}</p>
               </div>
               <p className="text-xs text-foreground/80">
-                Invited by {inviteInfo.referrerName || "a member"}
+                {inviteInfo.referrerName 
+                  ? t('invite.invitedBy', { name: inviteInfo.referrerName })
+                  : t('invite.invitedByMember')}
               </p>
             </div>
           )}
@@ -471,7 +475,7 @@ const Auth = () => {
           {inviteValid === false && (
             <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
               <AlertDescription className="text-sm font-medium text-destructive text-center">
-                Invalid or expired invite code
+                {t('invite.invalidOrExpired')}
               </AlertDescription>
             </Alert>
           )}
@@ -481,9 +485,9 @@ const Auth = () => {
           {needsEmailVerification ? (
             <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
-                <p className="text-sm font-bold text-primary text-center">Verify Your Email</p>
+                <p className="text-sm font-bold text-primary text-center">{t('verification.title')}</p>
                 <p className="text-xs text-foreground/80 text-center">
-                  We sent a 6-digit code to {email}
+                  {t('verification.codeSentTo', { email })}
                 </p>
               </div>
 
@@ -501,19 +505,19 @@ const Auth = () => {
               </div>
 
               <RainbowButton onClick={handleVerifyEmail} disabled={emailVerificationCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl">
-                {verificationLoading ? "Verifying..." : "Verify Email"}
+                {verificationLoading ? t('verification.verifying') : t('verification.verify')}
               </RainbowButton>
 
               <button type="button" onClick={() => { setNeedsEmailVerification(false); setEmailVerificationCode(""); }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
-                Back to sign in
+                {t('resetPassword.backToLogin')}
               </button>
             </div>
           ) : mfaRequired ? (
             <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
-                <p className="text-sm font-bold text-primary text-center">Two-Factor Authentication</p>
+                <p className="text-sm font-bold text-primary text-center">{t('mfa.title')}</p>
                 <p className="text-xs text-foreground/80 text-center">
-                  Enter the 6-digit code from your authenticator app
+                  {t('mfa.subtitle')}
                 </p>
               </div>
 
@@ -531,11 +535,11 @@ const Auth = () => {
               </div>
 
               <RainbowButton onClick={handleVerifyMFA} disabled={mfaCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl">
-                {verificationLoading ? "Verifying..." : "Verify Code"}
+                {verificationLoading ? t('verification.verifying') : t('mfa.verify')}
               </RainbowButton>
 
               <button type="button" onClick={() => { setMfaRequired(false); setMfaCode(""); }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
-                Back to sign in
+                {t('resetPassword.backToLogin')}
               </button>
             </div>
           ) : (
@@ -553,7 +557,7 @@ const Auth = () => {
               {!isLogin && (
                 <Input
                   type="text"
-                  placeholder="Full Name"
+                  placeholder={t('signup.fullName')}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="h-14 rounded-2xl"
@@ -563,7 +567,7 @@ const Auth = () => {
 
               <Input
                 type="email"
-                placeholder="Email"
+                placeholder={t('login.email')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-14 rounded-2xl"
@@ -573,7 +577,7 @@ const Auth = () => {
               {isLogin ? (
                 <Input
                   type="password"
-                  placeholder="Password"
+                  placeholder={t('login.password')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-14 rounded-2xl"
@@ -593,7 +597,7 @@ const Auth = () => {
                 disabled={isLoading || (!isLogin && inviteValid !== true)}
                 className="w-full h-16 rounded-2xl font-bold text-lg"
               >
-                {isLoading ? "Processing..." : isLogin ? "Sign In" : "Create Account"}
+                {isLoading ? tCommon('actions.loading') : isLogin ? t('login.signIn') : t('signup.createAccount')}
               </RainbowButton>
 
               <div className="relative py-6">
@@ -613,7 +617,7 @@ const Auth = () => {
                   className="w-full h-14 rounded-2xl font-semibold"
                 >
                   <FaGoogle className="mr-3 h-5 w-5" />
-                  Continue with Google
+                  {t('signInWith', { provider: t('oauth.google') })}
                 </Button>
 
                 <Button
@@ -625,7 +629,7 @@ const Auth = () => {
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                   </svg>
-                  Continue with Apple
+                  {t('signInWith', { provider: t('oauth.apple') })}
                 </Button>
 
                 <Button
@@ -637,7 +641,7 @@ const Auth = () => {
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                   </svg>
-                  Continue with LinkedIn
+                  {t('signInWith', { provider: t('oauth.linkedin') })}
                 </Button>
               </div>
 
@@ -653,7 +657,7 @@ const Auth = () => {
               {isLogin && (
                 <div className="text-center">
                   <Link to="/forgot-password" className="text-sm text-foreground/70 hover:text-foreground">
-                    Forgot password?
+                    {t('login.forgotPassword')}
                   </Link>
                 </div>
               )}

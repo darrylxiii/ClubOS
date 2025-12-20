@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FeaturedJobs } from "@/components/jobs/FeaturedJobs";
 import { QuickStats } from "@/components/dashboard/QuickStats";
 import { useProfile } from "@/hooks/useProfile";
@@ -9,6 +10,7 @@ import { trackPageLoad } from "@/utils/performanceMonitoring";
 const Home = () => {
   const navigate = useNavigate();
   const { profile, loading } = useProfile();
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     trackPageLoad('home');
@@ -32,8 +34,10 @@ const Home = () => {
   return (
     <div className="container mx-auto p-6 space-y-8">
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold">Welcome back, {profile?.full_name}</h1>
-        <p className="text-muted-foreground">Here's your personalized dashboard</p>
+        <h1 className="text-4xl font-bold">
+          {t('home.welcomeBack', { name: profile?.full_name })}
+        </h1>
+        <p className="text-muted-foreground">{t('home.personalizedDashboard')}</p>
       </div>
 
       <QuickStats />

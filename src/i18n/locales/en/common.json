@@ -43,12 +43,14 @@
     "pending": "Pending",
     "approved": "Approved",
     "declined": "Declined",
+    "rejected": "Rejected",
     "active": "Active",
     "archived": "Archived",
     "completed": "Completed",
     "in_progress": "In Progress",
     "liveNow": "Live Now",
-    "startingSoon": "Starting Soon"
+    "startingSoon": "Starting Soon",
+    "all": "All Status"
   },
   "time": {
     "today": "Today",
@@ -132,7 +134,9 @@
       "evening": "Good evening"
     },
     "clubMember": "Club Member",
-    "welcome": "Welcome back"
+    "welcome": "Welcome back",
+    "welcomeBack": "Welcome back, {{name}}",
+    "personalizedDashboard": "Here's your personalized dashboard"
   },
   "dashboard": {
     "quickActions": {
@@ -180,5 +184,14 @@
     "securitySettings": "Security Settings",
     "viewLogs": "View System Logs",
     "kpiCenter": "KPI Command Center"
+  },
+  "filters": {
+    "searchPlaceholder": "Search by name, email, phone, or title...",
+    "filterByStatus": "Filter by status",
+    "sortBy": "Sort by",
+    "dateNewest": "Date (Newest)",
+    "dateOldest": "Date (Oldest)",
+    "nameAZ": "Name (A-Z)",
+    "nameZA": "Name (Z-A)"
   }
 }
