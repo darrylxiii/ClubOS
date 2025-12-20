@@ -130,7 +130,7 @@ export function QuickActionsPanel({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-1.5">
           {actions.map((action) => {
             const Icon = action.icon;
             
@@ -139,18 +139,18 @@ export function QuickActionsPanel({
                 key={action.id}
                 variant="ghost"
                 className={cn(
-                  "h-auto flex-col items-start p-2.5 justify-start",
+                  "h-auto p-2 justify-start w-full",
                   action.bg
                 )}
                 onClick={() => handleAction(action)}
               >
-                <div className="flex items-center gap-2 w-full">
-                  <Icon className={cn("h-4 w-4", action.color)} />
-                  <span className="text-xs font-medium flex-1 text-left">
+                <div className="flex items-center gap-2 w-full min-w-0">
+                  <Icon className={cn("h-4 w-4 shrink-0", action.color)} />
+                  <span className="text-xs font-medium truncate flex-1 text-left" title={action.label}>
                     {action.label}
                   </span>
                   {action.shortcut && (
-                    <kbd className="text-[9px] px-1 py-0.5 rounded bg-muted text-muted-foreground">
+                    <kbd className="text-[9px] px-1 py-0.5 rounded bg-muted text-muted-foreground shrink-0 hidden sm:inline xl:hidden 2xl:inline">
                       {action.shortcut}
                     </kbd>
                   )}

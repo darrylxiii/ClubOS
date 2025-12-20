@@ -201,8 +201,8 @@ export function LiveActivityStream() {
             <p className="text-sm text-muted-foreground">No recent activity</p>
           </div>
         ) : (
-          <ScrollArea className="h-[180px] -mx-2 px-2">
-            <div className="space-y-2">
+          <ScrollArea className="h-[200px] -mx-2 px-2">
+            <div className="space-y-1.5">
               {events.map((event) => {
                 const config = eventConfig[event.type];
                 const Icon = config.icon;
@@ -211,24 +211,24 @@ export function LiveActivityStream() {
                   <div
                     key={event.id}
                     className={cn(
-                      "flex items-start gap-2.5 p-2 rounded-lg",
+                      "flex items-start gap-2 p-2 rounded-lg",
                       config.bg
                     )}
                   >
                     <div className={cn("p-1 rounded-md shrink-0", config.bg)}>
-                      <Icon className={cn("h-3.5 w-3.5", config.color)} />
+                      <Icon className={cn("h-3 w-3", config.color)} />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-medium truncate">
+                    <div className="min-w-0 flex-1 overflow-hidden">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] font-medium truncate flex-1" title={event.title}>
                           {event.title}
                         </span>
-                        <span className="text-[9px] text-muted-foreground whitespace-nowrap">
+                        <span className="text-[9px] text-muted-foreground whitespace-nowrap shrink-0">
                           {formatDistanceToNow(new Date(event.timestamp), { addSuffix: true })}
                         </span>
                       </div>
                       {event.description && (
-                        <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
+                        <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5" title={event.description}>
                           {event.description}
                         </p>
                       )}
