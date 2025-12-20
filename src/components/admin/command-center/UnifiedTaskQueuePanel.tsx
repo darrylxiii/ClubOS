@@ -67,13 +67,20 @@ export function UnifiedTaskQueuePanel({
   overdueItems,
   isLoading,
 }: UnifiedTaskQueuePanelProps) {
-  const tasks: TaskQueueItem[] = ([
+  const getPriority = (count: number, highThreshold: number, hasAny: boolean = false): 'high' | 'medium' | 'low' => {
+    if (hasAny && count > 0) return 'high';
+    if (count > highThreshold) return 'high';
+    if (count > 0) return 'medium';
+    return 'low';
+  };
+
+  const allTasks: TaskQueueItem[] = [
     {
       id: 'approvals',
       type: 'approval' as const,
       label: 'Member Approvals',
       count: pendingApprovals,
-      priority: (pendingApprovals > 5 ? 'high' : pendingApprovals > 0 ? 'medium' : 'low') as const,
+      priority: getPriority(pendingApprovals, 5),
       link: '/admin/member-approvals',
     },
     {
@@ -81,7 +88,7 @@ export function UnifiedTaskQueuePanel({
       type: 'application' as const,
       label: 'Application Reviews',
       count: pendingApplications,
-      priority: (pendingApplications > 20 ? 'high' : pendingApplications > 0 ? 'medium' : 'low') as const,
+      priority: getPriority(pendingApplications, 20),
       link: '/applications',
     },
     {
@@ -89,7 +96,7 @@ export function UnifiedTaskQueuePanel({
       type: 'security' as const,
       label: 'Security Alerts',
       count: securityAlerts,
-      priority: (securityAlerts > 0 ? 'high' : 'low') as const,
+      priority: getPriority(securityAlerts, 0, true),
       link: '/admin/anti-hacking',
     },
     {
@@ -97,10 +104,12 @@ export function UnifiedTaskQueuePanel({
       type: 'overdue' as const,
       label: 'Overdue Tasks',
       count: overdueItems,
-      priority: (overdueItems > 3 ? 'high' : overdueItems > 0 ? 'medium' : 'low') as const,
+      priority: getPriority(overdueItems, 3),
       link: '/tasks',
     },
-  ] as TaskQueueItem[]).filter(t => t.count > 0);
+  ];
+  
+  const tasks = allTasks.filter(t => t.count > 0);
 
   const totalTasks = pendingApprovals + pendingApplications + securityAlerts + overdueItems;
 

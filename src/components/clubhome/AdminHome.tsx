@@ -120,8 +120,6 @@ const AdminHomeContent = () => {
       <DashboardSection columns={2}>
         <RevenueOverviewWidget />
         <WhatsAppPreviewWidget />
-        <PlatformHealthCard />
-        <SystemErrorsWidget />
       </DashboardSection>
 
       {/* Upcoming Meetings */}
