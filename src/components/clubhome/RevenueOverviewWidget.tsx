@@ -1,18 +1,26 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, ArrowRight, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+// Configuration constant - can be adjusted or moved to settings
+const ESTIMATED_PLACEMENT_FEE = 15000; // €15,000 average placement fee
+const PIPELINE_CONVERSION_RATE = 0.3; // 30% estimated conversion rate
 
 interface RevenueData {
   currentMonth: number;
   lastMonth: number;
   pipelineValue: number;
   trend: number;
+  currentHires: number;
+  lastMonthHires: number;
+  pipelineCount: number;
 }
 
 export const RevenueOverviewWidget = () => {
@@ -45,11 +53,10 @@ export const RevenueOverviewWidget = () => {
         .select('*', { count: 'exact', head: true })
         .in('status', ['applied', 'screening', 'interview', 'offer']);
 
-      // Estimate revenue (avg €15k per placement)
-      const avgPlacementFee = 15000;
-      const currentMonth = (currentHires || 0) * avgPlacementFee;
-      const lastMonth = (lastMonthHires || 0) * avgPlacementFee;
-      const pipelineValue = (pipelineCount || 0) * avgPlacementFee * 0.3; // 30% conversion estimate
+      // Calculate revenue estimates
+      const currentMonth = (currentHires || 0) * ESTIMATED_PLACEMENT_FEE;
+      const lastMonth = (lastMonthHires || 0) * ESTIMATED_PLACEMENT_FEE;
+      const pipelineValue = (pipelineCount || 0) * ESTIMATED_PLACEMENT_FEE * PIPELINE_CONVERSION_RATE;
 
       const trend = lastMonth > 0 
         ? ((currentMonth - lastMonth) / lastMonth) * 100 
@@ -60,6 +67,9 @@ export const RevenueOverviewWidget = () => {
         lastMonth,
         pipelineValue,
         trend: Math.round(trend),
+        currentHires: currentHires || 0,
+        lastMonthHires: lastMonthHires || 0,
+        pipelineCount: pipelineCount || 0,
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -105,6 +115,14 @@ export const RevenueOverviewWidget = () => {
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-premium" />
               <T k="common:admin.revenueOverview" fallback="Revenue Overview" />
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Estimated based on {formatCurrency(ESTIMATED_PLACEMENT_FEE)} avg placement fee × {revenue?.currentHires || 0} hires this month</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
             <Button variant="ghost" size="sm" asChild className="text-xs">
               <Link to="/admin/kpi-command-center">
@@ -119,6 +137,7 @@ export const RevenueOverviewWidget = () => {
           <div>
             <p className="text-xs text-muted-foreground mb-1">
               <T k="common:metrics.currentMonth" fallback="This Month" />
+              <span className="ml-1">({revenue?.currentHires || 0} placements)</span>
             </p>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold">{formatCurrency(revenue?.currentMonth || 0)}</span>
@@ -142,13 +161,22 @@ export const RevenueOverviewWidget = () => {
                 <T k="common:metrics.lastMonth" fallback="Last Month" />
               </p>
               <p className="font-semibold">{formatCurrency(revenue?.lastMonth || 0)}</p>
+              <p className="text-xs text-muted-foreground">{revenue?.lastMonthHires || 0} placements</p>
             </div>
-            <div className="p-3 rounded-lg bg-premium/10 border border-premium/20">
-              <p className="text-xs text-muted-foreground">
-                <T k="common:metrics.pipeline" fallback="Pipeline Value" />
-              </p>
-              <p className="font-semibold text-premium">{formatCurrency(revenue?.pipelineValue || 0)}</p>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="p-3 rounded-lg bg-premium/10 border border-premium/20 cursor-help">
+                  <p className="text-xs text-muted-foreground">
+                    <T k="common:metrics.pipeline" fallback="Pipeline Value" />
+                  </p>
+                  <p className="font-semibold text-premium">{formatCurrency(revenue?.pipelineValue || 0)}</p>
+                  <p className="text-xs text-muted-foreground">{revenue?.pipelineCount || 0} active</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Estimated at {PIPELINE_CONVERSION_RATE * 100}% conversion rate</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </CardContent>
       </Card>

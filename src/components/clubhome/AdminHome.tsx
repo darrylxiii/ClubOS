@@ -25,6 +25,9 @@ import { SystemErrorsWidget } from "./SystemErrorsWidget";
 import { ActiveMeetingsWidget } from "./ActiveMeetingsWidget";
 import { RevenueOverviewWidget } from "./RevenueOverviewWidget";
 import { WhatsAppPreviewWidget } from "./WhatsAppPreviewWidget";
+import { CRMProspectsWidget } from "./CRMProspectsWidget";
+import { TopClientsWidget } from "./TopClientsWidget";
+import { TaskQueueWidget } from "./TaskQueueWidget";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
 
@@ -102,10 +105,17 @@ const AdminHomeContent = () => {
         <ActiveMeetingsWidget />
       </DashboardSection>
 
-      {/* KPI & Deal Pipeline */}
+      {/* CRM & Clients */}
       <DashboardSection columns={2}>
+        <CRMProspectsWidget />
+        <TopClientsWidget />
+      </DashboardSection>
+
+      {/* KPI, Deal Pipeline & Tasks */}
+      <DashboardSection columns={3} mobileColumns={1}>
         <KPISummaryWidget />
         <DealPipelineSummaryWidget />
+        <TaskQueueWidget />
       </DashboardSection>
 
       {/* Revenue & Messages */}

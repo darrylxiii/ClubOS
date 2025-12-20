@@ -1,84 +1,71 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, AlertTriangle, CheckCircle, TrendingUp } from "lucide-react";
+import { BarChart3, AlertTriangle, CheckCircle, TrendingUp, Info } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface KPIStats {
   healthScore: number;
   criticalAlerts: number;
   warningAlerts: number;
   onTargetCount: number;
+  hasData: boolean;
 }
 
 export const KPISummaryWidget = () => {
-  const [stats, setStats] = useState<KPIStats>({
-    healthScore: 0,
-    criticalAlerts: 0,
-    warningAlerts: 0,
-    onTargetCount: 0
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchKPIStats();
-  }, []);
-
-  const fetchKPIStats = async () => {
-    try {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['kpi-summary-stats'],
+    queryFn: async (): Promise<KPIStats> => {
       // Fetch KPI metrics using actual columns from types
-      const { data: metrics } = await supabase
+      const { data: metrics, error } = await supabase
         .from('kpi_metrics')
         .select('value, previous_value, trend_direction')
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (metrics && metrics.length > 0) {
-        // Calculate status based on trend
-        let criticalAlerts = 0;
-        let warningAlerts = 0;
-        let onTargetCount = 0;
-
-        metrics.forEach(m => {
-          const trend = m.trend_direction;
-          if (trend === 'up' || trend === 'stable') onTargetCount++;
-          else if (trend === 'down') warningAlerts++;
-          else criticalAlerts++;
-        });
-        
-        const totalMetrics = metrics.length || 1;
-        const healthScore = Math.round(((onTargetCount / totalMetrics) * 100));
-
-        setStats({
-          healthScore: Math.min(healthScore, 100),
-          criticalAlerts,
-          warningAlerts,
-          onTargetCount
-        });
-      } else {
-        // Set reasonable defaults when no data
-        setStats({
-          healthScore: 85,
-          criticalAlerts: 0,
-          warningAlerts: 2,
-          onTargetCount: 15
-        });
+      if (error) {
+        console.error('Error fetching KPI stats:', error);
+        throw error;
       }
-    } catch (error) {
-      console.error('Error fetching KPI stats:', error);
-      // Set default values on error
-      setStats({
-        healthScore: 85,
-        criticalAlerts: 0,
-        warningAlerts: 2,
-        onTargetCount: 15
+
+      if (!metrics || metrics.length === 0) {
+        return {
+          healthScore: 0,
+          criticalAlerts: 0,
+          warningAlerts: 0,
+          onTargetCount: 0,
+          hasData: false
+        };
+      }
+
+      // Calculate status based on trend
+      let criticalAlerts = 0;
+      let warningAlerts = 0;
+      let onTargetCount = 0;
+
+      metrics.forEach(m => {
+        const trend = m.trend_direction;
+        if (trend === 'up' || trend === 'stable') onTargetCount++;
+        else if (trend === 'down') warningAlerts++;
+        else criticalAlerts++;
       });
-    } finally {
-      setLoading(false);
-    }
-  };
+      
+      const totalMetrics = metrics.length;
+      const healthScore = Math.round((onTargetCount / totalMetrics) * 100);
+
+      return {
+        healthScore: Math.min(healthScore, 100),
+        criticalAlerts,
+        warningAlerts,
+        onTargetCount,
+        hasData: true
+      };
+    },
+    staleTime: 60000, // 1 minute
+  });
 
   const getHealthColor = (score: number) => {
     if (score >= 80) return 'text-green-500';
@@ -86,7 +73,7 @@ export const KPISummaryWidget = () => {
     return 'text-red-500';
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card className="glass-card">
         <CardHeader className="pb-3">
@@ -99,12 +86,46 @@ export const KPISummaryWidget = () => {
     );
   }
 
+  // Show empty state if no data
+  if (!stats?.hasData) {
+    return (
+      <Card className="glass-card">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            KPI Health
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <Info className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground mb-4">No KPI data available yet</p>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/admin/kpi-command-center">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Set Up KPIs
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="glass-card">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <BarChart3 className="h-5 w-5 text-primary" />
           KPI Health
+          <Tooltip>
+            <TooltipTrigger>
+              <Info className="h-3 w-3 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Based on {stats.criticalAlerts + stats.warningAlerts + stats.onTargetCount} tracked metrics</p>
+            </TooltipContent>
+          </Tooltip>
         </CardTitle>
       </CardHeader>
       <CardContent>

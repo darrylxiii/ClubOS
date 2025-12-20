@@ -1,90 +1,67 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, DollarSign, Target } from "lucide-react";
+import { TrendingUp, Target, Info } from "lucide-react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCRMPipelineMetrics, useStageProbabilities, formatCurrencyCompact } from "@/hooks/useCRMPipelineMetrics";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-interface PipelineStats {
-  totalValue: number;
-  weightedValue: number;
-  dealCount: number;
-  stageBreakdown: { stage: string; count: number; value: number }[];
+interface StageBreakdown {
+  stage: string;
+  count: number;
+  value: number;
 }
 
 export const DealPipelineSummaryWidget = () => {
-  const [stats, setStats] = useState<PipelineStats>({
-    totalValue: 0,
-    weightedValue: 0,
-    dealCount: 0,
-    stageBreakdown: []
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchPipelineStats();
-  }, []);
-
-  const fetchPipelineStats = async () => {
-    try {
-      // Fetch jobs with deal stages
-      const { data: jobs } = await supabase
-        .from('jobs')
-        .select('id, salary_max, deal_stage')
-        .eq('status', 'published');
-
-      if (jobs) {
-        // Define default probabilities since deal_stages might not have probability column
-        const defaultProbabilities: Record<string, number> = {
-          'New': 0.1, 'Qualified': 0.2, 'Proposal': 0.4,
-          'Negotiation': 0.6, 'Closed Won': 1.0, 'Closed Lost': 0
-        };
-
-        let totalValue = 0;
-        let weightedValue = 0;
-        const stageBreakdown: Record<string, { count: number; value: number }> = {};
-
-        jobs.forEach(job => {
-          const value = job.salary_max || 0;
-          const probability = defaultProbabilities[job.deal_stage || 'New'] || 0.1;
-
-          totalValue += value;
-          weightedValue += value * probability;
-
-          const stage = job.deal_stage || 'New';
-          if (!stageBreakdown[stage]) {
-            stageBreakdown[stage] = { count: 0, value: 0 };
-          }
-          stageBreakdown[stage].count++;
-          stageBreakdown[stage].value += value;
-        });
-
-        setStats({
-          totalValue,
-          weightedValue,
-          dealCount: jobs.length,
-          stageBreakdown: Object.entries(stageBreakdown).map(([stage, data]) => ({
-            stage,
-            ...data
-          }))
-        });
+  const { data: pipelineMetrics, isLoading: metricsLoading } = useCRMPipelineMetrics();
+  const { data: stageProbabilities, isLoading: probLoading } = useStageProbabilities();
+  
+  // Get stage breakdown from crm_prospects
+  const { data: stageBreakdown, isLoading: breakdownLoading } = useQuery({
+    queryKey: ['deal-pipeline-stage-breakdown'],
+    queryFn: async (): Promise<StageBreakdown[]> => {
+      const { data, error } = await supabase
+        .from('crm_prospects')
+        .select('stage, estimated_annual_value')
+        .not('stage', 'in', '("closed_won","closed_lost")');
+      
+      if (error) {
+        console.error('Error fetching stage breakdown:', error);
+        return [];
       }
-    } catch (error) {
-      console.error('Error fetching pipeline stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      
+      // Group by stage
+      const breakdown: Record<string, { count: number; value: number }> = {};
+      (data || []).forEach(prospect => {
+        const stage = prospect.stage || 'new';
+        if (!breakdown[stage]) {
+          breakdown[stage] = { count: 0, value: 0 };
+        }
+        breakdown[stage].count++;
+        breakdown[stage].value += prospect.estimated_annual_value || 0;
+      });
+      
+      return Object.entries(breakdown)
+        .map(([stage, data]) => ({ stage, ...data }))
+        .sort((a, b) => {
+          const orderA = stageProbabilities?.[a.stage]?.stage_order || 99;
+          const orderB = stageProbabilities?.[b.stage]?.stage_order || 99;
+          return orderA - orderB;
+        });
+    },
+    enabled: !probLoading,
+    staleTime: 30000,
+  });
 
-  const formatCurrency = (value: number) => {
-    if (value >= 1000000) {
-      return `€${(value / 1000000).toFixed(1)}M`;
-    }
-    if (value >= 1000) {
-      return `€${(value / 1000).toFixed(0)}K`;
-    }
-    return `€${value}`;
+  const loading = metricsLoading || probLoading || breakdownLoading;
+
+  const formatStageName = (stage: string) => {
+    return stage
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   if (loading) {
@@ -100,35 +77,70 @@ export const DealPipelineSummaryWidget = () => {
     );
   }
 
+  const hasData = pipelineMetrics && pipelineMetrics.prospect_count > 0;
+
+  if (!hasData) {
+    return (
+      <Card className="glass-card">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            Deal Pipeline
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <Info className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground mb-4">No active deals in pipeline</p>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/crm">
+                <Target className="h-4 w-4 mr-2" />
+                Go to CRM
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="glass-card">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <TrendingUp className="h-5 w-5 text-primary" />
           Deal Pipeline
+          <Tooltip>
+            <TooltipTrigger>
+              <Info className="h-3 w-3 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Weighted values use stage probability from CRM settings</p>
+            </TooltipContent>
+          </Tooltip>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="text-center p-2 rounded-lg bg-muted/50">
-            <div className="text-xl font-bold text-primary">{stats.dealCount}</div>
+            <div className="text-xl font-bold text-primary">{pipelineMetrics.prospect_count}</div>
             <div className="text-xs text-muted-foreground">Active Deals</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-muted/50">
-            <div className="text-xl font-bold">{formatCurrency(stats.totalValue)}</div>
+            <div className="text-xl font-bold">{formatCurrencyCompact(pipelineMetrics.total_pipeline)}</div>
             <div className="text-xs text-muted-foreground">Total Value</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-muted/50">
-            <div className="text-xl font-bold text-green-500">{formatCurrency(stats.weightedValue)}</div>
+            <div className="text-xl font-bold text-green-500">{formatCurrencyCompact(pipelineMetrics.weighted_pipeline)}</div>
             <div className="text-xs text-muted-foreground">Weighted</div>
           </div>
         </div>
 
-        {stats.stageBreakdown.length > 0 && (
+        {stageBreakdown && stageBreakdown.length > 0 && (
           <div className="space-y-1 mb-4">
-            {stats.stageBreakdown.slice(0, 4).map(stage => (
+            {stageBreakdown.slice(0, 4).map(stage => (
               <div key={stage.stage} className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{stage.stage}</span>
+                <span className="text-muted-foreground">{formatStageName(stage.stage)}</span>
                 <span className="font-medium">{stage.count} deals</span>
               </div>
             ))}
@@ -136,7 +148,7 @@ export const DealPipelineSummaryWidget = () => {
         )}
 
         <Button asChild variant="outline" size="sm" className="w-full">
-          <Link to="/admin/deals-pipeline">
+          <Link to="/crm">
             <Target className="h-4 w-4 mr-2" />
             View Pipeline
           </Link>
