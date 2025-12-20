@@ -11,36 +11,41 @@ import {
 import { Link } from "react-router-dom";
 import { RecentActivityFeed } from "./RecentActivityFeed";
 import { PlatformGrowthCard } from "./PlatformGrowthCard";
-import { PlatformHealthCard } from "./PlatformHealthCard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UnifiedStatsBar } from "./UnifiedStatsBar";
 import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
 import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
-import { PendingMemberApprovalsWidget } from "./PendingMemberApprovalsWidget";
-import { SecurityAlertsWidget } from "./SecurityAlertsWidget";
 import { DealPipelineSummaryWidget } from "./DealPipelineSummaryWidget";
 import { KPISummaryWidget } from "./KPISummaryWidget";
-import { SystemErrorsWidget } from "./SystemErrorsWidget";
 import { ActiveMeetingsWidget } from "./ActiveMeetingsWidget";
 import { RevenueOverviewWidget } from "./RevenueOverviewWidget";
 import { WhatsAppPreviewWidget } from "./WhatsAppPreviewWidget";
 import { CRMProspectsWidget } from "./CRMProspectsWidget";
 import { TopClientsWidget } from "./TopClientsWidget";
-import { TaskQueueWidget } from "./TaskQueueWidget";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
+import { AdminCommandCenter } from "@/components/admin/command-center/AdminCommandCenter";
 
 const AdminHomeContent = () => {
   const { stats, loading } = useRoleStats('admin');
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Stats Bar */}
+      {/* Command Center v2 */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
+      >
+        <AdminCommandCenter />
+      </motion.div>
+
+      {/* Stats Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
       >
         <UnifiedStatsBar role="admin" stats={stats} loading={loading} />
       </motion.div>
@@ -98,34 +103,23 @@ const AdminHomeContent = () => {
         <PlatformGrowthCard />
       </DashboardSection>
 
-      {/* Critical Widgets Row */}
-      <DashboardSection columns={3} mobileColumns={1}>
-        <PendingMemberApprovalsWidget />
-        <SecurityAlertsWidget />
-        <ActiveMeetingsWidget />
-      </DashboardSection>
-
       {/* CRM & Clients */}
       <DashboardSection columns={2}>
         <CRMProspectsWidget />
         <TopClientsWidget />
       </DashboardSection>
 
-      {/* KPI, Deal Pipeline & Tasks */}
+      {/* KPI, Deal Pipeline & Meetings */}
       <DashboardSection columns={3} mobileColumns={1}>
         <KPISummaryWidget />
         <DealPipelineSummaryWidget />
-        <TaskQueueWidget />
+        <ActiveMeetingsWidget />
       </DashboardSection>
 
       {/* Revenue & Messages */}
       <DashboardSection columns={2}>
         <RevenueOverviewWidget />
         <WhatsAppPreviewWidget />
-      </DashboardSection>
-
-      {/* Platform Health & Errors */}
-      <DashboardSection columns={2}>
         <PlatformHealthCard />
         <SystemErrorsWidget />
       </DashboardSection>
