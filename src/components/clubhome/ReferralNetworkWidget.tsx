@@ -8,51 +8,16 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 export const ReferralNetworkWidget = () => {
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['referral-network-stats'],
-    queryFn: async () => {
-      // Get all referrals
-      const { data: referrals, error } = await supabase
-        .from('candidate_referrals')
-        .select('id, status, projected_reward, realized_reward, created_at');
-      if (error) throw error;
-      
-      const totalReferrals = referrals?.length || 0;
-      let projectedEarnings = 0;
-      let paidOut = 0;
-      let pendingPayouts = 0;
-      let successfulReferrals = 0;
-      
-      referrals?.forEach((ref: any) => {
-        const projected = ref.projected_reward || 0;
-        const realized = ref.realized_reward || 0;
-        if (ref.status === 'hired') {
-          successfulReferrals++;
-          paidOut += realized;
-          if (projected > realized) {
-            pendingPayouts += projected - realized;
-          }
-        }
-        if (ref.status === 'pending' || ref.status === 'interviewing') {
-          projectedEarnings += projected;
-        }
-      });
-      
-      const successRate = totalReferrals > 0 
-        ? Math.round((successfulReferrals / totalReferrals) * 100) 
-        : 0;
-      
-      return {
-        totalReferrals,
-        projectedEarnings,
-        paidOut,
-        pendingPayouts,
-        successfulReferrals,
-        successRate,
-      };
-    },
-    refetchInterval: 300000,
-  });
+  // Note: candidate_referrals table not yet in schema - showing placeholder
+  const stats = {
+    totalReferrals: 0,
+    projectedEarnings: 0,
+    paidOut: 0,
+    pendingPayouts: 0,
+    successfulReferrals: 0,
+    successRate: 0,
+  };
+  const isLoading = false;
 
   if (isLoading) {
     return (
