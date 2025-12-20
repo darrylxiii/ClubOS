@@ -151,27 +151,27 @@ export function UnifiedTaskQueuePanel({
                     key={task.id}
                     to={task.link}
                     className={cn(
-                      "flex items-center justify-between p-2.5 rounded-lg transition-colors hover:bg-muted/70",
+                      "flex items-center justify-between p-2 rounded-lg transition-colors hover:bg-muted/70 gap-2",
                       config.bg
                     )}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <div className={cn("p-1.5 rounded-md", config.bg)}>
-                        <Icon className={cn("h-4 w-4", config.color)} />
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className={cn("p-1.5 rounded-md shrink-0", config.bg)}>
+                        <Icon className={cn("h-3.5 w-3.5", config.color)} />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-medium">{task.label}</span>
-                          <Badge className={cn("h-4 px-1 text-[9px]", priorityBadge[task.priority])}>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[11px] font-medium truncate" title={task.label}>{task.label}</span>
+                          <Badge className={cn("h-4 px-1 text-[9px] shrink-0", priorityBadge[task.priority])}>
                             {task.count}
                           </Badge>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-[10px] text-muted-foreground truncate">
                           {task.priority === 'high' ? 'Requires attention' : 'Pending review'}
                         </p>
                       </div>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </Link>
                 );
               })}

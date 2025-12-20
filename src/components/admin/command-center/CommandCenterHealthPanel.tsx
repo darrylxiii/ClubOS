@@ -67,18 +67,18 @@ export function CommandCenterHealthPanel({
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Status Indicator */}
-        <div className={cn("flex items-center justify-between p-3 rounded-lg", config.bgColor)}>
-          <div className="flex items-center gap-2">
+        <div className={cn("flex items-center justify-between p-3 rounded-lg gap-3", config.bgColor)}>
+          <div className="flex items-center gap-2 min-w-0">
             <motion.div
-              className={cn("h-2.5 w-2.5 rounded-full", config.color)}
+              className={cn("h-2.5 w-2.5 rounded-full shrink-0", config.color)}
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
-            <span className={cn("text-sm font-medium", config.textColor)}>
+            <span className={cn("text-sm font-medium truncate", config.textColor)}>
               {config.label}
             </span>
           </div>
-          <span className="text-xs text-muted-foreground">Platform</span>
+          <span className="text-xs text-muted-foreground shrink-0">Platform</span>
         </div>
 
         {/* Metrics Grid */}

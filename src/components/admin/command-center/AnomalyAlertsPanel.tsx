@@ -64,11 +64,11 @@ export function AnomalyAlertsPanel({
     <Card className="glass-card h-full">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-sm font-medium">
-            <Brain className="h-4 w-4 text-primary" />
-            AI Anomaly Detection
+          <CardTitle className="flex items-center gap-1.5 text-sm font-medium min-w-0">
+            <Brain className="h-4 w-4 text-primary shrink-0" />
+            <span className="truncate">Anomalies</span>
             {anomalies.length > 0 && (
-              <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px]">
+              <Badge variant="destructive" className="h-5 px-1.5 text-[10px] shrink-0">
                 {anomalies.length}
               </Badge>
             )}
