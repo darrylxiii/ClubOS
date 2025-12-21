@@ -6,6 +6,10 @@ import { ColumnsBlock } from './ColumnsBlock';
 import { EmbedBlock } from './EmbedBlock';
 import { SyncedBlock } from './SyncedBlock';
 import { LinkPreviewBlock } from './LinkPreviewBlock';
+import { QuoteBlock } from './QuoteBlock';
+import { MathBlock } from './MathBlock';
+import { MermaidBlock } from './MermaidBlock';
+import { SimpleTableBlock } from './SimpleTableBlock';
 
 // All exports are createReactBlockSpec results (factory functions) - call them to get BlockSpec
 export const customBlockSpecs = {
@@ -17,4 +21,8 @@ export const customBlockSpecs = {
   embed: EmbedBlock(),
   syncedBlock: SyncedBlock(),
   linkPreview: LinkPreviewBlock(),
+  quote: QuoteBlock(),
+  math: MathBlock(),
+  mermaid: MermaidBlock(),
+  simpleTable: SimpleTableBlock(),
 };
