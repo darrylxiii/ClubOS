@@ -23371,6 +23371,88 @@ export type Database = {
           },
         ]
       }
+      page_activity: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          created_at: string | null
+          id: string
+          page_id: string
+          user_id: string | null
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          page_id: string
+          user_id?: string | null
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          page_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_activity_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_analytics: {
+        Row: {
+          avg_time_spent_seconds: number | null
+          comment_count: number | null
+          created_at: string | null
+          date: string
+          edit_count: number | null
+          id: string
+          page_id: string
+          unique_viewers: number | null
+          updated_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          avg_time_spent_seconds?: number | null
+          comment_count?: number | null
+          created_at?: string | null
+          date?: string
+          edit_count?: number | null
+          id?: string
+          page_id: string
+          unique_viewers?: number | null
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          avg_time_spent_seconds?: number | null
+          comment_count?: number | null
+          created_at?: string | null
+          date?: string
+          edit_count?: number | null
+          id?: string
+          page_id?: string
+          unique_viewers?: number | null
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_analytics_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_attachments: {
         Row: {
           block_id: string | null
