@@ -19,6 +19,8 @@ import { useRealtimeContentSync } from '@/hooks/useRealtimeContentSync';
 import { CollaborativeCursors } from './CollaborativeCursors';
 import { BlockSelectionHighlight } from './BlockSelectionHighlight';
 import { SyncStatusIndicator } from './SyncStatusIndicator';
+import { AIWritingToolbar } from './ai/AIWritingToolbar';
+import { AISlashCommandDialog } from './ai/AISlashCommandDialog';
 
 // Create schema with custom blocks
 const schema = BlockNoteSchema.create({
@@ -44,8 +46,10 @@ export function WorkspaceEditor({
   enableCollaboration = true
 }: WorkspaceEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
+  const [showAIDialog, setShowAIDialog] = useState(false);
   const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
 
   // Collaboration hooks
   const { 
@@ -172,31 +176,72 @@ export function WorkspaceEditor({
       )}
       
       {!readOnly && <EditorToolbar editor={editor} />}
-      <BlockNoteView
-        editor={editor}
-        onChange={handleChange}
-        editable={!readOnly}
-        theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
-        slashMenu={false}
-        sideMenu={false}
-      >
-        {/* Custom Slash Menu with our blocks */}
-        <SuggestionMenuController
-          triggerCharacter="/"
-          getItems={async (query) =>
-            filterSlashMenuItems(getCustomSlashMenuItems(editor), query)
-          }
-        />
+      <div ref={editorRef} className="relative">
+        <BlockNoteView
+          editor={editor}
+          onChange={handleChange}
+          editable={!readOnly}
+          theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
+          slashMenu={false}
+          sideMenu={false}
+        >
+          {/* Custom Slash Menu with our blocks + AI command */}
+          <SuggestionMenuController
+            triggerCharacter="/"
+            getItems={async (query) =>
+              filterSlashMenuItems(
+                getCustomSlashMenuItems(editor, () => setShowAIDialog(true)), 
+                query
+              )
+            }
+          />
+          
+          {/* Side Menu with Drag Handle for reordering blocks */}
+          {!readOnly && (
+            <SideMenuController
+              sideMenu={(props) => (
+                <SideMenu {...props} />
+              )}
+            />
+          )}
+        </BlockNoteView>
         
-        {/* Side Menu with Drag Handle for reordering blocks */}
+        {/* AI Writing Toolbar - appears on text selection */}
         {!readOnly && (
-          <SideMenuController
-            sideMenu={(props) => (
-              <SideMenu {...props} />
-            )}
+          <AIWritingToolbar
+            editorElement={editorRef.current}
+            onApplyText={(newText) => {
+              // Replace selected text with AI-generated text
+              const selection = window.getSelection();
+              if (selection && !selection.isCollapsed) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                range.insertNode(document.createTextNode(newText));
+                selection.removeAllRanges();
+              }
+              // Trigger content change
+              handleChange();
+            }}
           />
         )}
-      </BlockNoteView>
+      </div>
+      
+      {/* AI Slash Command Dialog */}
+      <AISlashCommandDialog
+        open={showAIDialog}
+        onOpenChange={setShowAIDialog}
+        onInsertText={(text) => {
+          // Insert generated text at cursor position
+          const currentBlock = editor.getTextCursorPosition().block;
+          editor.insertBlocks(
+            [{ type: 'paragraph', content: text }],
+            currentBlock,
+            'after'
+          );
+          handleChange();
+        }}
+        context={page.title}
+      />
       
       {/* Collaborative cursors overlay */}
       {enableCollaboration && containerRef.current && (

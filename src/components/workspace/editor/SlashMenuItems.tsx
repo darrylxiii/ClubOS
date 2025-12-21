@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
+  Sparkles,
 } from 'lucide-react';
 
 // Helper to insert or update a block at cursor position
@@ -107,16 +108,33 @@ const insertColumns = (editor: any, columnCount: number = 2) => ({
   subtext: `Add a ${columnCount}-column layout`,
 });
 
+// AI writing slash command - triggers dialog
+const insertAICommand = (editor: any, onAICommand?: () => void) => ({
+  title: 'Ask AI to Write',
+  onItemClick: () => {
+    if (onAICommand) {
+      onAICommand();
+    }
+  },
+  aliases: ['ai', 'quin', 'write', 'generate', 'ask ai', 'ask quin'],
+  group: 'AI',
+  icon: <Sparkles className="h-4 w-4 text-accent" />,
+  subtext: 'Let QUIN write content for you',
+});
+
 // Get all custom slash menu items for our blocks
 export function getCustomSlashMenuItems(
-  editor: any
+  editor: any,
+  onAICommand?: () => void
 ): DefaultReactSuggestionItem[] {
   // Get default items and filter out Divider to prevent duplicate key warning
   const defaultItems = getDefaultReactSlashMenuItems(editor)
     .filter(item => item.title !== 'Divider');
   
   return [
-    // Get filtered default BlockNote items first
+    // AI command first for prominence
+    insertAICommand(editor, onAICommand),
+    // Get filtered default BlockNote items
     ...defaultItems,
     // Add our custom blocks
     insertCallout(editor, 'info'),
