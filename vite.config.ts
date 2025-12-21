@@ -159,22 +159,41 @@ export default defineConfig(({ mode }) => ({
     modulePreload: {
       polyfill: true,
     },
+    // Disable sourcemaps in production to reduce memory usage
+    sourcemap: false,
+    // Reduce chunk size warnings threshold
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
+          // Heavy libraries - isolate into their own chunks
+          if (id.includes('mermaid')) {
+            return 'mermaid';
+          }
+          if (id.includes('katex')) {
+            return 'katex';
+          }
+          if (id.includes('recharts') || id.includes('d3-')) {
+            return 'charts';
+          }
+          if (id.includes('@blocknote')) {
+            return 'blocknote';
+          }
+          if (id.includes('@tiptap') || id.includes('prosemirror')) {
+            return 'editor';
+          }
+          
           // Core React libraries
-          if (id.includes('node_modules/react') ||
-            id.includes('node_modules/react-dom') ||
-            id.includes('node_modules/react-router-dom')) {
+          if (id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/react-router-dom/')) {
             return 'react-vendor';
           }
 
-          // Radix UI components - split by category
+          // Radix UI components
           if (id.includes('@radix-ui')) {
             return 'ui-vendor';
           }
-
-          // Chart/data viz libraries - let Vite handle automatically to avoid circular deps
 
           // Form libraries
           if (id.includes('react-hook-form') || id.includes('zod')) {
@@ -189,6 +208,21 @@ export default defineConfig(({ mode }) => ({
           // Framer Motion
           if (id.includes('framer-motion')) {
             return 'motion';
+          }
+          
+          // Mantine
+          if (id.includes('@mantine')) {
+            return 'mantine';
+          }
+          
+          // date-fns
+          if (id.includes('date-fns')) {
+            return 'date-fns';
+          }
+          
+          // i18n
+          if (id.includes('i18next')) {
+            return 'i18n';
           }
         },
       },
