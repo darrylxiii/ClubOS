@@ -14,7 +14,7 @@ const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'es', 'zh', 'ar', 'ru'];
 
 // Cache key prefix for localStorage
 const TRANSLATION_CACHE_PREFIX = 'tqc_translations_';
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3'; // Bumped version to invalidate old caches
 
 // Get cached translations from localStorage
 export const getCachedTranslations = (language: string, namespace: string): Record<string, any> | null => {
@@ -110,18 +110,39 @@ export const changeLanguageWithReload = async (language: string): Promise<boolea
   }
 };
 
+// =============================================================================
+// BUNDLED ENGLISH FALLBACKS - All 13 namespaces bundled for immediate display
+// =============================================================================
 import commonEn from '@/i18n/locales/en/common.json';
 import authEn from '@/i18n/locales/en/auth.json';
 import onboardingEn from '@/i18n/locales/en/onboarding.json';
+import adminEn from '@/i18n/locales/en/admin.json';
+import analyticsEn from '@/i18n/locales/en/analytics.json';
+import candidatesEn from '@/i18n/locales/en/candidates.json';
+import complianceEn from '@/i18n/locales/en/compliance.json';
+import contractsEn from '@/i18n/locales/en/contracts.json';
+import jobsEn from '@/i18n/locales/en/jobs.json';
+import meetingsEn from '@/i18n/locales/en/meetings.json';
+import messagesEn from '@/i18n/locales/en/messages.json';
+import partnerEn from '@/i18n/locales/en/partner.json';
+import settingsEn from '@/i18n/locales/en/settings.json';
 
-
-
-// Define default resources
-const resources = {
+// All English translations bundled locally - instant fallback
+const bundledEnglishResources = {
   en: {
     common: commonEn,
     auth: authEn,
     onboarding: onboardingEn,
+    admin: adminEn,
+    analytics: analyticsEn,
+    candidates: candidatesEn,
+    compliance: complianceEn,
+    contracts: contractsEn,
+    jobs: jobsEn,
+    meetings: meetingsEn,
+    messages: messagesEn,
+    partner: partnerEn,
+    settings: settingsEn,
   }
 };
 
@@ -130,7 +151,7 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources, // Add local resources here
+    resources: bundledEnglishResources, // All English namespaces bundled
     fallbackLng: 'en',
     supportedLngs: SUPPORTED_LANGUAGES,
     defaultNS: 'common',
@@ -154,11 +175,22 @@ i18n
     // Preload primary language
     preload: ['en'],
 
-    // Load namespaces on demand
+    // Allow partial bundles - load other languages from backend
     partialBundledLanguages: true,
 
-    // Don't use internal cache - we manage our own
+    // Only load the current language (not all at once)
     load: 'currentOnly',
+
+    // Return empty string for missing keys (will show bundled English fallback)
+    returnEmptyString: false,
+    
+    // Log missing keys in development
+    saveMissing: false,
+    missingKeyHandler: (lngs, ns, key) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[i18n] Missing key: ${ns}:${key} for languages: ${lngs.join(', ')}`);
+      }
+    },
   });
 
 // Font URLs for languages that require special fonts

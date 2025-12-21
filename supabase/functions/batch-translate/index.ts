@@ -1,6 +1,7 @@
 /**
  * Batch Translate Edge Function
- * Enterprise-grade: Smart batching (multiple texts per prompt), proper rate limiting
+ * Enterprise-grade: Uses Google Cloud Translation as primary, Lovable AI as fallback
+ * Includes validation for placeholder preservation, length, and encoding
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
@@ -27,6 +28,222 @@ const LANGUAGE_NAMES: Record<string, string> = {
   ru: 'Russian'
 };
 
+// Google Cloud Translation language codes
+const GOOGLE_LANGUAGE_CODES: Record<string, string> = {
+  nl: 'nl',
+  de: 'de',
+  fr: 'fr',
+  es: 'es',
+  zh: 'zh-CN',
+  ar: 'ar',
+  ru: 'ru',
+};
+
+interface TranslationValidation {
+  isValid: boolean;
+  errors: string[];
+  qualityScore: number; // 0-100
+}
+
+/**
+ * Validate translation quality with scoring
+ */
+function validateTranslation(
+  original: string, 
+  translated: string, 
+  targetLanguage: string
+): TranslationValidation {
+  const errors: string[] = [];
+  let score = 100;
+  
+  // Check for empty translation
+  if (!translated || translated.trim() === '') {
+    errors.push('Empty translation');
+    score = 0;
+    return { isValid: false, errors, qualityScore: score };
+  }
+  
+  // Check placeholder preservation ({{name}}, {count}, %s, %d, etc.)
+  const placeholderRegex = /\{\{?\w+\}?\}|%[sd]/g;
+  const originalPlaceholders = (original.match(placeholderRegex) || []).sort();
+  const translatedPlaceholders = (translated.match(placeholderRegex) || []).sort();
+  
+  if (originalPlaceholders.length !== translatedPlaceholders.length) {
+    errors.push(`Placeholder mismatch: expected ${originalPlaceholders.length}, got ${translatedPlaceholders.length}`);
+    score -= 30;
+  } else {
+    // Check if all placeholders are preserved
+    for (let i = 0; i < originalPlaceholders.length; i++) {
+      if (originalPlaceholders[i] !== translatedPlaceholders[i]) {
+        errors.push(`Placeholder changed: ${originalPlaceholders[i]} → ${translatedPlaceholders[i]}`);
+        score -= 15;
+      }
+    }
+  }
+  
+  // Check for suspicious length (CJK languages are typically shorter)
+  const lengthRatio = translated.length / original.length;
+  const isCJK = ['zh', 'ja', 'ko'].includes(targetLanguage);
+  
+  if (!isCJK && (lengthRatio < 0.3 || lengthRatio > 3.5)) {
+    errors.push(`Suspicious length ratio: ${(lengthRatio * 100).toFixed(0)}%`);
+    score -= 20;
+  }
+  
+  // Check for HTML encoding issues
+  if (translated.includes('&amp;') || translated.includes('&lt;') || translated.includes('&gt;')) {
+    errors.push('HTML encoding detected');
+    score -= 10;
+  }
+  
+  // Check for untranslated segments (original text appearing in translation)
+  if (translated === original && original.length > 3) {
+    errors.push('Translation identical to original');
+    score -= 40;
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors,
+    qualityScore: Math.max(0, score),
+  };
+}
+
+/**
+ * Call Google Cloud Translation API
+ */
+async function translateWithGoogle(
+  texts: string[], 
+  targetLanguage: string,
+  googleApiKey: string,
+  logger: ReturnType<typeof createFunctionLogger>
+): Promise<{ translations: string[]; success: boolean; error?: string }> {
+  const googleTargetLang = GOOGLE_LANGUAGE_CODES[targetLanguage] || targetLanguage;
+  const googleApiUrl = `https://translation.googleapis.com/language/translate/v2?key=${googleApiKey}`;
+  
+  try {
+    // Google allows max 128 texts per request, batch if needed
+    const GOOGLE_BATCH_SIZE = 100;
+    const allTranslations: string[] = [];
+    
+    for (let i = 0; i < texts.length; i += GOOGLE_BATCH_SIZE) {
+      const batch = texts.slice(i, i + GOOGLE_BATCH_SIZE);
+      
+      const response = await fetch(googleApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          q: batch,
+          source: 'en',
+          target: googleTargetLang,
+          format: 'text',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        logger.error(`Google API error (${response.status}):`, errorText);
+        return { translations: [], success: false, error: `Google API: ${response.status}` };
+      }
+
+      const data = await response.json();
+      const batchTranslations = data.data.translations.map((t: any) => t.translatedText);
+      allTranslations.push(...batchTranslations);
+      
+      // Small delay between batches to avoid rate limits
+      if (i + GOOGLE_BATCH_SIZE < texts.length) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+    }
+    
+    return { translations: allTranslations, success: true };
+  } catch (error) {
+    logger.error('Google translation error:', error);
+    return { translations: [], success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Call Lovable AI (Gemini) as fallback
+ */
+async function translateWithAI(
+  texts: Array<{ key: string; value: string }>,
+  targetLanguage: string,
+  lovableApiKey: string,
+  logger: ReturnType<typeof createFunctionLogger>
+): Promise<{ translations: string[]; success: boolean }> {
+  const languageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
+  const BATCH_SIZE = 15;
+  const allTranslations: string[] = [];
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+    const batch = texts.slice(i, i + BATCH_SIZE);
+    const textsToTranslate = batch.map((p, idx) => ({ id: idx, text: p.value }));
+    
+    const prompt = `Translate each text to ${languageName}. Return a JSON array with the same structure.
+    
+Input:
+${JSON.stringify(textsToTranslate, null, 2)}
+
+Rules:
+- Return ONLY a valid JSON array
+- Each object must have "id" (same as input) and "text" (translated)
+- PRESERVE all placeholders like {{name}}, {count}, %s exactly as they appear
+- Maintain professional, sophisticated tone for a luxury recruitment platform
+- Do NOT add explanations or extra text`;
+
+    try {
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: 'You are a professional translator. Return ONLY valid JSON. No explanations.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3,
+        }),
+      });
+
+      if (!response.ok) {
+        logger.error(`AI API error (${response.status})`);
+        // Return empty for this batch
+        for (const _ of batch) {
+          allTranslations.push('');
+        }
+        continue;
+      }
+
+      const data = await response.json();
+      const content = data.choices[0].message.content.trim();
+      const jsonMatch = content.match(/\[[\s\S]*\]/);
+      
+      if (jsonMatch) {
+        const translatedArray = JSON.parse(jsonMatch[0]);
+        for (const item of translatedArray) {
+          allTranslations.push(item.text || '');
+        }
+      }
+    } catch (error) {
+      logger.error('AI translation error:', error);
+      for (const _ of batch) {
+        allTranslations.push('');
+      }
+    }
+
+    if (i + BATCH_SIZE < texts.length) {
+      await sleep(1000);
+    }
+  }
+
+  return { translations: allTranslations, success: allTranslations.some(t => t !== '') };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return handleCorsPreFlight(publicCorsHeaders);
@@ -46,11 +263,8 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const googleApiKey = Deno.env.get('GOOGLE_CLOUD_TRANSLATE_API_KEY');
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -99,122 +313,75 @@ Deno.serve(async (req) => {
       );
     }
 
-    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const languageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
+    let translatedTexts: string[] = [];
+    let translationProvider = 'none';
 
-    // SMART BATCHING: Translate multiple texts in ONE prompt (up to 15 at a time)
-    const BATCH_SIZE = 15;
-    const translatedPairs: Array<{ key: string; value: string }> = [];
+    // Strategy: Try Google Cloud Translation first, fallback to AI
+    if (googleApiKey) {
+      logger.info('Using Google Cloud Translation as primary provider');
+      const googleResult = await translateWithGoogle(
+        flatPairs.map(p => p.value),
+        targetLanguage,
+        googleApiKey,
+        logger
+      );
 
-    for (let i = 0; i < flatPairs.length; i += BATCH_SIZE) {
-      const batch = flatPairs.slice(i, i + BATCH_SIZE);
-      const batchNum = Math.floor(i / BATCH_SIZE) + 1;
-      const totalBatches = Math.ceil(flatPairs.length / BATCH_SIZE);
-      
-      logger.info(`Translating batch ${batchNum}/${totalBatches} (${batch.length} texts)`);
-
-      // Build a JSON array for batch translation
-      const textsToTranslate = batch.map((p, idx) => ({ id: idx, text: p.value }));
-      
-      const prompt = `Translate each text to ${languageName}. Return a JSON array with the same structure.
-      
-Input:
-${JSON.stringify(textsToTranslate, null, 2)}
-
-Rules:
-- Return ONLY a valid JSON array
-- Each object must have "id" (same as input) and "text" (translated)
-- Maintain professional, sophisticated tone for a luxury recruitment platform
-- Do NOT add explanations or extra text`;
-
-      let success = false;
-      let lastError: Error | null = null;
-
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        try {
-          const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${lovableApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'google/gemini-2.5-flash',
-              messages: [
-                { 
-                  role: 'system', 
-                  content: 'You are a professional translator. Return ONLY valid JSON. No explanations.'
-                },
-                { role: 'user', content: prompt }
-              ],
-              temperature: 0.3,
-            }),
-          });
-
-          if (response.status === 429) {
-            const waitTime = Math.pow(2, attempt) * 2000; // 2s, 4s, 8s
-            logger.warn(`Rate limited (429), waiting ${waitTime}ms...`);
-            await sleep(waitTime);
-            continue;
-          }
-
-          if (response.status === 402) {
-            throw new Error('PAYMENT_REQUIRED');
-          }
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            logger.error(`API error (${response.status}):`, errorText);
-            throw new Error(`API_ERROR_${response.status}`);
-          }
-
-          const data = await response.json();
-          const content = data.choices[0].message.content.trim();
-          
-          // Parse the JSON response
-          const jsonMatch = content.match(/\[[\s\S]*\]/);
-          if (!jsonMatch) {
-            throw new Error('Invalid JSON response');
-          }
-
-          const translatedArray = JSON.parse(jsonMatch[0]);
-          
-          // Map translations back to keys
-          for (const item of translatedArray) {
-            const originalPair = batch[item.id];
-            if (originalPair) {
-              translatedPairs.push({ key: originalPair.key, value: item.text });
-            }
-          }
-
-          success = true;
-          break;
-        } catch (error: any) {
-          lastError = error;
-          if (error.message === 'PAYMENT_REQUIRED') {
-            throw error;
-          }
-          if (attempt < 3) {
-            const backoffTime = Math.pow(2, attempt) * 1000;
-            logger.warn(`Retry ${attempt}/3 after ${backoffTime}ms`);
-            await sleep(backoffTime);
-          }
-        }
-      }
-
-      if (!success) {
-        logger.error(`Failed batch ${batchNum} after 3 attempts`, lastError);
-        // Add original texts as fallback for failed batch
-        for (const pair of batch) {
-          translatedPairs.push({ key: pair.key, value: `[TRANSLATION_FAILED] ${pair.value}` });
-        }
-      }
-
-      // Wait between batches (1.5s) to avoid rate limits
-      if (i + BATCH_SIZE < flatPairs.length) {
-        await sleep(1500);
+      if (googleResult.success && googleResult.translations.length === flatPairs.length) {
+        translatedTexts = googleResult.translations;
+        translationProvider = 'google';
+        logger.info(`✓ Google translation successful for ${translatedTexts.length} texts`);
+      } else {
+        logger.warn('Google translation failed or incomplete, falling back to AI');
       }
     }
+
+    // Fallback to Lovable AI if Google failed or not configured
+    if (translatedTexts.length === 0 && lovableApiKey) {
+      logger.info('Using Lovable AI as fallback provider');
+      const aiResult = await translateWithAI(flatPairs, targetLanguage, lovableApiKey, logger);
+      
+      if (aiResult.success) {
+        translatedTexts = aiResult.translations;
+        translationProvider = 'lovable_ai';
+        logger.info(`✓ AI translation completed for ${translatedTexts.length} texts`);
+      }
+    }
+
+    if (translatedTexts.length === 0) {
+      throw new Error('No translation provider available or all providers failed');
+    }
+
+    // Validate translations and build result
+    const translatedPairs: Array<{ 
+      key: string; 
+      value: string; 
+      validation: TranslationValidation;
+    }> = [];
+
+    let validCount = 0;
+    let warningCount = 0;
+
+    for (let i = 0; i < flatPairs.length; i++) {
+      const original = flatPairs[i];
+      const translated = translatedTexts[i] || original.value; // Fallback to original if empty
+      const validation = validateTranslation(original.value, translated, targetLanguage);
+
+      if (validation.isValid) {
+        validCount++;
+      } else {
+        warningCount++;
+        logger.warn(`Validation warning for "${original.key}": ${validation.errors.join(', ')}`);
+      }
+
+      translatedPairs.push({
+        key: original.key,
+        value: translated,
+        validation,
+      });
+    }
+
+    logger.info(`Validation: ${validCount} valid, ${warningCount} with warnings`);
 
     // Reconstruct nested object from flat pairs
     const translationObject: Record<string, any> = {};
@@ -246,7 +413,7 @@ Rules:
       userId = user?.id;
     }
 
-    // First, check if translation exists and MERGE instead of replacing
+    // Check if translation exists and MERGE instead of replacing
     const { data: existing } = await supabase
       .from('translations')
       .select('translations')
@@ -296,10 +463,23 @@ Rules:
       logger.info(`✓ Merged ${newKeysCount} keys into ${namespace}:${targetLanguage} (total: ${totalKeysCount})`);
     }
 
-    logger.logSuccess(200, { translatedCount: translatedPairs.length });
+    logger.logSuccess(200, { 
+      translatedCount: translatedPairs.length,
+      provider: translationProvider,
+      validCount,
+      warningCount,
+    });
 
     return new Response(
-      JSON.stringify({ translations: translationObject }),
+      JSON.stringify({ 
+        translations: translationObject,
+        stats: {
+          total: translatedPairs.length,
+          valid: validCount,
+          warnings: warningCount,
+          provider: translationProvider,
+        }
+      }),
       { 
         headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
         status: 200 

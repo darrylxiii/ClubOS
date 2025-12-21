@@ -541,6 +541,9 @@ verify_jwt = false
 [functions.batch-translate]
 verify_jwt = false
 
+[functions.google-translate]
+verify_jwt = false
+
 [functions.generate-all-translations]
 verify_jwt = true
 
