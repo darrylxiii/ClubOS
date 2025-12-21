@@ -13,6 +13,10 @@ import {
   CheckCircle,
   XCircle,
   Sparkles,
+  Quote,
+  Calculator,
+  GitBranch,
+  Table,
 } from 'lucide-react';
 
 // Helper to insert or update a block at cursor position
@@ -108,6 +112,71 @@ const insertColumns = (editor: any, columnCount: number = 2) => ({
   subtext: `Add a ${columnCount}-column layout`,
 });
 
+// Quote block
+const insertQuote = (editor: any) => ({
+  title: 'Quote',
+  onItemClick: () => {
+    insertBlock(editor, {
+      type: 'quote',
+      props: { author: '' },
+    });
+  },
+  aliases: ['quote', 'blockquote', 'citation', 'testimonial'],
+  group: 'Basic',
+  icon: <Quote className="h-4 w-4" />,
+  subtext: 'Add a styled quote block',
+});
+
+// Math/LaTeX block
+const insertMath = (editor: any) => ({
+  title: 'Math Equation',
+  onItemClick: () => {
+    insertBlock(editor, {
+      type: 'math',
+      props: { latex: '', displayMode: true },
+    });
+  },
+  aliases: ['math', 'latex', 'equation', 'formula', 'katex'],
+  group: 'Advanced',
+  icon: <Calculator className="h-4 w-4" />,
+  subtext: 'Add a LaTeX math equation',
+});
+
+// Mermaid diagram block
+const insertMermaid = (editor: any) => ({
+  title: 'Diagram',
+  onItemClick: () => {
+    insertBlock(editor, {
+      type: 'mermaid',
+      props: { code: '' },
+    });
+  },
+  aliases: ['diagram', 'mermaid', 'flowchart', 'chart', 'graph', 'sequence'],
+  group: 'Advanced',
+  icon: <GitBranch className="h-4 w-4" />,
+  subtext: 'Add a Mermaid diagram',
+});
+
+// Simple table block
+const insertSimpleTable = (editor: any) => ({
+  title: 'Simple Table',
+  onItemClick: () => {
+    insertBlock(editor, {
+      type: 'simpleTable',
+      props: { 
+        tableData: JSON.stringify({
+          headers: ['Column 1', 'Column 2', 'Column 3'],
+          rows: [['', '', ''], ['', '', '']],
+        })
+      },
+    });
+  },
+  aliases: ['simple table', 'table', 'grid', 'spreadsheet'],
+  group: 'Basic',
+  icon: <Table className="h-4 w-4" />,
+  subtext: 'Add a simple inline table',
+});
+
 // AI writing slash command - triggers dialog
 const insertAICommand = (editor: any, onAICommand?: () => void) => ({
   title: 'Ask AI to Write',
@@ -136,6 +205,11 @@ export function getCustomSlashMenuItems(
     insertAICommand(editor, onAICommand),
     // Get filtered default BlockNote items
     ...defaultItems,
+    // New content blocks
+    insertQuote(editor),
+    insertMath(editor),
+    insertMermaid(editor),
+    insertSimpleTable(editor),
     // Add our custom blocks
     insertCallout(editor, 'info'),
     insertCallout(editor, 'warning'),
