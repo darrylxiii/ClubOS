@@ -1,7 +1,6 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import 'katex/dist/katex.min.css';
 
 export const MathBlock = createReactBlockSpec(
   {
@@ -22,6 +21,7 @@ export const MathBlock = createReactBlockSpec(
       const [latex, setLatex] = useState(props.block.props.latex as string || '');
       const [rendered, setRendered] = useState<string>('');
       const [error, setError] = useState<string | null>(null);
+      const [isLoading, setIsLoading] = useState(false);
       const inputRef = useRef<HTMLTextAreaElement>(null);
 
       useEffect(() => {
@@ -32,9 +32,14 @@ export const MathBlock = createReactBlockSpec(
             return;
           }
           
+          setIsLoading(true);
           try {
-            const katex = await import('katex');
-            const html = katex.default.renderToString(latex, {
+            // Dynamically import katex only when needed
+            const katex = (await import('katex')).default;
+            // Import CSS dynamically
+            await import('katex/dist/katex.min.css');
+            
+            const html = katex.renderToString(latex, {
               displayMode: props.block.props.displayMode as boolean,
               throwOnError: false,
               errorColor: '#ef4444',
@@ -43,9 +48,14 @@ export const MathBlock = createReactBlockSpec(
             setError(null);
           } catch (err) {
             setError(err instanceof Error ? err.message : 'Invalid LaTeX');
+          } finally {
+            setIsLoading(false);
           }
         };
-        renderMath();
+        
+        // Debounce rendering
+        const timer = setTimeout(renderMath, 200);
+        return () => clearTimeout(timer);
       }, [latex, props.block.props.displayMode]);
 
       useEffect(() => {
@@ -94,7 +104,12 @@ export const MathBlock = createReactBlockSpec(
               )}
               autoFocus
             />
-            {rendered && (
+            {isLoading && (
+              <div className="mt-2 p-2 text-center text-muted-foreground text-sm">
+                Rendering...
+              </div>
+            )}
+            {rendered && !isLoading && (
               <div className="mt-2 p-2 bg-background rounded border border-input">
                 <span className="text-xs text-muted-foreground mb-1 block">Preview:</span>
                 <div 
@@ -125,6 +140,10 @@ export const MathBlock = createReactBlockSpec(
               dangerouslySetInnerHTML={{ __html: rendered }}
               className="text-center"
             />
+          ) : isLoading ? (
+            <p className="text-muted-foreground text-sm text-center">
+              Loading...
+            </p>
           ) : (
             <p className="text-muted-foreground text-sm text-center">
               Click to add LaTeX formula

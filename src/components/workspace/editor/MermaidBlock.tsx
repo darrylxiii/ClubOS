@@ -18,6 +18,7 @@ export const MermaidBlock = createReactBlockSpec(
       const [code, setCode] = useState(props.block.props.code as string || '');
       const [svgContent, setSvgContent] = useState<string>('');
       const [error, setError] = useState<string | null>(null);
+      const [isLoading, setIsLoading] = useState(false);
       const containerRef = useRef<HTMLDivElement>(null);
       const uniqueId = useId().replace(/:/g, '');
 
@@ -29,24 +30,30 @@ export const MermaidBlock = createReactBlockSpec(
             return;
           }
           
+          setIsLoading(true);
           try {
-            const mermaid = await import('mermaid');
-            mermaid.default.initialize({
+            // Dynamically import mermaid only when needed
+            const mermaid = (await import('mermaid')).default;
+            mermaid.initialize({
               startOnLoad: false,
               theme: 'neutral',
               securityLevel: 'loose',
             });
             
-            const { svg } = await mermaid.default.render(`mermaid-${uniqueId}`, code);
+            const { svg } = await mermaid.render(`mermaid-${uniqueId}`, code);
             setSvgContent(svg);
             setError(null);
           } catch (err) {
             setError(err instanceof Error ? err.message : 'Invalid Mermaid syntax');
             setSvgContent('');
+          } finally {
+            setIsLoading(false);
           }
         };
         
-        renderDiagram();
+        // Debounce rendering
+        const timer = setTimeout(renderDiagram, 300);
+        return () => clearTimeout(timer);
       }, [code, uniqueId]);
 
       useEffect(() => {
@@ -61,9 +68,8 @@ export const MermaidBlock = createReactBlockSpec(
       };
 
       const exampleDiagrams = [
-        { name: 'Flowchart', code: 'graph TD\n    A[Start] --> B{Decision}\n    B -->|Yes| C[OK]\n    B -->|No| D[Cancel]' },
-        { name: 'Sequence', code: 'sequenceDiagram\n    Alice->>Bob: Hello\n    Bob-->>Alice: Hi!' },
-        { name: 'Pie Chart', code: 'pie title Tasks\n    "Done" : 45\n    "In Progress" : 30\n    "Todo" : 25' },
+        { name: 'Flow', code: 'graph TD\n    A[Start] --> B{Decision}\n    B -->|Yes| C[OK]\n    B -->|No| D[Cancel]' },
+        { name: 'Seq', code: 'sequenceDiagram\n    Alice->>Bob: Hello\n    Bob-->>Alice: Hi!' },
       ];
 
       if (isEditing) {
@@ -107,7 +113,7 @@ export const MermaidBlock = createReactBlockSpec(
               onChange={(e) => setCode(e.target.value)}
               placeholder="Enter Mermaid diagram code..."
               className={cn(
-                "w-full min-h-[100px] p-2 rounded font-mono text-sm",
+                "w-full min-h-[80px] p-2 rounded font-mono text-sm",
                 "bg-background border border-input",
                 "focus:outline-none focus:ring-2 focus:ring-accent",
                 "resize-y"
@@ -115,9 +121,13 @@ export const MermaidBlock = createReactBlockSpec(
               autoFocus
             />
             
-            {svgContent && (
+            {isLoading && (
+              <div className="mt-2 p-4 text-center text-muted-foreground text-sm">
+                Rendering...
+              </div>
+            )}
+            {svgContent && !isLoading && (
               <div className="mt-2 p-4 bg-background rounded border border-input overflow-auto">
-                <span className="text-xs text-muted-foreground mb-2 block">Preview:</span>
                 <div 
                   ref={containerRef}
                   dangerouslySetInnerHTML={{ __html: svgContent }}
@@ -148,6 +158,10 @@ export const MermaidBlock = createReactBlockSpec(
               dangerouslySetInnerHTML={{ __html: svgContent }}
               className="flex justify-center p-4 overflow-auto"
             />
+          ) : isLoading ? (
+            <p className="text-muted-foreground text-sm text-center py-4">
+              Loading diagram...
+            </p>
           ) : (
             <p className="text-muted-foreground text-sm text-center py-4">
               Click to add Mermaid diagram
