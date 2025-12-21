@@ -5,7 +5,7 @@ import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode, command }) => ({
   server: {
     host: true, // Listen on all interfaces (localhost + network IP)
     port: 8080,
@@ -13,8 +13,11 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === "development" && componentTagger(),
-    VitePWA({
+    // Only used for the editor/devtools while running the dev server
+    command === 'serve' && mode === 'development' && componentTagger(),
+    // PWA is only needed for production builds; it is memory-heavy during build
+    command === 'build' && mode === 'production' &&
+      VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'quantum-logo.svg', 'apple-touch-icon.png'],
       manifest: {
@@ -159,8 +162,14 @@ export default defineConfig(({ mode }) => ({
     modulePreload: {
       polyfill: true,
     },
-    // Disable sourcemaps in production to reduce memory usage
+    // Development-mode builds (build:dev) should be cheap on memory.
+    minify: mode === 'development' ? false : 'esbuild',
+    cssMinify: mode === 'development' ? false : true,
+    reportCompressedSize: false,
+
+    // Disable sourcemaps to reduce memory usage
     sourcemap: false,
+
     // Reduce chunk size warnings threshold
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
@@ -182,11 +191,13 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('@tiptap') || id.includes('prosemirror')) {
             return 'editor';
           }
-          
+
           // Core React libraries
-          if (id.includes('node_modules/react/') ||
+          if (
+            id.includes('node_modules/react/') ||
             id.includes('node_modules/react-dom/') ||
-            id.includes('node_modules/react-router-dom/')) {
+            id.includes('node_modules/react-router-dom/')
+          ) {
             return 'react-vendor';
           }
 
@@ -209,17 +220,17 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('framer-motion')) {
             return 'motion';
           }
-          
+
           // Mantine
           if (id.includes('@mantine')) {
             return 'mantine';
           }
-          
+
           // date-fns
           if (id.includes('date-fns')) {
             return 'date-fns';
           }
-          
+
           // i18n
           if (id.includes('i18next')) {
             return 'i18n';
