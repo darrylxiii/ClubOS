@@ -2593,6 +2593,44 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_logs: {
+        Row: {
+          automation_id: string
+          error_message: string | null
+          executed_at: string | null
+          id: string
+          result_data: Json | null
+          status: string
+          trigger_data: Json | null
+        }
+        Insert: {
+          automation_id: string
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          result_data?: Json | null
+          status: string
+          trigger_data?: Json | null
+        }
+        Update: {
+          automation_id?: string
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          result_data?: Json | null
+          status?: string
+          trigger_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_automations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       backup_policies: {
         Row: {
           created_at: string | null
@@ -38242,6 +38280,75 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      workspace_automations: {
+        Row: {
+          action_config: Json | null
+          action_type: string
+          created_at: string | null
+          created_by: string | null
+          database_id: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          last_triggered_at: string | null
+          name: string
+          trigger_config: Json | null
+          trigger_count: number | null
+          trigger_type: string
+          updated_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          action_config?: Json | null
+          action_type: string
+          created_at?: string | null
+          created_by?: string | null
+          database_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          name: string
+          trigger_config?: Json | null
+          trigger_count?: number | null
+          trigger_type: string
+          updated_at?: string | null
+          workspace_id: string
+        }
+        Update: {
+          action_config?: Json | null
+          action_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          database_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          name?: string
+          trigger_config?: Json | null
+          trigger_count?: number | null
+          trigger_type?: string
+          updated_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_automations_database_id_fkey"
+            columns: ["database_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_databases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_automations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workspace_database_columns: {
         Row: {
