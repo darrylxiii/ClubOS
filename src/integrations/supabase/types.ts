@@ -34369,8 +34369,11 @@ export type Database = {
           is_active: boolean | null
           language: string
           namespace: string
+          quality_score: number | null
+          quality_status: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          translation_provider: string | null
           translations: Json
           updated_at: string | null
           version: number | null
@@ -34383,8 +34386,11 @@ export type Database = {
           is_active?: boolean | null
           language: string
           namespace: string
+          quality_score?: number | null
+          quality_status?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          translation_provider?: string | null
           translations: Json
           updated_at?: string | null
           version?: number | null
@@ -34397,8 +34403,11 @@ export type Database = {
           is_active?: boolean | null
           language?: string
           namespace?: string
+          quality_score?: number | null
+          quality_status?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          translation_provider?: string | null
           translations?: Json
           updated_at?: string | null
           version?: number | null

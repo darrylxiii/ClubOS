@@ -440,6 +440,10 @@ Deno.serve(async (req) => {
       ? deepMerge(existing.translations, translationObject)
       : translationObject;
 
+    // Calculate average quality score for this batch
+    const avgQualityScore = translatedPairs.reduce((sum, p) => sum + p.validation.qualityScore, 0) / translatedPairs.length;
+    const qualityStatus = warningCount > 0 ? 'needs_review' : 'validated';
+
     const { error: upsertError } = await supabase
       .from('translations')
       .upsert({
@@ -449,7 +453,10 @@ Deno.serve(async (req) => {
         version: 1,
         generated_by: userId,
         generated_at: new Date().toISOString(),
-        is_active: true
+        is_active: true,
+        quality_score: Math.round(avgQualityScore),
+        quality_status: qualityStatus,
+        translation_provider: translationProvider,
       }, {
         onConflict: 'namespace,language,version',
         ignoreDuplicates: false

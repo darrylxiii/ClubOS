@@ -3,9 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface CoverageSummary {
   byNamespace: Record<string, { translated: number; total: number; percentage: number }>;
-  byLanguage: Record<string, { translated: number; total: number; percentage: number }>;
+  byLanguage: Record<string, { translated: number; total: number; percentage: number; qualityScore?: number }>;
   missingKeys: Array<{ namespace: string; key: string; missingIn: string[] }>;
   overallCompletion: number;
+  qualitySummary: {
+    validated: number;
+    needsReview: number;
+    pending: number;
+    averageQuality: number;
+  };
 }
 
 // All supported languages (English + 7 others)
@@ -37,10 +43,10 @@ export const useTranslationCoverage = () => {
   return useQuery({
     queryKey: ['translation-coverage-analysis'],
     queryFn: async (): Promise<CoverageSummary> => {
-      // Fetch all active translations
+      // Fetch all active translations with quality data
       const { data: translations, error } = await supabase
         .from('translations')
-        .select('namespace, language, translations')
+        .select('namespace, language, translations, quality_status, quality_score, translation_provider')
         .eq('is_active', true);
 
       if (error) throw error;
@@ -59,9 +65,28 @@ export const useTranslationCoverage = () => {
         totalEnglishKeys += keys.length;
       });
 
+      // Calculate quality summary
+      let validated = 0;
+      let needsReview = 0;
+      let pending = 0;
+      let totalQualityScore = 0;
+      let qualityScoreCount = 0;
+
+      otherTranslations.forEach(t => {
+        const status = t.quality_status || 'pending';
+        if (status === 'validated') validated++;
+        else if (status === 'needs_review') needsReview++;
+        else pending++;
+
+        if (t.quality_score !== null) {
+          totalQualityScore += t.quality_score;
+          qualityScoreCount++;
+        }
+      });
+
       // Calculate coverage by namespace and language
       const byNamespace: Record<string, { translated: number; total: number; percentage: number }> = {};
-      const byLanguage: Record<string, { translated: number; total: number; percentage: number }> = {};
+      const byLanguage: Record<string, { translated: number; total: number; percentage: number; qualityScore?: number }> = {};
       const missingKeys: Array<{ namespace: string; key: string; missingIn: string[] }> = [];
 
       // Initialize English as 100% complete
@@ -86,12 +111,20 @@ export const useTranslationCoverage = () => {
       OTHER_LANGUAGES.forEach(lang => {
         let langTranslated = 0;
         let langTotal = 0;
+        let langQualitySum = 0;
+        let langQualityCount = 0;
         
         Object.entries(expectedKeysByNamespace).forEach(([ns, expectedKeys]) => {
           const langTranslation = otherTranslations.find(t => t.namespace === ns && t.language === lang);
           const langKeys = langTranslation 
             ? new Set(flattenKeys(langTranslation.translations as Record<string, any>)) 
             : new Set<string>();
+          
+          // Track quality score for this language
+          if (langTranslation?.quality_score !== null && langTranslation?.quality_score !== undefined) {
+            langQualitySum += langTranslation.quality_score;
+            langQualityCount++;
+          }
           
           // Count how many expected keys this language has
           let matchedKeys = 0;
@@ -115,7 +148,8 @@ export const useTranslationCoverage = () => {
         byLanguage[lang] = {
           translated: langTranslated,
           total: langTotal,
-          percentage: langTotal > 0 ? Math.min((langTranslated / langTotal) * 100, 100) : 0
+          percentage: langTotal > 0 ? Math.min((langTranslated / langTotal) * 100, 100) : 0,
+          qualityScore: langQualityCount > 0 ? Math.round(langQualitySum / langQualityCount) : undefined,
         };
       });
 
@@ -175,6 +209,12 @@ export const useTranslationCoverage = () => {
         byLanguage,
         missingKeys: missingKeys.slice(0, 100), // Limit to 100 for performance
         overallCompletion,
+        qualitySummary: {
+          validated,
+          needsReview,
+          pending,
+          averageQuality: qualityScoreCount > 0 ? Math.round(totalQualityScore / qualityScoreCount) : 0,
+        },
       };
     },
     refetchInterval: 30000, // Refresh every 30 seconds
