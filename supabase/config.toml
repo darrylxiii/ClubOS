@@ -881,3 +881,9 @@ verify_jwt = true
 
 [functions.execute-communication-workflow]
 verify_jwt = true
+
+# =============================================================================
+# AI Writing Assistant (JWT Required)
+# =============================================================================
+[functions.ai-writing]
+verify_jwt = true
