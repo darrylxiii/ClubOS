@@ -12,6 +12,9 @@ export interface TranslationRecord {
   updated_at: string;
   reviewed_at: string | null;
   reviewed_by: string | null;
+  quality_status?: string | null;
+  quality_score?: number | null;
+  translation_provider?: string | null;
 }
 
 export interface FlatTranslation {
@@ -136,12 +139,13 @@ export function useUpdateTranslation() {
       flatCurrent[key] = value;
       const newTranslations = unflattenObject(flatCurrent);
       
-      // Update in database
+      // Update in database - mark as validated since human edited
       const { data, error } = await supabase
         .from('translations')
         .update({
           translations: newTranslations,
           updated_at: new Date().toISOString(),
+          quality_status: 'validated', // Human edit = validated
         })
         .eq('id', current.id)
         .select()
@@ -168,6 +172,7 @@ export function useUpdateTranslation() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['namespace-translations', variables.namespace] });
       queryClient.invalidateQueries({ queryKey: ['translation-audit-log'] });
+      queryClient.invalidateQueries({ queryKey: ['translation-coverage-analysis'] });
     },
   });
 }
@@ -185,6 +190,7 @@ export function useMarkAsReviewed() {
         .update({
           reviewed_at: new Date().toISOString(),
           reviewed_by: user?.id,
+          quality_status: 'validated',
         })
         .eq('id', id)
         .select()
@@ -195,6 +201,71 @@ export function useMarkAsReviewed() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['namespace-translations'] });
+      queryClient.invalidateQueries({ queryKey: ['translation-coverage-analysis'] });
+    },
+  });
+}
+
+// Get translations needing review
+export function useTranslationsNeedingReview() {
+  return useQuery({
+    queryKey: ['translations-needing-review'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('translations')
+        .select('*')
+        .eq('is_active', true)
+        .eq('quality_status', 'needs_review')
+        .neq('language', 'en');
+      
+      if (error) throw error;
+      return data as TranslationRecord[];
+    },
+  });
+}
+
+// Get quality stats
+export function useTranslationQualityStats() {
+  return useQuery({
+    queryKey: ['translation-quality-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('translations')
+        .select('language, quality_status, quality_score, translation_provider')
+        .eq('is_active', true)
+        .neq('language', 'en');
+      
+      if (error) throw error;
+      
+      const stats = {
+        byProvider: {} as Record<string, number>,
+        byStatus: {} as Record<string, number>,
+        averageQuality: 0,
+        total: data.length,
+      };
+      
+      let qualitySum = 0;
+      let qualityCount = 0;
+      
+      data.forEach(t => {
+        // By provider
+        const provider = t.translation_provider || 'unknown';
+        stats.byProvider[provider] = (stats.byProvider[provider] || 0) + 1;
+        
+        // By status
+        const status = t.quality_status || 'pending';
+        stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
+        
+        // Quality score
+        if (t.quality_score !== null) {
+          qualitySum += t.quality_score;
+          qualityCount++;
+        }
+      });
+      
+      stats.averageQuality = qualityCount > 0 ? Math.round(qualitySum / qualityCount) : 0;
+      
+      return stats;
     },
   });
 }
