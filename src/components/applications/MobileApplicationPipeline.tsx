@@ -44,6 +44,7 @@ export function MobileApplicationPipeline({
           key={app.id}
           className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
           onClick={() => onSelectApplication(app)}
+          data-testid="application-card"
         >
           <CardHeader className="pb-3">
             <div className="flex items-start gap-3">
@@ -54,10 +55,10 @@ export function MobileApplicationPipeline({
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-base font-semibold truncate">
+                <CardTitle className="text-base font-semibold truncate" data-testid="job-title">
                   {app.position}
                 </CardTitle>
-                <p className="text-sm text-muted-foreground truncate">
+                <p className="text-sm text-muted-foreground truncate" data-testid="company-name">
                   {app.company_name}
                 </p>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
@@ -71,7 +72,7 @@ export function MobileApplicationPipeline({
             {/* Current Stage */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Current Stage:</span>
-              <Badge variant="secondary" className="font-medium">
+              <Badge variant="secondary" className="font-medium" data-testid="status">
                 {app.stages[app.current_stage_index]?.title || "Applied"}
               </Badge>
             </div>
@@ -91,7 +92,7 @@ export function MobileApplicationPipeline({
             </div>
 
             {/* Stage List - Vertical */}
-            <div className="space-y-2 pt-2">
+            <div className="space-y-2 pt-2" data-testid="pipeline-stages">
               {app.stages.map((stage, index) => {
                 const isPast = index < app.current_stage_index;
                 const isCurrent = index === app.current_stage_index;
