@@ -69,12 +69,12 @@ serve(async (req) => {
     }
     logStep("Milestone verified", { status: milestone.status, amount: milestone.amount });
 
-    // Fetch contract from freelance_contracts (fixed table name)
+    // Fetch contract from project_contracts
     const { data: contract, error: contractError } = await supabaseClient
-      .from("freelance_contracts")
+      .from("project_contracts")
       .select(`
         *,
-        freelance_profile:freelance_profiles!inner(
+        freelance_profile:freelance_profiles(
           stripe_connect_account_id,
           stripe_connect_onboarded
         )
@@ -100,21 +100,21 @@ serve(async (req) => {
     if (!freelanceProfile.stripe_connect_onboarded) {
       throw new Error("Freelancer has not completed payment onboarding");
     }
-    logStep("Freelancer payment account verified", { 
-      accountId: freelanceProfile.stripe_connect_account_id 
+    logStep("Freelancer payment account verified", {
+      accountId: freelanceProfile.stripe_connect_account_id
     });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
     // Calculate amounts
     const amountInCents = Math.round((milestone.amount || 0) * 100);
     const platformFee = Math.round(amountInCents * (PLATFORM_FEE_PERCENTAGE / 100));
     const freelancerAmount = amountInCents - platformFee;
 
-    logStep("Payment calculation", { 
-      total: amountInCents, 
-      platformFee, 
-      freelancerAmount 
+    logStep("Payment calculation", {
+      total: amountInCents,
+      platformFee,
+      freelancerAmount
     });
 
     // Create transfer to freelancer's connected account
@@ -141,7 +141,7 @@ serve(async (req) => {
       .update({
         paid_at: new Date().toISOString(),
         status: "paid",
-        stripe_transfer_id: transfer.id,
+        payment_reference: transfer.id,
         updated_at: new Date().toISOString(),
       })
       .eq("id", milestoneId);
@@ -169,7 +169,7 @@ serve(async (req) => {
     // Update contract escrow balance
     const newEscrowBalance = (contract.escrow_amount || 0) - milestone.amount;
     await supabaseClient
-      .from("freelance_contracts")
+      .from("project_contracts")
       .update({
         escrow_amount: Math.max(0, newEscrowBalance),
         updated_at: new Date().toISOString(),
@@ -177,6 +177,7 @@ serve(async (req) => {
       .eq("id", contractId);
 
     logStep("Escrow balance updated", { newBalance: newEscrowBalance });
+
 
     return new Response(JSON.stringify({
       success: true,

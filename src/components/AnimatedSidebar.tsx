@@ -77,7 +77,7 @@ export const Sidebar = ({ children, className, logoLight, logoDark, logoLightSho
 // Wrapper to expose toggle function
 const MobileSidebarWrapper = ({ children }: { children: ReactNode }) => {
   const { open, setOpen } = useSidebar();
-  
+
   // Expose toggle function and state getter globally for header button
   if (typeof window !== 'undefined') {
     (window as any).__toggleSidebar = () => setOpen(!open);
@@ -309,8 +309,8 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
       {open && (
         <span
           className={cn(
-            "text-sm whitespace-nowrap overflow-hidden text-ellipsis transition-colors duration-300",
-            isActive ? "text-foreground font-bold" : "text-muted-foreground font-medium"
+            "whitespace-nowrap overflow-hidden text-ellipsis transition-colors duration-300",
+            isActive ? "text-label-md font-bold text-foreground" : "text-label-md font-medium text-muted-foreground"
           )}
         >
           {item.name}
@@ -362,16 +362,16 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
           !isExpanded && !isActiveGroup && "text-muted-foreground"
         )}
       >
-        <group.icon 
+        <group.icon
           className={cn(
             "h-4 w-4 flex-shrink-0 transition-all duration-300",
             isActiveGroup && "text-primary scale-110"
-          )} 
+          )}
         />
         {open && (
-          <span 
+          <span
             className={cn(
-              "flex-1 text-left text-xs uppercase tracking-wide transition-all duration-300 whitespace-nowrap overflow-hidden text-ellipsis",
+              "flex-1 text-left text-label-xs uppercase tracking-wide transition-all duration-300 whitespace-nowrap overflow-hidden text-ellipsis",
               isExpanded && isActiveGroup ? "font-bold" : "font-semibold"
             )}
           >
@@ -379,7 +379,7 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
           </span>
         )}
         {open && (
-          <ChevronDown 
+          <ChevronDown
             className={cn(
               "h-3 w-3 flex-shrink-0 transition-all duration-300",
               groupOpen ? "rotate-0" : "-rotate-90",
@@ -392,16 +392,16 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
         {shouldShowItems && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ 
-              height: "auto", 
+            animate={{
+              height: "auto",
               opacity: 1,
               transition: {
                 height: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
                 opacity: { duration: 0.25, ease: "easeOut", delay: 0.05 }
               }
             }}
-            exit={{ 
-              height: 0, 
+            exit={{
+              height: 0,
               opacity: 0,
               transition: {
                 height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
@@ -414,10 +414,10 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
               <motion.div
                 key={item.path}
                 initial={{ opacity: 0, x: -10 }}
-                animate={{ 
-                  opacity: 1, 
+                animate={{
+                  opacity: 1,
                   x: 0,
-                  transition: { 
+                  transition: {
                     delay: index * 0.05,
                     duration: 0.2,
                     ease: "easeOut"
@@ -470,14 +470,14 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
               </Avatar>
               {open && (
                 <div className="flex-1 text-left overflow-hidden min-w-0">
-                  <p className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
-                  <p className="text-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">View profile</p>
+                  <p className="text-label-md font-medium whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
+                  <p className="text-label-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">View profile</p>
                 </div>
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent 
-            align="end" 
+          <DropdownMenuContent
+            align="end"
             className="w-56 bg-card border-border z-[100]"
             sideOffset={5}
           >
@@ -507,7 +507,7 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      
+
       <AppearanceSettingsModal open={appearanceOpen} onOpenChange={setAppearanceOpen} />
     </>
   );

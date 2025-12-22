@@ -273,10 +273,12 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
                         {index === 1 && check.status === 'passed' && (
                           <div className="flex gap-2 items-center">
                             <span className="text-xs text-gray-400">Input Level:</span>
-                            <div className="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-green-500 transition-all duration-75 ease-out"
-                                style={{ width: `${audioLevel}%` }}
+                            <div className="w-24 h-2 bg-gray-700/50 rounded-full overflow-hidden border border-white/5">
+                              <motion.div
+                                className="h-full bg-gradient-to-r from-green-500 to-emerald-400"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${audioLevel}%` }}
+                                transition={{ type: "tween", ease: "linear", duration: 0.1 }}
                               />
                             </div>
                           </div>

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  detectCandidateStage, 
+import {
+  detectCandidateStage,
   getNextStepsForStage,
   getStageCompletionPercent,
   getStageInfo,
@@ -73,16 +73,16 @@ export const useNextSteps = () => {
           .eq('id', user.id)
           .single(),
         (supabase as any)
-          .from('interviews')
+          .from('detected_interviews')
           .select('id', { count: 'exact', head: true })
           .eq('candidate_id', user.id)
           .in('status', ['scheduled', 'confirmed']),
-        (supabase as any)
-          .from('referrals')
+        supabase
+          .from('waitlist_referrals' as any)
           .select('id', { count: 'exact', head: true })
           .eq('referred_by', user.id),
         supabase
-          .from('user_preferences')
+          .from('notification_preferences')
           .select('id')
           .eq('user_id', user.id)
           .maybeSingle(),
@@ -123,15 +123,15 @@ export const useNextSteps = () => {
 
       // Detect current stage
       const currentStage = detectCandidateStage(userData);
-      
+
       // Get next steps for this stage
       const nextSteps = getNextStepsForStage(currentStage, userData);
-      
+
       // Calculate progress
       const stageCompletion = getStageCompletionPercent(currentStage, userData);
       const completedCount = getCompletedTasksCount(userData);
       const totalCount = getTotalTasksCount();
-      
+
       setState({
         tasks: nextSteps,
         stage: currentStage,

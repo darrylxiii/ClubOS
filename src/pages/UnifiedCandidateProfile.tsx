@@ -36,11 +36,11 @@ export default function UnifiedCandidateProfile() {
   const applicationId = searchParams.get('application');
   const stage = searchParams.get('stage');
   const stageIndex = searchParams.get('stageIndex');
-  
+
   const { role } = useUserRole();
   const isAdmin = role === 'admin' || role === 'strategist';
   const isPartner = role === 'partner';
-  
+
   const [loading, setLoading] = useState(true);
   const [candidate, setCandidate] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -79,18 +79,18 @@ export default function UnifiedCandidateProfile() {
         .select('*')
         .eq('user_id', candidateId)
         .order('start_date', { ascending: false });
-      
+
       const educationQuery = await (supabase as any)
         .from('education')
         .select('*')
         .eq('user_id', candidateId)
         .order('start_date', { ascending: false });
-      
+
       const skillsQuery = await (supabase as any)
         .from('candidate_skills')
         .select('*')
         .eq('candidate_id', candidateId);
-      
+
       // Load portfolio directly
       const { data: portfolioData } = await supabase
         .from('profile_portfolio')
@@ -164,7 +164,7 @@ export default function UnifiedCandidateProfile() {
     <AppLayout>
       <div className="container mx-auto px-4 py-4 max-w-7xl space-y-4">
         {/* Back Button */}
-        <BackButton 
+        <BackButton
           fromJob={fromJob || undefined}
           fromCompany={fromCompany || undefined}
           fromAdmin={fromAdmin}
@@ -172,17 +172,18 @@ export default function UnifiedCandidateProfile() {
         />
 
         {/* Hero Section - Compact */}
-        <CandidateHeroSection 
-          candidate={candidate} 
+        <CandidateHeroSection
+          candidate={candidate}
           fromJob={fromJob || undefined}
           stage={stage || application?.stage}
           isAdmin={isAdmin}
           onEdit={() => setIsEditModalOpen(true)}
+          onRefresh={loadCandidateData}
         />
 
         {/* Full Pipeline Breakdown - Prominent after hero */}
         {application && (
-          <PipelineBreakdownCard 
+          <PipelineBreakdownCard
             application={application}
           />
         )}
@@ -191,140 +192,140 @@ export default function UnifiedCandidateProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
           {/* Left Column: Main Content */}
           <div className="space-y-4">
-                {/* Decision Intelligence Zone (Always Expanded) */}
-                <CandidateDecisionDashboard candidate={candidate} applications={application ? [application] : []} />
+            {/* Decision Intelligence Zone (Always Expanded) */}
+            <CandidateDecisionDashboard candidate={candidate} applications={application ? [application] : []} />
 
-                {/* Meeting Intelligence - Interview Insights */}
-                <MeetingIntelligenceCard candidateId={candidateId!} />
+            {/* Meeting Intelligence - Interview Insights */}
+            <MeetingIntelligenceCard candidateId={candidateId!} />
 
-                {/* Interview Scorecard - AI Analysis from Interviews */}
-                <InterviewScorecard candidateId={candidateId!} />
+            {/* Interview Scorecard - AI Analysis from Interviews */}
+            <InterviewScorecard candidateId={candidateId!} />
 
-                {/* Assessment Insights */}
-                <AssessmentInsightsCard candidateId={candidateId!} />
+            {/* Assessment Insights */}
+            <AssessmentInsightsCard candidateId={candidateId!} />
 
-                {/* Skills & Expertise */}
-                <SkillMatrix mustHaveSkills={mustHaveSkills} niceToHaveSkills={niceToHaveSkills} />
+            {/* Skills & Expertise */}
+            <SkillMatrix mustHaveSkills={mustHaveSkills} niceToHaveSkills={niceToHaveSkills} />
 
-                {/* Experience Timeline */}
-                <ExperienceTimeline
-                  experiences={experiences}
-                  education={education}
-                  certifications={certifications}
+            {/* Experience Timeline */}
+            <ExperienceTimeline
+              experiences={experiences}
+              education={education}
+              certifications={certifications}
+            />
+
+            {/* Portfolio & Links */}
+            <PortfolioGrid candidate={candidate} portfolioItems={portfolioItems} />
+
+            {/* Documents & Assessments */}
+            <Card className={candidateProfileTokens.glass.card}>
+              <CardHeader>
+                <CardTitle>Documents & Files</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CandidateDocumentsViewer
+                  candidateId={candidateId!}
+                  canUpload={isAdmin}
                 />
+              </CardContent>
+            </Card>
 
-                {/* Portfolio & Links */}
-                <PortfolioGrid candidate={candidate} portfolioItems={portfolioItems} />
+            {/* Internal Team Zone - TQC Only */}
+            {isAdmin && (
+              <Card className={candidateProfileTokens.glass.card}>
+                <CardHeader>
+                  <CardTitle>TQC Internal Assessment</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CandidateInternalRatingCard
+                    candidateId={candidateId!}
+                    candidate={candidate}
+                    onUpdate={loadCandidateData}
+                  />
+                </CardContent>
+              </Card>
+            )}
 
-                {/* Documents & Assessments */}
-                <Card className={candidateProfileTokens.glass.card}>
-                  <CardHeader>
-                    <CardTitle>Documents & Files</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CandidateDocumentsViewer
-                      candidateId={candidateId!}
-                      canUpload={isAdmin}
-                    />
-                  </CardContent>
-                </Card>
+            <Card className={candidateProfileTokens.glass.card}>
+              <CardHeader>
+                <CardTitle>
+                  {isPartner ? 'Collaboration Notes' : 'Team Notes'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {isPartner
+                    ? 'Share notes with TQC and your team about this candidate'
+                    : 'Internal notes and observations about this candidate'}
+                </p>
+                <CandidateNotesManager
+                  candidateId={candidateId!}
+                  userRole={role as any}
+                  activeTab="team-assessment"
+                />
+              </CardContent>
+            </Card>
+          </div>
 
-                {/* Internal Team Zone - TQC Only */}
-                {isAdmin && (
-                  <Card className={candidateProfileTokens.glass.card}>
-                    <CardHeader>
-                      <CardTitle>TQC Internal Assessment</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <CandidateInternalRatingCard
-                        candidateId={candidateId!}
-                        candidate={candidate}
-                        onUpdate={loadCandidateData}
-                      />
-                    </CardContent>
-                  </Card>
+          {/* Right Sidebar: Sticky Cards - Tighter spacing */}
+          <div className="space-y-4">
+            {/* Career Preferences - Compact */}
+            <Card className={`${candidateProfileTokens.glass.card} sticky top-24`}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Career Preferences</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                {/* Salary - Compact row */}
+                {(candidate.desired_salary_min || candidate.desired_salary_max) && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Salary:</span>
+                    <span className="font-medium text-xs">
+                      {candidate.preferred_currency || 'EUR'} {Math.round(candidate.desired_salary_min / 1000)}K-{Math.round(candidate.desired_salary_max / 1000)}K
+                    </span>
+                  </div>
                 )}
 
-                <Card className={candidateProfileTokens.glass.card}>
-                  <CardHeader>
-                    <CardTitle>
-                      {isPartner ? 'Collaboration Notes' : 'Team Notes'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {isPartner 
-                        ? 'Share notes with TQC and your team about this candidate' 
-                        : 'Internal notes and observations about this candidate'}
-                    </p>
-                    <CandidateNotesManager
-                      candidateId={candidateId!}
-                      userRole={role as any}
-                      activeTab="team-assessment"
-                    />
-                  </CardContent>
-                </Card>
-              </div>
+                {/* Notice Period - Compact row */}
+                {candidate.notice_period && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Notice:</span>
+                    <Badge variant="outline" className="text-xs">{candidate.notice_period}</Badge>
+                  </div>
+                )}
 
-              {/* Right Sidebar: Sticky Cards - Tighter spacing */}
-              <div className="space-y-4">
-                {/* Career Preferences - Compact */}
-                <Card className={`${candidateProfileTokens.glass.card} sticky top-24`}>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Career Preferences</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    {/* Salary - Compact row */}
-                    {(candidate.desired_salary_min || candidate.desired_salary_max) && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Salary:</span>
-                        <span className="font-medium text-xs">
-                          {candidate.preferred_currency || 'EUR'} {Math.round(candidate.desired_salary_min / 1000)}K-{Math.round(candidate.desired_salary_max / 1000)}K
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* Notice Period - Compact row */}
-                    {candidate.notice_period && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Notice:</span>
-                        <Badge variant="outline" className="text-xs">{candidate.notice_period}</Badge>
-                      </div>
-                    )}
-                    
-                    {/* Remote Preference - Compact row */}
-                    {candidate.remote_preference && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Work:</span>
-                        <Badge variant="outline" className="text-xs capitalize">
-                          {candidate.remote_preference.replace('_', ' ')}
+                {/* Remote Preference - Compact row */}
+                {candidate.remote_preference && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Work:</span>
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {candidate.remote_preference.replace('_', ' ')}
+                    </Badge>
+                  </div>
+                )}
+
+                {/* Locations - Compact */}
+                {candidate.desired_locations && candidate.desired_locations.length > 0 && (
+                  <div className="space-y-1">
+                    <span className="text-xs text-muted-foreground">Desired Locations:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {candidate.desired_locations.map((loc: string, i: number) => (
+                        <Badge key={i} variant="secondary" className="text-xs">
+                          {loc}
                         </Badge>
-                      </div>
-                    )}
-                    
-                    {/* Locations - Compact */}
-                    {candidate.desired_locations && candidate.desired_locations.length > 0 && (
-                      <div className="space-y-1">
-                        <span className="text-xs text-muted-foreground">Desired Locations:</span>
-                        <div className="flex flex-wrap gap-1">
-                          {candidate.desired_locations.map((loc: string, i: number) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {loc}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-                {/* Work Authorization */}
-                <div className="sticky top-[32rem]">
-                  <CandidateWorkAuthCard candidate={candidate} />
-                </div>
+            {/* Work Authorization */}
+            <div className="sticky top-[32rem]">
+              <CandidateWorkAuthCard candidate={candidate} />
+            </div>
 
-                {/* Activity Feed */}
-                <ActivityFeedCard candidateId={candidateId!} />
+            {/* Activity Feed */}
+            <ActivityFeedCard candidateId={candidateId!} />
           </div>
         </div>
 

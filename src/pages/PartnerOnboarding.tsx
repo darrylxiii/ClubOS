@@ -173,7 +173,7 @@ const PartnerOnboarding = () => {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <Card className="border-2 border-foreground">
+          <div className="glass-card">
             <CardHeader>
               <CardTitle>Company Information</CardTitle>
               <CardDescription>
@@ -183,7 +183,7 @@ const PartnerOnboarding = () => {
             <CardContent className="space-y-6">
               {/* Company Name */}
               <div className="space-y-2">
-                <Label htmlFor="name">
+                <Label htmlFor="name" className="glass-label">
                   Company Name <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -192,36 +192,39 @@ const PartnerOnboarding = () => {
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="Acme Inc."
                   required
+                  className="glass-input"
                 />
               </div>
 
               {/* Tagline */}
               <div className="space-y-2">
-                <Label htmlFor="tagline">Tagline</Label>
+                <Label htmlFor="tagline" className="glass-label">Tagline</Label>
                 <Input
                   id="tagline"
                   value={formData.tagline}
                   onChange={(e) => handleInputChange('tagline', e.target.value)}
                   placeholder="Building the future of work"
                   maxLength={100}
+                  className="glass-input"
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="description">Company Description</Label>
+                <Label htmlFor="description" className="glass-label">Company Description</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   placeholder="Tell candidates what makes your company unique..."
                   rows={4}
+                  className="glass-input resize-none"
                 />
               </div>
 
               {/* Company Size */}
               <div className="space-y-2">
-                <Label htmlFor="company_size">
+                <Label htmlFor="company_size" className="glass-label">
                   Company Size <span className="text-destructive">*</span>
                 </Label>
                 <Select
@@ -229,7 +232,7 @@ const PartnerOnboarding = () => {
                   onValueChange={(value) => handleInputChange('company_size', value)}
                   required
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="glass-input">
                     <SelectValue placeholder="Select company size" />
                   </SelectTrigger>
                   <SelectContent>
@@ -244,7 +247,7 @@ const PartnerOnboarding = () => {
 
               {/* Industry */}
               <div className="space-y-2">
-                <Label htmlFor="industry">
+                <Label htmlFor="industry" className="glass-label">
                   Industry <span className="text-destructive">*</span>
                 </Label>
                 <Select
@@ -252,7 +255,7 @@ const PartnerOnboarding = () => {
                   onValueChange={(value) => handleInputChange('industry', value)}
                   required
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="glass-input">
                     <SelectValue placeholder="Select industry" />
                   </SelectTrigger>
                   <SelectContent>
@@ -267,48 +270,52 @@ const PartnerOnboarding = () => {
 
               {/* Location */}
               <div className="space-y-2">
-                <Label htmlFor="headquarters_location">Headquarters Location</Label>
+                <Label htmlFor="headquarters_location" className="glass-label">Headquarters Location</Label>
                 <Input
                   id="headquarters_location"
                   value={formData.headquarters_location}
                   onChange={(e) => handleInputChange('headquarters_location', e.target.value)}
                   placeholder="Amsterdam, Netherlands"
+                  className="glass-input"
                 />
               </div>
 
               {/* Website */}
               <div className="space-y-2">
-                <Label htmlFor="website_url">Company Website</Label>
+                <Label htmlFor="website_url" className="glass-label">Company Website</Label>
                 <Input
                   id="website_url"
                   type="url"
                   value={formData.website_url}
                   onChange={(e) => handleInputChange('website_url', e.target.value)}
                   placeholder="https://yourcompany.com"
+                  className="glass-input"
                 />
               </div>
 
               {/* LinkedIn */}
               <div className="space-y-2">
-                <Label htmlFor="linkedin_url">LinkedIn URL</Label>
+                <Label htmlFor="linkedin_url" className="glass-label">LinkedIn URL</Label>
                 <Input
                   id="linkedin_url"
                   type="url"
                   value={formData.linkedin_url}
                   onChange={(e) => handleInputChange('linkedin_url', e.target.value)}
                   placeholder="https://linkedin.com/company/yourcompany"
+                  className="glass-input"
                 />
               </div>
 
               {/* Careers Email */}
               <div className="space-y-2">
-                <Label htmlFor="careers_email">Careers Contact Email</Label>
+                <Label htmlFor="careers_email" className="glass-label">Careers Contact Email</Label>
                 <Input
                   id="careers_email"
                   type="email"
                   value={formData.careers_email}
                   onChange={(e) => handleInputChange('careers_email', e.target.value)}
                   placeholder="careers@yourcompany.com"
+                  className="glass-input"
                 />
               </div>
 
@@ -323,7 +330,7 @@ const PartnerOnboarding = () => {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </div>
         </form>
       </div>
     </AppLayout>

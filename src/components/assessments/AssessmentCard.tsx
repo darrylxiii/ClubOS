@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock } from 'lucide-react';
 import { Assessment } from '@/types/assessment';
+import { useAuth } from '@/contexts/AuthContext';
+import { trackAssessmentInteraction } from '@/services/sessionTracking';
 
 interface AssessmentCardProps {
   assessment: Assessment;
@@ -12,6 +14,14 @@ interface AssessmentCardProps {
 
 export const AssessmentCard = memo(({ assessment }: AssessmentCardProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleStart = () => {
+    if (user) {
+      trackAssessmentInteraction(user.id, assessment.id, 'start');
+    }
+    navigate(assessment.route);
+  };
 
   return (
     <Card className="group cursor-pointer">
@@ -34,7 +44,7 @@ export const AssessmentCard = memo(({ assessment }: AssessmentCardProps) => {
             <span>{assessment.estimatedTime} min</span>
           </div>
           <Button
-            onClick={() => navigate(assessment.route)}
+            onClick={handleStart}
             disabled={!assessment.isActive}
           >
             {assessment.isActive ? 'Start Test' : 'Coming Soon'}

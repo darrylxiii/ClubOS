@@ -14,7 +14,7 @@ const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'es', 'zh', 'ar', 'ru'];
 
 // Cache key prefix for localStorage
 const TRANSLATION_CACHE_PREFIX = 'tqc_translations_';
-const CACHE_VERSION = 'v3'; // Bumped version to invalidate old caches
+const CACHE_VERSION = 'v4'; // Bumped version to invalidate old caches
 
 // Get cached translations from localStorage
 export const getCachedTranslations = (language: string, namespace: string): Record<string, any> | null => {
@@ -127,8 +127,11 @@ import messagesEn from '@/i18n/locales/en/messages.json';
 import partnerEn from '@/i18n/locales/en/partner.json';
 import settingsEn from '@/i18n/locales/en/settings.json';
 
+// Bundled Dutch translations
+import authNl from '@/i18n/locales/nl/auth.json';
+
 // All English translations bundled locally - instant fallback
-const bundledEnglishResources = {
+const bundledResources = {
   en: {
     common: commonEn,
     auth: authEn,
@@ -143,6 +146,9 @@ const bundledEnglishResources = {
     messages: messagesEn,
     partner: partnerEn,
     settings: settingsEn,
+  },
+  nl: {
+    auth: authNl,
   }
 };
 
@@ -151,7 +157,7 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: bundledEnglishResources, // All English namespaces bundled
+    resources: bundledResources, // All bundled namespaces
     fallbackLng: 'en',
     supportedLngs: SUPPORTED_LANGUAGES,
     defaultNS: 'common',
@@ -183,7 +189,7 @@ i18n
 
     // Return empty string for missing keys (will show bundled English fallback)
     returnEmptyString: false,
-    
+
     // Log missing keys in development
     saveMissing: false,
     missingKeyHandler: (lngs, ns, key) => {

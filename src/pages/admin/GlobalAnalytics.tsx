@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription as CardDescriptionOld, CardHeader, CardTitle as CardTitleOld } from "@/components/ui/card";
+import {
+  AnimatedCard,
+  CardBody,
+  CardVisual,
+  CardTitle,
+  CardDescription
+} from "@/components/ui/animated-card";
+import { Visual1 } from "@/components/ui/visual-1";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
@@ -52,9 +60,9 @@ const GlobalAnalytics = () => {
 
       // Calculate applications per week
       const weeklyData = (applicationsData || []).reduce((acc, app) => {
-        const week = new Date(app.created_at).toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric' 
+        const week = new Date(app.created_at).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric'
         });
         acc[week] = (acc[week] || 0) + 1;
         return acc;
@@ -68,7 +76,7 @@ const GlobalAnalytics = () => {
       const stageNames = ['Applied', 'Screening', 'Interview', 'Final', 'Offer', 'Hired'];
       const conversionFunnel = stageNames.map((stage, index) => ({
         stage,
-        count: (applicationsData || []).filter(app => 
+        count: (applicationsData || []).filter(app =>
           app.current_stage_index >= index
         ).length,
       }));
@@ -98,7 +106,7 @@ const GlobalAnalytics = () => {
           return stages?.some((s: any) => s.status?.toLowerCase() === 'hired');
         });
 
-        const fillRate = companyJobs.length > 0 
+        const fillRate = companyJobs.length > 0
           ? Math.round((companyHires.length / companyJobs.length) * 100)
           : 0;
 
@@ -152,156 +160,168 @@ const GlobalAnalytics = () => {
   return (
     <AppLayout>
       <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Global Analytics</h1>
-        <p className="text-muted-foreground">
-          Cross-company insights and platform-wide metrics
-        </p>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Global Analytics</h1>
+          <p className="text-muted-foreground">
+            Cross-company insights and platform-wide metrics
+          </p>
+        </div>
+
+        {/* Overview Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <AnimatedCard>
+            <CardVisual>
+              <Visual1 mainColor="#3b82f6" secondaryColor="#60a5fa" />
+            </CardVisual>
+            <CardBody>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-500/10 rounded-lg text-blue-500">
+                  <Briefcase className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-3xl font-bold">{analytics.totalJobs.toLocaleString()}</CardTitle>
+                  <CardDescription>Total Jobs Posted</CardDescription>
+                </div>
+              </div>
+            </CardBody>
+          </AnimatedCard>
+
+          <AnimatedCard>
+            <CardVisual>
+              <Visual1 mainColor="#8b5cf6" secondaryColor="#a78bfa" />
+            </CardVisual>
+            <CardBody>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-500/10 rounded-lg text-purple-500">
+                  <Users className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-3xl font-bold">{analytics.totalCandidates.toLocaleString()}</CardTitle>
+                  <CardDescription>Total Candidates</CardDescription>
+                </div>
+              </div>
+            </CardBody>
+          </AnimatedCard>
+
+          <AnimatedCard>
+            <CardVisual>
+              <Visual1 mainColor="#10b981" secondaryColor="#34d399" />
+            </CardVisual>
+            <CardBody>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-emerald-500/10 rounded-lg text-emerald-500">
+                  <Clock className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-3xl font-bold">{analytics.avgTimeToHire} Days</CardTitle>
+                  <CardDescription>Avg Time to Hire</CardDescription>
+                </div>
+              </div>
+            </CardBody>
+          </AnimatedCard>
+
+          <AnimatedCard>
+            <CardVisual>
+              <Visual1 mainColor="#f59e0b" secondaryColor="#fbbf24" />
+            </CardVisual>
+            <CardBody>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-amber-500/10 rounded-lg text-amber-500">
+                  <Building2 className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-3xl font-bold">{analytics.totalCompanies.toLocaleString()}</CardTitle>
+                  <CardDescription>Partners & Companies</CardDescription>
+                </div>
+              </div>
+            </CardBody>
+          </AnimatedCard>
+        </div>
+
+        {/* Charts */}
+        <Tabs defaultValue="applications" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="applications">Applications Trend</TabsTrigger>
+            <TabsTrigger value="funnel">Conversion Funnel</TabsTrigger>
+            <TabsTrigger value="companies">Top Companies</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="applications">
+            <Card>
+              <CardHeader>
+                <CardTitle>Applications Per Week</CardTitle>
+                <CardDescription>Track application volume over time</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={analytics.applicationsPerWeek}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="week" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="applications" stroke="hsl(var(--primary))" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="funnel">
+            <Card>
+              <CardHeader>
+                <CardTitle>Conversion Funnel</CardTitle>
+                <CardDescription>Candidate progression through pipeline stages</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={analytics.conversionFunnel}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="stage" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="companies">
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Performing Companies</CardTitle>
+                <CardDescription>Ranked by fill rate (hires / jobs)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analytics.topCompanies.map((company, index) => (
+                    <div key={company.name} className="flex items-center gap-4 p-4 border rounded-lg">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold">{company.name}</p>
+                        <p className="text-sm text-muted-foreground">{company.totalHires} hires</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Award className="h-5 w-5 text-primary" />
+                        <span className="text-xl font-bold">{company.fillRate}%</span>
+                      </div>
+                    </div>
+                  ))}
+                  {analytics.topCompanies.length === 0 && (
+                    <p className="text-center text-muted-foreground py-8">
+                      No hiring data available yet
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* Overview Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Briefcase className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{analytics.totalJobs}</p>
-                <p className="text-sm text-muted-foreground">Total Jobs</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Users className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{analytics.totalCandidates}</p>
-                <p className="text-sm text-muted-foreground">Total Candidates</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Clock className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{analytics.avgTimeToHire} days</p>
-                <p className="text-sm text-muted-foreground">Avg Time to Hire</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Building2 className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{analytics.totalCompanies}</p>
-                <p className="text-sm text-muted-foreground">Active Companies</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts */}
-      <Tabs defaultValue="applications" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="applications">Applications Trend</TabsTrigger>
-          <TabsTrigger value="funnel">Conversion Funnel</TabsTrigger>
-          <TabsTrigger value="companies">Top Companies</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="applications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Applications Per Week</CardTitle>
-              <CardDescription>Track application volume over time</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={analytics.applicationsPerWeek}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="week" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="applications" stroke="hsl(var(--primary))" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="funnel">
-          <Card>
-            <CardHeader>
-              <CardTitle>Conversion Funnel</CardTitle>
-              <CardDescription>Candidate progression through pipeline stages</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={analytics.conversionFunnel}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="stage" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="companies">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Performing Companies</CardTitle>
-              <CardDescription>Ranked by fill rate (hires / jobs)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {analytics.topCompanies.map((company, index) => (
-                  <div key={company.name} className="flex items-center gap-4 p-4 border rounded-lg">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 font-bold">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold">{company.name}</p>
-                      <p className="text-sm text-muted-foreground">{company.totalHires} hires</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Award className="h-5 w-5 text-primary" />
-                      <span className="text-xl font-bold">{company.fillRate}%</span>
-                    </div>
-                  </div>
-                ))}
-                {analytics.topCompanies.length === 0 && (
-                  <p className="text-center text-muted-foreground py-8">
-                    No hiring data available yet
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
     </AppLayout>
   );
 };

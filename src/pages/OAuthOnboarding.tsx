@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Briefcase, Target, DollarSign, MapPin, Upload, X, Loader2, CheckCircle, Phone } from "lucide-react";
+import { Briefcase, Target, DollarSign, MapPin, Upload, X, Loader2, CheckCircle, Phone, LogOut } from "lucide-react";
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import { useCountryDetection } from "@/hooks/useCountryDetection";
@@ -24,36 +24,36 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 const STEPS = ["contact", "professional", "career", "preferences"];
 
 export default function OAuthOnboarding() {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [cities, setCities] = useState<Array<{ id: string; name: string; country: string }>>([]);
   const [selectedCity, setSelectedCity] = useState("");
   const [cityRadius, setCityRadius] = useState(25);
-  
+
   const { uploadResume, isUploading: isUploadingResume, validateFile } = useResumeUpload();
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Phone verification
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [phoneVerified, setPhoneVerified] = useState(false);
-  const { 
-    sendOTP, 
-    verifyOTP, 
-    otpSent, 
-    isVerifying, 
+  const {
+    sendOTP,
+    verifyOTP,
+    otpSent,
+    isVerifying,
     isSendingOtp,
-    resendCooldown 
+    resendCooldown
   } = usePhoneVerification();
   const { countryCode } = useCountryDetection();
 
   // Auth check: redirect if not authenticated or if onboarding already completed
   useEffect(() => {
     if (loading) return; // Wait for auth to finish loading
-    
+
     if (!user) {
       console.log('[OAuthOnboarding] No user found, redirecting to /auth');
       navigate('/auth', { replace: true });
@@ -149,48 +149,48 @@ export default function OAuthOnboarding() {
       if (error) throw error;
 
       if (data) {
-          // Load saved progress if onboarding not completed
-          if (!data.onboarding_completed_at && data.onboarding_partial_data) {
-            const saved = data.onboarding_partial_data as Record<string, any>;
-            
-            // Resume from saved step
-            setCurrentStep(data.onboarding_current_step || 0);
-            
-            // Restore form data
-            setFormData(prev => ({
-              ...prev,
-              phone: saved.phone || '',
-              location: saved.location || data.location || '',
-              current_title: saved.current_title || data.current_title || '',
-              linkedin_url: saved.linkedin_url || data.linkedin_url || '',
-              bio: saved.bio || data.career_preferences || '',
-              resume_url: saved.resume_url || '',
-              resume_filename: saved.resume_filename || '',
-              employment_type: saved.employment_type || 'fulltime',
-              notice_period: saved.notice_period || '2_weeks',
-              remote_work_aspiration: saved.remote_work_aspiration || false,
-              preferred_work_locations: saved.preferred_work_locations || [],
-              current_salary_min: saved.current_salary_min || 50000,
-              current_salary_max: saved.current_salary_max || 70000,
-              desired_salary_min: saved.desired_salary_min || 70000,
-              desired_salary_max: saved.desired_salary_max || 90000,
-              freelance_hourly_rate_min: saved.freelance_hourly_rate_min || 50,
-              freelance_hourly_rate_max: saved.freelance_hourly_rate_max || 100,
-              salary_preference_hidden: saved.salary_preference_hidden || false,
-              remote_work_preference: saved.remote_work_preference || false,
-            }));
-            
-            setPhoneNumber(saved.phone || '');
-            setPhoneVerified(saved.phone_verified || false);
-            
-            toast.success("Welcome back! We've restored your progress");
+        // Load saved progress if onboarding not completed
+        if (!data.onboarding_completed_at && data.onboarding_partial_data) {
+          const saved = data.onboarding_partial_data as Record<string, any>;
+
+          // Resume from saved step
+          setCurrentStep(data.onboarding_current_step || 0);
+
+          // Restore form data
+          setFormData(prev => ({
+            ...prev,
+            phone: saved.phone || '',
+            location: saved.location || data.location || '',
+            current_title: saved.current_title || data.current_title || '',
+            linkedin_url: saved.linkedin_url || data.linkedin_url || '',
+            bio: saved.bio || data.career_preferences || '',
+            resume_url: saved.resume_url || '',
+            resume_filename: saved.resume_filename || '',
+            employment_type: saved.employment_type || 'fulltime',
+            notice_period: saved.notice_period || '2_weeks',
+            remote_work_aspiration: saved.remote_work_aspiration || false,
+            preferred_work_locations: saved.preferred_work_locations || [],
+            current_salary_min: saved.current_salary_min || 50000,
+            current_salary_max: saved.current_salary_max || 70000,
+            desired_salary_min: saved.desired_salary_min || 70000,
+            desired_salary_max: saved.desired_salary_max || 90000,
+            freelance_hourly_rate_min: saved.freelance_hourly_rate_min || 50,
+            freelance_hourly_rate_max: saved.freelance_hourly_rate_max || 100,
+            salary_preference_hidden: saved.salary_preference_hidden || false,
+            remote_work_preference: saved.remote_work_preference || false,
+          }));
+
+          setPhoneNumber(saved.phone || '');
+          setPhoneVerified(saved.phone_verified || false);
+
+          toast.success("Welcome back! We've restored your progress");
         } else {
           // Pre-fill any existing data for first-time onboarding
           const employmentType = data.employment_type_preference as "fulltime" | "freelance" | "both" | null;
-          const workLocations = Array.isArray(data.preferred_work_locations) 
+          const workLocations = Array.isArray(data.preferred_work_locations)
             ? data.preferred_work_locations as Array<{ city: string; country: string; radius_km: number }>
             : [];
-          
+
           setFormData(prev => ({
             ...prev,
             phone: data.phone || "",
@@ -211,7 +211,7 @@ export default function OAuthOnboarding() {
             resume_url: data.resume_url || "",
             resume_filename: data.resume_filename || "",
           }));
-          
+
           // Check if phone is already verified
           if (data.phone_verified && data.phone) {
             setPhoneNumber(data.phone);
@@ -233,7 +233,7 @@ export default function OAuthOnboarding() {
     try {
       // Upload using the hook
       const result = await uploadResume(file, user.id, 'candidate');
-      
+
       if (result) {
         setFormData(prev => ({
           ...prev,
@@ -325,60 +325,60 @@ export default function OAuthOnboarding() {
     return true;
   };
 
-      // Save partial progress after each step
-      const savePartialProgress = async (completedStep: number) => {
-        if (!user) return;
-        
-        try {
-          const partialData: Record<string, any> = {};
-          
-          if (completedStep >= 0) {
-            partialData.phone = phoneNumber;
-            partialData.phone_verified = phoneVerified;
-            partialData.location = formData.location;
-          }
-          
-          if (completedStep >= 1) {
-            partialData.current_title = formData.current_title;
-            partialData.linkedin_url = formData.linkedin_url;
-            partialData.bio = formData.bio;
-            partialData.resume_url = formData.resume_url;
-            partialData.resume_filename = formData.resume_filename;
-          }
-          
-          if (completedStep >= 2) {
-            partialData.dream_job_title = formData.dream_job_title;
-            partialData.employment_type = formData.employment_type;
-            partialData.notice_period = formData.notice_period;
-            partialData.remote_work_aspiration = formData.remote_work_aspiration;
-            partialData.preferred_work_locations = formData.preferred_work_locations;
-            partialData.current_salary_min = formData.current_salary_min;
-            partialData.current_salary_max = formData.current_salary_max;
-            partialData.desired_salary_min = formData.desired_salary_min;
-            partialData.desired_salary_max = formData.desired_salary_max;
-            partialData.freelance_hourly_rate_min = formData.freelance_hourly_rate_min;
-            partialData.freelance_hourly_rate_max = formData.freelance_hourly_rate_max;
-            partialData.salary_preference_hidden = formData.salary_preference_hidden;
-          }
-          
-          if (completedStep >= 3) {
-            partialData.remote_work_preference = formData.remote_work_preference;
-          }
+  // Save partial progress after each step
+  const savePartialProgress = async (completedStep: number) => {
+    if (!user) return;
 
-          await supabase
-            .from('profiles')
-            .update({
-              onboarding_current_step: completedStep + 1,
-              onboarding_partial_data: partialData,
-              onboarding_last_activity_at: new Date().toISOString()
-            })
-            .eq('id', user.id);
+    try {
+      const partialData: Record<string, any> = {};
 
-          console.log(`[OAuth Onboarding] Saved progress for step ${completedStep + 1}`);
-        } catch (err) {
-          console.error('[OAuth Onboarding] Failed to save partial progress:', err);
-        }
-      };
+      if (completedStep >= 0) {
+        partialData.phone = phoneNumber;
+        partialData.phone_verified = phoneVerified;
+        partialData.location = formData.location;
+      }
+
+      if (completedStep >= 1) {
+        partialData.current_title = formData.current_title;
+        partialData.linkedin_url = formData.linkedin_url;
+        partialData.bio = formData.bio;
+        partialData.resume_url = formData.resume_url;
+        partialData.resume_filename = formData.resume_filename;
+      }
+
+      if (completedStep >= 2) {
+        partialData.dream_job_title = formData.dream_job_title;
+        partialData.employment_type = formData.employment_type;
+        partialData.notice_period = formData.notice_period;
+        partialData.remote_work_aspiration = formData.remote_work_aspiration;
+        partialData.preferred_work_locations = formData.preferred_work_locations;
+        partialData.current_salary_min = formData.current_salary_min;
+        partialData.current_salary_max = formData.current_salary_max;
+        partialData.desired_salary_min = formData.desired_salary_min;
+        partialData.desired_salary_max = formData.desired_salary_max;
+        partialData.freelance_hourly_rate_min = formData.freelance_hourly_rate_min;
+        partialData.freelance_hourly_rate_max = formData.freelance_hourly_rate_max;
+        partialData.salary_preference_hidden = formData.salary_preference_hidden;
+      }
+
+      if (completedStep >= 3) {
+        partialData.remote_work_preference = formData.remote_work_preference;
+      }
+
+      await supabase
+        .from('profiles')
+        .update({
+          onboarding_current_step: completedStep + 1,
+          onboarding_partial_data: partialData,
+          onboarding_last_activity_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      console.log(`[OAuth Onboarding] Saved progress for step ${completedStep + 1}`);
+    } catch (err) {
+      console.error('[OAuth Onboarding] Failed to save partial progress:', err);
+    }
+  };
 
   const handleNext = async () => {
     // Step 0: Contact - handle phone verification
@@ -387,7 +387,7 @@ export default function OAuthOnboarding() {
         toast.error("Please enter your phone number");
         return;
       }
-      
+
       if (!phoneVerified) {
         // Send OTP
         const success = await sendOTP(phoneNumber);
@@ -397,9 +397,9 @@ export default function OAuthOnboarding() {
         return;
       }
     }
-    
+
     if (!validateStep()) return;
-    
+
     // Save progress before moving to next step
     await savePartialProgress(currentStep);
     setCurrentStep(prev => prev + 1);
@@ -410,13 +410,13 @@ export default function OAuthOnboarding() {
     if (user) {
       await supabase
         .from('profiles')
-        .update({ 
+        .update({
           onboarding_current_step: currentStep,
           onboarding_last_activity_at: new Date().toISOString()
         })
         .eq('id', user.id);
     }
-    
+
     setCurrentStep(prev => prev - 1);
   };
 
@@ -461,7 +461,7 @@ export default function OAuthOnboarding() {
 
       console.log('[OAuth Onboarding] Profile updated successfully');
       toast.success("Profile completed! Welcome to The Quantum Club!");
-      
+
       setTimeout(() => {
         navigate("/home", { replace: true });
       }, 500);
@@ -490,8 +490,19 @@ export default function OAuthOnboarding() {
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Step {currentStep + 1} of {STEPS.length}</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Step {currentStep + 1} of {STEPS.length}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => signOut()}
+                title="Sign Out"
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
             </div>
           </div>
           <Progress value={progress} className="h-2" />
@@ -506,23 +517,23 @@ export default function OAuthOnboarding() {
                 <h3 className="text-lg font-semibold">Contact Information</h3>
               </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="phone">Phone Number *</Label>
-        <PhoneInput
-          international
-          defaultCountry={(countryCode as any) || "NL"}
-          value={phoneNumber}
-          onChange={(value: string) => setPhoneNumber(value || "")}
-          disabled={phoneVerified}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-        />
-        {phoneVerified && (
-          <div className="flex items-center gap-2 text-sm text-primary">
-            <CheckCircle className="w-4 h-4" />
-            <span>Phone verified</span>
-          </div>
-        )}
-      </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number *</Label>
+                <PhoneInput
+                  international
+                  defaultCountry={(countryCode as any) || "NL"}
+                  value={phoneNumber}
+                  onChange={(value: string) => setPhoneNumber(value || "")}
+                  disabled={phoneVerified}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+                {phoneVerified && (
+                  <div className="flex items-center gap-2 text-sm text-primary">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Phone verified</span>
+                  </div>
+                )}
+              </div>
 
               {otpSent && !phoneVerified && (
                 <div className="space-y-4">
@@ -845,7 +856,7 @@ export default function OAuthOnboarding() {
                 Back
               </Button>
             )}
-            
+
             <div className="ml-auto">
               {currentStep < STEPS.length - 1 ? (
                 <Button onClick={handleNext} disabled={isLoading}>

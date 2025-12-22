@@ -167,9 +167,8 @@ export const MessagesPreviewWidget = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ delay: index * 0.05 }}
-                  className={`flex items-start gap-2 sm:gap-3 p-2 rounded-lg transition-all hover:scale-[1.01] ${
-                    !msg.is_read ? 'bg-primary/5' : 'hover:bg-muted/50'
-                  }`}
+                  className={`flex items-start gap-2 sm:gap-3 p-2 rounded-lg transition-all hover:scale-[1.01] ${!msg.is_read ? 'bg-primary/5' : 'hover:bg-muted/50'
+                    }`}
                 >
                   <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                     <AvatarImage src={msg.sender_avatar || undefined} />
@@ -181,7 +180,7 @@ export const MessagesPreviewWidget = () => {
                       {!msg.is_read && <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />}
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-1">{msg.content}</p>
-                    <span className="text-[10px] sm:text-xs text-muted-foreground">
+                    <span className="text-micro sm:text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
                     </span>
                   </div>

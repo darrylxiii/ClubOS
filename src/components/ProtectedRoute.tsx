@@ -17,9 +17,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (loading) {
       const timer = setTimeout(() => {
-        logger.error("[ProtectedRoute] 🚨 Loading timeout after 4s - forcing redirect");
+        logger.warn("[ProtectedRoute] 🚨 Loading timeout after 6s - forcing redirect");
         setLoadingTimeout(true);
-      }, 4000);
+      }, 6000);
       return () => clearTimeout(timer);
     } else {
       // Reset timeout flag when loading completes normally
@@ -69,7 +69,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         const isPureCandidate = !isAdmin && !isPartner && !isStrategist;
 
         // Only pure candidates need to complete onboarding
-        const needsOnboarding = isPureCandidate && !profile.onboarding_completed_at;
+        // BYPASS: Explicitly skip onboarding for test accounts
+        const isTestAccount = user.email?.includes('test') || user.email === 'darryl@thequantumclub.io';
+        const needsOnboarding = !isTestAccount && isPureCandidate && !profile.onboarding_completed_at;
 
         setOnboardingCompleted(!needsOnboarding);
         setAccountStatus((profile.account_status as 'approved' | 'pending' | 'declined') || 'pending');

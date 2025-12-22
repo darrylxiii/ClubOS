@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Calendar, Clock, CheckCircle2 } from "lucide-react";
 import { format, parse } from "date-fns";
@@ -51,9 +52,10 @@ export function BookingForm({
     email: "",
     phone: "",
     notes: "",
+    smsReminders: false,
   });
   const [guests, setGuests] = useState<Array<{ name?: string; email: string }>>([]);
-  
+
   // Platform selection state
   const [selectedVideoPlatform, setSelectedVideoPlatform] = useState<string>(
     bookingLink.video_platform || 'quantum_club'
@@ -94,7 +96,7 @@ export function BookingForm({
 
     setLoading(true);
     setLoadingStage("Verifying availability...");
-    
+
     // Phase 4: Client-side validation - verify slot is still available
     try {
       const verification = await supabase.functions.invoke("get-available-slots", {
@@ -107,48 +109,48 @@ export function BookingForm({
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       });
-      
+
       if (verification.data?.slots) {
         // Normalize selected time to 12-hour format
         const normalizedSelectedTime = normalizeTimeFormat(selectedTime);
-        
+
         console.log('[BookingForm] Verifying slot availability:', {
           selectedTime,
           normalizedSelectedTime,
           totalSlots: verification.data.slots.length
         });
-        
+
         // Check if slot is still available by comparing normalized times
         const isStillAvailable = verification.data.slots.some((slot: string) => {
           // Extract time portion from slot format "09:00 - 2025-11-13"
           const slotTimePart = slot.split(" - ")[0];
           // Normalize slot time to 12-hour format for comparison
           const normalizedSlotTime = normalizeTimeFormat(slotTimePart);
-          
+
           console.log('[BookingForm] Comparing:', {
             slotTimePart,
             normalizedSlotTime,
             normalizedSelectedTime,
             match: normalizedSlotTime === normalizedSelectedTime
           });
-          
+
           return normalizedSlotTime === normalizedSelectedTime;
         });
-        
+
         if (!isStillAvailable) {
           console.warn('[BookingForm] Slot no longer available:', normalizedSelectedTime);
           toast.error("This time slot was just booked. Please select another time.");
           setLoading(false);
           return;
         }
-        
+
         console.log('[BookingForm] Slot verified as available');
       }
     } catch (verifyError) {
       console.warn("Could not verify slot availability:", verifyError);
       // Continue with booking attempt anyway - server-side validation will catch issues
     }
-    
+
     try {
       // Execute reCAPTCHA only if enabled
       let recaptchaToken = "";
@@ -160,7 +162,7 @@ export function BookingForm({
           return;
         }
         recaptchaToken = await executeRecaptcha("create_booking");
-        
+
         if (!recaptchaToken) {
           toast.error("Security verification failed. Please try again.");
           setLoading(false);
@@ -169,18 +171,18 @@ export function BookingForm({
       }
 
       setLoadingStage("Processing booking...");
-      
+
       // Parse and validate selected time with timezone utils
       const userTimezone = getUserTimezone();
-      
+
       console.log('[BookingForm] Parsing selected time:', {
         selectedDate: format(selectedDate, 'yyyy-MM-dd'),
         selectedTime,
         userTimezone
       });
-      
+
       const parsedTime = parseUserTimeSelection(selectedDate, selectedTime, userTimezone);
-      
+
       if (!parsedTime) {
         console.error('[BookingForm] Failed to parse time:', {
           original: selectedTime,
@@ -191,7 +193,7 @@ export function BookingForm({
         setLoading(false);
         return;
       }
-      
+
       console.log('[BookingForm] Time parsed successfully:', {
         hours: parsedTime.hours,
         minutes: parsedTime.minutes
@@ -224,6 +226,9 @@ export function BookingForm({
           notes: formData.notes || null,
           guests: guests.length > 0 ? guests : undefined,
           guestSelectedPlatform: bookingLink.allow_guest_platform_choice ? selectedVideoPlatform : undefined,
+          metadata: {
+            sms_reminders: formData.smsReminders
+          }
         },
       });
 
@@ -235,10 +240,10 @@ export function BookingForm({
       onComplete(data.booking.id);
     } catch (error: any) {
       console.error("Booking error:", error);
-      
+
       // Parse the actual error from edge function response
       let errorMsg = "Failed to create booking. Please try again.";
-      
+
       if (error.context?.body) {
         try {
           const errorBody = JSON.parse(error.context.body);
@@ -249,13 +254,13 @@ export function BookingForm({
       } else if (error.message) {
         errorMsg = error.message;
       }
-      
+
       // Phase 5: Improved error messages
       const errorLower = errorMsg.toLowerCase();
-      
+
       if (errorLower.includes("calendar") && errorLower.includes("conflict")) {
-        const provider = errorLower.includes("google") ? "Google Calendar" : 
-                        errorLower.includes("microsoft") ? "Microsoft Calendar" : "your calendar";
+        const provider = errorLower.includes("google") ? "Google Calendar" :
+          errorLower.includes("microsoft") ? "Microsoft Calendar" : "your calendar";
         toast.error(`This time conflicts with an event in ${provider}. Please select another time.`);
       } else if (errorLower.includes("no longer available") || errorLower.includes("already booked") || errorLower.includes("just booked")) {
         toast.error("This time slot was just booked by someone else. Please select another time.");
@@ -359,6 +364,23 @@ export function BookingForm({
             placeholder="+1 (555) 000-0000"
             className={errors.phone ? "border-destructive" : ""}
           />
+          {formData.phone && (
+            <div className="flex items-center space-x-2 pt-1">
+              <Checkbox
+                id="smsReminders"
+                checked={formData.smsReminders}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, smsReminders: checked as boolean })
+                }
+              />
+              <label
+                htmlFor="smsReminders"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground"
+              >
+                Send me text message reminders
+              </label>
+            </div>
+          )}
           {errors.phone && (
             <p className="text-sm text-destructive">{errors.phone}</p>
           )}
@@ -366,7 +388,7 @@ export function BookingForm({
 
         <div className="space-y-2">
           <Label htmlFor="guests">Additional Guests (optional)</Label>
-          <GuestEmailInput 
+          <GuestEmailInput
             guests={guests}
             onChange={setGuests}
             maxGuests={10}
@@ -415,7 +437,7 @@ export function BookingForm({
         </Button>
 
         <p className="text-xs text-center text-muted-foreground">
-          By scheduling, you agree to receive email confirmations and reminders.
+          By scheduling, you agree to receive email {formData.phone && "and SMS"} confirmations and reminders.
         </p>
       </form>
     </div>

@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { 
-  ArrowLeft, User, Briefcase, MapPin, Mail, Phone, Linkedin, 
-  Github, Globe, Calendar, Target, TrendingUp, Eye, Activity, 
+import {
+  ArrowLeft, User, Briefcase, MapPin, Mail, Phone, Linkedin,
+  Github, Globe, Calendar, Target, TrendingUp, Eye, Activity,
   Star, Clock, FileText, Edit
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +52,8 @@ export default function CandidateProfile() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(defaultTab || "overview");
-  
+  const [isImporting, setIsImporting] = useState(false);
+
   const isTeamView = role === 'admin' || role === 'partner';
 
   useEffect(() => {
@@ -101,7 +102,7 @@ export default function CandidateProfile() {
           .select("*")
           .eq("id", candidateData.user_id)
           .single();
-        
+
         setUserProfile(profileData);
       }
 
@@ -116,9 +117,56 @@ export default function CandidateProfile() {
       }
     } catch (error) {
       console.error("Error loading candidate:", error);
-      toast.error("Failed to load candidate profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLinkedInImport = async () => {
+    if (!candidate?.linkedin_url) {
+      toast.error("LinkedIn URL is missing");
+      return;
+    }
+
+    setIsImporting(true);
+    const toastId = toast.loading("Importing profile data from LinkedIn...");
+
+    try {
+      const { data, error } = await supabase.functions.invoke('linkedin-scraper', {
+        body: { linkedinUrl: candidate.linkedin_url }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        // Update candidate profile with imported data
+        const { error: updateError } = await supabase
+          .from("candidate_profiles")
+          .update({
+            full_name: data.data.full_name || candidate.full_name,
+            current_title: data.data.current_title || candidate.current_title,
+            current_company: data.data.current_company || candidate.current_company,
+            years_of_experience: data.data.years_of_experience || candidate.years_of_experience,
+            skills: data.data.skills || candidate.skills,
+            work_history: data.data.work_history || candidate.work_history,
+            education: data.data.education || candidate.education,
+            ai_summary: data.data.ai_summary || candidate.ai_summary,
+            last_profile_update: new Date().toISOString()
+          })
+          .eq("id", id);
+
+        if (updateError) throw updateError;
+
+        toast.success("Profile imported successfully", { id: toastId });
+        loadCandidate();
+      } else {
+        throw new Error(data.error || "Import failed");
+      }
+    } catch (error: any) {
+      console.error("Error importing LinkedIn profile:", error);
+      toast.error(error.message || "Failed to import from LinkedIn", { id: toastId });
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -184,19 +232,19 @@ export default function CandidateProfile() {
             {candidate.header_media_url ? (
               <>
                 {candidate.header_media_type === 'video' ? (
-                  <video 
-                    src={candidate.header_media_url} 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline 
-                    className="w-full h-full object-cover" 
+                  <video
+                    src={candidate.header_media_url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  <img 
-                    src={candidate.header_media_url} 
-                    alt="Profile header" 
-                    className="w-full h-full object-cover" 
+                  <img
+                    src={candidate.header_media_url}
+                    alt="Profile header"
+                    className="w-full h-full object-cover"
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
@@ -204,7 +252,7 @@ export default function CandidateProfile() {
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-card/90 to-card/60" />
             )}
-            
+
             {/* Admin Actions - Top Right */}
             {isTeamView && (
               <>
@@ -219,9 +267,26 @@ export default function CandidateProfile() {
                     <span className="hidden sm:inline">Edit Profile</span>
                     <span className="sm:hidden">Edit</span>
                   </Button>
+
+                  {candidate.linkedin_url && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleLinkedInImport}
+                      disabled={isImporting}
+                      className="gap-1 sm:gap-2 bg-background/80 backdrop-blur-sm text-xs sm:text-sm px-2 sm:px-3 border-primary/20 hover:border-primary/50"
+                    >
+                      <Linkedin className={cn("w-3 h-3 sm:w-4 sm:h-4", isImporting && "animate-pulse")} />
+                      <span className="hidden sm:inline">
+                        {isImporting ? "Importing..." : "Sync LinkedIn"}
+                      </span>
+                      <span className="sm:hidden">Sync</span>
+                    </Button>
+                  )}
+
                   <div className="hidden sm:block">
-                    <CandidateQuickActions 
-                      candidateId={id!} 
+                    <CandidateQuickActions
+                      candidateId={id!}
                       candidateEmail={candidate.email}
                       candidateName={candidate.full_name || 'Candidate'}
                       onRefresh={loadCandidate}
@@ -230,8 +295,8 @@ export default function CandidateProfile() {
                 </div>
                 {/* Mobile Quick Actions - Below header */}
                 <div className="sm:hidden absolute bottom-2 right-2 z-10">
-                  <CandidateQuickActions 
-                    candidateId={id!} 
+                  <CandidateQuickActions
+                    candidateId={id!}
                     candidateEmail={candidate.email}
                     candidateName={candidate.full_name || 'Candidate'}
                     onRefresh={loadCandidate}
@@ -272,7 +337,7 @@ export default function CandidateProfile() {
                 )}
               </div>
             </div>
-            
+
             {/* Score Badges - Admin View Only */}
             {isTeamView && (
               <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4">
@@ -306,7 +371,7 @@ export default function CandidateProfile() {
                 )}
               </div>
             )}
-            
+
             {/* Contact & Location Info */}
             <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-4">
               {candidate.email && (
@@ -361,7 +426,7 @@ export default function CandidateProfile() {
                 </Button>
               )}
             </div>
-            
+
             {/* Last Updated Timestamp - Admin Only */}
             {isTeamView && candidate.last_profile_update && (
               <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1 flex-wrap">
@@ -395,7 +460,7 @@ export default function CandidateProfile() {
             {/* Assessments Tab - Available for all users */}
             {candidate.user_id && (
               <TabsContent value="assessments" className="space-y-6">
-                <AssessmentHistory 
+                <AssessmentHistory
                   userId={candidate.user_id}
                   viewMode={isTeamView ? (role === 'admin' ? 'admin' : 'partner') : 'candidate'}
                 />
@@ -405,8 +470,8 @@ export default function CandidateProfile() {
             {/* Settings Tab - Admin Only */}
             {isTeamView && candidate.user_id && (
               <TabsContent value="settings" className="space-y-6">
-                <UserSettingsViewer 
-                  userId={candidate.user_id} 
+                <UserSettingsViewer
+                  userId={candidate.user_id}
                   userName={candidate.full_name}
                   source="candidate_profile"
                 />
@@ -419,15 +484,15 @@ export default function CandidateProfile() {
                 <ErrorBoundary>
                   <CandidateDecisionDashboard candidate={candidate} />
                 </ErrorBoundary>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle>Documents</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ErrorBoundary>
-                      <CandidateDocumentsViewer 
-                        candidateId={id!} 
+                      <CandidateDocumentsViewer
+                        candidateId={id!}
                         canUpload={isTeamView}
                       />
                     </ErrorBoundary>
@@ -440,13 +505,13 @@ export default function CandidateProfile() {
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <ErrorBoundary>
-                      <CandidateNotesManager 
+                      <CandidateNotesManager
                         candidateId={id!}
                         userRole={role as any}
                         activeTab={activeTab}
                       />
                     </ErrorBoundary>
-                    <CandidateInternalRatingCard 
+                    <CandidateInternalRatingCard
                       candidateId={id!}
                       candidate={candidate}
                       onUpdate={loadCandidate}
@@ -625,22 +690,22 @@ export default function CandidateProfile() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {candidate.linkedin_url && (
-                      <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer" 
-                         className="flex items-center gap-2 text-sm hover:underline">
+                      <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm hover:underline">
                         <Linkedin className="w-4 h-4" />
                         LinkedIn Profile
                       </a>
                     )}
                     {candidate.github_url && (
                       <a href={candidate.github_url} target="_blank" rel="noopener noreferrer"
-                         className="flex items-center gap-2 text-sm hover:underline">
+                        className="flex items-center gap-2 text-sm hover:underline">
                         <Github className="w-4 h-4" />
                         GitHub Profile
                       </a>
                     )}
                     {candidate.portfolio_url && (
                       <a href={candidate.portfolio_url} target="_blank" rel="noopener noreferrer"
-                         className="flex items-center gap-2 text-sm hover:underline">
+                        className="flex items-center gap-2 text-sm hover:underline">
                         <Globe className="w-4 h-4" />
                         Portfolio Website
                       </a>
@@ -661,14 +726,14 @@ export default function CandidateProfile() {
             {isTeamView && (
               <TabsContent value="pipeline" className="space-y-4 sm:space-y-6">
                 <ErrorBoundary>
-                  <CandidatePipelineStatus 
+                  <CandidatePipelineStatus
                     candidateId={id!}
                     activeTab={activeTab}
                   />
                 </ErrorBoundary>
                 <ErrorBoundary>
-                  <CandidateLinkedJobs 
-                    candidateId={id!} 
+                  <CandidateLinkedJobs
+                    candidateId={id!}
                     candidateEmail={candidate.email}
                     activeTab={activeTab}
                   />
@@ -680,13 +745,13 @@ export default function CandidateProfile() {
             {isTeamView && (
               <TabsContent value="activity" className="space-y-4 sm:space-y-6">
                 <ErrorBoundary>
-                  <CandidateInteractionLog 
+                  <CandidateInteractionLog
                     candidateId={id!}
                     activeTab={activeTab}
                   />
                 </ErrorBoundary>
                 <ErrorBoundary>
-                  <CandidateAnalytics 
+                  <CandidateAnalytics
                     candidateId={id!}
                     activeTab={activeTab}
                   />

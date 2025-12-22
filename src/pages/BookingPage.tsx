@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Calendar, Clock, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookingForm } from "@/components/booking/BookingForm";
@@ -15,6 +16,7 @@ import { MinimalHeader } from "@/components/MinimalHeader";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
+import confetti from 'canvas-confetti';
 
 interface BookingLink {
   id: string;
@@ -46,7 +48,7 @@ type ViewMode = "day" | "week";
 export default function BookingPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  
+
   const [bookingLink, setBookingLink] = useState<BookingLink | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ export default function BookingPage() {
   );
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [hasGoogleCalendar, setHasGoogleCalendar] = useState(false);
-  
+
   // Phase 7: Analytics tracking
   const analytics = useBookingAnalytics(bookingLink?.id || "");
 
@@ -77,7 +79,7 @@ export default function BookingPage() {
         .single();
 
       if (linkError) throw linkError;
-      
+
       if (!linkData) {
         toast.error("Booking link not found");
         navigate("/");
@@ -125,6 +127,14 @@ export default function BookingPage() {
   const handleBookingComplete = (id: string) => {
     setBookingId(id);
     setStep("confirmation");
+
+    // Trigger success confetti
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#4ade80', '#22c55e', '#16a34a']
+    });
   };
 
   const handleBack = () => {
@@ -204,56 +214,79 @@ export default function BookingPage() {
               </div>
             </CardHeader>
 
-            <CardContent className="p-6">
-              {step === "datetime" && (
-                <>
-                  <div className="mb-6 flex items-center justify-between">
-                    <TimezoneSelector value={timezone} onChange={setTimezone} />
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowAIAssistant(!showAIAssistant)}
-                      className="flex items-center gap-2"
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      {showAIAssistant ? "Show Calendar" : "AI Assistant"}
-                    </Button>
-                  </div>
+            <CardContent className="p-6 overflow-hidden">
+              <AnimatePresence mode="wait">
+                {step === "datetime" && (
+                  <motion.div
+                    key="datetime"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="mb-6 flex items-center justify-between">
+                      <TimezoneSelector value={timezone} onChange={setTimezone} />
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowAIAssistant(!showAIAssistant)}
+                        className="flex items-center gap-2"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        {showAIAssistant ? "Show Calendar" : "AI Assistant"}
+                      </Button>
+                    </div>
 
-                  {showAIAssistant ? (
-                    <AIBookingAssistant
+                    {showAIAssistant ? (
+                      <AIBookingAssistant
+                        bookingLink={bookingLink}
+                        onBookingScheduled={(date, time) => {
+                          setSelectedDate(date);
+                          setSelectedTime(time);
+                          setStep("details");
+                          setShowAIAssistant(false);
+                        }}
+                      />
+                    ) : (
+                      <UnifiedDateTimeSelector
+                        bookingLink={bookingLink}
+                        onDateTimeSelected={handleDateTimeSelect}
+                      />
+                    )}
+                  </motion.div>
+                )}
+
+                {step === "details" && selectedDate && selectedTime && (
+                  <motion.div
+                    key="details"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <BookingForm
                       bookingLink={bookingLink}
-                      onBookingScheduled={(date, time) => {
-                        setSelectedDate(date);
-                        setSelectedTime(time);
-                        setStep("details");
-                        setShowAIAssistant(false);
-                      }}
+                      selectedDate={selectedDate}
+                      selectedTime={selectedTime}
+                      onComplete={handleBookingComplete}
+                      hasGoogleCalendar={hasGoogleCalendar}
                     />
-                  ) : (
-                    <UnifiedDateTimeSelector
+                  </motion.div>
+                )}
+
+                {step === "confirmation" && bookingId && (
+                  <motion.div
+                    key="confirmation"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                  >
+                    <BookingConfirmation
+                      bookingId={bookingId}
                       bookingLink={bookingLink}
-                      onDateTimeSelected={handleDateTimeSelect}
                     />
-                  )}
-                </>
-              )}
-
-              {step === "details" && selectedDate && selectedTime && (
-                <BookingForm
-                  bookingLink={bookingLink}
-                  selectedDate={selectedDate}
-                  selectedTime={selectedTime}
-                  onComplete={handleBookingComplete}
-                  hasGoogleCalendar={hasGoogleCalendar}
-                />
-              )}
-
-              {step === "confirmation" && bookingId && (
-                <BookingConfirmation
-                  bookingId={bookingId}
-                  bookingLink={bookingLink}
-                />
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </CardContent>
           </Card>
 

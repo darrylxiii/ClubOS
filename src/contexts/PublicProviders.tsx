@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { AuthProvider } from "@/contexts/AuthContext";
 import { AppearanceProvider } from "@/contexts/AppearanceContext";
 
 interface PublicProvidersProps {
@@ -17,11 +16,9 @@ export const PublicProviders = ({ children }: PublicProvidersProps) => {
   return (
     <ErrorBoundary>
       <ThemeProvider attribute="class" defaultTheme="dark">
-        <AuthProvider>
-          <AppearanceProvider>
-            {children}
-          </AppearanceProvider>
-        </AuthProvider>
+        <AppearanceProvider>
+          {children}
+        </AppearanceProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

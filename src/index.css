@@ -23,7 +23,10 @@
   --circle-transition: .3s cubic-bezier(0, -0.02, 0.35, 1.17);
 }
 
-.theme-switch, .theme-switch *, .theme-switch *::before, .theme-switch *::after {
+.theme-switch,
+.theme-switch *,
+.theme-switch *::before,
+.theme-switch *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -142,15 +145,15 @@
   transition: var(--transition);
 }
 
-.theme-switch__checkbox:checked + .theme-switch__container {
+.theme-switch__checkbox:checked+.theme-switch__container {
   background-color: var(--container-night-bg);
 }
 
-.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container {
+.theme-switch__checkbox:checked+.theme-switch__container .theme-switch__circle-container {
   left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter));
 }
 
-.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container:hover {
+.theme-switch__checkbox:checked+.theme-switch__container .theme-switch__circle-container:hover {
   left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter) - 0.187em);
 }
 
@@ -158,15 +161,15 @@
   left: calc(var(--circle-container-offset) + 0.187em);
 }
 
-.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__moon {
+.theme-switch__checkbox:checked+.theme-switch__container .theme-switch__moon {
   transform: translate(0);
 }
 
-.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__clouds {
+.theme-switch__checkbox:checked+.theme-switch__container .theme-switch__clouds {
   bottom: -4.062em;
 }
 
-.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__stars-container {
+.theme-switch__checkbox:checked+.theme-switch__container .theme-switch__stars-container {
   top: 50%;
   transform: translateY(-50%);
 }
@@ -180,7 +183,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   html {
     scroll-behavior: smooth;
   }
-  
+
   /* Prevent cumulative layout shift from absolute positioned elements */
   .absolute {
     will-change: auto;
@@ -217,7 +220,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
     --accent: 217 91% 60%;
     --accent-foreground: 210 40% 98%;
-    
+
     --premium: 262 83% 58%;
     --premium-foreground: 210 40% 98%;
 
@@ -239,12 +242,12 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     /* QuantumClub Premium Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(0 0% 95%) 0%, hsl(0 0% 90%) 50%, hsl(0 0% 92%) 100%);
     --gradient-mesh: radial-gradient(at 40% 20%, hsl(0 0% 98% / 0.15) 0px, transparent 50%),
-                     radial-gradient(at 80% 0%, hsl(0 0% 96% / 0.12) 0px, transparent 50%),
-                     radial-gradient(at 0% 50%, hsl(0 0% 94% / 0.1) 0px, transparent 50%);
+      radial-gradient(at 80% 0%, hsl(0 0% 96% / 0.12) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, hsl(0 0% 94% / 0.1) 0px, transparent 50%);
     --gradient-card: linear-gradient(135deg, hsl(0 0% 98% / 0.9) 0%, hsl(0 0% 96% / 0.85) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(0 0% 85%) 0%, hsl(0 0% 90%) 100%);
     --gradient-glass: linear-gradient(135deg, hsl(0 0% 98% / 0.75) 0%, hsl(0 0% 96% / 0.6) 100%);
-    
+
     /* Premium Glassmorphic Shadows */
     --shadow-glass-sm: 0 2px 12px hsl(0 0% 0% / 0.04), 0 1px 3px hsl(0 0% 0% / 0.03);
     --shadow-glass-md: 0 4px 20px hsl(0 0% 0% / 0.06), 0 2px 6px hsl(0 0% 0% / 0.04);
@@ -253,7 +256,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --shadow-float: 0 24px 68px hsl(0 0% 0% / 0.15), 0 12px 24px hsl(0 0% 0% / 0.1);
     --shadow-inner: inset 0 1px 3px hsl(0 0% 0% / 0.04);
     --shadow-glow: 0 0 24px hsl(0 0% 70% / 0.25), 0 0 48px hsl(0 0% 80% / 0.12);
-    
+
     /* Blur intensities */
     --blur-glass: 24px;
     --blur-glass-strong: 40px;
@@ -282,7 +285,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
     --accent: 217 91% 60%;
     --accent-foreground: 210 40% 98%;
-    
+
     --premium: 262 83% 58%;
     --premium-foreground: 210 40% 98%;
 
@@ -301,12 +304,12 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
     --gradient-hero: linear-gradient(135deg, hsl(0 0% 15%) 0%, hsl(0 0% 18%) 50%, hsl(0 0% 16%) 100%);
     --gradient-mesh: radial-gradient(at 40% 20%, hsl(0 0% 20% / 0.12) 0px, transparent 50%),
-                     radial-gradient(at 80% 0%, hsl(0 0% 18% / 0.1) 0px, transparent 50%),
-                     radial-gradient(at 0% 50%, hsl(0 0% 16% / 0.08) 0px, transparent 50%);
+      radial-gradient(at 80% 0%, hsl(0 0% 18% / 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, hsl(0 0% 16% / 0.08) 0px, transparent 50%);
     --gradient-card: linear-gradient(135deg, hsl(0 0% 16% / 0.9) 0%, hsl(0 0% 14% / 0.85) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(0 0% 25%) 0%, hsl(0 0% 20%) 100%);
     --gradient-glass: linear-gradient(135deg, hsl(0 0% 18% / 0.75) 0%, hsl(0 0% 14% / 0.6) 100%);
-    
+
     --shadow-glass-sm: 0 2px 12px hsl(0 0% 0% / 0.4), 0 1px 3px hsl(0 0% 0% / 0.3);
     --shadow-glass-md: 0 4px 20px hsl(0 0% 0% / 0.5), 0 2px 6px hsl(0 0% 0% / 0.4);
     --shadow-glass-lg: 0 8px 36px hsl(0 0% 0% / 0.6), 0 4px 12px hsl(0 0% 0% / 0.5);
@@ -318,12 +321,15 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
   /* Hide scrollbar but keep functionality */
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;  /* Chrome, Safari and Opera */
+    display: none;
+    /* Chrome, Safari and Opera */
   }
 
   * {
@@ -331,37 +337,42 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased text-body-md;
   }
 
-  /* Typography System - Consistent weights and tracking */
+  /* Typography System - Luxury Authority Model */
   h1 {
-    @apply text-3xl sm:text-4xl font-bold tracking-tight;
+    @apply text-heading-2xl;
   }
-  
+
   h2 {
-    @apply text-xl sm:text-2xl font-semibold tracking-tight;
+    @apply text-heading-xl;
   }
-  
+
   h3 {
-    @apply text-lg font-semibold tracking-tight;
+    @apply text-heading-lg;
   }
-  
+
   h4 {
-    @apply text-base font-semibold tracking-tight;
+    @apply text-heading-md;
   }
-  
-  h5, h6 {
-    @apply text-sm font-semibold tracking-tight;
+
+  h5 {
+    @apply text-heading-sm;
+  }
+
+  h6 {
+    @apply text-heading-xs;
   }
 }
 
 @layer utilities {
+
   /* Mobile Touch Targets */
   .touch-target {
     @apply min-h-[44px] min-w-[44px] inline-flex items-center justify-center;
   }
-  
+
   .touch-target-lg {
     @apply min-h-[48px] min-w-[48px] inline-flex items-center justify-center;
   }
@@ -370,27 +381,27 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   .text-responsive-xs {
     @apply text-xs sm:text-sm;
   }
-  
+
   .text-responsive-sm {
     @apply text-sm sm:text-base;
   }
-  
+
   .text-responsive-base {
     @apply text-base sm:text-lg;
   }
-  
+
   .text-responsive-lg {
     @apply text-lg sm:text-xl;
   }
-  
+
   .text-responsive-xl {
     @apply text-xl sm:text-2xl;
   }
-  
+
   .text-responsive-2xl {
     @apply text-2xl sm:text-3xl md:text-4xl;
   }
-  
+
   .text-responsive-3xl {
     @apply text-3xl sm:text-4xl md:text-5xl;
   }
@@ -402,14 +413,14 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -421,7 +432,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   .mobile-padding {
     @apply px-4 md:px-6 lg:px-8;
   }
-  
+
   .mobile-gap {
     @apply gap-3 md:gap-4 lg:gap-6;
   }
@@ -430,15 +441,15 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   .safe-top {
     padding-top: env(safe-area-inset-top);
   }
-  
+
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  
+
   .safe-left {
     padding-left: env(safe-area-inset-left);
   }
-  
+
   .safe-right {
     padding-right: env(safe-area-inset-right);
   }
@@ -447,7 +458,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   .img-lazy {
     @apply opacity-0 transition-opacity duration-300;
   }
-  
+
   .img-lazy.loaded {
     @apply opacity-100;
   }
@@ -457,12 +468,12 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     -webkit-overflow-scrolling: touch;
     @apply overflow-auto;
   }
-  
+
   .mobile-scroll-x {
     -webkit-overflow-scrolling: touch;
     @apply overflow-x-auto scrollbar-hide;
   }
-  
+
   .mobile-scroll-y {
     -webkit-overflow-scrolling: touch;
     @apply overflow-y-auto scrollbar-hide;
@@ -473,13 +484,13 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     @apply bg-card/40 backdrop-blur-[12px] md:backdrop-blur-[var(--blur-glass)];
   }
 
-  /* iOS-style display text utilities */
+  /* iOS-style display text utilities - Mapped to Luxury Display */
   .text-display {
-    @apply text-6xl md:text-8xl lg:text-9xl font-black tracking-tight leading-none;
+    @apply text-display-xl sm:text-display-lg;
   }
 
   .text-hero {
-    @apply text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-tight;
+    @apply text-display-lg sm:text-display-md;
   }
 
   /* iOS system text */
@@ -504,8 +515,9 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   }
 
   .glass-card {
-    @apply glass rounded-2xl p-6;
+    @apply glass rounded-2xl p-6 border border-white/10 dark:border-white/5;
     background: var(--gradient-glass);
+    box-shadow: var(--shadow-glass-md), var(--shadow-inner);
   }
 
   /* Floating effect */
@@ -517,6 +529,24 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   /* iOS-style glow effects */
   .glow-text {
     text-shadow: 0 0 20px hsl(var(--primary) / 0.5);
+  }
+
+  /* Premium Form Elements */
+  .glass-input {
+    @apply bg-card/10 backdrop-blur-[var(--blur-glass-subtle)] border border-border/20 shadow-inner text-foreground placeholder:text-muted-foreground/50 transition-all duration-300;
+  }
+
+  .glass-input:hover {
+    @apply bg-card/20 border-border/40;
+  }
+
+  .glass-input:focus,
+  .glass-input:focus-visible {
+    @apply bg-card/30 border-primary/50 ring-2 ring-primary/20 shadow-glass-sm outline-none;
+  }
+
+  .glass-label {
+    @apply text-sm font-medium text-muted-foreground ml-1 mb-1.5 block tracking-wide;
   }
 
   .glow-primary {
@@ -563,7 +593,9 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   }
 
   @keyframes quantum-spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .animate-float {
@@ -571,8 +603,15 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
   }
 
   .animate-pulse-slow {
@@ -616,6 +655,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     from {
       stroke-dashoffset: 0;
     }
+
     to {
       stroke-dashoffset: calc(2 * 3.14159 * var(--radius));
     }
@@ -632,9 +672,12 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   }
 
   @keyframes pulse-border {
-    0%, 100% {
+
+    0%,
+    100% {
       border-color: hsl(var(--primary) / 0.3);
     }
+
     50% {
       border-color: hsl(var(--primary) / 0.6);
     }
@@ -645,9 +688,12 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   }
 
   @keyframes pulse-glow {
-    0%, 100% {
+
+    0%,
+    100% {
       box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
     }
+
     50% {
       box-shadow: 0 0 40px hsl(var(--primary) / 0.4);
     }
@@ -671,7 +717,8 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   }
 
   html[lang="ru"] {
-    font-family: 'Inter', sans-serif; /* Inter supports Cyrillic */
+    font-family: 'Inter', sans-serif;
+    /* Inter supports Cyrillic */
   }
 
   /* Safe area support for notched mobile devices */
@@ -704,14 +751,17 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
       -webkit-overflow-scrolling: touch;
     }
 
-    html, body {
+    html,
+    body {
       scroll-behavior: smooth;
-      overscroll-behavior-y: none; /* Prevent pull-to-refresh on whole page */
+      overscroll-behavior-y: none;
+      /* Prevent pull-to-refresh on whole page */
     }
   }
 
   /* Prevent text selection on buttons for better mobile UX */
-  button, [role="button"] {
+  button,
+  [role="button"] {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -720,8 +770,9 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
   /* Optimize touch targets for mobile */
   @media (pointer: coarse) {
-    button:not(.no-touch-target), 
-    a:not(.no-touch-target), 
+
+    button:not(.no-touch-target),
+    a:not(.no-touch-target),
     [role="button"]:not(.no-touch-target) {
       min-height: 44px;
       min-width: 44px;
@@ -730,11 +781,13 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
   /* PWA mobile app feeling */
   @supports (-webkit-touch-callout: none) {
+
     /* iOS specific fixes */
-    input, textarea, select {
-      font-size: 16px; /* Prevent iOS zoom on focus */
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+      /* Prevent iOS zoom on focus */
     }
   }
 }
-
-

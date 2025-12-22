@@ -46,6 +46,8 @@ export const MessageBubble = ({
     return !!message.read_at; // For one-on-one, use message.read_at
   });
   const [readReceipts, setReadReceipts] = useState<any[]>([]);
+  const [translations, setTranslations] = useState<any[]>([]);
+  const [activeTranslation, setActiveTranslation] = useState<string | null>(null);
 
   const senderName = message.sender?.full_name || "Unknown User";
   const initials = senderName
@@ -176,6 +178,44 @@ export const MessageBubble = ({
     }
   }, [message.id, isCurrentUser, isGroup, user]);
 
+  // Load translations
+  useEffect(() => {
+    if (!message.id) return;
+
+    const loadTranslations = async () => {
+      const { data, error } = await supabase
+        .from('message_translations')
+        .select('*')
+        .eq('message_id', message.id);
+
+      if (!error && data) {
+        setTranslations(data);
+      }
+    };
+
+    loadTranslations();
+
+    // Subscribe to new translations
+    const channel = supabase
+      .channel(`message-translations-${message.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'message_translations',
+          filter: `message_id=eq.${message.id}`,
+        },
+        () => loadTranslations()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [message.id]);
+
+
   const renderContent = () => {
     // Check for Story Share
     if (message.media_type === 'story_share' && message.metadata) {
@@ -262,15 +302,57 @@ export const MessageBubble = ({
       const urls = message.content.match(urlRegex);
       const firstUrl = urls && urls[0];
 
+      const displayContent = activeTranslation
+        ? translations.find(t => t.language_code === activeTranslation)?.translated_content || message.content
+        : message.content;
+
       return (
         <div className="space-y-2">
-          <p className="break-words whitespace-pre-wrap">{message.content}</p>
+          <p className="break-words whitespace-pre-wrap">
+            {displayContent}
+            {activeTranslation && (
+              <span className="block text-[10px] opacity-60 mt-1 italic">
+                Translated to {activeTranslation.toUpperCase()}
+              </span>
+            )}
+          </p>
           {firstUrl && !message.media_type && (
             <LinkPreview url={firstUrl} />
+          )}
+
+          {translations.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              <button
+                onClick={() => setActiveTranslation(null)}
+                className={cn(
+                  "text-[10px] px-1.5 py-0.5 rounded border transition-colors",
+                  !activeTranslation
+                    ? "bg-white/20 border-white/40"
+                    : "bg-transparent border-white/10 hover:bg-white/10"
+                )}
+              >
+                Original
+              </button>
+              {translations.map((t) => (
+                <button
+                  key={t.language_code}
+                  onClick={() => setActiveTranslation(t.language_code)}
+                  className={cn(
+                    "text-[10px] px-1.5 py-0.5 rounded border transition-colors",
+                    activeTranslation === t.language_code
+                      ? "bg-white/20 border-white/40"
+                      : "bg-transparent border-white/10 hover:bg-white/10"
+                  )}
+                >
+                  {t.language_code.toUpperCase()}
+                </button>
+              ))}
+            </div>
           )}
         </div>
       );
     }
+
 
     // Return null if no content (attachments will be shown below)
     return null;

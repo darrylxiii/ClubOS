@@ -12,14 +12,14 @@ export const bookingFormSchema = z.object({
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name must be less than 100 characters")
     .regex(/^[a-zA-Z\s'-]+$/, "Name can only contain letters, spaces, hyphens, and apostrophes"),
-  
+
   email: z
     .string()
     .trim()
     .email("Please enter a valid email address")
     .max(255, "Email must be less than 255 characters")
     .toLowerCase(),
-  
+
   phone: z
     .string()
     .trim()
@@ -28,13 +28,15 @@ export const bookingFormSchema = z.object({
     .max(20, "Phone number must be less than 20 characters")
     .optional()
     .or(z.literal("")),
-  
+
   notes: z
     .string()
     .trim()
     .max(1000, "Notes must be less than 1000 characters")
     .optional()
     .or(z.literal("")),
+
+  smsReminders: z.boolean().default(false).optional(),
 });
 
 export type BookingFormData = z.infer<typeof bookingFormSchema>;

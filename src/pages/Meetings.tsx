@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar as CalendarIcon, Settings, Video, Clock, Sparkles, BarChart3 } from "lucide-react";
 import { CreateMeetingDialog } from "@/components/meetings/CreateMeetingDialog";
@@ -29,7 +29,7 @@ export default function Meetings() {
   const [meetings, setMeetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   const [stats, setStats] = useState({
     upcoming: 0,
     today: 0,
@@ -37,7 +37,7 @@ export default function Meetings() {
     analyzed: 0,
     hours: 0,
   });
-  
+
   const activeTab = searchParams.get('tab') || 'calendar';
 
   // Debug logging for component lifecycle
@@ -51,9 +51,9 @@ export default function Meetings() {
       console.log('[Meetings] Loading data for user:', user.id);
       loadMeetings();
       loadStats();
-      
+
       const channel = subscribeToMeetings();
-      
+
       return () => {
         supabase.removeChannel(channel);
       };
@@ -63,7 +63,7 @@ export default function Meetings() {
   const loadMeetings = async () => {
     try {
       setLoading(true);
-      
+
       const { data: hostedMeetings, error: hostedError } = await supabase
         .from('meetings')
         .select('*')
@@ -140,7 +140,7 @@ export default function Meetings() {
         }
       )
       .subscribe();
-    
+
     return channel;
   };
 
@@ -171,7 +171,7 @@ export default function Meetings() {
     }
 
     if (searchQuery) {
-      filtered = filtered.filter(m => 
+      filtered = filtered.filter(m =>
         m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         m.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -188,7 +188,7 @@ export default function Meetings() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto px-4 py-8 space-y-8">
         <div className="flex items-center justify-between">
           <div>
@@ -198,7 +198,7 @@ export default function Meetings() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button 
+            <Button
               variant="outline"
               onClick={() => navigate('/settings?tab=integrations')}
               className="gap-2"
@@ -206,11 +206,11 @@ export default function Meetings() {
               <Settings className="h-4 w-4" />
               Integrations
             </Button>
-          <Button variant="outline" onClick={() => navigate('/club-ai')} className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            Ask AI to Schedule
-          </Button>
-          <CreateMeetingDialog onMeetingCreated={loadMeetings} />
+            <Button variant="outline" onClick={() => navigate('/club-ai')} className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              Ask AI to Schedule
+            </Button>
+            <CreateMeetingDialog onMeetingCreated={loadMeetings} />
           </div>
         </div>
 
@@ -284,20 +284,20 @@ export default function Meetings() {
             </div>
           </TabsContent>
 
-            <TabsContent value="history" className="mt-6">
-              <MeetingHistoryTab />
-            </TabsContent>
+          <TabsContent value="history" className="mt-6">
+            <MeetingHistoryTab />
+          </TabsContent>
 
-            <TabsContent value="intelligence" className="mt-6">
-              <MeetingIntelligenceTab />
-            </TabsContent>
+          <TabsContent value="intelligence" className="mt-6">
+            <MeetingIntelligenceTab />
+          </TabsContent>
 
-            <TabsContent value="settings" className="mt-6">
-              <NotetakerSettingsTab />
-            </TabsContent>
+          <TabsContent value="settings" className="mt-6">
+            <NotetakerSettingsTab />
+          </TabsContent>
         </Tabs>
 
       </div>
-    </AppLayout>
+    </>
   );
 }

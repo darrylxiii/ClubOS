@@ -85,7 +85,7 @@ export function useCandidateCommunications() {
 
         setStats({
           totalMessages: comms.length,
-          avgResponseTime: 4.2, // TODO: Calculate from response_time_seconds
+          avgResponseTime: calculateAverageResponseTime(comms),
           channelBreakdown,
           lastContactDate: comms[0]?.original_timestamp || null
         });
@@ -96,6 +96,35 @@ export function useCandidateCommunications() {
       setLoading(false);
     }
   }, []);
+
+  const calculateAverageResponseTime = (comms: Communication[]): number => {
+    // Sort by time ascending to trace conversation flow
+    const sorted = [...comms].sort((a, b) =>
+      new Date(a.original_timestamp).getTime() - new Date(b.original_timestamp).getTime()
+    );
+
+    let totalResponseTimeHours = 0;
+    let responseCount = 0;
+    let lastInboundTime: number | null = null;
+
+    for (const comm of sorted) {
+      if (comm.direction === 'inbound') {
+        lastInboundTime = new Date(comm.original_timestamp).getTime();
+      } else if (comm.direction === 'outbound' && lastInboundTime) {
+        const responseTimeMs = new Date(comm.original_timestamp).getTime() - lastInboundTime;
+        // Only count if response is within 7 days (ignore outliers like re-engagement after months)
+        const responseTimeHours = responseTimeMs / (1000 * 60 * 60);
+
+        if (responseTimeHours < 168) {
+          totalResponseTimeHours += responseTimeHours;
+          responseCount++;
+        }
+        lastInboundTime = null; // Reset
+      }
+    }
+
+    return responseCount > 0 ? Number((totalResponseTimeHours / responseCount).toFixed(1)) : 0;
+  };
 
   const fetchPreferences = useCallback(async () => {
     try {

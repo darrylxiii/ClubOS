@@ -83,7 +83,7 @@ export function EnhancedProspectCard({
 }: EnhancedProspectCardProps) {
   const [showActions, setShowActions] = useState(false);
   const { data: stageProbabilities } = useStageProbabilities();
-  
+
   // Calculate weighted value based on stage probability
   const stageProb = stageProbabilities?.[prospect.stage];
   const probability = stageProb?.probability_weight || 10;
@@ -200,7 +200,7 @@ export function EnhancedProspectCard({
                 </TooltipTrigger>
                 <TooltipContent side="top" className="text-xs">
                   Win Probability
-                  <div className="text-[10px] text-muted-foreground">
+                  <div className="text-micro text-muted-foreground">
                     Velocity Score: {(prospect as any).velocity_score || 0}
                   </div>
                 </TooltipContent>
@@ -229,7 +229,7 @@ export function EnhancedProspectCard({
             <Building className="w-3 h-3 shrink-0" />
             <span className="truncate">{prospect.company_name}</span>
             {prospect.company_size && (
-              <Badge variant="outline" className="text-[10px] px-1 py-0 ml-1">
+              <Badge variant="outline" className="text-micro px-1 py-0 ml-1">
                 {prospect.company_size}
               </Badge>
             )}
@@ -306,7 +306,7 @@ export function EnhancedProspectCard({
           {prospect.last_activity_at && (
             <div className="flex items-center gap-1 ml-auto">
               <Clock className="w-3 h-3" />
-              <span className="text-[10px]">
+              <span className="text-micro">
                 {formatDistanceToNow(new Date(prospect.last_activity_at), { addSuffix: true })}
               </span>
             </div>

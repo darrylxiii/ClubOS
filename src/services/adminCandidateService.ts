@@ -10,8 +10,8 @@ export interface UnifiedCandidateFilters {
 export const adminCandidateService = {
   // Get unified candidate data (both tables merged)
   async getUnifiedCandidate(candidateId: string) {
-    const { data, error } = await supabase.rpc('get_candidate_complete_data', { 
-      p_candidate_id: candidateId 
+    const { data, error } = await supabase.rpc('get_candidate_complete_data', {
+      p_candidate_id: candidateId
     });
     return { data, error };
   },
@@ -37,7 +37,7 @@ export const adminCandidateService = {
           merged_at,
           user_id
         `);
-      
+
       if (filters.strategistId) {
         query = query.eq('assigned_strategist_id', filters.strategistId);
       }
@@ -46,25 +46,25 @@ export const adminCandidateService = {
           `full_name.ilike.%${filters.searchTerm}%,email.ilike.%${filters.searchTerm}%`
         );
       }
-      
+
       const { data, error } = await query.order('created_at', { ascending: false });
-      
+
       if (error) throw error;
-      
+
       // Apply client-side filtering for merge status if needed
       let filteredData = data;
       if (data && filters.mergeStatus) {
         if (filters.mergeStatus === 'merged') {
           filteredData = data.filter(c => c.invitation_status === 'registered');
         } else if (filters.mergeStatus === 'unlinked') {
-          filteredData = data.filter(c => 
+          filteredData = data.filter(c =>
             !c.invitation_status || c.invitation_status === 'not_invited' || c.invitation_status === 'pending'
           );
         } else {
           filteredData = data.filter(c => c.invitation_status === filters.mergeStatus);
         }
       }
-      
+
       return { data: filteredData, error: null };
     } catch (error) {
       console.error('Error fetching candidates:', error);
@@ -78,16 +78,16 @@ export const adminCandidateService = {
       .from('unified_candidate_view')
       .select('*')
       .in('id', candidateIds);
-    
+
     if (error || !data) return { data: null, error };
 
     // Convert to CSV format
     const headers = [
       'Name', 'Email', 'Phone', 'Current Title', 'Company', 'Years Experience',
-      'Desired Salary Min', 'Desired Salary Max', 'Currency', 'LinkedIn', 
+      'Desired Salary Min', 'Desired Salary Max', 'Currency', 'LinkedIn',
       'Created At'
     ];
-    
+
     const rows = data.map((c: any) => [
       c.full_name || c.email,
       c.email,
@@ -101,12 +101,12 @@ export const adminCandidateService = {
       c.linkedin_url ? 'Yes' : 'No',
       c.created_at
     ]);
-    
+
     const csv = [
       headers.join(','),
       ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
-    
+
     return { data: csv, error: null };
   },
 
@@ -129,7 +129,7 @@ export const adminCandidateService = {
       `)
       .eq('id', userId)
       .single();
-    
+
     return { data, error };
   },
 
@@ -149,7 +149,7 @@ export const adminCandidateService = {
       `)
       .eq('id', userId)
       .single();
-    
+
     return { data, error };
   },
 
@@ -158,7 +158,7 @@ export const adminCandidateService = {
     const { data, error } = await supabase
       .from('candidate_profiles')
       .select('invitation_status, profile_completeness');
-    
+
     if (error || !data) return { data: null, error };
 
     const stats = {
@@ -166,7 +166,7 @@ export const adminCandidateService = {
       merged: data.filter(c => c.invitation_status === 'registered').length,
       invited: data.filter(c => c.invitation_status === 'invited').length,
       unlinked: data.filter(c => !c.invitation_status || c.invitation_status === 'pending' || c.invitation_status === 'not_invited').length,
-      avgCompleteness: data.length > 0 
+      avgCompleteness: data.length > 0
         ? Math.round(data.reduce((sum, c) => sum + (c.profile_completeness || 0), 0) / data.length)
         : 0
     };
@@ -182,7 +182,7 @@ export const adminCandidateService = {
       .not('merged_at', 'is', null)
       .order('merged_at', { ascending: false })
       .limit(limit);
-    
+
     return { data, error };
   },
 
@@ -200,7 +200,7 @@ export const adminCandidateService = {
       }
 
       const userIds = strategistRoles.map(r => r.user_id);
-      
+
       const { data: strategists, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name, email, avatar_url, current_title, company_id')
@@ -209,9 +209,9 @@ export const adminCandidateService = {
 
       if (profilesError) throw profilesError;
 
-      return { 
-        data: strategists || [], 
-        error: null 
+      return {
+        data: strategists || [],
+        error: null
       };
     } catch (error: any) {
       console.error('Error fetching strategists:', error);
@@ -225,7 +225,7 @@ export const adminCandidateService = {
       .from('candidate_profiles')
       .update({ assigned_strategist_id: strategistId })
       .eq('id', candidateId);
-    
+
     return { error };
   },
 
@@ -235,7 +235,7 @@ export const adminCandidateService = {
       .from('candidate_profiles')
       .update({ assigned_strategist_id: strategistId })
       .in('id', candidateIds);
-    
+
     return { error };
   },
 
@@ -245,7 +245,7 @@ export const adminCandidateService = {
     const { data, error } = await supabase.functions.invoke('send-candidate-invitations', {
       body: { candidateIds }
     });
-    
+
     return { data, error };
   },
 
@@ -260,7 +260,7 @@ export const adminCandidateService = {
       `)
       .not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false });
-    
+
     return { data, error };
   },
 
@@ -279,7 +279,7 @@ export const adminCandidateService = {
         deletion_metadata: {}
       } as any)
       .eq('id', candidateId);
-    
+
     return { error };
   },
 
@@ -289,7 +289,28 @@ export const adminCandidateService = {
       .from('applications')
       .select('*', { count: 'exact', head: true })
       .is('candidate_id', null);
-    
+
     return { count, error };
+  },
+
+  // Fast track candidate application
+  async fastTrackCandidate(applicationId: string) {
+    try {
+      // Set to stage index 1 (likely "Screening" or "First Interview") and mark as fast tracked
+      const { data, error } = await supabase
+        .from('applications')
+        .update({
+          current_stage_index: 1,
+          metadata: { fast_tracked: true, fast_tracked_at: new Date().toISOString() }
+        })
+        .eq('id', applicationId)
+        .select()
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Error fast tracking candidate:', error);
+      return { data: null, error };
+    }
   }
 };

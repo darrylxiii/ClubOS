@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { Sparkles, CheckCircle2 } from "lucide-react";
+import { trackCandidateInteraction } from "@/services/sessionTracking";
 
 interface CandidateActionDialogProps {
   open: boolean;
@@ -84,11 +85,17 @@ export const CandidateActionDialog = ({
           origin: { y: 0.6 },
           colors: ['#C9A24E', '#F5F4EF', '#6366F1']
         });
-        
+
         toast.success(`${candidateName} advanced to ${nextStage.name}`, {
           description: "Club Check completed successfully",
           duration: 4000
         });
+
+        // Track advancement
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData.user?.id) {
+          trackCandidateInteraction(userData.user.id, application.candidate_id || application.id, 'advance');
+        }
       } else if (action === 'reject') {
         if (!rejectionReason && !feedback.trim()) {
           toast.error("Please provide a rejection reason");
@@ -108,10 +115,10 @@ export const CandidateActionDialog = ({
 
         // Add rejection feedback
         const { data: userData } = await supabase.auth.getUser();
-        const rejectionComment = rejectionReason 
+        const rejectionComment = rejectionReason
           ? `Rejected - ${rejectionReason}${feedback.trim() ? `: ${feedback}` : ''}`
           : `Rejected: ${feedback}`;
-          
+
         const { error: commentError } = await supabase
           .from('candidate_comments')
           .insert({
@@ -127,6 +134,11 @@ export const CandidateActionDialog = ({
           description: "Feedback recorded and candidate notified",
           duration: 4000
         });
+
+        // Track rejection
+        if (userData.user?.id) {
+          trackCandidateInteraction(userData.user.id, application.candidate_id || application.id, 'reject');
+        }
       }
 
       onComplete();
@@ -196,11 +208,11 @@ export const CandidateActionDialog = ({
               </Select>
             </div>
           )}
-          
+
           <div className="space-y-2">
             <Label htmlFor="feedback">
-              {action === 'advance' 
-                ? 'Additional Notes (optional)' 
+              {action === 'advance'
+                ? 'Additional Notes (optional)'
                 : 'Detailed Feedback (will be shared with candidate) *'}
             </Label>
             <Textarea
@@ -227,8 +239,8 @@ export const CandidateActionDialog = ({
             }}
             disabled={loading}
             className={
-              action === 'reject' 
-                ? 'bg-destructive hover:bg-destructive/90' 
+              action === 'reject'
+                ? 'bg-destructive hover:bg-destructive/90'
                 : 'bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90'
             }
           >

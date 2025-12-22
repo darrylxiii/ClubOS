@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,6 +85,7 @@ export function MeetingVideoCallInterface({
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const [layout, setLayout] = useState<'grid' | 'spotlight'>('grid');
 
   const [hostSettings, setHostSettings] = useState({
     allowScreenShare: true,
@@ -295,14 +296,77 @@ export function MeetingVideoCallInterface({
     toast(sharing ? 'Screen sharing started' : 'Screen sharing stopped');
   };
 
+  const pipVideoRef = useRef<HTMLVideoElement | null>(null);
+
   const handleEnablePiP = async () => {
-    const success = await enablePictureInPicture();
-    if (success) {
+    try {
+      if (!document.pictureInPictureEnabled) {
+        toast.error('Picture-in-Picture not supported');
+        return;
+      }
+
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        return;
+      }
+
+      // Prioritize: Screen Share > First Remote > Local
+      let targetStream: MediaStream | null = screenStream;
+
+      if (!targetStream && remoteStreams.size > 0) {
+        // Get the first remote stream
+        const firstRemote = remoteStreams.values().next().value;
+        if (firstRemote) targetStream = firstRemote.stream;
+      }
+
+      if (!targetStream) {
+        targetStream = localStream;
+      }
+
+      if (!targetStream) {
+        toast.error('No video to show in PiP');
+        return;
+      }
+
+      // Create or reuse video element
+      if (!pipVideoRef.current) {
+        pipVideoRef.current = document.createElement('video');
+        pipVideoRef.current.style.width = '0';
+        pipVideoRef.current.style.height = '0';
+        pipVideoRef.current.style.opacity = '0';
+        document.body.appendChild(pipVideoRef.current);
+
+        // Cleanup on exit
+        pipVideoRef.current.addEventListener('leavepictureinpicture', () => {
+          if (pipVideoRef.current) {
+            pipVideoRef.current.srcObject = null;
+            // Don't remove element, just clear stream to stop processing
+          }
+        });
+      }
+
+      const video = pipVideoRef.current;
+      video.srcObject = targetStream;
+      video.muted = true; // Mute to avoid echo (audio plays from main grid)
+
+      await video.play();
+      await video.requestPictureInPicture();
       toast.success('Picture-in-Picture enabled');
-    } else {
-      toast.error('Picture-in-Picture not supported');
+
+    } catch (error) {
+      console.error('[PiP] Failed to enable:', error);
+      toast.error('Failed to enable Picture-in-Picture');
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (pipVideoRef.current) {
+        pipVideoRef.current.remove();
+        pipVideoRef.current = null;
+      }
+    };
+  }, []);
 
   const startRecording = async () => {
     try {
@@ -895,7 +959,7 @@ export function MeetingVideoCallInterface({
           participants={allParticipants.slice(1)} // All participants except local camera
           localParticipant={allParticipants[0]} // Local camera participant
           focusedParticipantId={isScreenSharing ? 'local-screen' : undefined}
-          layout={isScreenSharing ? 'spotlight' : 'grid'}
+          layout={isScreenSharing ? 'spotlight' : layout}
           presenterId={isScreenSharing ? participantId : undefined}
         />
       </div>
@@ -1004,44 +1068,40 @@ export function MeetingVideoCallInterface({
         onToggleVideo={toggleVideo}
         onToggleScreenShare={handleToggleScreenShare}
         onToggleRecording={handleToggleRecording}
-        onToggleHandRaise={() => setIsHandRaised(!isHandRaised)}
+        onToggleHandRaise={handleToggleHandRaise}
         onEndCall={handleEndCall}
-        onOpenChat={() => setShowChat(true)}
-        onOpenParticipants={() => setShowParticipants(true)}
-        onOpenSettings={() => setShowSettings(true)}
-        onReaction={(emoji) => {
-          if (!hostSettings.allowReactions && meeting.host_id !== participantId) {
-            toast.error('Reactions are disabled by the host');
-            return;
-          }
-          sendReaction(emoji);
-        }}
-        onOpenNotes={() => setShowNotes(true)}
-        onToggleCaptions={() => setCaptionsEnabled(!captionsEnabled)}
+        onOpenChat={handleOpenChat}
+        onOpenParticipants={handleOpenParticipants}
+        onOpenSettings={handleOpenSettings}
+        onReaction={handleReaction}
+        onOpenNotes={handleOpenNotes}
+        onToggleCaptions={handleToggleCaptions}
         captionsEnabled={captionsEnabled}
-        onOpenTranscription={() => setShowTranscription(true)}
+        onOpenTranscription={handleOpenTranscription}
         transcriptionEnabled={transcriptionEnabled}
         isTranscribing={isTranscribing}
-        onOpenHostSettings={meeting.host_id === participantId ? () => setShowHostSettings(true) : undefined}
-        onOpenMeetingInfo={() => setShowMeetingDetails(true)}
+        onOpenHostSettings={meeting.host_id === participantId ? handleOpenHostSettings : undefined}
+        onOpenMeetingInfo={handleOpenMeetingInfo}
         onEnablePiP={handleEnablePiP}
         onOpenInterviewIntelligence={
           ['host', 'interviewer', 'observer'].includes(userRole)
-            ? () => setShowInterviewIntelligence(true)
+            ? handleOpenInterviewIntelligence
             : undefined
         }
-        onOpenBreakoutRooms={() => setShowBreakoutRooms(true)}
-        onOpenPolls={() => setShowPolls(true)}
-        onOpenQA={() => setShowQA(true)}
-        onOpenBackgrounds={() => setShowBackgrounds(true)}
+        onOpenBreakoutRooms={handleOpenBreakoutRooms}
+        onOpenPolls={handleOpenPolls}
+        onOpenQA={handleOpenQA}
+        onOpenBackgrounds={handleOpenBackgrounds}
+        layout={layout}
+        onToggleLayout={handleToggleLayout}
         onToggleBackchannel={
           ['host', 'interviewer', 'observer'].includes(userRole)
-            ? () => setShowBackchannel(!showBackchannel)
+            ? handleToggleBackchannel
             : undefined
         }
         onToggleVoting={
           ['host', 'interviewer', 'observer'].includes(userRole)
-            ? () => setShowVoting(!showVoting)
+            ? handleToggleVoting
             : undefined
         }
       />

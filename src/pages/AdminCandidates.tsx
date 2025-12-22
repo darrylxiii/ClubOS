@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,6 @@ import { BulkActionsToolbar } from "@/components/admin/BulkActionsToolbar";
 import { MergeStatusDashboard } from "@/components/admin/MergeStatusDashboard";
 import { ActivitySettingsDialog, getActivityThresholds, ActivityThresholds } from "@/components/admin/ActivitySettingsDialog";
 import { ArchivedCandidatesView } from "@/components/admin/ArchivedCandidatesView";
-import { BulkEditCandidatesDialog } from "@/components/admin/BulkEditCandidatesDialog";
 import { toast } from "sonner";
 
 export default function AdminCandidates() {
@@ -32,7 +32,6 @@ export default function AdminCandidates() {
   const [experienceRange, setExperienceRange] = useState<number[]>([0, 20]);
   const [salaryRange, setSalaryRange] = useState<number[]>([0, 300000]);
   const [activityThresholds, setActivityThresholds] = useState<ActivityThresholds>(getActivityThresholds());
-  const [bulkEditDialogOpen, setBulkEditDialogOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
@@ -67,9 +66,9 @@ export default function AdminCandidates() {
 
   const filteredCandidates = candidates.filter(c => {
     // Search filter
-    if (searchTerm && 
-        !c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !c.email?.toLowerCase().includes(searchTerm.toLowerCase())) {
+    if (searchTerm &&
+      !c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !c.email?.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
 
@@ -140,7 +139,6 @@ export default function AdminCandidates() {
 
   const handleBulkSendInvitations = async () => {
     toast.info(`Sending invitations to ${selectedIds.length} candidates...`);
-    // This would call the edge function
     setSelectedIds([]);
   };
 
@@ -180,8 +178,9 @@ export default function AdminCandidates() {
 
         <MergeStatusDashboard />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+        {/* Improved Glass Card for Filters */}
+        <div className="glass-card">
+          <div className="flex flex-row items-center justify-between mb-6">
             <CardTitle>Search & Filter</CardTitle>
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'grid' | 'table')}>
               <TabsList>
@@ -195,8 +194,8 @@ export default function AdminCandidates() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          </div>
+          <CardContent className="space-y-6 p-0">
             {/* Search and main filters */}
             <div className="flex gap-4">
               <div className="flex-1">
@@ -204,11 +203,11 @@ export default function AdminCandidates() {
                   placeholder="Search by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
+                  className="w-full glass-input"
                 />
               </div>
               <Select value={mergeStatusFilter} onValueChange={setMergeStatusFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] glass-input">
                   <SelectValue placeholder="Merge Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -219,7 +218,7 @@ export default function AdminCandidates() {
                 </SelectContent>
               </Select>
               <Select value={completenessFilter} onValueChange={setCompletenessFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] glass-input">
                   <SelectValue placeholder="Completeness" />
                 </SelectTrigger>
                 <SelectContent>
@@ -229,14 +228,14 @@ export default function AdminCandidates() {
                   <SelectItem value="0">0%+</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={handleExport} variant="outline">
+              <Button onClick={handleExport} variant="outline" className="glass-input">
                 <Download className="w-4 h-4 mr-2" />
                 Export All
               </Button>
             </div>
 
             {/* Advanced filters */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/10">
               <div className="space-y-2">
                 <label className="text-sm font-medium">
                   Years of Experience: {experienceRange[0]} - {experienceRange[1]}+
@@ -267,12 +266,12 @@ export default function AdminCandidates() {
             </div>
 
             {/* Results summary */}
-            <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t">
+            <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t border-white/10">
               <div>
                 Showing {(page - 1) * perPage + 1}-{Math.min(page * perPage, filteredCandidates.length)} of {filteredCandidates.length} candidates
               </div>
-              <Select value={perPage.toString()} onValueChange={(v) => {setPerPage(parseInt(v)); setPage(1);}}>
-                <SelectTrigger className="w-[120px]">
+              <Select value={perPage.toString()} onValueChange={(v) => { setPerPage(parseInt(v)); setPage(1); }}>
+                <SelectTrigger className="w-[120px] glass-input">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -283,7 +282,7 @@ export default function AdminCandidates() {
               </Select>
             </div>
           </CardContent>
-        </Card>
+        </div>
 
         {showArchived ? (
           <ArchivedCandidatesView />
@@ -294,16 +293,29 @@ export default function AdminCandidates() {
         ) : (
           <>
             {viewMode === 'grid' ? (
-              <div className="grid gap-4">
-                {paginatedCandidates.map((candidate) => (
-              <UnifiedCandidateCard
-                key={candidate.id}
-                candidate={candidate}
-                activityThresholds={activityThresholds}
-                onDelete={loadCandidates}
-              />
-                ))}
-              </div>
+              <motion.div
+                layout
+                className="grid gap-4"
+              >
+                <AnimatePresence mode="popLayout">
+                  {paginatedCandidates.map((candidate) => (
+                    <motion.div
+                      key={candidate.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <UnifiedCandidateCard
+                        candidate={candidate}
+                        activityThresholds={activityThresholds}
+                        onDelete={loadCandidates}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             ) : (
               <CandidatesTable
                 candidates={paginatedCandidates}
@@ -322,11 +334,12 @@ export default function AdminCandidates() {
                   size="sm"
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
+                  className="glass-input"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Previous
                 </Button>
-                
+
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum;
@@ -339,13 +352,14 @@ export default function AdminCandidates() {
                     } else {
                       pageNum = page - 2 + i;
                     }
-                    
+
                     return (
                       <Button
                         key={pageNum}
                         variant={page === pageNum ? "default" : "outline"}
                         size="sm"
                         onClick={() => setPage(pageNum)}
+                        className={page !== pageNum ? "glass-input" : ""}
                       >
                         {pageNum}
                       </Button>
@@ -358,6 +372,7 @@ export default function AdminCandidates() {
                   size="sm"
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
+                  className="glass-input"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />

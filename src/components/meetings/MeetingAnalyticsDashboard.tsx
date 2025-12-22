@@ -45,18 +45,14 @@ export function MeetingAnalyticsDashboard() {
     try {
       setLoading(true);
 
-      // Fetch meeting analytics
-      const { data: meetingData, error: meetingError } = await supabase
-        .from('meeting_analytics')
-        .select('*')
-        .eq('meeting_id', user?.id);
-
-      if (meetingError) throw meetingError;
-
-      // Fetch meetings
+      // Fetch meetings with analytics
       const { data: meetings, error: meetingsError } = await supabase
         .from('meetings')
-        .select('*, meeting_participants(count)')
+        .select(`
+          *,
+          meeting_participants(count),
+          meeting_analytics(total_duration_minutes)
+        `)
         .eq('host_id', user?.id);
 
       if (meetingsError) throw meetingsError;
@@ -64,13 +60,13 @@ export function MeetingAnalyticsDashboard() {
       // Calculate metrics
       const instantCount = meetings?.filter(m => m.created_via === 'instant').length || 0;
       const scheduledCount = meetings?.filter(m => m.created_via !== 'instant').length || 0;
-      
+
       const totalParticipants = meetings?.reduce((sum, m) => {
         return sum + (m.meeting_participants?.[0]?.count || 0);
       }, 0) || 0;
 
-      const avgParticipants = meetings && meetings.length > 0 
-        ? totalParticipants / meetings.length 
+      const avgParticipants = meetings && meetings.length > 0
+        ? totalParticipants / meetings.length
         : 0;
 
       // Creation methods data
@@ -119,18 +115,28 @@ export function MeetingAnalyticsDashboard() {
       const joinedCount = invitations?.filter(inv => inv.status === 'accepted' || inv.status === 'joined').length || 0;
       const joinRate = totalInvited > 0 ? (joinedCount / totalInvited) * 100 : 0;
 
-      // Calculate average duration from scheduled times or analytics
+      // Calculate average duration from analytics or scheduled times
       let avgDuration = 0;
       if (meetings && meetings.length > 0) {
         const durations = meetings
-          .filter(m => m.scheduled_start && m.scheduled_end)
           .map(m => {
-            const start = new Date(m.scheduled_start);
-            const end = new Date(m.scheduled_end);
-            return (end.getTime() - start.getTime()) / (1000 * 60); // Convert to minutes
+            // Priority 1: Actual duration from analytics
+            const actualDuration = (m.meeting_analytics as any)?.[0]?.total_duration_minutes;
+            if (actualDuration !== undefined && actualDuration !== null) {
+              return actualDuration;
+            }
+
+            // Priority 2: Duration from scheduled times
+            if (m.scheduled_start && m.scheduled_end) {
+              const start = new Date(m.scheduled_start);
+              const end = new Date(m.scheduled_end);
+              return (end.getTime() - start.getTime()) / (1000 * 60);
+            }
+
+            return null;
           })
-          .filter(d => d > 0 && d < 480); // Filter out invalid durations (0 or > 8 hours)
-        
+          .filter((d): d is number => d !== null && d > 0 && d < 480);
+
         if (durations.length > 0) {
           avgDuration = durations.reduce((sum, d) => sum + d, 0) / durations.length;
         }

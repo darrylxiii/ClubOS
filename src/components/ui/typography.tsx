@@ -2,22 +2,17 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /* =============================================================================
-   THE QUANTUM CLUB - TYPOGRAPHY SYSTEM
+   THE QUANTUM CLUB - TYPOGRAPHY SYSTEM (LUXURY SPEC)
    
-   Type Scale (Mobile → Desktop):
-   - Display:    48px → 72px (Hero headlines, landing pages)
-   - H1:         30px → 36px (Page titles)
-   - H2:         24px → 30px (Section titles)
-   - H3:         20px → 24px (Card titles, subsections)
-   - H4:         18px → 20px (Card headers, panel titles)
-   - Body:       16px (Base text)
-   - Small:      14px (Secondary text)
-   - Caption:    12px (Labels, hints, metadata)
-   - Micro:      11px (Badges, timestamps)
+   Hierarchy:
+   1. Display: Ceremonial authority (Hero, Major Dividers)
+   2. Heading: Structural hierarchy (H1-H6)
+   3. Body:    Executive readability (Content)
+   4. Label:   Precision metadata (UI)
    ============================================================================= */
 
 // ============================================================================
-// PAGE TITLE - For all main page headers
+// PAGE TITLE (H1) -> Heading 2XL
 // ============================================================================
 interface PageTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
   as?: "h1" | "h2";
@@ -28,7 +23,7 @@ export const PageTitle = React.forwardRef<HTMLHeadingElement, PageTitleProps>(
     <Component
       ref={ref}
       className={cn(
-        "text-3xl sm:text-4xl font-bold tracking-tight text-foreground",
+        "text-heading-2xl text-foreground", // Was text-4xl
         className
       )}
       {...props}
@@ -38,7 +33,7 @@ export const PageTitle = React.forwardRef<HTMLHeadingElement, PageTitleProps>(
 PageTitle.displayName = "PageTitle";
 
 // ============================================================================
-// SECTION TITLE - For major sections within pages
+// SECTION TITLE (H2) -> Heading XL
 // ============================================================================
 interface SectionTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
   as?: "h2" | "h3";
@@ -49,7 +44,7 @@ export const SectionTitle = React.forwardRef<HTMLHeadingElement, SectionTitlePro
     <Component
       ref={ref}
       className={cn(
-        "text-xl sm:text-2xl font-semibold tracking-tight text-foreground",
+        "text-heading-xl text-foreground", // Was text-3xl
         className
       )}
       {...props}
@@ -59,7 +54,7 @@ export const SectionTitle = React.forwardRef<HTMLHeadingElement, SectionTitlePro
 SectionTitle.displayName = "SectionTitle";
 
 // ============================================================================
-// CARD TITLE - For card headers (consistent with CardTitle)
+// CARD TITLE (H3) -> Heading LG or MD
 // ============================================================================
 interface CardHeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
   as?: "h3" | "h4";
@@ -70,7 +65,7 @@ export const CardHeading = React.forwardRef<HTMLHeadingElement, CardHeadingProps
     <Component
       ref={ref}
       className={cn(
-        "text-lg font-semibold tracking-tight text-foreground",
+        "text-heading-md text-foreground", // Was text-2xl
         className
       )}
       {...props}
@@ -80,15 +75,15 @@ export const CardHeading = React.forwardRef<HTMLHeadingElement, CardHeadingProps
 CardHeading.displayName = "CardHeading";
 
 // ============================================================================
-// SUBTITLE - For descriptions and secondary headings
+// SUBTITLE -> Body LG
 // ============================================================================
-interface SubtitleProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+interface SubtitleProps extends React.HTMLAttributes<HTMLParagraphElement> { }
 
 export const Subtitle = React.forwardRef<HTMLParagraphElement, SubtitleProps>(
   ({ className, ...props }, ref) => (
     <p
       ref={ref}
-      className={cn("text-base text-muted-foreground", className)}
+      className={cn("text-body-lg text-muted-foreground", className)} // Was text-lg
       {...props}
     />
   )
@@ -96,15 +91,15 @@ export const Subtitle = React.forwardRef<HTMLParagraphElement, SubtitleProps>(
 Subtitle.displayName = "Subtitle";
 
 // ============================================================================
-// LABEL - For form labels and small headings
+// LABEL -> Label MD
 // ============================================================================
-interface LabelTextProps extends React.HTMLAttributes<HTMLSpanElement> {}
+interface LabelTextProps extends React.HTMLAttributes<HTMLSpanElement> { }
 
 export const LabelText = React.forwardRef<HTMLSpanElement, LabelTextProps>(
   ({ className, ...props }, ref) => (
     <span
       ref={ref}
-      className={cn("text-sm font-medium text-foreground", className)}
+      className={cn("text-label-md text-foreground", className)} // Was text-sm font-medium
       {...props}
     />
   )
@@ -112,15 +107,15 @@ export const LabelText = React.forwardRef<HTMLSpanElement, LabelTextProps>(
 LabelText.displayName = "LabelText";
 
 // ============================================================================
-// CAPTION - For hints, metadata, timestamps
+// CAPTION -> Label SM
 // ============================================================================
-interface CaptionProps extends React.HTMLAttributes<HTMLSpanElement> {}
+interface CaptionProps extends React.HTMLAttributes<HTMLSpanElement> { }
 
 export const Caption = React.forwardRef<HTMLSpanElement, CaptionProps>(
   ({ className, ...props }, ref) => (
     <span
       ref={ref}
-      className={cn("text-xs text-muted-foreground", className)}
+      className={cn("text-label-sm text-muted-foreground", className)} // Was text-xs
       {...props}
     />
   )
@@ -128,18 +123,25 @@ export const Caption = React.forwardRef<HTMLSpanElement, CaptionProps>(
 Caption.displayName = "Caption";
 
 // ============================================================================
-// DISPLAY - For hero sections and large statements
+// DISPLAY -> Display Tokens
 // ============================================================================
 interface DisplayProps extends React.HTMLAttributes<HTMLHeadingElement> {
   as?: "h1" | "h2" | "span";
+  size?: "xl" | "lg" | "md" | "sm";
 }
 
 export const Display = React.forwardRef<HTMLHeadingElement, DisplayProps>(
-  ({ className, as: Component = "h1", ...props }, ref) => (
+  ({ className, as: Component = "h1", size = "xl", ...props }, ref) => (
     <Component
       ref={ref}
       className={cn(
-        "text-5xl sm:text-6xl lg:text-7xl font-black tracking-tighter text-foreground",
+        "font-bold text-foreground",
+        {
+          "text-display-xl": size === "xl",
+          "text-display-lg": size === "lg",
+          "text-display-md": size === "md",
+          "text-display-sm": size === "sm",
+        },
         className
       )}
       {...props}
@@ -149,7 +151,7 @@ export const Display = React.forwardRef<HTMLHeadingElement, DisplayProps>(
 Display.displayName = "Display";
 
 // ============================================================================
-// BODY TEXT - For regular paragraphs
+// BODY TEXT -> Body Tokens
 // ============================================================================
 interface BodyTextProps extends React.HTMLAttributes<HTMLParagraphElement> {
   size?: "default" | "small" | "large";
@@ -162,9 +164,9 @@ export const BodyText = React.forwardRef<HTMLParagraphElement, BodyTextProps>(
       ref={ref}
       className={cn(
         {
-          "text-sm": size === "small",
-          "text-base": size === "default",
-          "text-lg": size === "large",
+          "text-body-sm": size === "small",
+          "text-body-md": size === "default",
+          "text-body-lg": size === "large",
         },
         muted && "text-muted-foreground",
         !muted && "text-foreground",
@@ -177,15 +179,15 @@ export const BodyText = React.forwardRef<HTMLParagraphElement, BodyTextProps>(
 BodyText.displayName = "BodyText";
 
 // ============================================================================
-// MICRO TEXT - For badges, tags, tiny labels
+// MICRO -> Label XS
 // ============================================================================
-interface MicroProps extends React.HTMLAttributes<HTMLSpanElement> {}
+interface MicroProps extends React.HTMLAttributes<HTMLSpanElement> { }
 
 export const Micro = React.forwardRef<HTMLSpanElement, MicroProps>(
   ({ className, ...props }, ref) => (
     <span
       ref={ref}
-      className={cn("text-[11px] font-medium text-muted-foreground", className)}
+      className={cn("text-label-xs text-muted-foreground", className)} // Was text-micro
       {...props}
     />
   )
@@ -193,16 +195,16 @@ export const Micro = React.forwardRef<HTMLSpanElement, MicroProps>(
 Micro.displayName = "Micro";
 
 // ============================================================================
-// OVERLINE - For category labels and section markers
+// OVERLINE -> Label XS Uppercase
 // ============================================================================
-interface OverlineProps extends React.HTMLAttributes<HTMLSpanElement> {}
+interface OverlineProps extends React.HTMLAttributes<HTMLSpanElement> { }
 
 export const Overline = React.forwardRef<HTMLSpanElement, OverlineProps>(
   ({ className, ...props }, ref) => (
     <span
       ref={ref}
       className={cn(
-        "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+        "text-label-xs uppercase tracking-wider text-muted-foreground font-semibold",
         className
       )}
       {...props}
@@ -212,7 +214,7 @@ export const Overline = React.forwardRef<HTMLSpanElement, OverlineProps>(
 Overline.displayName = "Overline";
 
 // ============================================================================
-// HEADING GROUP - For title + subtitle combinations
+// HEADING GROUP
 // ============================================================================
 interface HeadingGroupProps {
   className?: string;

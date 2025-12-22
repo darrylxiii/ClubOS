@@ -1,4 +1,5 @@
 import { useAnimatedText } from '@/hooks/useAnimatedText';
+import { Display } from '@/components/ui/typography';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -24,11 +25,11 @@ export const TypewriterGreeting = ({ greeting, firstName }: TypewriterGreetingPr
   }, [animatedText, fullText]);
 
   return (
-    <h1 className="text-2xl font-black uppercase tracking-tight">
+    <Display as="h1" size="sm" className="uppercase tracking-tight text-gradient">
       {animatedText}
       {showCursor && (
-        <span className="animate-pulse">|</span>
+        <span className="animate-pulse ml-1">|</span>
       )}
-    </h1>
+    </Display>
   );
 };

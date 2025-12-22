@@ -5,11 +5,11 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { 
-  User, 
-  Building, 
-  Mail, 
-  Zap, 
+import {
+  User,
+  Building,
+  Mail,
+  Zap,
   Calendar,
   GripVertical,
   ExternalLink,
@@ -45,7 +45,7 @@ const sentimentEmojis: Record<string, string> = {
 
 export function ProspectCard({ prospect, isDragging }: ProspectCardProps) {
   const { data: stageProbabilities } = useStageProbabilities();
-  
+
   // Calculate weighted value
   const stageProb = stageProbabilities?.[prospect.stage];
   const probability = stageProb?.probability_weight || 10;
@@ -93,7 +93,7 @@ export function ProspectCard({ prospect, isDragging }: ProspectCardProps) {
         {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="min-w-0 flex-1">
-            <Link 
+            <Link
               to={`/crm/prospects/${prospect.id}`}
               className="font-medium text-sm hover:text-primary transition-colors flex items-center gap-1 group/link"
             >
@@ -105,8 +105,8 @@ export function ProspectCard({ prospect, isDragging }: ProspectCardProps) {
             )}
           </div>
           {prospect.reply_sentiment && (
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={cn("text-xs shrink-0", sentimentColors[prospect.reply_sentiment])}
             >
               {sentimentEmojis[prospect.reply_sentiment]} {prospect.reply_sentiment}
@@ -156,7 +156,7 @@ export function ProspectCard({ prospect, isDragging }: ProspectCardProps) {
             <Zap className={cn(
               "w-3 h-3",
               prospect.lead_score >= 70 ? "text-green-500" :
-              prospect.lead_score >= 40 ? "text-yellow-500" : "text-gray-400"
+                prospect.lead_score >= 40 ? "text-yellow-500" : "text-gray-400"
             )} />
             <span className="font-medium">{prospect.lead_score}</span>
           </div>
@@ -171,7 +171,7 @@ export function ProspectCard({ prospect, isDragging }: ProspectCardProps) {
           {prospect.last_activity_at && (
             <div className="flex items-center gap-1 text-muted-foreground ml-auto">
               <Calendar className="w-3 h-3" />
-              <span className="text-[10px]">
+              <span className="text-micro">
                 {formatDistanceToNow(new Date(prospect.last_activity_at), { addSuffix: true })}
               </span>
             </div>

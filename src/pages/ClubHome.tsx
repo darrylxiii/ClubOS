@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
@@ -53,16 +53,12 @@ const ClubHome = () => {
   };
 
   return (
-    <AppLayout>
-      <BackgroundVideo />
-
-      <div className="relative z-10 container mx-auto py-8 space-y-8 animate-fade-in">
-        <ClubHomeHeader role={effectiveRole} />
-        <div className="glass-card">
-          {renderRoleView()}
-        </div>
+    <div className="relative z-10 container mx-auto py-8 space-y-8 animate-fade-in">
+      <ClubHomeHeader role={effectiveRole} />
+      <div className="glass-card">
+        {renderRoleView()}
       </div>
-    </AppLayout>
+    </div>
   );
 };
 

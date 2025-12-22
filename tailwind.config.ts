@@ -18,25 +18,52 @@ export default {
         display: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       fontSize: {
-        // Micro text for badges, timestamps
+        // === LUXURY TYPOGRAPHY SYSTEM (ARTIFACT B) ===
+        // Display (Ceremonial)
+        'display-xl': ['6rem', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }], // 96px
+        'display-lg': ['4.5rem', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }], // 72px
+        'display-md': ['3.75rem', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }], // 60px
+        'display-sm': ['3rem', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }], // 48px
+
+        // Heading (Structural)
+        'heading-2xl': ['3rem', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }], // 48px
+        'heading-xl': ['2.5rem', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }], // 40px
+        'heading-lg': ['2rem', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }], // 32px
+        'heading-md': ['1.75rem', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }], // 28px
+        'heading-sm': ['1.5rem', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }], // 24px
+        'heading-xs': ['1.25rem', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }], // 20px
+
+        // Body (Content)
+        'body-lg': ['1.125rem', { lineHeight: '1.45', letterSpacing: '0em', fontWeight: '400' }], // 18px
+        'body-md': ['1rem', { lineHeight: '1.45', letterSpacing: '0em', fontWeight: '400' }], // 16px
+        'body-sm': ['0.875rem', { lineHeight: '1.45', letterSpacing: '0em', fontWeight: '400' }], // 14px
+
+        // Label (Utility)
+        'label-md': ['0.8125rem', { lineHeight: '1.4', letterSpacing: '0.02em', fontWeight: '500' }], // 13px
+        'label-sm': ['0.75rem', { lineHeight: '1.4', letterSpacing: '0.02em', fontWeight: '500' }], // 12px
+        'label-xs': ['0.625rem', { lineHeight: '1.4', letterSpacing: '0.02em', fontWeight: '500' }], // 10px
+
+        // === LEGACY / COMPATIBILITY (DEPRECATE PHASE 3) ===
+        // Micro text (11px) - Badges, timestamps
         'micro': ['0.6875rem', { lineHeight: '1rem', letterSpacing: '0.01em' }],
-        // Caption/hint text
+        // Tiny text (12px) - Captions, help text - Aliased to xs
+        'xs': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.01em' }],
         'caption': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.01em' }],
-        // Small body text
+        // Small body (14px) - Secondary text, dense lists
         'sm': ['0.875rem', { lineHeight: '1.25rem' }],
-        // Base body text
+        // Base body (16px) - Primary reading text
         'base': ['1rem', { lineHeight: '1.5rem' }],
-        // Large body text
+        // Large body / Subtitles (18px)
         'lg': ['1.125rem', { lineHeight: '1.75rem' }],
-        // Card headings (h4)
+        // Card Headings (20px)
         'xl': ['1.25rem', { lineHeight: '1.75rem', letterSpacing: '-0.01em' }],
-        // Section titles (h3)
+        // Section Headings (24px)
         '2xl': ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.02em' }],
-        // Page titles (h2)
+        // Page Titles (30px)
         '3xl': ['1.875rem', { lineHeight: '2.25rem', letterSpacing: '-0.02em' }],
-        // Large page titles (h1)
+        // Major Display (36px)
         '4xl': ['2.25rem', { lineHeight: '2.5rem', letterSpacing: '-0.02em' }],
-        // Display text
+        // Hero Display
         '5xl': ['3rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
         '6xl': ['3.75rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
         '7xl': ['4.5rem', { lineHeight: '1.05', letterSpacing: '-0.02em' }],

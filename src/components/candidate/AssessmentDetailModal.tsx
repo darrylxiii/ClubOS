@@ -11,16 +11,19 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Clock, 
-  Calendar, 
-  TrendingUp, 
+import {
+  Clock,
+  Calendar,
+  TrendingUp,
   Download,
   RefreshCw,
   Award
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { trackAssessmentInteraction } from '@/services/sessionTracking';
+import { useEffect } from 'react';
 
 interface AssessmentResult {
   id: string;
@@ -42,15 +45,25 @@ interface AssessmentDetailModalProps {
   allowRetake?: boolean;
 }
 
-export const AssessmentDetailModal = memo(({ 
-  open, 
-  onClose, 
+export const AssessmentDetailModal = memo(({
+  open,
+  onClose,
   result,
-  allowRetake = false 
+  allowRetake = false
 }: AssessmentDetailModalProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (open && user && result) {
+      trackAssessmentInteraction(user.id, result.assessment_id, 'review');
+    }
+  }, [open, user, result]);
 
   const handleRetake = () => {
+    if (user) {
+      trackAssessmentInteraction(user.id, result.assessment_id, 'start');
+    }
     const routes: Record<string, string> = {
       'swipe-game': '/swipe-game',
       'miljoenenjacht': '/miljoenenjacht',
@@ -71,6 +84,9 @@ export const AssessmentDetailModal = memo(({
     link.download = `${result.assessment_id}-${result.attempt_number}-results.json`;
     link.click();
     URL.revokeObjectURL(url);
+    if (user) {
+      trackAssessmentInteraction(user.id, result.assessment_id, 'review'); // Note: could be 'export' but trackAssessmentInteraction doesn't have it
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -163,11 +179,11 @@ export const AssessmentDetailModal = memo(({
                   </div>
                   <Progress value={result.score} className="h-3" />
                   <p className="text-xs text-muted-foreground">
-                    {result.score >= 80 
+                    {result.score >= 80
                       ? 'Excellent performance! You demonstrated strong capabilities.'
                       : result.score >= 60
-                      ? 'Good performance. There are opportunities for growth.'
-                      : 'Consider retaking this assessment to improve your results.'}
+                        ? 'Good performance. There are opportunities for growth.'
+                        : 'Consider retaking this assessment to improve your results.'}
                   </p>
                 </CardContent>
               </Card>
@@ -177,7 +193,7 @@ export const AssessmentDetailModal = memo(({
             <Card>
               <CardContent className="pt-6">
                 <h3 className="font-semibold mb-4">Detailed Results</h3>
-                
+
                 {/* Render specific result types based on assessment */}
                 {result.assessment_id === 'swipe-game' && result.results_data?.archetype && (
                   <div className="space-y-4">

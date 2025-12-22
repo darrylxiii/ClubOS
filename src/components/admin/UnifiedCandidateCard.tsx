@@ -3,11 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Briefcase, 
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Briefcase,
   Eye,
   DollarSign,
   FileText,
@@ -36,9 +36,9 @@ interface UnifiedCandidateCardProps {
   activityThresholds: ActivityThresholds;
 }
 
-export function UnifiedCandidateCard({ 
-  candidate, 
-  onEdit, 
+export function UnifiedCandidateCard({
+  candidate,
+  onEdit,
   onSendInvitation,
   onDelete,
   activityThresholds
@@ -80,7 +80,7 @@ export function UnifiedCandidateCard({
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="glass-card hover:shadow-glass-lg hover:-translate-y-1 transition-all duration-300 group">
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
           {/* Avatar */}
@@ -107,9 +107,9 @@ export function UnifiedCandidateCard({
 
               {/* Actions */}
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => navigate(`/candidate/${candidate.id}`)}
                   className="h-8 text-xs"
                 >
@@ -117,9 +117,9 @@ export function UnifiedCandidateCard({
                   View Profile
                 </Button>
                 {onEdit && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={onEdit}
                     className="h-8 text-xs"
                   >
@@ -128,9 +128,9 @@ export function UnifiedCandidateCard({
                   </Button>
                 )}
                 {['not_invited', 'pending'].includes(candidate.invitation_status) && onSendInvitation && (
-                  <Button 
-                    variant="default" 
-                    size="sm" 
+                  <Button
+                    variant="default"
+                    size="sm"
                     onClick={onSendInvitation}
                     className="h-8 text-xs"
                   >
@@ -167,9 +167,9 @@ export function UnifiedCandidateCard({
             <div className="flex flex-wrap gap-2 mb-3">
               <Badge variant={getMergeStatusColor(candidate.invitation_status)}>
                 <Link2Icon className="w-3 h-3 mr-1" />
-                {candidate.invitation_status === 'registered' ? 'Registered' : 
-                 candidate.invitation_status === 'invited' ? 'Invited' : 
-                 candidate.invitation_status === 'not_invited' ? 'Not Invited' : 'Pending'}
+                {candidate.invitation_status === 'registered' ? 'Registered' :
+                  candidate.invitation_status === 'invited' ? 'Invited' :
+                    candidate.invitation_status === 'not_invited' ? 'Not Invited' : 'Pending'}
               </Badge>
 
               <Badge variant="outline" className={getActivityBgColor(activityColor)}>
@@ -190,12 +190,12 @@ export function UnifiedCandidateCard({
                   {candidate.total_applications} {candidate.total_applications === 1 ? 'application' : 'applications'}
                 </Badge>
               )}
-              
+
               {candidate.final_desired_salary_min && (
                 <Badge variant="outline">
                   <DollarSign className="w-3 h-3 mr-1" />
                   {candidate.final_currency} {candidate.final_desired_salary_min.toLocaleString()}
-                  {candidate.final_desired_salary_max && 
+                  {candidate.final_desired_salary_max &&
                     ` - ${candidate.final_desired_salary_max.toLocaleString()}`
                   }
                 </Badge>
@@ -248,7 +248,7 @@ export function UnifiedCandidateCard({
                     topFactors={candidate.top_match_factors}
                   />
                 )}
-                
+
                 <UrgencyIndicators
                   hasPendingOffer={candidate.has_pending_offer}
                   noticeEndsInDays={candidate.notice_ends_in_days}

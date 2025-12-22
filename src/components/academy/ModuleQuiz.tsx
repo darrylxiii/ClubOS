@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Check, X, Loader2, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { trackAssessmentInteraction } from '@/services/sessionTracking';
 
 interface Question {
   id: string;
@@ -54,6 +55,16 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
     fetchQuiz();
   }, [quizId]);
 
+  useEffect(() => {
+    const trackStart = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        trackAssessmentInteraction(user.id, quizId, 'start');
+      }
+    };
+    trackStart();
+  }, [quizId]);
+
   const handleSubmit = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -83,6 +94,8 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
         time_taken_seconds: 0,
       });
 
+      trackAssessmentInteraction(user.id, quizId, 'submit');
+
       setResults({ totalScore, totalPoints, percentage, passed });
       setShowResult(true);
       onComplete(passed, percentage);
@@ -107,16 +120,15 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
   if (showResult && results) {
     return (
       <Card className="p-8 text-center space-y-6">
-        <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center ${
-          results.passed ? 'bg-green-500/10' : 'bg-destructive/10'
-        }`}>
+        <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center ${results.passed ? 'bg-green-500/10' : 'bg-destructive/10'
+          }`}>
           {results.passed ? (
             <Trophy className="w-10 h-10 text-green-600" />
           ) : (
             <X className="w-10 h-10 text-destructive" />
           )}
         </div>
-        
+
         <div>
           <h3 className="text-2xl font-bold mb-2">
             {results.passed ? 'Congratulations!' : 'Keep Practicing'}
@@ -160,7 +172,7 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
 
       <div className="space-y-4">
         <p className="text-lg font-medium">{question.question_text}</p>
-        
+
         <RadioGroup
           value={answers[question.id]}
           onValueChange={(value) => setAnswers({ ...answers, [question.id]: value })}
@@ -186,7 +198,7 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
         >
           Previous
         </Button>
-        
+
         {currentQuestion < questions.length - 1 ? (
           <Button
             onClick={() => setCurrentQuestion(currentQuestion + 1)}

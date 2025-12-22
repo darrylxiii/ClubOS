@@ -10,6 +10,7 @@ import { Clock, Calendar as CalendarIcon, Loader2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import { normalizeTimeFormat } from "@/lib/timezoneUtils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface TimeSlot {
   start: string;
@@ -50,7 +51,7 @@ export function UnifiedDateTimeSelector({
     try {
       const startOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
       const endOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-      
+
       const startStr = format(startOfMonth, "yyyy-MM-dd");
       const endStr = format(endOfMonth, "yyyy-MM-dd");
 
@@ -68,32 +69,32 @@ export function UnifiedDateTimeSelector({
       if (!error && data?.slots) {
         // Count slots per date
         const slotsByDate = new Map<string, number>();
-        
+
         data.slots.forEach((slot: any) => {
           if (typeof slot === 'string' && slot.includes(' - ')) {
             const [_, dateStr] = slot.split(" - ");
             slotsByDate.set(dateStr, (slotsByDate.get(dateStr) || 0) + 1);
           }
         });
-        
+
         // Create availability map with status
         const newAvailabilityMap = new Map<string, AvailabilityInfo>();
-        
+
         slotsByDate.forEach((count, dateStr) => {
           let status: 'many' | 'few' | 'limited' | 'none';
-          
+
           if (count >= 10) status = 'many';
           else if (count >= 4) status = 'few';
           else if (count >= 1) status = 'limited';
           else status = 'none';
-          
+
           newAvailabilityMap.set(dateStr, {
             date: new Date(dateStr),
             slotCount: count,
             status
           });
         });
-        
+
         setAvailabilityMap(newAvailabilityMap);
       }
     } catch (error) {
@@ -120,7 +121,7 @@ export function UnifiedDateTimeSelector({
       const dateStr = format(date, "yyyy-MM-dd");
       console.log('[UnifiedSelector] Loading slots for date:', dateStr);
       console.log('[UnifiedSelector] Booking link slug:', bookingLink.slug);
-      
+
       const { data, error } = await supabase.functions.invoke("get-available-slots", {
         body: {
           bookingLinkSlug: bookingLink.slug,
@@ -154,7 +155,7 @@ export function UnifiedDateTimeSelector({
 
       const slots = data.slots.map((slot: any, index: number) => {
         console.log(`[UnifiedSelector] Processing slot ${index}:`, slot, typeof slot);
-        
+
         // Handle string format "HH:MM - YYYY-MM-DD"
         if (typeof slot === 'string') {
           const parts = slot.split(" - ");
@@ -325,7 +326,7 @@ export function UnifiedDateTimeSelector({
                 )}
               </p>
             )}
-            
+
             {/* Availability Legend */}
             <div className="mt-4 pt-4 border-t space-y-2">
               <p className="text-xs font-medium text-muted-foreground mb-2">Availability:</p>
@@ -395,22 +396,30 @@ export function UnifiedDateTimeSelector({
 
             {selectedDate && !loading && availableSlots.length > 0 && (
               <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-                {availableSlots.map((slot, index) => (
-                  <Button
-                    key={index}
-                    variant={selectedSlot?.start === slot.start ? "default" : "outline"}
-                    className={cn(
-                      "w-full justify-start text-left h-12 transition-all font-medium",
-                      selectedSlot?.start === slot.start 
-                        ? "ring-2 ring-primary bg-primary text-primary-foreground shadow-md" 
-                        : "hover:bg-accent hover:text-accent-foreground border-border/60"
-                    )}
-                    onClick={() => handleTimeSelect(slot)}
-                  >
-                    <Clock className="mr-2 h-4 w-4" />
-                    <span className="text-base">{formatTimeOnly(slot.start)}</span>
-                  </Button>
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {availableSlots.map((slot, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Button
+                        variant={selectedSlot?.start === slot.start ? "default" : "outline"}
+                        className={cn(
+                          "w-full justify-start text-left h-12 transition-all font-medium",
+                          selectedSlot?.start === slot.start
+                            ? "ring-2 ring-primary bg-primary text-primary-foreground shadow-md scale-[1.02]"
+                            : "hover:bg-accent hover:text-accent-foreground border-border/60 hover:scale-[1.01]"
+                        )}
+                        onClick={() => handleTimeSelect(slot)}
+                      >
+                        <Clock className="mr-2 h-4 w-4" />
+                        <span className="text-base">{formatTimeOnly(slot.start)}</span>
+                      </Button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             )}
           </div>

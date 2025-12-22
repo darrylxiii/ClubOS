@@ -58,22 +58,40 @@ export function MessageActions({
     }
   };
 
-  const handleTranslate = async (language: string) => {
+  const handleTranslate = async (languageCode: string) => {
     setTranslating(true);
     try {
       const { data, error } = await supabase.functions.invoke('translate-message', {
         body: {
           text: message.content,
-          targetLanguage: language,
+          targetLanguage: languageCode,
         },
       });
 
       if (error) throw error;
 
-      toast.success(`Translated to ${language}`, {
+      // Save translation to database for persistence
+      const { error: insertError } = await supabase
+        .from('message_translations')
+        .upsert({
+          message_id: message.id,
+          language_code: languageCode,
+          translated_content: data.translatedText,
+        }, {
+          onConflict: 'message_id,language_code'
+        });
+
+      if (insertError) {
+        console.error('Error saving translation:', insertError);
+        // Still show the toast even if saving failed
+      }
+
+      toast.success(`Translated successfully`, {
         description: data.translatedText,
         duration: 5000,
       });
+
+      // We could trigger a refresh via a callback if needed
     } catch (error) {
       console.error('Error translating:', error);
       toast.error('Failed to translate message');
@@ -81,6 +99,7 @@ export function MessageActions({
       setTranslating(false);
     }
   };
+
 
   return (
     <>
@@ -119,14 +138,19 @@ export function MessageActions({
           )}
 
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => handleTranslate('Dutch')} disabled={translating}>
+          <DropdownMenuItem onClick={() => handleTranslate('nl')} disabled={translating}>
             <Languages className="h-4 w-4 mr-2" />
             Translate to Dutch
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleTranslate('English')} disabled={translating}>
+          <DropdownMenuItem onClick={() => handleTranslate('en')} disabled={translating}>
             <Languages className="h-4 w-4 mr-2" />
             Translate to English
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleTranslate('es')} disabled={translating}>
+            <Languages className="h-4 w-4 mr-2" />
+            Translate to Spanish
+          </DropdownMenuItem>
+
         </DropdownMenuContent>
       </DropdownMenu>
 

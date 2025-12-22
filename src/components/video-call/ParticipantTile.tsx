@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Mic, MicOff, Video, VideoOff, Hand, Monitor, Crown } from 'lucide-react';
@@ -25,7 +25,7 @@ interface ParticipantTileProps {
   hideScreenShare?: boolean;
 }
 
-export function ParticipantTile({ participant, isLocal, isFocused, className, hideScreenShare }: ParticipantTileProps) {
+const ParticipantTileComponent = memo(function ParticipantTile({ participant, isLocal, isFocused, className, hideScreenShare }: ParticipantTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
@@ -39,18 +39,18 @@ export function ParticipantTile({ participant, isLocal, isFocused, className, hi
         audioTracks: participant.stream.getAudioTracks().length,
         hasVideoRef: !!videoRef.current
       });
-      
+
       videoRef.current.srcObject = participant.stream;
-      
+
       videoRef.current.onloadedmetadata = () => {
         console.log(`[ParticipantTile] ✅ Video metadata loaded for ${participant.display_name}`);
         setIsLoading(false);
       };
-      
+
       videoRef.current.onloadeddata = () => {
         console.log(`[ParticipantTile] ✅ Video data loaded for ${participant.display_name}`);
       };
-      
+
       videoRef.current.onerror = (e) => {
         console.error(`[ParticipantTile] ❌ Video error for ${participant.display_name}:`, e);
         setIsLoading(false);
@@ -127,8 +127,8 @@ export function ParticipantTile({ participant, isLocal, isFocused, className, hi
               {participant.display_name} {isLocal && '(You)'}
             </span>
             {participant.role === 'host' && (
-              <Badge 
-                variant="secondary" 
+              <Badge
+                variant="secondary"
                 className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium backdrop-blur-sm"
               >
                 👑 Host
@@ -171,9 +171,9 @@ export function ParticipantTile({ participant, isLocal, isFocused, className, hi
       {/* Speaking Badge - Enhanced with audio level */}
       {participant.is_speaking && (
         <div className="absolute top-4 left-4">
-          <SpeakingBadge 
-            isSpeaking={participant.is_speaking} 
-            level={participant.audioLevel || 0.5} 
+          <SpeakingBadge
+            isSpeaking={participant.is_speaking}
+            level={participant.audioLevel || 0.5}
           />
         </div>
       )}
@@ -197,4 +197,6 @@ export function ParticipantTile({ participant, isLocal, isFocused, className, hi
       </div>
     </div>
   );
-}
+});
+
+export const ParticipantTile = ParticipantTileComponent;

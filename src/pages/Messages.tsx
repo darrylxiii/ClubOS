@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { AppLayout } from '@/components/AppLayout';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -128,33 +128,31 @@ export default function Messages() {
 
   if (!loading && conversations.length === 0) {
     return (
-      <AppLayout>
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-accent/5">
-          <Card className="max-w-md w-full p-8 text-center space-y-6 glass-card animate-scale-in">
-            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-accent flex items-center justify-center shadow-glow">
-              <MessageCircle className="h-10 w-10 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold mb-2">Welcome to Messages</h2>
-              <p className="text-muted-foreground">Start conversations with your network</p>
-            </div>
-            <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="w-full shadow-glass-md hover:shadow-glass-lg transition-shadow">
-              <Plus className="h-5 w-5 mr-2" />
-              Start Your First Conversation
-            </Button>
-          </Card>
-          <CreateConversationDialog
-            open={createDialogOpen}
-            onOpenChange={setCreateDialogOpen}
-            onConversationCreated={(id) => { setSelectedConversationId(id); loadConversations(); }}
-          />
-        </div>
-      </AppLayout>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-accent/5">
+        <Card className="max-w-md w-full p-8 text-center space-y-6 glass-card animate-scale-in">
+          <div className="mx-auto w-20 h-20 rounded-full bg-gradient-accent flex items-center justify-center shadow-glow">
+            <MessageCircle className="h-10 w-10 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Welcome to Messages</h2>
+            <p className="text-muted-foreground">Start conversations with your network</p>
+          </div>
+          <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="w-full shadow-glass-md hover:shadow-glass-lg transition-shadow">
+            <Plus className="h-5 w-5 mr-2" />
+            Start Your First Conversation
+          </Button>
+        </Card>
+        <CreateConversationDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onConversationCreated={(id) => { setSelectedConversationId(id); loadConversations(); }}
+        />
+      </div>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <CallNotificationManager
         conversationId={selectedConversationId || undefined}
         onAcceptCall={(invitationId, callType) => {
@@ -455,6 +453,6 @@ export default function Messages() {
           conversationsCount: conversations.length
         }}
       />
-    </AppLayout>
+    </>
   );
 }

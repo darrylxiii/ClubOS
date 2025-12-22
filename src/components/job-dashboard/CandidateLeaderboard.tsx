@@ -33,6 +33,10 @@ interface RankedCandidate extends Application {
   aiRecommendation?: string;
 }
 
+import { calculateCandidateScore } from "@/utils/candidateScoring";
+import { adminCandidateService } from "@/services/adminCandidateService";
+import { toast } from "sonner";
+
 export const CandidateLeaderboard = memo(({
   applications,
   stages,
@@ -41,38 +45,28 @@ export const CandidateLeaderboard = memo(({
   const navigate = useNavigate();
 
   const rankedCandidates = useMemo((): RankedCandidate[] => {
-    const maxStage = stages.length - 1;
-    
-    const scored = applications.map(app => {
-      // Calculate composite score
-      const matchScore = app.match_score || Math.floor(Math.random() * 30 + 70); // Fallback for demo
-      const stageProgress = maxStage > 0 ? (app.current_stage_index / maxStage) * 100 : 0;
-      
-      // Weighted composite: 40% match, 40% progress, 20% recency bonus
-      const compositeScore = Math.round(
-        matchScore * 0.4 + 
-        stageProgress * 0.4 + 
-        20 // Recency bonus placeholder
-      );
+    const maxStage = stages.length > 1 ? stages.length - 1 : 1;
 
-      // Generate AI recommendation for top candidates
-      const aiRecommendations = [
-        "Strong technical fit, consider fast-tracking",
-        "Excellent culture alignment detected",
-        "Top percentile for required skills",
-        "High engagement signals observed",
-        "Recommended for immediate action"
-      ];
+    const scored = applications.map(app => {
+      // Calculate real composite score
+      const { compositeScore, aiRecommendation } = calculateCandidateScore({
+        id: app.id,
+        match_score: app.match_score,
+        current_stage_index: app.current_stage_index,
+        // Fallback for missing data until parent component enables it
+        profile_completeness: (app as any).profile_completeness || 70,
+        last_activity_at: (app as any).last_activity_at || new Date().toISOString()
+      }, maxStage);
+
+      const stageProgress = (app.current_stage_index / maxStage) * 100;
 
       return {
         ...app,
         rank: 0,
         compositeScore,
         stageProgress,
-        match_score: matchScore,
-        aiRecommendation: compositeScore > 75 
-          ? aiRecommendations[Math.floor(Math.random() * aiRecommendations.length)]
-          : undefined
+        match_score: app.match_score || 0,
+        aiRecommendation
       };
     });
 
@@ -127,7 +121,7 @@ export const CandidateLeaderboard = memo(({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <motion.div 
+              <motion.div
                 className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/20"
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 transition={{ type: "spring", stiffness: 400 }}
@@ -155,11 +149,10 @@ export const CandidateLeaderboard = memo(({
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.08 }}
                   whileHover={{ scale: 1.01, x: 4 }}
-                  className={`relative flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all group ${
-                    candidate.rank === 1 
-                      ? 'bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent border border-amber-500/20' 
-                      : 'bg-background/50 hover:bg-background/80 border border-transparent hover:border-border/50'
-                  }`}
+                  className={`relative flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all group ${candidate.rank === 1
+                    ? 'bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent border border-amber-500/20'
+                    : 'bg-background/50 hover:bg-background/80 border border-transparent hover:border-border/50'
+                    }`}
                   onClick={() => {
                     if (candidate.candidate_id) {
                       navigate(`/candidates/${candidate.candidate_id}`);
@@ -170,17 +163,16 @@ export const CandidateLeaderboard = memo(({
                   <div className="w-8 flex justify-center">
                     {getRankBadge(candidate.rank)}
                   </div>
-                  
+
                   {/* Avatar */}
-                  <Avatar className={`h-10 w-10 border-2 ${
-                    candidate.rank === 1 ? 'border-amber-500/50' : 'border-border/30'
-                  }`}>
+                  <Avatar className={`h-10 w-10 border-2 ${candidate.rank === 1 ? 'border-amber-500/50' : 'border-border/30'
+                    }`}>
                     <AvatarImage src={candidate.avatar_url || undefined} />
                     <AvatarFallback className="text-sm bg-muted font-semibold">
                       {(candidate.full_name || 'C').charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  
+
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -195,7 +187,7 @@ export const CandidateLeaderboard = memo(({
                       {candidate.current_title || 'Candidate'} • {stages[candidate.current_stage_index]?.name}
                     </p>
                     {candidate.aiRecommendation && (
-                      <motion.p 
+                      <motion.p
                         className="text-[10px] text-primary mt-0.5 flex items-center gap-1"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -206,7 +198,7 @@ export const CandidateLeaderboard = memo(({
                       </motion.p>
                     )}
                   </div>
-                  
+
                   {/* Score */}
                   <div className="text-right">
                     <Tooltip>
@@ -232,7 +224,7 @@ export const CandidateLeaderboard = memo(({
                       </TooltipContent>
                     </Tooltip>
                   </div>
-                  
+
                   {/* Fast Track Button */}
                   <motion.div
                     className="opacity-0 group-hover:opacity-100 transition-opacity"
@@ -246,7 +238,11 @@ export const CandidateLeaderboard = memo(({
                           className="h-8 w-8 bg-primary/10 hover:bg-primary/20"
                           onClick={(e) => {
                             e.stopPropagation();
-                            // TODO: Fast track action
+                            toast.promise(adminCandidateService.fastTrackCandidate(candidate.id), {
+                              loading: 'Fast tracking candidate...',
+                              success: 'Candidate fast tracked! Stage updated.',
+                              error: 'Failed to fast track candidate'
+                            });
                           }}
                         >
                           <Zap className="w-4 h-4 text-primary" />
@@ -255,7 +251,7 @@ export const CandidateLeaderboard = memo(({
                       <TooltipContent>Fast Track</TooltipContent>
                     </Tooltip>
                   </motion.div>
-                  
+
                   <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </motion.div>
               ))}
