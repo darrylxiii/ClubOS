@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { CommandPalette } from "@/components/CommandPalette";
+import { ClubAIVoice } from "@/components/voice/ClubAIVoice";
 import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MotionToggle } from "@/components/MotionToggle";
@@ -202,6 +203,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Global Navigation Tools */}
       <CommandPalette />
+      <ClubAIVoice />
       <GlobalCallNotificationProvider />
       <MeetingNotificationManager />
     </div>
