@@ -70,8 +70,40 @@ export default defineConfig(({ mode, command }) => ({
         ]
       },
       workbox: {
-        // Cache static assets with CacheFirst strategy
+        // CRITICAL: Do NOT precache HTML - use NetworkFirst at runtime
+        // This prevents stale index.html from bricking the app after deploy
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
+        
+        // CRITICAL: Auto-activate new service worker immediately
+        // Prevents users from being stuck on old cached version
+        skipWaiting: true,
+        clientsClaim: true,
+        
+        // Clean up old caches
+        cleanupOutdatedCaches: true,
+        
+        // Increase limit to 5MB for og-image.png etc
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        
+        // Runtime caching strategies
         runtimeCaching: [
+          // CRITICAL: Document navigations use NetworkFirst
+          // This ensures fresh index.html on every page load
+          {
+            urlPattern: ({ request }) => request.destination === 'document',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 // 1 day fallback
+              },
+              networkTimeoutSeconds: 3,
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
@@ -137,16 +169,7 @@ export default defineConfig(({ mode, command }) => ({
               }
             }
           }
-        ],
-        // Precache pages for offline access
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        // Let the user control when to update (don't auto-skip waiting)
-        skipWaiting: false,
-        clientsClaim: true,
-        // Clean up old caches
-        cleanupOutdatedCaches: true,
-        // Increase limit to 5MB for og-image.png etc
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024
+        ]
       },
       devOptions: {
         enabled: false // Disable in dev to avoid issues
