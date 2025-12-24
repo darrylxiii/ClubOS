@@ -28,6 +28,10 @@ try {
   console.log('[Main] Rendering App component...');
   root.render(<App />);
   
+  // Signal to the boot timeout that the app has started
+  // This prevents the recovery UI from showing
+  (window as any).__APP_BOOTED__ = true;
+  
   console.log('[Main] ✅ Application initialized successfully');
 } catch (error) {
   console.error('[Main] ❌ CRITICAL: Failed to initialize application:', error);
