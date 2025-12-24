@@ -32,6 +32,7 @@ import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
 import { useCRMOwners } from '@/hooks/useCRMOwners';
 import { useCRMKeyboardShortcuts } from '@/hooks/useCRMKeyboardShortcuts';
+import { useSyncDiagnostics, getSyncErrors } from '@/hooks/useSyncDiagnostics';
 import { CRMRealtimeProvider, useCRMRealtime } from '@/components/crm/CRMRealtimeProvider';
 import { PROSPECT_STAGES, type CRMProspect, type ProspectStage } from '@/types/crm-enterprise';
 import { EnhancedKanbanColumn } from '@/components/crm/EnhancedKanbanColumn';
@@ -41,6 +42,7 @@ import { AddProspectDialog } from '@/components/crm/AddProspectDialog';
 import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 import { CRMKeyboardShortcutsDialog } from '@/components/crm/CRMKeyboardShortcutsDialog';
 import { BulkActionsBar } from '@/components/crm/BulkActionsBar';
+import { SyncStatusBadge } from '@/components/crm/SyncStatusBadge';
 import {
   Select,
   SelectContent,
@@ -61,6 +63,9 @@ import { toast } from 'sonner';
 
 // Hot leads only - prospects who have replied or shown interest
 const PRIMARY_STAGES = ['replied', 'qualified', 'meeting_booked', 'proposal_sent', 'negotiation', 'closed_won'];
+
+// Sync timeout in ms (30 seconds)
+const SYNC_TIMEOUT_MS = 30000;
 
 function ProspectPipelineContent() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -94,6 +99,7 @@ function ProspectPipelineContent() {
   });
   const { campaigns } = useCRMCampaigns({});
   const { owners } = useCRMOwners();
+  const { data: lastSyncLog, refetch: refetchSyncLog } = useSyncDiagnostics();
 
   // Auto-refresh on page visit and visibility change
   useEffect(() => {
@@ -217,14 +223,24 @@ function ProspectPipelineContent() {
     setFiltersOpen(false);
   };
 
-  // Sync leads from Instantly
+  // Sync leads from Instantly with timeout guard
   const handleSyncFromInstantly = async () => {
     setSyncingInstantly(true);
+    toast.info('Starting sync from Instantly…');
+    
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, SYNC_TIMEOUT_MS);
+    
     try {
       const { data, error } = await supabase.functions.invoke('sync-instantly-leads', {
-        body: { direction: 'instantly_to_crm' },
+        body: { direction: 'instantly_to_crm', mode: 'hot' }, // Use hot mode for speed
       });
 
+      clearTimeout(timeoutId);
+      
       if (error) throw error;
 
       // Parse response correctly - edge function returns data.stats.instantly_imported
@@ -234,7 +250,7 @@ function ProspectPipelineContent() {
       const errorCount = stats.errors || 0;
       
       // Always refetch after sync to show any updates
-      await refetch();
+      await Promise.all([refetch(), refetchSyncLog()]);
       
       if (imported > 0 || updated > 0) {
         toast.success(`Synced: ${imported} new • ${updated} updated${errorCount > 0 ? ` • ${errorCount} errors` : ''}`);
@@ -246,8 +262,20 @@ function ProspectPipelineContent() {
         toast.info('All leads are up to date');
       }
     } catch (error: any) {
-      console.error('Error syncing from Instantly:', error);
-      toast.error(error.message || 'Failed to sync from Instantly');
+      clearTimeout(timeoutId);
+      
+      // Check if it was a timeout
+      if (error?.name === 'AbortError' || controller.signal.aborted) {
+        toast.info('Sync is still running in the background. Results will appear after refresh.');
+        // Still refetch in case some data came through
+        setTimeout(() => {
+          refetch();
+          refetchSyncLog();
+        }, 5000);
+      } else {
+        console.error('Error syncing from Instantly:', error);
+        toast.error(error.message || 'Failed to sync from Instantly');
+      }
     } finally {
       setSyncingInstantly(false);
     }
@@ -262,14 +290,21 @@ function ProspectPipelineContent() {
         className="flex-shrink-0 px-6 py-4 border-b border-border/30 bg-gradient-to-r from-card/50 to-transparent backdrop-blur-xl"
       >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Prospect Pipeline</h1>
-            <p className="text-sm text-muted-foreground">
-              {prospects.length} prospects • Drag to move stages
-              {lastUpdate && (
-                <span className="ml-2 text-xs text-primary">• Live</span>
-              )}
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold">Prospect Pipeline</h1>
+              <p className="text-sm text-muted-foreground">
+                {prospects.length} prospects • Drag to move stages
+                {lastUpdate && (
+                  <span className="ml-2 text-xs text-primary">• Live</span>
+                )}
+              </p>
+            </div>
+            <SyncStatusBadge 
+              isSyncing={syncingInstantly} 
+              lastSync={lastSyncLog}
+              syncErrors={getSyncErrors(lastSyncLog)}
+            />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
@@ -382,15 +417,20 @@ function ProspectPipelineContent() {
                   className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-purple-500/30 hover:border-purple-500/50"
                 >
                   {syncingInstantly ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Syncing…
+                    </>
                   ) : (
-                    <Zap className="w-4 h-4 mr-2 text-purple-500" />
+                    <>
+                      <Zap className="w-4 h-4 mr-2 text-purple-500" />
+                      Sync Instantly
+                    </>
                   )}
-                  Sync Instantly
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Pull new leads from Instantly campaigns</p>
+                <p>Pull hot leads (replied/interested/meeting booked) from Instantly</p>
               </TooltipContent>
             </Tooltip>
 
