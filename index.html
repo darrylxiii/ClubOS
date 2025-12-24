@@ -88,8 +88,7 @@
     <!-- Preload critical font to prevent layout shift -->
     <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2" crossorigin>
     
-    <!-- Module preload hint for critical JS - helps browser discover and download earlier -->
-    <link rel="modulepreload" href="/src/main.tsx">
+    <!-- Module preload handled by Vite build process -->
     
     <!-- Preconnect to critical third-party origins -->
     <link rel="preconnect" href="https://www.googletagmanager.com">
@@ -293,13 +292,14 @@
           }
         }, 15000);
         
-        // Catch script load errors immediately
+        // Catch actual script load errors (not preload failures)
         window.addEventListener('error', function(e) {
-          if (e.filename && (e.filename.includes('/src/') || e.filename.includes('.tsx'))) {
-            console.error('[Recovery] Script load error:', e.filename);
+          // Only react to actual <script> tag failures, not link/preload failures
+          if (e.target && e.target.tagName === 'SCRIPT' && e.target.src) {
+            console.error('[Recovery] Script load error:', e.target.src);
             showBootError(
-              'Failed to load application script. This may be a deployment issue.',
-              'Failed: ' + e.filename
+              'Failed to load application script. This may be a network or deployment issue.',
+              'Failed: ' + e.target.src
             );
           }
         }, true);
