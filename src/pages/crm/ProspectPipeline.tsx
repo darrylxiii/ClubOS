@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { motion } from 'framer-motion';
@@ -81,7 +81,7 @@ function ProspectPipelineContent() {
   // Use realtime context for live updates
   const { lastUpdate } = useCRMRealtime();
 
-  const { prospects, loading, refetch, updateProspectStage, deleteProspect } = useCRMProspects({ 
+  const { prospects, loading, refetch, updateProspectStage, deleteProspect } = useCRMProspects({
     search: searchQuery || undefined,
     campaignId: selectedCampaign !== 'all' ? selectedCampaign : undefined,
     ownerId: selectedOwner !== 'all' ? selectedOwner : undefined,
@@ -90,6 +90,21 @@ function ProspectPipelineContent() {
   });
   const { campaigns } = useCRMCampaigns({});
   const { owners } = useCRMOwners();
+
+  // Auto-refresh on page visit and visibility change
+  useEffect(() => {
+    // Refetch on mount to ensure fresh data
+    refetch();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refetch();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [refetch]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -442,7 +457,7 @@ export default function ProspectPipeline() {
   return (
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist']}>
-        <CRMRealtimeProvider onProspectUpdate={() => {}}>
+        <CRMRealtimeProvider>
           <ProspectPipelineContent />
         </CRMRealtimeProvider>
       </RoleGate>
