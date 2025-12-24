@@ -227,14 +227,23 @@ function ProspectPipelineContent() {
 
       if (error) throw error;
 
-      const imported = data?.instantlyImported || 0;
-      const updated = data?.instantlyUpdated || 0;
+      // Parse response correctly - edge function returns data.stats.instantly_imported
+      const stats = data?.stats || {};
+      const imported = stats.instantly_imported || 0;
+      const updated = stats.instantly_updated || 0;
+      const errorCount = stats.errors || 0;
+      
+      // Always refetch after sync to show any updates
+      await refetch();
       
       if (imported > 0 || updated > 0) {
-        toast.success(`Synced from Instantly: ${imported} new, ${updated} updated`);
-        refetch();
+        toast.success(`Synced: ${imported} new • ${updated} updated${errorCount > 0 ? ` • ${errorCount} errors` : ''}`);
+      } else if (errorCount > 0) {
+        // Show first error if available
+        const firstError = data?.errors?.[0]?.error || 'Unknown error';
+        toast.error(`Sync failed: ${firstError}`);
       } else {
-        toast.info('No new leads to sync from Instantly');
+        toast.info('All leads are up to date');
       }
     } catch (error: any) {
       console.error('Error syncing from Instantly:', error);

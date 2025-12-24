@@ -46,10 +46,14 @@ export async function instantlyRequest<T>(
   endpoint: string,
   options: InstantlyRequestOptions = {}
 ): Promise<InstantlyResponse<T>> {
-  const apiKey = Deno.env.get('InstantlyAPI');
+  // Check multiple possible env var names for the API key
+  const apiKey = Deno.env.get('InstantlyAPI') 
+    || Deno.env.get('INSTANTLY_API_KEY') 
+    || Deno.env.get('INSTANTLY_API');
   
   if (!apiKey) {
-    return { error: 'Instantly API key not configured', status: 500 };
+    console.error('[Instantly] API key not found. Checked: InstantlyAPI, INSTANTLY_API_KEY, INSTANTLY_API');
+    return { error: 'Instantly API key not configured. Please add InstantlyAPI secret.', status: 500 };
   }
 
   await checkRateLimit();
