@@ -33147,6 +33147,47 @@ export type Database = {
           },
         ]
       }
+      task_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "unified_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_blockers: {
         Row: {
           blocked_task_id: string
@@ -34938,6 +34979,9 @@ export type Database = {
           tags: Json | null
           task_number: string
           task_type: string | null
+          time_tracked_minutes: number | null
+          timer_running: boolean | null
+          timer_started_at: string | null
           title: string
           updated_at: string | null
           user_id: string | null
@@ -34967,6 +35011,9 @@ export type Database = {
           tags?: Json | null
           task_number: string
           task_type?: string | null
+          time_tracked_minutes?: number | null
+          timer_running?: boolean | null
+          timer_started_at?: string | null
           title: string
           updated_at?: string | null
           user_id?: string | null
@@ -34996,6 +35043,9 @@ export type Database = {
           tags?: Json | null
           task_number?: string
           task_type?: string | null
+          time_tracked_minutes?: number | null
+          timer_running?: boolean | null
+          timer_started_at?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string | null
