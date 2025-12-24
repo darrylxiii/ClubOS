@@ -6,6 +6,7 @@ import {
   type InstantlyLead,
   LEAD_INTEREST_STATUS,
   LEAD_STATUS,
+  LEAD_FILTERS,
 } from "../_shared/instantly-client.ts";
 
 const corsHeaders = {
@@ -43,10 +44,45 @@ function mapInstantlyStatusToStage(lead: InstantlyLead): string {
   return 'contacted';
 }
 
+// Hot filters - only leads we care about in the CRM pipeline
+const HOT_FILTERS = [
+  LEAD_FILTERS.REPLIED,
+  LEAD_FILTERS.INTERESTED,
+  LEAD_FILTERS.MEETING_BOOKED,
+  LEAD_FILTERS.MEETING_COMPLETED,
+];
+
+// Batch size for DB operations
+const BATCH_SIZE = 50;
+
+interface ProspectData {
+  first_name: string | null;
+  last_name: string | null;
+  full_name: string;
+  company_name: string | null;
+  company_domain: string;
+  phone: string | null;
+  stage: string;
+  emails_opened: number;
+  emails_clicked: number;
+  emails_replied: number;
+  email_status: string;
+  instantly_lead_id: string;
+  last_contacted_at: string | null;
+  is_interested: boolean;
+  interest_indicated_at: string | null;
+  updated_at: string;
+  deal_value?: number;
+  close_probability?: number;
+  currency?: string;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -55,7 +91,7 @@ serve(async (req) => {
 
     // Parse request body for optional filters
     const body = await req.json().catch(() => ({}));
-    const { campaign_id, direction = 'both' } = body;
+    const { campaign_id, direction = 'both', mode = 'hot' } = body;
 
     // Optional: Get user context
     const authHeader = req.headers.get('Authorization');
@@ -66,7 +102,7 @@ serve(async (req) => {
       userId = user?.id || null;
     }
 
-    console.log(`[sync-instantly-leads] Starting sync (direction: ${direction}, campaign: ${campaign_id || 'all'})`);
+    console.log(`[sync-instantly-leads] Starting sync (direction: ${direction}, mode: ${mode}, campaign: ${campaign_id || 'all'})`);
 
     let instantlyImported = 0;
     let instantlyUpdated = 0;
@@ -94,140 +130,214 @@ serve(async (req) => {
         campaignIds = campaigns?.map(c => c.external_id).filter(Boolean) || [];
       }
 
+      // Cache CRM campaign IDs for batch processing
+      const campaignIdCache: Record<string, string> = {};
       for (const instantlyCampaignId of campaignIds) {
-        // Fetch all leads from Instantly for this campaign
-        let hasMore = true;
-        let startingAfter: string | undefined;
+        const { data: crmCampaign } = await supabase
+          .from('crm_campaigns')
+          .select('id')
+          .eq('external_id', instantlyCampaignId)
+          .maybeSingle();
+        if (crmCampaign) {
+          campaignIdCache[instantlyCampaignId] = crmCampaign.id;
+        }
+      }
 
-        while (hasMore) {
-          const response = await listLeads({
-            campaign_id: instantlyCampaignId,
-            limit: 100,
-            starting_after: startingAfter,
-          });
+      // Collect all leads across campaigns, deduped by email
+      const allLeads = new Map<string, { lead: InstantlyLead; crmCampaignId?: string }>();
 
-          if (response.error) {
-            errors.push({ error: `Failed to fetch leads for campaign ${instantlyCampaignId}: ${response.error}` });
-            break;
+      for (const instantlyCampaignId of campaignIds) {
+        const crmCampaignId = campaignIdCache[instantlyCampaignId];
+
+        // Determine which filters to use based on mode
+        const filtersToUse = mode === 'hot' ? HOT_FILTERS : [undefined]; // undefined = all leads
+
+        for (const filter of filtersToUse) {
+          let hasMore = true;
+          let startingAfter: string | undefined;
+          let pageCount = 0;
+          const maxPages = mode === 'hot' ? 10 : 50; // Limit pages for hot mode
+
+          while (hasMore && pageCount < maxPages) {
+            const response = await listLeads({
+              campaign_id: instantlyCampaignId,
+              filter: filter,
+              limit: 100,
+              starting_after: startingAfter,
+            });
+
+            if (response.error) {
+              errors.push({ error: `Failed to fetch leads for campaign ${instantlyCampaignId}: ${response.error}` });
+              break;
+            }
+
+            const leads = response.data?.items || [];
+            hasMore = !!response.data?.next_starting_after;
+            startingAfter = response.data?.next_starting_after;
+            pageCount++;
+
+            // Dedupe by email
+            for (const lead of leads) {
+              const email = lead.email.toLowerCase().trim();
+              const existing = allLeads.get(email);
+              // Keep the lead with higher engagement or more recent activity
+              if (!existing || (lead.email_reply_count > (existing.lead.email_reply_count || 0))) {
+                allLeads.set(email, { lead, crmCampaignId });
+              }
+            }
+
+            console.log(`[sync-instantly-leads] Fetched ${leads.length} leads (filter: ${filter || 'all'}, campaign: ${instantlyCampaignId}, page: ${pageCount})`);
+          }
+        }
+      }
+
+      console.log(`[sync-instantly-leads] Total unique leads to process: ${allLeads.size}`);
+
+      // Convert to array for batch processing
+      const leadsArray = Array.from(allLeads.entries());
+
+      // Process in batches
+      for (let i = 0; i < leadsArray.length; i += BATCH_SIZE) {
+        const batch = leadsArray.slice(i, i + BATCH_SIZE);
+        const emails = batch.map(([email]) => email);
+
+        // Batch fetch existing prospects
+        const { data: existingProspects } = await supabase
+          .from('crm_prospects')
+          .select('id, email, instantly_lead_id, stage, deal_value, close_probability, currency, owner_id')
+          .in('email', emails);
+
+        const existingMap = new Map(existingProspects?.map(p => [p.email.toLowerCase(), p]) || []);
+
+        // Prepare batch operations
+        const toInsert: any[] = [];
+        const toUpdate: { id: string; data: Partial<ProspectData>; isTransitioningToQualified: boolean; ownerId?: string }[] = [];
+        const tasksToCreate: any[] = [];
+
+        for (const [email, { lead, crmCampaignId }] of batch) {
+          const stage = mapInstantlyStatusToStage(lead);
+          const fullName = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || email.split('@')[0];
+
+          const prospectData: ProspectData = {
+            first_name: lead.first_name || null,
+            last_name: lead.last_name || null,
+            full_name: fullName,
+            company_name: lead.company_name || null,
+            company_domain: lead.company_domain || lead.website || email.split('@')[1],
+            phone: lead.phone || null,
+            stage,
+            emails_opened: lead.email_open_count || 0,
+            emails_clicked: lead.email_click_count || 0,
+            emails_replied: lead.email_reply_count || 0,
+            email_status: lead.status === LEAD_STATUS.BOUNCED ? 'bounced' : 'valid',
+            instantly_lead_id: lead.id,
+            last_contacted_at: lead.timestamp_last_contact || null,
+            is_interested: (lead.lt_interest_status || 0) > 0,
+            interest_indicated_at: lead.timestamp_last_interest_change || null,
+            updated_at: new Date().toISOString(),
+          };
+
+          // Auto-Deal Logic: If qualified (Interested), ensure it has deal attributes
+          if (stage === 'qualified') {
+            const existing = existingMap.get(email);
+            prospectData.deal_value = existing?.deal_value || 5000;
+            prospectData.close_probability = existing?.close_probability || 20;
+            prospectData.currency = existing?.currency || 'USD';
           }
 
-          const leads = response.data?.items || [];
-          hasMore = !!response.data?.next_starting_after;
-          startingAfter = response.data?.next_starting_after;
+          const existing = existingMap.get(email);
 
-          // Get CRM campaign ID
-          const { data: crmCampaign } = await supabase
-            .from('crm_campaigns')
-            .select('id')
-            .eq('external_id', instantlyCampaignId)
-            .maybeSingle();
+          if (existing) {
+            const isTransitioningToQualified = stage === 'qualified' && existing.stage !== 'qualified';
+            toUpdate.push({
+              id: existing.id,
+              data: prospectData,
+              isTransitioningToQualified,
+              ownerId: existing.owner_id,
+            });
+          } else {
+            toInsert.push({
+              email,
+              ...prospectData,
+              source: 'instantly',
+              campaign_id: crmCampaignId,
+              custom_fields: lead.payload || {},
+            });
+          }
+        }
 
-          for (const lead of leads) {
-            try {
-              const email = lead.email.toLowerCase().trim();
-              const stage = mapInstantlyStatusToStage(lead);
-              const fullName = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || email.split('@')[0];
+        // Batch update existing prospects
+        for (const item of toUpdate) {
+          try {
+            const { error: updateError } = await supabase
+              .from('crm_prospects')
+              .update(item.data)
+              .eq('id', item.id);
 
-              // Check if prospect exists
-              const { data: existing } = await supabase
-                .from('crm_prospects')
-                .select('id, instantly_lead_id, stage, deal_value, close_probability, currency, owner_id')
-                .eq('email', email)
-                .maybeSingle();
+            if (updateError) {
+              errors.push({ email: item.data.full_name, error: updateError.message });
+            } else {
+              instantlyUpdated++;
 
-              const prospectData = {
-                first_name: lead.first_name || null,
-                last_name: lead.last_name || null,
-                full_name: fullName,
-                company_name: lead.company_name || null,
-                company_domain: lead.company_domain || lead.website || email.split('@')[1],
-                phone: lead.phone || null,
-                stage,
-                emails_opened: lead.email_open_count || 0,
-                emails_clicked: lead.email_click_count || 0,
-                emails_replied: lead.email_reply_count || 0,
-                email_status: lead.status === LEAD_STATUS.BOUNCED ? 'bounced' : 'valid',
-                instantly_lead_id: lead.id,
-                last_contacted_at: lead.timestamp_last_contact || null,
-                is_interested: (lead.lt_interest_status || 0) > 0,
-                interest_indicated_at: lead.timestamp_last_interest_change || null,
-                updated_at: new Date().toISOString(),
-              };
-
-              // Auto-Deal Logic: If qualified (Interested), ensure it has deal attributes
-              if (stage === 'qualified') {
-                // Default deal values for "Interested" leads
-                (prospectData as any).deal_value = (existing as any)?.deal_value || 5000;
-                (prospectData as any).close_probability = (existing as any)?.close_probability || 20;
-                (prospectData as any).currency = (existing as any)?.currency || 'USD';
+              // Create task if transitioning to qualified
+              if (item.isTransitioningToQualified) {
+                tasksToCreate.push({
+                  prospect_id: item.id,
+                  activity_type: 'task',
+                  subject: '🔥 HOT LEAD: Follow up immediately',
+                  description: `Lead marked as ${item.data.stage} in Instantly. Reply count: ${item.data.emails_replied}`,
+                  priority: 1,
+                  due_date: new Date().toISOString().split('T')[0],
+                  owner_id: item.ownerId,
+                });
               }
+            }
+          } catch (err) {
+            errors.push({ error: String(err) });
+          }
+        }
 
-              if (existing) {
-                // Check for transition to qualified to trigger task
-                const isTransitioningToQualified = stage === 'qualified' && (existing as any).stage !== 'qualified';
+        // Batch insert new prospects
+        if (toInsert.length > 0) {
+          const { data: insertedProspects, error: insertError } = await supabase
+            .from('crm_prospects')
+            .insert(toInsert)
+            .select('id, stage, emails_replied, owner_id');
 
-                // Update existing prospect
-                const { error: updateError } = await supabase
-                  .from('crm_prospects')
-                  .update(prospectData)
-                  .eq('id', existing.id);
+          if (insertError) {
+            errors.push({ error: `Batch insert failed: ${insertError.message}` });
+          } else {
+            instantlyImported += insertedProspects?.length || 0;
 
-                if (updateError) {
-                  errors.push({ email, error: updateError.message });
-                } else {
-                  instantlyUpdated++;
-
-                  // Create Task if transitioning (AUTO-TASK)
-                  if (isTransitioningToQualified) {
-                    await supabase.from('crm_activities').insert({
-                      prospect_id: existing.id,
-                      activity_type: 'task',
-                      subject: '🔥 HOT LEAD: Follow up immediately',
-                      description: `Lead marked as ${stage} in Instantly. Reply count: ${lead.email_reply_count}`,
-                      priority: 1, // High priority
-                      due_date: new Date().toISOString().split('T')[0], // Due today
-                      owner_id: (existing as any).owner_id // Assign to prospect owner
-                    });
-                  }
-                }
-              } else {
-                // Create new prospect
-                const { data: newProspect, error: insertError } = await supabase
-                  .from('crm_prospects')
-                  .insert({
-                    email,
-                    ...prospectData,
-                    source: 'instantly',
-                    campaign_id: crmCampaign?.id,
-                    custom_fields: lead.payload || {},
-                  })
-                  .select('id, owner_id') // Select ID for task creation
-                  .single();
-
-                if (insertError) {
-                  errors.push({ email, error: insertError.message });
-                } else {
-                  instantlyImported++;
-
-                  // Create Task if born qualified (AUTO-TASK)
-                  if (stage === 'qualified' && newProspect) {
-                    await supabase.from('crm_activities').insert({
-                      prospect_id: newProspect.id,
-                      activity_type: 'task',
-                      subject: '🔥 HOT LEAD: Follow up immediately',
-                      description: `Lead imported as ${stage} from Instantly. Reply count: ${lead.email_reply_count}`,
-                      priority: 1,
-                      due_date: new Date().toISOString().split('T')[0],
-                      owner_id: newProspect.owner_id
-                    });
-                  }
-                }
+            // Create tasks for new qualified leads
+            for (const prospect of insertedProspects || []) {
+              if (prospect.stage === 'qualified') {
+                tasksToCreate.push({
+                  prospect_id: prospect.id,
+                  activity_type: 'task',
+                  subject: '🔥 HOT LEAD: Follow up immediately',
+                  description: `Lead imported as qualified from Instantly. Reply count: ${prospect.emails_replied}`,
+                  priority: 1,
+                  due_date: new Date().toISOString().split('T')[0],
+                  owner_id: prospect.owner_id,
+                });
               }
-            } catch (err) {
-              errors.push({ email: lead.email, error: String(err) });
             }
           }
         }
+
+        // Batch insert tasks
+        if (tasksToCreate.length > 0) {
+          const { error: taskError } = await supabase
+            .from('crm_activities')
+            .insert(tasksToCreate);
+
+          if (taskError) {
+            console.error('[sync-instantly-leads] Failed to create tasks:', taskError);
+          }
+        }
+
+        console.log(`[sync-instantly-leads] Processed batch ${Math.floor(i / BATCH_SIZE) + 1}: ${toInsert.length} inserts, ${toUpdate.length} updates`);
       }
     }
 
@@ -290,6 +400,8 @@ serve(async (req) => {
       }
     }
 
+    const duration = Date.now() - startTime;
+
     // Log sync activity
     const { error: logError } = await supabase
       .from('crm_sync_logs')
@@ -312,7 +424,7 @@ serve(async (req) => {
       console.error('[sync-instantly-leads] Failed to log sync:', logError);
     }
 
-    console.log(`[sync-instantly-leads] Sync complete: ${instantlyImported} imported, ${instantlyUpdated} updated, ${crmPushed} pushed, ${errors.length} errors`);
+    console.log(`[sync-instantly-leads] Sync complete in ${duration}ms: ${instantlyImported} imported, ${instantlyUpdated} updated, ${crmPushed} pushed, ${errors.length} errors`);
 
     return new Response(
       JSON.stringify({
@@ -322,6 +434,7 @@ serve(async (req) => {
           instantly_updated: instantlyUpdated,
           crm_pushed: crmPushed,
           errors: errors.length,
+          duration_ms: duration,
         },
         errors: errors.slice(0, 20),
       }),
