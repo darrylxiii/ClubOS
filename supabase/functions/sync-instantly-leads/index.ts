@@ -14,6 +14,106 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// =====================================================
+// STAGE RANK SYSTEM - Prevents accidental downgrades
+// =====================================================
+
+// Canonical stage order (higher = more advanced)
+const STAGE_RANK: Record<string, number> = {
+  'contacted': 1,
+  'opened': 2,
+  'replied': 3,
+  'qualified': 4,
+  'meeting_booked': 5,
+  'demo_completed': 6,
+  'proposal_sent': 7,
+  'negotiation': 8,
+  'closed_won': 9,
+  // Terminal stages - special handling
+  'closed_lost': -1,
+  'unsubscribed': -2,
+};
+
+// Terminal stages that should always override (negative outcomes)
+const TERMINAL_STAGES = new Set(['closed_lost', 'unsubscribed']);
+
+// Check if a stage is terminal (bounce, unsub, not interested)
+function isTerminalStage(stage: string): boolean {
+  return TERMINAL_STAGES.has(stage);
+}
+
+// Get stage rank (returns 0 for unknown stages)
+function getStageRank(stage: string): number {
+  return STAGE_RANK[stage] || 0;
+}
+
+// Determine final stage: never downgrade unless terminal
+function computeFinalStage(existingStage: string | null, newStage: string): string {
+  // If no existing stage, use new
+  if (!existingStage) return newStage;
+  
+  // Terminal stages from Instantly always apply (bounced, unsubscribed, not interested)
+  if (isTerminalStage(newStage)) {
+    return newStage;
+  }
+  
+  // If existing is terminal, DON'T override with non-terminal (lead might have been rescued)
+  if (isTerminalStage(existingStage)) {
+    return existingStage;
+  }
+  
+  // Non-terminal: keep the higher-ranked stage (no downgrades)
+  const existingRank = getStageRank(existingStage);
+  const newRank = getStageRank(newStage);
+  
+  return newRank > existingRank ? newStage : existingStage;
+}
+
+// =====================================================
+// LEAD SCORING - Better deduplication
+// =====================================================
+
+// Score a lead for deduplication (higher = better/more important)
+function scoreInstantlyLead(lead: InstantlyLead): number {
+  let score = 0;
+  
+  // Primary: Interest status (meeting > interested > replied > opened > contacted)
+  const interestStatus = lead.lt_interest_status || 0;
+  switch (interestStatus) {
+    case LEAD_INTEREST_STATUS.MEETING_COMPLETED:
+      score += 500;
+      break;
+    case LEAD_INTEREST_STATUS.MEETING_BOOKED:
+      score += 400;
+      break;
+    case LEAD_INTEREST_STATUS.INTERESTED:
+      score += 300;
+      break;
+    case LEAD_INTEREST_STATUS.NOT_INTERESTED:
+    case LEAD_INTEREST_STATUS.WRONG_PERSON:
+      score += 100; // Still valuable info, but lower
+      break;
+    case LEAD_INTEREST_STATUS.OUT_OF_OFFICE:
+      score += 50;
+      break;
+  }
+  
+  // Secondary: Reply count (capped contribution)
+  score += Math.min(lead.email_reply_count || 0, 10) * 20;
+  
+  // Tertiary: Open count
+  score += Math.min(lead.email_open_count || 0, 20) * 2;
+  
+  // Quaternary: Recent activity (newer is better)
+  if (lead.timestamp_last_interest_change) {
+    const lastInterest = new Date(lead.timestamp_last_interest_change).getTime();
+    const ageHours = (Date.now() - lastInterest) / (1000 * 60 * 60);
+    score += Math.max(0, 100 - ageHours); // Up to 100 points for very recent
+  }
+  
+  return score;
+}
+
 // Map Instantly V2 lead to CRM stage using numeric status codes
 function mapInstantlyStatusToStage(lead: InstantlyLead): string {
   // Check interest status first (V2 API uses lt_interest_status)
@@ -106,6 +206,9 @@ serve(async (req) => {
 
     let instantlyImported = 0;
     let instantlyUpdated = 0;
+    let stagesUpgraded = 0;
+    let stagesProtected = 0; // Downgrades prevented
+    let terminalApplied = 0;
     let crmPushed = 0;
     const errors: { email?: string; error: string }[] = [];
 
@@ -143,8 +246,8 @@ serve(async (req) => {
         }
       }
 
-      // Collect all leads across campaigns, deduped by email
-      const allLeads = new Map<string, { lead: InstantlyLead; crmCampaignId?: string }>();
+      // Collect all leads across campaigns, deduped by email with SCORING
+      const allLeads = new Map<string, { lead: InstantlyLead; crmCampaignId?: string; score: number }>();
 
       for (const instantlyCampaignId of campaignIds) {
         const crmCampaignId = campaignIdCache[instantlyCampaignId];
@@ -176,13 +279,15 @@ serve(async (req) => {
             startingAfter = response.data?.next_starting_after;
             pageCount++;
 
-            // Dedupe by email
+            // Dedupe by email using SCORE-BASED selection
             for (const lead of leads) {
               const email = lead.email.toLowerCase().trim();
+              const newScore = scoreInstantlyLead(lead);
               const existing = allLeads.get(email);
-              // Keep the lead with higher engagement or more recent activity
-              if (!existing || (lead.email_reply_count > (existing.lead.email_reply_count || 0))) {
-                allLeads.set(email, { lead, crmCampaignId });
+              
+              // Keep the lead with HIGHER score (more engagement/interest)
+              if (!existing || newScore > existing.score) {
+                allLeads.set(email, { lead, crmCampaignId, score: newScore });
               }
             }
 
@@ -211,12 +316,29 @@ serve(async (req) => {
 
         // Prepare batch operations
         const toInsert: any[] = [];
-        const toUpdate: { id: string; data: Partial<ProspectData>; isTransitioningToQualified: boolean; ownerId?: string }[] = [];
+        const toUpdate: { id: string; data: Partial<ProspectData>; isTransitioningToQualified: boolean; ownerId?: string; stageChange: 'upgraded' | 'protected' | 'terminal' | 'same' }[] = [];
         const tasksToCreate: any[] = [];
 
         for (const [email, { lead, crmCampaignId }] of batch) {
-          const stage = mapInstantlyStatusToStage(lead);
+          const instantlyStage = mapInstantlyStatusToStage(lead);
           const fullName = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || email.split('@')[0];
+
+          const existing = existingMap.get(email);
+          
+          // COMPUTE FINAL STAGE with monotonic protection
+          const finalStage = computeFinalStage(existing?.stage || null, instantlyStage);
+          
+          // Track what happened to the stage
+          let stageChange: 'upgraded' | 'protected' | 'terminal' | 'same' = 'same';
+          if (existing) {
+            if (isTerminalStage(finalStage) && !isTerminalStage(existing.stage)) {
+              stageChange = 'terminal';
+            } else if (finalStage !== existing.stage && getStageRank(finalStage) > getStageRank(existing.stage)) {
+              stageChange = 'upgraded';
+            } else if (instantlyStage !== existing.stage && finalStage === existing.stage) {
+              stageChange = 'protected'; // Downgrade was prevented
+            }
+          }
 
           const prospectData: ProspectData = {
             first_name: lead.first_name || null,
@@ -225,7 +347,7 @@ serve(async (req) => {
             company_name: lead.company_name || null,
             company_domain: lead.company_domain || lead.website || email.split('@')[1],
             phone: lead.phone || null,
-            stage,
+            stage: finalStage, // USE FINAL STAGE (monotonic)
             emails_opened: lead.email_open_count || 0,
             emails_clicked: lead.email_click_count || 0,
             emails_replied: lead.email_reply_count || 0,
@@ -238,22 +360,20 @@ serve(async (req) => {
           };
 
           // Auto-Deal Logic: If qualified (Interested), ensure it has deal attributes
-          if (stage === 'qualified') {
-            const existing = existingMap.get(email);
+          if (finalStage === 'qualified') {
             prospectData.deal_value = existing?.deal_value || 5000;
             prospectData.close_probability = existing?.close_probability || 20;
             prospectData.currency = existing?.currency || 'USD';
           }
 
-          const existing = existingMap.get(email);
-
           if (existing) {
-            const isTransitioningToQualified = stage === 'qualified' && existing.stage !== 'qualified';
+            const isTransitioningToQualified = finalStage === 'qualified' && existing.stage !== 'qualified';
             toUpdate.push({
               id: existing.id,
               data: prospectData,
               isTransitioningToQualified,
               ownerId: existing.owner_id,
+              stageChange,
             });
           } else {
             toInsert.push({
@@ -278,6 +398,19 @@ serve(async (req) => {
               errors.push({ email: item.data.full_name, error: updateError.message });
             } else {
               instantlyUpdated++;
+              
+              // Track stage change stats
+              switch (item.stageChange) {
+                case 'upgraded':
+                  stagesUpgraded++;
+                  break;
+                case 'protected':
+                  stagesProtected++;
+                  break;
+                case 'terminal':
+                  terminalApplied++;
+                  break;
+              }
 
               // Create task if transitioning to qualified
               if (item.isTransitioningToQualified) {
@@ -402,7 +535,7 @@ serve(async (req) => {
 
     const duration = Date.now() - startTime;
 
-    // Log sync activity
+    // Log sync activity with stage change details
     const { error: logError } = await supabase
       .from('crm_sync_logs')
       .insert({
@@ -424,7 +557,7 @@ serve(async (req) => {
       console.error('[sync-instantly-leads] Failed to log sync:', logError);
     }
 
-    console.log(`[sync-instantly-leads] Sync complete in ${duration}ms: ${instantlyImported} imported, ${instantlyUpdated} updated, ${crmPushed} pushed, ${errors.length} errors`);
+    console.log(`[sync-instantly-leads] Sync complete in ${duration}ms: ${instantlyImported} imported, ${instantlyUpdated} updated (${stagesUpgraded} upgraded, ${stagesProtected} protected, ${terminalApplied} terminal), ${crmPushed} pushed, ${errors.length} errors`);
 
     return new Response(
       JSON.stringify({
@@ -432,6 +565,9 @@ serve(async (req) => {
         stats: {
           instantly_imported: instantlyImported,
           instantly_updated: instantlyUpdated,
+          stages_upgraded: stagesUpgraded,
+          stages_protected: stagesProtected, // Downgrades prevented
+          terminal_applied: terminalApplied,
           crm_pushed: crmPushed,
           errors: errors.length,
           duration_ms: duration,
