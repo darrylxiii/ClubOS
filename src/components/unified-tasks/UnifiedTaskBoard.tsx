@@ -3,22 +3,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Plus, 
-  Hand, 
-  Rocket, 
-  Pause, 
-  CheckCircle2, 
+import {
+  Plus,
+  Hand,
+  Rocket,
+  Pause,
+  CheckCircle2,
   Sparkles,
   Clock,
   Lock,
-  Unlock
+  Unlock,
+  Briefcase,
+  User
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { CreateUnifiedTaskDialog } from "./CreateUnifiedTaskDialog";
 import { UnifiedTaskDetailDialog } from "./UnifiedTaskDetailDialog";
+import { UnifiedTaskCard } from "./UnifiedTaskCard";
 import {
   DndContext,
   DragEndEvent,
@@ -55,6 +58,10 @@ interface UnifiedTask {
   blockingCount?: number;
   blockedByCount?: number;
   migration_status: string;
+  project_id?: string;
+  marketplace_projects?: {
+    title: string;
+  };
 }
 
 interface UnifiedTaskBoardProps {
@@ -71,131 +78,17 @@ const STATUS_COLUMNS = [
   { key: "completed", label: "Completed", icon: CheckCircle2, color: "bg-green-500/20 border-green-500/50" },
 ];
 
-const DraggableTaskCard = ({ task, onClick }: { task: UnifiedTask; onClick: () => void }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: task.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <Card
-        className="p-4 hover:shadow-lg transition-all cursor-move border-l-4 border-l-transparent hover:border-l-primary animate-fade-in"
-        onClick={onClick}
-      >
-        <div className="space-y-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-medium">{task.title}</h4>
-                {task.auto_scheduled && (
-                  <Sparkles className="h-3 w-3 text-accent" />
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {task.task_number}
-              </p>
-              {task.migration_status !== 'new' && (
-                <Badge variant="outline" className="text-[10px] mt-1">
-                  {task.migration_status === 'migrated_from_club' && 'From Club'}
-                  {task.migration_status === 'migrated_from_pilot' && 'From Pilot'}
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          {/* Assignees */}
-          {task.assignees && task.assignees.length > 0 && (
-            <div className="flex -space-x-2">
-              {task.assignees.slice(0, 3).map((assignee) => (
-                <Avatar key={assignee.user_id} className="h-6 w-6 border-2 border-background">
-                  <AvatarImage src={assignee.profiles?.avatar_url || undefined} />
-                  <AvatarFallback className="text-[10px]">
-                    {assignee.profiles?.full_name?.charAt(0) || "?"}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-              {task.assignees.length > 3 && (
-                <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[10px]">
-                  +{task.assignees.length - 3}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Blocking/Blocked By Stats */}
-          <TooltipProvider>
-            <div className="flex items-center gap-3">
-              {task.blockingCount > 0 && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1 text-xs">
-                      <Lock className="h-3 w-3 text-orange-500" />
-                      <span className="font-medium">{task.blockingCount}</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-popover">
-                    <p className="text-xs">Blocking {task.blockingCount} task(s)</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-              
-              {task.blockedByCount > 0 && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1 text-xs">
-                      <Unlock className="h-3 w-3 text-blue-500" />
-                      <span className="font-medium">{task.blockedByCount}</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-popover">
-                    <p className="text-xs">Blocked by {task.blockedByCount} task(s)</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-          </TooltipProvider>
-
-          {/* Scheduling info */}
-          {task.scheduled_start && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              {format(new Date(task.scheduled_start), "MMM d, HH:mm")}
-            </div>
-          )}
-
-          {/* Due date */}
-          {task.due_date && (
-            <p className="text-xs text-muted-foreground">
-              📅 Due: {format(new Date(task.due_date), "MMM d, yyyy")}
-            </p>
-          )}
-        </div>
-      </Card>
-    </div>
-  );
-};
-
-export const UnifiedTaskBoard = ({ 
-  objectiveId, 
+export const UnifiedTaskBoard = ({
+  objectiveId,
   objectiveName,
   onRefresh,
-  aiSchedulingEnabled 
+  aiSchedulingEnabled
 }: UnifiedTaskBoardProps) => {
   const [tasks, setTasks] = useState<UnifiedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<UnifiedTask | null>(null);
   const [activeTask, setActiveTask] = useState<UnifiedTask | null>(null);
+  const [groupBy, setGroupBy] = useState<'status' | 'assignee'>('status');
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -266,8 +159,31 @@ export const UnifiedTaskBoard = ({
     }
   };
 
-  const getTasksByStatus = (status: string) => {
-    return tasks.filter(task => task.status === status);
+  const getColumns = () => {
+    if (groupBy === 'status') return STATUS_COLUMNS;
+
+    // Generate assignee columns dynamically
+    const assignees = Array.from(new Set(tasks.flatMap(t => t.assignees?.map(a => a.profiles.full_name) || [])));
+    return [
+      { key: 'unassigned', label: 'Unassigned', icon: Briefcase, color: "bg-gray-500/20 border-gray-500/50" },
+      ...assignees.map(name => ({
+        key: name,
+        label: name,
+        icon: User,
+        color: "bg-indigo-500/20 border-indigo-500/50"
+      }))
+    ];
+  };
+
+  const getTasksByColumn = (columnKey: string) => {
+    if (groupBy === 'status') {
+      return tasks.filter(task => task.status === columnKey);
+    } else {
+      if (columnKey === 'unassigned') {
+        return tasks.filter(task => !task.assignees || task.assignees.length === 0);
+      }
+      return tasks.filter(task => task.assignees?.some(a => a.profiles.full_name === columnKey));
+    }
   };
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
@@ -281,7 +197,7 @@ export const UnifiedTaskBoard = ({
     try {
       const { error } = await supabase
         .from("unified_tasks")
-        .update({ 
+        .update({
           status: newStatus,
           completed_at: newStatus === 'completed' ? new Date().toISOString() : null
         })
@@ -324,9 +240,34 @@ export const UnifiedTaskBoard = ({
       onDragEnd={handleDragEnd}
     >
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {STATUS_COLUMNS.map((column) => {
-            const columnTasks = getTasksByStatus(column.key);
+        {/* Toolbar */}
+        <div className="flex justify-between items-center bg-card/50 p-2 rounded-lg border backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-muted-foreground pl-2">Group By:</span>
+            <div className="flex bg-muted/50 rounded-md p-1">
+              <Button
+                variant={groupBy === 'status' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setGroupBy('status')}
+              >
+                Status
+              </Button>
+              <Button
+                variant={groupBy === 'assignee' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setGroupBy('assignee')}
+              >
+                Assignee
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto pb-4">
+          {getColumns().map((column) => {
+            const columnTasks = getTasksByColumn(column.key);
             const Icon = column.icon;
 
             return (
@@ -336,27 +277,30 @@ export const UnifiedTaskBoard = ({
                 items={columnTasks.map(t => t.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <Card className={`border-2 ${column.color}`}>
-                  <CardHeader className="pb-3">
+                <Card className={`border-2 ${column.color} min-w-[300px]`}>
+                  <CardHeader className="pb-3 sticky top-0 bg-background/95 backdrop-blur z-10 p-4 border-b">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Icon className="h-5 w-5" />
-                        <CardTitle className="text-lg">{column.label}</CardTitle>
+                        <CardTitle className="text-lg whitespace-nowrap">{column.label}</CardTitle>
                       </div>
                       <Badge variant="secondary">{columnTasks.length}</Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3 min-h-[400px]">
+                  <CardContent className="space-y-3 min-h-[400px] p-2 bg-muted/10">
                     {columnTasks.length === 0 ? (
-                      <div className="border-2 border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground">
+                      <div className="border-2 border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground h-full flex flex-col items-center justify-center opacity-50">
                         Drop tasks here
                       </div>
                     ) : (
                       columnTasks.map((task) => (
-                        <DraggableTaskCard
+                        <UnifiedTaskCard
                           key={task.id}
-                          task={task}
-                          onClick={() => setSelectedTask(task)}
+                          task={{
+                            ...task,
+                            project_tag: task.marketplace_projects?.title || null
+                          }}
+                          onClick={setSelectedTask}
                         />
                       ))
                     )}

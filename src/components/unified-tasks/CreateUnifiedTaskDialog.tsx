@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Calendar as CalendarIcon, User, Users, X } from "lucide-react";
 import { format } from "date-fns";
+import { Briefcase } from "lucide-react";
 
 interface CreateUnifiedTaskDialogProps {
   objectiveId: string | null;
@@ -47,8 +48,11 @@ export const CreateUnifiedTaskDialog = ({
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [assignToSelf, setAssignToSelf] = useState(true);
   const [showAssignOthers, setShowAssignOthers] = useState(false);
+
   const [objectives, setObjectives] = useState<any[]>([]);
   const [selectedObjective, setSelectedObjective] = useState<string | undefined>(objectiveId || undefined);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [selectedProject, setSelectedProject] = useState<string | undefined>(undefined);
   const [allTasks, setAllTasks] = useState<any[]>([]);
   const [blockingTasks, setBlockingTasks] = useState<string[]>([]);
   const [blockedByTasks, setBlockedByTasks] = useState<string[]>([]);
@@ -66,12 +70,16 @@ export const CreateUnifiedTaskDialog = ({
   useEffect(() => {
     if (open) {
       loadProfiles();
+
       loadObjectives();
+      loadProjects();
       loadTasks();
       setAssignToSelf(true);
       setSelectedAssignees([]);
       setShowAssignOthers(false);
+
       setSelectedObjective(objectiveId || undefined);
+      setSelectedProject(undefined);
       // Set initial values when dialog opens
       if (initialTitle || initialDescription) {
         setFormData(prev => ({
@@ -89,8 +97,18 @@ export const CreateUnifiedTaskDialog = ({
       .from("club_objectives")
       .select("id, title, status")
       .order("created_at", { ascending: false });
-    
+
     if (data) setObjectives(data);
+  };
+
+  const loadProjects = async () => {
+    const { data } = await supabase
+      .from("marketplace_projects")
+      .select("id, title, status")
+      .eq("status", "in_progress") // Or 'open' depending on logic, let's fetch active ones
+      .order("created_at", { ascending: false });
+
+    if (data) setProjects(data);
   };
 
   const loadTasks = async () => {
@@ -99,7 +117,7 @@ export const CreateUnifiedTaskDialog = ({
       .select("id, title, status, task_number")
       .order("created_at", { ascending: false })
       .limit(100);
-    
+
     if (data) setAllTasks(data);
   };
 
@@ -137,7 +155,9 @@ export const CreateUnifiedTaskDialog = ({
           scheduling_mode: formData.scheduling_mode,
           due_date: formData.due_date?.toISOString() || null,
           estimated_duration_minutes: formData.estimated_duration_minutes,
+
           objective_id: selectedObjective || null,
+          project_id: selectedProject || null,
           user_id: user.id,
           created_by: user.id,
         }])
@@ -225,7 +245,9 @@ export const CreateUnifiedTaskDialog = ({
     setShowAssignOthers(false);
     setBlockingTasks([]);
     setBlockedByTasks([]);
+
     setSelectedObjective(undefined);
+    setSelectedProject(undefined);
   };
 
   const toggleAssignee = (userId: string) => {
@@ -285,6 +307,26 @@ export const CreateUnifiedTaskDialog = ({
                 {objectives.map((obj) => (
                   <SelectItem key={obj.id} value={obj.id}>
                     {obj.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="project">Project (Optional)</Label>
+            <Select value={selectedProject || "none"} onValueChange={(val) => setSelectedProject(val === "none" ? undefined : val)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select project" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="none">No project</SelectItem>
+                {projects.map((proj) => (
+                  <SelectItem key={proj.id} value={proj.id}>
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="h-3 w-3 text-muted-foreground" />
+                      <span>{proj.title}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -403,7 +445,7 @@ export const CreateUnifiedTaskDialog = ({
 
           <div className="space-y-3">
             <Label>Assign To</Label>
-            
+
             {/* Assign to myself button */}
             <Button
               type="button"
@@ -460,9 +502,8 @@ export const CreateUnifiedTaskDialog = ({
                     key={profile.id}
                     type="button"
                     onClick={() => toggleAssignee(profile.id)}
-                    className={`flex items-center gap-3 w-full p-2 rounded hover:bg-accent transition-colors ${
-                      selectedAssignees.includes(profile.id) ? "bg-accent" : ""
-                    }`}
+                    className={`flex items-center gap-3 w-full p-2 rounded hover:bg-accent transition-colors ${selectedAssignees.includes(profile.id) ? "bg-accent" : ""
+                      }`}
                   >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={profile.avatar_url || undefined} />
@@ -481,8 +522,8 @@ export const CreateUnifiedTaskDialog = ({
           <div className="space-y-3">
             <Label>Blocking (Optional)</Label>
             <p className="text-xs text-muted-foreground">Tasks that THIS task blocks</p>
-            <Select 
-              value="" 
+            <Select
+              value=""
               onValueChange={(value) => {
                 if (value && !blockingTasks.includes(value)) {
                   setBlockingTasks([...blockingTasks, value]);
@@ -526,8 +567,8 @@ export const CreateUnifiedTaskDialog = ({
           <div className="space-y-3">
             <Label>Blocked By (Optional)</Label>
             <p className="text-xs text-muted-foreground">Tasks that block THIS task</p>
-            <Select 
-              value="" 
+            <Select
+              value=""
               onValueChange={(value) => {
                 if (value && !blockedByTasks.includes(value)) {
                   setBlockedByTasks([...blockedByTasks, value]);
