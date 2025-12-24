@@ -28,17 +28,51 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error("Unauthorized");
 
-    // Get user's tasks, preferences, and calendar events
-    const { data: tasks, error: tasksError } = await supabase
-      .from("tasks")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("status", "pending")
+    const { objective_id } = await req.json();
+
+    // Get user's unified tasks that need scheduling
+    let query = supabase
+      .from("unified_tasks")
+      .select(`
+        *,
+        assignees:unified_task_assignees(
+          user_id,
+          profiles(full_name)
+        )
+      `)
+      .in("status", ["pending", "in_progress"])
       .is("scheduled_start", null)
       .order("priority", { ascending: false })
       .order("due_date", { ascending: true, nullsFirst: false });
 
+    // Filter by objective if provided
+    if (objective_id) {
+      query = query.eq("objective_id", objective_id);
+    }
+
+    // Filter to tasks the user is assigned to or created
+    const { data: tasks, error: tasksError } = await query;
+
     if (tasksError) throw tasksError;
+
+    // Filter tasks to only include those the user is assigned to
+    const userTasks = tasks?.filter(task => 
+      task.assignees?.some((a: any) => a.user_id === user.id) || 
+      task.created_by === user.id
+    ) || [];
+
+    console.log(`Found ${userTasks.length} tasks to schedule for user ${user.id}`);
+
+    if (userTasks.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          scheduled_count: 0,
+          message: "No unscheduled tasks found" 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const { data: preferences } = await supabase
       .from("task_scheduling_preferences")
@@ -46,30 +80,29 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    // Get calendar events from connected calendars
-    const savedCalendars = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", user.id)
-      .single();
-
     // Build prompt for AI scheduler
     const systemPrompt = `You are an intelligent task scheduler similar to Motion.app. 
-Your job is to analyze the user's tasks, their calendar events, and their preferences to create an optimal daily schedule.
+Your job is to analyze the user's tasks and their preferences to create an optimal daily schedule.
 
 Consider:
 - Task priorities (urgent > high > medium > low)
 - Due dates (tasks due soon should be scheduled first)
-- Estimated duration for each task
+- Estimated duration for each task (default 60 minutes if not specified)
 - User's working hours and preferences
 - Break times between tasks
-- Existing calendar events (busy times)
 - Focus time blocks
 
 Return a schedule that maximizes productivity while respecting the user's preferences and constraints.`;
 
     const userPrompt = `Schedule the following tasks:
-${JSON.stringify(tasks, null, 2)}
+${JSON.stringify(userTasks.map(t => ({
+  id: t.id,
+  title: t.title,
+  priority: t.priority,
+  due_date: t.due_date,
+  estimated_hours: t.estimated_hours,
+  status: t.status
+})), null, 2)}
 
 User preferences:
 ${JSON.stringify(preferences || {
@@ -152,25 +185,27 @@ Create an optimal schedule for the next 7 days. For each task, suggest a start t
 
     const scheduledTasks = JSON.parse(toolCall.function.arguments).scheduled_tasks;
 
-    // Update tasks with scheduled times
+    // Update unified_tasks with scheduled times
     const updates = [];
     for (const scheduled of scheduledTasks) {
       const { error: updateError } = await supabase
-        .from("tasks")
+        .from("unified_tasks")
         .update({
           scheduled_start: scheduled.scheduled_start,
           scheduled_end: scheduled.scheduled_end,
           auto_scheduled: true,
         })
-        .eq("id", scheduled.task_id)
-        .eq("user_id", user.id);
+        .eq("id", scheduled.task_id);
 
       if (!updateError) {
         updates.push({ ...scheduled, success: true });
       } else {
+        console.error(`Failed to update task ${scheduled.task_id}:`, updateError);
         updates.push({ ...scheduled, success: false, error: updateError.message });
       }
     }
+
+    console.log(`Successfully scheduled ${updates.filter(u => u.success).length} tasks`);
 
     return new Response(
       JSON.stringify({ 
