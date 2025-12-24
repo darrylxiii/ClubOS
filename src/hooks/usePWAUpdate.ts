@@ -9,6 +9,39 @@ interface PWAUpdateState {
   lastDismissed: number | null;
 }
 
+/**
+ * Completely unregisters all service workers and clears all caches.
+ * This is a recovery mechanism for users stuck on stale cached versions.
+ */
+export async function resetOfflineCache(): Promise<boolean> {
+  try {
+    // Unregister all service workers
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(reg => reg.unregister()));
+    }
+    
+    // Clear all caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+    }
+    
+    // Clear localStorage PWA-related items
+    localStorage.removeItem(DISMISS_STORAGE_KEY);
+    localStorage.removeItem('pwa-install-dismissed');
+    
+    console.log('[PWA] Cache reset complete. Reloading...');
+    
+    // Force reload from server
+    window.location.reload();
+    return true;
+  } catch (error) {
+    console.error('[PWA] Failed to reset cache:', error);
+    return false;
+  }
+}
+
 export function usePWAUpdate() {
   const [state, setState] = useState<PWAUpdateState>({
     isUpdateAvailable: false,
@@ -103,5 +136,6 @@ export function usePWAUpdate() {
     updateNow,
     dismissUpdate,
     checkForUpdates,
+    resetOfflineCache,
   };
 }
