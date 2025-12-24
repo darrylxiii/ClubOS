@@ -33118,6 +33118,47 @@ export type Database = {
           },
         ]
       }
+      task_activity_log: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_activity_log_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "unified_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_assignees: {
         Row: {
           assigned_at: string
@@ -33472,6 +33513,66 @@ export type Database = {
           },
         ]
       }
+      task_label_assignments: {
+        Row: {
+          created_at: string | null
+          id: string
+          label_id: string
+          task_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          label_id: string
+          task_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          label_id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_label_assignments_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "task_labels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_label_assignments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "unified_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_labels: {
+        Row: {
+          color: string
+          created_at: string | null
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       task_migration_log: {
         Row: {
           error_message: string | null
@@ -33513,6 +33614,44 @@ export type Database = {
           {
             foreignKeyName: "task_migration_log_target_task_id_fkey"
             columns: ["target_task_id"]
+            isOneToOne: false
+            referencedRelation: "unified_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_reminders: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_sent: boolean | null
+          remind_at: string
+          reminder_type: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_sent?: boolean | null
+          remind_at: string
+          reminder_type?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_sent?: boolean | null
+          remind_at?: string
+          reminder_type?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_reminders_task_id_fkey"
+            columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "unified_tasks"
             referencedColumns: ["id"]
@@ -34966,12 +35105,18 @@ export type Database = {
           due_date: string | null
           estimated_duration_minutes: number | null
           id: string
+          is_overdue: boolean | null
+          last_activity_at: string | null
           legacy_club_task_id: string | null
           legacy_pilot_task_id: string | null
           migration_status: string | null
+          next_occurrence: string | null
           objective_id: string | null
+          parent_recurring_id: string | null
           position: string | null
           priority: string
+          recurrence_end_date: string | null
+          recurrence_rule: Json | null
           scheduled_end: string | null
           scheduled_start: string | null
           scheduling_mode: string | null
@@ -34998,12 +35143,18 @@ export type Database = {
           due_date?: string | null
           estimated_duration_minutes?: number | null
           id?: string
+          is_overdue?: boolean | null
+          last_activity_at?: string | null
           legacy_club_task_id?: string | null
           legacy_pilot_task_id?: string | null
           migration_status?: string | null
+          next_occurrence?: string | null
           objective_id?: string | null
+          parent_recurring_id?: string | null
           position?: string | null
           priority?: string
+          recurrence_end_date?: string | null
+          recurrence_rule?: Json | null
           scheduled_end?: string | null
           scheduled_start?: string | null
           scheduling_mode?: string | null
@@ -35030,12 +35181,18 @@ export type Database = {
           due_date?: string | null
           estimated_duration_minutes?: number | null
           id?: string
+          is_overdue?: boolean | null
+          last_activity_at?: string | null
           legacy_club_task_id?: string | null
           legacy_pilot_task_id?: string | null
           migration_status?: string | null
+          next_occurrence?: string | null
           objective_id?: string | null
+          parent_recurring_id?: string | null
           position?: string | null
           priority?: string
+          recurrence_end_date?: string | null
+          recurrence_rule?: Json | null
           scheduled_end?: string | null
           scheduled_start?: string | null
           scheduling_mode?: string | null
@@ -35070,6 +35227,13 @@ export type Database = {
             columns: ["objective_id"]
             isOneToOne: false
             referencedRelation: "club_objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_tasks_parent_recurring_id_fkey"
+            columns: ["parent_recurring_id"]
+            isOneToOne: false
+            referencedRelation: "unified_tasks"
             referencedColumns: ["id"]
           },
         ]
@@ -40462,6 +40626,7 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: undefined
       }
+      update_task_overdue_status: { Args: never; Returns: undefined }
       update_user_activity_tracking: {
         Args: {
           p_action_type: string
