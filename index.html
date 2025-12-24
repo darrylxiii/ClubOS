@@ -171,67 +171,133 @@
     <div id="root">
       <!-- Inline critical first paint content - will be replaced by React -->
       <div id="initial-loader" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:hsl(30 20% 96%);gap:24px;">
-        <svg width="48" height="48" viewBox="0 0 100 100" style="animation:spin 1s linear infinite;">
+        <svg id="boot-spinner" width="48" height="48" viewBox="0 0 100 100" style="animation:spin 1s linear infinite;">
           <circle cx="50" cy="50" r="40" stroke="hsl(45 100% 51%)" stroke-width="4" fill="none" stroke-dasharray="251" stroke-dashoffset="50" stroke-linecap="round"/>
         </svg>
         <!-- Emergency recovery UI - shown if app fails to boot -->
-        <div id="boot-error" style="display:none;text-align:center;max-width:400px;padding:24px;font-family:Inter,system-ui,sans-serif;">
-          <p style="color:hsl(0 0% 25%);font-size:14px;margin:0 0 16px;">
-            The app is taking longer than expected to load. This may be due to a cached version conflict.
+        <div id="boot-error" style="display:none;text-align:center;max-width:420px;padding:24px;font-family:Inter,system-ui,sans-serif;">
+          <div style="width:56px;height:56px;margin:0 auto 16px;background:hsl(0 70% 50% / 0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+            <svg width="28" height="28" fill="none" stroke="hsl(0 70% 50%)" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <h2 style="color:hsl(0 0% 15%);font-size:18px;font-weight:600;margin:0 0 8px;">Unable to Load Application</h2>
+          <p id="boot-error-msg" style="color:hsl(0 0% 40%);font-size:14px;margin:0 0 8px;line-height:1.5;">
+            The app didn't start. This is usually caused by a cached version conflict.
           </p>
-          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-            <button onclick="location.reload()" style="padding:10px 20px;background:hsl(45 100% 51%);color:hsl(0 0% 10%);border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">
-              Reload Page
-            </button>
-            <button onclick="resetCache()" style="padding:10px 20px;background:hsl(0 0% 15%);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">
+          <p id="boot-error-detail" style="color:hsl(0 0% 55%);font-size:12px;margin:0 0 20px;font-family:monospace;background:hsl(0 0% 95%);padding:8px;border-radius:4px;word-break:break-all;display:none;"></p>
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;">
+            <button onclick="resetCache()" style="padding:12px 24px;background:hsl(45 100% 51%);color:hsl(0 0% 10%);border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:8px;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
               Reset Cache & Reload
             </button>
+            <button onclick="location.reload()" style="padding:12px 24px;background:hsl(0 0% 95%);color:hsl(0 0% 25%);border:1px solid hsl(0 0% 85%);border-radius:8px;font-weight:500;cursor:pointer;font-size:14px;">
+              Try Again
+            </button>
           </div>
+          <p style="color:hsl(0 0% 50%);font-size:12px;margin:0;">
+            If the problem persists, try opening in an <a href="javascript:void(0)" onclick="alert('Open a new private/incognito window and visit: ' + location.href)" style="color:hsl(220 70% 50%);text-decoration:underline;">incognito window</a>
+          </p>
         </div>
       </div>
       <style>
         #initial-loader{opacity:1;transition:opacity .2s}
         @keyframes spin{to{transform:rotate(360deg)}}
         #boot-error button:hover{opacity:0.9;transform:scale(1.02)}
+        #boot-error button:active{transform:scale(0.98)}
       </style>
     </div>
     
-    <!-- Emergency cache reset function (inline for reliability) -->
+    <!-- Emergency cache reset and deployment detection (inline for reliability) -->
     <script>
-      window.__APP_BOOTED__ = false;
-      
-      async function resetCache() {
-        try {
-          // Unregister all service workers
-          if ('serviceWorker' in navigator) {
-            var regs = await navigator.serviceWorker.getRegistrations();
-            await Promise.all(regs.map(function(r) { return r.unregister(); }));
-          }
-          // Clear all caches
-          if ('caches' in window) {
-            var keys = await caches.keys();
-            await Promise.all(keys.map(function(k) { return caches.delete(k); }));
-          }
-          // Clear PWA storage
-          localStorage.removeItem('pwa-update-dismissed');
-          localStorage.removeItem('pwa-install-dismissed');
-          console.log('[Recovery] Cache cleared. Reloading...');
-        } catch (e) {
-          console.error('[Recovery] Failed to clear cache:', e);
+      (function() {
+        window.__APP_BOOTED__ = false;
+        window.__BOOT_START__ = Date.now();
+        
+        // Deployment detection: check if we're loading dev resources in production
+        var isProduction = location.hostname !== 'localhost' && !location.hostname.includes('localhost');
+        var scripts = document.querySelectorAll('script[src*="/src/main.tsx"]');
+        var hasTailwindCDN = !!document.querySelector('script[src*="cdn.tailwindcss.com"]');
+        var isDevBuild = scripts.length > 0 || hasTailwindCDN;
+        
+        if (isProduction && isDevBuild) {
+          console.error('[Recovery] ⚠️ DEPLOYMENT ERROR: Production is serving development build!');
+          console.error('[Recovery] Found /src/main.tsx reference - this will NOT work in production.');
+          // Show error immediately for deployment issues
+          showBootError('Deployment configuration error detected. The site is serving a development build instead of production.', '/src/main.tsx detected');
         }
-        location.reload();
-      }
-      
-      // Boot timeout: show recovery UI if app doesn't start within 8 seconds
-      setTimeout(function() {
-        if (!window.__APP_BOOTED__) {
+        
+        async function resetCache() {
+          var btn = event && event.target;
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Clearing...';
+          }
+          try {
+            // Unregister all service workers
+            if ('serviceWorker' in navigator) {
+              var regs = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(regs.map(function(r) { return r.unregister(); }));
+              console.log('[Recovery] Unregistered', regs.length, 'service worker(s)');
+            }
+            // Clear all caches
+            if ('caches' in window) {
+              var keys = await caches.keys();
+              await Promise.all(keys.map(function(k) { return caches.delete(k); }));
+              console.log('[Recovery] Deleted', keys.length, 'cache(s)');
+            }
+            // Clear PWA and app storage
+            ['pwa-update-dismissed', 'pwa-install-dismissed', 'sb-auth-token'].forEach(function(k) {
+              try { localStorage.removeItem(k); } catch(e) {}
+            });
+            console.log('[Recovery] Cache cleared successfully. Reloading...');
+          } catch (e) {
+            console.error('[Recovery] Failed to clear cache:', e);
+          }
+          // Force hard reload
+          location.href = location.href.split('?')[0] + '?cache_bust=' + Date.now();
+        }
+        window.resetCache = resetCache;
+        
+        function showBootError(message, detail) {
           var errorDiv = document.getElementById('boot-error');
-          var spinner = document.querySelector('#initial-loader svg');
+          var spinner = document.getElementById('boot-spinner');
+          var msgEl = document.getElementById('boot-error-msg');
+          var detailEl = document.getElementById('boot-error-detail');
+          
           if (errorDiv) errorDiv.style.display = 'block';
           if (spinner) spinner.style.display = 'none';
-          console.warn('[Recovery] App did not boot within timeout. Showing recovery UI.');
+          if (message && msgEl) msgEl.textContent = message;
+          if (detail && detailEl) {
+            detailEl.textContent = detail;
+            detailEl.style.display = 'block';
+          }
         }
-      }, 8000);
+        window.showBootError = showBootError;
+        
+        // Boot timeout: show recovery UI if app doesn't start within 5 seconds
+        setTimeout(function() {
+          if (!window.__APP_BOOTED__) {
+            var elapsed = ((Date.now() - window.__BOOT_START__) / 1000).toFixed(1);
+            console.warn('[Recovery] App did not boot within', elapsed, 'seconds. Showing recovery UI.');
+            showBootError(
+              'The app didn\'t start after ' + elapsed + ' seconds. This is usually caused by a cached version conflict.',
+              'Boot timeout at ' + new Date().toISOString()
+            );
+          }
+        }, 5000);
+        
+        // Also catch script load errors
+        window.addEventListener('error', function(e) {
+          if (e.filename && (e.filename.includes('/src/') || e.filename.includes('.tsx'))) {
+            console.error('[Recovery] Script load error:', e.filename);
+            showBootError(
+              'Failed to load application script. This may be a deployment issue.',
+              'Failed: ' + e.filename
+            );
+          }
+        }, true);
+      })();
     </script>
     
     <script type="module" src="/src/main.tsx"></script>
