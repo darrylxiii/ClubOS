@@ -122,7 +122,7 @@ export const PageLoadingSkeleton = () => (
   <div className="flex-1 flex items-center justify-center min-h-[400px]">
     <div className="flex flex-col items-center gap-4">
       <LoadingSpinner size="xl" />
-      <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
+      <p className="text-sm text-muted-foreground animate-pulse font-medium tracking-wider text-xs uppercase">Loading Quantum OS...</p>
     </div>
   </div>
 );

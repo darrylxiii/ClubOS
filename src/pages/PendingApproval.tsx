@@ -8,6 +8,7 @@ import { CandidateApplicationTracker } from "@/components/candidate-onboarding/C
 import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
 import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
 import { XCircle } from "lucide-react";
+import { PageLoader } from "@/components/PageLoader";
 
 interface ProfileStatus {
   account_status: 'pending' | 'approved' | 'declined';
@@ -64,11 +65,7 @@ export default function PendingApproval() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-2xl font-black uppercase tracking-tight animate-pulse">Loading...</div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!status) return null;
