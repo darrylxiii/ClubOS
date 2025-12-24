@@ -14,7 +14,10 @@ import {
   Keyboard,
   Filter,
   X,
+  Zap,
+  Loader2,
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import {
   DndContext,
   DragEndEvent,
@@ -71,6 +74,7 @@ function ProspectPipelineContent() {
   const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [syncingInstantly, setSyncingInstantly] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { showHelp, setShowHelp } = useCRMKeyboardShortcuts({
@@ -213,6 +217,33 @@ function ProspectPipelineContent() {
     setFiltersOpen(false);
   };
 
+  // Sync leads from Instantly
+  const handleSyncFromInstantly = async () => {
+    setSyncingInstantly(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-instantly-leads', {
+        body: { direction: 'instantly_to_crm' },
+      });
+
+      if (error) throw error;
+
+      const imported = data?.instantlyImported || 0;
+      const updated = data?.instantlyUpdated || 0;
+      
+      if (imported > 0 || updated > 0) {
+        toast.success(`Synced from Instantly: ${imported} new, ${updated} updated`);
+        refetch();
+      } else {
+        toast.info('No new leads to sync from Instantly');
+      }
+    } catch (error: any) {
+      console.error('Error syncing from Instantly:', error);
+      toast.error(error.message || 'Failed to sync from Instantly');
+    } finally {
+      setSyncingInstantly(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* Header */}
@@ -332,6 +363,27 @@ function ProspectPipelineContent() {
                 </div>
               </PopoverContent>
             </Popover>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  onClick={handleSyncFromInstantly}
+                  disabled={syncingInstantly}
+                  className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-purple-500/30 hover:border-purple-500/50"
+                >
+                  {syncingInstantly ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Zap className="w-4 h-4 mr-2 text-purple-500" />
+                  )}
+                  Sync Instantly
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Pull new leads from Instantly campaigns</p>
+              </TooltipContent>
+            </Tooltip>
 
             <Button variant="outline" size="icon" onClick={() => refetch()}>
               <RefreshCw className="w-4 h-4" />
