@@ -39900,6 +39900,9 @@ export type Database = {
         Returns: {
           avg_deal_size: number
           deal_count: number
+          multi_hire_realized: number
+          multi_hire_remaining: number
+          multi_hire_total_projected: number
           total_pipeline_value: number
           weighted_pipeline_value: number
         }[]
