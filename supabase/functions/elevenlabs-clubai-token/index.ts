@@ -14,8 +14,13 @@ serve(async (req) => {
 
   try {
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    const ELEVENLABS_AGENT_ID = Deno.env.get('ELEVENLABS_AGENT_ID');
+    
     if (!ELEVENLABS_API_KEY) {
       throw new Error('ELEVENLABS_API_KEY is not set');
+    }
+    if (!ELEVENLABS_AGENT_ID) {
+      throw new Error('ELEVENLABS_AGENT_ID is not set');
     }
 
     // Get user from auth header
@@ -55,31 +60,9 @@ serve(async (req) => {
 
     console.log("Creating ClubAI voice session for user:", userId, "on page:", currentPage);
 
-    // Build the system prompt for ClubAI
-    const systemPrompt = `You are ClubAI, the premium voice assistant for The Quantum Club - an exclusive, invite-only talent platform. You help members navigate the platform, manage their careers, and access opportunities.
-
-Your personality:
-- Professional yet warm and approachable
-- Concise and efficient - respect the user's time
-- Knowledgeable about the platform's features
-- Proactive in suggesting helpful actions
-
-The user's name is ${userName} and their role is ${userRole}. They are currently on the ${currentPage} page.
-
-You have access to these tools to help users:
-- navigate_to: Navigate to different pages (dashboard, jobs, messages, profile, calendar, tasks, academy, etc.)
-- create_task: Create a new task with title and optional priority
-- search_platform: Search across the platform for jobs, companies, or content
-- show_notification: Display a notification message to the user
-- open_command_palette: Open the command palette for quick actions
-
-When users ask to go somewhere or do something, use the appropriate tool. Always confirm what you're doing.
-
-Keep responses brief and natural for voice - typically 1-2 sentences unless more detail is requested.`;
-
-    // Request a WebRTC token from ElevenLabs
+    // Request a signed URL from ElevenLabs using the configured Agent ID
     const response = await fetch(
-      "https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=placeholder",
+      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${ELEVENLABS_AGENT_ID}`,
       {
         method: "GET",
         headers: {
@@ -88,67 +71,13 @@ Keep responses brief and natural for voice - typically 1-2 sentences unless more
       }
     );
 
-    // For now, we'll use the session endpoint which supports custom prompts
-    const sessionResponse = await fetch(
-      "https://api.elevenlabs.io/v1/convai/conversation/get_signed_url",
-      {
-        method: "POST", 
-        headers: {
-          "xi-api-key": ELEVENLABS_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          agent_config: {
-            prompt: {
-              prompt: systemPrompt,
-            },
-            first_message: `Hi ${userName}! I'm ClubAI, your voice assistant. How can I help you today?`,
-            language: "en",
-          },
-        }),
-      }
-    );
-
-    if (!sessionResponse.ok) {
-      const errorText = await sessionResponse.text();
-      console.error("ElevenLabs API error:", errorText);
-      
-      // Fallback to signed URL approach without custom config
-      const fallbackResponse = await fetch(
-        "https://api.elevenlabs.io/v1/convai/conversation/get_signed_url",
-        {
-          method: "GET",
-          headers: {
-            "xi-api-key": ELEVENLABS_API_KEY,
-          },
-        }
-      );
-
-      if (!fallbackResponse.ok) {
-        throw new Error(`Failed to create voice session: ${fallbackResponse.status}`);
-      }
-
-      const fallbackData = await fallbackResponse.json();
-      
-      // Log session creation
-      if (userId) {
-        await supabase.from('clubai_voice_sessions').insert({
-          user_id: userId,
-          context: { page: currentPage, userName, userRole },
-        });
-      }
-
-      return new Response(JSON.stringify({
-        signedUrl: fallbackData.signed_url,
-        userName,
-        userRole,
-        currentPage,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("ElevenLabs API error:", response.status, errorText);
+      throw new Error(`Failed to create voice session: ${response.status} - ${errorText}`);
     }
 
-    const data = await sessionResponse.json();
+    const data = await response.json();
     console.log("ClubAI session created successfully");
 
     // Log session creation
