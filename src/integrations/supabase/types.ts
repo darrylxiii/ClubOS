@@ -5997,6 +5997,45 @@ export type Database = {
           },
         ]
       }
+      clubai_voice_sessions: {
+        Row: {
+          context: Json | null
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          message_count: number | null
+          started_at: string
+          tools_used: string[] | null
+          transcript: Json | null
+          user_id: string
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          message_count?: number | null
+          started_at?: string
+          tools_used?: string[] | null
+          transcript?: Json | null
+          user_id: string
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          message_count?: number | null
+          started_at?: string
+          tools_used?: string[] | null
+          transcript?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       collaborative_posts: {
         Row: {
           approved_by: string[] | null
