@@ -208,24 +208,12 @@
       </style>
     </div>
     
-    <!-- Emergency cache reset and deployment detection (inline for reliability) -->
+    <!-- Emergency cache reset and two-phase boot detection (inline for reliability) -->
     <script>
       (function() {
         window.__APP_BOOTED__ = false;
+        window.__APP_BOOTING__ = false; // Set to true by main.tsx when script starts executing
         window.__BOOT_START__ = Date.now();
-        
-        // Deployment detection: check if we're loading dev resources in production
-        var isProduction = location.hostname !== 'localhost' && !location.hostname.includes('localhost');
-        var scripts = document.querySelectorAll('script[src*="/src/main.tsx"]');
-        var hasTailwindCDN = !!document.querySelector('script[src*="cdn.tailwindcss.com"]');
-        var isDevBuild = scripts.length > 0 || hasTailwindCDN;
-        
-        if (isProduction && isDevBuild) {
-          console.error('[Recovery] ⚠️ DEPLOYMENT ERROR: Production is serving development build!');
-          console.error('[Recovery] Found /src/main.tsx reference - this will NOT work in production.');
-          // Show error immediately for deployment issues
-          showBootError('Deployment configuration error detected. The site is serving a development build instead of production.', '/src/main.tsx detected');
-        }
         
         async function resetCache() {
           var btn = event && event.target;
@@ -275,19 +263,37 @@
         }
         window.showBootError = showBootError;
         
-        // Boot timeout: show recovery UI if app doesn't start within 5 seconds
+        // TWO-PHASE BOOT DETECTION:
+        // Phase 1 (5s): Check if __APP_BOOTING__ is set (script started executing)
+        // Phase 2 (15s): Check if __APP_BOOTED__ is set (app fully rendered)
+        
+        // Phase 1: Script load check (5 seconds)
         setTimeout(function() {
-          if (!window.__APP_BOOTED__) {
-            var elapsed = ((Date.now() - window.__BOOT_START__) / 1000).toFixed(1);
-            console.warn('[Recovery] App did not boot within', elapsed, 'seconds. Showing recovery UI.');
+          if (!window.__APP_BOOTING__) {
+            console.error('[Recovery] Phase 1 FAILED: Script did not start executing within 5 seconds.');
             showBootError(
-              'The app didn\'t start after ' + elapsed + ' seconds. This is usually caused by a cached version conflict.',
-              'Boot timeout at ' + new Date().toISOString()
+              'Failed to load application script. This may be caused by a network issue or cached deployment problem.',
+              'Script not loaded after 5s'
             );
           }
         }, 5000);
         
-        // Also catch script load errors
+        // Phase 2: Full boot check (15 seconds) - generous timeout for slow connections
+        setTimeout(function() {
+          if (!window.__APP_BOOTED__) {
+            var elapsed = ((Date.now() - window.__BOOT_START__) / 1000).toFixed(1);
+            var phase = window.__APP_BOOTING__ ? 'Script loaded but app not rendered' : 'Script failed to load';
+            console.warn('[Recovery] Phase 2: App did not boot within', elapsed, 'seconds.', phase);
+            showBootError(
+              'The app didn\'t start after ' + elapsed + ' seconds. ' + (window.__APP_BOOTING__ 
+                ? 'The script loaded but rendering timed out.' 
+                : 'The script failed to load.'),
+              phase + ' - ' + new Date().toISOString()
+            );
+          }
+        }, 15000);
+        
+        // Catch script load errors immediately
         window.addEventListener('error', function(e) {
           if (e.filename && (e.filename.includes('/src/') || e.filename.includes('.tsx'))) {
             console.error('[Recovery] Script load error:', e.filename);

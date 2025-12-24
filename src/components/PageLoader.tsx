@@ -33,10 +33,11 @@ export const PageLoader = () => {
     const timeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
-        // Show error after 5 seconds (reduced from 8s for faster recovery)
+        // Use a generous 15-second timeout to avoid false positives on slow connections
+        // The app should boot much faster, but we don't want to show error UI prematurely
         timeoutRef.current = window.setTimeout(() => {
             setShowError(true);
-        }, 5000);
+        }, 15000);
 
         return () => {
             if (timeoutRef.current) {

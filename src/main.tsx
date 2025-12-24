@@ -1,3 +1,7 @@
+// Signal IMMEDIATELY that the script is executing (before any imports)
+// This allows index.html to detect script loading vs script failure
+(window as any).__APP_BOOTING__ = true;
+
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
