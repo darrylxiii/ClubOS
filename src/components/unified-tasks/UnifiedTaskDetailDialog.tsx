@@ -113,8 +113,8 @@ export const UnifiedTaskDetailDialog = ({
       setBlockedByTasks(blockedBy?.map(b => b.blocker) || []);
 
       // Load subtasks
-      const { data: subs } = await supabase
-        .from("unified_tasks")
+      const { data: subs } = await (supabase
+        .from("unified_tasks") as any)
         .select("id, title, status, task_number")
         .eq("parent_task_id", task.id)
         .order("created_at", { ascending: true });

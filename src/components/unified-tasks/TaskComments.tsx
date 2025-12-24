@@ -56,31 +56,34 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
     }, [taskId]);
 
     const loadComments = async () => {
-        const { data, error } = await supabase
-            .from("task_comments")
-            .select(`
-        *,
-        profiles:user_id (
-          full_name,
-          avatar_url
-        )
-      `)
-            .eq("task_id", taskId)
-            .order("created_at", { ascending: true });
+        try {
+            const { data, error } = await supabase
+                .from("task_comments" as any)
+                .select(`
+                    *,
+                    profiles:user_id (
+                        full_name,
+                        avatar_url
+                    )
+                `)
+                .eq("task_id", taskId)
+                .order("created_at", { ascending: true });
 
-        if (error) {
-            console.error("Error loading comments:", error);
-            return;
+            if (error) {
+                console.error("Error loading comments:", error);
+                return;
+            }
+
+            // Cast the response to match our interface
+            const formattedData = (data as any[])?.map(item => ({
+                ...item,
+                profiles: item.profiles || { full_name: 'Unknown', avatar_url: null }
+            })) as Comment[];
+
+            setComments(formattedData);
+        } catch (err) {
+            console.error("Error loading comments:", err);
         }
-
-        // Cast the response to match our interface
-        // supabase returns profiles as an object, ensuring it matches
-        const formattedData = (data as any[])?.map(item => ({
-            ...item,
-            profiles: item.profiles || { full_name: 'Unknown', avatar_url: null }
-        })) as Comment[];
-
-        setComments(formattedData);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -90,7 +93,7 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
         setLoading(true);
         try {
             const { error } = await supabase
-                .from("task_comments")
+                .from("task_comments" as any)
                 .insert({
                     task_id: taskId,
                     user_id: user.id,

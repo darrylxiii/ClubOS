@@ -487,6 +487,52 @@ export function MeetingVideoCallInterface({
     }
   };
 
+  // Handler functions for ControlsPanel
+  const handleToggleHandRaise = () => {
+    setIsHandRaised(prev => !prev);
+    toast(isHandRaised ? 'Hand lowered' : 'Hand raised');
+  };
+
+  const handleOpenChat = () => setShowChat(true);
+  const handleOpenParticipants = () => setShowParticipants(true);
+  const handleOpenSettings = () => setShowSettings(true);
+  const handleOpenNotes = () => setShowNotes(true);
+  const handleToggleCaptions = () => setCaptionsEnabled(prev => !prev);
+  const handleOpenTranscription = () => setShowTranscription(true);
+  const handleOpenHostSettings = () => setShowHostSettings(true);
+  const handleOpenMeetingInfo = () => setShowMeetingDetails(true);
+  const handleOpenInterviewIntelligence = () => setShowInterviewIntelligence(true);
+  const handleOpenBreakoutRooms = () => setShowBreakoutRooms(true);
+  const handleOpenPolls = () => setShowPolls(true);
+  const handleOpenQA = () => setShowQA(true);
+  const handleOpenBackgrounds = () => setShowBackgrounds(true);
+  const handleToggleLayout = () => setLayout(prev => prev === 'grid' ? 'spotlight' : 'grid');
+  const handleToggleBackchannel = () => setShowBackchannel(prev => !prev);
+  const handleToggleVoting = () => setShowVoting(prev => !prev);
+
+  const handleReaction = async (emoji: string) => {
+    if (!hostSettings.allowReactions && meeting.host_id !== participantId) {
+      toast.error('Reactions are disabled by the host');
+      return;
+    }
+
+    try {
+      await supabase.from('webrtc_signals').insert({
+        meeting_id: meeting.id,
+        sender_id: participantId,
+        receiver_id: 'all',
+        signal_type: 'reaction',
+        signal_data: {
+          emoji,
+          participantName,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('[Meeting] Failed to send reaction:', error);
+    }
+  };
+
   const meetingUrl = `${window.location.origin}/meetings/${meeting.meeting_code}`;
 
   // Update video ref when stream changes

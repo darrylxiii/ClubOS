@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 import { useUserRole } from "@/hooks/useUserRole";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CandidatePipelineStatus } from "@/components/partner/CandidatePipelineStatus";
