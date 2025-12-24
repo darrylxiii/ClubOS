@@ -10,6 +10,7 @@ import { UserPlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { CompanyBasic, CompanyMember, CompanyAssignmentFormData, CompanyRole } from "@/types/company";
 import { validateCompanyAssignment, COMPANY_ROLES } from "@/types/company";
+import { PageLoader } from "@/components/PageLoader";
 
 interface User {
   id: string;
@@ -163,7 +164,7 @@ export function UserCompanyAssignment() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <PageLoader />;
   }
 
   return (

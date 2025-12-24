@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { useGenerateInsights } from "@/hooks/usePartnerAnalytics";
 import { toast } from "sonner";
+import { PageLoader } from "@/components/PageLoader";
 
 export default function PartnerAnalyticsDashboard() {
   const { user } = useAuth();
@@ -49,11 +50,7 @@ export default function PartnerAnalyticsDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-8">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!companyId) {

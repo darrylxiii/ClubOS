@@ -10,9 +10,8 @@ import { ProtectedLayout } from "@/components/ProtectedLayout";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { TranslationProvider } from "@/providers/TranslationProvider";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import { lazy, Suspense, useState, useEffect, useRef, memo } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { lazy, Suspense, memo, useEffect } from "react";
+import { PageLoader } from "@/components/PageLoader";
 import i18n from "@/i18n/config";
 import { useQueryClient } from "@tanstack/react-query";
 import { sharedRoutes } from "@/routes/shared.routes";
@@ -107,65 +106,7 @@ const MyCommunications = lazy(() => import("./pages/MyCommunications"));
 const PartnerRelationships = lazy(() => import("./pages/PartnerRelationships"));
 const CommunicationAnalyticsPage = lazy(() => import("./pages/CommunicationAnalyticsPage"));
 
-// PageLoader with timeout
-const PageLoader = () => {
-  const [showError, setShowError] = useState(false);
-  const [countdown, setCountdown] = useState(5);
-  const countdownIntervalRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    const errorTimer = setTimeout(() => {
-      setShowError(true);
-    }, 5000);
-    return () => clearTimeout(errorTimer);
-  }, []);
-
-  useEffect(() => {
-    if (showError) {
-      countdownIntervalRef.current = window.setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            if (countdownIntervalRef.current) {
-              clearInterval(countdownIntervalRef.current);
-              countdownIntervalRef.current = null;
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => {
-        if (countdownIntervalRef.current) {
-          clearInterval(countdownIntervalRef.current);
-          countdownIntervalRef.current = null;
-        }
-      };
-    }
-  }, [showError]);
-
-  if (showError) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
-        <div className="text-center space-y-6 max-w-md">
-          <AlertCircle className="w-16 h-16 text-destructive mx-auto" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">Page Taking Too Long</h1>
-          <div className="space-y-3">
-            <Button onClick={() => window.location.reload()} className="w-full" size="lg">Reload Page {countdown > 0 && `(${countdown}s)`}</Button>
-            <Button onClick={() => window.location.href = '/auth'} variant="outline" className="w-full">Go to Login</Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-      <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-      <p className="text-muted-foreground animate-pulse">Loading...</p>
-    </div>
-  );
-};
+// PageLoader is now imported from @/components/PageLoader
 
 // Initialize QueryClient
 const queryClient = new QueryClient({

@@ -52,12 +52,12 @@ export interface PageLoadingProps {
   text?: string;
 }
 
-export function PageLoading({ text = "Loading..." }: PageLoadingProps) {
+export function PageLoading({ text = "Loading Quantum OS..." }: PageLoadingProps) {
   return (
     <div className="flex-1 flex items-center justify-center min-h-[200px]">
       <div className="flex flex-col items-center gap-3">
         <LoadingSpinner size="lg" />
-        <p className="text-sm text-muted-foreground">{text}</p>
+        <p className="text-muted-foreground animate-pulse font-medium tracking-wider text-xs uppercase">{text}</p>
       </div>
     </div>
   );

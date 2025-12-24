@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { logger } from "@/lib/logger";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PageLoader } from "@/components/PageLoader";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -98,11 +99,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   // Still loading - show loading state
   if (loading || checkingStatus) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-2xl font-black uppercase tracking-tight">LOADING...</div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!user) {
