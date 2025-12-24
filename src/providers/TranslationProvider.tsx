@@ -1,6 +1,5 @@
 import { useState, useEffect, ReactNode, createContext, useContext } from 'react';
 import i18n, { ALL_NAMESPACES, forceReloadLanguage } from '@/i18n/config';
-import { Loader2 } from 'lucide-react';
 
 interface TranslationContextType {
   isReady: boolean;
@@ -23,12 +22,13 @@ interface TranslationProviderProps {
 }
 
 /**
- * TranslationProvider ensures all translations are loaded before rendering children.
- * This prevents flash of untranslated content (FOUTC).
+ * TranslationProvider loads translations in the background.
+ * Children are rendered immediately to avoid blocking app boot.
+ * This prevents the boot timeout from triggering on slow connections.
  */
 export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   const [isReady, setIsReady] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.language || 'en');
 
   useEffect(() => {
     const initTranslations = async () => {
@@ -42,16 +42,13 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
           });
         }
 
-        // Load all namespaces for current language
+        // Load all namespaces for current language in background
         const language = i18n.language || 'en';
         console.log(`[TranslationProvider] Loading all namespaces for: ${language}`);
         
-        await Promise.all(
-          ALL_NAMESPACES.map(ns => 
-            i18n.loadNamespaces(ns).catch(err => {
-              console.warn(`[TranslationProvider] Failed to load ${ns}:`, err);
-            })
-          )
+        // Load namespaces in parallel, don't block on failures
+        await Promise.allSettled(
+          ALL_NAMESPACES.map(ns => i18n.loadNamespaces(ns))
         );
 
         console.log('[TranslationProvider] All translations loaded');
@@ -102,16 +99,8 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
     }
   };
 
-  // Show loading state while translations load
-  if (!isReady) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-        <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground text-sm">Loading translations...</p>
-      </div>
-    );
-  }
-
+  // NON-BLOCKING: Render children immediately, translations load in background
+  // This prevents the boot timeout from triggering on slow connections
   return (
     <TranslationContext.Provider value={{ isReady, currentLanguage, changeLanguage, reloadTranslations }}>
       {children}
