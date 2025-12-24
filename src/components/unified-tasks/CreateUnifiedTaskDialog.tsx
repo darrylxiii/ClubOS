@@ -105,7 +105,7 @@ export const CreateUnifiedTaskDialog = ({
     const { data } = await supabase
       .from("marketplace_projects")
       .select("id, title, status")
-      .eq("status", "in_progress") // Or 'open' depending on logic, let's fetch active ones
+      .eq("status", "active") // Fetch active projects
       .order("created_at", { ascending: false });
 
     if (data) setProjects(data);
