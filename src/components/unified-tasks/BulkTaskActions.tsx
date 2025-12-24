@@ -171,10 +171,11 @@ export function BulkTaskActions({
           </DropdownMenu>
 
           <Button 
-            variant="destructive" 
+            variant="outline" 
             size="sm"
             onClick={() => setDeleteDialogOpen(true)}
             disabled={loading}
+            className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
           >
             <Trash2 className="h-4 w-4 mr-1" />
             Delete
