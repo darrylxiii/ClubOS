@@ -31,6 +31,10 @@
         var s = document.createElement("script");
         s.async = true;
         s.src = "https://ddwl4m2hdecbv.cloudfront.net/b/XOE9GHVJ8VOM/XOE9GHVJ8VOM.js.gz";
+        // Fail silently - don't let ad blockers or network issues break the app
+        s.onerror = function() {
+          console.warn('[RB2B] Script blocked or failed to load (non-critical)');
+        };
         document.getElementsByTagName("script")[0].parentNode.insertBefore(s, document.getElementsByTagName("script")[0]);
       }
       // Defer RB2B loading until after page becomes interactive
@@ -292,20 +296,31 @@
           }
         }, 15000);
         
-        // Catch actual script load errors (not preload failures)
+        // Catch ONLY our app entry script failures, not third-party scripts
         window.addEventListener('error', function(e) {
-          // Only react to actual <script> tag failures, not link/preload failures
+          // Only react to actual <script> tag failures
           if (e.target && e.target.tagName === 'SCRIPT' && e.target.src) {
-            console.error('[Recovery] Script load error:', e.target.src);
-            showBootError(
-              'Failed to load application script. This may be a network or deployment issue.',
-              'Failed: ' + e.target.src
-            );
+            var src = e.target.src;
+            var isAppEntry = e.target.hasAttribute('data-app-entry');
+            var isOurBundle = src.includes('/assets/') && (src.includes('.js') || src.includes('.tsx'));
+            var isDevEntry = src.includes('/src/main.tsx');
+            
+            // Only show boot error for OUR scripts, not third-party (cloudfront, gtm, etc.)
+            if (isAppEntry || isOurBundle || isDevEntry) {
+              console.error('[Recovery] App script load error:', src);
+              showBootError(
+                'Failed to load application script. This may be a network or deployment issue.',
+                'Failed: ' + src
+              );
+            } else {
+              // Third-party script failed - just log, don't break the app
+              console.warn('[Recovery] Third-party script failed (non-critical):', src);
+            }
           }
         }, true);
       })();
     </script>
     
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx" data-app-entry="true"></script>
   </body>
 </html>
