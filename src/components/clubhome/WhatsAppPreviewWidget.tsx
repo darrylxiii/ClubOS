@@ -64,11 +64,11 @@ export const WhatsAppPreviewWidget = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-2">
           <Skeleton className="h-5 w-32" />
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="flex-1 space-y-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex items-start gap-3">
               <Skeleton className="h-8 w-8 rounded-full" />
@@ -88,8 +88,9 @@ export const WhatsAppPreviewWidget = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 }}
+      className="h-full"
     >
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">
@@ -109,7 +110,7 @@ export const WhatsAppPreviewWidget = () => {
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           {data?.messages && data.messages.length > 0 ? (
             <div className="space-y-3">
               {data.messages.map((msg) => (

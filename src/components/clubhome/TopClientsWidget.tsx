@@ -58,11 +58,11 @@ export const TopClientsWidget = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-2">
           <Skeleton className="h-5 w-32" />
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <Skeleton className="h-24 w-full" />
         </CardContent>
       </Card>
@@ -73,14 +73,14 @@ export const TopClientsWidget = () => {
 
   if (!hasData) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Building2 className="h-4 w-4 text-primary" />
             Top Clients
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <div className="flex flex-col items-center justify-center py-4 text-center">
             <Info className="h-6 w-6 text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground mb-3">No active clients yet</p>
@@ -101,8 +101,9 @@ export const TopClientsWidget = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="h-full"
     >
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">
@@ -117,7 +118,7 @@ export const TopClientsWidget = () => {
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="flex-1 space-y-2">
           {topClients.map((client, index) => (
             <div key={client.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors">
               <span className="text-xs text-muted-foreground w-4">{index + 1}</span>

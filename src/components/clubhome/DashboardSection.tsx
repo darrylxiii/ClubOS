@@ -49,7 +49,7 @@ export const DashboardSection = ({
           )}
         </div>
       )}
-      <div className={cn("grid gap-4 sm:gap-6", gridClass)}>
+      <div className={cn("grid gap-4 sm:gap-6 items-stretch", gridClass)}>
         {children}
       </div>
     </motion.section>

@@ -86,11 +86,11 @@ export const RevenueOverviewWidget = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-2">
           <Skeleton className="h-5 w-32" />
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex-1 space-y-4">
           <Skeleton className="h-8 w-24" />
           <div className="grid grid-cols-2 gap-4">
             <Skeleton className="h-16" />
@@ -108,8 +108,9 @@ export const RevenueOverviewWidget = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="h-full"
     >
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">
@@ -132,7 +133,7 @@ export const RevenueOverviewWidget = () => {
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex-1 space-y-4">
           {/* Current Month Revenue */}
           <div>
             <p className="text-xs text-muted-foreground mb-1">
