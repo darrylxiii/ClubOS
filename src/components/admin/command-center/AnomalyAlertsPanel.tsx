@@ -61,7 +61,7 @@ export function AnomalyAlertsPanel({
   onTriggerDetection,
 }: AnomalyAlertsPanelProps) {
   return (
-    <Card className="glass-card h-full flex flex-col">
+    <Card className="glass-card h-full flex flex-col overflow-hidden">
       <CardHeader className="pb-2 px-3 pt-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <CardTitle className="flex items-center gap-2 text-sm font-medium">
@@ -89,7 +89,7 @@ export function AnomalyAlertsPanel({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 px-3 pb-3">
+      <CardContent className="flex-1 px-3 pb-3 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-6">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -101,8 +101,8 @@ export function AnomalyAlertsPanel({
             <p className="text-[10px] text-muted-foreground">System normal</p>
           </div>
         ) : (
-          <ScrollArea className="h-[150px] -mx-1 px-1">
-            <div className="space-y-1.5">
+          <ScrollArea className="h-[150px]">
+            <div className="space-y-1.5 pr-2">
               {anomalies.map((anomaly) => {
                 const config = severityConfig[anomaly.severity];
                 const Icon = config.icon;
