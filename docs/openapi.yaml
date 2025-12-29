@@ -1,0 +1,947 @@
+openapi: 3.0.3
+info:
+  title: The Quantum Club API
+  description: |
+    The Quantum Club API provides programmatic access to the platform's features including
+    job postings, candidate management, applications, SCIM provisioning, and more.
+    
+    ## Authentication
+    
+    Most endpoints require authentication via JWT token or API key:
+    
+    - **JWT Token**: For user-authenticated requests
+    - **API Key**: For server-to-server integrations
+    - **SCIM Token**: For identity provider integrations (Okta, Azure AD, etc.)
+    
+    ## Rate Limits
+    
+    - Public endpoints: 100 requests/minute
+    - Authenticated endpoints: 1000 requests/hour
+    - SCIM endpoints: 10000 requests/hour
+    
+    ## SCIM 2.0 Support
+    
+    We support SCIM 2.0 for automated user provisioning from identity providers.
+    See the SCIM section for details on configuring Okta, Azure AD, or OneLogin.
+    
+  version: 1.0.0
+  contact:
+    name: The Quantum Club Support
+    email: support@thequantumclub.com
+    url: https://thequantumclub.com/support
+  license:
+    name: Proprietary
+    url: https://thequantumclub.com/terms
+
+servers:
+  - url: https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1
+    description: Production API
+
+tags:
+  - name: Authentication
+    description: Authentication and authorization endpoints
+  - name: Jobs
+    description: Job posting management
+  - name: Applications
+    description: Application management
+  - name: Candidates
+    description: Candidate profile management
+  - name: SCIM
+    description: SCIM 2.0 provisioning endpoints for IdP integration
+  - name: Webhooks
+    description: Webhook management and delivery
+  - name: AI
+    description: AI-powered features
+  - name: Meetings
+    description: Video meeting management
+  - name: Analytics
+    description: Analytics and reporting
+
+paths:
+  /api-v1-jobs:
+    get:
+      tags: [Jobs]
+      summary: List jobs
+      description: Retrieve a paginated list of job postings
+      operationId: listJobs
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, active, closed, archived]
+        - name: company_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+    post:
+      tags: [Jobs]
+      summary: Create a job
+      description: Create a new job posting
+      operationId: createJob
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateJobRequest'
+      responses:
+        '201':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api-v1-applications:
+    get:
+      tags: [Applications]
+      summary: List applications
+      description: Retrieve applications with optional filters
+      operationId: listApplications
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: job_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, interviewing, offered, hired, rejected, withdrawn]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationListResponse'
+
+  /api-v1-candidates:
+    get:
+      tags: [Candidates]
+      summary: List candidates
+      description: Retrieve candidates with optional search and filters
+      operationId: listCandidates
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: skills
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: location
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CandidateListResponse'
+
+  # SCIM 2.0 Endpoints
+  /scim-service-provider-config:
+    get:
+      tags: [SCIM]
+      summary: Get SCIM Service Provider Configuration
+      description: Returns the SCIM 2.0 service provider configuration
+      operationId: getScimServiceProviderConfig
+      responses:
+        '200':
+          description: Service provider configuration
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/SCIMServiceProviderConfig'
+
+  /scim-users:
+    get:
+      tags: [SCIM]
+      summary: List SCIM Users
+      description: List users with optional SCIM filter
+      operationId: listScimUsers
+      security:
+        - ScimTokenAuth: []
+      parameters:
+        - name: filter
+          in: query
+          description: 'SCIM filter expression (e.g., userName eq "user@example.com")'
+          schema:
+            type: string
+        - name: startIndex
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: count
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 100
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/SCIMUserListResponse'
+        '401':
+          $ref: '#/components/responses/SCIMUnauthorized'
+    post:
+      tags: [SCIM]
+      summary: Create SCIM User
+      description: Provision a new user via SCIM
+      operationId: createScimUser
+      security:
+        - ScimTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/SCIMUser'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/SCIMUser'
+        '409':
+          $ref: '#/components/responses/SCIMConflict'
+
+  /scim-users/{userId}:
+    get:
+      tags: [SCIM]
+      summary: Get SCIM User
+      operationId: getScimUser
+      security:
+        - ScimTokenAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User details
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/SCIMUser'
+        '404':
+          $ref: '#/components/responses/SCIMNotFound'
+    put:
+      tags: [SCIM]
+      summary: Replace SCIM User
+      operationId: replaceScimUser
+      security:
+        - ScimTokenAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/SCIMUser'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/SCIMUser'
+    patch:
+      tags: [SCIM]
+      summary: Patch SCIM User
+      description: Partially update a user using SCIM PATCH operations
+      operationId: patchScimUser
+      security:
+        - ScimTokenAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/SCIMPatchRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/SCIMUser'
+    delete:
+      tags: [SCIM]
+      summary: Delete SCIM User
+      description: Deactivate a user (soft delete)
+      operationId: deleteScimUser
+      security:
+        - ScimTokenAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deactivated
+
+  /scim-groups:
+    get:
+      tags: [SCIM]
+      summary: List SCIM Groups
+      operationId: listScimGroups
+      security:
+        - ScimTokenAuth: []
+      parameters:
+        - name: filter
+          in: query
+          schema:
+            type: string
+        - name: startIndex
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: count
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: List of groups
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/SCIMGroupListResponse'
+    post:
+      tags: [SCIM]
+      summary: Create SCIM Group
+      operationId: createScimGroup
+      security:
+        - ScimTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/SCIMGroup'
+      responses:
+        '201':
+          description: Group created
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/SCIMGroup'
+
+  # Webhook endpoints
+  /webhook-dispatcher:
+    post:
+      tags: [Webhooks]
+      summary: Dispatch webhook
+      description: Send a webhook to registered endpoints
+      operationId: dispatchWebhook
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookPayload'
+      responses:
+        '200':
+          description: Webhook dispatched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookDispatchResult'
+
+  # AI endpoints
+  /calculate-match-score:
+    post:
+      tags: [AI]
+      summary: Calculate candidate-job match score
+      operationId: calculateMatchScore
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [candidateId, jobId]
+              properties:
+                candidateId:
+                  type: string
+                  format: uuid
+                jobId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Match score calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchScoreResult'
+
+  # Meeting endpoints
+  /create-instant-meeting:
+    post:
+      tags: [Meetings]
+      summary: Create instant meeting
+      operationId: createInstantMeeting
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                participants:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '201':
+          description: Meeting created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meeting'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Supabase Auth
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for server-to-server integrations
+    ScimTokenAuth:
+      type: http
+      scheme: bearer
+      description: SCIM bearer token for IdP provisioning
+
+  schemas:
+    Job:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        department:
+          type: string
+        location:
+          type: string
+        salary_min:
+          type: integer
+        salary_max:
+          type: integer
+        status:
+          type: string
+          enum: [draft, active, closed, archived]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateJobRequest:
+      type: object
+      required: [title, description]
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        department:
+          type: string
+        location:
+          type: string
+        salary_min:
+          type: integer
+        salary_max:
+          type: integer
+        requirements:
+          type: string
+
+    JobListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Job'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    ApplicationListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Application'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Application:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        job_id:
+          type: string
+          format: uuid
+        candidate_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        applied_at:
+          type: string
+          format: date-time
+
+    CandidateListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Candidate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        current_title:
+          type: string
+        location:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+
+    # SCIM Schemas
+    SCIMServiceProviderConfig:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        patch:
+          type: object
+          properties:
+            supported:
+              type: boolean
+        bulk:
+          type: object
+          properties:
+            supported:
+              type: boolean
+        filter:
+          type: object
+          properties:
+            supported:
+              type: boolean
+            maxResults:
+              type: integer
+        authenticationSchemes:
+          type: array
+          items:
+            type: object
+
+    SCIMUser:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example: ['urn:ietf:params:scim:schemas:core:2.0:User']
+        id:
+          type: string
+          format: uuid
+        externalId:
+          type: string
+        userName:
+          type: string
+        name:
+          type: object
+          properties:
+            formatted:
+              type: string
+            familyName:
+              type: string
+            givenName:
+              type: string
+        displayName:
+          type: string
+        emails:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+                format: email
+              primary:
+                type: boolean
+              type:
+                type: string
+        active:
+          type: boolean
+        meta:
+          type: object
+          properties:
+            resourceType:
+              type: string
+            created:
+              type: string
+              format: date-time
+            lastModified:
+              type: string
+              format: date-time
+            location:
+              type: string
+              format: uri
+
+    SCIMUserListResponse:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        totalResults:
+          type: integer
+        startIndex:
+          type: integer
+        itemsPerPage:
+          type: integer
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SCIMUser'
+
+    SCIMGroup:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        id:
+          type: string
+          format: uuid
+        externalId:
+          type: string
+        displayName:
+          type: string
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+                format: uuid
+              display:
+                type: string
+              $ref:
+                type: string
+                format: uri
+        meta:
+          type: object
+
+    SCIMGroupListResponse:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        totalResults:
+          type: integer
+        startIndex:
+          type: integer
+        itemsPerPage:
+          type: integer
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SCIMGroup'
+
+    SCIMPatchRequest:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        Operations:
+          type: array
+          items:
+            type: object
+            properties:
+              op:
+                type: string
+                enum: [add, remove, replace]
+              path:
+                type: string
+              value:
+                oneOf:
+                  - type: string
+                  - type: boolean
+                  - type: object
+
+    WebhookPayload:
+      type: object
+      required: [event, data]
+      properties:
+        event:
+          type: string
+          example: application.created
+        data:
+          type: object
+
+    WebhookDispatchResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        deliveries:
+          type: array
+          items:
+            type: object
+            properties:
+              endpoint:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+
+    MatchScoreResult:
+      type: object
+      properties:
+        score:
+          type: number
+          minimum: 0
+          maximum: 100
+        factors:
+          type: object
+          properties:
+            skills:
+              type: number
+            experience:
+              type: number
+            culture:
+              type: number
+        recommendation:
+          type: string
+
+    Meeting:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        join_url:
+          type: string
+          format: uri
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        statusCode:
+          type: integer
+
+    SCIMError:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        detail:
+          type: string
+        status:
+          type: integer
+        scimType:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    SCIMUnauthorized:
+      description: SCIM unauthorized
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/SCIMError'
+    SCIMNotFound:
+      description: SCIM resource not found
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/SCIMError'
+    SCIMConflict:
+      description: SCIM resource conflict
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/SCIMError'
