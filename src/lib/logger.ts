@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import * as Sentry from '@sentry/react';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 type ErrorType = 'react' | 'api' | 'edge_function' | 'database' | 'network' | 'unknown';
@@ -69,6 +70,12 @@ class Logger {
         name: error.name,
         ...context 
       };
+      
+      // Capture in Sentry
+      Sentry.captureException(error, {
+        extra: { message, ...context },
+        level: (context?.severity as Sentry.SeverityLevel) || 'error',
+      });
     } else if (error && typeof error === 'object' && 'message' in error) {
       errorDetails = { 
         message: (error as ErrorWithStack).message,
@@ -91,6 +98,13 @@ class Logger {
       context?.componentName as string | undefined,
       context
     );
+  }
+  
+  /**
+   * Add a breadcrumb for debugging context
+   */
+  addBreadcrumb(message: string, category: string, data?: Record<string, unknown>) {
+    Sentry.addBreadcrumb({ message, category, data, level: 'info' });
   }
   
   critical(message: string, error?: Error | ErrorWithStack | unknown, context?: LogContext) {

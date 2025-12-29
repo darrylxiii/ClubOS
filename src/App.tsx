@@ -1,3 +1,7 @@
+// Initialize Sentry first, before any other imports
+import { initSentry } from "@/lib/sentry";
+initSentry();
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +12,7 @@ import { ProtectedProviders, ProtectedProvidersLoader } from "@/contexts/Protect
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedLayout } from "@/components/ProtectedLayout";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
+import { SentryErrorBoundary } from "@/components/SentryErrorBoundary";
 import { TranslationProvider } from "@/providers/TranslationProvider";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { lazy, Suspense, memo, useEffect } from "react";
@@ -123,22 +128,23 @@ const queryClient = new QueryClient({
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TranslationProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <LanguageSync />
-              <LanguageSelector />
-              {/* PWA Banners */}
-              <Suspense fallback={null}>
-                <InstallPromptBanner />
-                <UpdateAvailableBanner />
-              </Suspense>
+    <SentryErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TranslationProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <LanguageSync />
+                <LanguageSelector />
+                {/* PWA Banners */}
+                <Suspense fallback={null}>
+                  <InstallPromptBanner />
+                  <UpdateAvailableBanner />
+                </Suspense>
 
-              <Routes>
+                <Routes>
                 {/* Install Page */}
                 <Route path="/install" element={
                   <PublicProviders>
@@ -283,11 +289,12 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
-            </TooltipProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TranslationProvider>
-    </QueryClientProvider>
+              </TooltipProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TranslationProvider>
+      </QueryClientProvider>
+    </SentryErrorBoundary>
   );
 };
 

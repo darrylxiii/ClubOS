@@ -1,18 +1,21 @@
 /**
  * Performance Monitoring Utility
  * Tracks and logs performance metrics for analysis
+ * Enhanced with Sentry integration for enterprise observability
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import * as Sentry from '@sentry/react';
 
 export interface PerformanceContext {
   page?: string;
   action?: string;
+  metric?: string;
   [key: string]: any;
 }
 
 /**
- * Log a performance metric to the database
+ * Log a performance metric to console and Sentry
  */
 export const logPerformanceMetric = async (
   metricName: string,
@@ -20,8 +23,12 @@ export const logPerformanceMetric = async (
   context?: PerformanceContext
 ): Promise<void> => {
   try {
-    // Log to console for now - performance_metrics table will be created in future migration
     console.log(`[PERF] ${metricName}: ${value}ms`, context);
+    
+    // Send to Sentry as a measurement if initialized
+    if (Sentry.getClient()) {
+      Sentry.setMeasurement(metricName, value, 'millisecond');
+    }
   } catch (error) {
     console.error('Failed to log performance metric:', error);
   }
@@ -93,7 +100,54 @@ export const measureComponentRender = (componentName: string) => {
 };
 
 /**
- * Get Core Web Vitals
+ * Track Cumulative Layout Shift (CLS)
+ */
+export const trackCLS = (): void => {
+  if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
+  
+  let clsValue = 0;
+  const clsObserver = new PerformanceObserver((list) => {
+    for (const entry of list.getEntries() as any[]) {
+      if (!entry.hadRecentInput) {
+        clsValue += entry.value;
+      }
+    }
+    logPerformanceMetric('cumulative_layout_shift', clsValue * 1000, { metric: 'cls' });
+  });
+  
+  try {
+    clsObserver.observe({ type: 'layout-shift', buffered: true });
+  } catch (e) {
+    // CLS not supported
+  }
+};
+
+/**
+ * Track Interaction to Next Paint (INP) - replaces FID in Core Web Vitals
+ */
+export const trackINP = (): void => {
+  if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
+  
+  const inpObserver = new PerformanceObserver((list) => {
+    for (const entry of list.getEntries() as any[]) {
+      if (entry.duration > 40) {
+        logPerformanceMetric('interaction_to_next_paint', entry.duration, { 
+          metric: 'inp',
+          target: entry.name,
+        });
+      }
+    }
+  });
+  
+  try {
+    inpObserver.observe({ type: 'event', buffered: true } as PerformanceObserverInit);
+  } catch (e) {
+    // INP not supported
+  }
+};
+
+/**
+ * Get Core Web Vitals - LCP, FID, CLS, INP
  */
 export const trackCoreWebVitals = (): void => {
   if (typeof window === 'undefined') return;
@@ -117,7 +171,7 @@ export const trackCoreWebVitals = (): void => {
       // LCP not supported in this browser
     }
     
-    // Track FID (First Input Delay)
+    // Track FID (First Input Delay) - legacy metric
     const fidObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
       entries.forEach((entry: any) => {
@@ -132,5 +186,9 @@ export const trackCoreWebVitals = (): void => {
     } catch (e) {
       // FID not supported in this browser
     }
+    
+    // Track CLS and INP
+    trackCLS();
+    trackINP();
   }
 };
