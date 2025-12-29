@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createFunctionLogger } from "../_shared/function-logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,11 +8,15 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  const logger = createFunctionLogger('generate-company-intelligence-report');
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    logger.logRequest(req.method);
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
@@ -23,7 +28,8 @@ serve(async (req) => {
       throw new Error('company_id is required');
     }
 
-    console.log(`[Intelligence Report] Generating report for company: ${company_id}, period: ${period_days} days`);
+    logger.info('Generating intelligence report', { company_id, period_days });
+    logger.checkpoint('validated_input');
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - period_days);
@@ -38,6 +44,8 @@ serve(async (req) => {
     if (companyError || !company) {
       throw new Error(`Company not found: ${companyError?.message}`);
     }
+
+    logger.checkpoint('fetched_company');
 
     // Fetch interactions in period
     const { data: interactions, error: interactionsError } = await supabase
@@ -61,6 +69,8 @@ serve(async (req) => {
     if (stakeholdersError) {
       throw stakeholdersError;
     }
+
+    logger.checkpoint('fetched_interactions');
 
     // Fetch insights
     const interactionIds = interactions?.map(i => i.id) || [];
@@ -134,6 +144,8 @@ serve(async (req) => {
       ? ((last30Days - previous30Days) / previous30Days) * 100 
       : 0;
 
+    logger.checkpoint('calculated_metrics');
+
     // Build AI prompt for recommendations
     const aiPrompt = `Analyze this company intelligence and provide strategic recommendations:
 
@@ -178,9 +190,10 @@ Provide recommendations in JSON format:
 
 Return ONLY valid JSON.`;
 
-    console.log('[Intelligence Report] Calling Lovable AI for recommendations...');
+    logger.info('Calling Lovable AI for recommendations');
 
     // Call Lovable AI for recommendations
+    const aiStartTime = Date.now();
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -203,15 +216,17 @@ Return ONLY valid JSON.`;
       }),
     });
 
+    logger.logExternalCall('lovable-ai', '/v1/chat/completions', aiResponse.status, Date.now() - aiStartTime);
+
     let aiRecommendations = null;
     if (aiResponse.ok) {
       const aiData = await aiResponse.json();
       let aiContent = aiData.choices[0].message.content;
       aiContent = aiContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       aiRecommendations = JSON.parse(aiContent);
-      console.log('[Intelligence Report] AI recommendations generated');
+      logger.info('AI recommendations generated');
     } else {
-      console.warn('[Intelligence Report] AI API failed, using basic recommendations');
+      logger.warn('AI API failed, using basic recommendations');
       aiRecommendations = {
         overall_health_score: 50,
         relationship_status: 'warm',
@@ -224,6 +239,8 @@ Return ONLY valid JSON.`;
         optimal_timing: 'Within 7 days',
       };
     }
+
+    logger.checkpoint('generated_recommendations');
 
     // Compile comprehensive report
     const report = {
@@ -299,10 +316,10 @@ Return ONLY valid JSON.`;
       });
 
     if (cacheError) {
-      console.warn('[Intelligence Report] Failed to cache report:', cacheError);
+      logger.warn('Failed to cache report', { error: cacheError.message });
     }
 
-    console.log('[Intelligence Report] Report generated successfully');
+    logger.logSuccess(200, { company_id, company_name: company.name });
 
     return new Response(
       JSON.stringify({
@@ -313,9 +330,11 @@ Return ONLY valid JSON.`;
     );
 
   } catch (error) {
-    console.error('[Intelligence Report] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.logError(500, errorMessage);
+    
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

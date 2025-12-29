@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createFunctionLogger } from '../_shared/function-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -85,7 +86,8 @@ const TABLE_TIERS: TableTier[] = [
 async function verifyTableBatch(
   supabase: any,
   tables: string[],
-  tierName: string
+  tierName: string,
+  logger: ReturnType<typeof createFunctionLogger>
 ): Promise<{ verified: number; issues: string[] }> {
   const results = await Promise.all(
     tables.map(async (table) => {
@@ -95,18 +97,18 @@ async function verifyTableBatch(
           .select('*', { count: 'exact', head: true });
 
         if (error) {
-          console.error(`[Backup Verification] ❌ [${tierName}] ${table}:`, error.message);
+          logger.warn(`[${tierName}] ${table}: ${error.message}`);
           return { success: false, issue: `Table ${table}: ${error.message}` };
         } else if (count === null) {
-          console.error(`[Backup Verification] ⚠️ [${tierName}] ${table}: Unable to verify row count`);
+          logger.warn(`[${tierName}] ${table}: Unable to verify row count`);
           return { success: false, issue: `Table ${table}: Unable to verify row count` };
         } else {
-          console.log(`[Backup Verification] ✓ [${tierName}] ${table}: ${count} rows`);
+          logger.info(`[${tierName}] ${table}: ${count} rows verified`);
           return { success: true, issue: null };
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        console.error(`[Backup Verification] ❌ [${tierName}] ${table}:`, errorMessage);
+        logger.warn(`[${tierName}] ${table}: ${errorMessage}`);
         return { success: false, issue: `Table ${table}: ${errorMessage}` };
       }
     })
@@ -119,19 +121,23 @@ async function verifyTableBatch(
 }
 
 Deno.serve(async (req) => {
+  const logger = createFunctionLogger('verify-database-backups');
+  
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    logger.logRequest(req.method);
+    
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
     const totalTables = TABLE_TIERS.reduce((acc, tier) => acc + tier.tables.length, 0);
-    console.log(`[Backup Verification] Starting verification of ${totalTables} tables across ${TABLE_TIERS.length} tiers`);
+    logger.info(`Starting verification of ${totalTables} tables across ${TABLE_TIERS.length} tiers`);
 
     const startTime = Date.now();
     const allIssues: string[] = [];
@@ -141,7 +147,10 @@ Deno.serve(async (req) => {
     // Process each tier in parallel batches
     for (const tier of TABLE_TIERS) {
       const tierStart = Date.now();
-      console.log(`[Backup Verification] Processing tier: ${tier.name} (${tier.tables.length} tables, severity: ${tier.severity})`);
+      logger.info(`Processing tier: ${tier.name}`, { 
+        tables: tier.tables.length, 
+        severity: tier.severity 
+      });
 
       // Split tier tables into batches of 10 for parallel processing
       const batchSize = 10;
@@ -155,7 +164,7 @@ Deno.serve(async (req) => {
 
       // Process batches in parallel
       const batchResults = await Promise.all(
-        batches.map(batch => verifyTableBatch(supabaseAdmin, batch, tier.name))
+        batches.map(batch => verifyTableBatch(supabaseAdmin, batch, tier.name, logger))
       );
 
       batchResults.forEach(result => {
@@ -174,17 +183,20 @@ Deno.serve(async (req) => {
       allIssues.push(...tierIssues);
 
       const tierSuccessRate = ((tierVerified / tier.tables.length) * 100).toFixed(1);
-      console.log(`[Backup Verification] ${tier.name}: ${tierVerified}/${tier.tables.length} verified (${tierSuccessRate}%) in ${tierDuration}ms`);
+      logger.info(`${tier.name}: ${tierVerified}/${tier.tables.length} verified (${tierSuccessRate}%)`, {
+        duration_ms: tierDuration
+      });
 
       // Tier-specific alerting
       if (tier.severity === 'critical' && tierVerified < tier.tables.length) {
-        console.error(`[Backup Verification] 🚨 CRITICAL: ${tier.name} has failures!`);
+        logger.error(`CRITICAL: ${tier.name} has failures!`, undefined, { tier: tier.name });
       } else if (tierIssues.length >= 3) {
-        console.warn(`[Backup Verification] ⚠️ WARNING: ${tier.name} has ${tierIssues.length} failures`);
+        logger.warn(`${tier.name} has ${tierIssues.length} failures`);
       }
     }
 
     const duration = Date.now() - startTime;
+    logger.checkpoint('verification_complete');
 
     const result: BackupVerificationResult = {
       timestamp: new Date().toISOString(),
@@ -199,10 +211,12 @@ Deno.serve(async (req) => {
       tier_results: tierResults
     };
 
-    console.log('[Backup Verification] Overall Result:', result.verification_status);
-    console.log('[Backup Verification] Total Duration:', duration, 'ms');
-    console.log('[Backup Verification] Tables verified:', totalSuccessful, '/', totalTables);
-    console.log('[Backup Verification] Success rate:', ((totalSuccessful / totalTables) * 100).toFixed(1), '%');
+    logger.info('Verification complete', {
+      status: result.verification_status,
+      verified: totalSuccessful,
+      total: totalTables,
+      successRate: ((totalSuccessful / totalTables) * 100).toFixed(1) + '%'
+    });
 
     // Log to backup_verification_logs table
     const { error: logError } = await supabaseAdmin
@@ -218,7 +232,7 @@ Deno.serve(async (req) => {
       });
 
     if (logError) {
-      console.error('[Backup Verification] Failed to log result:', logError);
+      logger.warn('Failed to log result', { error: logError.message });
     }
 
     // Enhanced tier-based alerting
@@ -233,7 +247,7 @@ Deno.serve(async (req) => {
 
       if (criticalTierFailures || result.verification_status === 'failed') {
         severity = 'critical';
-        alertMessage = `🚨 CRITICAL: Backup verification failed for critical tier tables`;
+        alertMessage = `CRITICAL: Backup verification failed for critical tier tables`;
       }
 
       const { error: alertError } = await supabaseAdmin
@@ -251,11 +265,13 @@ Deno.serve(async (req) => {
         });
 
       if (alertError) {
-        console.error('[Backup Verification] Failed to create alert:', alertError);
+        logger.warn('Failed to create alert', { error: alertError.message });
       } else {
-        console.log(`[Backup Verification] Alert created with severity: ${severity}`);
+        logger.info(`Alert created with severity: ${severity}`);
       }
     }
+
+    logger.logSuccess(200, { status: result.verification_status });
 
     return new Response(
       JSON.stringify({
@@ -269,11 +285,13 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('[Backup Verification] Fatal error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.logError(500, errorMessage);
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: errorMessage
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
