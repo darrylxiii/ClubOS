@@ -29123,6 +29123,48 @@ export type Database = {
           },
         ]
       }
+      rate_limit_analytics: {
+        Row: {
+          avg_response_time_ms: number | null
+          blocked_requests: number | null
+          created_at: string | null
+          date: string | null
+          endpoint: string
+          hour: number | null
+          id: string
+          top_ips: Json | null
+          total_requests: number | null
+          unique_ips: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_response_time_ms?: number | null
+          blocked_requests?: number | null
+          created_at?: string | null
+          date?: string | null
+          endpoint: string
+          hour?: number | null
+          id?: string
+          top_ips?: Json | null
+          total_requests?: number | null
+          unique_ips?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_response_time_ms?: number | null
+          blocked_requests?: number | null
+          created_at?: string | null
+          date?: string | null
+          endpoint?: string
+          hour?: number | null
+          id?: string
+          top_ips?: Json | null
+          total_requests?: number | null
+          unique_ips?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       recovery_metrics: {
         Row: {
           actual_rpo_minutes: number | null
@@ -31216,6 +31258,254 @@ export type Database = {
           timezone?: string | null
         }
         Relationships: []
+      }
+      scim_groups: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          description: string | null
+          display_name: string
+          external_id: string
+          id: string
+          members_count: number | null
+          metadata: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          external_id: string
+          id?: string
+          members_count?: number | null
+          metadata?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          external_id?: string
+          id?: string
+          members_count?: number | null
+          metadata?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scim_groups_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scim_groups_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scim_provisioning_logs: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          error_message: string | null
+          external_id: string | null
+          id: string
+          ip_address: unknown
+          operation: string
+          request_payload: Json | null
+          resource_id: string | null
+          resource_type: string
+          response_payload: Json | null
+          status: string
+          user_agent: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          external_id?: string | null
+          id?: string
+          ip_address?: unknown
+          operation: string
+          request_payload?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          response_payload?: Json | null
+          status: string
+          user_agent?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          external_id?: string | null
+          id?: string
+          ip_address?: unknown
+          operation?: string
+          request_payload?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          response_payload?: Json | null
+          status?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scim_provisioning_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scim_provisioning_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scim_tokens: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          name: string
+          scopes: string[] | null
+          token_hash: string
+          token_prefix: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          name: string
+          scopes?: string[] | null
+          token_hash: string
+          token_prefix: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          name?: string
+          scopes?: string[] | null
+          token_hash?: string
+          token_prefix?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scim_tokens_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scim_tokens_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scim_tokens_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "scim_tokens_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scim_tokens_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scim_user_group_memberships: {
+        Row: {
+          created_at: string | null
+          group_id: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scim_user_group_memberships_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "scim_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scim_user_group_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "scim_user_group_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scim_user_group_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       security_alerts: {
         Row: {
@@ -37496,6 +37786,57 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_dead_letter_queue: {
+        Row: {
+          created_at: string | null
+          endpoint_url: string
+          error_message: string | null
+          headers: Json | null
+          http_status: number | null
+          id: string
+          last_retry_at: string | null
+          max_retries: number | null
+          next_retry_at: string | null
+          payload: Json
+          retry_count: number | null
+          status: string | null
+          updated_at: string | null
+          webhook_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint_url: string
+          error_message?: string | null
+          headers?: Json | null
+          http_status?: number | null
+          id?: string
+          last_retry_at?: string | null
+          max_retries?: number | null
+          next_retry_at?: string | null
+          payload: Json
+          retry_count?: number | null
+          status?: string | null
+          updated_at?: string | null
+          webhook_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint_url?: string
+          error_message?: string | null
+          headers?: Json | null
+          http_status?: number | null
+          id?: string
+          last_retry_at?: string | null
+          max_retries?: number | null
+          next_retry_at?: string | null
+          payload?: Json
+          retry_count?: number | null
+          status?: string | null
+          updated_at?: string | null
+          webhook_id?: string | null
+        }
+        Relationships: []
+      }
       webhook_deliveries: {
         Row: {
           attempts: number
@@ -37548,6 +37889,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      webhook_delivery_stats: {
+        Row: {
+          avg_response_time_ms: number | null
+          created_at: string | null
+          date: string | null
+          endpoint_url: string
+          failed_deliveries: number | null
+          id: string
+          last_delivery_at: string | null
+          last_failure_at: string | null
+          last_success_at: string | null
+          successful_deliveries: number | null
+          total_deliveries: number | null
+          updated_at: string | null
+          webhook_id: string | null
+        }
+        Insert: {
+          avg_response_time_ms?: number | null
+          created_at?: string | null
+          date?: string | null
+          endpoint_url: string
+          failed_deliveries?: number | null
+          id?: string
+          last_delivery_at?: string | null
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          successful_deliveries?: number | null
+          total_deliveries?: number | null
+          updated_at?: string | null
+          webhook_id?: string | null
+        }
+        Update: {
+          avg_response_time_ms?: number | null
+          created_at?: string | null
+          date?: string | null
+          endpoint_url?: string
+          failed_deliveries?: number | null
+          id?: string
+          last_delivery_at?: string | null
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          successful_deliveries?: number | null
+          total_deliveries?: number | null
+          updated_at?: string | null
+          webhook_id?: string | null
+        }
+        Relationships: []
       }
       webhook_endpoints: {
         Row: {
