@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useRef } from 'react';
+import { logger } from '@/lib/logger';
 
 export interface SimulcastLayer {
   rid: string;
@@ -246,9 +247,9 @@ export function useSimulcast() {
     try {
       // @ts-ignore - contentHint is not in TypeScript types yet
       track.contentHint = contentType;
-      console.log(`[Simulcast] Set screen share content hint: ${contentType}`);
+      logger.debug('Set screen share content hint', { componentName: 'Simulcast', contentType });
     } catch (error) {
-      console.warn('[Simulcast] Content hint not supported:', error);
+      logger.warn('Content hint not supported', { componentName: 'Simulcast', error });
     }
   }, []);
 

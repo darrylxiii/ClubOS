@@ -7,6 +7,7 @@ import { UserPlus, Check, X, Mail, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface JoinRequest {
   id: string;
@@ -26,7 +27,7 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    console.log('[HostApproval] 🔧 Setting up approval panel | Meeting ID:', meetingId, '| Is Host:', isHost);
+    logger.debug('Setting up approval panel', { componentName: 'HostApproval', meetingId, isHost });
     
     if (!isHost) {
       console.log('[HostApproval] ⏸️ Not host, skipping request monitoring');
@@ -67,16 +68,16 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
         }
       )
       .subscribe((status, err) => {
-        console.log('[HostApproval] 📡 Realtime subscription status:', status, err || '');
+        logger.debug('Realtime subscription status', { componentName: 'HostApproval', status, error: err });
         if (status === 'SUBSCRIBED') {
-          console.log('[HostApproval] ✅ Successfully subscribed to join requests');
+          logger.info('Successfully subscribed to join requests', { componentName: 'HostApproval' });
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('[HostApproval] ⚠️ Realtime subscription failed, relying on polling');
+          logger.warn('Realtime subscription failed, relying on polling', { componentName: 'HostApproval' });
         }
       });
 
     return () => {
-      console.log('[HostApproval] 🔌 Cleaning up approval panel');
+      logger.debug('Cleaning up approval panel', { componentName: 'HostApproval' });
       clearInterval(pollInterval);
       supabase.removeChannel(channel);
     };

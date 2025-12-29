@@ -7,6 +7,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
+import { logger } from '@/lib/logger';
 
 export interface BandwidthAllocation {
   audio: number;      // kbps
@@ -207,11 +208,11 @@ export function useBandwidthAllocator(priorities: BandwidthPriorities = DEFAULT_
         
         await sender.setParameters(params);
       } catch (error) {
-        console.warn('[BandwidthAllocator] Failed to apply allocation to sender:', error);
+        logger.warn('Failed to apply allocation to sender', { componentName: 'BandwidthAllocator', error });
       }
     }
     
-    console.log('[BandwidthAllocator] Applied allocation to peer connection');
+    logger.debug('Applied allocation to peer connection', { componentName: 'BandwidthAllocator' });
   }, []);
 
   /**
@@ -244,7 +245,7 @@ export function useBandwidthAllocator(priorities: BandwidthPriorities = DEFAULT_
       lastEstimatedBandwidthRef.current = estimatedBandwidth;
       return estimatedBandwidth;
     } catch (error) {
-      console.warn('[BandwidthAllocator] Failed to estimate bandwidth:', error);
+      logger.warn('Failed to estimate bandwidth', { componentName: 'BandwidthAllocator', error });
       return lastEstimatedBandwidthRef.current;
     }
   }, []);

@@ -17,6 +17,7 @@ import { z } from "zod";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import { GuestEmailInput } from "./GuestEmailInput";
 import { GuestPlatformSelector } from "./GuestPlatformSelector";
+import { logger } from "@/lib/logger";
 
 interface BookingFormProps {
   bookingLink: {
@@ -138,16 +139,16 @@ export function BookingForm({
         });
 
         if (!isStillAvailable) {
-          console.warn('[BookingForm] Slot no longer available:', normalizedSelectedTime);
+          logger.warn('Slot no longer available', { componentName: 'BookingForm', slot: normalizedSelectedTime });
           toast.error("This time slot was just booked. Please select another time.");
           setLoading(false);
           return;
         }
 
-        console.log('[BookingForm] Slot verified as available');
+        logger.debug('Slot verified as available', { componentName: 'BookingForm' });
       }
     } catch (verifyError) {
-      console.warn("Could not verify slot availability:", verifyError);
+      logger.warn('Could not verify slot availability', { componentName: 'BookingForm', error: verifyError });
       // Continue with booking attempt anyway - server-side validation will catch issues
     }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { logger } from '@/lib/logger';
 
 interface Caption {
   id: string;
@@ -32,7 +33,7 @@ export function LiveCaptions({ enabled, localStream }: LiveCaptionsProps) {
     // Check if browser supports Web Speech API
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      console.warn('[Captions] Web Speech API not supported');
+      logger.warn('Web Speech API not supported', { componentName: 'LiveCaptions' });
       return;
     }
 
@@ -42,7 +43,7 @@ export function LiveCaptions({ enabled, localStream }: LiveCaptionsProps) {
     recognition.lang = 'en-US';
 
     recognition.onstart = () => {
-      console.log('[Captions] Started listening');
+      logger.debug('Started listening', { componentName: 'LiveCaptions' });
       setIsListening(true);
     };
 

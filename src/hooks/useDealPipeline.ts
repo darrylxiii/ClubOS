@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 export interface DealStage {
   id: string;
@@ -105,12 +106,12 @@ export function useDealPipeline() {
               .rpc('get_pipeline_candidate_stats', { p_job_id: job.id });
             
             if (salaryError) {
-              console.warn('[DealPipeline] Salary stats error for job', job.id, salaryError);
+              logger.warn('Salary stats error for job', { componentName: 'DealPipeline', jobId: job.id, error: salaryError });
             } else {
               avgSalary = salaryData?.[0]?.avg_desired_salary || salaryData?.[0]?.avg_current_salary || 0;
             }
           } catch (err) {
-            console.warn('[DealPipeline] Failed to fetch salary stats for job', job.id, err);
+            logger.warn('Failed to fetch salary stats for job', { componentName: 'DealPipeline', jobId: job.id, error: err });
           }
           
           // Calculate estimated revenue using job salary if no candidate data

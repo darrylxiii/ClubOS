@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 // Debounce map to prevent duplicate tracking within short time window
 const viewTrackingDebounce = new Map<string, number>();
@@ -35,7 +36,7 @@ export async function trackProfileView({
     const now = Date.now();
 
     if (lastTracked && now - lastTracked < DEBOUNCE_WINDOW_MS) {
-      console.log('[Profile View] Debounced - tracked recently');
+      logger.debug('Profile view debounced - tracked recently', { componentName: 'ProfileViewTracking' });
       return;
     }
 
@@ -47,7 +48,7 @@ export async function trackProfileView({
       .single();
 
     if (!viewerProfile) {
-      console.warn('[Profile View] Viewer profile not found');
+      logger.warn('Viewer profile not found', { componentName: 'ProfileViewTracking', viewerId });
       return;
     }
 

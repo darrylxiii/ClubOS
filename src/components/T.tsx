@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { ReactNode } from 'react';
+import { logger } from '@/lib/logger';
 
 interface TProps {
   /** Translation key in format "namespace:path.to.key" */
@@ -30,7 +31,7 @@ export const T = ({ k, fallback, values, as: Component = 'span', ...props }: TPr
   const key = keyParts.join(':');
   
   if (!namespace || !key) {
-    console.warn(`[T] Invalid translation key format: "${k}". Expected "namespace:key"`);
+    logger.warn('Invalid translation key format', { componentName: 'T', key: k, expected: 'namespace:key' });
     return <Component {...props}>{fallback || k}</Component>;
   }
   
@@ -38,7 +39,7 @@ export const T = ({ k, fallback, values, as: Component = 'span', ...props }: TPr
   
   // In development, show visual indicator when translation is missing
   if (process.env.NODE_ENV === 'development' && translated === k) {
-    console.warn(`[T] Missing translation: ${k} (language: ${i18n.language})`);
+    logger.warn('Missing translation', { componentName: 'T', key: k, language: i18n.language });
     return (
       <Component {...props} title={`Missing: ${k}`} style={{ backgroundColor: 'rgba(255, 0, 0, 0.1)' }}>
         {fallback || key}

@@ -7,6 +7,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 export interface NoiseCancellationConfig {
   enabled: boolean;
@@ -61,7 +62,7 @@ export function useNoiseCancellation(inputStream: MediaStream | null) {
    */
   const initializeProcessing = useCallback(async (stream: MediaStream): Promise<MediaStream | null> => {
     if (!stream || stream.getAudioTracks().length === 0) {
-      console.warn('[NoiseCancellation] No audio tracks in stream');
+      logger.warn('No audio tracks in stream', { componentName: 'NoiseCancellation' });
       return null;
     }
 

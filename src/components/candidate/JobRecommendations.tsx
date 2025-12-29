@@ -13,6 +13,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 interface JobMatch {
   id: string;
@@ -68,7 +69,7 @@ export function JobRecommendations({ userId }: { userId: string }) {
 
       if (error) {
         // Silently fail if relationship doesn't exist yet
-        console.warn('Could not fetch recommendations - database schema may need migration:', error.message);
+        logger.warn('Could not fetch recommendations - database schema may need migration', { componentName: 'JobRecommendations', error: error.message });
         setRecommendations([]);
         setLoading(false);
         return;

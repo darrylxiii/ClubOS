@@ -1,5 +1,6 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { ConnectionQuality } from './useConnectionQuality';
+import { logger } from '@/lib/logger';
 
 interface AdaptiveAudioConfig {
   minBitrate: number;
@@ -130,11 +131,11 @@ export function useAdaptiveAudio({
 
       if (opusCodecs.length > 0 && audioTransceiver.setCodecPreferences) {
         audioTransceiver.setCodecPreferences(opusCodecs);
-        console.log('[AdaptiveAudio] Set Opus as preferred codec, FEC:', enableFEC);
+        logger.debug('Set Opus as preferred codec', { componentName: 'AdaptiveAudio', fec: enableFEC });
       }
 
     } catch (error) {
-      console.warn('[AdaptiveAudio] Could not configure Opus:', error);
+      logger.warn('Could not configure Opus', { componentName: 'AdaptiveAudio', error });
     }
   }, [peerConnection]);
 

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useResumeUpload } from "@/hooks/useResumeUpload";
+import { logger } from "@/lib/logger";
 
 interface ResumeUploadModalProps {
   open: boolean;
@@ -27,7 +28,7 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
 
   const { uploadResume, isUploading: uploading, progress: uploadProgress, validateFile } = useResumeUpload({
     onError: (error) => {
-      console.error("Upload failed:", error);
+      logger.error("Upload failed", error, { componentName: 'ResumeUploadModal' });
     }
   });
 
@@ -96,7 +97,7 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
           .eq('user_id', user.id)
           .eq('document_type', documentType);
         
-        if (updateError) console.warn('Error unsetting primary:', updateError);
+        if (updateError) logger.warn('Error unsetting primary', { componentName: 'ResumeUploadModal', error: updateError });
       }
 
       // Save document metadata to database
