@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { logger } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -67,7 +68,7 @@ export default function ContractSignaturePage() {
           }
         }
       } catch (e) {
-        console.warn('Could not fetch IP address:', e);
+        logger.warn('Could not fetch IP address:', e);
         clientIp = 'unknown';
       }
 

@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logger";
+
 /**
  * Centralized WebRTC Configuration
  * 
@@ -13,7 +15,7 @@ export const getIceServers = (): RTCIceServer[] => {
     const envCredential = import.meta.env.VITE_TURN_CREDENTIAL;
 
     if (envUrls && envUsername && envCredential) {
-        console.log('[WebRTC Config] 🔒 Loading secure TURN servers from environment configuration');
+        logger.info('[WebRTC Config] 🔒 Loading secure TURN servers from environment configuration');
         return [
             // Always include Google STUN for fast NAT discovery
             { urls: 'stun:stun.l.google.com:19302' },
@@ -29,7 +31,7 @@ export const getIceServers = (): RTCIceServer[] => {
     }
 
     // 2. Fallback: Free OpenRelay Servers (Development / Low Scale)
-    console.warn('[WebRTC Config] ⚠️ Using free community TURN servers (OpenRelay). Not recommended for production scaling.');
+    logger.warn('[WebRTC Config] ⚠️ Using free community TURN servers (OpenRelay). Not recommended for production scaling.');
 
     return [
         // Google STUN servers
