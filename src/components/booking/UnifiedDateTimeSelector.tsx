@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import { normalizeTimeFormat } from "@/lib/timezoneUtils";
 import { motion, AnimatePresence } from "framer-motion";
+import { logger } from "@/lib/logger";
 
 interface TimeSlot {
   start: string;
@@ -98,7 +99,7 @@ export function UnifiedDateTimeSelector({
         setAvailabilityMap(newAvailabilityMap);
       }
     } catch (error) {
-      console.error("[UnifiedSelector] Error loading month availability:", error);
+      logger.error('Error loading month availability', error as Error, { componentName: 'UnifiedDateTimeSelector' });
     }
   };
 
@@ -119,8 +120,7 @@ export function UnifiedDateTimeSelector({
     setLoading(true);
     try {
       const dateStr = format(date, "yyyy-MM-dd");
-      console.log('[UnifiedSelector] Loading slots for date:', dateStr);
-      console.log('[UnifiedSelector] Booking link slug:', bookingLink.slug);
+      logger.debug('Loading slots for date', { componentName: 'UnifiedDateTimeSelector', dateStr, slug: bookingLink.slug });
 
       const { data, error } = await supabase.functions.invoke("get-available-slots", {
         body: {
@@ -133,20 +133,17 @@ export function UnifiedDateTimeSelector({
         },
       });
 
-      console.log('[UnifiedSelector] Raw response:', { data, error });
-
       if (error) {
-        console.error('[UnifiedSelector] API error:', error);
+        logger.error('API error loading slots', error as Error, { componentName: 'UnifiedDateTimeSelector' });
         throw error;
       }
 
       if (!data || !data.slots) {
-        console.error('[UnifiedSelector] Invalid response structure:', data);
+        logger.error('Invalid response structure', new Error('Missing slots array'), { componentName: 'UnifiedDateTimeSelector', data });
         throw new Error('Invalid response: missing slots array');
       }
 
-      console.log('[UnifiedSelector] Slots received:', data.slots);
-      console.log('[UnifiedSelector] Slots array length:', data.slots.length);
+      logger.debug('Slots received', { componentName: 'UnifiedDateTimeSelector', slotsCount: data.slots.length });
 
       // Validate that slots is an array
       if (!Array.isArray(data.slots)) {
@@ -154,20 +151,19 @@ export function UnifiedDateTimeSelector({
       }
 
       const slots = data.slots.map((slot: any, index: number) => {
-        console.log(`[UnifiedSelector] Processing slot ${index}:`, slot, typeof slot);
 
         // Handle string format "HH:MM - YYYY-MM-DD"
         if (typeof slot === 'string') {
           const parts = slot.split(" - ");
           if (parts.length !== 2) {
-            console.warn('[UnifiedSelector] Invalid slot format:', slot);
+            logger.warn('Invalid slot format', { componentName: 'UnifiedDateTimeSelector', slot });
             return null;
           }
-          const [time, dateStr] = parts;
+          const [time, slotDate] = parts;
           return {
             start: time,
             end: "",
-            date: dateStr,
+            date: slotDate,
           };
         } else if (typeof slot === 'object' && slot.start) {
           // Fallback for object format
@@ -177,12 +173,11 @@ export function UnifiedDateTimeSelector({
             date: slot.date || dateStr,
           };
         } else {
-          console.warn('[UnifiedSelector] Unknown slot format:', slot);
+          logger.warn('Unknown slot format', { componentName: 'UnifiedDateTimeSelector', slot });
           return null;
         }
       }).filter(Boolean); // Remove null entries
 
-      console.log('[UnifiedSelector] Parsed slots:', slots);
       setAvailableSlots(slots);
 
       if (slots.length === 0) {
@@ -191,8 +186,7 @@ export function UnifiedDateTimeSelector({
         toast.success(`Found ${slots.length} available times`);
       }
     } catch (error: any) {
-      console.error("[UnifiedSelector] Error loading slots:", error);
-      console.error("[UnifiedSelector] Error stack:", error.stack);
+      logger.error('Error loading slots', error as Error, { componentName: 'UnifiedDateTimeSelector' });
       toast.error(`Failed to load available times: ${error.message || 'Unknown error'}`);
       setAvailableSlots([]);
     } finally {
@@ -221,7 +215,7 @@ export function UnifiedDateTimeSelector({
     try {
       return normalizeTimeFormat(time);
     } catch (error) {
-      console.error('[UnifiedSelector] Error formatting time:', error);
+      logger.error('Error formatting time', error as Error, { componentName: 'UnifiedDateTimeSelector', time });
       return time;
     }
   };

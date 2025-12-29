@@ -167,6 +167,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Companies", icon: Building2, path: "/companies" },
         { name: "Salary Insights", icon: TrendingUp, path: "/salary-insights" },
         { name: "Career Path", icon: Target, path: "/career-path" },
+        { name: "Career Insights", icon: Brain, path: "/career-insights" },
         { name: "Referrals", icon: Gift, path: "/referrals" },
         { name: "Invites", icon: Mail, path: "/invites" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
@@ -364,6 +365,10 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Communication Analytics", icon: Brain, path: "/communication-analytics" },
         { name: "Meeting Analytics", icon: Video, path: "/meeting-analytics" },
         { name: "Feedback Database", icon: MessagesSquare, path: "/feedback-database" },
+        { name: "Conversation Analytics", icon: MessageSquare, path: "/admin/conversation-analytics" },
+        { name: "User Engagement", icon: Activity, path: "/admin/user-engagement" },
+        { name: "Security Events", icon: Shield, path: "/admin/security-events" },
+        { name: "Per-Job Analytics", icon: Briefcase, path: "/admin/job-analytics" },
       ],
     },
     {

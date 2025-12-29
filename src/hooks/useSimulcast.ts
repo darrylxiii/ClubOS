@@ -91,7 +91,7 @@ export function useSimulcast() {
       
       // Check if simulcast is supported
       if (!params.encodings || params.encodings.length === 0) {
-        console.log('[Simulcast] Creating new encodings array');
+        logger.debug('Creating new encodings array', { componentName: 'Simulcast' });
         params.encodings = [];
       }
 
@@ -131,7 +131,8 @@ export function useSimulcast() {
 
       await sender.setParameters(params);
       
-      console.log('[Simulcast] Configured 3 quality layers:', {
+      logger.info('Configured 3 quality layers', {
+        componentName: 'Simulcast',
         high: `${effectiveConfig.high.maxBitrate / 1000}kbps`,
         medium: `${effectiveConfig.medium.maxBitrate / 1000}kbps`,
         low: `${effectiveConfig.low.maxBitrate / 1000}kbps`
@@ -139,7 +140,7 @@ export function useSimulcast() {
       
       return true;
     } catch (error) {
-      console.warn('[Simulcast] Configuration failed (browser may not support it):', error);
+      logger.warn('Configuration failed (browser may not support it)', { componentName: 'Simulcast', error });
       return false;
     }
   }, []);
@@ -159,10 +160,10 @@ export function useSimulcast() {
       if (encoding) {
         encoding.active = active;
         await sender.setParameters(params);
-        console.log(`[Simulcast] Layer ${layerRid} ${active ? 'enabled' : 'disabled'}`);
+        logger.debug(`Layer ${layerRid} ${active ? 'enabled' : 'disabled'}`, { componentName: 'Simulcast', layerRid, active });
       }
     } catch (error) {
-      console.error('[Simulcast] Failed to set layer active state:', error);
+      logger.error('Failed to set layer active state', error as Error, { componentName: 'Simulcast' });
     }
   }, []);
 
@@ -198,14 +199,15 @@ export function useSimulcast() {
       
       await sender.setParameters(params);
       
-      console.log('[Simulcast] Adapted to bandwidth:', {
+      logger.debug('Adapted to bandwidth', {
+        componentName: 'Simulcast',
         availableKbps: availableBandwidthKbps,
         highActive: highLayerEncoding?.active,
         mediumActive: mediumLayerEncoding?.active,
         lowActive: lowLayerEncoding?.active
       });
     } catch (error) {
-      console.error('[Simulcast] Failed to adapt to network:', error);
+      logger.error('Failed to adapt to network', error as Error, { componentName: 'Simulcast' });
     }
   }, []);
 
@@ -231,7 +233,7 @@ export function useSimulcast() {
         }
       });
     } catch (error) {
-      console.error('[Simulcast] Failed to get stats:', error);
+      logger.error('Failed to get stats', error as Error, { componentName: 'Simulcast' });
     }
     
     return stats;

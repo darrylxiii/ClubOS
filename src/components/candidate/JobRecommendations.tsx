@@ -92,7 +92,7 @@ export function JobRecommendations({ userId }: { userId: string }) {
 
       setRecommendations(formatted);
     } catch (error) {
-      console.warn('Error fetching recommendations:', error);
+      logger.warn('Error fetching recommendations', { componentName: 'JobRecommendations', error });
       setRecommendations([]);
     } finally {
       setLoading(false);

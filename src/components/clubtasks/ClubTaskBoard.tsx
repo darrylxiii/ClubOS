@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { CreateClubTaskDialog } from "./CreateClubTaskDialog";
 import { ClubTaskDetailDialog } from "./ClubTaskDetailDialog";
 import { format } from "date-fns";
+import { logger } from "@/lib/logger";
 
 interface ClubTask {
   id: string;
@@ -78,7 +79,7 @@ export const ClubTaskBoard = ({ objectiveId, objectiveName, onRefresh }: ClubTas
         `);
 
       if (assigneesError) {
-        console.warn("Could not load assignee profiles:", assigneesError);
+        logger.warn('Could not load assignee profiles', { componentName: 'ClubTaskBoard', error: assigneesError.message });
       }
 
       // Merge assignees into tasks
@@ -97,7 +98,7 @@ export const ClubTaskBoard = ({ objectiveId, objectiveName, onRefresh }: ClubTas
 
       setTasks(tasksWithAssignees as ClubTask[]);
     } catch (error) {
-      console.error("Error loading tasks:", error);
+      logger.error('Error loading tasks', error as Error, { componentName: 'ClubTaskBoard', objectiveId });
       toast.error("Failed to load tasks");
     } finally {
       setLoading(false);
