@@ -890,3 +890,15 @@ verify_jwt = true
 # =============================================================================
 [functions.ai-writing]
 verify_jwt = true
+
+# =============================================================================
+# SCIM 2.0 Provisioning (Bearer Token Auth - No JWT)
+# =============================================================================
+[functions.scim-users]
+verify_jwt = false
+
+[functions.scim-groups]
+verify_jwt = false
+
+[functions.scim-service-provider-config]
+verify_jwt = false
