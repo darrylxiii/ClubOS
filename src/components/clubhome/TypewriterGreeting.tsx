@@ -1,7 +1,6 @@
 import { useAnimatedText } from '@/hooks/useAnimatedText';
 import { Display } from '@/components/ui/typography';
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState, useEffect, useMemo } from 'react';
 
 interface TypewriterGreetingProps {
   greeting: string;
@@ -9,10 +8,21 @@ interface TypewriterGreetingProps {
 }
 
 export const TypewriterGreeting = ({ greeting, firstName }: TypewriterGreetingProps) => {
-  const { t } = useTranslation();
-  // Use translated greeting if available
-  const translatedGreeting = t('onboarding:welcome.greeting', greeting);
-  const fullText = `${translatedGreeting} ${firstName}`;
+  // Detect if greeting is a raw key (contains dots or colons - not a real greeting)
+  const isRawKey = greeting.includes('.') || greeting.includes(':');
+  
+  // Use bundled fallback if greeting looks like a raw key
+  const safeGreeting = useMemo(() => {
+    if (isRawKey) {
+      const hour = new Date().getHours();
+      if (hour < 12) return 'Good morning';
+      if (hour < 18) return 'Good afternoon';
+      return 'Good evening';
+    }
+    return greeting;
+  }, [greeting, isRawKey]);
+  
+  const fullText = `${safeGreeting} ${firstName}`;
   const animatedText = useAnimatedText(fullText, "");
   const [showCursor, setShowCursor] = useState(true);
 

@@ -39,21 +39,21 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
   const getRoleLabel = () => {
     switch (role) {
       case 'admin':
-        return t('common:roles.admin');
+        return t('common:roles.admin', 'Administrator');
       case 'partner':
-        return t('common:roles.partner');
+        return t('common:roles.partner', 'Partner');
       case 'strategist':
-        return t('common:roles.strategist');
+        return t('common:roles.strategist', 'Strategist');
       default:
-        return t('common:roles.candidate');
+        return t('common:roles.candidate', 'Candidate');
     }
   };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return t('common:home.greeting.morning');
-    if (hour < 18) return t('common:home.greeting.afternoon');
-    return t('common:home.greeting.evening');
+    if (hour < 12) return t('common:home.greeting.morning', 'Good morning');
+    if (hour < 18) return t('common:home.greeting.afternoon', 'Good afternoon');
+    return t('common:home.greeting.evening', 'Good evening');
   };
 
   const getFirstName = () => {
