@@ -201,7 +201,24 @@ export function getSLAStatus(
 /**
  * Format metric value with unit
  */
-export function formatMetricValue(value: number, unit: PerformanceSLA['unit']): string {
+export function formatMetricValue(metricOrValue: string | number, valueOrUnit?: number | PerformanceSLA['unit']): string {
+  // Handle overloaded signature
+  let value: number;
+  let unit: PerformanceSLA['unit'] = 'ms';
+  
+  if (typeof metricOrValue === 'string' && typeof valueOrUnit === 'number') {
+    // Called as formatMetricValue(metricType, value)
+    value = valueOrUnit;
+    const sla = ALL_PERFORMANCE_SLAS.find(s => s.metric.toLowerCase() === metricOrValue.toLowerCase());
+    unit = sla?.unit || 'ms';
+  } else if (typeof metricOrValue === 'number') {
+    // Called as formatMetricValue(value, unit)
+    value = metricOrValue;
+    unit = (valueOrUnit as PerformanceSLA['unit']) || 'ms';
+  } else {
+    return String(metricOrValue);
+  }
+
   switch (unit) {
     case 'ms':
       return value < 1000 ? `${Math.round(value)}ms` : `${(value / 1000).toFixed(2)}s`;
@@ -212,6 +229,30 @@ export function formatMetricValue(value: number, unit: PerformanceSLA['unit']): 
     default:
       return String(value);
   }
+}
+
+/**
+ * Threshold configuration for performance monitoring
+ */
+export const PERFORMANCE_THRESHOLDS: Record<string, { warning: number; critical: number }> = {
+  LCP: { warning: 2500, critical: 4000 },
+  FID: { warning: 100, critical: 300 },
+  CLS: { warning: 0.1, critical: 0.25 },
+  TTFB: { warning: 600, critical: 1200 },
+  INP: { warning: 200, critical: 500 },
+  FCP: { warning: 1800, critical: 3000 },
+};
+
+/**
+ * Check threshold status
+ */
+export function checkThreshold(metric: string, value: number): 'good' | 'warning' | 'critical' {
+  const threshold = PERFORMANCE_THRESHOLDS[metric.toUpperCase()];
+  if (!threshold) return 'good';
+  
+  if (value >= threshold.critical) return 'critical';
+  if (value >= threshold.warning) return 'warning';
+  return 'good';
 }
 
 /**

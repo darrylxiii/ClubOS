@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback 
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/hooks/useUserRole";
+import { logger } from "@/lib/logger";
 
 interface RoleContextType {
   currentRole: UserRole;
@@ -27,7 +28,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      console.log('[RoleContext] Fetching roles for user:', user.id);
+      logger.info('[RoleContext] Fetching roles for user', { userId: user.id });
       
       // Fast parallel fetch - no artificial timeouts
       const rolesPromise = supabase
@@ -44,7 +45,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
         roles = [...new Set([...fetchedRoles, 'user' as UserRole])]; // Ensure 'user' is included
       }
 
-      console.log('[RoleContext] Available roles:', roles);
+      logger.info('[RoleContext] Available roles', { roles });
       setAvailableRoles(roles);
 
       // Get preferred role (non-blocking)
@@ -67,7 +68,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
         selectedRole = priority.find(r => roles.includes(r)) || 'user';
       }
       
-      console.log('[RoleContext] ✅ Setting role to:', selectedRole);
+      logger.info('[RoleContext] ✅ Setting role to', { selectedRole });
       setCurrentRole(selectedRole);
 
       // Fetch company ID (non-blocking)
@@ -83,7 +84,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
         });
 
     } catch (error) {
-      console.error('[RoleContext] Error in fetchRoles:', error);
+      logger.error('[RoleContext] Error in fetchRoles:', error);
       setCurrentRole('user');
       setAvailableRoles(['user']);
     } finally {
@@ -117,7 +118,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
           // CRITICAL FIX: Only update if the role is actually different to prevent infinite loops
           // Use ref to track current role and update it when role changes
           if (newRole && availableRoles.includes(newRole) && newRole !== lastKnownRoleRef.current) {
-            console.log('[RoleContext] External preference change detected, updating to:', newRole);
+            logger.info('[RoleContext] External preference change detected', { newRole });
             lastKnownRoleRef.current = newRole;
             setCurrentRole(newRole);
           }
@@ -133,17 +134,17 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   const switchRole = async (newRole: UserRole) => {
     // Prevent switching to the same role
     if (newRole === currentRole) {
-      console.log('[RoleContext] Already on role:', newRole);
+      logger.debug('[RoleContext] Already on role', { newRole });
       return;
     }
 
     if (!user) {
-      console.error('[RoleContext] Cannot switch role: User not authenticated');
+      logger.error('[RoleContext] Cannot switch role: User not authenticated');
       throw new Error('User not authenticated');
     }
 
     if (!availableRoles.includes(newRole)) {
-      console.error('[RoleContext] Cannot switch to unavailable role:', newRole, 'Available:', availableRoles);
+      logger.error('[RoleContext] Cannot switch to unavailable role', undefined, { newRole, availableRoles });
       throw new Error(`Role ${newRole} is not available for this user`);
     }
 
@@ -152,7 +153,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Update local state FIRST to provide immediate UI feedback
       setCurrentRole(newRole);
-      console.log('[RoleContext] Role switched locally to:', newRole);
+      logger.info('[RoleContext] Role switched locally', { newRole });
 
       // Then save preference to database with retry logic
       let retries = 3;
@@ -172,7 +173,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
 
           if (error) throw error;
           
-          console.log('[RoleContext] Role preference saved to database');
+          logger.info('[RoleContext] Role preference saved to database');
           
           // Success - break out of retry loop
           lastError = null;
@@ -180,7 +181,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
         } catch (err) {
           lastError = err;
           retries--;
-          console.warn(`[RoleContext] Failed to save preference (${3 - retries}/3):`, err);
+          logger.warn(`[RoleContext] Failed to save preference (${3 - retries}/3):`, err);
           
           if (retries > 0) {
             // Wait before retrying (exponential backoff: 500ms, 1s, 2s)
@@ -191,7 +192,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
 
       // If all retries failed, log but don't revert (user can try again)
       if (lastError) {
-        console.error('[RoleContext] Failed to persist role preference after 3 attempts:', lastError);
+        logger.error('[RoleContext] Failed to persist role preference after 3 attempts:', lastError);
         // Don't throw - let the UI update succeed even if DB save failed
         // The preference will be saved on next successful switch
       } else {
@@ -209,13 +210,13 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
             }
           });
         } catch (auditError) {
-          console.warn('[RoleContext] Failed to log audit entry:', auditError);
+          logger.warn('[RoleContext] Failed to log audit entry:', auditError);
         }
       }
 
     } catch (error) {
       // Revert local state on critical errors
-      console.error('[RoleContext] Critical error switching role, reverting:', error);
+      logger.error('[RoleContext] Critical error switching role, reverting:', error);
       setCurrentRole(previousRole);
       throw error;
     }

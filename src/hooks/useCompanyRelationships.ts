@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 
@@ -85,7 +86,7 @@ export function useCompanyRelationships(selectedCompanyId?: string | null) {
         .select('*');
 
       if (sentimentError) {
-        console.warn('Email sentiment table not available:', sentimentError.message);
+        logger.warn('Email sentiment table not available', { error: sentimentError.message });
       }
 
       // Get job counts per company
@@ -198,7 +199,7 @@ export function useCompanyRelationships(selectedCompanyId?: string | null) {
       };
       setStats(statsData);
     } catch (err: any) {
-      console.error('Error fetching company relationships:', err);
+      logger.error('Error fetching company relationships:', err);
       toast({
         title: 'Failed to load relationships',
         description: err.message,

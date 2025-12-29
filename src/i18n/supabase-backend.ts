@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { BackendModule, ReadCallback } from 'i18next';
 import { getCachedTranslations, setCachedTranslations } from './config';
+import { logger } from '@/lib/logger';
 
 /**
  * Enterprise-grade Supabase Backend for i18next
@@ -17,7 +18,7 @@ class SupabaseBackend implements BackendModule {
   type = 'backend' as const;
 
   init() {
-    console.log('[i18n Backend] Initialized with multi-level fallback');
+    logger.info('[i18n Backend] Initialized with multi-level fallback');
   }
 
   async read(language: string, namespace: string, callback: ReadCallback) {
@@ -28,7 +29,7 @@ class SupabaseBackend implements BackendModule {
         // Check localStorage cache first for any DB overrides
         const cached = getCachedTranslations(language, namespace);
         if (cached && Object.keys(cached).length > 0) {
-          console.log(`[i18n Backend] ✓ Cache hit: en/${namespace} (${Object.keys(cached).length} keys)`);
+          logger.debug(`[i18n Backend] ✓ Cache hit: en/${namespace} (${Object.keys(cached).length} keys)`);
           callback(null, cached);
           return;
         }
@@ -38,13 +39,13 @@ class SupabaseBackend implements BackendModule {
           const dbResult = await this.fetchFromDatabase('en', namespace);
           if (dbResult && Object.keys(dbResult).length > 0) {
             setCachedTranslations('en', namespace, dbResult);
-            console.log(`[i18n Backend] ✓ DB override for en/${namespace} (${Object.keys(dbResult).length} keys)`);
+            logger.debug(`[i18n Backend] ✓ DB override for en/${namespace} (${Object.keys(dbResult).length} keys)`);
             callback(null, dbResult);
             return;
           }
         } catch {
           // DB fetch failed, but bundled resources will be used automatically
-          console.log(`[i18n Backend] Using bundled resources for en/${namespace}`);
+          logger.debug(`[i18n Backend] Using bundled resources for en/${namespace}`);
         }
 
         // Return empty - i18next will use bundled English resources
@@ -53,12 +54,12 @@ class SupabaseBackend implements BackendModule {
       }
 
       // For non-English languages: cache → database → English fallback
-      console.log(`[i18n Backend] Loading: ${language}/${namespace}`);
+      logger.debug(`[i18n Backend] Loading: ${language}/${namespace}`);
 
       // Level 2: Check localStorage cache
       const cached = getCachedTranslations(language, namespace);
       if (cached && Object.keys(cached).length > 0) {
-        console.log(`[i18n Backend] ✓ Cache hit: ${language}/${namespace} (${Object.keys(cached).length} keys)`);
+        logger.debug(`[i18n Backend] ✓ Cache hit: ${language}/${namespace} (${Object.keys(cached).length} keys)`);
         callback(null, cached);
         return;
       }
@@ -67,29 +68,29 @@ class SupabaseBackend implements BackendModule {
       const dbResult = await this.fetchFromDatabase(language, namespace);
       if (dbResult && Object.keys(dbResult).length > 0) {
         setCachedTranslations(language, namespace, dbResult);
-        console.log(`[i18n Backend] ✓ Loaded from DB: ${language}/${namespace} (${Object.keys(dbResult).length} keys)`);
+        logger.debug(`[i18n Backend] ✓ Loaded from DB: ${language}/${namespace} (${Object.keys(dbResult).length} keys)`);
         callback(null, dbResult);
         return;
       }
 
       // Level 4: Try English fallback from database
-      console.log(`[i18n Backend] No data for ${language}/${namespace}, trying English fallback...`);
+      logger.debug(`[i18n Backend] No data for ${language}/${namespace}, trying English fallback...`);
       const englishFallback = await this.fetchFromDatabase('en', namespace);
       if (englishFallback && Object.keys(englishFallback).length > 0) {
         // Cache the English fallback under the requested language temporarily
         // This prevents repeated DB calls for missing translations
         setCachedTranslations(language, namespace, englishFallback);
-        console.log(`[i18n Backend] ✓ Using English fallback for ${language}/${namespace}`);
+        logger.debug(`[i18n Backend] ✓ Using English fallback for ${language}/${namespace}`);
         callback(null, englishFallback);
         return;
       }
 
       // Level 5: Return empty - i18next will use bundled English resources
-      console.log(`[i18n Backend] No translations found, using bundled fallback for ${namespace}`);
+      logger.debug(`[i18n Backend] No translations found, using bundled fallback for ${namespace}`);
       callback(null, {});
 
     } catch (error) {
-      console.error(`[i18n Backend] Error loading ${language}/${namespace}:`, error);
+      logger.error(`[i18n Backend] Error loading ${language}/${namespace}:`, error);
       // Return empty object instead of error - let bundled resources handle it
       callback(null, {});
     }
@@ -111,7 +112,7 @@ class SupabaseBackend implements BackendModule {
         .maybeSingle();
 
       if (error) {
-        console.warn(`[i18n Backend] DB error for ${language}/${namespace}:`, error.message);
+        logger.warn(`[i18n Backend] DB error for ${language}/${namespace}`, { error: error.message });
         return null;
       }
 
@@ -121,7 +122,7 @@ class SupabaseBackend implements BackendModule {
 
       return data.translations as Record<string, any>;
     } catch (error) {
-      console.warn(`[i18n Backend] Failed to fetch ${language}/${namespace}:`, error);
+      logger.warn(`[i18n Backend] Failed to fetch ${language}/${namespace}:`, error);
       return null;
     }
   }
