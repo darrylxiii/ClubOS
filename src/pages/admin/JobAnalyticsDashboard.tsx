@@ -49,13 +49,14 @@ export default function JobAnalyticsDashboard() {
     { name: 'Other', value: data.sourcing.other },
   ].filter(item => item.value > 0);
 
-  const funnelData = data.stageConversions.map((stage, idx) => ({
-    name: stage.stage,
+  const funnelData = data.pipelinePerformance.stageConversions.map((stage, idx) => ({
+    name: stage.from,
     value: stage.count,
+    rate: stage.rate,
     fill: COLORS[idx % COLORS.length],
   }));
 
-  const timeInStageData = data.stageConversions.map(stage => ({
+  const timeInStageData = data.timeMetrics.avgTimeInStages.map(stage => ({
     stage: stage.stage,
     days: stage.avgDays || 0,
   }));

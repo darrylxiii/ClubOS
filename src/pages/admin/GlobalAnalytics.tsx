@@ -81,8 +81,24 @@ const GlobalAnalytics = () => {
         ).length,
       }));
 
-      // Calculate avg time to hire (placeholder - needs actual hired data)
-      const avgTimeToHire = 21; // days
+      // Calculate avg time to hire from actual hired applications
+      const { data: hiredApps } = await supabase
+        .from('applications')
+        .select('created_at, updated_at, status')
+        .eq('status', 'hired');
+
+      let avgTimeToHire = 0;
+      if (hiredApps && hiredApps.length > 0) {
+        const hireTimes = hiredApps.map(app => {
+          const created = new Date(app.created_at).getTime();
+          const updated = new Date(app.updated_at).getTime();
+          return Math.floor((updated - created) / (1000 * 60 * 60 * 24));
+        }).filter(days => days > 0 && days < 365);
+        
+        avgTimeToHire = hireTimes.length > 0
+          ? Math.round(hireTimes.reduce((a, b) => a + b, 0) / hireTimes.length)
+          : 0;
+      }
 
       // Fetch top companies by fill rate
       const { data: companiesData } = await supabase

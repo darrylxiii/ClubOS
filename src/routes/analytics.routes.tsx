@@ -22,6 +22,7 @@ const HiringIntelligenceHub = lazy(() => import("@/pages/HiringIntelligenceHub")
 const CompanyIntelligence = lazy(() => import("@/pages/CompanyIntelligence"));
 const MeetingIntelligence = lazy(() => import("@/pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("@/pages/MeetingInsights"));
+const CareerInsightsDashboard = lazy(() => import("@/pages/CareerInsightsDashboard"));
 
 export const analyticsRoutes = (
   <>
@@ -140,6 +141,18 @@ export const analyticsRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <MeetingInsights />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/career-insights"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <CareerInsightsDashboard />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>

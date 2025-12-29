@@ -54,6 +54,12 @@ const WhatsAppAnalytics = lazy(() => import("@/pages/admin/WhatsAppAnalytics"));
 const WhatsAppSettings = lazy(() => import("@/pages/admin/WhatsAppSettings"));
 const CompanyRelationships = lazy(() => import("@/pages/admin/CompanyRelationships"));
 
+// Phase 5: Analytics Dashboards
+const JobAnalyticsDashboard = lazy(() => import("@/pages/admin/JobAnalyticsDashboard"));
+const ConversationAnalytics = lazy(() => import("@/pages/admin/ConversationAnalytics"));
+const SecurityEventDashboard = lazy(() => import("@/pages/admin/SecurityEventDashboard"));
+const UserEngagementDashboard = lazy(() => import("@/pages/admin/UserEngagementDashboard"));
+
 // Inventory Pages
 const AssetRegister = lazy(() => import("@/pages/admin/inventory/AssetRegister"));
 const InventoryDashboard = lazy(() => import("@/pages/admin/inventory/InventoryDashboard"));
@@ -632,5 +638,11 @@ export const adminRoutes = (
     <Route path="/admin/inventory/intangible" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><IntangibleAssets /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/inventory/kia" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><KIAOptimization /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/bulk-operations" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><BulkOperationsHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    
+    {/* Phase 5: Analytics Dashboards */}
+    <Route path="/admin/jobs/:jobId/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/conversation-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ConversationAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/security-events" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SecurityEventDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/user-engagement" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><UserEngagementDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );
