@@ -58,11 +58,11 @@ export function useWebRTCReconnection(config: Partial<ReconnectionConfig> = {}) 
   // Start reconnection process
   const startReconnection = useCallback(async (reason?: string) => {
     if (isReconnectingRef.current) {
-      console.log('[Reconnection] Already reconnecting, skipping');
+      logger.debug('Already reconnecting, skipping', { componentName: 'Reconnection' });
       return;
     }
 
-    console.log('[Reconnection] Starting reconnection', { reason, retryCount });
+    logger.info('Starting reconnection', { componentName: 'Reconnection', reason, retryCount });
     isReconnectingRef.current = true;
     setState('reconnecting');
 
@@ -99,7 +99,7 @@ export function useWebRTCReconnection(config: Partial<ReconnectionConfig> = {}) 
       setRetryCount(attempt);
       const delay = calculateDelay(attempt);
       
-      console.log(`[Reconnection] Attempt ${attempt + 1}/${mergedConfig.maxRetries} in ${delay}ms`);
+      logger.debug(`Attempt ${attempt + 1}/${mergedConfig.maxRetries} in ${delay}ms`, { componentName: 'Reconnection', attempt, delay });
 
       // Start countdown
       let remaining = Math.ceil(delay / 1000);
@@ -121,7 +121,7 @@ export function useWebRTCReconnection(config: Partial<ReconnectionConfig> = {}) 
         try {
           await mergedConfig.onReconnect();
           // Success!
-          console.log(`[Reconnection] Reconnected on attempt ${attempt + 1}`);
+          logger.info(`Reconnected on attempt ${attempt + 1}`, { componentName: 'Reconnection', attempt });
           isReconnectingRef.current = false;
           setState('connected');
           setRetryCount(0);
@@ -131,7 +131,7 @@ export function useWebRTCReconnection(config: Partial<ReconnectionConfig> = {}) 
             duration: 3000
           });
         } catch (error) {
-          console.warn(`[Reconnection] Attempt ${attempt + 1} failed:`, error);
+          logger.warn(`Attempt ${attempt + 1} failed`, { componentName: 'Reconnection', attempt, error });
           // Try next attempt
           attemptReconnect(attempt + 1);
         }
@@ -144,7 +144,7 @@ export function useWebRTCReconnection(config: Partial<ReconnectionConfig> = {}) 
 
   // Cancel reconnection
   const cancelReconnection = useCallback(() => {
-    console.log('[Reconnection] Cancelling reconnection');
+    logger.debug('Cancelling reconnection', { componentName: 'Reconnection' });
     clearTimers();
     isReconnectingRef.current = false;
     setState('connected');
@@ -157,7 +157,7 @@ export function useWebRTCReconnection(config: Partial<ReconnectionConfig> = {}) 
     connectionState: RTCPeerConnectionState,
     iceConnectionState: RTCIceConnectionState
   ) => {
-    console.log('[Reconnection] Connection state:', { connectionState, iceConnectionState });
+    logger.debug('Connection state changed', { componentName: 'Reconnection', connectionState, iceConnectionState });
 
     switch (connectionState) {
       case 'connected':
@@ -170,7 +170,7 @@ export function useWebRTCReconnection(config: Partial<ReconnectionConfig> = {}) 
       case 'disconnected':
         // Brief disconnection - wait before reconnecting
         if (state === 'connected') {
-          console.log('[Reconnection] Connection disconnected, waiting before reconnect...');
+          logger.info('Connection disconnected, waiting before reconnect', { componentName: 'Reconnection' });
           retryTimeoutRef.current = setTimeout(() => {
             startReconnection('disconnected');
           }, 2000); // Wait 2s before starting reconnection
@@ -191,13 +191,13 @@ export function useWebRTCReconnection(config: Partial<ReconnectionConfig> = {}) 
     // Also handle ICE connection state
     if (iceConnectionState === 'disconnected' && state === 'connected') {
       // ICE restart might help
-      console.log('[Reconnection] ICE disconnected, may need restart');
+      logger.debug('ICE disconnected, may need restart', { componentName: 'Reconnection' });
     }
   }, [state, startReconnection, cancelReconnection]);
 
   // Force reconnect (user-initiated)
   const forceReconnect = useCallback(async () => {
-    console.log('[Reconnection] Force reconnect requested');
+    logger.info('Force reconnect requested', { componentName: 'Reconnection' });
     clearTimers();
     setRetryCount(0);
     isReconnectingRef.current = false;

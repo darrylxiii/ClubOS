@@ -7,7 +7,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Target, Lightbulb, ArrowRight, RefreshCw, Brain } from 'lucide-react';
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { logger } from '@/lib/logger';
+import { toast } from 'sonner';
 
 interface CareerInsights {
   skillGapAnalysis: Array<{ skill: string; current: number; required: number }>;
@@ -43,7 +45,7 @@ export default function CareerInsightsDashboard() {
         });
       }
     } catch (error) {
-      console.error('Error loading insights:', error);
+      logger.error('Error loading insights', error as Error, { componentName: 'CareerInsightsDashboard' });
     } finally {
       setLoading(false);
     }
@@ -52,44 +54,27 @@ export default function CareerInsightsDashboard() {
   const generateInsights = async () => {
     setGenerating(true);
     try {
-      // Generate mock insights (in production, call edge function)
-      const mockInsights: CareerInsights = {
-        skillGapAnalysis: [
-          { skill: 'React', current: 85, required: 90 },
-          { skill: 'TypeScript', current: 75, required: 85 },
-          { skill: 'System Design', current: 60, required: 80 },
-          { skill: 'Leadership', current: 50, required: 70 },
-          { skill: 'Cloud (AWS)', current: 45, required: 75 },
-        ],
-        marketPosition: { percentile: 72, salaryRange: { min: 95000, max: 145000 }, demandLevel: 'high' },
-        careerTrends: [
-          { trend: 'AI/ML Integration', impact: 'positive', description: 'Growing demand for AI skills in your field' },
-          { trend: 'Remote Work', impact: 'positive', description: 'More opportunities for remote positions' },
-          { trend: 'Competition', impact: 'neutral', description: 'Steady candidate pool in your experience range' },
-        ],
-        nextActions: [
-          { action: 'Complete AWS certification', priority: 'high', reason: 'Largest skill gap with high market demand' },
-          { action: 'Lead a cross-team project', priority: 'medium', reason: 'Build leadership experience for senior roles' },
-          { action: 'Update portfolio with recent work', priority: 'medium', reason: 'Showcase current expertise' },
-        ],
-      };
+      // Call the edge function for AI-powered insights
+      const { data, error } = await supabase.functions.invoke('generate-career-insights', {
+        body: { userId: user?.id }
+      });
 
-      // Save to cache
-      await (supabase as any)
-        .from('career_insights_cache')
-        .upsert({
-          user_id: user?.id,
-          skill_gap_analysis: mockInsights.skillGapAnalysis,
-          market_position: mockInsights.marketPosition,
-          career_trends: mockInsights.careerTrends,
-          next_actions: mockInsights.nextActions,
-          generated_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setInsights({
+          skillGapAnalysis: data.skill_gap_analysis || [],
+          marketPosition: data.market_position || { percentile: 0, salaryRange: { min: 0, max: 0 }, demandLevel: 'unknown' },
+          careerTrends: data.career_trends || [],
+          nextActions: data.next_actions || [],
         });
-
-      setInsights(mockInsights);
+        toast.success('Career insights generated successfully');
+      }
     } catch (error) {
-      console.error('Error generating insights:', error);
+      logger.error('Error generating insights', error as Error, { componentName: 'CareerInsightsDashboard' });
+      toast.error('Failed to generate career insights');
     } finally {
       setGenerating(false);
     }

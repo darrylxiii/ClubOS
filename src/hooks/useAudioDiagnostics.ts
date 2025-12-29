@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from '@/lib/logger';
 
 interface AudioDiagnostics {
   userId: string;
@@ -121,7 +122,7 @@ export function useAudioDiagnostics({
       }
 
     } catch (err) {
-      console.warn('[AudioDiagnostics] Error analyzing stream:', err);
+      logger.warn('Error analyzing stream', { componentName: 'AudioDiagnostics', error: err });
     }
 
     return baseDiagnostics;
@@ -140,7 +141,8 @@ export function useAudioDiagnostics({
       
       if (!localDiag.hasAudioTracks || !localDiag.tracksEnabled || !localDiag.tracksLive) {
         foundIssues = true;
-        console.warn('[AudioDiagnostics] Local audio issue:', {
+        logger.warn('Local audio issue detected', {
+          componentName: 'AudioDiagnostics',
           hasAudioTracks: localDiag.hasAudioTracks,
           tracksEnabled: localDiag.tracksEnabled,
           tracksLive: localDiag.tracksLive
@@ -158,7 +160,9 @@ export function useAudioDiagnostics({
         // Check for prolonged silence (potential issue)
         const silenceDuration = Date.now() - remoteDiag.lastActivity;
         if (silenceDuration > SILENCE_TIMEOUT_MS && remoteDiag.hasAudioTracks) {
-          console.warn('[AudioDiagnostics] Prolonged silence from', userId, {
+          logger.warn('Prolonged silence from remote user', {
+            componentName: 'AudioDiagnostics',
+            userId,
             silenceDuration: `${Math.round(silenceDuration / 1000)}s`,
             hasAudioTracks: remoteDiag.hasAudioTracks,
             tracksEnabled: remoteDiag.tracksEnabled,
@@ -168,7 +172,9 @@ export function useAudioDiagnostics({
 
         if (remoteDiag.hasAudioTracks && (!remoteDiag.tracksEnabled || !remoteDiag.tracksLive)) {
           foundIssues = true;
-          console.warn('[AudioDiagnostics] Remote audio issue for', userId, {
+          logger.warn('Remote audio issue detected', {
+            componentName: 'AudioDiagnostics',
+            userId,
             tracksEnabled: remoteDiag.tracksEnabled,
             tracksLive: remoteDiag.tracksLive
           });
