@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export type ReconnectionState = 'connected' | 'reconnecting' | 'failed';
 
@@ -69,20 +70,20 @@ export function useWebRTCReconnection(config: Partial<ReconnectionConfig> = {}) 
     try {
       await mergedConfig.onReconnect();
       // Success!
-      console.log('[Reconnection] Reconnected successfully');
+      logger.info('Reconnected successfully', { componentName: 'Reconnection' });
       isReconnectingRef.current = false;
       setState('connected');
       setRetryCount(0);
       setNextRetryIn(0);
       return;
     } catch (error) {
-      console.warn('[Reconnection] Immediate reconnect failed:', error);
+      logger.warn('Immediate reconnect failed', { componentName: 'Reconnection', error });
     }
 
     // Start retry loop
     const attemptReconnect = async (attempt: number) => {
       if (attempt >= mergedConfig.maxRetries) {
-        console.error('[Reconnection] Max retries reached');
+        logger.error('Max retries reached', new Error('Max retries reached'), { componentName: 'Reconnection' });
         setState('failed');
         setRetryCount(attempt);
         isReconnectingRef.current = false;

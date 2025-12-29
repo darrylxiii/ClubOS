@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 export interface CompositorParticipant {
   id: string;
@@ -119,12 +120,12 @@ export function useRecordingCompositor(config: Partial<CompositorConfig> = {}) {
           const source = audioContextRef.current.createMediaStreamSource(participant.stream);
           source.connect(audioDestinationRef.current);
         } catch (error) {
-          console.warn('[Compositor] Failed to add audio source:', error);
+          logger.warn('Failed to add audio source', { componentName: 'Compositor', error });
         }
       }
     }
     
-    console.log('[Compositor] Added participant:', participant.id);
+    logger.debug('Added participant', { componentName: 'Compositor', participantId: participant.id });
   }, []);
 
   /**

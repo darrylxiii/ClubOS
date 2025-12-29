@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 
 interface AutoSaveOptions {
     storageKey: string;
@@ -34,7 +35,7 @@ export function useFunnelAutoSave<T = any>(options: AutoSaveOptions) {
     // Save data to localStorage with debouncing
     const save = useCallback((formData: T, currentStep: number, sessionId: string) => {
         if (!isLocalStorageAvailable()) {
-            console.warn('[AutoSave] localStorage not available');
+            logger.warn('localStorage not available', { componentName: 'FunnelAutoSave' });
             return;
         }
 

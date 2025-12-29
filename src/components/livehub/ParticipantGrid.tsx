@@ -4,6 +4,7 @@ import { Mic, MicOff, Volume2, Monitor, Video, VideoOff, Loader2, User } from 'l
 import { SpeakingBadge } from '@/components/shared/AudioLevelIndicator';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from '@/lib/logger';
 
 interface Participant {
   id: string;
@@ -169,13 +170,13 @@ const ParticipantGrid = ({
     const attemptPlay = async () => {
       try {
         await videoEl.play();
-        console.log('[Video] Playing successfully', { participantId });
+        logger.debug('Video playing successfully', { componentName: 'ParticipantGrid', participantId });
         if (mountedRef.current) {
           setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
         }
         return true;
       } catch (err: any) {
-        console.warn('[Video] Play failed:', { participantId, error: err.message });
+        logger.warn('Video play failed', { componentName: 'ParticipantGrid', participantId, error: err.message });
         return false;
       }
     };

@@ -1,6 +1,7 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface UseMeetingAutoRecordingProps {
   meetingId: string;
@@ -64,7 +65,7 @@ export function useMeetingAutoRecording({
       // WARNING: MediaRecorder typically only records the first video track (usually local or whoever joined first).
       // A full grid recording requires a server-side MCU or canvas composition.
       if (tracks.filter(t => t.kind === 'video').length > 1) {
-        console.warn('[AutoRecording] Multiple video tracks detected. MediaRecorder may only record one track. Grid recording requires server-side composition.');
+        logger.warn('Multiple video tracks detected. MediaRecorder may only record one track. Grid recording requires server-side composition.', { componentName: 'AutoRecording' });
       }
 
       // Check for supported mime types

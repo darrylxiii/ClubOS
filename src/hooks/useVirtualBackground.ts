@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
 import { Camera } from '@mediapipe/camera_utils';
+import { logger } from '@/lib/logger';
 
 interface VirtualBackgroundOptions {
     enabled: boolean;
@@ -61,14 +62,14 @@ export function useVirtualBackground(inputStream: MediaStream | null, options: V
             // CRITICAL FIX: Wait for video metadata to load before accessing dimensions
             await new Promise<void>((resolve, reject) => {
                 const timeout = setTimeout(() => {
-                    console.warn('[VirtualBackground] Video metadata load timeout, attempting to proceed');
+                    logger.warn('Video metadata load timeout, attempting to proceed', { componentName: 'VirtualBackground' });
                     resolve();
                 }, 5000);
 
                 const checkDimensions = () => {
                     if (video.videoWidth > 0 && video.videoHeight > 0) {
                         clearTimeout(timeout);
-                        console.log('[VirtualBackground] Video ready with dimensions:', video.videoWidth, 'x', video.videoHeight);
+                        logger.debug('Video ready with dimensions', { componentName: 'VirtualBackground', width: video.videoWidth, height: video.videoHeight });
                         resolve();
                     }
                 };

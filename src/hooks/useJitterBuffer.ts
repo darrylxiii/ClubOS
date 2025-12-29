@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
+import { logger } from '@/lib/logger';
 
 interface JitterBufferConfig {
   minBufferMs: number;
@@ -107,7 +108,7 @@ export function useJitterBuffer(config: Partial<JitterBufferConfig> = {}) {
     const newBuffer = Math.min(cfg.maxBufferMs, bufferSizeRef.current * 1.5);
     bufferSizeRef.current = Math.round(newBuffer);
     
-    console.warn('[JitterBuffer] Buffer underrun! Increasing buffer to:', newBuffer);
+    logger.warn('Buffer underrun! Increasing buffer', { componentName: 'JitterBuffer', newBuffer });
     
     setStats(prev => ({
       ...prev,

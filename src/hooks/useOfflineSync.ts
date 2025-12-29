@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import * as offlineStorage from '@/services/offlineStorage';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface SyncState {
   isOnline: boolean;
@@ -76,7 +77,7 @@ export function useOfflineSync(userId: string | undefined) {
         try {
           // Skip actions that have failed too many times
           if (action.retryCount >= 3) {
-            console.warn(`Skipping action ${action.id} after ${action.retryCount} retries`);
+            logger.warn('Skipping action after max retries', { componentName: 'OfflineSync', actionId: action.id, retryCount: action.retryCount });
             continue;
           }
 
@@ -104,7 +105,7 @@ export function useOfflineSync(userId: string | undefined) {
             
             // Add more entity handlers as needed
             default:
-              console.warn(`Unknown entity type: ${action.entity}`);
+              logger.warn('Unknown entity type', { componentName: 'OfflineSync', entity: action.entity });
           }
 
           if (success) {
