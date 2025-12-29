@@ -93,7 +93,7 @@ export function useRecordingCompositor(config: Partial<CompositorConfig> = {}) {
     audioContextRef.current = new AudioContext();
     audioDestinationRef.current = audioContextRef.current.createMediaStreamDestination();
     
-    console.log('[Compositor] Initialized with config:', effectiveConfig);
+    logger.debug('Compositor initialized', { componentName: 'Compositor', config: effectiveConfig });
     
     return canvas;
   }, [effectiveConfig]);
@@ -110,7 +110,7 @@ export function useRecordingCompositor(config: Partial<CompositorConfig> = {}) {
       videoElement.srcObject = participant.stream;
       videoElement.muted = true; // We mix audio separately
       videoElement.playsInline = true;
-      videoElement.play().catch(console.warn);
+      videoElement.play().catch(err => logger.warn('Video play failed', { componentName: 'Compositor', error: err }));
       
       participant.videoElement = videoElement;
       

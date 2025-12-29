@@ -2,6 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
 import { authenticateUser, requireRole, createAuthErrorResponse } from '../_shared/auth-helpers.ts';
 import { getCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
 import { logAuditEvent } from '../_shared/security-logger.ts';
+import { createFunctionLogger } from '../_shared/function-logger.ts';
 
 interface IntegrityIssue {
   user_id: string;
@@ -13,6 +14,7 @@ interface IntegrityIssue {
 }
 
 Deno.serve(async (req) => {
+  const logger = createFunctionLogger('check-data-integrity');
   const corsHeaders = getCorsHeaders(req, true); // Sensitive operation
   
   // Handle CORS preflight requests
@@ -25,22 +27,24 @@ Deno.serve(async (req) => {
     const authContext = await authenticateUser(req.headers.get('authorization'));
     requireRole(authContext, ['admin']);
     
-    console.log(`[Integrity Check] Initiated by admin: ${authContext.email}`);
+    logger.logRequest(req.method, authContext.userId, { action: 'integrity_check' });
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Check for data integrity issues
+    logger.checkpoint('start_integrity_check');
     const { data: mismatches, error } = await supabase
       .rpc('check_profile_auth_integrity') as { data: IntegrityIssue[] | null; error: any };
 
     if (error) {
-      console.error('Error checking integrity:', error);
+      logger.error('Error checking integrity', error);
       throw error;
     }
 
     const issuesFound = mismatches?.length || 0;
+    logger.checkpoint('integrity_check_complete');
 
     // Log audit event
     await logAuditEvent({
@@ -55,24 +59,24 @@ Deno.serve(async (req) => {
       ipAddress: req.headers.get('x-forwarded-for') || 'unknown'
     });
     
-    console.log(`Data integrity check completed: ${issuesFound} issue(s) found`);
+    logger.info(`Data integrity check completed`, { issuesFound });
     
     if (issuesFound > 0) {
-      console.warn('Data integrity issues detected:', JSON.stringify(mismatches, null, 2));
+      logger.warn('Data integrity issues detected', { mismatches });
       
       // Optionally: Auto-fix if enabled via query param
       const url = new URL(req.url);
       const autoFix = url.searchParams.get('autofix') === 'true';
       
       if (autoFix) {
-        console.log('Auto-fix enabled, attempting to fix mismatches...');
+        logger.info('Auto-fix enabled, attempting to fix mismatches');
         const { data: fixResults, error: fixError } = await supabase
           .rpc('fix_profile_auth_mismatches');
         
         if (fixError) {
-          console.error('Error auto-fixing:', fixError);
+          logger.error('Error auto-fixing', fixError);
         } else {
-          console.log(`Auto-fixed ${fixResults?.length || 0} profile(s)`);
+          logger.logSuccess(200, { issues_fixed: fixResults?.length || 0 });
           return new Response(
             JSON.stringify({ 
               status: 'fixed',
@@ -90,6 +94,7 @@ Deno.serve(async (req) => {
       }
     }
 
+    logger.logSuccess(200, { issuesFound });
     return new Response(
       JSON.stringify({ 
         status: issuesFound > 0 ? 'issues_detected' : 'ok',
@@ -103,8 +108,8 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Function error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    logger.logError(500, errorMessage);
     
     // Handle authentication errors
     if (errorMessage.includes('authorization') || errorMessage.includes('Unauthorized')) {

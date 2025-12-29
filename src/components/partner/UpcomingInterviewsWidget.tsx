@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface UpcomingInterviewsWidgetProps {
   jobId: string;
@@ -513,7 +514,7 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
         } catch (feedbackError: any) {
           // Silently ignore if table doesn't exist or other issues
           if (feedbackError.code !== 'PGRST116') {
-            console.warn('Could not save to interview_feedback table:', feedbackError);
+            logger.warn('Could not save to interview_feedback table', { componentName: 'UpcomingInterviewsWidget', error: feedbackError });
           }
         }
       }

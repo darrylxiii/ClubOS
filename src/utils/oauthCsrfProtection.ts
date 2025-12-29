@@ -74,7 +74,7 @@ export function clearOAuthState(): void {
     localStorage.removeItem(OAUTH_STATE_KEY);
     localStorage.removeItem(OAUTH_STATE_EXPIRY_KEY);
   } catch (e) {
-    console.warn('[OAuth CSRF] Failed to clear state from localStorage:', e);
+    logger.warn('Failed to clear state from localStorage', { componentName: 'OAuthCSRF', error: e });
   }
 }
 
