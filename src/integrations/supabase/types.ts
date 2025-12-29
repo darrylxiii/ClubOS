@@ -25032,6 +25032,45 @@ export type Database = {
           },
         ]
       }
+      performance_metrics: {
+        Row: {
+          connection_type: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          metric_type: string
+          page_path: string | null
+          recorded_at: string
+          unit: string
+          user_agent: string | null
+          value: number
+        }
+        Insert: {
+          connection_type?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          page_path?: string | null
+          recorded_at?: string
+          unit?: string
+          user_agent?: string | null
+          value: number
+        }
+        Update: {
+          connection_type?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          page_path?: string | null
+          recorded_at?: string
+          unit?: string
+          user_agent?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
       performance_reviews: {
         Row: {
           areas_for_improvement: string | null
@@ -31868,6 +31907,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sla_violations: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          actual_value: number
+          created_at: string
+          detected_at: string
+          id: string
+          metric_type: string
+          page_path: string | null
+          severity: string
+          threshold_value: number
+          user_agent: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          actual_value: number
+          created_at?: string
+          detected_at?: string
+          id?: string
+          metric_type: string
+          page_path?: string | null
+          severity: string
+          threshold_value: number
+          user_agent?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          actual_value?: number
+          created_at?: string
+          detected_at?: string
+          id?: string
+          metric_type?: string
+          page_path?: string | null
+          severity?: string
+          threshold_value?: number
+          user_agent?: string | null
+        }
+        Relationships: []
       }
       social_campaigns: {
         Row: {

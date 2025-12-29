@@ -69,7 +69,8 @@ export function PerformanceDashboard() {
       if (error) throw error;
 
       // Group and calculate statistics
-      const grouped = (data as { metric_type: string; value: number }[]).reduce((acc, row) => {
+      const rawData = (data as unknown) as { metric_type: string; value: number }[];
+      const grouped = rawData.reduce((acc, row) => {
         if (!acc[row.metric_type]) {
           acc[row.metric_type] = [];
         }
