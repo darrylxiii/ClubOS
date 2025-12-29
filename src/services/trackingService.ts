@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface TrackingEvent {
   eventType: string;
@@ -279,13 +280,13 @@ class TrackingService {
 
       if (error) {
         // Log but don't throw - tracking failures shouldn't break the app
-        console.warn('[TrackingService] Failed to track page entry (non-blocking):', error.message);
+        logger.warn('Failed to track page entry (non-blocking)', { componentName: 'TrackingService', error: error.message });
       } else if (data) {
         this.currentPageAnalyticsId = data.id;
       }
     } catch (error) {
       // Silently fail - tracking errors should never break the app
-      console.warn('[TrackingService] Exception tracking page entry (non-blocking):', error);
+      logger.warn('Exception tracking page entry (non-blocking)', { componentName: 'TrackingService', error });
     }
   }
 

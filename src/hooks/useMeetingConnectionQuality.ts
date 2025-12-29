@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ConnectionQuality, ConnectionStats } from './useConnectionQuality';
+import { logger } from '@/lib/logger';
 
 interface UseMeetingConnectionQualityProps {
   peerConnections: Map<string, RTCPeerConnection>;
@@ -222,7 +223,8 @@ export function useMeetingConnectionQuality({
       logCountRef.current = 0;
 
       // Log quality issues (fire-and-forget, non-blocking)
-      console.warn('[MeetingQuality] Quality degraded:', {
+      logger.warn('Meeting quality degraded', {
+        componentName: 'MeetingConnectionQuality',
         quality: worstQualityValue,
         packetLoss: avgPacketLoss.toFixed(1) + '%',
         latency: maxLatency.toFixed(0) + 'ms',

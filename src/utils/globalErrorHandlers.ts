@@ -193,7 +193,7 @@ function handleReactError(event: ErrorEvent): void {
  */
 export function initializeGlobalErrorHandlers(): void {
   if (isInitialized) {
-    console.warn('[GlobalErrorHandlers] Already initialized');
+    logger.warn('GlobalErrorHandlers already initialized', { componentName: 'GlobalErrorHandlers' });
     return;
   }
   
@@ -207,7 +207,7 @@ export function initializeGlobalErrorHandlers(): void {
   window.addEventListener('error', handleReactError);
   
   isInitialized = true;
-  console.log('[GlobalErrorHandlers] ✅ Initialized');
+  logger.info('GlobalErrorHandlers initialized', { componentName: 'GlobalErrorHandlers' });
 }
 
 /**

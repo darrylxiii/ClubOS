@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
+import { logger } from '@/lib/logger';
 
 /**
  * Global audio unlock hook - handles browser autoplay policies
@@ -27,16 +28,16 @@ const testAutoplay = async (): Promise<boolean> => {
 
 // Unlock all pending audio
 const unlockAllAudio = async () => {
-  console.log('[AudioUnlock] Unlocking all audio elements and contexts');
+  logger.debug('Unlocking all audio elements and contexts', { componentName: 'AudioUnlock' });
   
   // Resume all pending AudioContexts
   for (const ctx of pendingAudioContexts) {
     if (ctx.state === 'suspended') {
       try {
         await ctx.resume();
-        console.log('[AudioUnlock] Resumed AudioContext');
+        logger.debug('Resumed AudioContext', { componentName: 'AudioUnlock' });
       } catch (e) {
-        console.warn('[AudioUnlock] Failed to resume AudioContext:', e);
+        logger.warn('Failed to resume AudioContext', { componentName: 'AudioUnlock', error: e });
       }
     }
   }
@@ -46,22 +47,22 @@ const unlockAllAudio = async () => {
     try {
       if (audio.paused && audio.srcObject) {
         await audio.play();
-        console.log('[AudioUnlock] Started playing audio element');
+        logger.debug('Started playing audio element', { componentName: 'AudioUnlock' });
       }
     } catch (e) {
-      console.warn('[AudioUnlock] Failed to play audio:', e);
+      logger.warn('Failed to play audio', { componentName: 'AudioUnlock', error: e });
     }
   }
   
   isAudioUnlocked = true;
-  console.log('[AudioUnlock] Audio unlocked successfully');
+  logger.info('Audio unlocked successfully', { componentName: 'AudioUnlock' });
 };
 
 // Global unlock handler
 const handleUserInteraction = async () => {
   if (isAudioUnlocked) return;
   
-  console.log('[AudioUnlock] User interaction detected, unlocking audio...');
+  logger.debug('User interaction detected, unlocking audio...', { componentName: 'AudioUnlock' });
   await unlockAllAudio();
   
   // Remove listeners after unlock

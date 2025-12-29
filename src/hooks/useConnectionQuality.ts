@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from '@/lib/logger';
 
 export type ConnectionQuality = 'excellent' | 'good' | 'fair' | 'poor' | 'disconnected';
 
@@ -143,7 +144,8 @@ export function useConnectionQuality({
         
         // Log significant quality changes
         if (quality === 'poor' || quality === 'fair') {
-          console.warn('[ConnectionQuality] Quality degraded:', {
+          logger.warn('Connection quality degraded', {
+            componentName: 'ConnectionQuality',
             quality,
             packetLoss: packetLoss.toFixed(1) + '%',
             latency: latency.toFixed(0) + 'ms',
