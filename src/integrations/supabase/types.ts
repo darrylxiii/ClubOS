@@ -5580,6 +5580,45 @@ export type Database = {
         }
         Relationships: []
       }
+      career_insights_cache: {
+        Row: {
+          career_trends: Json | null
+          created_at: string | null
+          expires_at: string | null
+          generated_at: string | null
+          id: string
+          market_position: Json | null
+          next_actions: Json | null
+          skill_gap_analysis: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          career_trends?: Json | null
+          created_at?: string | null
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          market_position?: Json | null
+          next_actions?: Json | null
+          skill_gap_analysis?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          career_trends?: Json | null
+          created_at?: string | null
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          market_position?: Json | null
+          next_actions?: Json | null
+          skill_gap_analysis?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       career_paths: {
         Row: {
           avg_years: number | null
@@ -9111,6 +9150,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      conversation_analytics_daily: {
+        Row: {
+          ai_assisted_count: number | null
+          avg_response_time_minutes: number | null
+          created_at: string | null
+          date: string
+          id: string
+          sentiment_negative: number | null
+          sentiment_neutral: number | null
+          sentiment_positive: number | null
+          total_messages: number | null
+          unique_conversations: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_assisted_count?: number | null
+          avg_response_time_minutes?: number | null
+          created_at?: string | null
+          date: string
+          id?: string
+          sentiment_negative?: number | null
+          sentiment_neutral?: number | null
+          sentiment_positive?: number | null
+          total_messages?: number | null
+          unique_conversations?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_assisted_count?: number | null
+          avg_response_time_minutes?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          sentiment_negative?: number | null
+          sentiment_neutral?: number | null
+          sentiment_positive?: number | null
+          total_messages?: number | null
+          unique_conversations?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       conversation_participants: {
         Row: {
@@ -31640,6 +31721,45 @@ export type Database = {
         }
         Relationships: []
       }
+      security_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       security_logs: {
         Row: {
           created_at: string | null
@@ -35986,6 +36106,45 @@ export type Database = {
           total_comments?: number | null
           total_likes_given?: number | null
           total_posts?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_engagement_daily: {
+        Row: {
+          actions_performed: number | null
+          created_at: string | null
+          date: string
+          feature_usage: Json | null
+          id: string
+          page_views: number | null
+          session_count: number | null
+          total_time_seconds: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actions_performed?: number | null
+          created_at?: string | null
+          date: string
+          feature_usage?: Json | null
+          id?: string
+          page_views?: number | null
+          session_count?: number | null
+          total_time_seconds?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actions_performed?: number | null
+          created_at?: string | null
+          date?: string
+          feature_usage?: Json | null
+          id?: string
+          page_views?: number | null
+          session_count?: number | null
+          total_time_seconds?: number | null
           updated_at?: string | null
           user_id?: string
         }
