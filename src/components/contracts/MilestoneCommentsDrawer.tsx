@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { MessageCircle, Send } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { logger } from "@/lib/logger";
 
 interface MilestoneCommentsDrawerProps {
   open: boolean;
@@ -61,7 +62,7 @@ export function MilestoneCommentsDrawer({
       if (error) {
         // If table doesn't exist, show empty state
         if (error.code === '42P01' || error.message.includes('does not exist')) {
-          console.warn('milestone_comments table not found. Please create migration.');
+          logger.warn('milestone_comments table not found', { componentName: 'MilestoneCommentsDrawer' });
           setComments([]);
           return;
         }

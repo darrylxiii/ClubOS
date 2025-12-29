@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface CandidateRelationship {
   id: string;
@@ -50,7 +51,7 @@ export function usePartnerRelationships() {
         .eq('user_id', user.id);
 
       if (rolesError) {
-        console.warn('Failed to fetch user roles:', rolesError);
+        logger.warn('Failed to fetch user roles', { componentName: 'usePartnerRelationships', error: rolesError });
       }
 
       const roles = (userRoles || []).map((r: { role: string }) => r.role);

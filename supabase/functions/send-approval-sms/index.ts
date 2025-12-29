@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { getAppUrl, AppUrls } from '../_shared/app-config.ts';
+import { createFunctionLogger } from '../_shared/function-logger.ts';
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
@@ -19,6 +20,8 @@ interface SMSRequest {
 }
 
 serve(async (req) => {
+  const logger = createFunctionLogger('send-approval-sms');
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -26,10 +29,10 @@ serve(async (req) => {
   try {
     const { phone, fullName, requestType }: SMSRequest = await req.json();
 
-    console.log('[send-approval-sms] Sending to:', phone);
+    logger.logRequest(req.method, undefined, { phone, requestType });
 
     if (!phone) {
-      console.warn('[send-approval-sms] No phone number provided');
+      logger.warn('No phone number provided');
       return new Response(
         JSON.stringify({ success: false, message: 'No phone number' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
@@ -46,6 +49,7 @@ serve(async (req) => {
       : `Welcome to The Quantum Club. Your partner application has been approved. Darryl will reach out within 19 minutes to discuss your hiring needs. Log in: ${AppUrls.auth()}`;
 
     // Send SMS via Twilio
+    logger.checkpoint('sending_sms');
     const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
     const twilioResponse = await fetch(
       `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
@@ -65,12 +69,13 @@ serve(async (req) => {
 
     if (!twilioResponse.ok) {
       const error = await twilioResponse.text();
-      console.error('[send-approval-sms] Twilio error:', error);
+      logger.error('Twilio error', new Error(error));
       throw new Error(`Failed to send SMS: ${error}`);
     }
 
     const result = await twilioResponse.json();
-    console.log('[send-approval-sms] SMS sent successfully:', result.sid);
+    logger.logExternalCall('twilio', 'Messages.json', twilioResponse.status, logger.getElapsedMs());
+    logger.info('SMS sent successfully', { messageSid: result.sid });
 
     // Log notification to database
     try {
@@ -100,19 +105,20 @@ serve(async (req) => {
             }
           })
         });
-        console.log('SMS notification logged to database');
+        logger.info('SMS notification logged to database');
       }
     } catch (logError) {
-      console.error('Failed to log SMS notification:', logError);
+      logger.error('Failed to log SMS notification', logError);
     }
 
+    logger.logSuccess(200, { messageSid: result.sid });
     return new Response(
       JSON.stringify({ success: true, messageSid: result.sid }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
 
   } catch (error: any) {
-    console.error('[send-approval-sms] Error:', error);
+    logger.logError(500, error.message);
     
     // Log failed notification attempt
     try {
@@ -142,7 +148,7 @@ serve(async (req) => {
         });
       }
     } catch (logError) {
-      console.error('Failed to log error:', logError);
+      logger.error('Failed to log error', logError);
     }
     
     return new Response(

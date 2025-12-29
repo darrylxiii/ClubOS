@@ -74,7 +74,7 @@ export function useAdaptiveAudio({
       );
 
       if (!audioSender) {
-        console.warn('[AdaptiveAudio] No audio sender found');
+        logger.warn('No audio sender found', { componentName: 'AdaptiveAudio' });
         return false;
       }
 

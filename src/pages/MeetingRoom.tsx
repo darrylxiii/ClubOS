@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Video, Lock, Users, Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 export default function MeetingRoom() {
   const { meetingCode } = useParams();
@@ -179,7 +180,7 @@ export default function MeetingRoom() {
     // For authenticated users, join directly
     setJoining(true);
     try {
-      console.log('[MeetingRoom] 🚪 Authenticated user joining meeting:', user.id);
+      logger.debug('Authenticated user joining meeting', { componentName: 'MeetingRoom', userId: user.id });
       
       // First, mark any existing active participant as left (in case of reconnection)
       const { error: updateError } = await supabase
@@ -193,7 +194,7 @@ export default function MeetingRoom() {
         .is('left_at', null);
 
       if (updateError) {
-        console.warn('[MeetingRoom] ⚠️ Could not mark old participant as left:', updateError);
+        logger.warn('Could not mark old participant as left', { componentName: 'MeetingRoom', error: updateError });
       }
 
       // Now insert the new active participant entry

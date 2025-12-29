@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 interface PlatformMetrics {
   total_members: number;
@@ -24,7 +25,7 @@ export function usePlatformMetrics() {
 
       if (error) {
         // Fallback to reasonable defaults if no metrics exist yet
-        console.warn('Platform metrics not found, using defaults:', error);
+        logger.warn('Platform metrics not found, using defaults', { componentName: 'usePlatformMetrics', error });
         return {
           total_members: 1200,
           success_rate: 92,
