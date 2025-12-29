@@ -40899,17 +40899,14 @@ export type Database = {
       get_pending_booking_reminders: {
         Args: never
         Returns: {
+          booking_data: Json
           booking_id: string
-          duration_minutes: number
-          guest_email: string
-          guest_name: string
-          guest_phone: string
-          link_title: string
-          reminder_id: string
+          created_at: string
+          id: string
           reminder_type: string
-          scheduled_start: string
           send_before_minutes: number
-          user_id: string
+          sent_at: string
+          status: string
         }[]
       }
       get_pipeline_candidate_stats: {
