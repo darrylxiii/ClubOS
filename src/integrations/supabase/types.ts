@@ -19846,6 +19846,7 @@ export type Database = {
       }
       login_attempts: {
         Row: {
+          attempted_at: string | null
           created_at: string | null
           email: string
           id: string
@@ -19854,6 +19855,7 @@ export type Database = {
           user_agent: string | null
         }
         Insert: {
+          attempted_at?: string | null
           created_at?: string | null
           email: string
           id?: string
@@ -19862,6 +19864,7 @@ export type Database = {
           user_agent?: string | null
         }
         Update: {
+          attempted_at?: string | null
           created_at?: string | null
           email?: string
           id?: string
