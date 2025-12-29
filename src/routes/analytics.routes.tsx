@@ -23,6 +23,7 @@ const CompanyIntelligence = lazy(() => import("@/pages/CompanyIntelligence"));
 const MeetingIntelligence = lazy(() => import("@/pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("@/pages/MeetingInsights"));
 const CareerInsightsDashboard = lazy(() => import("@/pages/CareerInsightsDashboard"));
+const InvestorDashboard = lazy(() => import("@/pages/admin/InvestorDashboard"));
 
 export const analyticsRoutes = (
   <>
@@ -153,6 +154,18 @@ export const analyticsRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <CareerInsightsDashboard />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/investor-dashboard"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <InvestorDashboard />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
