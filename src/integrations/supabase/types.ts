@@ -1603,6 +1603,39 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_export_log: {
+        Row: {
+          created_at: string | null
+          data_scope: string
+          export_type: string
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data_scope: string
+          export_type: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data_scope?: string
+          export_type?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics_insights: {
         Row: {
           confidence_score: number | null

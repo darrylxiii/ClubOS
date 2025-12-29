@@ -133,14 +133,72 @@ function generateHTMLReport(data: any, title: string): string {
   `.trim();
 }
 
-// Schedule email report (placeholder - requires email service)
+// Schedule email report via edge function
 export async function scheduleEmailReport(
   frequency: 'daily' | 'weekly' | 'monthly',
   reportType: string,
-  email: string
-) {
-  // This would integrate with an email service
-  console.log(`Scheduling ${frequency} ${reportType} report to ${email}`);
-  // TODO: Implement email scheduling via Edge Function
+  email: string,
+  options?: {
+    timezone?: string;
+    preferredTime?: string;
+  }
+): Promise<{ success: boolean; scheduleId?: string; nextRunAt?: string; error?: string }> {
+  try {
+    const { data, error } = await supabase.functions.invoke('schedule-email-report', {
+      body: {
+        frequency,
+        reportType,
+        email,
+        timezone: options?.timezone || 'Europe/Amsterdam',
+        preferredTime: options?.preferredTime || '09:00',
+      },
+    });
+
+    if (error) {
+      console.error('Failed to schedule email report:', error);
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      scheduleId: data.scheduleId,
+      nextRunAt: data.nextRunAt,
+    };
+  } catch (error: any) {
+    console.error('Failed to schedule email report:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Cancel a scheduled report
+export async function cancelScheduledReport(reportId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('scheduled_reports' as any)
+      .update({ is_active: false })
+      .eq('id', reportId);
+
+    return !error;
+  } catch (error) {
+    console.error('Failed to cancel scheduled report:', error);
+    return false;
+  }
+}
+
+// Get user's scheduled reports
+export async function getScheduledReports(): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from('scheduled_reports' as any)
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Failed to get scheduled reports:', error);
+    return [];
+  }
 }
 
