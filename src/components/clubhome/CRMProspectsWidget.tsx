@@ -65,11 +65,11 @@ export const CRMProspectsWidget = () => {
 
   if (loading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-2">
           <Skeleton className="h-5 w-32" />
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <Skeleton className="h-20 w-full" />
         </CardContent>
       </Card>
@@ -80,14 +80,14 @@ export const CRMProspectsWidget = () => {
 
   if (!hasData) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Users className="h-4 w-4 text-primary" />
             CRM Prospects
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <div className="flex flex-col items-center justify-center py-4 text-center">
             <Info className="h-6 w-6 text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground mb-3">No prospects yet</p>
@@ -108,8 +108,9 @@ export const CRMProspectsWidget = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="h-full"
     >
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">
@@ -124,7 +125,7 @@ export const CRMProspectsWidget = () => {
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="flex-1 space-y-3">
           {/* Summary Stats */}
           <div className="grid grid-cols-2 gap-3">
             <div className="p-2 rounded-lg bg-muted/50 text-center">

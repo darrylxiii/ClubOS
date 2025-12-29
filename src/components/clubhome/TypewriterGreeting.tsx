@@ -1,5 +1,4 @@
 import { useAnimatedText } from '@/hooks/useAnimatedText';
-import { Display } from '@/components/ui/typography';
 import { useState, useEffect, useMemo } from 'react';
 
 interface TypewriterGreetingProps {
@@ -35,11 +34,11 @@ export const TypewriterGreeting = ({ greeting, firstName }: TypewriterGreetingPr
   }, [animatedText, fullText]);
 
   return (
-    <Display as="h1" size="sm" className="uppercase tracking-tight text-gradient">
+    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gradient">
       {animatedText}
       {showCursor && (
         <span className="animate-pulse ml-1">|</span>
       )}
-    </Display>
+    </h1>
   );
 };

@@ -63,7 +63,7 @@ export function AnomalyAlertsPanel({
   return (
     <Card className="glass-card h-full flex flex-col">
       <CardHeader className="pb-2 px-3 pt-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <CardTitle className="flex items-center gap-2 text-sm font-medium">
             <Brain className="h-4 w-4 text-primary" />
             Anomalies
@@ -76,7 +76,7 @@ export function AnomalyAlertsPanel({
           <Button
             variant="outline"
             size="sm"
-            className="h-7 text-[10px] gap-1 px-2"
+            className="h-7 text-[10px] gap-1 px-2 shrink-0"
             onClick={onTriggerDetection}
             disabled={isDetecting}
           >
@@ -101,7 +101,7 @@ export function AnomalyAlertsPanel({
             <p className="text-[10px] text-muted-foreground">System normal</p>
           </div>
         ) : (
-          <ScrollArea className="h-[180px] -mx-1 px-1">
+          <ScrollArea className="h-[150px] -mx-1 px-1">
             <div className="space-y-1.5">
               {anomalies.map((anomaly) => {
                 const config = severityConfig[anomaly.severity];

@@ -75,11 +75,11 @@ export const KPISummaryWidget = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-3">
           <Skeleton className="h-5 w-32" />
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <Skeleton className="h-24 w-full" />
         </CardContent>
       </Card>
@@ -89,14 +89,14 @@ export const KPISummaryWidget = () => {
   // Show empty state if no data
   if (!stats?.hasData) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-card h-full flex flex-col">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <BarChart3 className="h-5 w-5 text-primary" />
             KPI Health
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <Info className="h-8 w-8 text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground mb-4">No KPI data available yet</p>
@@ -113,7 +113,7 @@ export const KPISummaryWidget = () => {
   }
 
   return (
-    <Card className="glass-card">
+    <Card className="glass-card h-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <BarChart3 className="h-5 w-5 text-primary" />
@@ -128,7 +128,7 @@ export const KPISummaryWidget = () => {
           </Tooltip>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         <div className="flex items-center justify-center mb-4">
           <div className="relative">
             <div className={`text-4xl font-bold ${getHealthColor(stats.healthScore)}`}>
