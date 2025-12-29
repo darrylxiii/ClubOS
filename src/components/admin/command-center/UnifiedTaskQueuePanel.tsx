@@ -117,7 +117,7 @@ export function UnifiedTaskQueuePanel({
   const totalTasks = pendingApprovals + pendingApplications + securityAlerts + overdueItems;
 
   return (
-    <Card className="glass-card h-full flex flex-col">
+    <Card className="glass-card h-full flex flex-col overflow-hidden">
       <CardHeader className="pb-2 px-3 pt-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-sm font-medium">
@@ -131,7 +131,7 @@ export function UnifiedTaskQueuePanel({
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 px-3 pb-3">
+      <CardContent className="flex-1 px-3 pb-3 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-6">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -143,8 +143,8 @@ export function UnifiedTaskQueuePanel({
             <p className="text-[10px] text-muted-foreground">No pending tasks</p>
           </div>
         ) : (
-          <ScrollArea className="h-[180px] -mx-1 px-1">
-            <div className="space-y-1.5">
+          <ScrollArea className="h-[180px]">
+            <div className="space-y-1.5 pr-2">
               {tasks.map((task) => {
                 const config = taskConfig[task.type];
                 const Icon = config.icon;
