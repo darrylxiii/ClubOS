@@ -17,6 +17,7 @@ import { useTheme } from "next-themes";
 import { useLoginLockout } from "@/hooks/useLoginLockout";
 import { generateOAuthState, validateOAuthState, clearOAuthState } from "@/utils/oauthCsrfProtection";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { logger } from "@/lib/logger";
 
 // Lazy load heavy components to reduce initial bundle
 const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({ default: m.OAuthDiagnostics })));
@@ -61,7 +62,7 @@ const Auth = () => {
       
       // Handle OAuth errors first
       if (error) {
-        console.error('[Auth Page] OAuth error:', error, errorDescription);
+        logger.error('OAuth error', new Error(errorDescription || error), { componentName: 'Auth', error });
         toast.error(`Sign in failed: ${errorDescription || error}`);
         window.history.replaceState({}, '', '/auth');
         clearOAuthState();
@@ -70,14 +71,14 @@ const Auth = () => {
       
       // If we have a state parameter, this is an OAuth callback
       if (state) {
-        console.log('[Auth Page] OAuth callback detected with state');
+        logger.debug('OAuth callback detected with state', { componentName: 'Auth' });
         
         // Check if Supabase already has a valid session (OAuth succeeded)
         const { data: { session: existingSession } } = await supabase.auth.getSession();
         
         if (existingSession?.user) {
           // User is authenticated - OAuth worked, clear state and let auth flow continue
-          console.log('[Auth Page] OAuth succeeded - session found');
+          logger.debug('OAuth succeeded - session found', { componentName: 'Auth' });
           clearOAuthState();
           window.history.replaceState({}, '', '/auth');
           return;
@@ -87,9 +88,9 @@ const Auth = () => {
         // (Session check above is the real security, state is defense-in-depth)
         const isValid = validateOAuthState(state);
         if (!isValid) {
-          console.warn('[Auth Page] OAuth state validation failed, but continuing...');
+          logger.warn('OAuth state validation failed, but continuing...', { componentName: 'Auth' });
         } else {
-          console.log('[Auth Page] OAuth CSRF validation passed');
+          logger.debug('OAuth CSRF validation passed', { componentName: 'Auth' });
         }
         
         // Clean up URL

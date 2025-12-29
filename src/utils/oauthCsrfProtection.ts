@@ -5,6 +5,8 @@
  * to prevent CSRF attacks.
  */
 
+import { logger } from '@/lib/logger';
+
 const OAUTH_STATE_KEY = 'oauth_state';
 const OAUTH_STATE_EXPIRY_KEY = 'oauth_state_expiry';
 const STATE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
@@ -21,9 +23,9 @@ export function generateOAuthState(): string {
   try {
     localStorage.setItem(OAUTH_STATE_KEY, state);
     localStorage.setItem(OAUTH_STATE_EXPIRY_KEY, String(Date.now() + STATE_EXPIRY_MS));
-    console.log('[OAuth CSRF] State generated and stored in localStorage');
+    logger.debug('OAuth CSRF state generated and stored', { componentName: 'OAuthCSRF' });
   } catch (e) {
-    console.warn('[OAuth CSRF] Failed to store state in localStorage:', e);
+    logger.warn('Failed to store OAuth state in localStorage', { componentName: 'OAuthCSRF', error: e });
   }
   
   return state;
@@ -34,7 +36,7 @@ export function generateOAuthState(): string {
  */
 export function validateOAuthState(returnedState: string | null): boolean {
   if (!returnedState) {
-    console.warn('[OAuth CSRF] No state parameter in callback');
+    logger.warn('No state parameter in callback', { componentName: 'OAuthCSRF' });
     return false;
   }
 
@@ -45,22 +47,22 @@ export function validateOAuthState(returnedState: string | null): boolean {
   clearOAuthState();
 
   if (!storedState) {
-    console.warn('[OAuth CSRF] No stored state found in localStorage');
+    logger.warn('No stored state found in localStorage', { componentName: 'OAuthCSRF' });
     return false;
   }
 
   if (!expiryStr || Date.now() > parseInt(expiryStr, 10)) {
-    console.warn('[OAuth CSRF] State has expired');
+    logger.warn('State has expired', { componentName: 'OAuthCSRF' });
     return false;
   }
 
   // Constant-time comparison to prevent timing attacks
   if (!constantTimeCompare(storedState, returnedState)) {
-    console.warn('[OAuth CSRF] State mismatch');
+    logger.warn('State mismatch', { componentName: 'OAuthCSRF' });
     return false;
   }
 
-  console.log('[OAuth CSRF] State validated successfully');
+  logger.debug('State validated successfully', { componentName: 'OAuthCSRF' });
   return true;
 }
 

@@ -5,6 +5,7 @@
 
 import { format, parseISO } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+import { logger } from '@/lib/logger';
 
 /**
  * Type aliases for time string formats
@@ -22,7 +23,7 @@ export function getUserTimezone(): string {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Amsterdam';
   } catch (error) {
-    console.warn('Failed to detect timezone, using default:', error);
+    logger.warn('Failed to detect timezone, using default', { componentName: 'TimezoneUtils', error });
     return 'Europe/Amsterdam';
   }
 }
