@@ -117,7 +117,7 @@ export const RateLimitDashboard = () => {
   }, {} as Record<string, number>);
 
   const topIps = Object.entries(ipAggregation)
-    .map(([ip, count]) => ({ ip, count }))
+    .map(([ip, count]): { ip: string; count: number } => ({ ip, count: Number(count) }))
     .filter(item => !ipFilter || item.ip.includes(ipFilter))
     .sort((a, b) => b.count - a.count)
     .slice(0, 20);
