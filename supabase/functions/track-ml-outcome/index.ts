@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { createFunctionLogger } from "../_shared/function-logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,11 +8,15 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  const logger = createFunctionLogger('track-ml-outcome');
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    logger.logRequest(req.method);
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -27,7 +32,8 @@ serve(async (req) => {
       throw new Error('Invalid outcome. Must be: hired, interviewed, or rejected');
     }
 
-    console.log(`Tracking ML outcome: ${outcome} for prediction ${prediction_id || 'new'}`);
+    logger.info(`Tracking ML outcome: ${outcome}`, { prediction_id: prediction_id || 'new' });
+    logger.checkpoint('validated_input');
 
     // If prediction_id provided, update existing prediction
     if (prediction_id) {
@@ -41,7 +47,7 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
 
-      console.log(`Updated prediction ${prediction_id} with outcome: ${outcome}`);
+      logger.info(`Updated prediction with outcome`, { prediction_id, outcome });
     } 
     // Otherwise, find the prediction by candidate and job
     else if (candidate_id && job_id) {
@@ -66,9 +72,11 @@ serve(async (req) => {
 
         if (updateError) throw updateError;
 
-        console.log(`Updated prediction ${predictions[0].id} with outcome: ${outcome}`);
+        logger.info(`Updated prediction with outcome`, { prediction_id: predictions[0].id, outcome });
       }
     }
+
+    logger.checkpoint('updated_predictions');
 
     // Update or create training data
     const { data: existingTraining } = await supabase
@@ -115,9 +123,11 @@ serve(async (req) => {
             });
         }
       } catch (featureError) {
-        console.warn('Could not generate features for training data:', featureError);
+        logger.warn('Could not generate features for training data', { error: String(featureError) });
       }
     }
+
+    logger.checkpoint('updated_training_data');
 
     // Check model performance degradation
     const { data: activeModel } = await supabase
@@ -161,11 +171,16 @@ serve(async (req) => {
         const estimatedCurrentAuc = 0.5 + (separation / 2);
 
         if (estimatedCurrentAuc < originalAuc - 0.1) {
-          console.warn(`⚠️ Model performance degraded: ${originalAuc.toFixed(3)} -> ${estimatedCurrentAuc.toFixed(3)}`);
-          console.warn('Consider retraining the model');
+          logger.warn('Model performance degraded', { 
+            originalAuc: originalAuc.toFixed(3), 
+            estimatedCurrentAuc: estimatedCurrentAuc.toFixed(3),
+            recommendation: 'Consider retraining the model'
+          });
         }
       }
     }
+
+    logger.logSuccess(200, { outcome });
 
     return new Response(
       JSON.stringify({
@@ -177,8 +192,9 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in track-ml-outcome:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.logError(500, errorMessage);
+    
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

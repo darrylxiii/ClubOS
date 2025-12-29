@@ -8,6 +8,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { createFunctionLogger } from '../_shared/function-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,11 +21,15 @@ interface SyncRequest {
 }
 
 serve(async (req) => {
+  const logger = createFunctionLogger('sync-interview-to-candidate');
+  
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
+    logger.logRequest(req.method);
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -38,7 +43,8 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[Sync Interview] Syncing interview data for candidate: ${candidate_id}`);
+    logger.info('Syncing interview data for candidate', { candidate_id });
+    logger.checkpoint('validated_input');
 
     // Fetch all interview reports for this candidate
     const { data: reports, error: reportsError } = await supabase
@@ -50,12 +56,14 @@ serve(async (req) => {
     if (reportsError) throw reportsError;
 
     if (!reports || reports.length === 0) {
-      console.log('[Sync Interview] No interview reports found');
+      logger.info('No interview reports found');
       return new Response(
         JSON.stringify({ success: true, message: 'No reports to sync' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    logger.checkpoint('fetched_reports');
 
     // Calculate aggregate metrics
     const avgConfidence = reports.reduce((sum, r) => sum + (r.recommendation_confidence || 0), 0) / reports.length;
@@ -98,6 +106,8 @@ serve(async (req) => {
     // Clamp to 0-100
     interviewScore = Math.max(0, Math.min(100, interviewScore));
 
+    logger.checkpoint('calculated_metrics');
+
     // Update candidate profile
     const { error: updateError } = await supabase
       .from('candidate_profiles')
@@ -114,6 +124,8 @@ serve(async (req) => {
 
     if (updateError) throw updateError;
 
+    logger.checkpoint('updated_candidate');
+
     // Trigger ML model retraining signal
     try {
       await supabase.from('intelligence_queue').insert({
@@ -123,7 +135,7 @@ serve(async (req) => {
         priority: 8,
       });
     } catch (e) {
-      console.warn('[Sync Interview] Could not queue ML update:', e);
+      logger.warn('Could not queue ML update', { error: String(e) });
     }
 
     // Log activity
@@ -140,10 +152,15 @@ serve(async (req) => {
         visibility: 'admin',
       });
     } catch (e) {
-      console.warn('[Sync Interview] Could not log activity:', e);
+      logger.warn('Could not log activity', { error: String(e) });
     }
 
-    console.log(`[Sync Interview] Successfully synced ${reports.length} interviews for candidate ${candidate_id}`);
+    logger.logSuccess(200, {
+      candidate_id,
+      interviews_synced: reports.length,
+      interview_score: interviewScore,
+      recommendation: overallRecommendation
+    });
 
     return new Response(
       JSON.stringify({
@@ -159,8 +176,9 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('[Sync Interview] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    logger.logError(500, errorMessage);
+    
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

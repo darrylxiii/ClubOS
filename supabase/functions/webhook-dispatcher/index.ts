@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { createFunctionLogger, getClientInfo } from '../_shared/function-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,20 +9,21 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  const logger = createFunctionLogger('webhook-dispatcher');
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Rate limiting: 100 requests per hour per IP (webhooks can be frequent)
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-                     req.headers.get('x-real-ip') || 
-                     req.headers.get('cf-connecting-ip') || 
-                     'unknown';
+    logger.logRequest(req.method);
     
-    const rateLimit = await checkUserRateLimit(clientIp, 'webhook-dispatcher', 100, 60 * 60 * 1000);
+    // Rate limiting: 100 requests per hour per IP (webhooks can be frequent)
+    const clientInfo = getClientInfo(req);
+    
+    const rateLimit = await checkUserRateLimit(clientInfo.ip, 'webhook-dispatcher', 100, 60 * 60 * 1000);
     if (!rateLimit.allowed) {
-      console.warn('[Webhook Dispatcher] Rate limit exceeded for IP:', clientIp);
+      logger.logRateLimit(clientInfo.ip);
       return createRateLimitResponse(rateLimit.retryAfter!, corsHeaders);
     }
 
@@ -43,7 +45,7 @@ serve(async (req) => {
         
         const { data: { user }, error } = await supabaseAuth.auth.getUser(token);
         if (error || !user) {
-          console.error('Unauthorized webhook dispatch attempt');
+          logger.warn('Unauthorized webhook dispatch attempt');
           return new Response(
             JSON.stringify({ error: 'Unauthorized - valid authentication required' }),
             { status: 401, headers: corsHeaders }
@@ -57,20 +59,22 @@ serve(async (req) => {
           .eq('user_id', user.id);
         
         if (!roles?.some(r => r.role === 'admin')) {
-          console.error('Forbidden: User is not admin');
+          logger.warn('Forbidden: User is not admin', { user_id: user.id });
           return new Response(
             JSON.stringify({ error: 'Forbidden - admin access required' }),
             { status: 403, headers: corsHeaders }
           );
         }
       } else {
-        console.error('Invalid internal token for webhook dispatch');
+        logger.warn('Invalid internal token for webhook dispatch');
         return new Response(
           JSON.stringify({ error: 'Unauthorized - invalid token' }),
           { status: 401, headers: corsHeaders }
         );
       }
     }
+
+    logger.checkpoint('authenticated');
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -91,7 +95,8 @@ serve(async (req) => {
 
     if (fetchError) throw fetchError;
 
-    console.log(`Processing ${deliveries?.length || 0} webhook deliveries`);
+    logger.info(`Processing ${deliveries?.length || 0} webhook deliveries`);
+    logger.checkpoint('fetched_deliveries');
 
     const results = await Promise.allSettled(
       (deliveries || []).map(async (delivery: any) => {
@@ -157,14 +162,14 @@ serve(async (req) => {
               })
               .eq('id', delivery.webhook_id);
 
-            console.log(`✓ Delivered webhook ${delivery.id} (${responseTime}ms)`);
+            logger.info(`Delivered webhook ${delivery.id}`, { responseTime_ms: responseTime });
           } else {
             // HTTP error
             throw new Error(`HTTP ${response.status}: ${responseBody}`);
           }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          console.error(`✗ Failed webhook ${delivery.id}:`, errorMessage);
+          logger.warn(`Failed webhook ${delivery.id}`, { error: errorMessage });
 
           const newAttempts = delivery.attempts + 1;
           const nextRetry = new Date();
@@ -198,7 +203,7 @@ serve(async (req) => {
               .update({ is_active: false })
               .eq('id', delivery.webhook_id);
             
-            console.log(`⚠️ Disabled webhook ${delivery.webhook_id} due to repeated failures`);
+            logger.warn(`Disabled webhook ${delivery.webhook_id} due to repeated failures`);
           }
         }
       })
@@ -206,6 +211,8 @@ serve(async (req) => {
 
     const successful = results.filter(r => r.status === 'fulfilled').length;
     const failed = results.filter(r => r.status === 'rejected').length;
+
+    logger.logSuccess(200, { processed: deliveries?.length || 0, successful, failed });
 
     return new Response(
       JSON.stringify({
@@ -216,8 +223,8 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Webhook dispatcher error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    logger.logError(500, errorMessage);
     
     return new Response(
       JSON.stringify({ error: errorMessage }),
