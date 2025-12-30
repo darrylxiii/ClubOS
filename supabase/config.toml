@@ -902,3 +902,9 @@ verify_jwt = false
 
 [functions.scim-service-provider-config]
 verify_jwt = false
+
+# =============================================================================
+# Observability & Error Grouping (Public - Internal Use)
+# =============================================================================
+[functions.ai-error-grouping]
+verify_jwt = false
