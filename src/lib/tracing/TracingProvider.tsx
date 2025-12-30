@@ -5,7 +5,6 @@
 
 import { createContext, useContext, useEffect, ReactNode, useCallback, useState } from 'react';
 import { initializeTracing, traceStore, getTraceHeaders, withSpan } from './index';
-import { useNavigationTracing } from './useNavigationTracing';
 import type { TraceEntry } from './index';
 import type { Span } from '@opentelemetry/api';
 
@@ -36,9 +35,6 @@ export function TracingProvider({ children, enabled = true }: TracingProviderPro
       setIsInitialized(true);
     }
   }, [enabled, isInitialized]);
-
-  // Hook into navigation
-  useNavigationTracing();
 
   const getRecentTraces = useCallback((limit = 20) => {
     return traceStore.getRecentTraces(limit);
