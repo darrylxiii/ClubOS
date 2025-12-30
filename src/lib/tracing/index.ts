@@ -3,13 +3,14 @@
  * Provides end-to-end request tracing across frontend and edge functions
  */
 
-import { WebTracerProvider, BatchSpanProcessor } from '@opentelemetry/sdk-trace-web';
+import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
+import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
-import { Resource } from '@opentelemetry/resources';
-import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION, SEMRESATTRS_DEPLOYMENT_ENVIRONMENT } from '@opentelemetry/semantic-conventions';
+import { resourceFromAttributes } from '@opentelemetry/resources';
+import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { context, trace, SpanStatusCode, Span, SpanKind } from '@opentelemetry/api';
 
@@ -90,35 +91,26 @@ export function initializeTracing(): void {
   }
 
   try {
-    // Create resource
-    const resource = Resource.default().merge(
-      new Resource({
-        [SEMRESATTRS_SERVICE_NAME]: SERVICE_NAME,
-        [SEMRESATTRS_SERVICE_VERSION]: SERVICE_VERSION,
-        [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: ENVIRONMENT,
-      })
-    );
-
-    // Create provider
-    provider = new WebTracerProvider({
-      resource,
+    // Create resource with service attributes
+    const resource = resourceFromAttributes({
+      [ATTR_SERVICE_NAME]: SERVICE_NAME,
+      [ATTR_SERVICE_VERSION]: SERVICE_VERSION,
+      'deployment.environment': ENVIRONMENT,
     });
 
     // Configure exporter (console for now, can be replaced with OTLP endpoint)
-    // For production, replace with actual OTLP endpoint
     const exporter = new OTLPTraceExporter({
       url: import.meta.env.VITE_OTEL_EXPORTER_OTLP_ENDPOINT || '/api/traces',
       headers: {},
     });
 
-    // Add span processor
-    provider.addSpanProcessor(new BatchSpanProcessor(exporter, {
-      maxQueueSize: 100,
-      maxExportBatchSize: 10,
-      scheduledDelayMillis: 500,
-    }));
+    // Create provider with resource and span processor
+    provider = new WebTracerProvider({
+      resource,
+      spanProcessors: [new SimpleSpanProcessor(exporter)],
+    });
 
-    // Configure context manager
+    // Configure context manager and register
     provider.register({
       contextManager: new ZoneContextManager(),
     });
