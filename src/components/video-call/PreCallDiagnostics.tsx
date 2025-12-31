@@ -2,10 +2,12 @@ import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Loader2, Server } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { TURNServerStatus } from '@/components/meetings/TURNServerStatus';
+import { validateTURNConfig } from '@/utils/webrtcConfig';
 
 interface DiagnosticCheck {
   name: string;
@@ -23,6 +25,7 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
     { name: 'Camera Access', status: 'pending' },
     { name: 'Microphone Access', status: 'pending' },
     { name: 'Internet Connection', status: 'pending' },
+    { name: 'TURN Servers', status: 'pending' },
     { name: 'Browser Compatibility', status: 'pending' }
   ]);
   const [overallProgress, setOverallProgress] = useState(0);
@@ -49,7 +52,7 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
   }, []);
 
   const getTroubleshootingTip = (checkIndex: number, status: string): string => {
-    const tips = {
+    const tips: Record<number, { failed: string; warning: string }> = {
       0: {
         failed: '📹 Camera access denied. Go to browser settings → Privacy → Camera and allow access for this site.',
         warning: '⚠️ Camera detected but quality may be low. Ensure good lighting and clean your lens.'
@@ -63,11 +66,15 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
         warning: '⚠️ Connection is slow. Consider closing other apps, moving closer to router, or switching to ethernet.'
       },
       3: {
+        failed: '🖥️ TURN servers not configured. Video calls may fail on restrictive networks.',
+        warning: '⚠️ Using community TURN servers. Connection quality may vary under high load.'
+      },
+      4: {
         failed: '🌐 Browser not supported. Use latest Chrome, Edge, Safari, or Firefox for best experience.',
         warning: '⚠️ Browser compatibility limited. Update to latest version for all features.'
       }
     };
-    return tips[checkIndex as keyof typeof tips]?.[status as 'failed' | 'warning'] || '';
+    return tips[checkIndex]?.[status as 'failed' | 'warning'] || '';
   };
 
   const runDiagnostics = async () => {
@@ -158,23 +165,46 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
       updateCheck(2, 'failed', 'No connection detected');
       setTroubleshooting(prev => ({ ...prev, 2: tip }));
     }
-    setOverallProgress(75);
+    setOverallProgress(60);
+
+    // Check TURN servers
+    updateCheck(3, 'checking');
+    try {
+      const turnHealth = await validateTURNConfig();
+      
+      if (turnHealth.isPaidServer && turnHealth.validationErrors.length === 0) {
+        updateCheck(3, 'passed', `${turnHealth.servers} production server(s)`);
+      } else if (turnHealth.isPaidServer) {
+        const tip = getTroubleshootingTip(3, 'warning');
+        updateCheck(3, 'warning', `Config issues: ${turnHealth.validationErrors.join(', ')}`);
+        setTroubleshooting(prev => ({ ...prev, 3: tip }));
+      } else {
+        const tip = getTroubleshootingTip(3, 'warning');
+        updateCheck(3, 'warning', 'Using community servers');
+        setTroubleshooting(prev => ({ ...prev, 3: tip }));
+      }
+    } catch (error) {
+      const tip = getTroubleshootingTip(3, 'failed');
+      updateCheck(3, 'failed', 'TURN validation failed');
+      setTroubleshooting(prev => ({ ...prev, 3: tip }));
+    }
+    setOverallProgress(80);
 
     // Check browser compatibility
-    updateCheck(3, 'checking');
+    updateCheck(4, 'checking');
     const isCompatible = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
     const hasScreenShare = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
 
     if (isCompatible && hasScreenShare) {
-      updateCheck(3, 'passed', 'All features supported');
+      updateCheck(4, 'passed', 'All features supported');
     } else if (isCompatible) {
-      const tip = getTroubleshootingTip(3, 'warning');
-      updateCheck(3, 'warning', 'Limited features available');
-      setTroubleshooting(prev => ({ ...prev, 3: tip }));
+      const tip = getTroubleshootingTip(4, 'warning');
+      updateCheck(4, 'warning', 'Limited features available');
+      setTroubleshooting(prev => ({ ...prev, 4: tip }));
     } else {
-      const tip = getTroubleshootingTip(3, 'failed');
-      updateCheck(3, 'failed', 'Browser not supported');
-      setTroubleshooting(prev => ({ ...prev, 3: tip }));
+      const tip = getTroubleshootingTip(4, 'failed');
+      updateCheck(4, 'failed', 'Browser not supported');
+      setTroubleshooting(prev => ({ ...prev, 4: tip }));
     }
     setOverallProgress(100);
   };
