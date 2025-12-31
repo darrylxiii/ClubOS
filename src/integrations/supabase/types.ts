@@ -20578,6 +20578,51 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_data_audit: {
+        Row: {
+          check_type: string
+          checked_at: string | null
+          details: Json | null
+          id: string
+          meeting_id: string | null
+          passed: boolean
+          recording_id: string | null
+        }
+        Insert: {
+          check_type: string
+          checked_at?: string | null
+          details?: Json | null
+          id?: string
+          meeting_id?: string | null
+          passed: boolean
+          recording_id?: string | null
+        }
+        Update: {
+          check_type?: string
+          checked_at?: string | null
+          details?: Json | null
+          id?: string
+          meeting_id?: string | null
+          passed?: boolean
+          recording_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_data_audit_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_data_audit_recording_id_fkey"
+            columns: ["recording_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_recordings_extended"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_encryption_keys: {
         Row: {
           created_at: string | null
@@ -21212,6 +21257,7 @@ export type Database = {
         Row: {
           action_items: Json | null
           ai_analysis: Json | null
+          analysis_retry_count: number | null
           analysis_status: string | null
           analyzed_at: string | null
           application_id: string | null
@@ -21229,6 +21275,7 @@ export type Database = {
           is_private: boolean | null
           job_id: string | null
           key_moments: Json | null
+          last_analysis_attempt: string | null
           live_channel_id: string | null
           meeting_id: string | null
           mime_type: string | null
@@ -21250,6 +21297,7 @@ export type Database = {
         Insert: {
           action_items?: Json | null
           ai_analysis?: Json | null
+          analysis_retry_count?: number | null
           analysis_status?: string | null
           analyzed_at?: string | null
           application_id?: string | null
@@ -21267,6 +21315,7 @@ export type Database = {
           is_private?: boolean | null
           job_id?: string | null
           key_moments?: Json | null
+          last_analysis_attempt?: string | null
           live_channel_id?: string | null
           meeting_id?: string | null
           mime_type?: string | null
@@ -21288,6 +21337,7 @@ export type Database = {
         Update: {
           action_items?: Json | null
           ai_analysis?: Json | null
+          analysis_retry_count?: number | null
           analysis_status?: string | null
           analyzed_at?: string | null
           application_id?: string | null
@@ -21305,6 +21355,7 @@ export type Database = {
           is_private?: boolean | null
           job_id?: string | null
           key_moments?: Json | null
+          last_analysis_attempt?: string | null
           live_channel_id?: string | null
           meeting_id?: string | null
           mime_type?: string | null

@@ -8,62 +8,157 @@ import { logger } from "@/lib/logger";
  * falling back to free community servers for development.
  */
 
-export const getIceServers = (): RTCIceServer[] => {
-    // 1. Check for paid/private TURN configuration from Env Vars
-    const envUrls = import.meta.env.VITE_TURN_URLS;
-    const envUsername = import.meta.env.VITE_TURN_USERNAME;
-    const envCredential = import.meta.env.VITE_TURN_CREDENTIAL;
+export interface TURNServerHealth {
+  isConfigured: boolean;
+  isPaidServer: boolean;
+  servers: number;
+  lastValidated: Date | null;
+  validationErrors: string[];
+}
 
-    if (envUrls && envUsername && envCredential) {
-        logger.info('[WebRTC Config] 🔒 Loading secure TURN servers from environment configuration');
-        return [
-            // Always include Google STUN for fast NAT discovery
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
+let cachedHealth: TURNServerHealth | null = null;
 
-            // Paid TURN servers
-            {
-                urls: envUrls.split(',').map((url: string) => url.trim()),
-                username: envUsername,
-                credential: envCredential
-            }
-        ];
+/**
+ * Validates TURN server configuration and returns health status
+ */
+export const validateTURNConfig = async (): Promise<TURNServerHealth> => {
+  const envUrls = import.meta.env.VITE_TURN_URLS;
+  const envUsername = import.meta.env.VITE_TURN_USERNAME;
+  const envCredential = import.meta.env.VITE_TURN_CREDENTIAL;
+
+  const health: TURNServerHealth = {
+    isConfigured: false,
+    isPaidServer: false,
+    servers: 0,
+    lastValidated: new Date(),
+    validationErrors: []
+  };
+
+  if (envUrls && envUsername && envCredential) {
+    health.isConfigured = true;
+    health.isPaidServer = true;
+    
+    const urls = envUrls.split(',').map((url: string) => url.trim());
+    health.servers = urls.length;
+
+    // Validate URL format
+    for (const url of urls) {
+      if (!url.startsWith('turn:') && !url.startsWith('turns:')) {
+        health.validationErrors.push(`Invalid TURN URL format: ${url}`);
+      }
     }
 
-    // 2. Fallback: Free OpenRelay Servers (Development / Low Scale)
-    logger.warn('[WebRTC Config] ⚠️ Using free community TURN servers (OpenRelay). Not recommended for production scaling.');
+    if (health.validationErrors.length === 0) {
+      logger.info('[WebRTC Config] ✅ Production TURN servers validated', {
+        serverCount: urls.length,
+        urls: urls.map(u => u.split('@')[1] || u) // Hide credentials in logs
+      });
+    }
+  } else {
+    health.isConfigured = true;
+    health.isPaidServer = false;
+    health.servers = 3; // OpenRelay fallback
+    health.validationErrors.push('Using free community TURN servers - not recommended for production');
+  }
 
+  cachedHealth = health;
+  return health;
+};
+
+/**
+ * Get cached TURN health status (for UI display)
+ */
+export const getTURNHealth = (): TURNServerHealth | null => cachedHealth;
+
+export const getIceServers = (): RTCIceServer[] => {
+  // 1. Check for paid/private TURN configuration from Env Vars
+  const envUrls = import.meta.env.VITE_TURN_URLS;
+  const envUsername = import.meta.env.VITE_TURN_USERNAME;
+  const envCredential = import.meta.env.VITE_TURN_CREDENTIAL;
+
+  if (envUrls && envUsername && envCredential) {
+    logger.info('[WebRTC Config] 🔒 Loading secure TURN servers from environment configuration');
     return [
-        // Google STUN servers
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' },
+      // Always include Google STUN for fast NAT discovery
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
 
-        // OpenRelay TURN servers
-        {
-            urls: 'turn:openrelay.metered.ca:80',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
-        },
-        {
-            urls: 'turn:openrelay.metered.ca:443',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
-        },
-        {
-            urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
-        }
+      // Paid TURN servers
+      {
+        urls: envUrls.split(',').map((url: string) => url.trim()),
+        username: envUsername,
+        credential: envCredential
+      }
     ];
+  }
+
+  // 2. Fallback: Free OpenRelay Servers (Development / Low Scale)
+  logger.warn('[WebRTC Config] ⚠️ Using free community TURN servers (OpenRelay). Not recommended for production scaling.');
+
+  return [
+    // Google STUN servers
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
+
+    // OpenRelay TURN servers (free tier)
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    // Backup Metered TURN (free tier)
+    {
+      urls: 'turn:a.relay.metered.ca:80',
+      username: 'e2d1f0c6a4b2e8d9f3c5a7b0',
+      credential: 'wKTpIwxj7tRY+1aV'
+    },
+    {
+      urls: 'turn:a.relay.metered.ca:443',
+      username: 'e2d1f0c6a4b2e8d9f3c5a7b0',
+      credential: 'wKTpIwxj7tRY+1aV'
+    }
+  ];
 };
 
 export const DEFAULT_RTC_CONFIG: RTCConfiguration = {
-    iceServers: getIceServers(),
-    iceTransportPolicy: 'all',
-    bundlePolicy: 'max-bundle',
-    rtcpMuxPolicy: 'require',
-    iceCandidatePoolSize: 10
+  iceServers: getIceServers(),
+  iceTransportPolicy: 'all',
+  bundlePolicy: 'max-bundle',
+  rtcpMuxPolicy: 'require',
+  iceCandidatePoolSize: 10
+};
+
+/**
+ * Get RTCConfiguration with connection-specific optimizations
+ */
+export const getRTCConfigForConnection = (options?: {
+  forceRelay?: boolean;
+  lowBandwidth?: boolean;
+}): RTCConfiguration => {
+  const config = { ...DEFAULT_RTC_CONFIG };
+  
+  if (options?.forceRelay) {
+    // Force TURN relay for users behind restrictive firewalls
+    config.iceTransportPolicy = 'relay';
+  }
+
+  if (options?.lowBandwidth) {
+    // Reduce ICE candidate pool for faster connection on slow networks
+    config.iceCandidatePoolSize = 3;
+  }
+
+  return config;
 };
