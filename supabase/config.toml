@@ -908,3 +908,9 @@ verify_jwt = false
 # =============================================================================
 [functions.ai-error-grouping]
 verify_jwt = false
+
+# =============================================================================
+# ElevenLabs Streaming Transcription (JWT Required)
+# =============================================================================
+[functions.elevenlabs-scribe-token]
+verify_jwt = true

@@ -37,6 +37,8 @@ import { MeetingConnectionIndicator } from '@/components/meetings/MeetingConnect
 import { useCompositorRecording } from '@/hooks/useCompositorRecording';
 import { PresenterHUD } from '@/components/video-call/PresenterHUD';
 import { useMeetingTranscription } from '@/hooks/useMeetingTranscription';
+import { useStreamingTranscription } from '@/hooks/useStreamingTranscription';
+import { StreamingCaptions } from '@/components/video-call/StreamingCaptions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -195,12 +197,18 @@ export function MeetingVideoCallInterface({
     }
   });
 
-  // Real-time transcription
-  const { transcriptions, isTranscribing } = useMeetingTranscription({
+  // Real-time streaming transcription (ElevenLabs Scribe)
+  const { 
+    transcriptions, 
+    isTranscribing, 
+    partialTranscript,
+    committedTranscripts,
+    error: transcriptionError 
+  } = useStreamingTranscription({
     meetingId: meeting.id,
     participantName,
     localStream,
-    enabled: transcriptionEnabled && meetingStarted && !showDiagnostics
+    enabled: transcriptionEnabled && meetingStarted && !showDiagnostics && hasGivenConsent
   });
 
   // Connection quality monitoring
@@ -1234,21 +1242,14 @@ export function MeetingVideoCallInterface({
         }
       />
 
-      {/* Live Captions with Real Transcriptions */}
-      {captionsEnabled && transcriptions.length > 0 && (
-        <div className="absolute bottom-32 left-1/2 -translate-x-1/2 max-w-3xl w-full px-4 z-40">
-          <div className="bg-black/80 backdrop-blur-xl rounded-lg px-6 py-4 border border-white/10">
-            <div className="text-white text-lg leading-relaxed space-y-2">
-              {transcriptions.slice(-3).map((t) => (
-                <div key={t.id}>
-                  <span className="text-blue-400 font-medium">{t.speaker}:</span>{' '}
-                  <span className={t.isFinal ? '' : 'text-white/60 italic'}>{t.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Streaming Live Captions (ElevenLabs Scribe) */}
+      <StreamingCaptions
+        enabled={captionsEnabled && hasGivenConsent}
+        isConnected={isTranscribing}
+        partialTranscript={partialTranscript || ''}
+        committedTranscripts={committedTranscripts || []}
+        participantName={participantName}
+      />
 
       {/* Host Approval Panel */}
       <HostApprovalPanel
