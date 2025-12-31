@@ -61,6 +61,12 @@ serve(async (req) => {
       tasks: [],
       documents: [],
       achievements: [],
+      // Phase 5: Booking data
+      bookings: [],
+      booking_links: [],
+      meetings: [],
+      meeting_participations: [],
+      calendar_connections: [],
       export_date: new Date().toISOString(),
     };
 
@@ -114,6 +120,37 @@ serve(async (req) => {
       .select('*')
       .eq('user_id', user.id);
     exportData.achievements = achievements;
+
+    // Phase 5: Fetch booking data
+    const { data: bookings } = await adminClient
+      .from('bookings')
+      .select('*')
+      .or(`user_id.eq.${user.id},guest_email.eq.${user.email}`);
+    exportData.bookings = bookings;
+
+    const { data: bookingLinks } = await adminClient
+      .from('booking_links')
+      .select('*')
+      .eq('user_id', user.id);
+    exportData.booking_links = bookingLinks;
+
+    const { data: meetings } = await adminClient
+      .from('meetings')
+      .select('*')
+      .eq('host_id', user.id);
+    exportData.meetings = meetings;
+
+    const { data: meetingParticipations } = await adminClient
+      .from('meeting_participants')
+      .select('*')
+      .eq('user_id', user.id);
+    exportData.meeting_participations = meetingParticipations;
+
+    const { data: calendarConnections } = await adminClient
+      .from('calendar_connections')
+      .select('id, provider, email, is_active, created_at, updated_at')
+      .eq('user_id', user.id);
+    exportData.calendar_connections = calendarConnections;
 
     // Convert to JSON
     const jsonData = JSON.stringify(exportData, null, 2);

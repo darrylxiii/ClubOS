@@ -3160,6 +3160,39 @@ export type Database = {
           },
         ]
       }
+      booking_deletion_logs: {
+        Row: {
+          booking_data: Json | null
+          booking_id: string
+          deleted_at: string | null
+          deleted_by: string | null
+          deletion_reason: string | null
+          gdpr_deletion: boolean | null
+          id: string
+          related_meeting_ids: string[] | null
+        }
+        Insert: {
+          booking_data?: Json | null
+          booking_id: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
+          gdpr_deletion?: boolean | null
+          id?: string
+          related_meeting_ids?: string[] | null
+        }
+        Update: {
+          booking_data?: Json | null
+          booking_id?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
+          gdpr_deletion?: boolean | null
+          id?: string
+          related_meeting_ids?: string[] | null
+        }
+        Relationships: []
+      }
       booking_funnel_analytics: {
         Row: {
           booking_link_id: string | null
@@ -3200,6 +3233,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "booking_funnel_analytics_booking_link_id_fkey"
+            columns: ["booking_link_id"]
+            isOneToOne: false
+            referencedRelation: "booking_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_funnel_events: {
+        Row: {
+          booking_link_id: string | null
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          referrer: string | null
+          session_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          booking_link_id?: string | null
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          referrer?: string | null
+          session_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          booking_link_id?: string | null
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          referrer?: string | null
+          session_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_funnel_events_booking_link_id_fkey"
             columns: ["booking_link_id"]
             isOneToOne: false
             referencedRelation: "booking_links"
@@ -3584,6 +3658,7 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           assigned_team_member: string | null
+          assignment_method: string | null
           attended: boolean | null
           booking_link_id: string
           calendar_event_id: string | null
@@ -3618,10 +3693,14 @@ export type Database = {
           notes: string | null
           quantum_meeting_code: string | null
           quantum_meeting_link: string | null
+          recurrence_index: number | null
+          recurrence_parent_id: string | null
+          recurrence_rule: string | null
           rejection_reason: string | null
           reminder_sent: boolean | null
           scheduled_end: string
           scheduled_start: string
+          series_id: string | null
           sms_reminders: boolean | null
           status: string
           sync_error_message: string | null
@@ -3640,6 +3719,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           assigned_team_member?: string | null
+          assignment_method?: string | null
           attended?: boolean | null
           booking_link_id: string
           calendar_event_id?: string | null
@@ -3674,10 +3754,14 @@ export type Database = {
           notes?: string | null
           quantum_meeting_code?: string | null
           quantum_meeting_link?: string | null
+          recurrence_index?: number | null
+          recurrence_parent_id?: string | null
+          recurrence_rule?: string | null
           rejection_reason?: string | null
           reminder_sent?: boolean | null
           scheduled_end: string
           scheduled_start: string
+          series_id?: string | null
           sms_reminders?: boolean | null
           status?: string
           sync_error_message?: string | null
@@ -3696,6 +3780,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           assigned_team_member?: string | null
+          assignment_method?: string | null
           attended?: boolean | null
           booking_link_id?: string
           calendar_event_id?: string | null
@@ -3730,10 +3815,14 @@ export type Database = {
           notes?: string | null
           quantum_meeting_code?: string | null
           quantum_meeting_link?: string | null
+          recurrence_index?: number | null
+          recurrence_parent_id?: string | null
+          recurrence_rule?: string | null
           rejection_reason?: string | null
           reminder_sent?: boolean | null
           scheduled_end?: string
           scheduled_start?: string
+          series_id?: string | null
           sms_reminders?: boolean | null
           status?: string
           sync_error_message?: string | null
@@ -3800,6 +3889,13 @@ export type Database = {
             columns: ["meeting_id"]
             isOneToOne: false
             referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_recurrence_parent_id_fkey"
+            columns: ["recurrence_parent_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -3986,6 +4082,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      calendar_health_checks: {
+        Row: {
+          calendar_connection_id: string | null
+          check_type: string
+          created_at: string | null
+          error_details: Json | null
+          id: string
+          last_check_at: string | null
+          next_check_at: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          calendar_connection_id?: string | null
+          check_type: string
+          created_at?: string | null
+          error_details?: Json | null
+          id?: string
+          last_check_at?: string | null
+          next_check_at?: string | null
+          status: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          calendar_connection_id?: string | null
+          check_type?: string
+          created_at?: string | null
+          error_details?: Json | null
+          id?: string
+          last_check_at?: string | null
+          next_check_at?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_health_checks_calendar_connection_id_fkey"
+            columns: ["calendar_connection_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_connections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       calendar_sync_log: {
         Row: {
@@ -27877,6 +28020,7 @@ export type Database = {
           instagram_connected: boolean | null
           instagram_username: string | null
           job_alert_frequency: string | null
+          last_booked_at: string | null
           linkedin_connected: boolean | null
           linkedin_profile_data: Json | null
           linkedin_url: string | null
@@ -27992,6 +28136,7 @@ export type Database = {
           instagram_connected?: boolean | null
           instagram_username?: string | null
           job_alert_frequency?: string | null
+          last_booked_at?: string | null
           linkedin_connected?: boolean | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
@@ -28107,6 +28252,7 @@ export type Database = {
           instagram_connected?: boolean | null
           instagram_username?: string | null
           job_alert_frequency?: string | null
+          last_booked_at?: string | null
           linkedin_connected?: boolean | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
@@ -34540,6 +34686,41 @@ export type Database = {
         }
         Relationships: []
       }
+      team_booking_assignments: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          id: string
+          responded_at: string | null
+          status: string | null
+          team_member_id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          id?: string
+          responded_at?: string | null
+          status?: string | null
+          team_member_id: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          id?: string
+          responded_at?: string | null
+          status?: string | null
+          team_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_booking_assignments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       template_assignments: {
         Row: {
           assigned_at: string | null
@@ -40759,6 +40940,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_collective_availability: {
+        Args: {
+          p_scheduled_end: string
+          p_scheduled_start: string
+          p_team_members: string[]
+        }
+        Returns: boolean
+      }
       check_error_threshold: { Args: never; Returns: undefined }
       check_kpi_critical_and_create_action: {
         Args: { p_domain: string; p_kpi_name: string; p_status: string }
@@ -40837,6 +41026,7 @@ export type Database = {
         }
         Returns: string
       }
+      delete_user_booking_data: { Args: { p_user_id: string }; Returns: Json }
       demote_from_super_admin: {
         Args: { p_target_user_id: string }
         Returns: boolean
@@ -41354,6 +41544,10 @@ export type Database = {
           updated_at: string
           visibility: string
         }[]
+      }
+      select_round_robin_member: {
+        Args: { p_team_members: string[] }
+        Returns: string
       }
       semantic_search_candidates: {
         Args: {
