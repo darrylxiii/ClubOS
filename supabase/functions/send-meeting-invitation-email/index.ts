@@ -185,6 +185,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    
     const emailData: EmailRequest = await req.json();
     
     const acceptUrl = `${Deno.env.get('APP_URL')}/api/meeting-response?id=${emailData.invitationId}&action=accept`;
@@ -207,10 +209,43 @@ serve(async (req) => {
       emailData.meetingUrl
     );
 
-    // Here you would integrate with your email service (e.g., Resend, SendGrid)
-    // For now, we'll just log and mark as sent
-    console.log('Sending email to:', emailData.inviteeEmail);
-    console.log('Meeting:', emailData.meetingTitle);
+    // Actually send the email via Resend
+    if (resendApiKey) {
+      console.log('[send-meeting-invitation-email] Sending email via Resend to:', emailData.inviteeEmail);
+      
+      const emailResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'The Quantum Club <meetings@thequantumclub.com>',
+          to: [emailData.inviteeEmail],
+          subject: `Meeting Invitation: ${emailData.meetingTitle}`,
+          html: htmlContent,
+          attachments: [
+            {
+              filename: 'meeting.ics',
+              content: btoa(icsContent),
+              type: 'text/calendar',
+            }
+          ],
+        }),
+      });
+
+      if (!emailResponse.ok) {
+        const errorText = await emailResponse.text();
+        console.error('[send-meeting-invitation-email] Resend error:', errorText);
+        throw new Error(`Failed to send email: ${errorText}`);
+      }
+
+      const emailResult = await emailResponse.json();
+      console.log('[send-meeting-invitation-email] Email sent successfully:', emailResult.id);
+    } else {
+      console.log('[send-meeting-invitation-email] RESEND_API_KEY not configured, skipping email send');
+      console.log('[send-meeting-invitation-email] Would send email to:', emailData.inviteeEmail);
+    }
 
     // Update notification queue status
     await supabase
@@ -225,7 +260,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'Email queued successfully',
+        message: resendApiKey ? 'Email sent successfully' : 'Email queued (no API key)',
         icsAttachment: btoa(icsContent)
       }),
       { 
@@ -235,7 +270,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error sending invitation email:', error);
+    console.error('[send-meeting-invitation-email] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
       JSON.stringify({ error: errorMessage }),

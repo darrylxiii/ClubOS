@@ -142,6 +142,33 @@ serve(async (req) => {
         console.error("[Approve Booking] Failed to send confirmation email:", emailError);
       }
 
+      // Create in-app notification for guest about approval
+      // First, try to find if guest has a user account
+      const { data: guestUser } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .eq('email', booking.guest_email)
+        .single();
+      
+      if (guestUser) {
+        await supabaseClient
+          .from('notifications')
+          .insert({
+            user_id: guestUser.id,
+            type: 'booking_confirmation',
+            title: `Your booking has been approved!`,
+            content: `Your booking request for "${booking.booking_links?.title}" has been confirmed.`,
+            action_url: `/bookings/${bookingId}`,
+            metadata: {
+              booking_id: bookingId,
+              scheduled_start: booking.scheduled_start,
+              booking_link_title: booking.booking_links?.title,
+            },
+            is_read: false,
+          });
+        console.log("[Approve Booking] Created in-app notification for guest about approval");
+      }
+
       // Sync to calendar
       if (booking.booking_links?.primary_calendar_id) {
         try {
@@ -186,6 +213,34 @@ serve(async (req) => {
           notes: rejectionReason,
         })
         .eq("booking_id", bookingId);
+
+      // Create in-app notification for guest about rejection (if they have an account)
+      const { data: guestUser } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .eq('email', booking.guest_email)
+        .single();
+      
+      if (guestUser) {
+        await supabaseClient
+          .from('notifications')
+          .insert({
+            user_id: guestUser.id,
+            type: 'booking_approval',
+            title: `Booking request declined`,
+            content: rejectionReason 
+              ? `Your booking request for "${booking.booking_links?.title}" was declined: ${rejectionReason}`
+              : `Your booking request for "${booking.booking_links?.title}" could not be confirmed.`,
+            action_url: `/book/${booking.booking_links?.slug}`,
+            metadata: {
+              booking_id: bookingId,
+              rejection_reason: rejectionReason,
+              booking_link_slug: booking.booking_links?.slug,
+            },
+            is_read: false,
+          });
+        console.log("[Approve Booking] Created in-app notification for guest about rejection");
+      }
 
       // Send rejection email to guest
       const resendApiKey = Deno.env.get("RESEND_API_KEY");

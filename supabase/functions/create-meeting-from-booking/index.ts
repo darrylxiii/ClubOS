@@ -148,6 +148,53 @@ serve(async (req) => {
       })
       .eq("id", bookingId);
 
+    // Create in-app notification for host about meeting creation
+    await supabaseClient
+      .from('notifications')
+      .insert({
+        user_id: booking.user_id,
+        type: 'meeting_reminder',
+        title: `Meeting room created for ${booking.guest_name}`,
+        content: `Your meeting with ${booking.guest_name} is ready. Meeting code: ${meeting.meeting_code}`,
+        action_url: `/meeting/${meeting.meeting_code}`,
+        metadata: {
+          meeting_id: meeting.id,
+          meeting_code: meeting.meeting_code,
+          booking_id: bookingId,
+          guest_name: booking.guest_name,
+          scheduled_start: booking.scheduled_start,
+        },
+        is_read: false,
+      });
+    console.log(`[Meeting] Created in-app notification for host about meeting creation`);
+
+    // Create in-app notification for guest if they have an account
+    const { data: guestUser } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('email', booking.guest_email)
+      .single();
+    
+    if (guestUser) {
+      await supabaseClient
+        .from('notifications')
+        .insert({
+          user_id: guestUser.id,
+          type: 'meeting_reminder',
+          title: `Meeting room ready: ${booking.booking_links?.title || 'Meeting'}`,
+          content: `Your meeting is scheduled and ready. Click to join when it's time.`,
+          action_url: `/meeting/${meeting.meeting_code}`,
+          metadata: {
+            meeting_id: meeting.id,
+            meeting_code: meeting.meeting_code,
+            booking_id: bookingId,
+            scheduled_start: booking.scheduled_start,
+          },
+          is_read: false,
+        });
+      console.log(`[Meeting] Created in-app notification for guest about meeting`);
+    }
+
     // Send guest notification email with meeting details
     try {
       await supabaseClient.functions.invoke("send-meeting-invite", {

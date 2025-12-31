@@ -9,11 +9,12 @@ const corsHeaders = {
 interface PushNotificationRequest {
   user_id?: string;
   user_ids?: string[];
-  notification_type: 'new_message' | 'interview_reminder' | 'application_update' | 'meeting_reminder' | 'job_match' | 'system';
+  notification_type: 'new_message' | 'interview_reminder' | 'application_update' | 'meeting_reminder' | 'job_match' | 'system' | 'booking_confirmation' | 'booking_reminder' | 'booking_approval';
   title: string;
   body: string;
   data?: Record<string, unknown>;
   route?: string;
+  create_in_app?: boolean; // Whether to also create an in-app notification (default: true)
 }
 
 interface NotificationPref {
@@ -46,7 +47,7 @@ serve(async (req) => {
     const payload: PushNotificationRequest = await req.json();
     console.log('[send-push-notification] Received request:', JSON.stringify(payload));
 
-    const { user_id, user_ids, notification_type, title, body, data, route } = payload;
+    const { user_id, user_ids, notification_type, title, body, data, route, create_in_app = true } = payload;
 
     if (!title || !notification_type) {
       return new Response(
@@ -143,6 +144,31 @@ serve(async (req) => {
 
     console.log(`[send-push-notification] Found ${tokens?.length || 0} device tokens`);
 
+    // Create in-app notifications for eligible users (mirrors push notifications)
+    if (create_in_app) {
+      console.log(`[send-push-notification] Creating in-app notifications for ${eligibleUserIds.length} users`);
+      
+      const inAppNotifications = eligibleUserIds.map(userId => ({
+        user_id: userId,
+        type: notification_type,
+        title,
+        content: body,
+        action_url: route || null,
+        metadata: data || {},
+        is_read: false,
+      }));
+      
+      const { error: inAppError } = await supabase
+        .from('notifications')
+        .insert(inAppNotifications);
+      
+      if (inAppError) {
+        console.error('[send-push-notification] Failed to create in-app notifications:', inAppError);
+      } else {
+        console.log(`[send-push-notification] Created ${eligibleUserIds.length} in-app notifications`);
+      }
+    }
+
     if (!tokens || tokens.length === 0) {
       // Log the notification attempt even without tokens
       await logNotifications(supabase, eligibleUserIds, notification_type, title, body, data, 'no_tokens');
@@ -150,8 +176,9 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'No device tokens registered',
-          sent: 0 
+          message: 'No device tokens registered, in-app notifications created',
+          sent: 0,
+          in_app_created: create_in_app ? eligibleUserIds.length : 0,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -243,6 +270,9 @@ function getNotificationTypeField(type: string): string | null {
     'meeting_reminder': 'meeting_reminders',
     'job_match': 'job_matches',
     'system': 'system_announcements',
+    'booking_confirmation': 'booking_confirmations',
+    'booking_reminder': 'booking_reminders',
+    'booking_approval': 'booking_approvals',
   };
   return mapping[type] || null;
 }

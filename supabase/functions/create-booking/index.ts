@@ -458,6 +458,33 @@ serve(async (req) => {
         console.error("[Booking] Failed to create approval request:", approvalError);
       }
       
+      // Create in-app notification for host about pending approval
+      const { data: hostProfile } = await supabaseClient
+        .from('profiles')
+        .select('full_name')
+        .eq('id', bookingLink.user_id)
+        .single();
+      
+      await supabaseClient
+        .from('notifications')
+        .insert({
+          user_id: bookingLink.user_id,
+          type: 'booking_approval',
+          title: `New booking request from ${guestName}`,
+          content: `${guestName} has requested to book "${bookingLink.title}" and is waiting for your approval.`,
+          action_url: `/scheduling?tab=approvals&booking=${booking.id}`,
+          metadata: {
+            booking_id: booking.id,
+            guest_name: guestName,
+            guest_email: guestEmail,
+            scheduled_start: scheduledStart,
+            booking_link_title: bookingLink.title,
+          },
+          is_read: false,
+        });
+      
+      console.log("[Booking] Created in-app notification for host about pending approval");
+      
       // Send pending notification to guest (different from confirmation)
       try {
         await supabaseClient.functions.invoke("send-booking-pending-notification", {
@@ -470,7 +497,7 @@ serve(async (req) => {
         console.error("Error sending pending notification:", emailError);
       }
       
-      // Notify host about pending approval
+      // Notify host about pending approval via email
       try {
         await supabaseClient.functions.invoke("send-booking-approval-request", {
           body: {
@@ -497,6 +524,27 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    // Create in-app notification for host about confirmed booking
+    await supabaseClient
+      .from('notifications')
+      .insert({
+        user_id: bookingLink.user_id,
+        type: 'booking_confirmation',
+        title: `New booking confirmed: ${guestName}`,
+        content: `${guestName} has booked "${bookingLink.title}" for ${new Date(scheduledStart).toLocaleDateString()}.`,
+        action_url: `/scheduling?booking=${booking.id}`,
+        metadata: {
+          booking_id: booking.id,
+          guest_name: guestName,
+          guest_email: guestEmail,
+          scheduled_start: scheduledStart,
+          booking_link_title: bookingLink.title,
+        },
+        is_read: false,
+      });
+    
+    console.log("[Booking] Created in-app notification for host about confirmed booking");
 
     // Send confirmation email (only for confirmed bookings)
     try {
