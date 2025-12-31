@@ -910,7 +910,13 @@ verify_jwt = false
 verify_jwt = false
 
 # =============================================================================
-# ElevenLabs Streaming Transcription (JWT Required)
+# ElevenLabs Streaming Transcription (Public - Rate Limited)
 # =============================================================================
 [functions.elevenlabs-scribe-token]
+verify_jwt = false
+
+# =============================================================================
+# Meeting Transcript Compilation (JWT Required)
+# =============================================================================
+[functions.compile-meeting-transcript]
 verify_jwt = true

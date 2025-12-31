@@ -12,22 +12,32 @@ interface TranscriptionSegment {
 
 interface UseStreamingTranscriptionProps {
   meetingId: string;
+  participantId?: string;
   participantName: string;
   localStream: MediaStream | null;
   enabled: boolean;
 }
 
+const MAX_RECONNECT_ATTEMPTS = 3;
+const RECONNECT_DELAY_MS = 2000;
+const TOKEN_REFRESH_INTERVAL_MS = 12 * 60 * 1000; // 12 minutes (tokens last 15 min)
+
 export function useStreamingTranscription({
   meetingId,
+  participantId,
   participantName,
   localStream,
   enabled
 }: UseStreamingTranscriptionProps) {
   const [transcriptions, setTranscriptions] = useState<TranscriptionSegment[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const hasConnectedRef = useRef(false);
   const pendingTranscriptRef = useRef<string>('');
+  const reconnectAttemptsRef = useRef(0);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tokenRefreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const saveTranscriptToDb = useCallback(async (text: string, isFinal: boolean) => {
     if (!text.trim()) return;
@@ -88,28 +98,48 @@ export function useStreamingTranscription({
       // Save to database
       saveTranscriptToDb(data.text, true);
       pendingTranscriptRef.current = '';
+      
+      // Reset reconnect counter on successful transcript
+      reconnectAttemptsRef.current = 0;
     },
     onCommittedTranscriptWithTimestamps: (data) => {
       console.log('[StreamingTranscription] Committed with timestamps:', data.text, data.words);
     }
   });
 
-  const connect = useCallback(async () => {
-    if (!localStream || hasConnectedRef.current) return;
-
+  const fetchToken = useCallback(async (): Promise<string | null> => {
     try {
       console.log('[StreamingTranscription] Fetching scribe token...');
       
-      const { data, error: fnError } = await supabase.functions.invoke('elevenlabs-scribe-token');
+      const { data, error: fnError } = await supabase.functions.invoke('elevenlabs-scribe-token', {
+        body: { meeting_id: meetingId, participant_id: participantId }
+      });
       
       if (fnError || !data?.token) {
         throw new Error(fnError?.message || 'Failed to get scribe token');
       }
 
+      return data.token;
+    } catch (err) {
+      console.error('[StreamingTranscription] Token fetch failed:', err);
+      return null;
+    }
+  }, [meetingId, participantId]);
+
+  const connect = useCallback(async () => {
+    if (!localStream || hasConnectedRef.current) return;
+
+    try {
+      const token = await fetchToken();
+      
+      if (!token) {
+        throw new Error('Could not obtain transcription token');
+      }
+
       console.log('[StreamingTranscription] Connecting to ElevenLabs Scribe...');
       
       await scribe.connect({
-        token: data.token,
+        token,
         microphone: {
           echoCancellation: true,
           noiseSuppression: true,
@@ -119,14 +149,65 @@ export function useStreamingTranscription({
 
       hasConnectedRef.current = true;
       setIsConnected(true);
+      setIsReconnecting(false);
       setError(null);
+      reconnectAttemptsRef.current = 0;
       console.log('[StreamingTranscription] Connected successfully');
+
+      // Schedule token refresh before expiry
+      scheduleTokenRefresh();
     } catch (err) {
       console.error('[StreamingTranscription] Connection failed:', err);
       setError(err instanceof Error ? err.message : 'Connection failed');
       setIsConnected(false);
+      
+      // Attempt reconnection
+      attemptReconnect();
     }
-  }, [localStream, scribe, saveTranscriptToDb]);
+  }, [localStream, scribe, fetchToken]);
+
+  const scheduleTokenRefresh = useCallback(() => {
+    // Clear any existing refresh timer
+    if (tokenRefreshTimeoutRef.current) {
+      clearTimeout(tokenRefreshTimeoutRef.current);
+    }
+
+    // Schedule refresh 3 minutes before token expires (tokens last 15 min)
+    tokenRefreshTimeoutRef.current = setTimeout(async () => {
+      if (hasConnectedRef.current && scribe.isConnected) {
+        console.log('[StreamingTranscription] Refreshing token...');
+        
+        // Disconnect and reconnect with new token
+        scribe.disconnect();
+        hasConnectedRef.current = false;
+        
+        // Small delay before reconnecting
+        setTimeout(() => {
+          connect();
+        }, 500);
+      }
+    }, TOKEN_REFRESH_INTERVAL_MS);
+  }, [scribe, connect]);
+
+  const attemptReconnect = useCallback(() => {
+    if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+      console.error('[StreamingTranscription] Max reconnect attempts reached');
+      setError('Connection lost. Please refresh to try again.');
+      setIsReconnecting(false);
+      return;
+    }
+
+    reconnectAttemptsRef.current++;
+    setIsReconnecting(true);
+    
+    const delay = RECONNECT_DELAY_MS * Math.pow(2, reconnectAttemptsRef.current - 1);
+    console.log(`[StreamingTranscription] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
+
+    reconnectTimeoutRef.current = setTimeout(() => {
+      hasConnectedRef.current = false;
+      connect();
+    }, delay);
+  }, [connect]);
 
   const disconnect = useCallback(() => {
     if (scribe.isConnected) {
@@ -134,6 +215,16 @@ export function useStreamingTranscription({
     }
     hasConnectedRef.current = false;
     setIsConnected(false);
+    setIsReconnecting(false);
+    
+    // Clear timers
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
+    if (tokenRefreshTimeoutRef.current) {
+      clearTimeout(tokenRefreshTimeoutRef.current);
+    }
+    
     console.log('[StreamingTranscription] Disconnected');
   }, [scribe]);
 
@@ -162,10 +253,16 @@ export function useStreamingTranscription({
   return {
     transcriptions,
     isTranscribing: isConnected && scribe.isConnected,
+    isReconnecting,
     partialTranscript: scribe.partialTranscript,
     committedTranscripts: scribe.committedTranscripts,
     error,
     connect,
-    disconnect
+    disconnect,
+    reconnect: () => {
+      reconnectAttemptsRef.current = 0;
+      disconnect();
+      setTimeout(() => connect(), 500);
+    }
   };
 }
