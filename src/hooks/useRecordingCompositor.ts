@@ -47,8 +47,9 @@ const DEFAULT_CONFIG: CompositorConfig = {
   showSpeakingIndicator: true
 };
 
-export function useRecordingCompositor(config: Partial<CompositorConfig> = {}) {
-  const effectiveConfig = { ...DEFAULT_CONFIG, ...config };
+export function useRecordingCompositor(initialConfig: Partial<CompositorConfig> = {}) {
+  const [config, setConfig] = useState<CompositorConfig>({ ...DEFAULT_CONFIG, ...initialConfig });
+  const effectiveConfig = config;
   
   const [state, setState] = useState<RecordingState>({
     isRecording: false,
@@ -539,6 +540,13 @@ export function useRecordingCompositor(config: Partial<CompositorConfig> = {}) {
     return cleanup;
   }, [cleanup]);
 
+  /**
+   * Change the layout during recording
+   */
+  const setLayout = useCallback((layout: 'grid' | 'spotlight' | 'sidebar') => {
+    setConfig(prev => ({ ...prev, layout }));
+  }, []);
+
   return {
     state,
     initialize,
@@ -548,6 +556,7 @@ export function useRecordingCompositor(config: Partial<CompositorConfig> = {}) {
     startRecording,
     stopRecording,
     cleanup,
+    setLayout,
     canvas: canvasRef.current
   };
 }
