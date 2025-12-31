@@ -74,6 +74,7 @@ const Install = lazy(() => import("./pages/Install"));
 // Lazy load ALL other routes
 const SharedProfile = lazy(() => import("./pages/SharedProfile"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
+const GuestBookingPage = lazy(() => import("./pages/GuestBookingPage"));
 const PartnerFunnel = lazy(() => import("./pages/PartnerFunnel"));
 const PartnershipSubmitted = lazy(() => import("./pages/PartnershipSubmitted"));
 const CandidateOnboarding = lazy(() => import("./pages/CandidateOnboarding"));
@@ -174,6 +175,13 @@ const App = () => {
                   <PublicProviders>
                     <RouteErrorBoundary>
                       <Suspense fallback={<PageLoader />}><BookingPage /></Suspense>
+                    </RouteErrorBoundary>
+                  </PublicProviders>
+                } />
+                <Route path="/bookings/:bookingId" element={
+                  <PublicProviders>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><GuestBookingPage /></Suspense>
                     </RouteErrorBoundary>
                   </PublicProviders>
                 } />
