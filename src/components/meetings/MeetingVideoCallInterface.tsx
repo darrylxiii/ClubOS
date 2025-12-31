@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useMeetingWebRTC } from '@/hooks/useMeetingWebRTC';
 import { useMeetingConnectionQuality } from '@/hooks/useMeetingConnectionQuality';
-import { useMeetingAutoRecording } from '@/hooks/useMeetingAutoRecording';
+// Legacy useMeetingAutoRecording removed - using compositor recording exclusively
 import { ControlsPanel } from '@/components/video-call/ControlsPanel';
 import { VideoGrid } from '@/components/video-call/VideoGrid';
 import { PreCallDiagnostics } from '@/components/video-call/PreCallDiagnostics';
@@ -236,7 +236,7 @@ export function MeetingVideoCallInterface({
     }
   }, [suggestedAction, isVideoEnabled, toggleVideo]);
 
-  // Compositor-based recording with consent
+  // Compositor-based recording with consent (PRIMARY RECORDING SYSTEM)
   const {
     isRecording: isCompositorRecording,
     recordingStartTime,
@@ -255,19 +255,41 @@ export function MeetingVideoCallInterface({
     enabled: hasGivenConsent && !showDiagnostics
   });
 
-  // Legacy auto-recording (fallback)
-  const {
-    isRecording: isAutoRecording,
-    stopRecording: stopAutoRecording
-  } = useMeetingAutoRecording({
-    meetingId: meeting.id,
-    participantId,
-    participantName,
-    localStream,
-    remoteStreams,
-    meeting,
-    enabled: !showDiagnostics && !!localStream && !hasGivenConsent // Only if consent not given
-  });
+  // Wire remote streams to compositor when they join
+  // Track previous remote participants for detecting who left
+  const prevRemoteParticipantsRef = useRef<Set<string>>(new Set());
+  
+  // Wire remote streams to compositor when they join/leave
+  useEffect(() => {
+    if (!hasGivenConsent || !isCompositorRecording) return;
+    
+    const currentParticipantIds = new Set(remoteStreams.keys());
+    const prevParticipantIds = prevRemoteParticipantsRef.current;
+    
+    // Add new participants to compositor
+    remoteStreams.forEach(({ stream, name }, remoteParticipantId) => {
+      if (!prevParticipantIds.has(remoteParticipantId)) {
+        addRecordingParticipant({
+          id: remoteParticipantId,
+          name,
+          stream,
+          isSpeaking: false
+        });
+        console.log('[Meeting] 🎥 Added remote participant to compositor:', name);
+      }
+    });
+    
+    // Remove participants who left
+    prevParticipantIds.forEach(prevId => {
+      if (!currentParticipantIds.has(prevId)) {
+        removeRecordingParticipant(prevId);
+        console.log('[Meeting] 🎥 Removed participant from compositor:', prevId);
+      }
+    });
+    
+    // Update ref for next comparison
+    prevRemoteParticipantsRef.current = currentParticipantIds;
+  }, [remoteStreams, hasGivenConsent, isCompositorRecording, addRecordingParticipant, removeRecordingParticipant]);
 
   const handleDiagnosticsComplete = async () => {
     setShowDiagnostics(false);
@@ -343,10 +365,10 @@ export function MeetingVideoCallInterface({
   };
 
   const handleEndCall = async () => {
-    // Stop auto-recording and upload before leaving
-    if (isAutoRecording && stopAutoRecording) {
+    // Stop compositor recording and upload before leaving
+    if (isCompositorRecording && stopCompositorRecording) {
       try {
-        await stopAutoRecording();
+        await stopCompositorRecording();
         toast.success('Recording saved and analysis started');
       } catch (error) {
         console.error('[Meeting] Failed to save recording:', error);
@@ -1056,8 +1078,8 @@ export function MeetingVideoCallInterface({
         />
       )}
 
-      {/* Fallback Recording Banner - Shows when auto-recording is active */}
-      {isAutoRecording && !isCompositorRecording && !showDiagnostics && (
+      {/* Recording Banner - Shows when compositor recording is active */}
+      {isCompositorRecording && !showDiagnostics && (
         <RecordingConsentBanner meetingTitle={meeting.title} />
       )}
 
