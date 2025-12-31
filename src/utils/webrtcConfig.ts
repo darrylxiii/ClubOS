@@ -142,13 +142,40 @@ export const DEFAULT_RTC_CONFIG: RTCConfiguration = {
 };
 
 /**
+ * Check if browser supports Insertable Streams for E2E encryption
+ */
+export const supportsE2EEncryption = (): boolean => {
+  return typeof RTCRtpSender !== 'undefined' && 
+    'createEncodedStreams' in RTCRtpSender.prototype;
+};
+
+/**
+ * Get RTCConfiguration with E2E encryption support
+ * Requires encodedInsertableStreams for Insertable Streams API
+ */
+export const getE2EEConfig = (): RTCConfiguration => {
+  const config = { ...DEFAULT_RTC_CONFIG };
+  
+  // Enable encoded insertable streams for E2EE
+  // This is required for the Insertable Streams API
+  // @ts-ignore - encodedInsertableStreams is not in TypeScript types yet
+  config.encodedInsertableStreams = true;
+  
+  logger.info('[WebRTC Config] 🔒 E2EE configuration enabled with Insertable Streams');
+  
+  return config;
+};
+
+/**
  * Get RTCConfiguration with connection-specific optimizations
  */
 export const getRTCConfigForConnection = (options?: {
   forceRelay?: boolean;
   lowBandwidth?: boolean;
+  enableE2EE?: boolean;
 }): RTCConfiguration => {
-  const config = { ...DEFAULT_RTC_CONFIG };
+  // Start with E2EE config if requested, otherwise default
+  const config = options?.enableE2EE ? getE2EEConfig() : { ...DEFAULT_RTC_CONFIG };
   
   if (options?.forceRelay) {
     // Force TURN relay for users behind restrictive firewalls
