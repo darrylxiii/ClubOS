@@ -3941,11 +3941,14 @@ export type Database = {
           access_token: string
           created_at: string | null
           email: string
+          error_count: number | null
           id: string
           is_active: boolean | null
           label: string
+          last_error: string | null
           provider: string
           refresh_token: string | null
+          token_expired_at: string | null
           token_expires_at: string | null
           updated_at: string | null
           user_id: string
@@ -3954,11 +3957,14 @@ export type Database = {
           access_token: string
           created_at?: string | null
           email: string
+          error_count?: number | null
           id?: string
           is_active?: boolean | null
           label: string
+          last_error?: string | null
           provider: string
           refresh_token?: string | null
+          token_expired_at?: string | null
           token_expires_at?: string | null
           updated_at?: string | null
           user_id: string
@@ -3967,11 +3973,14 @@ export type Database = {
           access_token?: string
           created_at?: string | null
           email?: string
+          error_count?: number | null
           id?: string
           is_active?: boolean | null
           label?: string
+          last_error?: string | null
           provider?: string
           refresh_token?: string | null
+          token_expired_at?: string | null
           token_expires_at?: string | null
           updated_at?: string | null
           user_id?: string
@@ -27816,6 +27825,7 @@ export type Database = {
           apple_music_playlists: Json | null
           apple_music_user_id: string | null
           assigned_strategist_id: string | null
+          availability_onboarding_completed: boolean | null
           available_hours_per_week: number | null
           avatar_url: string | null
           ban_reason: string | null
@@ -27930,6 +27940,7 @@ export type Database = {
           apple_music_playlists?: Json | null
           apple_music_user_id?: string | null
           assigned_strategist_id?: string | null
+          availability_onboarding_completed?: boolean | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
           ban_reason?: string | null
@@ -28044,6 +28055,7 @@ export type Database = {
           apple_music_playlists?: Json | null
           apple_music_user_id?: string | null
           assigned_strategist_id?: string | null
+          availability_onboarding_completed?: boolean | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
           ban_reason?: string | null

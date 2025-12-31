@@ -125,9 +125,54 @@ serve(async (req) => {
                 console.log(`[Slots] Token refreshed successfully for ${calendar.provider}`);
               } else {
                 console.warn(`[Slots] Token refresh failed, using existing token:`, refreshError);
+                
+                // PHASE 4: Track permanent token expiration
+                if (refreshError?.message?.includes('invalid_grant') || 
+                    refreshError?.message?.includes('Token has been expired or revoked') ||
+                    refreshError?.message?.includes('refresh_token is invalid')) {
+                  console.error(`[Slots] Token permanently expired for ${calendar.provider}, marking inactive`);
+                  
+                  // Mark calendar as inactive with error details
+                  await supabaseClient
+                    .from('calendar_connections')
+                    .update({ 
+                      is_active: false,
+                      token_expired_at: new Date().toISOString(),
+                      last_error: refreshError?.message || 'Token permanently expired',
+                      error_count: (calendar.error_count || 0) + 1
+                    })
+                    .eq('id', calendar.id);
+                  
+                  // Skip this calendar
+                  continue;
+                }
               }
-            } catch (refreshError) {
+            } catch (refreshError: any) {
               console.warn(`[Slots] Token refresh error, using existing token:`, refreshError);
+              
+              // PHASE 4: Track refresh errors with circuit breaker
+              const newErrorCount = (calendar.error_count || 0) + 1;
+              await supabaseClient
+                .from('calendar_connections')
+                .update({ 
+                  last_error: refreshError?.message || 'Token refresh failed',
+                  error_count: newErrorCount
+                })
+                .eq('id', calendar.id);
+              
+              // Circuit breaker: disable after 5 consecutive errors
+              if (newErrorCount >= 5) {
+                console.error(`[Slots] Calendar ${calendar.provider} hit error threshold, marking inactive`);
+                await supabaseClient
+                  .from('calendar_connections')
+                  .update({ 
+                    is_active: false,
+                    token_expired_at: new Date().toISOString(),
+                    last_error: 'Disabled after 5 consecutive errors'
+                  })
+                  .eq('id', calendar.id);
+                continue;
+              }
             }
           }
           
@@ -171,11 +216,41 @@ serve(async (req) => {
           } else if (busyError) {
             console.error(`[Slots] Calendar API error for ${calendar.provider}:`, busyError);
             console.error(`[Slots] Calendar API call failed - connectionId: ${calendar.id}, timeMin: ${dateRange.start}, timeMax: ${dateRange.end}`);
+            
+            // PHASE 4: Check for permanent auth errors
+            const errorMessage = busyError?.message || String(busyError);
+            if (errorMessage.includes('401') || 
+                errorMessage.includes('403') || 
+                errorMessage.includes('invalid_grant') ||
+                errorMessage.includes('UNAUTHENTICATED')) {
+              console.error(`[Slots] Auth error detected for ${calendar.provider}, incrementing error count`);
+              
+              const newErrorCount = (calendar.error_count || 0) + 1;
+              await supabaseClient
+                .from('calendar_connections')
+                .update({ 
+                  last_error: errorMessage,
+                  error_count: newErrorCount,
+                  ...(newErrorCount >= 3 ? { 
+                    is_active: false, 
+                    token_expired_at: new Date().toISOString() 
+                  } : {})
+                })
+                .eq('id', calendar.id);
+            }
             // Don't fail the entire request, continue with other calendars
           } else {
             console.log(`[Slots] ${calendar.provider} returned no busy slots or unexpected format:`, JSON.stringify(busyData));
+            
+            // PHASE 4: Reset error count on successful response
+            if (calendar.error_count > 0) {
+              await supabaseClient
+                .from('calendar_connections')
+                .update({ error_count: 0, last_error: null })
+                .eq('id', calendar.id);
+            }
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error(`[Slots] Error fetching calendar busy times from ${calendar.provider}:`, error);
           // Continue with other calendars even if one fails
         }
