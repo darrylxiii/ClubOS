@@ -117,11 +117,37 @@ serve(async (req) => {
         status: 'accepted',
       });
 
-    // Update booking with meeting ID
+    // Add guest as participant (with email for join verification)
+    const { error: guestParticipantError } = await supabaseClient
+      .from("meeting_participants")
+      .insert({
+        meeting_id: meeting.id,
+        user_id: null, // Guest doesn't have a user account
+        email: booking.guest_email,
+        display_name: booking.guest_name,
+        role: 'guest',
+        status: 'accepted',
+      });
+
+    if (guestParticipantError) {
+      console.warn("[Meeting] Could not add guest as participant:", guestParticipantError.message);
+    } else {
+      console.log(`[Meeting] Added guest ${booking.guest_email} as meeting participant`);
+    }
+
+    // Generate quantum meeting link for the booking
+    const quantumMeetingLink = `${Deno.env.get("APP_URL") || 'https://app.thequantumclub.com'}/meeting/${meeting.meeting_code}`;
+
+    // Update booking with meeting link as well
     await supabaseClient
       .from("bookings")
-      .update({ meeting_id: meeting.id })
+      .update({ 
+        meeting_id: meeting.id,
+        quantum_meeting_link: quantumMeetingLink,
+        video_meeting_link: quantumMeetingLink, // Also set as primary video link
+      })
       .eq("id", bookingId);
+
 
     return new Response(
       JSON.stringify({ 

@@ -64,6 +64,23 @@ serve(async (req) => {
 
     if (updateError) throw updateError;
 
+    // Cancel linked Quantum Club meeting if exists
+    if (booking.meeting_id) {
+      const { error: meetingCancelError } = await supabaseClient
+        .from("meetings")
+        .update({
+          status: 'cancelled',
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", booking.meeting_id);
+
+      if (meetingCancelError) {
+        console.error("[Cancel] Failed to cancel linked meeting:", meetingCancelError);
+      } else {
+        console.log(`[Cancel] Cancelled linked meeting ${booking.meeting_id}`);
+      }
+    }
+
     // Delete calendar event if synced
     if (booking.synced_to_calendar && booking.calendar_event_id) {
       try {
