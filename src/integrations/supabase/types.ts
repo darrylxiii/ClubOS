@@ -3294,6 +3294,47 @@ export type Database = {
           },
         ]
       }
+      booking_reminder_logs: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          reminder_type: string
+          sent_at: string
+          status: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          reminder_type: string
+          sent_at?: string
+          status: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          reminder_type?: string
+          sent_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_reminder_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_reminders: {
         Row: {
           booking_id: string
@@ -3533,6 +3574,7 @@ export type Database = {
           reminder_sent: boolean | null
           scheduled_end: string
           scheduled_start: string
+          sms_reminders: boolean | null
           status: string
           sync_error_message: string | null
           synced_to_calendar: boolean | null
@@ -3587,6 +3629,7 @@ export type Database = {
           reminder_sent?: boolean | null
           scheduled_end: string
           scheduled_start: string
+          sms_reminders?: boolean | null
           status?: string
           sync_error_message?: string | null
           synced_to_calendar?: boolean | null
@@ -3641,6 +3684,7 @@ export type Database = {
           reminder_sent?: boolean | null
           scheduled_end?: string
           scheduled_start?: string
+          sms_reminders?: boolean | null
           status?: string
           sync_error_message?: string | null
           synced_to_calendar?: boolean | null

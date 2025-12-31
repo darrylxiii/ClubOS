@@ -17,6 +17,7 @@ import { z } from "zod";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import { GuestEmailInput } from "./GuestEmailInput";
 import { GuestPlatformSelector } from "./GuestPlatformSelector";
+import { TimezoneWarning } from "./TimezoneWarning";
 import { logger } from "@/lib/logger";
 
 interface BookingFormProps {
@@ -29,6 +30,7 @@ interface BookingFormProps {
     allow_guest_platform_choice?: boolean;
     available_platforms?: string[];
     video_platform?: string;
+    host_timezone?: string;
   };
   selectedDate: Date;
   selectedTime: string;
@@ -227,9 +229,7 @@ export function BookingForm({
           notes: formData.notes || null,
           guests: guests.length > 0 ? guests : undefined,
           guestSelectedPlatform: bookingLink.allow_guest_platform_choice ? selectedVideoPlatform : undefined,
-          metadata: {
-            sms_reminders: formData.smsReminders
-          }
+          smsReminders: formData.smsReminders || false,
         },
       });
 
@@ -284,8 +284,18 @@ export function BookingForm({
     }
   };
 
+  const guestTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const hostTimezone = bookingLink.host_timezone || guestTimezone;
+
   return (
     <div className="space-y-6">
+      {/* Timezone Warning at top */}
+      <TimezoneWarning 
+        guestTimezone={guestTimezone}
+        hostTimezone={hostTimezone}
+        showToggle={false}
+      />
+
       <div className="text-center pb-4 border-b">
         <h3 className="text-lg font-semibold mb-3">Enter Your Details</h3>
         <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
@@ -352,38 +362,49 @@ export function BookingForm({
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone (optional)</Label>
-          <Input
-            id="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => {
-              setFormData({ ...formData, phone: e.target.value });
-              setErrors({ ...errors, phone: undefined });
-            }}
-            placeholder="+1 (555) 000-0000"
-            className={errors.phone ? "border-destructive" : ""}
-          />
-          {formData.phone && (
-            <div className="flex items-center space-x-2 pt-1">
-              <Checkbox
-                id="smsReminders"
-                checked={formData.smsReminders}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, smsReminders: checked as boolean })
-                }
+        {/* SMS Opt-in with improved UX */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="smsReminders"
+              checked={formData.smsReminders}
+              onCheckedChange={(checked) =>
+                setFormData({ ...formData, smsReminders: checked as boolean })
+              }
+            />
+            <label
+              htmlFor="smsReminders"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Send me text message reminders
+            </label>
+          </div>
+
+          {/* Phone field - shown when SMS checkbox is checked or phone has value */}
+          {(formData.smsReminders || formData.phone) && (
+            <div className="space-y-2 pl-6">
+              <Label htmlFor="phone">
+                Phone Number {formData.smsReminders && <span className="text-destructive">*</span>}
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => {
+                  setFormData({ ...formData, phone: e.target.value });
+                  setErrors({ ...errors, phone: undefined });
+                }}
+                placeholder="+1 (555) 000-0000"
+                className={errors.phone ? "border-destructive" : ""}
+                required={formData.smsReminders}
               />
-              <label
-                htmlFor="smsReminders"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground"
-              >
-                Send me text message reminders
-              </label>
+              {errors.phone && (
+                <p className="text-sm text-destructive">{errors.phone}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                We'll send you a reminder 1 hour before your meeting.
+              </p>
             </div>
-          )}
-          {errors.phone && (
-            <p className="text-sm text-destructive">{errors.phone}</p>
           )}
         </div>
 

@@ -43,6 +43,8 @@ serve(async (req) => {
         email: z.string().email(),
       })).max(10).optional(),
       guestSelectedPlatform: z.string().optional(),
+      smsReminders: z.boolean().optional(),
+      metadata: z.record(z.any()).optional(),
     });
 
     const {
@@ -57,6 +59,8 @@ serve(async (req) => {
       notes,
       guests,
       guestSelectedPlatform,
+      smsReminders,
+      metadata,
     } = bookingSchema.parse(await req.json());
     
     console.log(`[Booking] Request received: slug=${bookingLinkSlug}, guest=${guestName}, time=${scheduledStart}, timezone=${timezone}`);
@@ -363,7 +367,7 @@ serve(async (req) => {
     }
 
     // Create booking with metadata about calendar check status
-    const bookingMetadata: any = {};
+    const bookingMetadata: any = { ...(metadata || {}) };
     if (calendarCheckTimeout || calendarCheckFailed) {
       bookingMetadata.calendar_check_bypassed = true;
       bookingMetadata.calendar_check_status = calendarCheckTimeout ? 'timeout' : 'failed';
@@ -387,6 +391,7 @@ serve(async (req) => {
         metadata: bookingMetadata,
         guests: guests || [],
         guest_selected_platform: guestSelectedPlatform,
+        sms_reminders: smsReminders || false,
       })
       .select()
       .single();

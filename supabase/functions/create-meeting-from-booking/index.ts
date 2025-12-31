@@ -148,6 +148,26 @@ serve(async (req) => {
       })
       .eq("id", bookingId);
 
+    // Send guest notification email with meeting details
+    try {
+      await supabaseClient.functions.invoke("send-meeting-invite", {
+        body: {
+          meetingId: meeting.id,
+          recipientEmail: booking.guest_email,
+          recipientName: booking.guest_name,
+          meetingLink: quantumMeetingLink,
+          meetingTitle: `${booking.booking_links?.title || 'Meeting'} - ${booking.guest_name}`,
+          scheduledStart: booking.scheduled_start,
+          scheduledEnd: booking.scheduled_end,
+          timezone: booking.timezone,
+          isE2EEncrypted: meeting.is_e2e_encrypted || false,
+        },
+      });
+      console.log(`[Meeting] Guest notification email sent to ${booking.guest_email}`);
+    } catch (emailError) {
+      console.warn("[Meeting] Failed to send guest notification email:", emailError);
+    }
+
 
     return new Response(
       JSON.stringify({ 
