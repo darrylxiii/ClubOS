@@ -40,6 +40,7 @@ interface BookingLink {
 interface Profile {
   full_name: string | null;
   avatar_url: string | null;
+  work_timezone: string | null;
 }
 
 type BookingStep = "datetime" | "details" | "confirmation";
@@ -61,6 +62,7 @@ export default function BookingPage() {
   );
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [hasGoogleCalendar, setHasGoogleCalendar] = useState(false);
+  const [hostTimezone, setHostTimezone] = useState<string | null>(null);
 
   // Phase 7: Analytics tracking
   const analytics = useBookingAnalytics(bookingLink?.id || "");
@@ -88,15 +90,16 @@ export default function BookingPage() {
 
       setBookingLink(linkData);
 
-      // Load profile
+      // Load profile with timezone
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url")
+        .select("full_name, avatar_url, work_timezone")
         .eq("id", linkData.user_id)
         .single();
 
       if (!profileError && profileData) {
         setProfile(profileData);
+        setHostTimezone(profileData.work_timezone);
       }
 
       // Check if host has Google Calendar connected
@@ -250,6 +253,7 @@ export default function BookingPage() {
                       <UnifiedDateTimeSelector
                         bookingLink={bookingLink}
                         onDateTimeSelected={handleDateTimeSelect}
+                        hostTimezone={hostTimezone || undefined}
                       />
                     )}
                   </motion.div>
@@ -264,7 +268,10 @@ export default function BookingPage() {
                     transition={{ duration: 0.3 }}
                   >
                     <BookingForm
-                      bookingLink={bookingLink}
+                      bookingLink={{
+                        ...bookingLink,
+                        host_timezone: hostTimezone || undefined,
+                      }}
                       selectedDate={selectedDate}
                       selectedTime={selectedTime}
                       onComplete={handleBookingComplete}

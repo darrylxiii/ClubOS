@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, Trash2, Video, Users, Shield, Repeat } from "lucide-react";
+import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, Trash2, Video, Users, Shield, Repeat, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { BookingAvailabilitySettings } from "@/components/scheduling/BookingAvailabilitySettings";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,7 +20,9 @@ import { CalendarConnectionStatus } from "@/components/scheduling/CalendarConnec
 import { VideoPlatformSelector } from "@/components/booking/VideoPlatformSelector";
 import { BarChart3 } from "lucide-react";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
-
+import { BookingApprovalList } from "@/components/booking/BookingApprovalList";
+import { AvailabilityOnboardingWizard } from "@/components/scheduling/AvailabilityOnboardingWizard";
+import { useAvailabilityOnboarding } from "@/hooks/useAvailabilityOnboarding";
 interface BookingLink {
   id: string;
   slug: string;
@@ -62,6 +64,8 @@ export default function Scheduling() {
   const [loading, setLoading] = useState(true);
   const [isCreatingLink, setIsCreatingLink] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+  const { needsOnboarding, loading: onboardingLoading, markComplete } = useAvailabilityOnboarding();
   
   const [newLink, setNewLink] = useState({
     title: "",
@@ -94,8 +98,25 @@ export default function Scheduling() {
       loadBookingLinks();
       loadUpcomingBookings();
       loadConnectedCalendars();
+      loadPendingCount();
     }
   }, [user]);
+
+  const loadPendingCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from("bookings")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user?.id)
+        .eq("status", "pending_approval");
+
+      if (!error) {
+        setPendingCount(count || 0);
+      }
+    } catch (error) {
+      console.error("[Scheduling] Error loading pending count:", error);
+    }
+  };
 
   const loadConnectedCalendars = async () => {
     try {
@@ -595,11 +616,28 @@ export default function Scheduling() {
         {/* Calendar Connection Status */}
         <CalendarConnectionStatus />
 
+        {/* Availability Onboarding Wizard */}
+        {!onboardingLoading && needsOnboarding && (
+          <AvailabilityOnboardingWizard 
+            onComplete={markComplete}
+            onSkip={markComplete}
+          />
+        )}
+
         <Tabs defaultValue="links" className="w-full">
           <TabsList>
             <TabsTrigger value="links">
               <LinkIcon className="h-4 w-4 mr-2" />
               Booking Links
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="relative">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Pending Approvals
+              {pendingCount > 0 && (
+                <Badge variant="destructive" className="ml-2 h-5 min-w-5 text-xs">
+                  {pendingCount}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="bookings">
               <Calendar className="h-4 w-4 mr-2" />
@@ -779,6 +817,10 @@ export default function Scheduling() {
                 })}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="pending" className="mt-6">
+            <BookingApprovalList onApprovalChange={loadPendingCount} />
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">
