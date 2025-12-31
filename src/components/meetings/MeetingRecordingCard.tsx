@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,24 +14,47 @@ import {
   Download,
   Loader2,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  RefreshCw
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { MeetingRecordingExtended } from '@/hooks/useMeetingRecordings';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface MeetingRecordingCardProps {
   recording: MeetingRecordingExtended;
   onDelete?: (id: string) => void;
   onDownload?: (recording: MeetingRecordingExtended) => void;
+  onRefresh?: () => void;
 }
 
 export function MeetingRecordingCard({ 
   recording, 
   onDelete, 
-  onDownload 
+  onDownload,
+  onRefresh
 }: MeetingRecordingCardProps) {
   const navigate = useNavigate();
+  const [isReanalyzing, setIsReanalyzing] = useState(false);
+
+  const handleReanalyze = async () => {
+    setIsReanalyzing(true);
+    try {
+      const { error } = await supabase.functions.invoke('analyze-meeting-recording-advanced', {
+        body: { recordingId: recording.id, reanalyze: true }
+      });
+      if (error) throw error;
+      toast.success('Re-analysis started');
+      onRefresh?.();
+    } catch (err) {
+      toast.error('Failed to start re-analysis');
+      console.error(err);
+    } finally {
+      setIsReanalyzing(false);
+    }
+  };
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return 'N/A';
@@ -205,6 +229,17 @@ export function MeetingRecordingCard({
                   onClick={() => onDownload(recording)}
                 >
                   <Download className="h-4 w-4" />
+                </Button>
+              )}
+              
+              {(recording.processing_status === 'failed' || recording.processing_status === 'completed') && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={handleReanalyze}
+                  disabled={isReanalyzing}
+                >
+                  {isReanalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 </Button>
               )}
               
