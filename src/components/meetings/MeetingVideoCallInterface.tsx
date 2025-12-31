@@ -31,7 +31,10 @@ import { InterviewerBackchannel } from '@/components/meetings/InterviewerBackcha
 import { InterviewerVotingPanel } from '@/components/meetings/InterviewerVotingPanel';
 import { RecordingIndicator } from '@/components/meetings/RecordingIndicator';
 import { RecordingConsentBanner } from '@/components/meetings/RecordingConsentBanner';
+import { RecordingConsentModal, ConsentOptions } from '@/components/meetings/RecordingConsentModal';
+import { EnhancedRecordingIndicator } from '@/components/meetings/EnhancedRecordingIndicator';
 import { MeetingConnectionIndicator } from '@/components/meetings/MeetingConnectionIndicator';
+import { useCompositorRecording } from '@/hooks/useCompositorRecording';
 import { PresenterHUD } from '@/components/video-call/PresenterHUD';
 import { useMeetingTranscription } from '@/hooks/useMeetingTranscription';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -82,6 +85,8 @@ export function MeetingVideoCallInterface({
   const [userRole, setUserRole] = useState<string>('participant');
   const [isRecording, setIsRecording] = useState(false);
   const [transcriptionEnabled, setTranscriptionEnabled] = useState(true);
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [hasGivenConsent, setHasGivenConsent] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
@@ -223,7 +228,26 @@ export function MeetingVideoCallInterface({
     }
   }, [suggestedAction, isVideoEnabled, toggleVideo]);
 
-  // Auto-recording - records all meetings automatically
+  // Compositor-based recording with consent
+  const {
+    isRecording: isCompositorRecording,
+    recordingStartTime,
+    participantConsents,
+    layout: recordingLayout,
+    registerConsent,
+    addRecordingParticipant,
+    removeRecordingParticipant,
+    startRecording: startCompositorRecording,
+    stopRecording: stopCompositorRecording,
+    changeLayout: changeRecordingLayout
+  } = useCompositorRecording({
+    meetingId: meeting.id,
+    hostId: participantId,
+    meeting,
+    enabled: hasGivenConsent && !showDiagnostics
+  });
+
+  // Legacy auto-recording (fallback)
   const {
     isRecording: isAutoRecording,
     stopRecording: stopAutoRecording
@@ -234,7 +258,7 @@ export function MeetingVideoCallInterface({
     localStream,
     remoteStreams,
     meeting,
-    enabled: !showDiagnostics && !!localStream
+    enabled: !showDiagnostics && !!localStream && !hasGivenConsent // Only if consent not given
   });
 
   const handleDiagnosticsComplete = async () => {
@@ -244,6 +268,9 @@ export function MeetingVideoCallInterface({
       console.log('[Meeting] 🎬 Initializing media for meeting:', meeting.title, '| Participant ID:', participantId, '| Is Guest:', isGuest);
       await initializeMedia();
       toast.success('Joined meeting room');
+      
+      // Show consent modal after joining
+      setShowConsentModal(true);
     } catch (error: any) {
       console.error('[Meeting] ❌ Failed to initialize media:', error);
 
@@ -252,8 +279,43 @@ export function MeetingVideoCallInterface({
         toast.error('Camera/microphone access denied');
       } else {
         toast.warning('Joined without camera/microphone');
+        // Still show consent modal
+        setShowConsentModal(true);
       }
     }
+  };
+
+  // Handle consent modal response
+  const handleConsentGiven = async (options: ConsentOptions) => {
+    setShowConsentModal(false);
+    setHasGivenConsent(true);
+    
+    // Register this participant's consent
+    registerConsent(participantId, participantName, options);
+    
+    // Add local stream to compositor
+    if (localStream && options.allowVideoRecording) {
+      addRecordingParticipant({
+        id: participantId,
+        name: participantName,
+        stream: localStream,
+        isSpeaking: false
+      });
+    }
+    
+    // Start compositor recording
+    if (options.allowVideoRecording || options.allowAudioRecording) {
+      await startCompositorRecording();
+    }
+    
+    toast.success('Recording preferences saved');
+  };
+
+  const handleConsentDeclined = () => {
+    setShowConsentModal(false);
+    // Leave meeting if they decline completely
+    toast.info('You chose to leave the meeting');
+    onEnd();
   };
 
   const handleRetry = () => {
@@ -966,8 +1028,28 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
-      {/* Recording Consent Banner - Shows when auto-recording is active */}
-      {isAutoRecording && !showDiagnostics && (
+      {/* Recording Consent Modal */}
+      <RecordingConsentModal
+        open={showConsentModal}
+        onConsent={handleConsentGiven}
+        onDecline={handleConsentDeclined}
+        meetingTitle={meeting.title}
+        isHost={!isGuest}
+      />
+
+      {/* Enhanced Recording Indicator - Shows when compositor recording is active */}
+      {isCompositorRecording && !showDiagnostics && (
+        <EnhancedRecordingIndicator
+          isRecording={isCompositorRecording}
+          startTime={recordingStartTime}
+          participantCount={participantConsents.length}
+          layout={recordingLayout}
+          onLayoutChange={changeRecordingLayout}
+        />
+      )}
+
+      {/* Fallback Recording Banner - Shows when auto-recording is active */}
+      {isAutoRecording && !isCompositorRecording && !showDiagnostics && (
         <RecordingConsentBanner meetingTitle={meeting.title} />
       )}
 
@@ -981,7 +1063,7 @@ export function MeetingVideoCallInterface({
 
       {/* Participant Count & Video Quality */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
-        {isRecording && <RecordingIndicator />}
+        {isRecording && !isCompositorRecording && <RecordingIndicator />}
         {/* Video Quality Indicator */}
         {videoStats && videoStats.qualityLimitationReason !== 'none' && (
           <div className="backdrop-blur-2xl bg-yellow-500/20 border border-yellow-500/30 px-3 py-2 rounded-full text-xs text-yellow-300 shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center gap-2">
