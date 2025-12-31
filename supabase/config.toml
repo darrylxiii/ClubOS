@@ -439,6 +439,9 @@ verify_jwt = false
 [functions.handle-booking-reschedule]
 verify_jwt = false
 
+[functions.send-booking-sms-reminder]
+verify_jwt = false
+
 # =============================================================================
 # Email Sync & Processing (JWT Required)
 # =============================================================================
