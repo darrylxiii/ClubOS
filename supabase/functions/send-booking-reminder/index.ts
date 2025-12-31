@@ -29,7 +29,7 @@ serve(async (req) => {
     const dayAfterTomorrow = new Date(tomorrow);
     dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
 
-    // FIX: Query bookings with booking_links separately, then fetch profile
+    // Query bookings with booking_links and fetch meeting info
     const { data: bookings, error: fetchError } = await supabaseClient
       .from("bookings")
       .select(`
@@ -37,7 +37,12 @@ serve(async (req) => {
         booking_links!inner(
           title,
           duration_minutes,
-          user_id
+          user_id,
+          create_quantum_meeting
+        ),
+        meetings:meeting_id(
+          id,
+          meeting_code
         )
       `)
       .eq("status", "confirmed")
@@ -85,6 +90,24 @@ serve(async (req) => {
 
         const hostName = profile?.full_name || "The Quantum Club";
 
+        // Determine the best video meeting link (priority: quantum > hangout > generic)
+        let meetingLink = null;
+        let meetingLinkLabel = "Join Video Meeting";
+        
+        // Check for Quantum Club meeting first
+        if (booking.meetings?.meeting_code) {
+          meetingLink = `${APP_URL}/meeting/${booking.meetings.meeting_code}`;
+          meetingLinkLabel = "Join Quantum Club Meeting";
+        } else if (booking.quantum_meeting_link) {
+          meetingLink = booking.quantum_meeting_link;
+          meetingLinkLabel = "Join Quantum Club Meeting";
+        } else if (booking.google_meet_hangout_link) {
+          meetingLink = booking.google_meet_hangout_link;
+          meetingLinkLabel = "Join Google Meet";
+        } else if (booking.video_meeting_link) {
+          meetingLink = booking.video_meeting_link;
+        }
+
         const content = `
           <div style="text-align: center; margin-bottom: 32px;">
             <div style="display: inline-block; padding: 8px 16px; background-color: #FEF3C7; color: #92400E; border-radius: 8px; font-weight: 600; font-size: 14px; margin-bottom: 24px;">
@@ -122,10 +145,10 @@ serve(async (req) => {
             </table>
           </div>
 
-          ${booking.video_meeting_link ? `
+          ${meetingLink ? `
           <div style="text-align: center; margin: 32px 0;">
-            <a href="${booking.video_meeting_link}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #C9A24E 0%, #F5F4EF 100%); color: #0E0E10; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
-              Join Video Meeting
+            <a href="${meetingLink}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #C9A24E 0%, #F5F4EF 100%); color: #0E0E10; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+              ${meetingLinkLabel}
             </a>
           </div>
           ` : ''}

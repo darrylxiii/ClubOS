@@ -111,15 +111,22 @@ serve(async (req) => {
       }
     }
 
-    // Update meeting if exists
+    // Update linked Quantum Club meeting if exists
     if (booking.meeting_id) {
-      await supabaseClient
+      const { error: meetingUpdateError } = await supabaseClient
         .from("meetings")
         .update({
-          start_time: newStart,
-          end_time: newEnd,
+          scheduled_start: newStart,
+          scheduled_end: newEnd,
+          updated_at: new Date().toISOString(),
         })
         .eq("id", booking.meeting_id);
+
+      if (meetingUpdateError) {
+        console.error('[Reschedule] Failed to update meeting:', meetingUpdateError);
+      } else {
+        console.log(`[Reschedule] Updated meeting ${booking.meeting_id} to new time`);
+      }
     }
 
     // Send notification emails
