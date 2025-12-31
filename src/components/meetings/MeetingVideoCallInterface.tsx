@@ -37,6 +37,7 @@ import { EnhancedRecordingIndicator } from '@/components/meetings/EnhancedRecord
 import { MeetingConnectionIndicator } from '@/components/meetings/MeetingConnectionIndicator';
 import { MobileMeetingControls } from '@/components/meetings/MobileMeetingControls';
 import { MeetingStatsBar } from '@/components/meetings/MeetingStatsBar';
+import { E2EEncryptionToggle } from '@/components/meetings/E2EEncryptionToggle';
 import { AudioLevelIndicator } from '@/components/shared/AudioLevelIndicator';
 import { useCompositorRecording } from '@/hooks/useCompositorRecording';
 import { PresenterHUD } from '@/components/video-call/PresenterHUD';
@@ -128,6 +129,8 @@ export function MeetingVideoCallInterface({
     error,
     channelStatus,
     peerConnections,
+    e2eeState,
+    toggleE2EE,
     initializeMedia,
     toggleVideo,
     toggleAudio,
@@ -140,6 +143,7 @@ export function MeetingVideoCallInterface({
     meetingId: meeting.id,
     participantId,
     participantName,
+    enableE2EE: false,
     onRemoteStream: async (remoteParticipantId, stream) => {
       console.log('[Meeting] 📹 Remote stream received from:', remoteParticipantId);
       console.log('[Meeting] 📹 Stream details:', {
@@ -1000,9 +1004,21 @@ export function MeetingVideoCallInterface({
         </div>
       </div>
 
-      {/* Participant Count & Video Quality */}
+      {/* Participant Count, Video Quality & E2EE Status */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+        {/* E2E Encryption Toggle */}
+        <E2EEncryptionToggle
+          isEnabled={e2eeState?.enabled || false}
+          isSupported={e2eeState?.isSupported || false}
+          keyVersion={e2eeState?.keyVersion || 0}
+          peersEncrypted={e2eeState?.peersEncrypted || 0}
+          totalPeers={remoteStreams.size}
+          error={e2eeState?.error}
+          onToggle={toggleE2EE}
+        />
+
         {isRecording && !isCompositorRecording && <RecordingIndicator />}
+        
         {/* Video Quality Indicator */}
         {videoStats && videoStats.qualityLimitationReason !== 'none' && (
           <div className="backdrop-blur-2xl bg-yellow-500/20 border border-yellow-500/30 px-3 py-2 rounded-full text-xs text-yellow-300 shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center gap-2">

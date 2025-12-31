@@ -4,10 +4,11 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { useBandwidthMonitor } from './useBandwidthMonitor';
 import { useSimulcast } from './useSimulcast';
 import { useMobileOptimizations } from './useMobileOptimizations';
+import { useE2EEncryption } from './useE2EEncryption';
 import { toast } from 'sonner';
 import { optimizeSessionDescription } from '@/utils/sdpMunger';
 
-import { DEFAULT_RTC_CONFIG } from '@/utils/webrtcConfig';
+import { DEFAULT_RTC_CONFIG, getE2EEConfig, supportsE2EEncryption } from '@/utils/webrtcConfig';
 
 interface MeetingWebRTCConfig {
   meetingId: string;
@@ -15,16 +16,16 @@ interface MeetingWebRTCConfig {
   participantName: string;
   onRemoteStream: (participantId: string, stream: MediaStream) => void;
   onParticipantLeft: (participantId: string) => void;
+  enableE2EE?: boolean; // Enable end-to-end encryption
 }
-
-const RTC_CONFIG = DEFAULT_RTC_CONFIG;
 
 export function useMeetingWebRTC({
   meetingId,
   participantId,
   participantName,
   onRemoteStream,
-  onParticipantLeft
+  onParticipantLeft,
+  enableE2EE = false
 }: MeetingWebRTCConfig) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
@@ -33,6 +34,20 @@ export function useMeetingWebRTC({
   const [participants, setParticipants] = useState<string[]>([]);
   const [error, setError] = useState<{ message: string; recoverable: boolean } | null>(null);
   const [channelStatus, setChannelStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
+  const [e2eeActive, setE2eeActive] = useState(false);
+
+  // E2E Encryption hook
+  const e2ee = useE2EEncryption(meetingId);
+  const e2eeEnabledRef = useRef(enableE2EE);
+
+  // Get the appropriate RTC config based on E2EE setting
+  const getRTCConfig = useCallback(() => {
+    if (e2eeEnabledRef.current && supportsE2EEncryption()) {
+      console.log('[WebRTC] 🔒 Using E2EE-enabled RTC configuration');
+      return getE2EEConfig();
+    }
+    return DEFAULT_RTC_CONFIG;
+  }, []);
 
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
   const signalChannel = useRef<RealtimeChannel | null>(null);
@@ -284,12 +299,23 @@ export function useMeetingWebRTC({
       throw new Error('Media not initialized');
     }
 
-    console.log('[WebRTC] 🆕 Creating peer connection for:', targetParticipantId, '| Media ready:', mediaReadyRef.current, '| Tracks:', currentStream.getTracks().length);
+    console.log('[WebRTC] 🆕 Creating peer connection for:', targetParticipantId, '| Media ready:', mediaReadyRef.current, '| Tracks:', currentStream.getTracks().length, '| E2EE:', e2eeEnabledRef.current);
 
-    const pc = new RTCPeerConnection(RTC_CONFIG);
+    const pc = new RTCPeerConnection(getRTCConfig());
 
     // Store the connection immediately to prevent duplicates
     peerConnections.current.set(targetParticipantId, pc);
+
+    // Apply E2E encryption if enabled
+    if (e2eeEnabledRef.current && supportsE2EEncryption()) {
+      setTimeout(async () => {
+        const success = await e2ee.enableEncryption(pc, targetParticipantId);
+        if (success) {
+          console.log('[WebRTC] 🔒 E2EE enabled for peer:', targetParticipantId);
+          setE2eeActive(true);
+        }
+      }, 100);
+    }
 
     // Add local stream tracks with comprehensive logging
     console.log('[WebRTC] ✅ Adding local tracks to peer connection for:', targetParticipantId);
@@ -1445,10 +1471,46 @@ export function useMeetingWebRTC({
     networkQuality: stats.quality,
     bandwidth: stats.bandwidth,
     latency: stats.latency,
-    videoStats, // New: video stats for UI display
+    videoStats,
     error,
     channelStatus,
-    peerConnections: peerConnections.current, // Expose for connection quality monitoring
+    peerConnections: peerConnections.current,
+    // E2E Encryption state
+    e2eeState: {
+      enabled: e2eeActive,
+      isSupported: e2ee.isSupported(),
+      keyVersion: e2ee.state.keyVersion,
+      peersEncrypted: e2ee.state.peersEncrypted.size,
+      error: e2ee.state.error
+    },
+    toggleE2EE: async () => {
+      if (!supportsE2EEncryption()) {
+        toast.error('E2E encryption not supported in this browser');
+        return;
+      }
+      
+      if (e2eeEnabledRef.current) {
+        // Disable
+        e2eeEnabledRef.current = false;
+        e2ee.disableEncryption();
+        setE2eeActive(false);
+        toast.info('End-to-end encryption disabled');
+      } else {
+        // Enable - need to recreate connections with E2EE config
+        e2eeEnabledRef.current = true;
+        toast.info('Enabling end-to-end encryption...');
+        
+        // Apply to existing connections
+        for (const [peerId, pc] of peerConnections.current) {
+          const success = await e2ee.enableEncryption(pc, peerId);
+          if (success) {
+            console.log('[WebRTC] 🔒 E2EE applied to existing peer:', peerId);
+          }
+        }
+        setE2eeActive(true);
+        toast.success('End-to-end encryption enabled');
+      }
+    },
     initializeMedia,
     toggleVideo,
     toggleAudio,
