@@ -12776,6 +12776,42 @@ export type Database = {
           },
         ]
       }
+      device_tokens: {
+        Row: {
+          created_at: string
+          device_name: string | null
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          platform?: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       discussion_replies: {
         Row: {
           content: string
@@ -23425,6 +23461,54 @@ export type Database = {
           sound_meetings?: boolean | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      notification_retry_queue: {
+        Row: {
+          created_at: string
+          id: string
+          last_error: string | null
+          max_retries: number
+          next_retry_at: string
+          notification_type: string
+          payload: Json
+          processed_at: string | null
+          recipient_email: string | null
+          recipient_id: string | null
+          recipient_phone: string | null
+          retry_count: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          max_retries?: number
+          next_retry_at?: string
+          notification_type: string
+          payload?: Json
+          processed_at?: string | null
+          recipient_email?: string | null
+          recipient_id?: string | null
+          recipient_phone?: string | null
+          retry_count?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          max_retries?: number
+          next_retry_at?: string
+          notification_type?: string
+          payload?: Json
+          processed_at?: string | null
+          recipient_email?: string | null
+          recipient_id?: string | null
+          recipient_phone?: string | null
+          retry_count?: number
+          status?: string
         }
         Relationships: []
       }

@@ -38,27 +38,61 @@ serve(async (req) => {
         // Send email reminder
         if (reminder.reminder_type === "email" || reminder.reminder_type === "both") {
           console.log(`Sending email reminder to ${booking.guest_email}`);
-          await supabase.functions.invoke("send-booking-reminder-email", {
-            body: {
-              email: booking.guest_email,
-              name: booking.guest_name,
-              bookingLink: booking.booking_link,
-              booking: booking,
-            },
-          });
-        }
-
-        // Send SMS reminder
-        if (reminder.reminder_type === "sms" || reminder.reminder_type === "both") {
-          if (booking.guest_phone) {
-            console.log(`Sending SMS reminder to ${booking.guest_phone}`);
-            await supabase.functions.invoke("send-booking-reminder-sms", {
+          try {
+            await supabase.functions.invoke("send-booking-reminder-email", {
               body: {
-                phone: booking.guest_phone,
+                email: booking.guest_email,
                 name: booking.guest_name,
+                bookingLink: booking.booking_link,
                 booking: booking,
               },
             });
+            console.log(`Email reminder sent successfully for booking ${reminder.booking_id}`);
+          } catch (emailError: any) {
+            console.error(`Failed to send email reminder for booking ${reminder.booking_id}:`, emailError);
+            // Queue for retry - ignore errors on retry queue insert
+            try {
+              await supabase.from("notification_retry_queue").insert({
+                notification_type: "booking_reminder_email",
+                recipient_id: booking.user_id,
+                payload: { email: booking.guest_email, name: booking.guest_name, booking },
+                retry_count: 0,
+                next_retry_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+              });
+              console.log("Queued for retry");
+            } catch (_retryErr) {
+              // Ignore retry queue errors
+            }
+          }
+        }
+
+        // Send SMS reminder - uses existing send-booking-sms-reminder function
+        if (reminder.reminder_type === "sms" || reminder.reminder_type === "both") {
+          if (booking.guest_phone) {
+            console.log(`Sending SMS reminder to ${booking.guest_phone}`);
+            try {
+              await supabase.functions.invoke("send-booking-sms-reminder", {
+                body: {
+                  bookingId: reminder.booking_id,
+                },
+              });
+              console.log(`SMS reminder sent successfully for booking ${reminder.booking_id}`);
+            } catch (smsError: any) {
+              console.error(`Failed to send SMS reminder for booking ${reminder.booking_id}:`, smsError);
+              // Queue for retry - ignore errors on retry queue insert
+              try {
+                await supabase.from("notification_retry_queue").insert({
+                  notification_type: "booking_reminder_sms",
+                  recipient_id: booking.user_id,
+                  payload: { bookingId: reminder.booking_id },
+                  retry_count: 0,
+                  next_retry_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+                });
+                console.log("Queued for retry");
+              } catch (_retryErr) {
+                // Ignore retry queue errors
+              }
+            }
           }
         }
 
