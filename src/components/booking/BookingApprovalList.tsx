@@ -34,7 +34,11 @@ interface PendingBooking {
   };
 }
 
-export function BookingApprovalList() {
+interface BookingApprovalListProps {
+  onApprovalChange?: () => void;
+}
+
+export function BookingApprovalList({ onApprovalChange }: BookingApprovalListProps) {
   const queryClient = useQueryClient();
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<PendingBooking | null>(null);
@@ -80,6 +84,7 @@ export function BookingApprovalList() {
       queryClient.invalidateQueries({ queryKey: ["pending-bookings"] });
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       toast.success("Booking approved successfully");
+      onApprovalChange?.();
     },
     onError: (error: Error) => {
       toast.error(`Failed to approve: ${error.message}`);
@@ -101,6 +106,7 @@ export function BookingApprovalList() {
       setSelectedBooking(null);
       setRejectionReason("");
       toast.success("Booking rejected");
+      onApprovalChange?.();
     },
     onError: (error: Error) => {
       toast.error(`Failed to reject: ${error.message}`);

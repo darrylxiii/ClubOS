@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import { normalizeTimeFormat } from "@/lib/timezoneUtils";
 import { motion, AnimatePresence } from "framer-motion";
+import { TimezoneWarning } from "@/components/booking/TimezoneWarning";
 import { logger } from "@/lib/logger";
 
 interface TimeSlot {
@@ -33,13 +34,16 @@ interface UnifiedDateTimeSelectorProps {
     duration_minutes: number;
   };
   onDateTimeSelected: (date: Date, time: string) => void;
+  hostTimezone?: string;
 }
 
 export function UnifiedDateTimeSelector({
   bookingLink,
   onDateTimeSelected,
+  hostTimezone,
 }: UnifiedDateTimeSelectorProps) {
   const { trackStep, trackSlotView } = useBookingAnalytics(bookingLink.id);
+  const guestTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -343,6 +347,14 @@ export function UnifiedDateTimeSelector({
                 </div>
               </div>
             </div>
+
+            {/* Timezone Warning */}
+            {hostTimezone && hostTimezone !== guestTimezone && (
+              <TimezoneWarning 
+                guestTimezone={guestTimezone} 
+                hostTimezone={hostTimezone} 
+              />
+            )}
           </div>
         </Card>
 

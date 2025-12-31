@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, TrendingUp, Users, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { BookingConversionFunnel } from "@/components/booking/BookingConversionFunnel";
 
 interface BookingStats {
   totalBookings: number;
@@ -220,6 +221,9 @@ export function BookingAnalyticsDashboard({ bookingLinkId, userId, dateRange }: 
           </CardContent>
         </Card>
       </div>
+
+      {/* Conversion Funnel */}
+      <BookingConversionFunnel bookingLinkId={bookingLinkId} />
     </div>
   );
 }
