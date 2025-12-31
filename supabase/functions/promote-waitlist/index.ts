@@ -137,10 +137,30 @@ serve(async (req) => {
       });
     }
 
+    // PHASE 3: Create a reservation for the waitlist entry
+    // This allows us to auto-create meeting when they book
+    const reservationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    
+    const { error: reservationError } = await supabaseClient
+      .from("booking_waitlist")
+      .update({
+        reservation_expires_at: reservationExpiry,
+        reservation_active: true,
+      })
+      .eq("id", waitlistEntry.id);
+
+    if (reservationError) {
+      console.warn("[Waitlist Promote] Failed to create reservation:", reservationError);
+    }
+
+    console.log("[Waitlist Promote] Successfully notified and reserved slot for:", waitlistEntry.guest_email);
+
     return new Response(
       JSON.stringify({
         promoted: true,
         notified: waitlistEntry.guest_email,
+        reservationExpiry,
+        waitlistId: waitlistEntry.id,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

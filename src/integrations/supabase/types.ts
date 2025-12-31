@@ -2939,6 +2939,53 @@ export type Database = {
           },
         ]
       }
+      booking_approval_requests: {
+        Row: {
+          booking_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          notes: string | null
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_approval_requests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_availability_settings: {
         Row: {
           auto_detect_timezone: boolean
@@ -3571,6 +3618,7 @@ export type Database = {
           notes: string | null
           quantum_meeting_code: string | null
           quantum_meeting_link: string | null
+          rejection_reason: string | null
           reminder_sent: boolean | null
           scheduled_end: string
           scheduled_start: string
@@ -3626,6 +3674,7 @@ export type Database = {
           notes?: string | null
           quantum_meeting_code?: string | null
           quantum_meeting_link?: string | null
+          rejection_reason?: string | null
           reminder_sent?: boolean | null
           scheduled_end: string
           scheduled_start: string
@@ -3681,6 +3730,7 @@ export type Database = {
           notes?: string | null
           quantum_meeting_code?: string | null
           quantum_meeting_link?: string | null
+          rejection_reason?: string | null
           reminder_sent?: boolean | null
           scheduled_end?: string
           scheduled_start?: string

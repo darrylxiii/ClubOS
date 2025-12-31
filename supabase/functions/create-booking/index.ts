@@ -374,6 +374,10 @@ serve(async (req) => {
       bookingMetadata.calendar_failures = calendarFailureDetails;
     }
 
+    // PHASE 3: Determine initial status based on requires_approval flag
+    const initialStatus = bookingLink.requires_approval ? "pending" : "confirmed";
+    console.log(`[Booking] Initial status: ${initialStatus} (requires_approval: ${bookingLink.requires_approval})`);
+
     const { data: booking, error: bookingError } = await supabaseClient
       .from("bookings")
       .insert({
@@ -387,7 +391,7 @@ serve(async (req) => {
         timezone: timezone,
         custom_responses: customResponses || {},
         notes: notes,
-        status: "confirmed",
+        status: initialStatus,
         metadata: bookingMetadata,
         guests: guests || [],
         guest_selected_platform: guestSelectedPlatform,
@@ -435,10 +439,66 @@ serve(async (req) => {
       }
     }
 
-    // Release the advisory lock now that booking is confirmed
+    // Release the advisory lock now that booking is created
     await releaseLock();
 
-    // Send confirmation email
+    // PHASE 3: Handle approval workflow differently
+    if (initialStatus === "pending") {
+      console.log("[Booking] Booking requires approval - creating approval request");
+      
+      // Create approval request
+      const { error: approvalError } = await supabaseClient
+        .from("booking_approval_requests")
+        .insert({
+          booking_id: booking.id,
+          status: "pending",
+        });
+      
+      if (approvalError) {
+        console.error("[Booking] Failed to create approval request:", approvalError);
+      }
+      
+      // Send pending notification to guest (different from confirmation)
+      try {
+        await supabaseClient.functions.invoke("send-booking-pending-notification", {
+          body: {
+            booking: booking,
+            bookingLink: bookingLink,
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending pending notification:", emailError);
+      }
+      
+      // Notify host about pending approval
+      try {
+        await supabaseClient.functions.invoke("send-booking-approval-request", {
+          body: {
+            booking: booking,
+            bookingLink: bookingLink,
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending approval request notification:", emailError);
+      }
+      
+      // Return early - don't sync to calendar or create meeting for pending bookings
+      return new Response(
+        JSON.stringify({
+          booking: {
+            id: booking.id,
+            scheduled_start: booking.scheduled_start,
+            scheduled_end: booking.scheduled_end,
+            status: booking.status,
+            pending_approval: true,
+          },
+          message: "Booking request submitted for approval",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Send confirmation email (only for confirmed bookings)
     try {
       await supabaseClient.functions.invoke("send-booking-confirmation", {
         body: {

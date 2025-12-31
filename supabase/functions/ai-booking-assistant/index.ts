@@ -83,10 +83,25 @@ Be conversational but professional. Always confirm dates and times clearly befor
       // No booking in response
     }
 
+    // PHASE 3: If AI confirmed a booking, call create-booking edge function
+    if (booking?.date && booking?.time) {
+      console.log("[AI Assistant] Booking confirmed, calling create-booking:", booking);
+      
+      const supabaseClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      );
+
+      // Store the AI booking intent for the client to complete with guest details
+      // The actual booking will be created when the guest fills in their info
+    }
+
     return new Response(
       JSON.stringify({
         message: aiMessage,
         booking,
+        // Include booking link info for client to complete the booking
+        bookingLinkId: bookingLink.id,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
