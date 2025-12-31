@@ -7,50 +7,116 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 2000;
+
+// Helper: Retry with exponential backoff
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  context: string,
+  maxRetries = MAX_RETRIES
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(`[${context}] Attempt ${attempt}/${maxRetries} failed:`, lastError.message);
+      
+      if (attempt < maxRetries) {
+        const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+        console.log(`[${context}] Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
+// Helper: Update recording status with error handling
+async function updateRecordingStatus(
+  supabase: any,
+  recordingId: string,
+  updates: Record<string, unknown>
+) {
+  const { error } = await supabase
+    .from('meeting_recordings_extended')
+    .update({
+      ...updates,
+      last_analysis_attempt: new Date().toISOString()
+    })
+    .eq('id', recordingId);
+    
+  if (error) {
+    console.error('[Recording Status] Failed to update:', error);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  let recordingId: string | null = null;
+
   try {
-    const { recordingId } = await req.json();
+    const body = await req.json();
+    recordingId = body.recordingId;
     
     if (!recordingId) {
       throw new Error('recordingId is required');
     }
 
+    console.log(`[Analysis] 🚀 Starting analysis for recording: ${recordingId}`);
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    
+    if (!lovableApiKey) {
+      console.error('[Analysis] ❌ LOVABLE_API_KEY not configured');
+      throw new Error('AI service not configured. Please add LOVABLE_API_KEY to secrets.');
+    }
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch recording details (use left join to avoid failure if meeting is missing)
-    const { data: recording, error: recordingError } = await supabase
-      .from('meeting_recordings_extended')
-      .select(`
-        *,
-        meetings(
-          title,
-          meeting_type,
-          candidate_id,
-          job_id,
-          application_id,
-          scheduled_start,
-          scheduled_end
-        )
-      `)
-      .eq('id', recordingId)
-      .maybeSingle();
+    // Fetch recording details with retry
+    const recording = await withRetry(async () => {
+      const { data, error } = await supabase
+        .from('meeting_recordings_extended')
+        .select(`
+          *,
+          meetings(
+            title,
+            meeting_type,
+            candidate_id,
+            job_id,
+            application_id,
+            scheduled_start,
+            scheduled_end
+          )
+        `)
+        .eq('id', recordingId)
+        .maybeSingle();
 
-    if (recordingError) {
-      console.error('Error fetching recording:', recordingError);
-      throw recordingError;
-    }
-    
-    if (!recording) {
-      throw new Error(`Recording not found: ${recordingId}`);
-    }
+      if (error) throw error;
+      if (!data) throw new Error(`Recording not found: ${recordingId}`);
+      return data;
+    }, 'Fetch Recording');
+
+    // Increment retry count and update status
+    const currentRetryCount = (recording.analysis_retry_count || 0) + 1;
+    await updateRecordingStatus(supabase, recordingId, {
+      analysis_status: 'processing',
+      processing_status: 'processing',
+      analysis_retry_count: currentRetryCount
+    });
+
+    console.log(`[Analysis] 📊 Recording fetched. Retry count: ${currentRetryCount}`);
     
     // Handle case where meeting might not exist
     const meetingData = recording.meetings || {
@@ -63,65 +129,71 @@ serve(async (req) => {
       scheduled_end: null
     };
 
-    // Update status to processing
-    await supabase
-      .from('meeting_recordings_extended')
-      .update({ analysis_status: 'processing' })
-      .eq('id', recordingId);
-
-    // Get context data
+    // Get context data with individual error handling
     let candidateName = '';
     let jobTitle = '';
     let companyName = '';
     
     if (recording.candidate_id) {
-      const { data: candidate, error: candidateError } = await supabase
-        .from('candidate_profiles')
-        .select('first_name, last_name')
-        .eq('id', recording.candidate_id)
-        .maybeSingle();
-      
-      if (candidateError) {
-        console.error('Error fetching candidate for recording analysis:', candidateError);
-      }
-      
-      if (candidate) {
-        candidateName = `${candidate.first_name} ${candidate.last_name}`.trim();
+      try {
+        const { data: candidate } = await supabase
+          .from('candidate_profiles')
+          .select('first_name, last_name')
+          .eq('id', recording.candidate_id)
+          .maybeSingle();
+        
+        if (candidate) {
+          candidateName = `${candidate.first_name || ''} ${candidate.last_name || ''}`.trim();
+        }
+      } catch (err) {
+        console.warn('[Analysis] Could not fetch candidate info:', err);
       }
     }
     
     if (recording.job_id) {
-      const { data: job, error: jobError } = await supabase
-        .from('jobs')
-        .select('title, companies(name)')
-        .eq('id', recording.job_id)
-        .maybeSingle();
-      
-      if (jobError) {
-        console.error('Error fetching job for recording analysis:', jobError);
-      }
-      
-      if (job && job.companies) {
-        jobTitle = job.title;
-        const companies = job.companies as any;
-        companyName = companies.name || '';
+      try {
+        const { data: job } = await supabase
+          .from('jobs')
+          .select('title, companies(name)')
+          .eq('id', recording.job_id)
+          .maybeSingle();
+        
+        if (job) {
+          jobTitle = job.title || '';
+          const companies = job.companies as { name?: string } | null;
+          companyName = companies?.name || '';
+        }
+      } catch (err) {
+        console.warn('[Analysis] Could not fetch job info:', err);
       }
     }
 
-    const transcript = recording.transcript || 'No transcript available';
-    const durationMinutes = Math.round(recording.duration_seconds / 60) || 30;
+    // Validate transcript
+    const transcript = recording.transcript || '';
+    if (!transcript || transcript.length < 50) {
+      console.warn('[Analysis] ⚠️ Transcript is missing or too short:', transcript.length, 'chars');
+      
+      // Still proceed with analysis but note it
+      await updateRecordingStatus(supabase, recordingId, {
+        processing_error: 'Transcript unavailable or too short for detailed analysis'
+      });
+    }
+
+    const durationMinutes = Math.round((recording.duration_seconds || 1800) / 60);
+
+    console.log(`[Analysis] 📝 Context: Candidate=${candidateName || 'Unknown'}, Job=${jobTitle || 'N/A'}, Duration=${durationMinutes}min, Transcript=${transcript.length} chars`);
 
     // Enhanced AI analysis prompt
     const analysisPrompt = `You are an expert interview analyst for a luxury executive search firm.
 
 Meeting Context:
-${candidateName ? `- Candidate: ${candidateName}` : ''}
-${jobTitle ? `- Position: ${jobTitle}${companyName ? ` at ${companyName}` : ''}` : ''}
+${candidateName ? `- Candidate: ${candidateName}` : '- Candidate: Unknown participant'}
+${jobTitle ? `- Position: ${jobTitle}${companyName ? ` at ${companyName}` : ''}` : '- Position: General interview'}
 - Meeting Type: ${meetingData.meeting_type || 'general'}
 - Duration: ${durationMinutes} minutes
 
 Full Transcript:
-${transcript}
+${transcript || 'No transcript available - please analyze based on available context only.'}
 
 Generate a comprehensive interview intelligence report in JSON format:
 
@@ -214,121 +286,252 @@ Generate a comprehensive interview intelligence report in JSON format:
 }
 
 CRITICAL REQUIREMENTS:
-1. Quote exact phrases from transcript as evidence
+1. Quote exact phrases from transcript as evidence where available
 2. Include timestamps for all key moments (format: MM:SS)
 3. Be brutally honest about red flags (this is internal only)
 4. Provide actionable next steps, not generic advice
 5. Identify ANY compensation/availability mismatches with job requirements
-6. Return ONLY valid JSON, no markdown formatting`;
+6. Return ONLY valid JSON, no markdown formatting
+7. If transcript is unavailable, provide best-effort analysis based on meeting metadata`;
 
-    // Call Lovable AI
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: 'You are an expert interview analyst. Return only valid JSON.' },
-          { role: 'user', content: analysisPrompt }
-        ],
-        temperature: 0.7,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Lovable AI error:', errorText);
-      throw new Error(`AI analysis failed: ${errorText}`);
-    }
-
-    const aiResponse = await response.json();
-    const aiContent = aiResponse.choices[0]?.message?.content || '{}';
+    // Call Lovable AI with retry
+    console.log('[Analysis] 🤖 Calling AI service...');
     
-    // Parse AI response
+    const aiResponse = await withRetry(async () => {
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: 'You are an expert interview analyst. Return only valid JSON.' },
+            { role: 'user', content: analysisPrompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 4000
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        
+        // Handle rate limits specifically
+        if (response.status === 429) {
+          throw new Error('AI service rate limited. Please try again later.');
+        }
+        if (response.status === 402) {
+          throw new Error('AI service credits exhausted. Please add credits to continue.');
+        }
+        
+        throw new Error(`AI analysis failed (${response.status}): ${errorText}`);
+      }
+
+      return response.json();
+    }, 'AI Analysis', 2);
+
+    const aiContent = aiResponse.choices?.[0]?.message?.content || '{}';
+    console.log('[Analysis] 📄 AI response received:', aiContent.substring(0, 200) + '...');
+    
+    // Parse AI response with fallback
     let aiAnalysis;
     try {
       // Remove markdown code blocks if present
-      const cleanedContent = aiContent.replace(/```json\n?|\n?```/g, '').trim();
+      const cleanedContent = aiContent
+        .replace(/```json\n?/g, '')
+        .replace(/\n?```/g, '')
+        .trim();
       aiAnalysis = JSON.parse(cleanedContent);
+      console.log('[Analysis] ✅ AI response parsed successfully');
     } catch (parseError) {
-      console.error('Failed to parse AI response:', aiContent);
+      console.error('[Analysis] ⚠️ Failed to parse AI response, using fallback:', parseError);
       aiAnalysis = {
-        executiveSummary: 'Analysis completed but formatting error occurred',
-        candidateEvaluation: { overallFit: 'fair', confidenceLevel: 'low' },
-        decisionGuidance: { recommendation: 'maybe', nextSteps: [] },
-        actionItems: [],
-        keyMoments: []
+        executiveSummary: 'Analysis completed but response parsing failed. Raw analysis available in logs.',
+        candidateEvaluation: { 
+          overallFit: 'pending', 
+          confidenceLevel: 'low',
+          strengths: [],
+          weaknesses: [],
+          skillsAssessment: []
+        },
+        decisionGuidance: { 
+          recommendation: 'maybe', 
+          nextSteps: ['Review recording manually'],
+          followUpQuestions: [],
+          riskFactors: [],
+          dealBreakers: []
+        },
+        actionItems: [{
+          owner: 'Strategist',
+          task: 'Review recording manually due to parsing error',
+          priority: 'high',
+          category: 'follow_up'
+        }],
+        keyMoments: [],
+        _rawResponse: aiContent.substring(0, 500),
+        _parseError: String(parseError)
       };
     }
 
     // Update recording with analysis
-    await supabase
-      .from('meeting_recordings_extended')
-      .update({
-        ai_summary: aiAnalysis,
-        analysis_status: 'completed',
-        analyzed_at: new Date().toISOString()
-      })
-      .eq('id', recordingId);
+    await updateRecordingStatus(supabase, recordingId, {
+      ai_summary: aiAnalysis,
+      ai_analysis: aiAnalysis,
+      executive_summary: aiAnalysis.executiveSummary || null,
+      action_items: aiAnalysis.actionItems || [],
+      key_moments: aiAnalysis.keyMoments || [],
+      analysis_status: 'completed',
+      processing_status: 'completed',
+      analyzed_at: new Date().toISOString(),
+      processing_error: null
+    });
 
-    // Distribute to correct profiles
+    console.log('[Analysis] 💾 Recording updated with analysis');
+
+    // Distribute to candidate/job profiles (with error handling)
     if (recording.candidate_id) {
-      await supabase.from('candidate_interview_recordings').insert({
-        candidate_id: recording.candidate_id,
-        recording_id: recordingId,
-        meeting_id: recording.meeting_id,
-        job_title: jobTitle || 'Interview',
-        company_name: companyName,
-        interview_date: meetingData.scheduled_start,
-        overall_score: aiAnalysis.candidateEvaluation?.overallFit || 'pending',
-        recommendation: aiAnalysis.decisionGuidance?.recommendation || 'pending'
-      });
-    }
-
-    if (recording.job_id) {
-      await supabase.from('job_interview_recordings').insert({
-        job_id: recording.job_id,
-        recording_id: recordingId,
-        meeting_id: recording.meeting_id,
-        candidate_name: candidateName || 'Candidate',
-        candidate_id: recording.candidate_id,
-        interview_stage: meetingData.meeting_type || 'interview',
-        overall_score: aiAnalysis.candidateEvaluation?.overallFit || 'pending',
-        recommendation: aiAnalysis.decisionGuidance?.recommendation || 'pending'
-      });
-    }
-
-    // Create tasks from action items
-    if (aiAnalysis.actionItems && Array.isArray(aiAnalysis.actionItems)) {
-      const tasks = aiAnalysis.actionItems.map((item: any) => ({
-        title: item.task,
-        description: `From meeting: ${meetingData.title}`,
-        priority: item.priority || 'medium',
-        status: 'todo',
-        user_id: recording.host_id,
-        category: item.category || 'follow_up'
-      }));
-
-      if (tasks.length > 0) {
-        await supabase.from('unified_tasks').insert(tasks);
+      try {
+        await supabase.from('candidate_interview_recordings').insert({
+          candidate_id: recording.candidate_id,
+          recording_id: recordingId,
+          meeting_id: recording.meeting_id,
+          job_title: jobTitle || 'Interview',
+          company_name: companyName || null,
+          interview_date: meetingData.scheduled_start || recording.created_at,
+          overall_score: aiAnalysis.candidateEvaluation?.overallFit || 'pending',
+          recommendation: aiAnalysis.decisionGuidance?.recommendation || 'pending'
+        });
+        console.log('[Analysis] 📋 Candidate recording link created');
+      } catch (err) {
+        console.warn('[Analysis] Could not link to candidate profile:', err);
       }
     }
 
-    console.log('✅ Recording analysis completed:', recordingId);
+    if (recording.job_id) {
+      try {
+        await supabase.from('job_interview_recordings').insert({
+          job_id: recording.job_id,
+          recording_id: recordingId,
+          meeting_id: recording.meeting_id,
+          candidate_name: candidateName || 'Candidate',
+          candidate_id: recording.candidate_id || null,
+          interview_stage: meetingData.meeting_type || 'interview',
+          overall_score: aiAnalysis.candidateEvaluation?.overallFit || 'pending',
+          recommendation: aiAnalysis.decisionGuidance?.recommendation || 'pending'
+        });
+        console.log('[Analysis] 📋 Job recording link created');
+      } catch (err) {
+        console.warn('[Analysis] Could not link to job profile:', err);
+      }
+    }
+
+    // Create tasks from action items
+    if (aiAnalysis.actionItems && Array.isArray(aiAnalysis.actionItems) && aiAnalysis.actionItems.length > 0) {
+      try {
+        const tasks = aiAnalysis.actionItems.slice(0, 5).map((item: Record<string, unknown>) => ({
+          title: String(item.task || 'Follow up task'),
+          description: `From meeting: ${meetingData.title || 'Interview'}`,
+          priority: String(item.priority || 'medium'),
+          status: 'todo',
+          user_id: recording.host_id,
+          category: String(item.category || 'follow_up')
+        }));
+
+        await supabase.from('unified_tasks').insert(tasks);
+        console.log(`[Analysis] ✅ Created ${tasks.length} tasks from action items`);
+      } catch (err) {
+        console.warn('[Analysis] Could not create tasks:', err);
+      }
+    }
+
+    // Log to audit table
+    try {
+      await supabase.from('meeting_data_audit').insert({
+        meeting_id: recording.meeting_id,
+        recording_id: recordingId,
+        check_type: 'ai_analysis',
+        passed: true,
+        details: {
+          duration_ms: Date.now() - startTime,
+          transcript_length: transcript.length,
+          retry_count: currentRetryCount,
+          has_candidate_link: !!recording.candidate_id,
+          has_job_link: !!recording.job_id
+        }
+      });
+    } catch (err) {
+      console.warn('[Analysis] Could not log to audit table:', err);
+    }
+
+    const totalTime = Date.now() - startTime;
+    console.log(`[Analysis] ✅ Recording analysis completed in ${totalTime}ms:`, recordingId);
 
     return new Response(
-      JSON.stringify({ success: true, analysis: aiAnalysis }),
+      JSON.stringify({ 
+        success: true, 
+        analysis: aiAnalysis,
+        stats: {
+          duration_ms: totalTime,
+          transcript_chars: transcript.length,
+          retry_count: currentRetryCount
+        }
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('❌ Error analyzing recording:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('[Analysis] ❌ Error analyzing recording:', errorMessage);
+
+    // Update status to failed if we have a recordingId
+    if (recordingId) {
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        
+        await supabase
+          .from('meeting_recordings_extended')
+          .update({
+            analysis_status: 'failed',
+            processing_status: 'failed',
+            processing_error: errorMessage,
+            last_analysis_attempt: new Date().toISOString()
+          })
+          .eq('id', recordingId);
+
+        // Log failure to audit
+        const { data: recording } = await supabase
+          .from('meeting_recordings_extended')
+          .select('meeting_id')
+          .eq('id', recordingId)
+          .single();
+
+        if (recording?.meeting_id) {
+          await supabase.from('meeting_data_audit').insert({
+            meeting_id: recording.meeting_id,
+            recording_id: recordingId,
+            check_type: 'ai_analysis',
+            passed: false,
+            details: {
+              error: errorMessage,
+              duration_ms: Date.now() - startTime
+            }
+          });
+        }
+      } catch (updateErr) {
+        console.error('[Analysis] Failed to update error status:', updateErr);
+      }
+    }
+
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: errorMessage,
+        recordingId,
+        canRetry: !errorMessage.includes('credits exhausted')
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
