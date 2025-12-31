@@ -92,17 +92,20 @@ export default function GuestBookingPage() {
 
       if (bookingError) throw bookingError;
 
-      // Then get the profile separately
+      // Then get the profile separately with work_timezone
       if (bookingData?.user_id) {
         const { data: profileData } = await supabase
           .from("profiles")
-          .select("full_name, avatar_url")
+          .select("full_name, avatar_url, work_timezone")
           .eq("id", bookingData.user_id)
           .single();
 
         setBooking({
           ...bookingData,
-          profiles: profileData || undefined,
+          profiles: profileData ? {
+            ...profileData,
+            timezone: profileData.work_timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+          } : undefined,
         } as BookingDetails);
       } else {
         setBooking(bookingData as BookingDetails);
@@ -189,7 +192,7 @@ export default function GuestBookingPage() {
     );
   }
 
-  const hostTimezone = booking.profiles?.timezone || "UTC";
+  const hostTimezone = booking.profiles?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
   const meetingLink = getMeetingLink();
   const isPast = new Date(booking.scheduled_start) < new Date();
   const canModify = booking.status === "confirmed" && !isPast;

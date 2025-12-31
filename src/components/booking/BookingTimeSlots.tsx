@@ -9,6 +9,7 @@ import { useSwipeable } from "react-swipeable";
 import { useBookingRealtime } from "@/hooks/useBookingRealtime";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import { WaitlistForm } from "./WaitlistForm";
+import { TimezoneWarning } from "./TimezoneWarning";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface BookingTimeSlotsProps {
@@ -18,6 +19,7 @@ interface BookingTimeSlotsProps {
     user_id: string;
     title: string;
     duration_minutes: number;
+    host_timezone?: string;
   };
   selectedDate: Date;
   onTimeSelect: (time: string) => void;
@@ -203,8 +205,18 @@ export function BookingTimeSlots({
     );
   }
 
+  const guestTimezone = getUserTimezone();
+  const hostTimezone = bookingLink.host_timezone || guestTimezone;
+
   return (
     <div className="space-y-6" {...swipeHandlers}>
+      {/* Timezone Warning */}
+      <TimezoneWarning 
+        guestTimezone={guestTimezone}
+        hostTimezone={hostTimezone}
+        showToggle={false}
+      />
+
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
           <h3 className="text-lg font-semibold">Select a Time</h3>
