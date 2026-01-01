@@ -122,39 +122,44 @@ export interface MasterMeetingReturn {
   gestures: {
     detectedGesture: string | null;
     confidence: number;
-    enable: () => void;
+    enable: (videoElement: HTMLVideoElement) => void;
     disable: () => void;
+    isAnalyzing: boolean;
   };
   
   // Meeting analytics
   analytics: {
-    speakingTime: Map<string, number>;
-    engagementScore: number;
+    participantStats: Map<string, any>;
+    meetingMetrics: any;
     timeline: any[];
-    getReport: () => any;
+    exportAnalytics: () => any;
+    isTracking: boolean;
   };
   
   // Auto highlights
   highlights: {
-    actionItems: any[];
-    decisions: any[];
-    questions: any[];
-    getAllHighlights: () => any[];
+    all: any[];
+    isAnalyzing: boolean;
+    getByType: (type: string) => any[];
+    search: (query: string) => any[];
+    export: (format: 'json' | 'markdown') => string;
   };
   
   // Quality recovery
   qualityRecovery: {
     currentQuality: 'high' | 'medium' | 'low';
     forceQuality: (quality: 'high' | 'medium' | 'low') => void;
+    qualityState: any;
     isRecovering: boolean;
   };
   
   // Resource optimization
   resources: {
-    optimizationLevel: 'none' | 'low' | 'medium' | 'high';
+    optimizationLevel: number;
     cpuUsage: number;
     memoryUsage: number;
     batteryLevel: number | null;
+    isOptimizing: boolean;
   };
   
   // Feature settings
@@ -336,19 +341,11 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
         localParticipantId: userId,
       }));
 
-      // Save initial state
+      // Save initial state via settings
       if (enableStatePreservation) {
-        statePreservation.saveState({
-          meetingState: {
-            isActive: true,
-            startTime: Date.now(),
-          },
-          audioState: {
-            isMuted: voice.isMuted,
-          },
-          videoState: {
-            isVideoOn: voice.isVideoOn,
-          },
+        statePreservation.updateSettings({
+          isMuted: voice.isMuted,
+          isVideoOff: !voice.isVideoOn,
         });
       }
     } catch (err) {
@@ -593,44 +590,45 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
     // Gesture recognition
     gestures: {
       detectedGesture: gestureRecognition.currentGesture,
-      confidence: gestureRecognition.confidence,
-      enable: gestureRecognition.startDetection,
-      disable: gestureRecognition.stopDetection,
+      confidence: gestureRecognition.gestureConfidence,
+      enable: gestureRecognition.startAnalysis,
+      disable: gestureRecognition.stopAnalysis,
+      isAnalyzing: gestureRecognition.isAnalyzing,
     },
     
     // Meeting analytics
     analytics: {
-      speakingTime: meetingAnalytics.speakingTimeMap,
-      engagementScore: meetingAnalytics.engagementScore,
-      timeline: meetingAnalytics.eventTimeline,
-      getReport: meetingAnalytics.getAnalyticsReport,
+      participantStats: meetingAnalytics.participantStats,
+      meetingMetrics: meetingAnalytics.meetingMetrics,
+      timeline: meetingAnalytics.timeline,
+      exportAnalytics: meetingAnalytics.exportAnalytics,
+      isTracking: meetingAnalytics.isTracking,
     },
     
     // Auto highlights
     highlights: {
-      actionItems: autoHighlight.actionItems,
-      decisions: autoHighlight.decisions,
-      questions: autoHighlight.questions,
-      getAllHighlights: () => [
-        ...autoHighlight.actionItems,
-        ...autoHighlight.decisions,
-        ...autoHighlight.questions,
-      ],
+      all: autoHighlight.highlights,
+      isAnalyzing: autoHighlight.isAnalyzing,
+      getByType: autoHighlight.getHighlightsByType,
+      search: autoHighlight.searchHighlights,
+      export: autoHighlight.exportHighlights,
     },
     
     // Quality recovery
     qualityRecovery: {
       currentQuality,
       forceQuality: setCurrentQuality,
-      isRecovering: qualityRecovery.isRecovering,
+      qualityState: qualityRecovery.qualityState,
+      isRecovering: qualityRecovery.qualityState.isRecovering,
     },
     
     // Resource optimization
     resources: {
-      optimizationLevel: resourceOptimizer.currentLevel,
-      cpuUsage: resourceOptimizer.metrics.cpu,
-      memoryUsage: resourceOptimizer.metrics.memory,
-      batteryLevel: resourceOptimizer.metrics.battery,
+      optimizationLevel: resourceOptimizer.optimizationLevel,
+      cpuUsage: resourceOptimizer.metrics.cpuUsage,
+      memoryUsage: resourceOptimizer.metrics.memoryUsage,
+      batteryLevel: resourceOptimizer.metrics.batteryLevel,
+      isOptimizing: resourceOptimizer.isOptimizing,
     },
     
     // Feature settings
