@@ -1,10 +1,12 @@
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useEffect, useCallback, useRef, useState, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
-import { WorkspaceEditor } from '@/components/workspace/WorkspaceEditor';
 import { PageHeader } from '@/components/workspace/PageHeader';
 import { DraggablePageTree } from '@/components/workspace/DraggablePageTree';
+
+// Lazy load heavy editor component to prevent TDZ errors on /auth route
+const WorkspaceEditor = lazy(() => import('@/components/workspace/WorkspaceEditor').then(m => ({ default: m.WorkspaceEditor })));
 import { PageBreadcrumbs } from '@/components/workspace/PageBreadcrumbs';
 import { PageSearchDialog } from '@/components/workspace/PageSearchDialog';
 import { WorkspaceCommandPalette } from '@/components/workspace/WorkspaceCommandPalette';
@@ -223,10 +225,12 @@ export default function WorkspacePage() {
               />
               
               <div className="px-4 sm:px-12 pb-24">
-                <WorkspaceEditor
-                  page={page}
-                  onContentChange={handleContentChange}
-                />
+                <Suspense fallback={<div className="min-h-[500px] animate-pulse bg-muted/20 rounded-lg" />}>
+                  <WorkspaceEditor
+                    page={page}
+                    onContentChange={handleContentChange}
+                  />
+                </Suspense>
               </div>
             </div>
           </div>

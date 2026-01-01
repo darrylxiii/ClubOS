@@ -11,18 +11,47 @@ import { MathBlock } from './MathBlock';
 import { MermaidBlock } from './MermaidBlock';
 import { SimpleTableBlock } from './SimpleTableBlock';
 
-// All exports are createReactBlockSpec results (factory functions) - call them to get BlockSpec
-export const customBlockSpecs = {
-  callout: CalloutBlock(),
-  toggle: ToggleBlock(),
-  divider: DividerBlock(),
-  tableOfContents: TableOfContentsBlock(),
-  columns: ColumnsBlock(),
-  embed: EmbedBlock(),
-  syncedBlock: SyncedBlock(),
-  linkPreview: LinkPreviewBlock(),
-  quote: QuoteBlock(),
-  math: MathBlock(),
-  mermaid: MermaidBlock(),
-  simpleTable: SimpleTableBlock(),
-};
+// Lazy initialization function - prevents TDZ errors from circular imports
+// Factory functions are only called when getCustomBlockSpecs() is invoked (at component mount time)
+let cachedSpecs: ReturnType<typeof createBlockSpecs> | null = null;
+
+function createBlockSpecs() {
+  return {
+    callout: CalloutBlock(),
+    toggle: ToggleBlock(),
+    divider: DividerBlock(),
+    tableOfContents: TableOfContentsBlock(),
+    columns: ColumnsBlock(),
+    embed: EmbedBlock(),
+    syncedBlock: SyncedBlock(),
+    linkPreview: LinkPreviewBlock(),
+    quote: QuoteBlock(),
+    math: MathBlock(),
+    mermaid: MermaidBlock(),
+    simpleTable: SimpleTableBlock(),
+  };
+}
+
+// Called at runtime when editor mounts, not at module evaluation time
+export function getCustomBlockSpecs() {
+  if (!cachedSpecs) {
+    cachedSpecs = createBlockSpecs();
+  }
+  return cachedSpecs;
+}
+
+// Legacy export for backwards compatibility - still lazy
+export const customBlockSpecs = new Proxy({} as ReturnType<typeof createBlockSpecs>, {
+  get(_, prop) {
+    return getCustomBlockSpecs()[prop as keyof ReturnType<typeof createBlockSpecs>];
+  },
+  ownKeys() {
+    return Object.keys(getCustomBlockSpecs());
+  },
+  getOwnPropertyDescriptor(_, prop) {
+    const specs = getCustomBlockSpecs();
+    if (prop in specs) {
+      return { configurable: true, enumerable: true, value: specs[prop as keyof typeof specs] };
+    }
+  },
+});
