@@ -89,13 +89,13 @@ export function ScreenShareControls({
 }: ScreenShareControlsProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const getMotionBadgeVariant = () => {
+  const getMotionBadgeVariant = (): "default" | "secondary" | "outline" => {
     if (!analysis) return 'secondary';
     switch (analysis.motionLevel) {
       case 'static': return 'outline';
       case 'low': return 'secondary';
       case 'medium': return 'default';
-      case 'high': return 'destructive';
+      case 'high': return 'default';
       default: return 'secondary';
     }
   };
@@ -127,8 +127,8 @@ export function ScreenShareControls({
         {/* Start/Stop Button */}
         <Button
           onClick={isSharing ? onStopShare : onStartShare}
-          variant={isSharing ? "destructive" : "default"}
-          className="w-full"
+          variant={isSharing ? "secondary" : "default"}
+          className={cn("w-full", isSharing && "bg-red-500 hover:bg-red-600 text-white")}
         >
           <Monitor className="mr-2 h-4 w-4" />
           {isSharing ? 'Stop Sharing' : 'Share Screen'}
