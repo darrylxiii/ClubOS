@@ -7640,6 +7640,87 @@ export type Database = {
           },
         ]
       }
+      company_intelligence_scores: {
+        Row: {
+          active_job_count: number | null
+          avg_engagement_score: number | null
+          avg_sentiment_score: number | null
+          company_id: string
+          created_at: string | null
+          hired_count: number | null
+          hiring_urgency_score: number | null
+          id: string
+          intelligence_completeness: number | null
+          key_topics: string[] | null
+          last_interaction_at: string | null
+          last_meeting_at: string | null
+          relationship_health_score: number | null
+          score_breakdown: Json | null
+          total_insights: number | null
+          total_interactions: number | null
+          total_meetings: number | null
+          total_stakeholders: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_job_count?: number | null
+          avg_engagement_score?: number | null
+          avg_sentiment_score?: number | null
+          company_id: string
+          created_at?: string | null
+          hired_count?: number | null
+          hiring_urgency_score?: number | null
+          id?: string
+          intelligence_completeness?: number | null
+          key_topics?: string[] | null
+          last_interaction_at?: string | null
+          last_meeting_at?: string | null
+          relationship_health_score?: number | null
+          score_breakdown?: Json | null
+          total_insights?: number | null
+          total_interactions?: number | null
+          total_meetings?: number | null
+          total_stakeholders?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_job_count?: number | null
+          avg_engagement_score?: number | null
+          avg_sentiment_score?: number | null
+          company_id?: string
+          created_at?: string | null
+          hired_count?: number | null
+          hiring_urgency_score?: number | null
+          id?: string
+          intelligence_completeness?: number | null
+          key_topics?: string[] | null
+          last_interaction_at?: string | null
+          last_meeting_at?: string | null
+          relationship_health_score?: number | null
+          score_breakdown?: Json | null
+          total_insights?: number | null
+          total_interactions?: number | null
+          total_meetings?: number | null
+          total_stakeholders?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_intelligence_scores_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_intelligence_scores_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_interactions: {
         Row: {
           attachment_urls: string[] | null
@@ -16513,6 +16594,45 @@ export type Database = {
         }
         Relationships: []
       }
+      intelligence_timeline: {
+        Row: {
+          created_at: string | null
+          detected_at: string | null
+          entity_id: string
+          entity_type: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          significance_score: number | null
+          source_id: string | null
+          source_type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          detected_at?: string | null
+          entity_id: string
+          entity_type: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          significance_score?: number | null
+          source_id?: string | null
+          source_type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          detected_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          significance_score?: number | null
+          source_id?: string | null
+          source_type?: string | null
+        }
+        Relationships: []
+      }
       interaction_insights: {
         Row: {
           confidence_score: number | null
@@ -21012,6 +21132,107 @@ export type Database = {
           },
         ]
       }
+      meeting_intelligence: {
+        Row: {
+          action_items: Json | null
+          company_id: string | null
+          created_at: string | null
+          decisions_made: Json | null
+          extracted_insights: Json | null
+          follow_up_notes: string | null
+          follow_up_required: boolean | null
+          full_transcript: string | null
+          hiring_signals: Json | null
+          id: string
+          job_id: string | null
+          key_topics: string[] | null
+          meeting_id: string
+          mentioned_candidates: string[] | null
+          mentioned_stakeholders: string[] | null
+          processed_at: string | null
+          processing_status: string | null
+          sentiment_analysis: Json | null
+          summary: string | null
+          transcript_word_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_items?: Json | null
+          company_id?: string | null
+          created_at?: string | null
+          decisions_made?: Json | null
+          extracted_insights?: Json | null
+          follow_up_notes?: string | null
+          follow_up_required?: boolean | null
+          full_transcript?: string | null
+          hiring_signals?: Json | null
+          id?: string
+          job_id?: string | null
+          key_topics?: string[] | null
+          meeting_id: string
+          mentioned_candidates?: string[] | null
+          mentioned_stakeholders?: string[] | null
+          processed_at?: string | null
+          processing_status?: string | null
+          sentiment_analysis?: Json | null
+          summary?: string | null
+          transcript_word_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_items?: Json | null
+          company_id?: string | null
+          created_at?: string | null
+          decisions_made?: Json | null
+          extracted_insights?: Json | null
+          follow_up_notes?: string | null
+          follow_up_required?: boolean | null
+          full_transcript?: string | null
+          hiring_signals?: Json | null
+          id?: string
+          job_id?: string | null
+          key_topics?: string[] | null
+          meeting_id?: string
+          mentioned_candidates?: string[] | null
+          mentioned_stakeholders?: string[] | null
+          processed_at?: string | null
+          processing_status?: string | null
+          sentiment_analysis?: Json | null
+          summary?: string | null
+          transcript_word_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_intelligence_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_intelligence_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_intelligence_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_intelligence_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: true
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_intelligence_processing: {
         Row: {
           completed_at: string | null
@@ -21864,6 +22085,7 @@ export type Database = {
           booking_id: string | null
           branding: Json | null
           candidate_id: string | null
+          company_id: string | null
           created_at: string | null
           created_by_ai: boolean | null
           created_via: string | null
@@ -21902,6 +22124,7 @@ export type Database = {
           booking_id?: string | null
           branding?: Json | null
           candidate_id?: string | null
+          company_id?: string | null
           created_at?: string | null
           created_by_ai?: boolean | null
           created_via?: string | null
@@ -21940,6 +22163,7 @@ export type Database = {
           booking_id?: string | null
           branding?: Json | null
           candidate_id?: string | null
+          company_id?: string | null
           created_at?: string | null
           created_by_ai?: boolean | null
           created_via?: string | null
@@ -22009,6 +22233,20 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
             referencedColumns: ["id"]
           },
           {
@@ -41755,6 +41993,10 @@ export type Database = {
         Returns: undefined
       }
       update_all_leaderboard_ranks: { Args: never; Returns: undefined }
+      update_company_intelligence_score: {
+        Args: { p_company_id: string }
+        Returns: undefined
+      }
       update_expired_assignments: { Args: never; Returns: undefined }
       update_overdue_invoices: { Args: never; Returns: undefined }
       update_relationship_score: {

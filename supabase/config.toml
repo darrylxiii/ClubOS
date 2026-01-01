@@ -337,6 +337,9 @@ verify_jwt = true
 [functions.process-meeting-intelligence]
 verify_jwt = false
 
+[functions.bridge-meeting-to-intelligence]
+verify_jwt = false
+
 [functions.send-meeting-invitation-email]
 verify_jwt = true
 
