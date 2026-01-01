@@ -131,17 +131,35 @@ export function useCandidateCommunications() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Use type assertion since table is newly created
-      const { data, error } = await (supabase as any)
-        .from('candidate_communication_preferences')
+      // Query the existing notification_preferences table
+      const { data, error } = await supabase
+        .from('notification_preferences')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      setPreferences(data as CommunicationPreferences | null);
+      if (error) {
+        console.warn('Could not fetch notification preferences:', error.message);
+        return;
+      }
+      
+      // Map notification_preferences to CommunicationPreferences format
+      if (data) {
+        setPreferences({
+          id: data.id,
+          user_id: data.user_id,
+          preferred_channel: 'email',
+          quiet_hours_start: data.quiet_hours_start || '22:00',
+          quiet_hours_end: data.quiet_hours_end || '08:00',
+          quiet_hours_timezone: data.quiet_hours_timezone || 'Europe/Amsterdam',
+          receive_marketing: data.email_system ?? true,
+          receive_job_alerts: data.email_job_matches ?? true,
+          receive_meeting_reminders: data.email_meetings ?? true,
+          max_messages_per_day: 10,
+        });
+      }
     } catch (err: any) {
-      console.error('Error fetching preferences:', err);
+      console.warn('Error fetching preferences:', err);
     }
   }, []);
 
@@ -188,22 +206,32 @@ export function useCandidateCommunications() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Use type assertion since table is newly created
-      const client = supabase as any;
+      // Map CommunicationPreferences to notification_preferences schema
+      const mappedUpdates: Record<string, any> = {};
+      if (updates.receive_marketing !== undefined) mappedUpdates.email_system = updates.receive_marketing;
+      if (updates.receive_job_alerts !== undefined) mappedUpdates.email_job_matches = updates.receive_job_alerts;
+      if (updates.receive_meeting_reminders !== undefined) mappedUpdates.email_meetings = updates.receive_meeting_reminders;
+      if (updates.quiet_hours_start !== undefined) mappedUpdates.quiet_hours_start = updates.quiet_hours_start;
+      if (updates.quiet_hours_end !== undefined) mappedUpdates.quiet_hours_end = updates.quiet_hours_end;
+      if (updates.quiet_hours_timezone !== undefined) mappedUpdates.quiet_hours_timezone = updates.quiet_hours_timezone;
 
-      if (preferences) {
-        // Update existing
-        const { error } = await client
-          .from('candidate_communication_preferences')
-          .update(updates)
+      const { data: existing } = await supabase
+        .from('notification_preferences')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('notification_preferences')
+          .update(mappedUpdates)
           .eq('user_id', user.id);
 
         if (error) throw error;
       } else {
-        // Insert new
-        const { error } = await client
-          .from('candidate_communication_preferences')
-          .insert({ user_id: user.id, ...updates });
+        const { error } = await supabase
+          .from('notification_preferences')
+          .insert({ user_id: user.id, ...mappedUpdates });
 
         if (error) throw error;
       }

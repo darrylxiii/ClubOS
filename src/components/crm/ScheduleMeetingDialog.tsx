@@ -166,7 +166,8 @@ export function ScheduleMeetingDialog({
           activity_type: 'meeting',
           subject: `Meeting scheduled: ${selectedLink.title}`,
           description: notes,
-          scheduled_at: new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${selectedTime}`).toISOString(),
+          due_date: format(selectedDate, 'yyyy-MM-dd'),
+          due_time: selectedTime,
           duration_minutes: selectedLink.duration_minutes,
         });
 
