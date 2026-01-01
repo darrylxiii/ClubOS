@@ -188,10 +188,6 @@ export default defineConfig(({ mode, command }) => ({
     },
   },
   build: {
-    // CRITICAL: Enable build manifest for resilient bootstrap
-    // This outputs /.vite/manifest.json mapping src/main.tsx -> assets/<hash>.js
-    manifest: true,
-    
     modulePreload: {
       polyfill: true,
     },

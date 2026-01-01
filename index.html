@@ -211,13 +211,12 @@
       </style>
     </div>
     
-    <!-- Emergency cache reset and two-phase boot detection (inline for reliability) -->
+    <!-- Emergency cache reset (inline for reliability) -->
     <script>
       (function() {
         window.__APP_BOOTED__ = false;
-        window.__APP_BOOTING__ = false; // Set to true by main.tsx when script starts executing
+        window.__APP_BOOTING__ = false;
         window.__BOOT_START__ = Date.now();
-        window.__BUILD_TIME__ = '__BUILD_TIMESTAMP__'; // Replaced at build time
         
         async function resetCache() {
           var btn = event && event.target;
@@ -238,16 +237,16 @@
               await Promise.all(keys.map(function(k) { return caches.delete(k); }));
               console.log('[Recovery] Deleted', keys.length, 'cache(s)');
             }
-            // Clear PWA and app storage
-            ['pwa-update-dismissed', 'pwa-install-dismissed', 'sb-auth-token'].forEach(function(k) {
+            // Clear PWA storage
+            ['pwa-update-dismissed', 'pwa-install-dismissed'].forEach(function(k) {
               try { localStorage.removeItem(k); } catch(e) {}
             });
-            console.log('[Recovery] Cache cleared successfully. Reloading...');
+            console.log('[Recovery] Cache cleared. Reloading...');
           } catch (e) {
-            console.error('[Recovery] Failed to clear cache:', e);
+            console.error('[Recovery] Failed:', e);
           }
-          // Force hard reload
-          location.href = location.href.split('?')[0] + '?cache_bust=' + Date.now();
+          // Clean reload without query params (avoids SW issues)
+          location.replace(location.origin + location.pathname);
         }
         window.resetCache = resetCache;
         
@@ -267,124 +266,21 @@
         }
         window.showBootError = showBootError;
         
-        // RESILIENT BOOTSTRAP: Try to load the app entry, with fallback to build manifest
-        async function bootstrapApp() {
-          var entryPath = '/src/main.tsx';
-          var manifestPath = '/.vite/manifest.json';
-          
-          // First, check if we're in production by trying to load the build manifest
-          try {
-            var manifestRes = await fetch(manifestPath, { cache: 'no-store' });
-            if (manifestRes.ok) {
-              // We're in production! Use the hashed bundle from the manifest
-              var manifest = await manifestRes.json();
-              var entry = manifest['src/main.tsx'];
-              if (entry && entry.file) {
-                var prodEntry = '/' + entry.file;
-                console.log('[Bootstrap] Production mode detected. Loading:', prodEntry);
-                
-                var script = document.createElement('script');
-                script.type = 'module';
-                script.src = prodEntry;
-                script.setAttribute('data-app-entry', 'true');
-                script.crossOrigin = 'anonymous';
-                script.onerror = function() {
-                  console.error('[Bootstrap] Failed to load production bundle:', prodEntry);
-                  showBootError(
-                    'Failed to load the application bundle.',
-                    'Bundle: ' + prodEntry + ' | Manifest found but bundle failed to load'
-                  );
-                };
-                document.body.appendChild(script);
-                return; // Success path for production
-              }
-            }
-          } catch (e) {
-            // No manifest = dev mode, or production without manifest (legacy)
-            console.log('[Bootstrap] No build manifest found, trying dev entry...');
-          }
-          
-          // Fallback: Try the dev entry (works in dev, will 404 in broken production)
-          try {
-            var devRes = await fetch(entryPath, { method: 'HEAD', cache: 'no-store' });
-            if (devRes.ok && devRes.headers.get('content-type')?.includes('script')) {
-              // Dev mode: the /src/main.tsx is servable
-              console.log('[Bootstrap] Dev mode: loading', entryPath);
-              var script = document.createElement('script');
-              script.type = 'module';
-              script.src = entryPath;
-              script.setAttribute('data-app-entry', 'true');
-              document.body.appendChild(script);
-              return;
-            }
-          } catch (e) {
-            // Dev entry fetch failed
-          }
-          
-          // Neither worked - this is a broken deployment
-          console.error('[Bootstrap] CRITICAL: Neither production bundle nor dev entry available');
-          console.log('[Bootstrap] Attempting auto-recovery by clearing cache...');
-          await resetCache();
-        }
-        
-        // Start the bootstrap immediately
-        bootstrapApp();
-        
-        // TWO-PHASE BOOT DETECTION:
-        // Phase 1 (8s): Check if __APP_BOOTING__ is set (script started executing)
-        // Phase 2 (20s): Check if __APP_BOOTED__ is set (app fully rendered)
-        
-        // Phase 1: Script load check (8 seconds - give bootstrap time)
-        setTimeout(function() {
-          if (!window.__APP_BOOTING__) {
-            console.error('[Recovery] Phase 1 FAILED: Script did not start executing within 8 seconds.');
-            showBootError(
-              'Failed to load application script. The bootstrap could not find a valid entry point.',
-              'Neither /src/main.tsx (dev) nor /.vite/manifest.json (prod) resolved correctly.'
-            );
-          }
-        }, 8000);
-        
-        // Phase 2: Full boot check (20 seconds) - generous timeout for slow connections
+        // Boot timeout - show error if app doesn't start within 15 seconds
         setTimeout(function() {
           if (!window.__APP_BOOTED__) {
             var elapsed = ((Date.now() - window.__BOOT_START__) / 1000).toFixed(1);
-            var phase = window.__APP_BOOTING__ ? 'Script loaded but app not rendered' : 'Script failed to load';
-            console.warn('[Recovery] Phase 2: App did not boot within', elapsed, 'seconds.', phase);
+            console.error('[Recovery] App did not boot within 15 seconds');
             showBootError(
-              'The app didn\'t start after ' + elapsed + ' seconds. ' + (window.__APP_BOOTING__ 
-                ? 'The script loaded but rendering timed out.' 
-                : 'The script failed to load.'),
-              phase + ' - ' + new Date().toISOString()
+              'Application failed to initialize.',
+              'Boot timeout after ' + elapsed + 's. Try resetting the cache.'
             );
           }
-        }, 20000);
-        
-        // Catch ONLY our app entry script failures, not third-party scripts
-        window.addEventListener('error', function(e) {
-          // Only react to actual <script> tag failures
-          if (e.target && e.target.tagName === 'SCRIPT' && e.target.src) {
-            var src = e.target.src;
-            var isAppEntry = e.target.hasAttribute('data-app-entry');
-            var isOurBundle = src.includes('/assets/') && (src.includes('.js') || src.includes('.tsx'));
-            var isDevEntry = src.includes('/src/main.tsx');
-            
-            // Only show boot error for OUR scripts, not third-party (cloudfront, gtm, etc.)
-            if (isAppEntry || isOurBundle || isDevEntry) {
-              console.error('[Recovery] App script load error:', src);
-              showBootError(
-                'Failed to load application script. This may be a network or deployment issue.',
-                'Failed: ' + src
-              );
-            } else {
-              // Third-party script failed - just log, don't break the app
-              console.warn('[Recovery] Third-party script failed (non-critical):', src);
-            }
-          }
-        }, true);
+        }, 15000);
       })();
     </script>
     
-    <!-- Entry script is now loaded dynamically by bootstrapApp() above -->
+    <!-- Standard Vite entry - transformed at build time to hashed bundle -->
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
