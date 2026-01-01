@@ -938,3 +938,12 @@ verify_jwt = false
 # =============================================================================
 [functions.compile-meeting-transcript]
 verify_jwt = true
+
+# =============================================================================
+# Enterprise Video Calling (TURN + SFU)
+# =============================================================================
+[functions.turn-credentials]
+verify_jwt = true
+
+[functions.livekit-token]
+verify_jwt = true
