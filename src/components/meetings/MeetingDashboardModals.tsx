@@ -1,81 +1,144 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Activity, 
-  Wifi, 
-  Brain, 
-  BarChart3,
-  Settings2,
-  Gauge,
-  AlertTriangle,
-  CheckCircle
-} from 'lucide-react';
-import { PerformanceDashboard } from '@/components/meetings/PerformanceDashboard';
-import { NetworkDashboard } from '@/components/meetings/NetworkDashboard';
-import { MeetingAnalyticsDashboard } from '@/components/meetings/MeetingAnalyticsDashboard';
-import { MeetingSettingsPanel } from '@/components/meetings/MeetingSettingsPanel';
+import { PerformanceDashboard } from './PerformanceDashboard';
+import { NetworkDashboard } from './NetworkDashboard';
+import { MeetingAnalyticsDashboard } from './MeetingAnalyticsDashboard';
+import { MeetingSettingsPanel } from './MeetingSettingsPanel';
+import { Activity, Wifi, BarChart3, Settings, AlertTriangle, Brain, Gauge, Settings2 } from 'lucide-react';
+import type { MeetingFeatureSettings } from '@/hooks/useMeetingFeatureSettings';
 
 interface MeetingDashboardModalsProps {
-  isPerformanceOpen: boolean;
-  isNetworkOpen: boolean;
-  isAnalyticsOpen: boolean;
-  isSettingsOpen: boolean;
-  onClosePerformance: () => void;
-  onCloseNetwork: () => void;
-  onCloseAnalytics: () => void;
-  onCloseSettings: () => void;
-  // Data from useMasterMeeting
-  performance?: {
-    fps: number;
-    cpuUsage: number;
-    memoryUsage: number;
-    alerts: Array<{ type: string; message: string }>;
-  };
-  network?: {
-    latency: number;
+  // Network data
+  networkStats?: {
+    timestamp: number;
+    rtt: number;
+    jitter: number;
     packetLoss: number;
     bandwidth: number;
-    connectionState: string;
+  } | null;
+  networkHistory?: {
+    stats: Array<{ timestamp: number; rtt: number; jitter: number; packetLoss: number; bandwidth: number }>;
+    avgRtt: number;
+    avgJitter: number;
+    avgPacketLoss: number;
+    avgBandwidth: number;
+    trend: 'improving' | 'stable' | 'degrading';
   };
-  analytics?: {
-    participantStats: Map<string, any>;
-    meetingMetrics: any;
-    timeline: any[];
+  connectionState?: {
+    status: 'excellent' | 'good' | 'fair' | 'poor' | 'disconnected';
+    isReconnecting: boolean;
+    reconnectAttempts: number;
   };
-  settings?: {
-    current: any;
-    update: (category: string, updates: any) => void;
-    toggle: (category: string, enabled: boolean) => void;
+  // Settings
+  settings?: MeetingFeatureSettings;
+  onUpdateSetting?: <K extends keyof MeetingFeatureSettings>(
+    category: K,
+    updates: Partial<MeetingFeatureSettings[K]>
+  ) => void;
+  onToggleFeature?: (category: keyof MeetingFeatureSettings, enabled: boolean) => void;
+  onResetSettings?: () => void;
+  capabilities?: {
+    canUseFeature: (feature: string) => boolean;
+    unsupported: string[];
   };
-  onReconnect?: () => void;
 }
 
 export function MeetingDashboardModals({
-  isPerformanceOpen,
-  isNetworkOpen,
-  isAnalyticsOpen,
-  isSettingsOpen,
-  onClosePerformance,
-  onCloseNetwork,
-  onCloseAnalytics,
-  onCloseSettings,
-  performance,
-  network,
-  analytics,
+  networkStats,
+  networkHistory,
+  connectionState,
   settings,
-  onReconnect
+  onUpdateSetting,
+  onToggleFeature,
+  onResetSettings,
+  capabilities,
 }: MeetingDashboardModalsProps) {
+  const [showPerformance, setShowPerformance] = useState(false);
+  const [showNetwork, setShowNetwork] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  const handleExportNetworkReport = useCallback(() => {
+    if (!networkHistory) return;
+    const report = JSON.stringify(networkHistory, null, 2);
+    const blob = new Blob([report], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `network-report-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [networkHistory]);
+
+  const handleClearNetworkHistory = useCallback(() => {
+    console.log('Clear network history requested');
+  }, []);
+
+  const defaultNetworkHistory = {
+    stats: [],
+    avgRtt: 0,
+    avgJitter: 0,
+    avgPacketLoss: 0,
+    avgBandwidth: 0,
+    trend: 'stable' as const,
+  };
+
+  const defaultConnectionState = {
+    status: 'good' as const,
+    isReconnecting: false,
+    reconnectAttempts: 0,
+  };
+
   return (
     <>
+      {/* Control Buttons */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowPerformance(true)}
+          className="gap-2"
+        >
+          <Activity className="h-4 w-4" />
+          <span className="hidden sm:inline">Performance</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowNetwork(true)}
+          className="gap-2"
+        >
+          <Wifi className="h-4 w-4" />
+          <span className="hidden sm:inline">Network</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowAnalytics(true)}
+          className="gap-2"
+        >
+          <BarChart3 className="h-4 w-4" />
+          <span className="hidden sm:inline">Insights</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowSettings(true)}
+          className="gap-2"
+        >
+          <Settings className="h-4 w-4" />
+          <span className="hidden sm:inline">Settings</span>
+        </Button>
+      </div>
+
       {/* Performance Dashboard Modal */}
-      <Dialog open={isPerformanceOpen} onOpenChange={onClosePerformance}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <Dialog open={showPerformance} onOpenChange={setShowPerformance}>
+        <DialogContent className="max-w-2xl z-[10100]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Gauge className="w-5 h-5 text-primary" />
-              Performance Monitor
+              <Activity className="h-5 w-5" />
+              Performance Dashboard
             </DialogTitle>
           </DialogHeader>
           <PerformanceDashboard />
@@ -83,43 +146,49 @@ export function MeetingDashboardModals({
       </Dialog>
 
       {/* Network Dashboard Modal */}
-      <Dialog open={isNetworkOpen} onOpenChange={onCloseNetwork}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <Dialog open={showNetwork} onOpenChange={setShowNetwork}>
+        <DialogContent className="max-w-2xl z-[10100]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Wifi className="w-5 h-5 text-primary" />
-              Network Status
+              <Wifi className="h-5 w-5" />
+              Network Dashboard
             </DialogTitle>
           </DialogHeader>
-          <NetworkDashboard />
+          <NetworkDashboard
+            currentStats={networkStats ?? null}
+            history={networkHistory ?? defaultNetworkHistory}
+            connectionState={connectionState ?? defaultConnectionState}
+            onExportReport={handleExportNetworkReport}
+            onClearHistory={handleClearNetworkHistory}
+          />
         </DialogContent>
       </Dialog>
 
       {/* Analytics Dashboard Modal */}
-      <Dialog open={isAnalyticsOpen} onOpenChange={onCloseAnalytics}>
-        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+      <Dialog open={showAnalytics} onOpenChange={setShowAnalytics}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto z-[10100]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-primary" />
-              Meeting Analytics
+              <BarChart3 className="h-5 w-5" />
+              Meeting Insights
             </DialogTitle>
           </DialogHeader>
           <MeetingAnalyticsDashboard />
         </DialogContent>
       </Dialog>
 
-      {/* Settings Panel Modal */}
-      <Dialog open={isSettingsOpen} onOpenChange={onCloseSettings}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings2 className="w-5 h-5 text-primary" />
-              Meeting Settings
-            </DialogTitle>
-          </DialogHeader>
-          <MeetingSettingsPanel />
-        </DialogContent>
-      </Dialog>
+      {/* Settings Panel */}
+      {settings && onUpdateSetting && onToggleFeature && onResetSettings && capabilities && (
+        <MeetingSettingsPanel
+          open={showSettings}
+          onOpenChange={setShowSettings}
+          settings={settings}
+          onUpdateSetting={onUpdateSetting}
+          onToggleFeature={onToggleFeature}
+          onReset={onResetSettings}
+          capabilities={capabilities}
+        />
+      )}
     </>
   );
 }
