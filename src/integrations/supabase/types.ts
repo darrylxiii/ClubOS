@@ -20160,15 +20160,20 @@ export type Database = {
         Row: {
           auto_record: boolean | null
           auto_transcribe: boolean | null
+          candidate_ids: string[] | null
           category: string | null
           channel_type: string
+          company_id: string | null
           created_at: string | null
           description: string | null
           id: string
           is_locked: boolean | null
+          job_id: string | null
           name: string
           permissions: Json | null
           position: number | null
+          privacy_level: string | null
+          purpose_tags: string[] | null
           server_id: string | null
           updated_at: string | null
           user_limit: number | null
@@ -20176,15 +20181,20 @@ export type Database = {
         Insert: {
           auto_record?: boolean | null
           auto_transcribe?: boolean | null
+          candidate_ids?: string[] | null
           category?: string | null
           channel_type: string
+          company_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           is_locked?: boolean | null
+          job_id?: string | null
           name: string
           permissions?: Json | null
           position?: number | null
+          privacy_level?: string | null
+          purpose_tags?: string[] | null
           server_id?: string | null
           updated_at?: string | null
           user_limit?: number | null
@@ -20192,20 +20202,46 @@ export type Database = {
         Update: {
           auto_record?: boolean | null
           auto_transcribe?: boolean | null
+          candidate_ids?: string[] | null
           category?: string | null
           channel_type?: string
+          company_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           is_locked?: boolean | null
+          job_id?: string | null
           name?: string
           permissions?: Json | null
           position?: number | null
+          privacy_level?: string | null
+          purpose_tags?: string[] | null
           server_id?: string | null
           updated_at?: string | null
           user_limit?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "live_channels_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_channels_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_channels_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "live_channels_server_id_fkey"
             columns: ["server_id"]
@@ -20469,6 +20505,228 @@ export type Database = {
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      livehub_conversation_patterns: {
+        Row: {
+          channel_id: string | null
+          detected_at: string | null
+          id: string
+          outcome_correlation: number | null
+          pattern_data: Json
+          pattern_type: string
+          sample_size: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          channel_id?: string | null
+          detected_at?: string | null
+          id?: string
+          outcome_correlation?: number | null
+          pattern_data?: Json
+          pattern_type: string
+          sample_size?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          channel_id?: string | null
+          detected_at?: string | null
+          id?: string
+          outcome_correlation?: number | null
+          pattern_data?: Json
+          pattern_type?: string
+          sample_size?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "livehub_conversation_patterns_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      livehub_intelligence_bridge_log: {
+        Row: {
+          bridge_type: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          recording_id: string | null
+          status: string | null
+          target_id: string | null
+        }
+        Insert: {
+          bridge_type: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          recording_id?: string | null
+          status?: string | null
+          target_id?: string | null
+        }
+        Update: {
+          bridge_type?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          recording_id?: string | null
+          status?: string | null
+          target_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "livehub_intelligence_bridge_log_recording_id_fkey"
+            columns: ["recording_id"]
+            isOneToOne: false
+            referencedRelation: "live_channel_recordings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      livehub_session_summaries: {
+        Row: {
+          action_items: Json | null
+          channel_id: string | null
+          company_id: string | null
+          created_at: string | null
+          decisions_made: Json | null
+          duration_seconds: number | null
+          id: string
+          key_topics: string[] | null
+          mentioned_entities: Json | null
+          participant_insights: Json | null
+          processed_at: string | null
+          processing_status: string | null
+          recording_id: string | null
+          sentiment_analysis: Json | null
+          summary: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_items?: Json | null
+          channel_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          decisions_made?: Json | null
+          duration_seconds?: number | null
+          id?: string
+          key_topics?: string[] | null
+          mentioned_entities?: Json | null
+          participant_insights?: Json | null
+          processed_at?: string | null
+          processing_status?: string | null
+          recording_id?: string | null
+          sentiment_analysis?: Json | null
+          summary?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_items?: Json | null
+          channel_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          decisions_made?: Json | null
+          duration_seconds?: number | null
+          id?: string
+          key_topics?: string[] | null
+          mentioned_entities?: Json | null
+          participant_insights?: Json | null
+          processed_at?: string | null
+          processing_status?: string | null
+          recording_id?: string | null
+          sentiment_analysis?: Json | null
+          summary?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "livehub_session_summaries_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "livehub_session_summaries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "livehub_session_summaries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "livehub_session_summaries_recording_id_fkey"
+            columns: ["recording_id"]
+            isOneToOne: true
+            referencedRelation: "live_channel_recordings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      livehub_transcripts: {
+        Row: {
+          channel_id: string | null
+          confidence: number | null
+          created_at: string | null
+          id: string
+          is_final: boolean | null
+          metadata: Json | null
+          recording_id: string | null
+          speaker_name: string | null
+          text: string
+          timestamp_ms: number | null
+          user_id: string | null
+        }
+        Insert: {
+          channel_id?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_final?: boolean | null
+          metadata?: Json | null
+          recording_id?: string | null
+          speaker_name?: string | null
+          text: string
+          timestamp_ms?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          channel_id?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_final?: boolean | null
+          metadata?: Json | null
+          recording_id?: string | null
+          speaker_name?: string | null
+          text?: string
+          timestamp_ms?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "livehub_transcripts_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "livehub_transcripts_recording_id_fkey"
+            columns: ["recording_id"]
+            isOneToOne: false
+            referencedRelation: "live_channel_recordings"
             referencedColumns: ["id"]
           },
         ]
