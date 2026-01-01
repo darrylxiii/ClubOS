@@ -950,3 +950,15 @@ verify_jwt = true
 
 [functions.livekit-token]
 verify_jwt = true
+
+# =============================================================================
+# LiveHub Intelligence Processing (Internal)
+# =============================================================================
+[functions.process-livehub-recording]
+verify_jwt = false
+
+[functions.bridge-livehub-to-intelligence]
+verify_jwt = false
+
+[functions.close-stale-livehub-sessions]
+verify_jwt = false
