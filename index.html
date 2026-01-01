@@ -50,7 +50,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- PWA Configuration -->
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#0E0E10" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#F5F4EF" media="(prefers-color-scheme: light)" />
     
@@ -267,62 +267,85 @@
         }
         window.showBootError = showBootError;
         
-        // Probe the entry script to get diagnostic info
-        async function probeEntryScript(scriptSrc) {
+        // RESILIENT BOOTSTRAP: Try to load the app entry, with fallback to build manifest
+        async function bootstrapApp() {
+          var entryPath = '/src/main.tsx';
+          var manifestPath = '/.vite/manifest.json';
+          
+          // First, check if we're in production by trying to load the build manifest
           try {
-            var res = await fetch(scriptSrc, { method: 'GET', cache: 'no-store' });
-            var contentType = res.headers.get('content-type') || 'unknown';
-            var text = await res.text();
-            var snippet = text.substring(0, 100).replace(/\s+/g, ' ');
-            return {
-              status: res.status,
-              contentType: contentType,
-              snippet: snippet,
-              isHTML: contentType.includes('html') || text.trim().startsWith('<!') || text.trim().startsWith('<html')
-            };
-          } catch (e) {
-            return { status: 0, error: e.message, contentType: 'fetch-failed' };
-          }
-        }
-        
-        // TWO-PHASE BOOT DETECTION:
-        // Phase 1 (5s): Check if __APP_BOOTING__ is set (script started executing)
-        // Phase 2 (15s): Check if __APP_BOOTED__ is set (app fully rendered)
-        
-        // Phase 1: Script load check (5 seconds)
-        setTimeout(async function() {
-          if (!window.__APP_BOOTING__) {
-            console.error('[Recovery] Phase 1 FAILED: Script did not start executing within 5 seconds.');
-            
-            // Probe to diagnose why
-            var entryScript = document.querySelector('script[data-app-entry]');
-            var scriptSrc = entryScript ? entryScript.src : '/src/main.tsx';
-            var probe = await probeEntryScript(scriptSrc);
-            
-            var detail = 'Status: ' + probe.status + ' | Type: ' + probe.contentType;
-            if (probe.isHTML) {
-              detail += ' | ERROR: Server returned HTML instead of JS (likely 404 page)';
-            } else if (probe.error) {
-              detail += ' | Fetch error: ' + probe.error;
-            } else if (probe.snippet) {
-              detail += ' | Preview: ' + probe.snippet.substring(0, 60) + '...';
+            var manifestRes = await fetch(manifestPath, { cache: 'no-store' });
+            if (manifestRes.ok) {
+              // We're in production! Use the hashed bundle from the manifest
+              var manifest = await manifestRes.json();
+              var entry = manifest['src/main.tsx'];
+              if (entry && entry.file) {
+                var prodEntry = '/' + entry.file;
+                console.log('[Bootstrap] Production mode detected. Loading:', prodEntry);
+                
+                var script = document.createElement('script');
+                script.type = 'module';
+                script.src = prodEntry;
+                script.setAttribute('data-app-entry', 'true');
+                script.crossOrigin = 'anonymous';
+                script.onerror = function() {
+                  console.error('[Bootstrap] Failed to load production bundle:', prodEntry);
+                  showBootError(
+                    'Failed to load the application bundle.',
+                    'Bundle: ' + prodEntry + ' | Manifest found but bundle failed to load'
+                  );
+                };
+                document.body.appendChild(script);
+                return; // Success path for production
+              }
             }
-            
-            // Auto-recovery: if we got HTML or 404, clear cache and reload
-            if (probe.status === 404 || probe.isHTML) {
-              console.log('[Recovery] Detected stale deployment, auto-clearing cache...');
-              await resetCache();
+          } catch (e) {
+            // No manifest = dev mode, or production without manifest (legacy)
+            console.log('[Bootstrap] No build manifest found, trying dev entry...');
+          }
+          
+          // Fallback: Try the dev entry (works in dev, will 404 in broken production)
+          try {
+            var devRes = await fetch(entryPath, { method: 'HEAD', cache: 'no-store' });
+            if (devRes.ok && devRes.headers.get('content-type')?.includes('script')) {
+              // Dev mode: the /src/main.tsx is servable
+              console.log('[Bootstrap] Dev mode: loading', entryPath);
+              var script = document.createElement('script');
+              script.type = 'module';
+              script.src = entryPath;
+              script.setAttribute('data-app-entry', 'true');
+              document.body.appendChild(script);
               return;
             }
-            
+          } catch (e) {
+            // Dev entry fetch failed
+          }
+          
+          // Neither worked - this is a broken deployment
+          console.error('[Bootstrap] CRITICAL: Neither production bundle nor dev entry available');
+          console.log('[Bootstrap] Attempting auto-recovery by clearing cache...');
+          await resetCache();
+        }
+        
+        // Start the bootstrap immediately
+        bootstrapApp();
+        
+        // TWO-PHASE BOOT DETECTION:
+        // Phase 1 (8s): Check if __APP_BOOTING__ is set (script started executing)
+        // Phase 2 (20s): Check if __APP_BOOTED__ is set (app fully rendered)
+        
+        // Phase 1: Script load check (8 seconds - give bootstrap time)
+        setTimeout(function() {
+          if (!window.__APP_BOOTING__) {
+            console.error('[Recovery] Phase 1 FAILED: Script did not start executing within 8 seconds.');
             showBootError(
-              'Failed to load application script. This may be caused by a network issue or cached deployment problem.',
-              detail
+              'Failed to load application script. The bootstrap could not find a valid entry point.',
+              'Neither /src/main.tsx (dev) nor /.vite/manifest.json (prod) resolved correctly.'
             );
           }
-        }, 5000);
+        }, 8000);
         
-        // Phase 2: Full boot check (15 seconds) - generous timeout for slow connections
+        // Phase 2: Full boot check (20 seconds) - generous timeout for slow connections
         setTimeout(function() {
           if (!window.__APP_BOOTED__) {
             var elapsed = ((Date.now() - window.__BOOT_START__) / 1000).toFixed(1);
@@ -335,7 +358,7 @@
               phase + ' - ' + new Date().toISOString()
             );
           }
-        }, 15000);
+        }, 20000);
         
         // Catch ONLY our app entry script failures, not third-party scripts
         window.addEventListener('error', function(e) {
@@ -362,6 +385,6 @@
       })();
     </script>
     
-    <script type="module" src="/src/main.tsx" data-app-entry="true"></script>
+    <!-- Entry script is now loaded dynamically by bootstrapApp() above -->
   </body>
 </html>
