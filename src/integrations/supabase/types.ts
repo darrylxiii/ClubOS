@@ -6852,6 +6852,9 @@ export type Database = {
       }
       companies: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           benefits: Json | null
           careers_email: string | null
           careers_page_url: string | null
@@ -6890,6 +6893,9 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           benefits?: Json | null
           careers_email?: string | null
           careers_page_url?: string | null
@@ -6928,6 +6934,9 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           benefits?: Json | null
           careers_email?: string | null
           careers_page_url?: string | null
