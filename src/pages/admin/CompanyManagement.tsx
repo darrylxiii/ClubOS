@@ -328,7 +328,10 @@ const CompanyManagement = () => {
           <CompanyFeeConfigDialog
             open={feeDialogOpen}
             onOpenChange={setFeeDialogOpen}
-            company={selectedCompany}
+            company={{
+              ...selectedCompany,
+              fee_type: (selectedCompany.fee_type as "percentage" | "fixed" | "hybrid") || "percentage",
+            }}
           />
           <CompanyMembersManager
             open={membersDialogOpen}
