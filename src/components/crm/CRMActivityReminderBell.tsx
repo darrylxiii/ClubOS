@@ -56,6 +56,8 @@ export function CRMActivityReminderBell() {
       const endOfToday = new Date();
       endOfToday.setHours(23, 59, 59, 999);
 
+      const todayStr = now.toISOString().split('T')[0];
+
       const { data, error } = await supabase
         .from('crm_activities')
         .select(`
@@ -64,8 +66,9 @@ export function CRMActivityReminderBell() {
         `)
         .eq('owner_id', user.id)
         .eq('is_done', false)
-        .lte('scheduled_at', endOfToday.toISOString())
-        .order('scheduled_at', { ascending: true })
+        .lte('due_date', todayStr)
+        .order('due_date', { ascending: true })
+        .order('due_time', { ascending: true })
         .limit(10);
 
       if (error) throw error;
