@@ -217,6 +217,7 @@
         window.__APP_BOOTED__ = false;
         window.__APP_BOOTING__ = false; // Set to true by main.tsx when script starts executing
         window.__BOOT_START__ = Date.now();
+        window.__BUILD_TIME__ = '__BUILD_TIMESTAMP__'; // Replaced at build time
         
         async function resetCache() {
           var btn = event && event.target;
@@ -266,17 +267,57 @@
         }
         window.showBootError = showBootError;
         
+        // Probe the entry script to get diagnostic info
+        async function probeEntryScript(scriptSrc) {
+          try {
+            var res = await fetch(scriptSrc, { method: 'GET', cache: 'no-store' });
+            var contentType = res.headers.get('content-type') || 'unknown';
+            var text = await res.text();
+            var snippet = text.substring(0, 100).replace(/\s+/g, ' ');
+            return {
+              status: res.status,
+              contentType: contentType,
+              snippet: snippet,
+              isHTML: contentType.includes('html') || text.trim().startsWith('<!') || text.trim().startsWith('<html')
+            };
+          } catch (e) {
+            return { status: 0, error: e.message, contentType: 'fetch-failed' };
+          }
+        }
+        
         // TWO-PHASE BOOT DETECTION:
         // Phase 1 (5s): Check if __APP_BOOTING__ is set (script started executing)
         // Phase 2 (15s): Check if __APP_BOOTED__ is set (app fully rendered)
         
         // Phase 1: Script load check (5 seconds)
-        setTimeout(function() {
+        setTimeout(async function() {
           if (!window.__APP_BOOTING__) {
             console.error('[Recovery] Phase 1 FAILED: Script did not start executing within 5 seconds.');
+            
+            // Probe to diagnose why
+            var entryScript = document.querySelector('script[data-app-entry]');
+            var scriptSrc = entryScript ? entryScript.src : '/src/main.tsx';
+            var probe = await probeEntryScript(scriptSrc);
+            
+            var detail = 'Status: ' + probe.status + ' | Type: ' + probe.contentType;
+            if (probe.isHTML) {
+              detail += ' | ERROR: Server returned HTML instead of JS (likely 404 page)';
+            } else if (probe.error) {
+              detail += ' | Fetch error: ' + probe.error;
+            } else if (probe.snippet) {
+              detail += ' | Preview: ' + probe.snippet.substring(0, 60) + '...';
+            }
+            
+            // Auto-recovery: if we got HTML or 404, clear cache and reload
+            if (probe.status === 404 || probe.isHTML) {
+              console.log('[Recovery] Detected stale deployment, auto-clearing cache...');
+              await resetCache();
+              return;
+            }
+            
             showBootError(
               'Failed to load application script. This may be caused by a network issue or cached deployment problem.',
-              'Script not loaded after 5s'
+              detail
             );
           }
         }, 5000);

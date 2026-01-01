@@ -158,14 +158,20 @@ export default defineConfig(({ mode, command }) => ({
               }
             }
           },
+          // CRITICAL: JS/CSS bundles use NetworkFirst to prevent stale-asset bricking
+          // When index.html references new hashed bundles, we MUST fetch from network
           {
             urlPattern: /\.(?:js|css)$/i,
-            handler: 'StaleWhileRevalidate',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'static-resources',
+              networkTimeoutSeconds: 5, // Fast fallback to cache if offline
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days for offline fallback
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
               }
             }
           }
