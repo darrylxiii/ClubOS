@@ -1,14 +1,27 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Building2, Users, Briefcase, Search, ExternalLink, Ban, CheckCircle } from "lucide-react";
+import { Building2, Users, Briefcase, Search, ExternalLink, Filter } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CompanyStatusBadge } from "@/components/admin/companies/CompanyStatusBadge";
+import { CompanyRowActions } from "@/components/admin/companies/CompanyRowActions";
+import { ArchiveCompanyDialog } from "@/components/admin/companies/ArchiveCompanyDialog";
+import { DeleteCompanyDialog } from "@/components/admin/companies/DeleteCompanyDialog";
+import { CompanyMembersManager } from "@/components/admin/companies/CompanyMembersManager";
+import { CompanyFeeConfigDialog } from "@/components/financial/CompanyFeeConfigDialog";
+import { EditCompanyDialog } from "@/components/companies/EditCompanyDialog";
 
 interface Company {
   id: string;
@@ -20,13 +33,29 @@ interface Company {
   active_jobs_count: number;
   total_members: number;
   is_active: boolean;
+  archived_at: string | null;
+  fee_type: string | null;
+  placement_fee_percentage: number | null;
+  placement_fee_fixed: number | null;
+  default_fee_notes: string | null;
 }
+
+type StatusFilter = "all" | "active" | "suspended" | "archived";
 
 const CompanyManagement = () => {
   const navigate = useNavigate();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
+
+  // Dialog states
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [feeDialogOpen, setFeeDialogOpen] = useState(false);
+  const [membersDialogOpen, setMembersDialogOpen] = useState(false);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchCompanies();
@@ -35,27 +64,23 @@ const CompanyManagement = () => {
   const fetchCompanies = async () => {
     setLoading(true);
     try {
-      // Fetch companies with job and member counts
       const { data: companiesData, error: companiesError } = await supabase
-        .from('companies')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("companies")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (companiesError) throw companiesError;
 
-      // Fetch job counts per company
       const { data: jobCounts } = await supabase
-        .from('jobs')
-        .select('company_id')
-        .eq('status', 'published');
+        .from("jobs")
+        .select("company_id")
+        .eq("status", "published");
 
-      // Fetch member counts per company
       const { data: memberCounts } = await supabase
-        .from('company_members')
-        .select('company_id')
-        .eq('is_active', true);
+        .from("company_members")
+        .select("company_id")
+        .eq("is_active", true);
 
-      // Aggregate counts
       const jobCountMap = (jobCounts || []).reduce((acc, job) => {
         acc[job.company_id] = (acc[job.company_id] || 0) + 1;
         return acc;
@@ -66,31 +91,38 @@ const CompanyManagement = () => {
         return acc;
       }, {} as Record<string, number>);
 
-      const enrichedCompanies = (companiesData || []).map(company => ({
+      const enrichedCompanies = (companiesData || []).map((company) => ({
         ...company,
         active_jobs_count: jobCountMap[company.id] || 0,
         total_members: memberCountMap[company.id] || 0,
-        is_active: true, // Companies don't have an active status in current schema
       }));
 
       setCompanies(enrichedCompanies);
     } catch (error) {
-      console.error('Error fetching companies:', error);
-      toast.error('Failed to load companies');
+      console.error("Error fetching companies:", error);
+      toast.error("Failed to load companies");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleToggleStatus = async (companyId: string, currentStatus: boolean) => {
-    // Note: This is a placeholder since companies don't have an is_active field yet
-    // You'd need to add this field via migration
-    toast.info('Company status management coming soon');
-  };
+  const filteredCompanies = companies.filter((company) => {
+    const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (statusFilter === "all") return matchesSearch;
+    if (statusFilter === "archived") return matchesSearch && !!company.archived_at;
+    if (statusFilter === "suspended") return matchesSearch && !company.archived_at && !company.is_active;
+    if (statusFilter === "active") return matchesSearch && !company.archived_at && company.is_active;
+    
+    return matchesSearch;
+  });
 
-  const filteredCompanies = companies.filter(company =>
-    company.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const stats = {
+    total: companies.length,
+    active: companies.filter((c) => c.is_active && !c.archived_at).length,
+    suspended: companies.filter((c) => !c.is_active && !c.archived_at).length,
+    archived: companies.filter((c) => !!c.archived_at).length,
+  };
 
   if (loading) {
     return (
@@ -98,7 +130,7 @@ const CompanyManagement = () => {
         <Skeleton className="h-10 w-64 mb-8" />
         <div className="grid gap-4">
           {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-32 w-full" />
+            <Skeleton key={i} className="h-24 w-full" />
           ))}
         </div>
       </div>
@@ -114,9 +146,65 @@ const CompanyManagement = () => {
         </p>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{stats.total}</p>
+                <p className="text-xs text-muted-foreground">Total</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <Building2 className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{stats.active}</p>
+                <p className="text-xs text-muted-foreground">Active</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-destructive/10 rounded-lg">
+                <Building2 className="h-5 w-5 text-destructive" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{stats.suspended}</p>
+                <p className="text-xs text-muted-foreground">Suspended</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-muted rounded-lg">
+                <Building2 className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{stats.archived}</p>
+                <p className="text-xs text-muted-foreground">Archived</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search companies..."
@@ -125,59 +213,22 @@ const CompanyManagement = () => {
             className="pl-9"
           />
         </div>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Building2 className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{companies.length}</p>
-                <p className="text-sm text-muted-foreground">Total Companies</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Briefcase className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {companies.reduce((sum, c) => sum + c.active_jobs_count, 0)}
-                </p>
-                <p className="text-sm text-muted-foreground">Active Jobs</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Users className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {companies.reduce((sum, c) => sum + c.total_members, 0)}
-                </p>
-                <p className="text-sm text-muted-foreground">Total Users</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+          <SelectTrigger className="w-40">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Companies</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="suspended">Suspended</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Companies List */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {filteredCompanies.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center text-muted-foreground">
@@ -186,86 +237,121 @@ const CompanyManagement = () => {
           </Card>
         ) : (
           filteredCompanies.map((company) => (
-            <Card key={company.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
+            <Card
+              key={company.id}
+              className={company.archived_at ? "opacity-60" : ""}
+            >
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className="h-10 w-10">
                       <AvatarImage src={company.logo_url || undefined} />
                       <AvatarFallback>
                         {company.name.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="flex items-center gap-2">
-                        {company.name}
-                        {company.is_active && (
-                          <Badge variant="outline" className="gap-1">
-                            <CheckCircle className="h-3 w-3" /> Active
-                          </Badge>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{company.name}</span>
+                        <CompanyStatusBadge
+                          isActive={company.is_active}
+                          isArchived={!!company.archived_at}
+                        />
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1">
+                          <Briefcase className="h-3 w-3" />
+                          {company.active_jobs_count} jobs
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          {company.total_members} members
+                        </span>
+                        {company.website_url && (
+                          <a
+                            href={company.website_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 hover:text-primary"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Website
+                          </a>
                         )}
-                      </CardTitle>
-                      <CardDescription>
-                        Member since {new Date(company.created_at).toLocaleDateString()}
-                      </CardDescription>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/company/${company.slug}`)}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleToggleStatus(company.id, company.is_active)}
-                    >
-                      {company.is_active ? (
-                        <>
-                          <Ban className="h-4 w-4 mr-2" />
-                          Suspend
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Activate
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-6 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
-                    <span>{company.active_jobs_count} active jobs</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span>{company.total_members} members</span>
-                  </div>
-                  {company.website_url && (
-                    <a
-                      href={company.website_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 hover:text-primary"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Website
-                    </a>
-                  )}
+
+                  <CompanyRowActions
+                    company={company}
+                    onEdit={() => {
+                      setSelectedCompany(company);
+                      setEditDialogOpen(true);
+                    }}
+                    onConfigureFees={() => {
+                      setSelectedCompany(company);
+                      setFeeDialogOpen(true);
+                    }}
+                    onManageMembers={() => {
+                      setSelectedCompany(company);
+                      setMembersDialogOpen(true);
+                    }}
+                    onArchive={() => {
+                      setSelectedCompany(company);
+                      setArchiveDialogOpen(true);
+                    }}
+                    onDelete={() => {
+                      setSelectedCompany(company);
+                      setDeleteDialogOpen(true);
+                    }}
+                    onRefresh={fetchCompanies}
+                  />
                 </div>
               </CardContent>
             </Card>
           ))
         )}
       </div>
+
+      {/* Dialogs */}
+      {selectedCompany && (
+        <>
+          <EditCompanyDialog
+            companyId={selectedCompany.id}
+            open={editDialogOpen}
+            onClose={() => setEditDialogOpen(false)}
+            onSuccess={() => {
+              fetchCompanies();
+              setEditDialogOpen(false);
+            }}
+          />
+          <CompanyFeeConfigDialog
+            open={feeDialogOpen}
+            onOpenChange={setFeeDialogOpen}
+            company={selectedCompany}
+          />
+          <CompanyMembersManager
+            open={membersDialogOpen}
+            onOpenChange={setMembersDialogOpen}
+            companyId={selectedCompany.id}
+            companyName={selectedCompany.name}
+          />
+          <ArchiveCompanyDialog
+            open={archiveDialogOpen}
+            onOpenChange={setArchiveDialogOpen}
+            companyId={selectedCompany.id}
+            companyName={selectedCompany.name}
+            onSuccess={fetchCompanies}
+          />
+          <DeleteCompanyDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            companyId={selectedCompany.id}
+            companyName={selectedCompany.name}
+            onSuccess={fetchCompanies}
+          />
+        </>
+      )}
     </div>
   );
 };
