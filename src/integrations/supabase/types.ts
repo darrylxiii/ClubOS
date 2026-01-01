@@ -4475,6 +4475,109 @@ export type Database = {
         }
         Relationships: []
       }
+      candidate_company_history: {
+        Row: {
+          candidate_id: string | null
+          company_id: string | null
+          could_revisit: boolean | null
+          created_at: string | null
+          currency: string | null
+          feedback_summary: string | null
+          id: string
+          interaction_type: string
+          job_id: string | null
+          metadata: Json | null
+          notes: string | null
+          outcome_reason: string | null
+          relationship_quality: string | null
+          revisit_after: string | null
+          salary_discussed: number | null
+          stage_reached: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          company_id?: string | null
+          could_revisit?: boolean | null
+          created_at?: string | null
+          currency?: string | null
+          feedback_summary?: string | null
+          id?: string
+          interaction_type: string
+          job_id?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          outcome_reason?: string | null
+          relationship_quality?: string | null
+          revisit_after?: string | null
+          salary_discussed?: number | null
+          stage_reached?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          company_id?: string | null
+          could_revisit?: boolean | null
+          created_at?: string | null
+          currency?: string | null
+          feedback_summary?: string | null
+          id?: string
+          interaction_type?: string
+          job_id?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          outcome_reason?: string | null
+          relationship_quality?: string | null
+          revisit_after?: string | null
+          salary_discussed?: number | null
+          stage_reached?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_company_history_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_company_history_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_company_history_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_company_history_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_company_history_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_company_history_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_documents: {
         Row: {
           archived: boolean | null
@@ -16510,6 +16613,33 @@ export type Database = {
         }
         Relationships: []
       }
+      intelligence_embeddings: {
+        Row: {
+          content: string
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       intelligence_processing_errors: {
         Row: {
           created_at: string | null
@@ -16554,6 +16684,70 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      intelligence_queries: {
+        Row: {
+          created_at: string | null
+          feedback: string | null
+          id: string
+          query_params: Json | null
+          query_text: string | null
+          query_type: string
+          response_time_ms: number | null
+          result_clicked_ids: string[] | null
+          results_count: number | null
+          user_id: string | null
+          was_helpful: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          query_params?: Json | null
+          query_text?: string | null
+          query_type: string
+          response_time_ms?: number | null
+          result_clicked_ids?: string[] | null
+          results_count?: number | null
+          user_id?: string | null
+          was_helpful?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          query_params?: Json | null
+          query_text?: string | null
+          query_type?: string
+          response_time_ms?: number | null
+          result_clicked_ids?: string[] | null
+          results_count?: number | null
+          user_id?: string | null
+          was_helpful?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intelligence_queries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "intelligence_queries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intelligence_queries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       intelligence_queue: {
         Row: {
@@ -27364,6 +27558,82 @@ export type Database = {
           },
         ]
       }
+      predictive_signals: {
+        Row: {
+          actioned_at: string | null
+          actioned_by: string | null
+          contributing_factors: string[] | null
+          created_at: string | null
+          detected_at: string | null
+          entity_id: string
+          entity_type: string
+          evidence: Json
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          outcome: string | null
+          recommended_actions: string[] | null
+          signal_strength: number
+          signal_type: string
+        }
+        Insert: {
+          actioned_at?: string | null
+          actioned_by?: string | null
+          contributing_factors?: string[] | null
+          created_at?: string | null
+          detected_at?: string | null
+          entity_id: string
+          entity_type: string
+          evidence?: Json
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          outcome?: string | null
+          recommended_actions?: string[] | null
+          signal_strength: number
+          signal_type: string
+        }
+        Update: {
+          actioned_at?: string | null
+          actioned_by?: string | null
+          contributing_factors?: string[] | null
+          created_at?: string | null
+          detected_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          evidence?: Json
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          outcome?: string | null
+          recommended_actions?: string[] | null
+          signal_strength?: number
+          signal_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "predictive_signals_actioned_by_fkey"
+            columns: ["actioned_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "predictive_signals_actioned_by_fkey"
+            columns: ["actioned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "predictive_signals_actioned_by_fkey"
+            columns: ["actioned_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pressure_cooker_actions: {
         Row: {
           action: string
@@ -32993,6 +33263,62 @@ export type Database = {
           },
         ]
       }
+      stakeholder_memory: {
+        Row: {
+          confidence_score: number | null
+          content: string
+          context: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          last_validated_at: string | null
+          memory_type: string
+          source_id: string | null
+          source_type: string | null
+          stakeholder_id: string | null
+          tags: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          content: string
+          context?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          last_validated_at?: string | null
+          memory_type: string
+          source_id?: string | null
+          source_type?: string | null
+          stakeholder_id?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          content?: string
+          context?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          last_validated_at?: string | null
+          memory_type?: string
+          source_id?: string | null
+          source_type?: string | null
+          stakeholder_id?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stakeholder_memory_stakeholder_id_fkey"
+            columns: ["stakeholder_id"]
+            isOneToOne: false
+            referencedRelation: "company_stakeholders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stakeholder_relationships: {
         Row: {
           created_at: string | null
@@ -33650,6 +33976,85 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      success_patterns: {
+        Row: {
+          company_size: string | null
+          context: Json | null
+          contributed_by: string | null
+          created_at: string | null
+          example_content: string | null
+          id: string
+          industry: string | null
+          is_verified: boolean | null
+          learned_from: Json | null
+          pattern_description: string
+          pattern_type: string
+          sample_size: number | null
+          seniority_level: string | null
+          success_rate: number | null
+          tags: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_size?: string | null
+          context?: Json | null
+          contributed_by?: string | null
+          created_at?: string | null
+          example_content?: string | null
+          id?: string
+          industry?: string | null
+          is_verified?: boolean | null
+          learned_from?: Json | null
+          pattern_description: string
+          pattern_type: string
+          sample_size?: number | null
+          seniority_level?: string | null
+          success_rate?: number | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_size?: string | null
+          context?: Json | null
+          contributed_by?: string | null
+          created_at?: string | null
+          example_content?: string | null
+          id?: string
+          industry?: string | null
+          is_verified?: boolean | null
+          learned_from?: Json | null
+          pattern_description?: string
+          pattern_type?: string
+          sample_size?: number | null
+          seniority_level?: string | null
+          success_rate?: number | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "success_patterns_contributed_by_fkey"
+            columns: ["contributed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "success_patterns_contributed_by_fkey"
+            columns: ["contributed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "success_patterns_contributed_by_fkey"
+            columns: ["contributed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
