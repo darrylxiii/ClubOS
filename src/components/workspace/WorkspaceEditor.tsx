@@ -11,7 +11,7 @@ import '@blocknote/mantine/style.css';
 import { useTheme } from 'next-themes';
 import { WorkspacePage } from '@/hooks/useWorkspacePages';
 import { cn } from '@/lib/utils';
-import { customBlockSpecs } from './editor/customBlocks';
+import { getCustomBlockSpecs } from './editor/customBlocks';
 import { EditorToolbar } from './editor/EditorToolbar';
 import { getCustomSlashMenuItems, filterSlashMenuItems } from './editor/SlashMenuItems';
 import { useCollaborativeCursors } from '@/hooks/useCollaborativeCursors';
@@ -22,13 +22,15 @@ import { SyncStatusIndicator } from './SyncStatusIndicator';
 import { AIWritingToolbar } from './ai/AIWritingToolbar';
 import { AISlashCommandDialog } from './ai/AISlashCommandDialog';
 
-// Create schema with custom blocks
-const schema = BlockNoteSchema.create({
-  blockSpecs: {
-    ...defaultBlockSpecs,
-    ...customBlockSpecs,
-  } as any,
-});
+// Lazy schema creation - only runs when component mounts, not at module evaluation
+function createEditorSchema() {
+  return BlockNoteSchema.create({
+    blockSpecs: {
+      ...defaultBlockSpecs,
+      ...getCustomBlockSpecs(),
+    } as any,
+  });
+}
 
 interface WorkspaceEditorProps {
   page: WorkspacePage;
@@ -75,6 +77,9 @@ export function WorkspaceEditor({
     }
     return page.content as PartialBlock[];
   }, [page.id]);
+
+  // Create schema lazily at mount time to avoid TDZ errors
+  const schema = useMemo(() => createEditorSchema(), []);
 
   const editor = useCreateBlockNote({
     schema,
