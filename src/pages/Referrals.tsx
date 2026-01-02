@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Building2, Briefcase, Users, History, Plus, TrendingUp, Trophy, Zap, Activity } from "lucide-react";
+import { Building2, Briefcase, Users, History, Plus, TrendingUp, Trophy, Zap, Activity, Share2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/AppLayout";
@@ -15,6 +15,8 @@ import { ReferralLeaderboard } from "@/components/referrals/ReferralLeaderboard"
 import { ReferralTierProgress } from "@/components/referrals/ReferralTierProgress";
 import { ReferralChallenges } from "@/components/referrals/ReferralChallenges";
 import { ReferralActivityFeed } from "@/components/referrals/ReferralActivityFeed";
+import { ReferralShareSheet } from "@/components/referrals/ReferralShareSheet";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { 
   useReferralPolicies, 
   useReferralEarnings, 
@@ -22,10 +24,13 @@ import {
   useReferralStats 
 } from "@/hooks/useReferralSystem";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Referrals() {
   const [claimDialogOpen, setClaimDialogOpen] = useState(false);
+  const [shareSheetOpen, setShareSheetOpen] = useState(false);
   
+  const { user } = useAuth();
   const { role } = useUserRole();
   const { data: policies, isLoading: policiesLoading } = useReferralPolicies();
   const { data: earnings, isLoading: earningsLoading } = useReferralEarnings();
@@ -72,6 +77,10 @@ export default function Referrals() {
           </div>
           
           <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShareSheetOpen(true)} className="gap-2">
+              <Share2 className="h-4 w-4" />
+              Share Link
+            </Button>
             {(isAdmin || isPartner) && (
               <Button variant="outline" size="sm" onClick={handleClaimClick} className="gap-2">
                 <Building2 className="h-4 w-4" />
@@ -85,20 +94,57 @@ export default function Referrals() {
           </div>
         </motion.div>
 
+        {/* Tier Progress & Active Challenges Banner */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <ReferralTierProgress />
+          <ReferralChallenges />
+        </div>
+
         <ReferralEarningsOverview stats={stats || defaultStats} loading={statsLoading} />
 
         <RevenueShareInfo shares={revenueShares || []} userRole={role || undefined} />
 
         <Tabs defaultValue="pipeline" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="pipeline"><Briefcase className="h-4 w-4 mr-2 hidden sm:block" />Pipeline</TabsTrigger>
-            <TabsTrigger value="companies"><Building2 className="h-4 w-4 mr-2 hidden sm:block" />Companies</TabsTrigger>
-            <TabsTrigger value="members"><Users className="h-4 w-4 mr-2 hidden sm:block" />Members</TabsTrigger>
-            <TabsTrigger value="history"><History className="h-4 w-4 mr-2 hidden sm:block" />History</TabsTrigger>
-          </TabsList>
+          <ScrollArea className="w-full whitespace-nowrap">
+            <TabsList className="inline-flex w-max">
+              <TabsTrigger value="pipeline" className="gap-2">
+                <Briefcase className="h-4 w-4" />
+                <span className="hidden sm:inline">Pipeline</span>
+              </TabsTrigger>
+              <TabsTrigger value="leaderboard" className="gap-2">
+                <Trophy className="h-4 w-4" />
+                <span className="hidden sm:inline">Leaderboard</span>
+              </TabsTrigger>
+              <TabsTrigger value="activity" className="gap-2">
+                <Activity className="h-4 w-4" />
+                <span className="hidden sm:inline">Activity</span>
+              </TabsTrigger>
+              <TabsTrigger value="companies" className="gap-2">
+                <Building2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Companies</span>
+              </TabsTrigger>
+              <TabsTrigger value="members" className="gap-2">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Members</span>
+              </TabsTrigger>
+              <TabsTrigger value="history" className="gap-2">
+                <History className="h-4 w-4" />
+                <span className="hidden sm:inline">History</span>
+              </TabsTrigger>
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
 
           <TabsContent value="pipeline" className="space-y-4">
             <ReferralJobTracker />
+          </TabsContent>
+
+          <TabsContent value="leaderboard" className="space-y-4">
+            <ReferralLeaderboard />
+          </TabsContent>
+
+          <TabsContent value="activity" className="space-y-4">
+            <ReferralActivityFeed />
           </TabsContent>
 
           <TabsContent value="companies" className="space-y-4">
@@ -123,6 +169,7 @@ export default function Referrals() {
         </Tabs>
 
         <ClaimReferralDialog open={claimDialogOpen} onOpenChange={setClaimDialogOpen} />
+        <ReferralShareSheet open={shareSheetOpen} onOpenChange={setShareSheetOpen} />
       </div>
     </AppLayout>
   );
