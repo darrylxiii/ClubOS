@@ -24193,6 +24193,69 @@ export type Database = {
           },
         ]
       }
+      moneybird_sales_invoices: {
+        Row: {
+          contact_id: string | null
+          contact_name: string | null
+          created_at: string
+          currency: string | null
+          due_date: string | null
+          id: string
+          invoice_date: string | null
+          invoice_number: string | null
+          moneybird_id: string
+          paid_amount: number
+          paid_at: string | null
+          raw_data: Json | null
+          state_normalized: string
+          state_raw: string | null
+          total_amount: number
+          unpaid_amount: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          contact_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          currency?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string | null
+          moneybird_id: string
+          paid_amount?: number
+          paid_at?: string | null
+          raw_data?: Json | null
+          state_normalized?: string
+          state_raw?: string | null
+          total_amount?: number
+          unpaid_amount?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          contact_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          currency?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string | null
+          moneybird_id?: string
+          paid_amount?: number
+          paid_at?: string | null
+          raw_data?: Json | null
+          state_normalized?: string
+          state_raw?: string | null
+          total_amount?: number
+          unpaid_amount?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       moneybird_settings: {
         Row: {
           access_token: string
