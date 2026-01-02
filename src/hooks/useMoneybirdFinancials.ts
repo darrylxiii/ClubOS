@@ -92,18 +92,34 @@ export function useSyncMoneybirdFinancials() {
         body: { year: year || new Date().getFullYear() },
       });
 
-      if (error) throw error;
-      if (!data.success) throw new Error(data.error || 'Sync failed');
+      if (error) {
+        // Check for specific error types
+        if (error.message?.includes('Failed to send') || error.message?.includes('FunctionsFetchError')) {
+          throw new Error('Edge Function not available. Please try again in a moment.');
+        }
+        if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+          throw new Error('Moneybird credentials are invalid or missing.');
+        }
+        throw new Error(error.message || 'Failed to connect to sync service');
+      }
+      
+      if (!data) {
+        throw new Error('No response from sync service');
+      }
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Sync failed');
+      }
       
       return data.data;
     },
-    onSuccess: (data) => {
-      toast.success('Financial data synced successfully');
+    onSuccess: () => {
+      toast.success('Financial data synced from Moneybird');
       queryClient.invalidateQueries({ queryKey: ['moneybird-financials'] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Sync failed:', error);
-      toast.error(`Failed to sync financial data: ${error.message}`);
+      toast.error(error.message);
     },
   });
 }
