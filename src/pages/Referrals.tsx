@@ -10,6 +10,7 @@ import { MemberReferralCard } from "@/components/referrals/MemberReferralCard";
 import { ClaimReferralDialog } from "@/components/referrals/ClaimReferralDialog";
 import { EarningsHistoryTable } from "@/components/referrals/EarningsHistoryTable";
 import { RevenueShareInfo } from "@/components/referrals/RevenueShareInfo";
+import { ReferralJobTracker } from "@/components/referrals/ReferralJobTracker";
 import { 
   useReferralPolicies, 
   useReferralEarnings, 
@@ -84,12 +85,17 @@ export default function Referrals() {
 
         <RevenueShareInfo shares={revenueShares || []} userRole={role || undefined} />
 
-        <Tabs defaultValue="companies" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+        <Tabs defaultValue="pipeline" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+            <TabsTrigger value="pipeline"><Briefcase className="h-4 w-4 mr-2 hidden sm:block" />Pipeline</TabsTrigger>
             <TabsTrigger value="companies"><Building2 className="h-4 w-4 mr-2 hidden sm:block" />Companies</TabsTrigger>
             <TabsTrigger value="members"><Users className="h-4 w-4 mr-2 hidden sm:block" />Members</TabsTrigger>
             <TabsTrigger value="history"><History className="h-4 w-4 mr-2 hidden sm:block" />History</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="pipeline" className="space-y-4">
+            <ReferralJobTracker />
+          </TabsContent>
 
           <TabsContent value="companies" className="space-y-4">
             {policiesLoading ? (

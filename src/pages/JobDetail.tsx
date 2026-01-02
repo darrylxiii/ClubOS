@@ -10,6 +10,7 @@ import { ResponsibilityGrid } from "@/components/jobs/ResponsibilityGrid";
 import { BenefitsShowcase } from "@/components/jobs/BenefitsShowcase";
 import { ApplicationTimeline } from "@/components/jobs/ApplicationTimeline";
 import { CompanyShowcase } from "@/components/jobs/CompanyShowcase";
+import { JobReferralSection } from "@/components/jobs/JobReferralSection";
 import { EditJobSheet } from "@/components/partner/EditJobSheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -457,6 +458,18 @@ export default function JobDetail() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Referral Section */}
+              <JobReferralSection
+                jobId={job.id}
+                jobTitle={job.title}
+                companyName={job.companies?.name || 'Company'}
+                salaryMin={job.salary_min}
+                salaryMax={job.salary_max}
+                feePercentage={job.companies?.placement_fee_percentage || 20}
+                referralBonusPercentage={job.referral_bonus_percentage || 10}
+                showReferralBonus={job.show_referral_bonus !== false}
+              />
             </TabsContent>
 
             {/* Details Tab */}
