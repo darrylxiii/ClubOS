@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Building2, Briefcase, Users, History, Plus, TrendingUp } from "lucide-react";
+import { Building2, Briefcase, Users, History, Plus, TrendingUp, Trophy, Zap, Activity } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/AppLayout";
@@ -11,6 +11,10 @@ import { ClaimReferralDialog } from "@/components/referrals/ClaimReferralDialog"
 import { EarningsHistoryTable } from "@/components/referrals/EarningsHistoryTable";
 import { RevenueShareInfo } from "@/components/referrals/RevenueShareInfo";
 import { ReferralJobTracker } from "@/components/referrals/ReferralJobTracker";
+import { ReferralLeaderboard } from "@/components/referrals/ReferralLeaderboard";
+import { ReferralTierProgress } from "@/components/referrals/ReferralTierProgress";
+import { ReferralChallenges } from "@/components/referrals/ReferralChallenges";
+import { ReferralActivityFeed } from "@/components/referrals/ReferralActivityFeed";
 import { 
   useReferralPolicies, 
   useReferralEarnings, 
