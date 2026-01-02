@@ -17,7 +17,7 @@ const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const MergeDashboard = lazy(() => import("@/pages/admin/MergeDashboard"));
 const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
-const CompanyManagement = lazy(() => import("@/pages/admin/CompanyManagement"));
+// CompanyManagement removed - consolidated into /companies page
 const GlobalAnalytics = lazy(() => import("@/pages/admin/GlobalAnalytics"));
 const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
 const TranslationManager = lazy(() => import("@/pages/admin/TranslationManager"));
@@ -139,18 +139,7 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/companies"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <CompanyManagement />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Company Management consolidated into /companies page */}
     <Route
       path="/admin/global-analytics"
       element={
