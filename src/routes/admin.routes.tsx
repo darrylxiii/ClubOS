@@ -40,7 +40,7 @@ const CompanyFeeConfiguration = lazy(() => import("@/pages/admin/CompanyFeeConfi
 const DealPipelineSettings = lazy(() => import("@/pages/admin/DealPipelineSettings"));
 const AntiHacking = lazy(() => import("@/pages/admin/AntiHacking"));
 const AdminAuditLog = lazy(() => import("@/pages/admin/AdminAuditLog"));
-const AdminEmployees = lazy(() => import("@/pages/admin/Employees"));
+// AdminEmployees removed - consolidated into EmployeeManagement
 const EmployeeDetailPage = lazy(() => import("@/pages/admin/EmployeeDetailPage"));
 const EmployeeManagement = lazy(() => import("@/pages/admin/EmployeeManagement"));
 const MyPerformance = lazy(() => import("@/pages/MyPerformance"));
@@ -404,18 +404,7 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/employees"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <AdminEmployees />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* /admin/employees consolidated into /admin/employee-management */}
     <Route
       path="/admin/employees/:employeeId"
       element={

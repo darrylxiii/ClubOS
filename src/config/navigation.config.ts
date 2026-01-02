@@ -432,7 +432,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Users,
       items: [
         { name: "Employee Dashboard", icon: Users, path: "/admin/employee-management" },
-        { name: "Employee Profiles", icon: Users, path: "/admin/employees" },
         { name: "Team Performance", icon: BarChart3, path: "/team-performance" },
       ],
     },
