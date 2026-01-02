@@ -16,7 +16,7 @@ const Analytics = lazy(() => import("@/pages/Analytics"));
 const CandidateAnalytics = lazy(() => import("@/pages/CandidateAnalytics"));
 const FunnelAnalytics = lazy(() => import("@/pages/FunnelAnalytics"));
 const RevenueAnalytics = lazy(() => import("@/pages/RevenueAnalytics"));
-const MLDashboard = lazy(() => import("@/pages/MLDashboard"));
+// MLDashboard consolidated into EnhancedMLDashboard
 const EnhancedMLDashboard = lazy(() => import("@/pages/EnhancedMLDashboard"));
 const HiringIntelligenceHub = lazy(() => import("@/pages/HiringIntelligenceHub"));
 const CompanyIntelligence = lazy(() => import("@/pages/CompanyIntelligence"));
@@ -81,24 +81,13 @@ export const analyticsRoutes = (
         <ProtectedRoute>
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <MLDashboard />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/enhanced-ml"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
               <EnhancedMLDashboard />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
       }
     />
+    {/* /enhanced-ml consolidated into /ml-dashboard */}
     <Route
       path="/hiring-intelligence"
       element={
