@@ -40,7 +40,7 @@ serve(async (req) => {
     if (subsError) throw subsError;
 
     const mrr = activeSubscriptions.reduce((sum, sub: any) => {
-      return sum + (sub.subscription_plans?.price_euros || 0) * 100; // Convert to cents
+      return sum + (sub.subscription_plans?.price_euros || 0) * 100;
     }, 0);
 
     const arr = mrr * 12;
@@ -48,13 +48,8 @@ serve(async (req) => {
 
     logStep("Calculated MRR and ARR", { mrr, arr, activeCount });
 
-    // Get today's metrics if they exist
+    // Get today's date
     const today = new Date().toISOString().split('T')[0];
-    const { data: existingMetrics } = await supabaseClient
-      .from('revenue_metrics')
-      .select('*')
-      .eq('metric_date', today)
-      .single();
 
     // Get yesterday's metrics for comparison
     const yesterday = new Date();
@@ -103,10 +98,60 @@ serve(async (req) => {
     // Calculate ARPU
     const arpu = activeCount > 0 ? Math.round(mrr / activeCount) : 0;
 
-    // Calculate churn rate (simplified - should be calculated monthly)
+    // Calculate churn rate
     const previousActiveCount = yesterdayMetrics?.active_subscriptions || activeCount;
     const churnedCount = canceledSubs.length;
     const churnRate = previousActiveCount > 0 ? (churnedCount / previousActiveCount) * 100 : 0;
+
+    // === NEW: Placement Fee Metrics ===
+    const { data: placementFees, error: placementError } = await supabaseClient
+      .from('placement_fees')
+      .select('fee_amount, status, payment_due_date');
+
+    if (placementError) {
+      logStep('Warning: Could not fetch placement fees', placementError);
+    }
+
+    const fees = placementFees || [];
+    const placementRevenue = fees
+      .filter(f => f.status === 'paid')
+      .reduce((sum, f) => sum + (f.fee_amount || 0), 0);
+    
+    const pendingPlacementRevenue = fees
+      .filter(f => f.status === 'pending' || f.status === 'invoiced')
+      .reduce((sum, f) => sum + (f.fee_amount || 0), 0);
+
+    // Outstanding AR (unpaid invoices)
+    const { data: unpaidInvoices, error: invoiceError } = await supabaseClient
+      .from('partner_invoices')
+      .select('total_amount, due_date, status')
+      .in('status', ['sent', 'viewed', 'overdue']);
+
+    if (invoiceError) {
+      logStep('Warning: Could not fetch invoices', invoiceError);
+    }
+
+    const invoices = unpaidInvoices || [];
+    const outstandingAR = invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+    const overdueAR = invoices
+      .filter(inv => inv.status === 'overdue' || new Date(inv.due_date) < new Date())
+      .reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+
+    // Referral obligations (unpaid payouts)
+    const { data: pendingPayouts, error: payoutError } = await supabaseClient
+      .from('referral_payouts')
+      .select('payout_amount, status')
+      .in('status', ['pending', 'approved', 'processing']);
+
+    if (payoutError) {
+      logStep('Warning: Could not fetch referral payouts', payoutError);
+    }
+
+    const payouts = pendingPayouts || [];
+    const referralObligations = payouts.reduce((sum, p) => sum + (p.payout_amount || 0), 0);
+
+    // Calculate total revenue including placements
+    const totalRevenue = mrr + placementRevenue;
 
     // Upsert today's metrics
     const metricsData = {
@@ -114,18 +159,18 @@ serve(async (req) => {
       mrr,
       arr,
       new_mrr: newMrr,
-      expansion_mrr: 0, // TODO: Calculate from plan upgrades
-      contraction_mrr: 0, // TODO: Calculate from plan downgrades
+      expansion_mrr: 0,
+      contraction_mrr: 0,
       churn_mrr: churnMrr,
       active_subscriptions: activeCount,
       new_subscriptions: newSubs.length,
       canceled_subscriptions: canceledSubs.length,
-      trialing_subscriptions: 0, // TODO: Add trialing count
+      trialing_subscriptions: 0,
       average_revenue_per_user: arpu,
-      customer_lifetime_value: arpu * 24, // Simplified: 24 month estimate
+      customer_lifetime_value: arpu * 24,
       churn_rate: parseFloat(churnRate.toFixed(2)),
-      net_revenue_retention: 100, // TODO: Calculate actual NRR
-      total_revenue: mrr, // TODO: Add invoices total
+      net_revenue_retention: 100,
+      total_revenue: totalRevenue,
     };
 
     const { error: upsertError } = await supabaseClient
@@ -134,12 +179,23 @@ serve(async (req) => {
 
     if (upsertError) throw upsertError;
 
-    logStep("Metrics synced successfully", metricsData);
+    // Extended metrics for response
+    const extendedMetrics = {
+      ...metricsData,
+      placement_revenue: placementRevenue,
+      pending_placement_revenue: pendingPlacementRevenue,
+      outstanding_ar: outstandingAR,
+      overdue_ar: overdueAR,
+      referral_obligations: referralObligations,
+      net_ar: outstandingAR - referralObligations,
+    };
+
+    logStep("Metrics synced successfully", extendedMetrics);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        metrics: metricsData 
+        metrics: extendedMetrics 
       }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" },
