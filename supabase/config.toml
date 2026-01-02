@@ -962,3 +962,21 @@ verify_jwt = false
 
 [functions.close-stale-livehub-sessions]
 verify_jwt = false
+
+# =============================================================================
+# Moneybird Integration
+# =============================================================================
+[functions.moneybird-auth]
+verify_jwt = false
+
+[functions.moneybird-sync-contacts]
+verify_jwt = true
+
+[functions.moneybird-create-invoice]
+verify_jwt = true
+
+[functions.moneybird-sync-invoice-status]
+verify_jwt = true
+
+[functions.moneybird-webhook]
+verify_jwt = false

@@ -37,6 +37,7 @@ const SalesKPIDashboardPage = lazy(() => import("@/pages/SalesKPIDashboardPage")
 const UnifiedKPICommandCenterPage = lazy(() => import("@/pages/UnifiedKPICommandCenterPage"));
 const CompanyFeeConfiguration = lazy(() => import("@/pages/admin/CompanyFeeConfiguration"));
 const DealPipelineSettings = lazy(() => import("@/pages/admin/DealPipelineSettings"));
+const MoneybirdSettings = lazy(() => import("@/pages/admin/MoneybirdSettings"));
 const AntiHacking = lazy(() => import("@/pages/admin/AntiHacking"));
 const AdminAuditLog = lazy(() => import("@/pages/admin/AdminAuditLog"));
 // AdminEmployees removed - consolidated into EmployeeManagement
@@ -351,6 +352,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <DealPipelineSettings />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/moneybird"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <MoneybirdSettings />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>

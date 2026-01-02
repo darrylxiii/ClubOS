@@ -24029,6 +24029,200 @@ export type Database = {
           },
         ]
       }
+      moneybird_contact_sync: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          id: string
+          last_synced_at: string | null
+          moneybird_administration_id: string
+          moneybird_contact_id: string
+          sync_error: string | null
+          sync_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          moneybird_administration_id: string
+          moneybird_contact_id: string
+          sync_error?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          moneybird_administration_id?: string
+          moneybird_contact_id?: string
+          sync_error?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moneybird_contact_sync_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moneybird_contact_sync_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moneybird_invoice_sync: {
+        Row: {
+          created_at: string | null
+          external_url: string | null
+          id: string
+          last_synced_at: string | null
+          moneybird_administration_id: string
+          moneybird_invoice_id: string
+          moneybird_status: string | null
+          partner_invoice_id: string
+          sync_error: string | null
+          sync_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          external_url?: string | null
+          id?: string
+          last_synced_at?: string | null
+          moneybird_administration_id: string
+          moneybird_invoice_id: string
+          moneybird_status?: string | null
+          partner_invoice_id: string
+          sync_error?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          external_url?: string | null
+          id?: string
+          last_synced_at?: string | null
+          moneybird_administration_id?: string
+          moneybird_invoice_id?: string
+          moneybird_status?: string | null
+          partner_invoice_id?: string
+          sync_error?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moneybird_invoice_sync_partner_invoice_id_fkey"
+            columns: ["partner_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "partner_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moneybird_settings: {
+        Row: {
+          access_token: string
+          administration_id: string
+          administration_name: string | null
+          auto_create_invoices: boolean | null
+          auto_send_invoices: boolean | null
+          created_at: string | null
+          default_tax_rate_id: string | null
+          id: string
+          is_active: boolean | null
+          refresh_token: string | null
+          sync_preferences: Json | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          administration_id: string
+          administration_name?: string | null
+          auto_create_invoices?: boolean | null
+          auto_send_invoices?: boolean | null
+          created_at?: string | null
+          default_tax_rate_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          refresh_token?: string | null
+          sync_preferences?: Json | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          administration_id?: string
+          administration_name?: string | null
+          auto_create_invoices?: boolean | null
+          auto_send_invoices?: boolean | null
+          created_at?: string | null
+          default_tax_rate_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          refresh_token?: string | null
+          sync_preferences?: Json | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      moneybird_sync_logs: {
+        Row: {
+          created_at: string | null
+          duration_ms: number | null
+          entity_id: string | null
+          entity_type: string
+          error_message: string | null
+          id: string
+          operation_type: string
+          request_payload: Json | null
+          response_payload: Json | null
+          success: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_ms?: number | null
+          entity_id?: string | null
+          entity_type: string
+          error_message?: string | null
+          id?: string
+          operation_type: string
+          request_payload?: Json | null
+          response_payload?: Json | null
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_ms?: number | null
+          entity_id?: string | null
+          entity_type?: string
+          error_message?: string | null
+          id?: string
+          operation_type?: string
+          request_payload?: Json | null
+          response_payload?: Json | null
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       note_mentions: {
         Row: {
           created_at: string | null
