@@ -18530,10 +18530,13 @@ export type Database = {
           loss_reason_id: string | null
           pipeline_stages: Json | null
           published_at: string | null
+          referral_bonus_fixed: number | null
+          referral_bonus_percentage: number | null
           requirements: Json | null
           responsibilities: Json | null
           salary_max: number | null
           salary_min: number | null
+          show_referral_bonus: boolean | null
           status: string | null
           stealth_enabled_at: string | null
           stealth_enabled_by: string | null
@@ -18583,10 +18586,13 @@ export type Database = {
           loss_reason_id?: string | null
           pipeline_stages?: Json | null
           published_at?: string | null
+          referral_bonus_fixed?: number | null
+          referral_bonus_percentage?: number | null
           requirements?: Json | null
           responsibilities?: Json | null
           salary_max?: number | null
           salary_min?: number | null
+          show_referral_bonus?: boolean | null
           status?: string | null
           stealth_enabled_at?: string | null
           stealth_enabled_by?: string | null
@@ -18636,10 +18642,13 @@ export type Database = {
           loss_reason_id?: string | null
           pipeline_stages?: Json | null
           published_at?: string | null
+          referral_bonus_fixed?: number | null
+          referral_bonus_percentage?: number | null
           requirements?: Json | null
           responsibilities?: Json | null
           salary_max?: number | null
           salary_min?: number | null
+          show_referral_bonus?: boolean | null
           status?: string | null
           stealth_enabled_at?: string | null
           stealth_enabled_by?: string | null
@@ -41859,6 +41868,16 @@ export type Database = {
           fee_type: string
         }[]
       }
+      calculate_job_referral_potential: {
+        Args: { p_job_id: string; p_referral_percentage?: number }
+        Returns: {
+          estimated_fee: number
+          job_id: string
+          potential_earnings: number
+          referral_bonus_percentage: number
+          salary_used: number
+        }[]
+      }
       calculate_name_similarity: {
         Args: { name1: string; name2: string }
         Returns: number
@@ -41874,6 +41893,17 @@ export type Database = {
       calculate_partner_health_score: {
         Args: { p_partner_id: string }
         Returns: Json
+      }
+      calculate_pipeline_with_referrals: {
+        Args: never
+        Returns: {
+          deal_count: number
+          gross_pipeline: number
+          net_pipeline: number
+          referral_obligations: number
+          weighted_gross: number
+          weighted_net: number
+        }[]
       }
       calculate_post_score: {
         Args: {

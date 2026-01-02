@@ -1,11 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePipelineMetrics, useDealPipeline } from "@/hooks/useDealPipeline";
+import { useReferralPipelineMetrics } from "@/hooks/useReferralPipelineMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, DollarSign, Target, AlertCircle } from "lucide-react";
+import { TrendingUp, DollarSign, Target, AlertCircle, Gift, Minus } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function PipelineMetricsCards() {
   const { data: metrics, isLoading: metricsLoading } = usePipelineMetrics();
   const { data: deals, isLoading: dealsLoading } = useDealPipeline();
+  const { data: referralMetrics, isLoading: referralLoading } = useReferralPipelineMetrics();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -16,17 +19,17 @@ export function PipelineMetricsCards() {
     }).format(amount);
   };
 
-  if (metricsLoading || dealsLoading) {
+  if (metricsLoading || dealsLoading || referralLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        {[...Array(6)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-24" />
               <Skeleton className="h-4 w-4 rounded" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-8 w-24 mb-1" />
+              <Skeleton className="h-8 w-20 mb-1" />
               <Skeleton className="h-3 w-full" />
             </CardContent>
           </Card>
@@ -43,52 +46,81 @@ export function PipelineMetricsCards() {
 
   const cards = [
     {
-      title: "Total Pipeline",
-      value: formatCurrency(metrics?.total_pipeline || 0),
+      title: "Gross Pipeline",
+      value: formatCurrency(referralMetrics?.grossPipeline || metrics?.total_pipeline || 0),
       icon: DollarSign,
-      description: `${metrics?.deal_count || 0} active deals`,
-      color: "text-blue-500"
+      description: `${referralMetrics?.dealCount || metrics?.deal_count || 0} active deals`,
+      color: "text-info",
+      tooltip: "Total expected revenue from all active deals"
     },
     {
       title: "Weighted Pipeline",
-      value: formatCurrency(metrics?.weighted_pipeline || 0),
+      value: formatCurrency(referralMetrics?.weightedGross || metrics?.weighted_pipeline || 0),
       icon: Target,
-      description: "Probability-adjusted revenue",
-      color: "text-green-500"
+      description: "Probability-adjusted",
+      color: "text-primary",
+      tooltip: "Revenue adjusted by deal stage probability"
+    },
+    {
+      title: "Referral Obligations",
+      value: formatCurrency(referralMetrics?.referralObligations || 0),
+      icon: Gift,
+      description: "Projected payouts",
+      color: "text-warning",
+      tooltip: "Total projected referral fee payments to referrers"
+    },
+    {
+      title: "Net Pipeline",
+      value: formatCurrency(referralMetrics?.netPipeline || 0),
+      icon: Minus,
+      description: "After referral costs",
+      color: "text-success",
+      tooltip: "Gross pipeline minus referral obligations"
     },
     {
       title: "Avg Deal Size",
       value: formatCurrency(metrics?.avg_deal_size || 0),
       icon: TrendingUp,
-      description: "Per placement revenue",
-      color: "text-purple-500"
+      description: "Per placement",
+      color: "text-accent",
+      tooltip: "Average revenue per deal placement"
     },
     {
-      title: "Configuration Status",
+      title: "Config Status",
       value: dealsWithoutFee === 0 ? "Complete" : `${dealsWithoutFee} Missing`,
       icon: dealsWithoutFee === 0 ? Target : AlertCircle,
-      description: dealsWithoutFee === 0 ? "All fees configured" : "Companies need fee setup",
-      color: dealsWithoutFee === 0 ? "text-green-500" : "text-destructive"
+      description: dealsWithoutFee === 0 ? "All configured" : "Need fee setup",
+      color: dealsWithoutFee === 0 ? "text-success" : "text-destructive",
+      tooltip: dealsWithoutFee === 0 ? "All companies have fee configured" : `${dealsWithoutFee} companies need fee percentage setup`
     }
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {cards.map((card) => {
-        const Icon = card.icon;
-        return (
-          <Card key={card.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-              <Icon className={`h-4 w-4 ${card.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{card.value}</div>
-              <p className="text-xs text-muted-foreground">{card.description}</p>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+    <TooltipProvider>
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        {cards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Tooltip key={card.title}>
+              <TooltipTrigger asChild>
+                <Card className="cursor-help hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-xs font-medium truncate">{card.title}</CardTitle>
+                    <Icon className={`h-4 w-4 ${card.color} shrink-0`} />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-xl font-bold truncate">{card.value}</div>
+                    <p className="text-xs text-muted-foreground truncate">{card.description}</p>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{card.tooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </div>
+    </TooltipProvider>
   );
 }
