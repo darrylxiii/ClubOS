@@ -322,7 +322,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "All Jobs", icon: Briefcase, path: "/jobs" },
         { name: "All Applications", icon: FileText, path: "/applications" },
-        { name: "Company Management", icon: Building, path: "/admin/companies" },
         { name: "All Companies", icon: Building, path: "/companies" },
         { name: "Target Companies", icon: Target, path: "/admin/target-companies" },
         { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
