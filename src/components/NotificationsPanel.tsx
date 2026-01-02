@@ -301,7 +301,7 @@ export const NotificationsPanel = () => {
           >
             <T k="common:notifications.filters.unread" fallback="Unread" /> {unreadCount > 0 && `(${unreadCount})`}
           </Badge>
-          {['mention', 'message', 'interview', 'application', 'system'].map(type => (
+          {['mention', 'message', 'interview', 'application', 'referral', 'system'].map(type => (
             <Badge
               key={type}
               variant={filter === type ? 'default' : 'outline'}

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { 
   Bell, Mail, Calendar, Briefcase, CheckCircle, 
-  AlertCircle, Info, Archive, ExternalLink, Trash2, AtSign
+  AlertCircle, Info, Archive, ExternalLink, Trash2, AtSign, Gift
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +37,8 @@ const getNotificationIcon = (type: string) => {
       return <Calendar className="w-5 h-5" />;
     case 'application':
       return <Briefcase className="w-5 h-5" />;
+    case 'referral':
+      return <Gift className="w-5 h-5" />;
     case 'system':
       return <Bell className="w-5 h-5" />;
     default:
