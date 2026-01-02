@@ -79,14 +79,23 @@ serve(async (req) => {
       const invoices: MoneybirdInvoice[] = await invoicesResponse.json();
       console.log(`[Moneybird Financials] Page ${page}: ${invoices.length} invoices`);
       
+      // Log date range on first page for debugging
+      if (page === 1 && invoices.length > 0) {
+        const dates = invoices.map(inv => inv.invoice_date).filter(Boolean).sort();
+        const missingDates = invoices.filter(inv => !inv.invoice_date).length;
+        console.log(`[Moneybird Financials] Page 1 invoice_date range: ${dates[0] || 'none'} to ${dates[dates.length - 1] || 'none'}; missing invoice_date: ${missingDates}`);
+      }
+      
       if (invoices.length === 0) {
         hasMore = false;
       } else {
         // Filter invoices by date locally
         const filteredInvoices = invoices.filter(inv => {
           const invDate = inv.invoice_date;
-          return invDate >= periodStart && invDate <= periodEnd;
+          return invDate && invDate >= periodStart && invDate <= periodEnd;
         });
+        
+        console.log(`[Moneybird Financials] Page ${page}: ${filteredInvoices.length} invoices match ${year}`);
         allInvoices.push(...filteredInvoices);
         
         page++;
