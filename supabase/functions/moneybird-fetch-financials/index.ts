@@ -48,44 +48,57 @@ serve(async (req) => {
 
     console.log(`[Moneybird Financials] Fetching data for year ${year}`);
 
-    // Fetch all sales invoices for the year
+    // Fetch all sales invoices (no filter - we'll filter locally for reliability)
     const periodStart = `${year}-01-01`;
     const periodEnd = `${year}-12-31`;
     
-    // Use filter to get invoices for the year
-    const invoicesUrl = new URL(`${MONEYBIRD_API_BASE}/${administrationId}/sales_invoices.json`);
-    invoicesUrl.searchParams.set('filter', `period:${year}`);
-    invoicesUrl.searchParams.set('per_page', '100');
-
     const allInvoices: MoneybirdInvoice[] = [];
     let page = 1;
     let hasMore = true;
 
-    // Paginate through all invoices
+    console.log(`[Moneybird Financials] Fetching invoices for period ${periodStart} to ${periodEnd}`);
+
+    // Paginate through all invoices (no filter param to avoid API compatibility issues)
     while (hasMore) {
+      const invoicesUrl = new URL(`${MONEYBIRD_API_BASE}/${administrationId}/sales_invoices.json`);
+      invoicesUrl.searchParams.set('per_page', '100');
       invoicesUrl.searchParams.set('page', page.toString());
+      
+      console.log(`[Moneybird Financials] Fetching page ${page}...`);
       
       const invoicesResponse = await fetch(invoicesUrl.toString(), {
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });
 
       if (!invoicesResponse.ok) {
-        throw new Error(`Failed to fetch invoices: ${invoicesResponse.status}`);
+        const errorBody = await invoicesResponse.text();
+        console.error(`[Moneybird Financials] API error: ${invoicesResponse.status} - ${errorBody}`);
+        throw new Error(`Moneybird API error (${invoicesResponse.status}): ${errorBody.slice(0, 200)}`);
       }
 
       const invoices: MoneybirdInvoice[] = await invoicesResponse.json();
+      console.log(`[Moneybird Financials] Page ${page}: ${invoices.length} invoices`);
       
       if (invoices.length === 0) {
         hasMore = false;
       } else {
-        allInvoices.push(...invoices);
+        // Filter invoices by date locally
+        const filteredInvoices = invoices.filter(inv => {
+          const invDate = inv.invoice_date;
+          return invDate >= periodStart && invDate <= periodEnd;
+        });
+        allInvoices.push(...filteredInvoices);
+        
         page++;
         // Rate limit protection
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      // Safety limit
-      if (page > 10) break;
+      // Safety limit (50 pages = 5000 invoices max)
+      if (page > 50) {
+        console.log(`[Moneybird Financials] Reached page limit, stopping pagination`);
+        break;
+      }
     }
 
     console.log(`[Moneybird Financials] Fetched ${allInvoices.length} invoices`);
