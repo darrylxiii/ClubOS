@@ -411,6 +411,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Financial Dashboard", icon: CreditCard, path: "/admin/financial" },
         { name: "Revenue Analytics", icon: BarChart3, path: "/revenue-analytics" },
         { name: "Revenue Shares", icon: Percent, path: "/admin/revenue-shares" },
+        { name: "Moneybird", icon: CreditCard, path: "/admin/moneybird" },
         { name: "Referral Program", icon: Gift, path: "/referrals" },
       ],
     },
