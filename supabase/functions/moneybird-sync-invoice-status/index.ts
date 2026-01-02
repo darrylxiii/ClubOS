@@ -16,39 +16,14 @@ serve(async (req) => {
   const startTime = Date.now();
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const accessToken = Deno.env.get('MONEYBIRD_ACCESS_TOKEN')!;
+  const administrationId = Deno.env.get('MONEYBIRD_ADMINISTRATION_ID')!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    // Verify auth
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    if (!accessToken || !administrationId) {
       return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Get Moneybird settings
-    const { data: settings, error: settingsError } = await supabase
-      .from('moneybird_settings')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .single();
-
-    if (settingsError || !settings) {
-      return new Response(
-        JSON.stringify({ error: 'Moneybird not connected' }),
+        JSON.stringify({ error: 'Moneybird not configured' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -60,7 +35,7 @@ serve(async (req) => {
     let query = supabase
       .from('moneybird_invoice_sync')
       .select('*, partner_invoices(id, status)')
-      .eq('moneybird_administration_id', settings.administration_id)
+      .eq('moneybird_administration_id', administrationId)
       .eq('sync_status', 'synced');
 
     if (partnerInvoiceId) {
@@ -92,9 +67,9 @@ serve(async (req) => {
 
         // Fetch invoice status from Moneybird
         const invoiceResponse = await fetch(
-          `${MONEYBIRD_API_BASE}/${settings.administration_id}/sales_invoices/${sync.moneybird_invoice_id}.json`,
+          `${MONEYBIRD_API_BASE}/${administrationId}/sales_invoices/${sync.moneybird_invoice_id}.json`,
           {
-            headers: { 'Authorization': `Bearer ${settings.access_token}` },
+            headers: { 'Authorization': `Bearer ${accessToken}` },
           }
         );
 
@@ -146,7 +121,6 @@ serve(async (req) => {
 
             // Log payment received
             await supabase.from('moneybird_sync_logs').insert({
-              user_id: user.id,
               operation_type: 'payment_received',
               entity_type: 'invoice',
               entity_id: sync.partner_invoice_id,
@@ -170,7 +144,6 @@ serve(async (req) => {
 
     // Log the sync operation
     await supabase.from('moneybird_sync_logs').insert({
-      user_id: user.id,
       operation_type: 'sync_invoice_status',
       entity_type: 'invoice',
       entity_id: partnerInvoiceId || 'bulk',

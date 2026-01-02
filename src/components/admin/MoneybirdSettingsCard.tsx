@@ -1,52 +1,23 @@
-import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Link2, Unlink, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
-import { useMoneybirdSettings, useGetMoneybirdAuthUrl, useDisconnectMoneybird, useUpdateMoneybirdSettings } from '@/hooks/useMoneybird';
-import { format } from 'date-fns';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { Loader2, CheckCircle, XCircle, RefreshCw, ExternalLink } from 'lucide-react';
+import { useMoneybirdConnection, useSyncMoneybirdContacts, useSyncMoneybirdInvoiceStatus } from '@/hooks/useMoneybird';
 
 export function MoneybirdSettingsCard() {
-  const { data: settings, isLoading } = useMoneybirdSettings();
-  const getAuthUrl = useGetMoneybirdAuthUrl();
-  const disconnect = useDisconnectMoneybird();
-  const updateSettings = useUpdateMoneybirdSettings();
-
-  const handleConnect = async () => {
-    const authUrl = await getAuthUrl.mutateAsync();
-    if (authUrl) {
-      window.location.href = authUrl;
-    }
-  };
-
-  const handleToggle = (field: 'auto_create_invoices' | 'auto_send_invoices', value: boolean) => {
-    updateSettings.mutate({ [field]: value });
-  };
+  const { data: connection, isLoading, refetch } = useMoneybirdConnection();
+  const syncContacts = useSyncMoneybirdContacts();
+  const syncInvoices = useSyncMoneybirdInvoiceStatus();
 
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </CardContent>
       </Card>
     );
   }
-
-  const isConnected = !!settings?.is_active;
 
   return (
     <Card>
@@ -54,111 +25,93 @@ export function MoneybirdSettingsCard() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              Connection Status
-              {isConnected ? (
-                <Badge variant="default" className="bg-green-500">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
+              Moneybird Integration
+              {connection?.connected ? (
+                <Badge variant="default" className="bg-green-500/10 text-green-500 border-green-500/20">
+                  <CheckCircle className="h-3 w-3 mr-1" />
                   Connected
                 </Badge>
               ) : (
-                <Badge variant="secondary">
+                <Badge variant="destructive">
                   <XCircle className="h-3 w-3 mr-1" />
                   Not Connected
                 </Badge>
               )}
             </CardTitle>
             <CardDescription>
-              {isConnected
-                ? `Connected to ${settings.administration_name || 'Moneybird'}`
-                : 'Connect your Moneybird account to sync invoices automatically'}
+              {connection?.connected 
+                ? `Connected to ${connection.administrationName}`
+                : connection?.error || 'Configure your Moneybird tokens to connect'}
             </CardDescription>
           </div>
-          <div className="flex gap-2">
-            {isConnected ? (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Unlink className="h-4 w-4 mr-2" />
-                    Disconnect
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Disconnect Moneybird?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will stop automatic invoice syncing. Existing synced invoices will remain in Moneybird.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => disconnect.mutate()}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Disconnect
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            ) : (
-              <Button onClick={handleConnect} disabled={getAuthUrl.isPending}>
-                {getAuthUrl.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Link2 className="h-4 w-4 mr-2" />
-                )}
-                Connect Moneybird
-              </Button>
-            )}
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
       </CardHeader>
 
-      {isConnected && (
+      {connection?.connected && (
         <CardContent className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Administration</Label>
-              <p className="font-medium">{settings.administration_name || settings.administration_id}</p>
+          {/* Connection Details */}
+          <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+            <div>
+              <p className="text-sm text-muted-foreground">Administration</p>
+              <p className="font-medium">{connection.administrationName}</p>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Last Updated</Label>
-              <p className="font-medium">
-                {settings.updated_at ? format(new Date(settings.updated_at), 'PPp') : 'Never'}
-              </p>
+            <div>
+              <p className="text-sm text-muted-foreground">Administration ID</p>
+              <p className="font-mono text-sm">{connection.administrationId}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Country</p>
+              <p className="font-medium">{connection.country || 'NL'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Currency</p>
+              <p className="font-medium">{connection.currency || 'EUR'}</p>
             </div>
           </div>
 
-          <div className="border-t pt-6 space-y-4">
-            <h4 className="font-medium">Automation Settings</h4>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Auto-create invoices</Label>
-                <p className="text-sm text-muted-foreground">
-                  Automatically create Moneybird invoices when TQC invoices are generated
-                </p>
-              </div>
-              <Switch
-                checked={settings.auto_create_invoices || false}
-                onCheckedChange={(checked) => handleToggle('auto_create_invoices', checked)}
-                disabled={updateSettings.isPending}
-              />
-            </div>
+          {/* Quick Actions */}
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              onClick={() => syncContacts.mutate({ syncAll: true })}
+              disabled={syncContacts.isPending}
+            >
+              {syncContacts.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Sync All Contacts
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => syncInvoices.mutate({ syncAll: true })}
+              disabled={syncInvoices.isPending}
+            >
+              {syncInvoices.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Sync Invoice Statuses
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => window.open(`https://moneybird.com/${connection.administrationId}`, '_blank')}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Open Moneybird
+            </Button>
+          </div>
+        </CardContent>
+      )}
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Auto-send invoices</Label>
-                <p className="text-sm text-muted-foreground">
-                  Automatically send invoices via email after creation in Moneybird
-                </p>
-              </div>
-              <Switch
-                checked={settings.auto_send_invoices || false}
-                onCheckedChange={(checked) => handleToggle('auto_send_invoices', checked)}
-                disabled={updateSettings.isPending}
-              />
-            </div>
+      {!connection?.connected && (
+        <CardContent>
+          <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              To connect Moneybird, ensure the <code className="px-1 py-0.5 bg-muted rounded">MONEYBIRD_ACCESS_TOKEN</code> and <code className="px-1 py-0.5 bg-muted rounded">MONEYBIRD_ADMINISTRATION_ID</code> secrets are configured correctly.
+            </p>
           </div>
         </CardContent>
       )}

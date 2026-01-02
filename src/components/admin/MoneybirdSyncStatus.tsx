@@ -1,9 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Loader2, RefreshCw, Users, FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import {
-  useMoneybirdSettings,
+  useMoneybirdConnection,
   useMoneybirdContactSyncs,
   useMoneybirdInvoiceSyncs,
   useSyncMoneybirdContacts,
@@ -11,13 +10,13 @@ import {
 } from '@/hooks/useMoneybird';
 
 export function MoneybirdSyncStatus() {
-  const { data: settings, isLoading: settingsLoading } = useMoneybirdSettings();
+  const { data: connection } = useMoneybirdConnection();
   const { data: contactSyncs, isLoading: contactsLoading } = useMoneybirdContactSyncs();
   const { data: invoiceSyncs, isLoading: invoicesLoading } = useMoneybirdInvoiceSyncs();
   const syncContacts = useSyncMoneybirdContacts();
   const syncInvoiceStatus = useSyncMoneybirdInvoiceStatus();
 
-  if (settingsLoading || !settings?.is_active) {
+  if (!connection?.connected) {
     return null;
   }
 
