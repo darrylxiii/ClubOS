@@ -32,6 +32,8 @@ interface ReferralShareSheetProps {
   companyName?: string;
   referralLink?: string;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const shareChannels = [
@@ -46,14 +48,20 @@ export function ReferralShareSheet({
   jobTitle = "this opportunity",
   companyName,
   referralLink,
-  trigger 
+  trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange
 }: ReferralShareSheetProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [customMessage, setCustomMessage] = useState("");
+
+  // Support both controlled and uncontrolled modes
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setIsOpen = controlledOnOpenChange || setInternalOpen;
 
   // Generate referral link with UTM params
   const baseUrl = window.location.origin;
