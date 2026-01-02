@@ -23,11 +23,33 @@ interface MoneybirdInvoice {
   currency: string;
 }
 
+// Normalize Moneybird states to consistent vocabulary
+function normalizeState(rawState: string | undefined | null): string {
+  const state = (rawState || '').toLowerCase().trim();
+  
+  const stateMap: Record<string, string> = {
+    'draft': 'draft',
+    'open': 'open',
+    'scheduled': 'scheduled',
+    'pending_payment': 'pending_payment',
+    'late': 'late',
+    'reminded': 'late',
+    'paid': 'paid',
+    'uncollectible': 'uncollectible',
+    'cancelled': 'cancelled',
+    'canceled': 'cancelled',
+  };
+  
+  return stateMap[state] || 'open'; // Default to 'open' if unknown (safer than 'unknown')
+}
+
 // Helper: parse amount robustly (handles EU comma decimals)
 function parseAmount(value: string | number | null | undefined): number {
   if (value == null) return 0;
   const str = String(value).replace(',', '.');
-  return Number(str) || 0;
+  const num = Number(str) || 0;
+  // Amounts from Moneybird are in euros, not cents
+  return num;
 }
 
 // Helper: extract date from invoice with fallback chain
@@ -36,6 +58,24 @@ function getInvoiceDate(invoice: Record<string, unknown>): Date | null {
   if (!dateStr || typeof dateStr !== 'string') return null;
   const parsed = new Date(dateStr);
   return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+// Helper: unwrap invoice if wrapped in { sales_invoice: {...} }
+function unwrapInvoice(item: unknown): MoneybirdInvoice | null {
+  if (!item || typeof item !== 'object') return null;
+  const obj = item as Record<string, unknown>;
+  
+  // Check if wrapped
+  if (obj.sales_invoice && typeof obj.sales_invoice === 'object') {
+    return obj.sales_invoice as MoneybirdInvoice;
+  }
+  
+  // Plain invoice object
+  if (obj.id && (obj.invoice_date || obj.state || obj.total_price_incl_tax)) {
+    return item as MoneybirdInvoice;
+  }
+  
+  return null;
 }
 
 serve(async (req) => {
@@ -53,20 +93,19 @@ serve(async (req) => {
   // Diagnostics object to track what's happening
   const diagnostics: Record<string, unknown> = {
     year: null,
+    response_shape: 'unknown',
     api_total_fetched: 0,
     api_page1_count: 0,
-    api_page1_date_min: null,
-    api_page1_date_max: null,
-    api_page1_missing_date: 0,
-    api_page1_sample_dates: [] as string[],
+    api_page1_sample_keys: [] as string[],
     api_page1_states: [] as string[],
     api_page1_state_counts: {} as Record<string, number>,
+    api_page1_normalized_state_counts: {} as Record<string, number>,
     api_page1_sample_amounts: [] as number[],
     filtered_count: 0,
-    filtered_date_min: null,
-    filtered_date_max: null,
-    skipped_draft_count: 0,
+    draft_pipeline_count: 0,
+    draft_pipeline_amount: 0,
     processed_count: 0,
+    stored_invoices_count: 0,
   };
 
   try {
@@ -83,7 +122,6 @@ serve(async (req) => {
 
     console.log(`[Moneybird Financials] Fetching data for year ${year}`);
 
-    // Use numeric date comparison (robust against timestamps)
     const periodStart = `${year}-01-01`;
     const periodEnd = `${year}-12-31`;
     const startTs = new Date(Date.UTC(year, 0, 1, 0, 0, 0)).getTime();
@@ -93,13 +131,15 @@ serve(async (req) => {
     let page = 1;
     let hasMore = true;
 
-    console.log(`[Moneybird Financials] Fetching invoices for period ${periodStart} to ${periodEnd} (timestamps ${startTs} to ${endTs})`);
+    console.log(`[Moneybird Financials] Fetching invoices for period ${periodStart} to ${periodEnd}`);
 
     // Paginate through all invoices
     while (hasMore) {
       const invoicesUrl = new URL(`${MONEYBIRD_API_BASE}/${administrationId}/sales_invoices.json`);
       invoicesUrl.searchParams.set('per_page', '100');
       invoicesUrl.searchParams.set('page', page.toString());
+      // Request all states explicitly
+      invoicesUrl.searchParams.set('filter', 'state:all');
       
       console.log(`[Moneybird Financials] Fetching page ${page}...`);
       
@@ -113,29 +153,46 @@ serve(async (req) => {
         throw new Error(`Moneybird API error (${invoicesResponse.status}): ${errorBody.slice(0, 200)}`);
       }
 
-      const invoices: MoneybirdInvoice[] = await invoicesResponse.json();
-      console.log(`[Moneybird Financials] Page ${page}: ${invoices.length} invoices`);
+      const rawResponse = await invoicesResponse.json();
+      
+      // Handle both array and wrapped responses
+      let invoices: MoneybirdInvoice[] = [];
+      if (Array.isArray(rawResponse)) {
+        diagnostics.response_shape = 'array';
+        invoices = rawResponse.map(unwrapInvoice).filter((inv): inv is MoneybirdInvoice => inv !== null);
+      } else if (rawResponse && typeof rawResponse === 'object') {
+        diagnostics.response_shape = 'object';
+        // Try to find invoices array in response
+        const possibleArrays = ['sales_invoices', 'invoices', 'data'];
+        for (const key of possibleArrays) {
+          if (Array.isArray(rawResponse[key])) {
+            invoices = rawResponse[key].map(unwrapInvoice).filter((inv): inv is MoneybirdInvoice => inv !== null);
+            diagnostics.response_shape = `object.${key}`;
+            break;
+          }
+        }
+      }
+      
+      console.log(`[Moneybird Financials] Page ${page}: ${invoices.length} invoices (shape: ${diagnostics.response_shape})`);
       diagnostics.api_total_fetched = (diagnostics.api_total_fetched as number) + invoices.length;
       
       // Collect diagnostics on first page
-      if (page === 1) {
+      if (page === 1 && invoices.length > 0) {
         diagnostics.api_page1_count = invoices.length;
-        const parsedDates: Date[] = [];
+        diagnostics.api_page1_sample_keys = Object.keys(invoices[0]).slice(0, 10);
+        
         const stateCounts: Record<string, number> = {};
+        const normalizedStateCounts: Record<string, number> = {};
         const sampleAmounts: number[] = [];
         
         for (const inv of invoices) {
-          // Track dates
-          const d = getInvoiceDate(inv as unknown as Record<string, unknown>);
-          if (d) {
-            parsedDates.push(d);
-          } else {
-            diagnostics.api_page1_missing_date = (diagnostics.api_page1_missing_date as number) + 1;
-          }
+          // Track raw states
+          const rawState = inv.state || 'missing';
+          stateCounts[rawState] = (stateCounts[rawState] || 0) + 1;
           
-          // Track states
-          const state = inv.state || 'unknown';
-          stateCounts[state] = (stateCounts[state] || 0) + 1;
+          // Track normalized states
+          const normalizedState = normalizeState(inv.state);
+          normalizedStateCounts[normalizedState] = (normalizedStateCounts[normalizedState] || 0) + 1;
           
           // Track sample amounts (first 5)
           if (sampleAmounts.length < 5) {
@@ -143,26 +200,25 @@ serve(async (req) => {
           }
         }
         
-        if (parsedDates.length > 0) {
-          parsedDates.sort((a, b) => a.getTime() - b.getTime());
-          diagnostics.api_page1_date_min = parsedDates[0].toISOString().split('T')[0];
-          diagnostics.api_page1_date_max = parsedDates[parsedDates.length - 1].toISOString().split('T')[0];
-          diagnostics.api_page1_sample_dates = parsedDates.slice(0, 5).map(d => d.toISOString().split('T')[0]);
-        }
-        
         diagnostics.api_page1_states = Object.keys(stateCounts);
         diagnostics.api_page1_state_counts = stateCounts;
+        diagnostics.api_page1_normalized_state_counts = normalizedStateCounts;
         diagnostics.api_page1_sample_amounts = sampleAmounts;
         
-        console.log(`[Moneybird Financials] Page 1 diagnostics:`, JSON.stringify(diagnostics));
-        console.log(`[Moneybird Financials] State counts:`, JSON.stringify(stateCounts));
-        console.log(`[Moneybird Financials] Sample amounts:`, JSON.stringify(sampleAmounts));
+        console.log(`[Moneybird Financials] Page 1 diagnostics:`, JSON.stringify({
+          count: invoices.length,
+          shape: diagnostics.response_shape,
+          states: stateCounts,
+          normalized: normalizedStateCounts,
+          amounts: sampleAmounts,
+          sampleKeys: diagnostics.api_page1_sample_keys,
+        }));
       }
       
       if (invoices.length === 0) {
         hasMore = false;
       } else {
-        // Filter invoices by date using numeric comparison
+        // Filter invoices by date
         const filteredInvoices = invoices.filter(inv => {
           const invDate = getInvoiceDate(inv as unknown as Record<string, unknown>);
           if (!invDate) return false;
@@ -174,43 +230,50 @@ serve(async (req) => {
         allInvoices.push(...filteredInvoices);
         
         page++;
-        // Rate limit protection
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      // Safety limit (50 pages = 5000 invoices max)
       if (page > 50) {
-        console.log(`[Moneybird Financials] Reached page limit, stopping pagination`);
+        console.log(`[Moneybird Financials] Reached page limit`);
         break;
       }
     }
     
-    // Update filtered diagnostics
     diagnostics.filtered_count = allInvoices.length;
-    if (allInvoices.length > 0) {
-      const filteredDates = allInvoices
-        .map(inv => getInvoiceDate(inv as unknown as Record<string, unknown>))
-        .filter((d): d is Date => d !== null)
-        .sort((a, b) => a.getTime() - b.getTime());
-      if (filteredDates.length > 0) {
-        diagnostics.filtered_date_min = filteredDates[0].toISOString().split('T')[0];
-        diagnostics.filtered_date_max = filteredDates[filteredDates.length - 1].toISOString().split('T')[0];
-      }
-    }
+    console.log(`[Moneybird Financials] Total filtered: ${allInvoices.length} invoices for ${year}`);
 
-    console.log(`[Moneybird Financials] Fetched ${allInvoices.length} invoices`);
-
-    // Calculate metrics
+    // Calculate metrics with proper state handling
     let totalRevenue = 0;
     let totalPaid = 0;
     let totalOutstanding = 0;
     let invoiceCountPaid = 0;
     let invoiceCountOpen = 0;
     let invoiceCountLate = 0;
+    let draftPipelineAmount = 0;
+    let draftPipelineCount = 0;
 
     const revenueByMonth: Record<string, { revenue: number; paid: number; count: number }> = {};
     const clientRevenue: Record<string, { name: string; revenue: number; paid: number }> = {};
     const now = new Date();
+    
+    // Prepare invoice rows for storage
+    const invoiceRows: Array<{
+      moneybird_id: string;
+      invoice_number: string | null;
+      contact_id: string | null;
+      contact_name: string | null;
+      state_raw: string | null;
+      state_normalized: string;
+      invoice_date: string | null;
+      due_date: string | null;
+      paid_at: string | null;
+      total_amount: number;
+      paid_amount: number;
+      unpaid_amount: number;
+      currency: string;
+      year: number;
+      raw_data: Record<string, unknown>;
+    }> = [];
 
     // Initialize months
     for (let m = 1; m <= 12; m++) {
@@ -220,43 +283,71 @@ serve(async (req) => {
 
     // Payment aging buckets
     const paymentAging = {
-      current: 0,      // Not yet due
-      overdue_30: 0,   // 1-30 days overdue
-      overdue_60: 0,   // 31-60 days overdue
-      overdue_90: 0,   // 61-90 days overdue
-      overdue_90_plus: 0, // 90+ days overdue
+      current: 0,
+      overdue_30: 0,
+      overdue_60: 0,
+      overdue_90: 0,
+      overdue_90_plus: 0,
     };
 
     for (const invoice of allInvoices) {
       const amount = parseAmount(invoice.total_price_incl_tax);
       const paidAmount = parseAmount(invoice.total_paid);
       const unpaidAmount = parseAmount(invoice.total_unpaid);
+      const normalizedState = normalizeState(invoice.state);
       
-      // Skip draft and scheduled invoices only
-      if (invoice.state === 'draft' || invoice.state === 'scheduled') {
-        diagnostics.skipped_draft_count = (diagnostics.skipped_draft_count as number) + 1;
-        console.log(`[Moneybird Financials] Skipping invoice with state: ${invoice.state}, amount: ${amount}`);
+      const invoiceDate = getInvoiceDate(invoice as unknown as Record<string, unknown>);
+      const contactName = invoice.contact?.company_name || 
+        `${invoice.contact?.firstname || ''} ${invoice.contact?.lastname || ''}`.trim() ||
+        'Unknown';
+      
+      // Prepare invoice row for storage
+      invoiceRows.push({
+        moneybird_id: invoice.id,
+        invoice_number: invoice.invoice_id || null,
+        contact_id: invoice.contact_id || null,
+        contact_name: contactName,
+        state_raw: invoice.state,
+        state_normalized: normalizedState,
+        invoice_date: invoiceDate ? invoiceDate.toISOString().split('T')[0] : null,
+        due_date: invoice.due_date || null,
+        paid_at: invoice.paid_at || null,
+        total_amount: amount,
+        paid_amount: paidAmount,
+        unpaid_amount: unpaidAmount,
+        currency: invoice.currency || 'EUR',
+        year: year,
+        raw_data: { 
+          state: invoice.state,
+          contact: invoice.contact,
+        },
+      });
+      
+      // Track drafts separately (don't include in YTD revenue)
+      if (normalizedState === 'draft' || normalizedState === 'scheduled') {
+        draftPipelineCount++;
+        draftPipelineAmount += amount;
         continue;
       }
       
       diagnostics.processed_count = (diagnostics.processed_count as number) + 1;
 
+      // Include in revenue calculations
       totalRevenue += amount;
       totalPaid += paidAmount;
       totalOutstanding += unpaidAmount;
 
       // Count by status
-      if (invoice.state === 'paid') {
+      if (normalizedState === 'paid') {
         invoiceCountPaid++;
-      } else if (invoice.state === 'late') {
+      } else if (normalizedState === 'late') {
         invoiceCountLate++;
         invoiceCountOpen++;
-      } else if (invoice.state === 'open' || invoice.state === 'pending_payment') {
+      } else if (normalizedState === 'open' || normalizedState === 'pending_payment') {
         invoiceCountOpen++;
       }
 
       // Revenue by month
-      const invoiceDate = getInvoiceDate(invoice as unknown as Record<string, unknown>);
       if (invoiceDate) {
         const monthKey = `${invoiceDate.getFullYear()}-${(invoiceDate.getMonth() + 1).toString().padStart(2, '0')}`;
         if (revenueByMonth[monthKey]) {
@@ -268,10 +359,6 @@ serve(async (req) => {
 
       // Client revenue
       const contactId = invoice.contact_id;
-      const contactName = invoice.contact?.company_name || 
-        `${invoice.contact?.firstname || ''} ${invoice.contact?.lastname || ''}`.trim() ||
-        'Unknown';
-      
       if (!clientRevenue[contactId]) {
         clientRevenue[contactId] = { name: contactName, revenue: 0, paid: 0 };
       }
@@ -297,24 +384,44 @@ serve(async (req) => {
       }
     }
 
+    diagnostics.draft_pipeline_count = draftPipelineCount;
+    diagnostics.draft_pipeline_amount = draftPipelineAmount;
+
+    // Store invoice rows (upsert by moneybird_id)
+    if (invoiceRows.length > 0) {
+      // Delete existing invoices for this year first, then insert new ones
+      const { error: deleteError } = await supabase
+        .from('moneybird_sales_invoices')
+        .delete()
+        .eq('year', year);
+      
+      if (deleteError) {
+        console.error('[Moneybird Financials] Failed to clear old invoices:', deleteError);
+      }
+      
+      const { error: insertError } = await supabase
+        .from('moneybird_sales_invoices')
+        .insert(invoiceRows);
+      
+      if (insertError) {
+        console.error('[Moneybird Financials] Failed to store invoices:', insertError);
+      } else {
+        diagnostics.stored_invoices_count = invoiceRows.length;
+        console.log(`[Moneybird Financials] Stored ${invoiceRows.length} invoice rows`);
+      }
+    }
+
     // Format revenue by month for storage
     const revenueByMonthArray = Object.entries(revenueByMonth)
-      .map(([month, data]) => ({
-        month,
-        ...data,
-      }))
+      .map(([month, data]) => ({ month, ...data }))
       .sort((a, b) => a.month.localeCompare(b.month));
 
     // Top clients by revenue
     const topClients = Object.entries(clientRevenue)
-      .map(([id, data]) => ({
-        contact_id: id,
-        ...data,
-      }))
+      .map(([id, data]) => ({ contact_id: id, ...data }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
 
-    // Calculate gross profit (simplified - just revenue for now)
     const grossProfit = totalPaid;
 
     // Store the metrics
@@ -337,6 +444,8 @@ serve(async (req) => {
         metadata: {
           year,
           total_invoices: allInvoices.length,
+          draft_pipeline_count: draftPipelineCount,
+          draft_pipeline_amount: draftPipelineAmount,
           sync_duration_ms: Date.now() - startTime,
           diagnostics,
         },
@@ -359,6 +468,7 @@ serve(async (req) => {
         total_revenue: totalRevenue,
         total_paid: totalPaid,
         invoice_count: allInvoices.length,
+        draft_pipeline: { count: draftPipelineCount, amount: draftPipelineAmount },
       },
       success: true,
       duration_ms: Date.now() - startTime,
@@ -373,6 +483,8 @@ serve(async (req) => {
       invoice_count_paid: invoiceCountPaid,
       invoice_count_open: invoiceCountOpen,
       invoice_count_late: invoiceCountLate,
+      draft_pipeline_count: draftPipelineCount,
+      draft_pipeline_amount: draftPipelineAmount,
       revenue_by_month: revenueByMonthArray,
       top_clients: topClients,
       payment_aging: paymentAging,
@@ -381,9 +493,9 @@ serve(async (req) => {
 
     console.log(`[Moneybird Financials] Completed in ${Date.now() - startTime}ms:`, {
       total_revenue: totalRevenue,
-      total_paid: totalPaid,
+      draft_pipeline: draftPipelineAmount,
       invoices: allInvoices.length,
-      diagnostics,
+      stored: diagnostics.stored_invoices_count,
     });
 
     return new Response(

@@ -2,7 +2,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGate } from "@/components/RoleGate";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { useFinancialStats, usePlacementFees, usePartnerInvoices, useReferralPayouts } from "@/hooks/useFinancialData";
 import { PlacementFeesTable } from "@/components/financial/PlacementFeesTable";
 import { InvoicesTable } from "@/components/financial/InvoicesTable";
@@ -12,12 +12,16 @@ import { RevenueSummaryCards } from "@/components/financial/RevenueSummaryCards"
 import { TopClientsTable } from "@/components/financial/TopClientsTable";
 import { PaymentAgingChart } from "@/components/financial/PaymentAgingChart";
 import { YearSelector } from "@/components/financial/YearSelector";
+import { InvoiceStatusSummary } from "@/components/financial/InvoiceStatusSummary";
+import { MoneybirdInvoicesTable } from "@/components/financial/MoneybirdInvoicesTable";
 import { useMoneybirdFinancials } from "@/hooks/useMoneybirdFinancials";
 import { useFinancialYearSelector } from "@/hooks/useFinancialYearSelector";
+import { useAutoSyncFinancials } from "@/hooks/useAutoSyncFinancials";
 
 export default function FinancialDashboard() {
   const { selectedYear, setSelectedYear, yearOptions, availableYears } = useFinancialYearSelector();
   const { data: metrics, isLoading: metricsLoading } = useMoneybirdFinancials(selectedYear);
+  const { isSyncing } = useAutoSyncFinancials(selectedYear);
   const { data: fees, isLoading: feesLoading } = usePlacementFees();
   const { data: invoices, isLoading: invoicesLoading } = usePartnerInvoices();
   const { data: payouts, isLoading: payoutsLoading } = useReferralPayouts();
@@ -29,8 +33,14 @@ export default function FinancialDashboard() {
           <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold mb-2">Financial Dashboard</h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground flex items-center gap-2">
                 Real-time revenue tracking powered by Moneybird
+                {isSyncing && (
+                  <span className="inline-flex items-center text-sm text-primary">
+                    <RefreshCw className="h-3 w-3 animate-spin mr-1" />
+                    Syncing...
+                  </span>
+                )}
               </p>
             </div>
             <YearSelector
@@ -39,6 +49,11 @@ export default function FinancialDashboard() {
               yearOptions={yearOptions}
               availableYears={availableYears}
             />
+          </div>
+
+          {/* Invoice Status Summary */}
+          <div className="mb-6">
+            <InvoiceStatusSummary year={selectedYear} />
           </div>
 
           {/* Revenue Summary Cards */}
@@ -70,6 +85,17 @@ export default function FinancialDashboard() {
             </Card>
             <PaymentAgingChart year={selectedYear} />
           </div>
+
+          {/* Moneybird Invoices Table */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Moneybird Invoices</CardTitle>
+              <CardDescription>Individual invoice records synced from Moneybird</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <MoneybirdInvoicesTable year={selectedYear} limit={20} />
+            </CardContent>
+          </Card>
 
           {/* Detailed Tables */}
           <Tabs defaultValue="fees" className="space-y-4">
