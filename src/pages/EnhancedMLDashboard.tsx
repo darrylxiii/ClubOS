@@ -207,7 +207,7 @@ export default function EnhancedMLDashboard() {
         </div>
 
         {/* Overview Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Model</CardTitle>
@@ -252,11 +252,28 @@ export default function EnhancedMLDashboard() {
 
           <Card>
             <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Training Records</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {activeModel?.training_data_count?.toLocaleString() || '0'}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Data points
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Model Accuracy</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {((activeModel?.metrics as any)?.auc_roc_score * 100).toFixed(1) || 0}%
+                {activeModel?.metrics?.auc_roc 
+                  ? (activeModel.metrics.auc_roc * 100).toFixed(1) + '%'
+                  : 'N/A'
+                }
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 AUC-ROC Score
@@ -491,50 +508,167 @@ export default function EnhancedMLDashboard() {
             </div>
           </TabsContent>
 
-          {/* Model Performance (existing content) */}
+          {/* Model Performance - Enhanced with detailed registry from MLDashboard */}
           <TabsContent value="models" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>ML Model Performance</CardTitle>
+                <CardTitle>Model Registry</CardTitle>
+                <CardDescription>
+                  All trained models and their performance metrics
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Model performance metrics and feature importance visualization
-                </p>
-                {/* Add existing model performance content here */}
+                {loading ? (
+                  <div className="text-center py-8 text-muted-foreground">Loading models...</div>
+                ) : models.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No models trained yet. Using baseline rule-based matching.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {models.map((model) => (
+                      <div
+                        key={model.id}
+                        className="border rounded-lg p-4 space-y-3"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold">Version {model.version}</h3>
+                              {model.status === 'active' && (
+                                <Badge variant="default">Active</Badge>
+                              )}
+                              <Badge variant="outline">{model.model_type}</Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {model.notes || 'No description'}
+                            </p>
+                          </div>
+                          <div className="text-right text-xs text-muted-foreground">
+                            {new Date(model.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+
+                        {/* Metrics */}
+                        {model.metrics && (
+                          <div className="grid grid-cols-4 gap-4 pt-2 border-t">
+                            {model.metrics.auc_roc && (
+                              <div>
+                                <div className="text-xs text-muted-foreground">AUC-ROC</div>
+                                <div className="text-sm font-semibold">
+                                  {(model.metrics.auc_roc * 100).toFixed(1)}%
+                                </div>
+                              </div>
+                            )}
+                            {model.metrics.precision_at_10 && (
+                              <div>
+                                <div className="text-xs text-muted-foreground">Precision@10</div>
+                                <div className="text-sm font-semibold">
+                                  {(model.metrics.precision_at_10 * 100).toFixed(1)}%
+                                </div>
+                              </div>
+                            )}
+                            {model.metrics.interview_rate && (
+                              <div>
+                                <div className="text-xs text-muted-foreground">Interview Rate</div>
+                                <div className="text-sm font-semibold">
+                                  {(model.metrics.interview_rate * 100).toFixed(1)}%
+                                </div>
+                              </div>
+                            )}
+                            {model.metrics.hire_rate && (
+                              <div>
+                                <div className="text-xs text-muted-foreground">Hire Rate</div>
+                                <div className="text-sm font-semibold">
+                                  {(model.metrics.hire_rate * 100).toFixed(1)}%
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* A/B Tests (existing content) */}
+          {/* A/B Tests - Enhanced with detailed view from MLDashboard */}
           <TabsContent value="ab-tests" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>A/B Test Results</CardTitle>
+                <CardTitle>A/B Tests</CardTitle>
+                <CardDescription>
+                  Experiments comparing different model versions
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {runningTests.length > 0 ? (
+                {loading ? (
+                  <div className="text-center py-8 text-muted-foreground">Loading tests...</div>
+                ) : abTests.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No A/B tests running yet.
+                  </div>
+                ) : (
                   <div className="space-y-4">
-                    {runningTests.map((test: MLABTest) => (
-                      <div key={test.id} className="p-4 border rounded-lg">
-                        <div className="font-medium mb-2">Test #{test.id}</div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                    {abTests.map((test) => (
+                      <div
+                        key={test.id}
+                        className="border rounded-lg p-4 space-y-3"
+                      >
+                        <div className="flex items-start justify-between">
                           <div>
-                            <span className="text-muted-foreground">Model A: </span>
-                            v{test.model_a_version}
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Model B: </span>
-                            v{test.model_b_version}
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold">{test.test_name}</h3>
+                              <Badge 
+                                variant={test.status === 'running' ? 'default' : 'secondary'}
+                              >
+                                {test.status}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              v{test.model_a_version} vs v{test.model_b_version}
+                            </p>
+                            {test.hypothesis && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {test.hypothesis}
+                              </p>
+                            )}
                           </div>
                         </div>
+
+                        {/* Traffic Split */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span>Traffic Split</span>
+                            <span>{Math.round(test.traffic_split * 100)}% / {Math.round((1 - test.traffic_split) * 100)}%</span>
+                          </div>
+                          <Progress value={test.traffic_split * 100} className="h-2" />
+                        </div>
+
+                        {/* Sample Sizes */}
+                        <div className="grid grid-cols-2 gap-4 pt-2 border-t text-sm">
+                          <div>
+                            <div className="text-muted-foreground">Model A Samples</div>
+                            <div className="font-semibold">{test.sample_size_a}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Model B Samples</div>
+                            <div className="font-semibold">{test.sample_size_b}</div>
+                          </div>
+                        </div>
+
+                        {test.winner && test.winner !== 'pending' && (
+                          <div className="pt-2 border-t">
+                            <Badge variant="default">
+                              Winner: {test.winner === 'model_a' ? `v${test.model_a_version}` : `v${test.model_b_version}`}
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-12">
-                    No active A/B tests running
-                  </p>
                 )}
               </CardContent>
             </Card>

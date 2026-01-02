@@ -23,8 +23,7 @@ const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
 const TranslationManager = lazy(() => import("@/pages/admin/TranslationManager"));
 const LanguageManager = lazy(() => import("@/pages/admin/LanguageManager"));
 const DisasterRecoveryPage = lazy(() => import("@/pages/admin/DisasterRecoveryPage"));
-const DRRunbooks = lazy(() => import("@/pages/admin/DRRunbooks"));
-const ComprehensiveDRPage = lazy(() => import("@/pages/admin/ComprehensiveDRPage"));
+// DRRunbooks and ComprehensiveDRPage consolidated into DisasterRecoveryPage
 const MemberRequestsPage = lazy(() => import("@/pages/admin/MemberRequestsPage"));
 const EmailTemplateManager = lazy(() => import("@/pages/admin/EmailTemplateManager"));
 const TargetCompaniesOverview = lazy(() => import("@/pages/admin/TargetCompaniesOverview"));
@@ -200,30 +199,7 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/dr-runbooks"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <DRRunbooks />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/comprehensive-dr"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <ComprehensiveDRPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* /admin/dr-runbooks and /admin/comprehensive-dr consolidated into /admin/disaster-recovery */}
     <Route
       path="/admin/member-requests"
       element={
