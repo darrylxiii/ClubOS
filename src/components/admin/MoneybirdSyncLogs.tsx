@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle2, XCircle, Clock } from 'lucide-react';
-import { useMoneybirdSettings, useMoneybirdSyncLogs } from '@/hooks/useMoneybird';
+import { useMoneybirdConnection, useMoneybirdSyncLogs } from '@/hooks/useMoneybird';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -17,10 +17,10 @@ const OPERATION_LABELS: Record<string, string> = {
 };
 
 export function MoneybirdSyncLogs() {
-  const { data: settings, isLoading: settingsLoading } = useMoneybirdSettings();
+  const { data: connection } = useMoneybirdConnection();
   const { data: logs, isLoading: logsLoading } = useMoneybirdSyncLogs(30);
 
-  if (settingsLoading || !settings?.is_active) {
+  if (!connection?.connected) {
     return null;
   }
 

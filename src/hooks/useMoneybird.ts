@@ -2,38 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface MoneybirdSettings {
-  id: string;
-  user_id: string;
-  administration_id: string;
-  administration_name: string | null;
-  auto_create_invoices: boolean;
-  auto_send_invoices: boolean;
-  default_tax_rate_id: string | null;
-  sync_preferences: Record<string, unknown>;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-interface MoneybirdContactSync {
-  id: string;
-  company_id: string;
-  moneybird_contact_id: string;
-  sync_status: string;
-  last_synced_at: string;
-  sync_error: string | null;
-}
-
-interface MoneybirdInvoiceSync {
-  id: string;
-  partner_invoice_id: string;
-  moneybird_invoice_id: string;
-  moneybird_status: string;
-  external_url: string | null;
-  sync_status: string;
-  last_synced_at: string;
-  sync_error: string | null;
+interface MoneybirdConnectionStatus {
+  connected: boolean;
+  administrationId?: string;
+  administrationName?: string;
+  country?: string;
+  currency?: string;
+  error?: string;
 }
 
 interface MoneybirdSyncLog {
@@ -48,20 +23,20 @@ interface MoneybirdSyncLog {
   created_at: string;
 }
 
-// Fetch Moneybird settings
-export function useMoneybirdSettings() {
+// Test connection to Moneybird
+export function useMoneybirdConnection() {
   return useQuery({
-    queryKey: ['moneybird-settings'],
+    queryKey: ['moneybird-connection'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('moneybird_settings')
-        .select('*')
-        .eq('is_active', true)
-        .maybeSingle();
+      const response = await supabase.functions.invoke('moneybird-test-connection');
 
-      if (error) throw error;
-      return data as MoneybirdSettings | null;
+      if (response.error) {
+        return { connected: false, error: response.error.message } as MoneybirdConnectionStatus;
+      }
+
+      return response.data as MoneybirdConnectionStatus;
     },
+    staleTime: 60000, // Cache for 1 minute
   });
 }
 
@@ -114,134 +89,14 @@ export function useMoneybirdInvoiceSyncs() {
   });
 }
 
-// Get OAuth authorization URL
-export function useGetMoneybirdAuthUrl() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
-      const response = await supabase.functions.invoke('moneybird-auth', {
-        body: null,
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      // Check for function-level error (non-2xx response)
-      if (response.error) {
-        throw new Error(response.error.message || 'Failed to get auth URL');
-      }
-
-      // Append action parameter to URL
-      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/moneybird-auth?action=authorize`;
-      const authResponse = await fetch(functionUrl, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (!authResponse.ok) {
-        throw new Error('Failed to get authorization URL');
-      }
-
-      const data = await authResponse.json();
-      return data.authUrl as string;
-    },
-    onError: (error) => {
-      toast.error('Failed to initiate Moneybird connection', {
-        description: error instanceof Error ? error.message : 'Unknown error',
-      });
-    },
-  });
-}
-
-// Disconnect from Moneybird
-export function useDisconnectMoneybird() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
-      const response = await supabase.functions.invoke('moneybird-auth', {
-        body: { action: 'disconnect' },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message || 'Failed to disconnect');
-      }
-
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['moneybird-settings'] });
-      toast.success('Moneybird disconnected');
-    },
-    onError: (error) => {
-      toast.error('Failed to disconnect', {
-        description: error instanceof Error ? error.message : 'Unknown error',
-      });
-    },
-  });
-}
-
-// Update settings
-export function useUpdateMoneybirdSettings() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (settings: { auto_create_invoices?: boolean; auto_send_invoices?: boolean }) => {
-      const { data: currentSettings } = await supabase
-        .from('moneybird_settings')
-        .select('id')
-        .eq('is_active', true)
-        .single();
-
-      if (!currentSettings) throw new Error('No active settings found');
-
-      const { error } = await supabase
-        .from('moneybird_settings')
-        .update({
-          ...settings,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', currentSettings.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['moneybird-settings'] });
-      toast.success('Settings updated');
-    },
-    onError: (error) => {
-      toast.error('Failed to update settings', {
-        description: error instanceof Error ? error.message : 'Unknown error',
-      });
-    },
-  });
-}
-
 // Sync contacts
 export function useSyncMoneybirdContacts() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (params?: { companyId?: string; syncAll?: boolean }) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
       const response = await supabase.functions.invoke('moneybird-sync-contacts', {
         body: params || {},
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
       });
 
       if (response.error) {
@@ -280,14 +135,8 @@ export function useCreateMoneybirdInvoice() {
       countryCode?: string;
       vatNumber?: string;
     }) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
       const response = await supabase.functions.invoke('moneybird-create-invoice', {
         body: params,
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
       });
 
       if (response.error) {
@@ -321,14 +170,8 @@ export function useSyncMoneybirdInvoiceStatus() {
 
   return useMutation({
     mutationFn: async (params?: { partnerInvoiceId?: string; syncAll?: boolean }) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
       const response = await supabase.functions.invoke('moneybird-sync-invoice-status', {
         body: params || {},
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
       });
 
       if (response.error) {

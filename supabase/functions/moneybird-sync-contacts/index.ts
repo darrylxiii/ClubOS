@@ -16,39 +16,14 @@ serve(async (req) => {
   const startTime = Date.now();
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const accessToken = Deno.env.get('MONEYBIRD_ACCESS_TOKEN')!;
+  const administrationId = Deno.env.get('MONEYBIRD_ADMINISTRATION_ID')!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    // Verify auth
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    if (!accessToken || !administrationId) {
       return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Get Moneybird settings
-    const { data: settings, error: settingsError } = await supabase
-      .from('moneybird_settings')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .single();
-
-    if (settingsError || !settings) {
-      return new Response(
-        JSON.stringify({ error: 'Moneybird not connected' }),
+        JSON.stringify({ error: 'Moneybird not configured' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -68,7 +43,7 @@ serve(async (req) => {
       const { data: syncedIds } = await supabase
         .from('moneybird_contact_sync')
         .select('company_id')
-        .eq('moneybird_administration_id', settings.administration_id);
+        .eq('moneybird_administration_id', administrationId);
       
       const syncedCompanyIds = syncedIds?.map(s => s.company_id) || [];
       if (syncedCompanyIds.length > 0) {
@@ -95,9 +70,9 @@ serve(async (req) => {
     for (const company of companies || []) {
       try {
         // Check if contact already exists in Moneybird by company name
-        const searchUrl = `${MONEYBIRD_API_BASE}/${settings.administration_id}/contacts.json?query=${encodeURIComponent(company.name)}`;
+        const searchUrl = `${MONEYBIRD_API_BASE}/${administrationId}/contacts.json?query=${encodeURIComponent(company.name)}`;
         const searchResponse = await fetch(searchUrl, {
-          headers: { 'Authorization': `Bearer ${settings.access_token}` },
+          headers: { 'Authorization': `Bearer ${accessToken}` },
         });
 
         if (!searchResponse.ok) {
@@ -116,11 +91,11 @@ serve(async (req) => {
           moneybirdContactId = existingContact.id;
           
           const updateResponse = await fetch(
-            `${MONEYBIRD_API_BASE}/${settings.administration_id}/contacts/${moneybirdContactId}.json`,
+            `${MONEYBIRD_API_BASE}/${administrationId}/contacts/${moneybirdContactId}.json`,
             {
               method: 'PATCH',
               headers: {
-                'Authorization': `Bearer ${settings.access_token}`,
+                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
@@ -144,11 +119,11 @@ serve(async (req) => {
         } else {
           // Create new contact
           const createResponse = await fetch(
-            `${MONEYBIRD_API_BASE}/${settings.administration_id}/contacts.json`,
+            `${MONEYBIRD_API_BASE}/${administrationId}/contacts.json`,
             {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer ${settings.access_token}`,
+                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
@@ -178,7 +153,7 @@ serve(async (req) => {
           .upsert({
             company_id: company.id,
             moneybird_contact_id: moneybirdContactId,
-            moneybird_administration_id: settings.administration_id,
+            moneybird_administration_id: administrationId,
             sync_status: 'synced',
             last_synced_at: new Date().toISOString(),
             sync_error: null,
@@ -198,7 +173,7 @@ serve(async (req) => {
           .upsert({
             company_id: company.id,
             moneybird_contact_id: '',
-            moneybird_administration_id: settings.administration_id,
+            moneybird_administration_id: administrationId,
             sync_status: 'error',
             last_synced_at: new Date().toISOString(),
             sync_error: errorMsg,
@@ -210,7 +185,6 @@ serve(async (req) => {
 
     // Log the sync operation
     await supabase.from('moneybird_sync_logs').insert({
-      user_id: user.id,
       operation_type: 'sync_contacts',
       entity_type: 'contact',
       entity_id: companyId || 'bulk',

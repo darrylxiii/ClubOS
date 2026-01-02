@@ -966,17 +966,17 @@ verify_jwt = false
 # =============================================================================
 # Moneybird Integration
 # =============================================================================
-[functions.moneybird-auth]
+[functions.moneybird-test-connection]
 verify_jwt = false
 
 [functions.moneybird-sync-contacts]
-verify_jwt = true
+verify_jwt = false
 
 [functions.moneybird-create-invoice]
-verify_jwt = true
+verify_jwt = false
 
 [functions.moneybird-sync-invoice-status]
-verify_jwt = true
+verify_jwt = false
 
 [functions.moneybird-webhook]
 verify_jwt = false

@@ -14,6 +14,7 @@ serve(async (req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const webhookToken = Deno.env.get('MONEYBIRD_WEBHOOK_TOKEN');
+  const administrationId = Deno.env.get('MONEYBIRD_ADMINISTRATION_ID')!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
@@ -43,10 +44,19 @@ serve(async (req) => {
       );
     }
 
+    // Verify it's for our administration
+    if (administration_id?.toString() !== administrationId) {
+      console.log('[Moneybird Webhook] Ignoring event for different administration');
+      return new Response(
+        JSON.stringify({ success: true, message: 'Different administration' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const invoiceId = body.id?.toString();
     
-    if (!invoiceId || !administration_id) {
-      console.warn('[Moneybird Webhook] Missing invoice ID or administration ID');
+    if (!invoiceId) {
+      console.warn('[Moneybird Webhook] Missing invoice ID');
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -58,7 +68,7 @@ serve(async (req) => {
       .from('moneybird_invoice_sync')
       .select('*, partner_invoices(id, status)')
       .eq('moneybird_invoice_id', invoiceId)
-      .eq('moneybird_administration_id', administration_id.toString())
+      .eq('moneybird_administration_id', administrationId)
       .single();
 
     if (syncError || !sync) {
@@ -96,17 +106,8 @@ serve(async (req) => {
         })
         .eq('id', sync.partner_invoice_id);
 
-      // Find settings to get user ID for logging
-      const { data: settings } = await supabase
-        .from('moneybird_settings')
-        .select('user_id')
-        .eq('administration_id', administration_id.toString())
-        .eq('is_active', true)
-        .single();
-
       // Log the webhook event
       await supabase.from('moneybird_sync_logs').insert({
-        user_id: settings?.user_id,
         operation_type: 'webhook_payment',
         entity_type: 'invoice',
         entity_id: sync.partner_invoice_id,
@@ -114,23 +115,11 @@ serve(async (req) => {
         response_payload: { previous_status: previousStatus, new_status: newStatus },
         success: true,
       });
-
-      // TODO: Trigger referral payout processing if applicable
-      // This would involve checking if the invoice has associated referral fees
-      // and creating payout records
     }
 
     // Handle other status changes
     if (newStatus !== previousStatus) {
-      const { data: settings } = await supabase
-        .from('moneybird_settings')
-        .select('user_id')
-        .eq('administration_id', administration_id.toString())
-        .eq('is_active', true)
-        .single();
-
       await supabase.from('moneybird_sync_logs').insert({
-        user_id: settings?.user_id,
         operation_type: 'webhook_status_change',
         entity_type: 'invoice',
         entity_id: sync.partner_invoice_id,
