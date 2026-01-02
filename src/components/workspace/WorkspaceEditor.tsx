@@ -52,6 +52,8 @@ export function WorkspaceEditor({
   const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
+  const isApplyingRemote = useRef(false);
+  const lastContentRef = useRef<string>('');
 
   // Collaboration hooks
   const { 
@@ -85,6 +87,13 @@ export function WorkspaceEditor({
     schema,
     initialContent,
   });
+  
+  // Track initial content hash
+  useEffect(() => {
+    if (page.content) {
+      lastContentRef.current = JSON.stringify(page.content);
+    }
+  }, [page.id]);
 
   // Handle cursor movement
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -106,8 +115,15 @@ export function WorkspaceEditor({
 
   // Debounced save
   const handleChange = useCallback(() => {
-    if (readOnly) return;
+    if (readOnly || isApplyingRemote.current) return;
+    
     const content = editor.document;
+    const contentStr = JSON.stringify(content);
+    
+    // Skip if content hasn't actually changed
+    if (contentStr === lastContentRef.current) return;
+    lastContentRef.current = contentStr;
+    
     onContentChange(content);
     
     // Broadcast change to other users
@@ -116,21 +132,28 @@ export function WorkspaceEditor({
     }
   }, [editor, onContentChange, readOnly, enableCollaboration, broadcastChange]);
 
-  // Apply remote changes
+  // Apply remote changes from other collaborators
   useEffect(() => {
-    if (remoteChanges.length === 0) return;
+    if (remoteChanges.length === 0 || !editor) return;
     
     remoteChanges.forEach(change => {
-      if (change.type === 'replace' && change.content) {
-        // Handle full content replacement from another user
-        // Note: BlockNote doesn't have a direct replaceBlocks API, 
-        // so we'd need to handle this at the page level with a refresh
-        console.log('[Collaboration] Remote full sync received');
+      if (change.type === 'replace' && change.content && Array.isArray(change.content)) {
+        // Full content sync from another user
+        isApplyingRemote.current = true;
+        try {
+          // Replace all blocks with remote content
+          editor.replaceBlocks(editor.document, change.content);
+          lastContentRef.current = JSON.stringify(change.content);
+        } catch (err) {
+          console.error('[Collaboration] Failed to apply remote sync:', err);
+        } finally {
+          isApplyingRemote.current = false;
+        }
       }
     });
     
     clearRemoteChanges();
-  }, [remoteChanges, clearRemoteChanges]);
+  }, [remoteChanges, clearRemoteChanges, editor]);
 
   useEffect(() => {
     setIsMounted(true);
