@@ -42358,6 +42358,7 @@ export type Database = {
           user_type: string
         }[]
       }
+      get_user_workspace_ids: { Args: never; Returns: string[] }
       get_users_without_roles: {
         Args: never
         Returns: {
@@ -42434,6 +42435,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      is_workspace_admin: { Args: { p_workspace_id: string }; Returns: boolean }
       join_default_server: { Args: never; Returns: undefined }
       leave_voice_channel: {
         Args: { p_channel_id: string; p_user_id: string }

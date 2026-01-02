@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 export interface WorkspacePage {
   id: string;
   user_id: string;
+  workspace_id: string | null;
   parent_page_id: string | null;
   title: string;
   icon_emoji: string | null;
@@ -35,37 +36,112 @@ export interface PageTemplate {
   created_at: string;
 }
 
+// Helper to get user's default workspace
+async function getOrCreateDefaultWorkspace(userId: string): Promise<string> {
+  // First, check if user has any workspace membership
+  const { data: memberships, error: memberError } = await supabase
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .limit(1);
+
+  if (!memberError && memberships && memberships.length > 0) {
+    return memberships[0].workspace_id;
+  }
+
+  // No membership found, create a default workspace
+  const { data: workspace, error: wsError } = await supabase
+    .from('workspaces')
+    .insert({
+      name: 'My Workspace',
+      slug: `workspace-${userId.slice(0, 8)}`,
+      created_by: userId,
+    })
+    .select()
+    .single();
+
+  if (wsError) throw wsError;
+
+  // Add user as owner
+  await supabase
+    .from('workspace_members')
+    .insert({
+      workspace_id: workspace.id,
+      user_id: userId,
+      role: 'owner',
+      is_active: true,
+    });
+
+  return workspace.id;
+}
+
 export function useWorkspacePages() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const pagesQuery = useQuery({
-    queryKey: ['workspace-pages', user?.id],
+  // Get user's workspace IDs first
+  const workspaceQuery = useQuery({
+    queryKey: ['user-workspaces', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
       
       const { data, error } = await supabase
-        .from('workspace_pages')
-        .select('*')
+        .from('workspace_members')
+        .select('workspace_id')
         .eq('user_id', user.id)
-        .eq('is_archived', false)
-        .order('sort_order', { ascending: true });
+        .eq('is_active', true);
 
-      if (error) throw error;
-      return data as WorkspacePage[];
+      if (error) {
+        console.error('Failed to fetch workspaces:', error);
+        return [];
+      }
+      return data?.map(m => m.workspace_id) || [];
     },
     enabled: !!user?.id,
   });
 
-  const favoritesQuery = useQuery({
-    queryKey: ['workspace-favorites', user?.id],
+  const pagesQuery = useQuery({
+    queryKey: ['workspace-pages', user?.id, workspaceQuery.data],
     queryFn: async () => {
       if (!user?.id) return [];
+      
+      const workspaceIds = workspaceQuery.data || [];
+      
+      // If no workspace IDs, return empty - user needs to create one first
+      if (workspaceIds.length === 0) {
+        return [];
+      }
       
       const { data, error } = await supabase
         .from('workspace_pages')
         .select('*')
-        .eq('user_id', user.id)
+        .in('workspace_id', workspaceIds)
+        .eq('is_archived', false)
+        .order('sort_order', { ascending: true });
+
+      if (error) {
+        console.error('Failed to fetch pages:', error);
+        throw error;
+      }
+      return data as WorkspacePage[];
+    },
+    enabled: !!user?.id && workspaceQuery.isSuccess,
+    retry: 2,
+  });
+
+  const favoritesQuery = useQuery({
+    queryKey: ['workspace-favorites', user?.id, workspaceQuery.data],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const workspaceIds = workspaceQuery.data || [];
+      if (workspaceIds.length === 0) return [];
+      
+      const { data, error } = await supabase
+        .from('workspace_pages')
+        .select('*')
+        .in('workspace_id', workspaceIds)
         .eq('is_favorite', true)
         .eq('is_archived', false)
         .order('updated_at', { ascending: false });
@@ -73,7 +149,7 @@ export function useWorkspacePages() {
       if (error) throw error;
       return data as WorkspacePage[];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && workspaceQuery.isSuccess,
   });
 
   const recentQuery = useQuery({
@@ -116,10 +192,14 @@ export function useWorkspacePages() {
     }) => {
       if (!user?.id) throw new Error('Not authenticated');
       
+      // Get or create default workspace
+      const workspaceId = await getOrCreateDefaultWorkspace(user.id);
+      
       const { data, error } = await supabase
         .from('workspace_pages')
         .insert({
           user_id: user.id,
+          workspace_id: workspaceId,
           title: params.title || 'Untitled',
           parent_page_id: params.parent_page_id || null,
           content: params.content || [],
@@ -128,15 +208,19 @@ export function useWorkspacePages() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Create page error:', error);
+        throw error;
+      }
       return data as WorkspacePage;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspace-pages'] });
+      queryClient.invalidateQueries({ queryKey: ['user-workspaces'] });
     },
-    onError: (error) => {
-      toast.error('Failed to create page');
-      console.error('Create page error:', error);
+    onError: (error: any) => {
+      console.error('Create page mutation error:', error);
+      toast.error(`Failed to create page: ${error.message || 'Unknown error'}`);
     },
   });
 
@@ -263,10 +347,14 @@ export function useWorkspacePages() {
     mutationFn: async (page: WorkspacePage) => {
       if (!user?.id) throw new Error('Not authenticated');
       
+      // Use same workspace as original page, or get default
+      const workspaceId = page.workspace_id || await getOrCreateDefaultWorkspace(user.id);
+      
       const { data, error } = await supabase
         .from('workspace_pages')
         .insert({
           user_id: user.id,
+          workspace_id: workspaceId,
           title: `${page.title} (Copy)`,
           parent_page_id: page.parent_page_id,
           content: page.content,
@@ -314,7 +402,13 @@ export function useWorkspacePages() {
     favorites: favoritesQuery.data || [],
     recent: recentQuery.data || [],
     templates: templatesQuery.data || [],
-    isLoading: pagesQuery.isLoading,
+    isLoading: pagesQuery.isLoading || workspaceQuery.isLoading,
+    isError: pagesQuery.isError,
+    error: pagesQuery.error,
+    refetch: () => {
+      workspaceQuery.refetch();
+      pagesQuery.refetch();
+    },
     createPage,
     updatePage,
     deletePage,

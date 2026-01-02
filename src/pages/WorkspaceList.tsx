@@ -22,6 +22,8 @@ import {
   PanelLeftClose,
   PanelLeft,
   Settings,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -41,7 +43,10 @@ export default function WorkspaceList() {
     recent, 
     templates, 
     createPage, 
-    isLoading 
+    isLoading,
+    isError,
+    error,
+    refetch,
   } = useWorkspacePages();
   
   const { currentRole } = useRole();
@@ -157,6 +162,18 @@ export default function WorkspaceList() {
                         <div key={i} className="h-32 bg-muted/50 rounded-lg animate-pulse" />
                       ))}
                     </div>
+                  ) : isError ? (
+                    <Card className="p-12 text-center">
+                      <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Failed to load pages</h3>
+                      <p className="text-muted-foreground mb-4">
+                        {(error as Error)?.message || 'Something went wrong. Please try again.'}
+                      </p>
+                      <Button onClick={() => refetch()} variant="outline">
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Retry
+                      </Button>
+                    </Card>
                   ) : filteredPages.length === 0 ? (
                     <Card className="p-12 text-center">
                       <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
