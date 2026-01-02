@@ -24080,6 +24080,69 @@ export type Database = {
           },
         ]
       }
+      moneybird_financial_metrics: {
+        Row: {
+          created_at: string | null
+          gross_profit: number | null
+          id: string
+          invoice_count_late: number | null
+          invoice_count_open: number | null
+          invoice_count_paid: number | null
+          last_synced_at: string | null
+          metadata: Json | null
+          payment_aging: Json | null
+          period_end: string
+          period_start: string
+          revenue_by_month: Json | null
+          sync_date: string
+          top_clients: Json | null
+          total_outstanding: number | null
+          total_paid: number | null
+          total_revenue: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          gross_profit?: number | null
+          id?: string
+          invoice_count_late?: number | null
+          invoice_count_open?: number | null
+          invoice_count_paid?: number | null
+          last_synced_at?: string | null
+          metadata?: Json | null
+          payment_aging?: Json | null
+          period_end: string
+          period_start: string
+          revenue_by_month?: Json | null
+          sync_date?: string
+          top_clients?: Json | null
+          total_outstanding?: number | null
+          total_paid?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          gross_profit?: number | null
+          id?: string
+          invoice_count_late?: number | null
+          invoice_count_open?: number | null
+          invoice_count_paid?: number | null
+          last_synced_at?: string | null
+          metadata?: Json | null
+          payment_aging?: Json | null
+          period_end?: string
+          period_start?: string
+          revenue_by_month?: Json | null
+          sync_date?: string
+          top_clients?: Json | null
+          total_outstanding?: number | null
+          total_paid?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       moneybird_invoice_sync: {
         Row: {
           created_at: string | null
