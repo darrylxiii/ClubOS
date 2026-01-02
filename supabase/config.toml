@@ -983,3 +983,6 @@ verify_jwt = false
 
 [functions.moneybird-webhook]
 verify_jwt = false
+
+[functions.moneybird-fetch-financials]
+verify_jwt = true
