@@ -23,6 +23,21 @@ interface MoneybirdInvoice {
   currency: string;
 }
 
+// Helper: parse amount robustly (handles EU comma decimals)
+function parseAmount(value: string | number | null | undefined): number {
+  if (value == null) return 0;
+  const str = String(value).replace(',', '.');
+  return Number(str) || 0;
+}
+
+// Helper: extract date from invoice with fallback chain
+function getInvoiceDate(invoice: Record<string, unknown>): Date | null {
+  const dateStr = invoice.invoice_date ?? invoice.date ?? invoice.updated_at ?? invoice.created_at;
+  if (!dateStr || typeof dateStr !== 'string') return null;
+  const parsed = new Date(dateStr);
+  return isNaN(parsed.getTime()) ? null : parsed;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -35,6 +50,20 @@ serve(async (req) => {
   const administrationId = Deno.env.get('MONEYBIRD_ADMINISTRATION_ID')!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+  // Diagnostics object to track what's happening
+  const diagnostics: Record<string, unknown> = {
+    year: null,
+    api_total_fetched: 0,
+    api_page1_count: 0,
+    api_page1_date_min: null,
+    api_page1_date_max: null,
+    api_page1_missing_date: 0,
+    api_page1_sample_dates: [] as string[],
+    filtered_count: 0,
+    filtered_date_min: null,
+    filtered_date_max: null,
+  };
+
   try {
     if (!accessToken || !administrationId) {
       return new Response(
@@ -45,20 +74,23 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const { year = new Date().getFullYear() } = body;
+    diagnostics.year = year;
 
     console.log(`[Moneybird Financials] Fetching data for year ${year}`);
 
-    // Fetch all sales invoices (no filter - we'll filter locally for reliability)
+    // Use numeric date comparison (robust against timestamps)
     const periodStart = `${year}-01-01`;
     const periodEnd = `${year}-12-31`;
+    const startTs = new Date(Date.UTC(year, 0, 1, 0, 0, 0)).getTime();
+    const endTs = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)).getTime();
     
     const allInvoices: MoneybirdInvoice[] = [];
     let page = 1;
     let hasMore = true;
 
-    console.log(`[Moneybird Financials] Fetching invoices for period ${periodStart} to ${periodEnd}`);
+    console.log(`[Moneybird Financials] Fetching invoices for period ${periodStart} to ${periodEnd} (timestamps ${startTs} to ${endTs})`);
 
-    // Paginate through all invoices (no filter param to avoid API compatibility issues)
+    // Paginate through all invoices
     while (hasMore) {
       const invoicesUrl = new URL(`${MONEYBIRD_API_BASE}/${administrationId}/sales_invoices.json`);
       invoicesUrl.searchParams.set('per_page', '100');
@@ -78,21 +110,38 @@ serve(async (req) => {
 
       const invoices: MoneybirdInvoice[] = await invoicesResponse.json();
       console.log(`[Moneybird Financials] Page ${page}: ${invoices.length} invoices`);
+      diagnostics.api_total_fetched = (diagnostics.api_total_fetched as number) + invoices.length;
       
-      // Log date range on first page for debugging
-      if (page === 1 && invoices.length > 0) {
-        const dates = invoices.map(inv => inv.invoice_date).filter(Boolean).sort();
-        const missingDates = invoices.filter(inv => !inv.invoice_date).length;
-        console.log(`[Moneybird Financials] Page 1 invoice_date range: ${dates[0] || 'none'} to ${dates[dates.length - 1] || 'none'}; missing invoice_date: ${missingDates}`);
+      // Collect diagnostics on first page
+      if (page === 1) {
+        diagnostics.api_page1_count = invoices.length;
+        const parsedDates: Date[] = [];
+        for (const inv of invoices) {
+          const d = getInvoiceDate(inv as unknown as Record<string, unknown>);
+          if (d) {
+            parsedDates.push(d);
+          } else {
+            diagnostics.api_page1_missing_date = (diagnostics.api_page1_missing_date as number) + 1;
+          }
+        }
+        if (parsedDates.length > 0) {
+          parsedDates.sort((a, b) => a.getTime() - b.getTime());
+          diagnostics.api_page1_date_min = parsedDates[0].toISOString().split('T')[0];
+          diagnostics.api_page1_date_max = parsedDates[parsedDates.length - 1].toISOString().split('T')[0];
+          diagnostics.api_page1_sample_dates = parsedDates.slice(0, 5).map(d => d.toISOString().split('T')[0]);
+        }
+        console.log(`[Moneybird Financials] Page 1 diagnostics:`, JSON.stringify(diagnostics));
       }
       
       if (invoices.length === 0) {
         hasMore = false;
       } else {
-        // Filter invoices by date locally
+        // Filter invoices by date using numeric comparison
         const filteredInvoices = invoices.filter(inv => {
-          const invDate = inv.invoice_date;
-          return invDate && invDate >= periodStart && invDate <= periodEnd;
+          const invDate = getInvoiceDate(inv as unknown as Record<string, unknown>);
+          if (!invDate) return false;
+          const ts = invDate.getTime();
+          return ts >= startTs && ts <= endTs;
         });
         
         console.log(`[Moneybird Financials] Page ${page}: ${filteredInvoices.length} invoices match ${year}`);
@@ -107,6 +156,19 @@ serve(async (req) => {
       if (page > 50) {
         console.log(`[Moneybird Financials] Reached page limit, stopping pagination`);
         break;
+      }
+    }
+    
+    // Update filtered diagnostics
+    diagnostics.filtered_count = allInvoices.length;
+    if (allInvoices.length > 0) {
+      const filteredDates = allInvoices
+        .map(inv => getInvoiceDate(inv as unknown as Record<string, unknown>))
+        .filter((d): d is Date => d !== null)
+        .sort((a, b) => a.getTime() - b.getTime());
+      if (filteredDates.length > 0) {
+        diagnostics.filtered_date_min = filteredDates[0].toISOString().split('T')[0];
+        diagnostics.filtered_date_max = filteredDates[filteredDates.length - 1].toISOString().split('T')[0];
       }
     }
 
@@ -140,9 +202,9 @@ serve(async (req) => {
     };
 
     for (const invoice of allInvoices) {
-      const amount = parseFloat(invoice.total_price_incl_tax) || 0;
-      const paidAmount = parseFloat(invoice.total_paid) || 0;
-      const unpaidAmount = parseFloat(invoice.total_unpaid) || 0;
+      const amount = parseAmount(invoice.total_price_incl_tax);
+      const paidAmount = parseAmount(invoice.total_paid);
+      const unpaidAmount = parseAmount(invoice.total_unpaid);
       
       // Skip draft invoices
       if (invoice.state === 'draft') continue;
@@ -162,12 +224,14 @@ serve(async (req) => {
       }
 
       // Revenue by month
-      const invoiceDate = new Date(invoice.invoice_date);
-      const monthKey = `${invoiceDate.getFullYear()}-${(invoiceDate.getMonth() + 1).toString().padStart(2, '0')}`;
-      if (revenueByMonth[monthKey]) {
-        revenueByMonth[monthKey].revenue += amount;
-        revenueByMonth[monthKey].paid += paidAmount;
-        revenueByMonth[monthKey].count++;
+      const invoiceDate = getInvoiceDate(invoice as unknown as Record<string, unknown>);
+      if (invoiceDate) {
+        const monthKey = `${invoiceDate.getFullYear()}-${(invoiceDate.getMonth() + 1).toString().padStart(2, '0')}`;
+        if (revenueByMonth[monthKey]) {
+          revenueByMonth[monthKey].revenue += amount;
+          revenueByMonth[monthKey].paid += paidAmount;
+          revenueByMonth[monthKey].count++;
+        }
       }
 
       // Client revenue
@@ -242,6 +306,7 @@ serve(async (req) => {
           year,
           total_invoices: allInvoices.length,
           sync_duration_ms: Date.now() - startTime,
+          diagnostics,
         },
         last_synced_at: new Date().toISOString(),
       }, {
@@ -286,10 +351,11 @@ serve(async (req) => {
       total_revenue: totalRevenue,
       total_paid: totalPaid,
       invoices: allInvoices.length,
+      diagnostics,
     });
 
     return new Response(
-      JSON.stringify({ success: true, data: result }),
+      JSON.stringify({ success: true, data: result, diagnostics }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

@@ -17,35 +17,48 @@ export function useFinancialYearSelector() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('moneybird_financial_metrics')
-        .select('period_start, total_revenue')
+        .select('period_start, total_revenue, metadata')
         .order('period_start', { ascending: false });
 
       if (error) throw error;
 
-      // Extract unique years that have data
-      const yearsWithData = new Map<number, number>();
+      // Extract unique years that have data (check both revenue AND invoice count)
+      const yearsWithData = new Map<number, { revenue: number; invoices: number }>();
       data?.forEach(row => {
         const year = parseInt(row.period_start.split('-')[0], 10);
-        const existing = yearsWithData.get(year) || 0;
-        yearsWithData.set(year, existing + (row.total_revenue || 0));
+        const existing = yearsWithData.get(year) || { revenue: 0, invoices: 0 };
+        const metadata = row.metadata as Record<string, unknown> | null;
+        const invoiceCount = (metadata?.total_invoices as number) || 0;
+        yearsWithData.set(year, {
+          revenue: existing.revenue + (row.total_revenue || 0),
+          invoices: existing.invoices + invoiceCount,
+        });
       });
 
       return Array.from(yearsWithData.entries())
         .sort((a, b) => b[0] - a[0]) // Sort descending by year
-        .map(([year, revenue]) => ({ year, hasRevenue: revenue > 0 }));
+        .map(([year, stats]) => ({ 
+          year, 
+          hasRevenue: stats.revenue > 0,
+          hasData: stats.invoices > 0 || stats.revenue > 0,
+        }));
     },
     staleTime: 60 * 1000, // 1 minute
   });
 
   // Find the best default year (most recent with revenue, or current year)
-  const bestDefaultYear = availableYears?.find(y => y.hasRevenue)?.year || currentYear;
+  // Find best default: prefer year with revenue, then year with data, then current year
+  const bestDefaultYear = availableYears?.find(y => y.hasRevenue)?.year 
+    ?? availableYears?.find(y => y.hasData)?.year 
+    ?? currentYear;
 
   // Auto-switch to best year if current selection has no data
   useEffect(() => {
     if (!yearsLoading && availableYears) {
       const currentSelection = availableYears.find(y => y.year === selectedYear);
       // If selected year has no data and there's a better option, suggest it
-      if (!currentSelection?.hasRevenue && bestDefaultYear !== selectedYear) {
+      const hasNoData = !currentSelection?.hasRevenue && !currentSelection?.hasData;
+      if (hasNoData && bestDefaultYear !== selectedYear) {
         // Only auto-switch on initial load, not after user selection
         const stored = localStorage.getItem(STORAGE_KEY);
         if (!stored) {
