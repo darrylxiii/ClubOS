@@ -30810,6 +30810,36 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_activity_feed: {
+        Row: {
+          created_at: string | null
+          display_message: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          is_anonymous: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_message?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          is_anonymous?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_message?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          is_anonymous?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       referral_bonuses: {
         Row: {
           bonus_amount_euros: number
@@ -30863,6 +30893,122 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      referral_challenge_participants: {
+        Row: {
+          challenge_id: string
+          earnings_amount: number | null
+          id: string
+          joined_at: string | null
+          placements_count: number | null
+          rank_position: number | null
+          referrals_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          earnings_amount?: number | null
+          id?: string
+          joined_at?: string | null
+          placements_count?: number | null
+          rank_position?: number | null
+          referrals_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          earnings_amount?: number | null
+          id?: string
+          joined_at?: string | null
+          placements_count?: number | null
+          rank_position?: number | null
+          referrals_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "referral_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_challenges: {
+        Row: {
+          bonus_percentage: number | null
+          challenge_type: string
+          created_at: string | null
+          created_by: string | null
+          criteria: Json | null
+          description: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          reward_pool: number | null
+          start_date: string
+          target_category: string | null
+          target_company_id: string | null
+          title: string
+          updated_at: string | null
+          winner_count: number | null
+        }
+        Insert: {
+          bonus_percentage?: number | null
+          challenge_type: string
+          created_at?: string | null
+          created_by?: string | null
+          criteria?: Json | null
+          description?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          reward_pool?: number | null
+          start_date: string
+          target_category?: string | null
+          target_company_id?: string | null
+          title: string
+          updated_at?: string | null
+          winner_count?: number | null
+        }
+        Update: {
+          bonus_percentage?: number | null
+          challenge_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          criteria?: Json | null
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          reward_pool?: number | null
+          start_date?: string
+          target_category?: string | null
+          target_company_id?: string | null
+          title?: string
+          updated_at?: string | null
+          winner_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_challenges_target_company_id_fkey"
+            columns: ["target_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_challenges_target_company_id_fkey"
+            columns: ["target_company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_config: {
         Row: {
@@ -31046,6 +31192,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referral_leaderboard_cache: {
+        Row: {
+          calculated_at: string | null
+          created_at: string | null
+          id: string
+          is_anonymous: boolean | null
+          period: string
+          rank_position: number | null
+          success_rate: number | null
+          successful_placements: number | null
+          total_earned: number | null
+          total_referred: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          calculated_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          period: string
+          rank_position?: number | null
+          success_rate?: number | null
+          successful_placements?: number | null
+          total_earned?: number | null
+          total_referred?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          calculated_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          period?: string
+          rank_position?: number | null
+          success_rate?: number | null
+          successful_placements?: number | null
+          total_earned?: number | null
+          total_referred?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       referral_metadata: {
         Row: {
@@ -31370,6 +31561,89 @@ export type Database = {
           share_type?: string
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      referral_share_tracking: {
+        Row: {
+          applications_count: number | null
+          clicks_count: number | null
+          created_at: string | null
+          id: string
+          job_id: string | null
+          share_channel: string
+          user_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          applications_count?: number | null
+          clicks_count?: number | null
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          share_channel: string
+          user_id: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          applications_count?: number | null
+          clicks_count?: number | null
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          share_channel?: string
+          user_id?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_share_tracking_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_tiers: {
+        Row: {
+          badge_color: string | null
+          badge_icon: string | null
+          bonus_percentage: number
+          created_at: string | null
+          id: string
+          min_placements: number
+          perks: Json | null
+          tier_level: number
+          tier_name: string
+        }
+        Insert: {
+          badge_color?: string | null
+          badge_icon?: string | null
+          bonus_percentage?: number
+          created_at?: string | null
+          id?: string
+          min_placements?: number
+          perks?: Json | null
+          tier_level: number
+          tier_name: string
+        }
+        Update: {
+          badge_color?: string | null
+          badge_icon?: string | null
+          bonus_percentage?: number
+          created_at?: string | null
+          id?: string
+          min_placements?: number
+          perks?: Json | null
+          tier_level?: number
+          tier_name?: string
         }
         Relationships: []
       }
@@ -38161,6 +38435,68 @@ export type Database = {
         }
         Relationships: []
       }
+      user_referral_stats: {
+        Row: {
+          applications_count: number | null
+          best_streak: number | null
+          clicks_count: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          current_streak: number | null
+          current_tier_id: string | null
+          id: string
+          is_leaderboard_visible: boolean | null
+          shares_count: number | null
+          successful_placements: number | null
+          total_earned: number | null
+          total_referrals: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          applications_count?: number | null
+          best_streak?: number | null
+          clicks_count?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          current_streak?: number | null
+          current_tier_id?: string | null
+          id?: string
+          is_leaderboard_visible?: boolean | null
+          shares_count?: number | null
+          successful_placements?: number | null
+          total_earned?: number | null
+          total_referrals?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          applications_count?: number | null
+          best_streak?: number | null
+          clicks_count?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          current_streak?: number | null
+          current_tier_id?: string | null
+          id?: string
+          is_leaderboard_visible?: boolean | null
+          shares_count?: number | null
+          successful_placements?: number | null
+          total_earned?: number | null
+          total_referrals?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_referral_stats_current_tier_id_fkey"
+            columns: ["current_tier_id"]
+            isOneToOne: false
+            referencedRelation: "referral_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_relationships: {
         Row: {
           created_at: string | null
@@ -41918,6 +42254,20 @@ export type Database = {
         Returns: number
       }
       calculate_projected_earnings: { Args: never; Returns: undefined }
+      calculate_referral_rankings: {
+        Args: { p_period?: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          is_anonymous: boolean
+          rank_position: number
+          success_rate: number
+          successful_placements: number
+          total_earned: number
+          total_referred: number
+          user_id: string
+        }[]
+      }
       calculate_user_engagement_score: {
         Args: { p_days?: number; p_user_id: string }
         Returns: number
@@ -42143,6 +42493,24 @@ export type Database = {
       }
       get_achievement_metrics: { Args: never; Returns: Json }
       get_achievement_stats: { Args: never; Returns: Json }
+      get_active_referral_challenges: {
+        Args: never
+        Returns: {
+          bonus_percentage: number
+          challenge_type: string
+          description: string
+          end_date: string
+          id: string
+          participants_count: number
+          reward_pool: number
+          start_date: string
+          time_remaining: unknown
+          title: string
+          user_progress: Json
+          user_rank: number
+          winner_count: number
+        }[]
+      }
       get_application_metrics: { Args: never; Returns: Json }
       get_application_stats: { Args: never; Returns: Json }
       get_assessment_metrics: { Args: never; Returns: Json }
@@ -42357,6 +42725,21 @@ export type Database = {
         }[]
       }
       get_user_metrics: { Args: never; Returns: Json }
+      get_user_referral_tier: {
+        Args: { p_user_id: string }
+        Returns: {
+          badge_color: string
+          badge_icon: string
+          bonus_percentage: number
+          next_tier_name: string
+          perks: Json
+          placements_to_next: number
+          progress_percentage: number
+          tier_id: string
+          tier_level: number
+          tier_name: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
