@@ -59,9 +59,14 @@ serve(async (req) => {
     api_page1_date_max: null,
     api_page1_missing_date: 0,
     api_page1_sample_dates: [] as string[],
+    api_page1_states: [] as string[],
+    api_page1_state_counts: {} as Record<string, number>,
+    api_page1_sample_amounts: [] as number[],
     filtered_count: 0,
     filtered_date_min: null,
     filtered_date_max: null,
+    skipped_draft_count: 0,
+    processed_count: 0,
   };
 
   try {
@@ -116,21 +121,42 @@ serve(async (req) => {
       if (page === 1) {
         diagnostics.api_page1_count = invoices.length;
         const parsedDates: Date[] = [];
+        const stateCounts: Record<string, number> = {};
+        const sampleAmounts: number[] = [];
+        
         for (const inv of invoices) {
+          // Track dates
           const d = getInvoiceDate(inv as unknown as Record<string, unknown>);
           if (d) {
             parsedDates.push(d);
           } else {
             diagnostics.api_page1_missing_date = (diagnostics.api_page1_missing_date as number) + 1;
           }
+          
+          // Track states
+          const state = inv.state || 'unknown';
+          stateCounts[state] = (stateCounts[state] || 0) + 1;
+          
+          // Track sample amounts (first 5)
+          if (sampleAmounts.length < 5) {
+            sampleAmounts.push(parseAmount(inv.total_price_incl_tax));
+          }
         }
+        
         if (parsedDates.length > 0) {
           parsedDates.sort((a, b) => a.getTime() - b.getTime());
           diagnostics.api_page1_date_min = parsedDates[0].toISOString().split('T')[0];
           diagnostics.api_page1_date_max = parsedDates[parsedDates.length - 1].toISOString().split('T')[0];
           diagnostics.api_page1_sample_dates = parsedDates.slice(0, 5).map(d => d.toISOString().split('T')[0]);
         }
+        
+        diagnostics.api_page1_states = Object.keys(stateCounts);
+        diagnostics.api_page1_state_counts = stateCounts;
+        diagnostics.api_page1_sample_amounts = sampleAmounts;
+        
         console.log(`[Moneybird Financials] Page 1 diagnostics:`, JSON.stringify(diagnostics));
+        console.log(`[Moneybird Financials] State counts:`, JSON.stringify(stateCounts));
+        console.log(`[Moneybird Financials] Sample amounts:`, JSON.stringify(sampleAmounts));
       }
       
       if (invoices.length === 0) {
@@ -206,8 +232,14 @@ serve(async (req) => {
       const paidAmount = parseAmount(invoice.total_paid);
       const unpaidAmount = parseAmount(invoice.total_unpaid);
       
-      // Skip draft invoices
-      if (invoice.state === 'draft') continue;
+      // Skip draft and scheduled invoices only
+      if (invoice.state === 'draft' || invoice.state === 'scheduled') {
+        diagnostics.skipped_draft_count = (diagnostics.skipped_draft_count as number) + 1;
+        console.log(`[Moneybird Financials] Skipping invoice with state: ${invoice.state}, amount: ${amount}`);
+        continue;
+      }
+      
+      diagnostics.processed_count = (diagnostics.processed_count as number) + 1;
 
       totalRevenue += amount;
       totalPaid += paidAmount;
