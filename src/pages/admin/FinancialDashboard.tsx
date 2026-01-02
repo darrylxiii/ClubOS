@@ -11,10 +11,13 @@ import { FinancialOverviewChart } from "@/components/financial/FinancialOverview
 import { RevenueSummaryCards } from "@/components/financial/RevenueSummaryCards";
 import { TopClientsTable } from "@/components/financial/TopClientsTable";
 import { PaymentAgingChart } from "@/components/financial/PaymentAgingChart";
+import { YearSelector } from "@/components/financial/YearSelector";
 import { useMoneybirdFinancials } from "@/hooks/useMoneybirdFinancials";
+import { useFinancialYearSelector } from "@/hooks/useFinancialYearSelector";
 
 export default function FinancialDashboard() {
-  const { data: metrics, isLoading: metricsLoading } = useMoneybirdFinancials();
+  const { selectedYear, setSelectedYear, yearOptions, availableYears } = useFinancialYearSelector();
+  const { data: metrics, isLoading: metricsLoading } = useMoneybirdFinancials(selectedYear);
   const { data: fees, isLoading: feesLoading } = usePlacementFees();
   const { data: invoices, isLoading: invoicesLoading } = usePartnerInvoices();
   const { data: payouts, isLoading: payoutsLoading } = useReferralPayouts();
@@ -23,11 +26,19 @@ export default function FinancialDashboard() {
     <AppLayout>
       <RoleGate allowedRoles={['admin']} showLoading>
         <div className="container mx-auto py-8 px-4">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Financial Dashboard</h1>
-            <p className="text-muted-foreground">
-              Real-time revenue tracking powered by Moneybird
-            </p>
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Financial Dashboard</h1>
+              <p className="text-muted-foreground">
+                Real-time revenue tracking powered by Moneybird
+              </p>
+            </div>
+            <YearSelector
+              selectedYear={selectedYear}
+              onYearChange={setSelectedYear}
+              yearOptions={yearOptions}
+              availableYears={availableYears}
+            />
           </div>
 
           {/* Revenue Summary Cards */}
@@ -42,7 +53,7 @@ export default function FinancialDashboard() {
               <CardDescription>Monthly invoiced vs collected revenue</CardDescription>
             </CardHeader>
             <CardContent>
-              <FinancialOverviewChart />
+              <FinancialOverviewChart year={selectedYear} />
             </CardContent>
           </Card>
 
@@ -54,10 +65,10 @@ export default function FinancialDashboard() {
                 <CardDescription>Highest revenue partners this year</CardDescription>
               </CardHeader>
               <CardContent>
-                <TopClientsTable limit={5} />
+                <TopClientsTable year={selectedYear} limit={5} />
               </CardContent>
             </Card>
-            <PaymentAgingChart />
+            <PaymentAgingChart year={selectedYear} />
           </div>
 
           {/* Detailed Tables */}

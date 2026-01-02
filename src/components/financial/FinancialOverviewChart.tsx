@@ -1,5 +1,9 @@
 import { RevenueOverviewChart } from './RevenueOverviewChart';
 
-export function FinancialOverviewChart() {
-  return <RevenueOverviewChart />;
+interface FinancialOverviewChartProps {
+  year?: number;
+}
+
+export function FinancialOverviewChart({ year }: FinancialOverviewChartProps) {
+  return <RevenueOverviewChart year={year} />;
 }
