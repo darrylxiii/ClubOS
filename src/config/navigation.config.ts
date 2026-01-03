@@ -409,7 +409,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Company Fees", icon: DollarSign, path: "/admin/company-fees" },
         { name: "Deal Pipeline Settings", icon: Cog, path: "/admin/deal-pipeline-settings" },
         { name: "Financial Dashboard", icon: CreditCard, path: "/admin/financial" },
-        { name: "Revenue Analytics", icon: BarChart3, path: "/revenue-analytics" },
+        // Revenue Analytics redirects to Financial Dashboard - removed from nav
         { name: "Revenue Shares", icon: Percent, path: "/admin/revenue-shares" },
         { name: "Moneybird", icon: CreditCard, path: "/admin/moneybird" },
         { name: "Referral Program", icon: Gift, path: "/referrals" },
