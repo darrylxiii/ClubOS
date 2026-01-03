@@ -97,6 +97,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   const [selectedApplicationId, setSelectedApplicationId] = useState<string>("");
   const [actualSalary, setActualSalary] = useState("");
   const [placementFee, setPlacementFee] = useState("");
+  const [placementFeeOverridden, setPlacementFeeOverridden] = useState(false);
   const [lossReason, setLossReason] = useState("");
   
   // Step 3: Takeaways
@@ -108,6 +109,19 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   const [keyLearnings, setKeyLearnings] = useState<string[]>([]);
   const [recommendationsForFuture, setRecommendationsForFuture] = useState("");
   const [notes, setNotes] = useState("");
+  
+  // Get fee percentage from job or company
+  const feePercentage = job?.job_fee_percentage || job?.companies?.placement_fee_percentage || 0;
+  const calculatedFee = actualSalary && feePercentage 
+    ? Math.round(parseFloat(actualSalary) * (feePercentage / 100))
+    : null;
+  
+  // Auto-calculate placement fee when salary changes (if not manually overridden)
+  useEffect(() => {
+    if (calculatedFee && !placementFeeOverridden) {
+      setPlacementFee(calculatedFee.toString());
+    }
+  }, [calculatedFee, placementFeeOverridden]);
 
   // Pipeline metrics (calculated)
   const totalApplicants = applications.length;
@@ -127,6 +141,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     setSelectedApplicationId("");
     setActualSalary("");
     setPlacementFee("");
+    setPlacementFeeOverridden(false);
     setLossReason("");
     setWhatWentWell("");
     setWhatCouldImprove("");
@@ -369,7 +384,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                       {eligibleForHire.length > 0 ? (
                         eligibleForHire.map((app) => (
                           <SelectItem key={app.id} value={app.id}>
-                            {app.candidate_full_name || "Unknown"} - {app.candidate_title || "No title"}
+                            {app.full_name || app.candidate_full_name || "Unknown"} - {app.current_title || app.candidate_title || "No title"}
                           </SelectItem>
                         ))
                       ) : (
@@ -383,7 +398,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="actualSalary">Actual Salary (Optional)</Label>
+                    <Label htmlFor="actualSalary">Actual Salary</Label>
                     <Input
                       id="actualSalary"
                       type="number"
@@ -391,16 +406,43 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                       value={actualSalary}
                       onChange={(e) => setActualSalary(e.target.value)}
                     />
+                    {feePercentage > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Fee will auto-calculate at {feePercentage}%
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="placementFee">Placement Fee (Optional)</Label>
+                    <Label htmlFor="placementFee">
+                      Placement Fee
+                      {calculatedFee && !placementFeeOverridden && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          Auto: €{calculatedFee.toLocaleString()}
+                        </Badge>
+                      )}
+                    </Label>
                     <Input
                       id="placementFee"
                       type="number"
-                      placeholder="e.g., 17000"
+                      placeholder={calculatedFee ? `€${calculatedFee.toLocaleString()}` : "e.g., 17000"}
                       value={placementFee}
-                      onChange={(e) => setPlacementFee(e.target.value)}
+                      onChange={(e) => {
+                        setPlacementFee(e.target.value);
+                        setPlacementFeeOverridden(true);
+                      }}
                     />
+                    {placementFeeOverridden && calculatedFee && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPlacementFee(calculatedFee.toString());
+                          setPlacementFeeOverridden(false);
+                        }}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Reset to calculated (€{calculatedFee.toLocaleString()})
+                      </button>
+                    )}
                   </div>
                 </div>
               </>

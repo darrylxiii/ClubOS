@@ -213,8 +213,12 @@ export default function JobDashboard() {
         .select(`
           *,
           companies (
+            id,
             name,
-            logo_url
+            logo_url,
+            placement_fee_percentage,
+            fee_type,
+            placement_fee_fixed
           ),
           job_tools (
             id,
