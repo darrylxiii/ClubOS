@@ -16,6 +16,7 @@ const PageLoader = () => (
 const Jobs = lazy(() => import("@/pages/Jobs"));
 const JobDetail = lazy(() => import("@/pages/JobDetail"));
 const JobDashboard = lazy(() => import("@/pages/JobDashboard"));
+const JobsMap = lazy(() => import("@/pages/JobsMap"));
 const Applications = lazy(() => import("@/pages/Applications"));
 const ApplicationDetail = lazy(() => import("@/pages/ApplicationDetail"));
 const InteractionEntry = lazy(() => import("@/pages/InteractionEntry"));
@@ -57,6 +58,18 @@ export const jobsRoutes = (
             </Suspense>
           </RouteErrorBoundary>
         </JobDashboardRoute>
+      }
+    />
+    <Route
+      path="/jobs/map"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <JobsMap />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
       }
     />
     <Route
