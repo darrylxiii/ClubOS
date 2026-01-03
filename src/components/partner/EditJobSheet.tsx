@@ -88,6 +88,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
     salary_max: '',
     currency: 'EUR',
     company_id: '',
+    external_url: '',
   });
 
   // Stable memoization of tool arrays
@@ -116,6 +117,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
         salary_max: job.salary_max?.toString() || '',
         currency: job.currency || 'EUR',
         company_id: job.company_id || '',
+        external_url: job.external_url || '',
       });
 
       // Only set tools if they've actually changed (compare IDs)
@@ -322,6 +324,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
           salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
           currency: formData.currency,
           company_id: formData.company_id,
+          external_url: formData.external_url || null,
           updated_at: new Date().toISOString(),
           is_stealth: isStealthEnabled,
           stealth_enabled_by: isStealthEnabled ? user?.id : null,
@@ -534,6 +537,23 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                       />
                       <p className="text-xs text-muted-foreground">
                         {formData.description.length} characters
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="external_url" className="flex items-center gap-2">
+                        External Job URL
+                        <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+                      </Label>
+                      <Input
+                        id="external_url"
+                        type="url"
+                        value={formData.external_url}
+                        onChange={(e) => handleFormChange('external_url', e.target.value)}
+                        placeholder="https://linkedin.com/jobs/..."
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Link to where this job is posted online (LinkedIn, company website, etc.)
                       </p>
                     </div>
                   </CardContent>

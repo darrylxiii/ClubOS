@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Lock } from "lucide-react";
+import { Lock, ExternalLink } from "lucide-react";
 import { JobStatusBadge, JobStatus } from "@/components/jobs/JobStatusBadge";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
 
@@ -22,6 +22,7 @@ interface JobCardHeaderProps {
   isContinuous?: boolean;
   hiredCount?: number;
   targetHireCount?: number | null;
+  externalUrl?: string | null;
 }
 
 export const JobCardHeader = memo(({
@@ -34,6 +35,7 @@ export const JobCardHeader = memo(({
   isContinuous = false,
   hiredCount = 0,
   targetHireCount,
+  externalUrl,
 }: JobCardHeaderProps) => {
   return (
     <div className="flex items-center gap-3 flex-1">
@@ -44,9 +46,31 @@ export const JobCardHeader = memo(({
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
-        <CardTitle className="text-lg font-black uppercase mb-1 truncate">
-          {title}
-        </CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-lg font-black uppercase mb-1 truncate">
+            {title}
+          </CardTitle>
+          {externalUrl && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <a
+                    href={externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:text-primary/80 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View original posting</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         <p className="text-xs text-muted-foreground mb-2 truncate">{companyName}</p>
         <div className="flex items-center gap-2 flex-wrap">
           <JobStatusBadge status={status as JobStatus} size="sm" />

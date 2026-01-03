@@ -9,8 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { JobCloseHiredDialog } from "@/components/jobs/JobCloseHiredDialog";
-import { JobCloseLostDialog } from "@/components/jobs/JobCloseLostDialog";
+import { JobClosureDialog } from "@/components/jobs/JobClosureDialog";
 import { JobDeleteDialog } from "@/components/jobs/JobDeleteDialog";
 import { JobArchiveDialog } from "@/components/jobs/JobArchiveDialog";
 import { useCloseJobWon, useCloseJobLost, useArchiveJob, useDeleteJob } from "@/hooks/useDealPipeline";
@@ -91,8 +90,7 @@ export default function JobDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAddStage, setShowAddStage] = useState(false);
   const [showManualInterview, setShowManualInterview] = useState(false);
-  const [showCloseHiredDialog, setShowCloseHiredDialog] = useState(false);
-  const [showCloseLostDialog, setShowCloseLostDialog] = useState(false);
+  const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   
@@ -181,27 +179,9 @@ export default function JobDashboard() {
     }
   };
 
-  // Job closure and deletion handlers
-  const handleCloseWon = async (hiredCandidateId: string, actualSalary: number, placementFee: number) => {
-    await closeJobWon.mutateAsync({
-      jobId: jobId!,
-      hiredCandidateId,
-      actualSalary,
-      placementFee
-    });
-    toast.success("Job marked as hired successfully");
-    setShowCloseHiredDialog(false);
-    fetchJobDetails();
-  };
-
-  const handleCloseLost = async (lossReason: string, lossNotes?: string) => {
-    await closeJobLost.mutateAsync({
-      jobId: jobId!,
-      lossReason,
-      lossNotes
-    });
-    toast.success("Job closed as not filled");
-    setShowCloseLostDialog(false);
+  // Job closure handler - now handled by unified dialog
+  const handleClosureComplete = () => {
+    setShowClosureDialog(false);
     fetchJobDetails();
   };
 
@@ -536,18 +516,12 @@ export default function JobDashboard() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {job.status !== 'closed' && (
-                    <>
-                      <DropdownMenuItem onClick={() => setShowCloseHiredDialog(true)}>
-                        <Trophy className="w-4 h-4 mr-2 text-success" />
-                        Mark as Hired
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setShowCloseLostDialog(true)}>
-                        <XCircle className="w-4 h-4 mr-2 text-muted-foreground" />
-                        Close - Not Filled
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
+                    <DropdownMenuItem onClick={() => setShowClosureDialog(true)}>
+                      <Trophy className="w-4 h-4 mr-2 text-success" />
+                      Close Job
+                    </DropdownMenuItem>
                   )}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setShowArchiveDialog(true)}>
                     <Archive className="w-4 h-4 mr-2" />
                     Archive Job
@@ -1057,20 +1031,12 @@ export default function JobDashboard() {
       />
 
       {/* Job Closure & Management Dialogs */}
-      <JobCloseHiredDialog
-        open={showCloseHiredDialog}
-        onOpenChange={setShowCloseHiredDialog}
+      <JobClosureDialog
+        open={showClosureDialog}
+        onOpenChange={setShowClosureDialog}
         job={job}
         applications={applications}
-        onConfirm={handleCloseWon}
-      />
-
-      <JobCloseLostDialog
-        open={showCloseLostDialog}
-        onOpenChange={setShowCloseLostDialog}
-        job={job}
-        applications={applications}
-        onConfirm={handleCloseLost}
+        onComplete={handleClosureComplete}
       />
 
       <JobArchiveDialog

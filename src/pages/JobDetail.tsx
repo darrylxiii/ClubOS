@@ -22,7 +22,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { canManageJob } from "@/utils/jobNavigation";
 import { trackJobView, trackJobSave } from "@/services/analyticsTracking";
 import { toast } from "sonner";
-import { ArrowLeft, Settings, Loader2, Activity, Edit } from "lucide-react";
+import { ArrowLeft, Settings, Loader2, Activity, Edit, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function JobDetail() {
@@ -343,6 +343,18 @@ export default function JobDetail() {
 
             {canEdit && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex gap-2">
+                {job.external_url && (
+                  <Button
+                    variant="outline"
+                    asChild
+                    className="gap-2"
+                  >
+                    <a href={job.external_url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-4 h-4" />
+                      Original Posting
+                    </a>
+                  </Button>
+                )}
                 <Button variant="outline" onClick={() => setIsEditDialogOpen(true)} className="gap-2">
                   <Edit className="w-4 h-4" />
                   Edit Job

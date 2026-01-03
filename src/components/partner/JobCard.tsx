@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Edit, LayoutDashboard, Target } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Clock, Edit, LayoutDashboard, Target, ExternalLink } from "lucide-react";
 
 interface JobCardProps {
   job: {
@@ -12,6 +13,7 @@ interface JobCardProps {
     employment_type: string;
     created_at: string;
     pipeline_stages: any;
+    external_url?: string | null;
   };
   onViewDashboard: (jobId: string) => void;
   onEditPipeline: (jobId: string) => void;
@@ -23,7 +25,29 @@ export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) 
       <CardHeader>
         <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
           <div className="flex-1 w-full">
-            <CardTitle className="text-xl">{job.title}</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-xl">{job.title}</CardTitle>
+              {job.external_url && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <a
+                        href={job.external_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/80 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View original posting</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
             <CardDescription className="mt-2">
               <span className="block sm:inline">{job.location}</span>
               <span className="hidden sm:inline"> • </span>
