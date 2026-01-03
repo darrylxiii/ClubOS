@@ -15,6 +15,9 @@ import { YearSelector } from "@/components/financial/YearSelector";
 import { InvoiceStatusSummary } from "@/components/financial/InvoiceStatusSummary";
 import { MoneybirdInvoicesTable } from "@/components/financial/MoneybirdInvoicesTable";
 import { ReconciliationAlert } from "@/components/financial/ReconciliationAlert";
+import { CashFlowProjection } from "@/components/financial/CashFlowProjection";
+import { ProfitLossCard } from "@/components/financial/ProfitLossCard";
+import { FinancialEventsTimeline } from "@/components/financial/FinancialEventsTimeline";
 import { useMoneybirdFinancials } from "@/hooks/useMoneybirdFinancials";
 import { useFinancialYearSelector } from "@/hooks/useFinancialYearSelector";
 import { useAutoSyncFinancials } from "@/hooks/useAutoSyncFinancials";
@@ -88,6 +91,17 @@ export default function FinancialDashboard() {
               </CardContent>
             </Card>
             <PaymentAgingChart year={selectedYear} />
+          </div>
+
+          {/* Cash Flow Projection */}
+          <div className="mb-8">
+            <CashFlowProjection year={selectedYear} />
+          </div>
+
+          {/* P&L and Events Timeline */}
+          <div className="grid gap-6 md:grid-cols-2 mb-8">
+            <ProfitLossCard year={selectedYear} />
+            <FinancialEventsTimeline />
           </div>
 
           {/* Moneybird Invoices Table */}
