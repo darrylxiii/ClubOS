@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { UserRole } from "@/hooks/useUserRole";
+import { UserRole } from "@/types/roles";
 import { logger } from "@/lib/logger";
 
 interface RoleContextType {
