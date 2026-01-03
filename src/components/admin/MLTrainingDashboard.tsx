@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { Loader2, Brain, TrendingUp } from 'lucide-react';
 
 export function MLTrainingDashboard() {
   const [generatingEmbeddings, setGeneratingEmbeddings] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   const generateEmbeddings = async () => {
     setGeneratingEmbeddings(true);
@@ -26,12 +25,11 @@ export function MLTrainingDashboard() {
       );
       if (jobError) throw jobError;
 
-      toast({
-        title: "Embeddings Generated",
+      notify.success("Embeddings Generated", {
         description: `${candidateData.processed} candidates, ${jobData.processed} jobs`
       });
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      notify.error("Error", { description: error.message });
     } finally {
       setGeneratingEmbeddings(false);
     }
@@ -46,16 +44,11 @@ export function MLTrainingDashboard() {
 
       if (error) throw error;
 
-      toast({
-        title: "Training Data Prepared",
+      notify.success("Training Data Prepared", {
         description: `Generated ${data.count} training samples with ${data.semantic_scores} semantic scores`,
       });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
+      notify.error("Error", { description: error.message });
     } finally {
       setPreparing(false);
     }
@@ -75,16 +68,11 @@ export function MLTrainingDashboard() {
 
       if (error) throw error;
 
-      toast({
-        title: "Model Training Complete",
+      notify.success("Model Training Complete", {
         description: `Model v${data.model_version} trained with AUC: ${data.metrics.auc_roc.toFixed(3)}`,
       });
     } catch (error: any) {
-      toast({
-        title: "Training Failed",
-        description: error.message,
-        variant: "destructive"
-      });
+      notify.error("Training Failed", { description: error.message });
     } finally {
       setLoading(false);
     }

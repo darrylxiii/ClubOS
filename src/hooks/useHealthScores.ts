@@ -4,6 +4,7 @@
  * Used for forecasting, pipeline views, and health dashboards
  */
 
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -334,15 +335,3 @@ export function useCombinedHealth(companyId: string | undefined) {
   };
 }
 
-// Helper for memoization
-function useMemo<T>(factory: () => T, deps: any[]): T {
-  const [value, setValue] = useState<T>(factory);
-  
-  useEffect(() => {
-    setValue(factory());
-  }, deps);
-  
-  return value;
-}
-
-import { useState, useEffect } from 'react';

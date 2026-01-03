@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, CreditCard, Calendar, Check, AlertCircle } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -40,11 +40,7 @@ export default function Subscription() {
       }
     } catch (error) {
       console.error("Error opening customer portal:", error);
-      toast({
-        title: "Error",
-        description: "Failed to open subscription management portal",
-        variant: "destructive",
-      });
+      notify.error("Failed to open subscription management portal");
     } finally {
       setManagingPortal(false);
     }
