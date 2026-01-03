@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { DealHealthBadge } from "./DealHealthBadge";
-import { Building2, Calendar, Users, TrendingUp, AlertCircle, Rocket, CheckCircle, Percent, DollarSign, Calculator } from "lucide-react";
+import { Building2, Calendar, Users, TrendingUp, AlertCircle, Rocket, CheckCircle, Percent, DollarSign, Calculator, Layers } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Deal } from "@/hooks/useDealPipeline";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -39,13 +40,21 @@ export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProp
   const hasFeeConfigured = (feePercentage !== null && feePercentage !== undefined && feePercentage > 0) 
     || (feeFixed !== null && feeFixed !== undefined && feeFixed > 0);
   
+  // Multi-hire detection
+  const isMultiHire = (deal.target_hire_count || 1) > 1;
+  const targetHireCount = deal.target_hire_count || 1;
+  const hiredCount = deal.hired_count || 0;
+  const remainingPositions = deal.remaining_positions || Math.max(targetHireCount - hiredCount, 1);
+  const progressPercent = targetHireCount > 0 ? (hiredCount / targetHireCount) * 100 : 0;
+  
   // Calculate weighted value - estimated_value is ALREADY the fee amount (salary × fee%)
   // For fixed fees, use the fixed amount directly
   // Then apply stage probability for weighted value
-  const feeAmount = feeType === 'fixed' && feeFixed 
+  const singleFeeAmount = feeType === 'fixed' && feeFixed 
     ? feeFixed 
     : (deal.estimated_value || 0);
-  const weightedValue = feeAmount * (deal.deal_probability / 100);
+  const totalFeeAmount = isMultiHire ? singleFeeAmount * remainingPositions : singleFeeAmount;
+  const weightedValue = totalFeeAmount * (deal.deal_probability / 100);
   
   const feeConfig = FEE_TYPE_CONFIG[feeType];
   const FeeIcon = feeConfig.icon;
@@ -65,6 +74,12 @@ export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProp
           </h4>
         </div>
         <div className="flex items-center gap-2">
+          {isMultiHire && (
+            <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+              <Layers className="w-3 h-3 mr-1" />
+              {targetHireCount}x
+            </Badge>
+          )}
           <DealHealthBadge score={deal.deal_health_score} showLabel={false} size="sm" />
           {deal.status === 'draft' && (
             <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
@@ -98,6 +113,25 @@ export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProp
         )}
       </div>
 
+      {/* Multi-hire Progress */}
+      {isMultiHire && (
+        <div className="mb-3 p-2 rounded-md bg-blue-500/5 border border-blue-500/10">
+          <div className="flex items-center justify-between text-xs mb-1.5">
+            <span className="text-muted-foreground">Positions filled</span>
+            <span className="font-medium text-foreground">{hiredCount}/{targetHireCount}</span>
+          </div>
+          <Progress value={progressPercent} className="h-1.5" />
+          <div className="flex items-center justify-between text-xs mt-1.5">
+            <span className="text-muted-foreground">
+              {formatCurrency(singleFeeAmount)} × {remainingPositions} remaining
+            </span>
+            <span className="font-semibold text-primary">
+              {formatCurrency(totalFeeAmount)}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Value */}
       <div className="flex items-center gap-2 mb-3">
         <div className="flex-1">
@@ -116,6 +150,9 @@ export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProp
           </div>
           <div className="font-semibold text-foreground">
             {formatCurrency(weightedValue)}
+            {isMultiHire && (
+              <span className="text-xs font-normal text-muted-foreground ml-1">weighted</span>
+            )}
           </div>
         </div>
         <Badge variant="outline" className="text-xs">

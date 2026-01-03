@@ -120,8 +120,9 @@ export function DealPipelineKanban() {
     const probability = stage?.probability_weight || 0;
     
     return stageDeals.reduce((sum, deal) => {
-      const value = deal.estimated_value || 0;
-      return sum + (value * probability / 100);
+      // Use total_deal_value for multi-hire roles (already multiplied by remaining positions)
+      const totalValue = deal.total_deal_value || deal.estimated_value || 0;
+      return sum + (totalValue * probability / 100);
     }, 0);
   };
 
