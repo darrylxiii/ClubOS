@@ -69,7 +69,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import confetti from "canvas-confetti";
 import { JobCardMetrics } from "./job-card/JobCardMetrics";
 import { JobCardLastActivity } from "./job-card/JobCardLastActivity";
@@ -120,7 +120,7 @@ interface CompanyMetrics {
 
 export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const navigate = useNavigate();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const [jobs, setJobs] = useState<JobWithMetrics[]>([]);
   const [companyMetrics, setCompanyMetrics] = useState<CompanyMetrics>({
     activeSearches: 0,

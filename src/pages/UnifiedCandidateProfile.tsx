@@ -17,7 +17,7 @@ import { PipelineBreakdownCard } from "@/components/candidate-profile/PipelineBr
 import { CandidatePipelineContextBanner } from "@/components/partner/CandidatePipelineContextBanner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { BackButton } from "@/components/candidate-profile/BackButton";
 import { ActivityFeedCard } from "@/components/candidate-profile/ActivityFeedCard";
 import { CandidateEditModal } from "@/components/candidate-profile/CandidateEditModal";
@@ -37,7 +37,7 @@ export default function UnifiedCandidateProfile() {
   const stage = searchParams.get('stage');
   const stageIndex = searchParams.get('stageIndex');
 
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const isAdmin = role === 'admin' || role === 'strategist';
   const isPartner = role === 'partner';
 

@@ -8,7 +8,7 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { RecentApplicationsList } from "./RecentApplicationsList";
 import { TalentRecommendations } from "../partner/TalentRecommendations";
 import { HiringPipelineOverview } from "./HiringPipelineOverview";
@@ -29,7 +29,7 @@ import { T } from "@/components/T";
 import { motion } from "framer-motion";
 
 export const PartnerHome = () => {
-  const { companyId } = useUserRole();
+  const { companyId } = useRole();
   const { stats, loading } = useRoleStats('partner', undefined, companyId || undefined);
 
   return (

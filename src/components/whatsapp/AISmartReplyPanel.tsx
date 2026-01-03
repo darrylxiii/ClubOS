@@ -14,7 +14,7 @@ import {
   Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 
 interface SmartReply {
   id: string;
@@ -40,7 +40,6 @@ export function AISmartReplyPanel({
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const { toast } = useToast();
 
   // Mock generate replies - in production this would call the edge function
   const generateReplies = async () => {
@@ -87,16 +86,9 @@ export function AISmartReplyPanel({
     setSending(reply.id);
     try {
       await onSendReply(reply.text);
-      toast({
-        title: "Message sent",
-        description: "Your reply has been sent successfully"
-      });
+      notify.success("Message sent", { description: "Your reply has been sent successfully" });
     } catch (error) {
-      toast({
-        title: "Failed to send",
-        description: "Please try again",
-        variant: "destructive"
-      });
+      notify.error("Failed to send", { description: "Please try again" });
     } finally {
       setSending(null);
     }

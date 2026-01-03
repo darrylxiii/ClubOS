@@ -14,8 +14,9 @@ export { useLazyLoad } from './useLazyLoad';
 // Toast (legacy - prefer notify from @/lib/notify)
 export { useToast, toast } from './use-toast';
 
-// Authentication & Role
-export { useUserRole } from './useUserRole';
+// Authentication & Role (prefer useRole from RoleContext)
+export { useRole } from '@/contexts/RoleContext';
+export type { UserRole } from './useUserRole';
 
 // State Management
 export { useTableState } from './useTableState';

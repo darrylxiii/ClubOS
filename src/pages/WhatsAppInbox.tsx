@@ -12,11 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MessageSquare, Sparkles, Settings, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 
 export default function WhatsAppInbox() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
@@ -42,7 +41,7 @@ export default function WhatsAppInbox() {
     const templateParams = Object.entries(params).map(([key, value]) => ({ [key]: value }));
     await sendMessage('', 'template', template.template_name, templateParams);
     setShowTemplates(false);
-    toast({ title: "Template sent", description: `Sent: ${template.template_name}` });
+    notify.success("Template sent", { description: `Sent: ${template.template_name}` });
   };
 
   // Mock insights for now

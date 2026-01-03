@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
-import { useUserRole, UserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
+import { UserRole } from "@/hooks/useUserRole";
 import { Loader2 } from "lucide-react";
 
 interface RoleGateProps {
@@ -15,7 +16,7 @@ export const RoleGate = ({
   fallback = null,
   showLoading = false 
 }: RoleGateProps) => {
-  const { role, loading } = useUserRole();
+  const { currentRole: role, loading } = useRole();
 
   if (loading && showLoading) {
     return (

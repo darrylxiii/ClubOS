@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { convertCurrency, formatCurrency, type Currency } from "@/lib/currencyConversion";
 import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { logger } from "@/lib/logger";
@@ -26,7 +26,7 @@ type SortOption = "match" | "newest" | "salary";
 
 const Jobs = () => {
   const { user } = useAuth();
-  const { role, companyId: userCompanyId } = useUserRole();
+  const { currentRole: role, companyId: userCompanyId } = useRole();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("match");
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);

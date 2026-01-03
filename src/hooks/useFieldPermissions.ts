@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useUserRole } from '@/hooks/useUserRole';
+import { useRole } from '@/contexts/RoleContext';
 
 interface FieldPermission {
   field_name: string;
@@ -10,7 +10,7 @@ interface FieldPermission {
 }
 
 export function useFieldPermissions() {
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const [permissions, setPermissions] = useState<Map<string, FieldPermission>>(new Map());
   const [loading, setLoading] = useState(true);
 

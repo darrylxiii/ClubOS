@@ -24,7 +24,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PhoneVerification } from "@/components/PhoneVerification";
 import { EmailVerification } from "@/components/EmailVerification";
 import { AdminRoleSwitcher } from "@/components/admin/AdminRoleSwitcher";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { SocialConnections } from "@/components/SocialConnections";
 import { AccountLinking } from "@/components/AccountLinking";
 import { AuthDiagnostics } from "@/components/AuthDiagnostics";
@@ -32,7 +32,7 @@ import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 
 const Profile = () => {
   const { user } = useAuth();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'profile';
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);

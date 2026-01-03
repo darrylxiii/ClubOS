@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 
 interface UndoableAction {
   id: string;
@@ -9,7 +9,6 @@ interface UndoableAction {
 }
 
 export function useUndoableAction() {
-  const { toast } = useToast();
   const [pendingActions, setPendingActions] = useState<Map<string, UndoableAction>>(new Map());
   const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
@@ -22,8 +21,7 @@ export function useUndoableAction() {
       setPendingActions((prev) => new Map(prev).set(actionId, undoableAction));
 
       // Show immediate feedback
-      toast({
-        title: action.description,
+      notify.info(action.description, {
         description: "Press Ctrl+Z within 5 seconds to undo",
         duration: 5000,
       });
@@ -57,13 +55,12 @@ export function useUndoableAction() {
           return newMap;
         });
 
-        toast({
-          title: "Action undone",
+        notify.success("Action undone", {
           description: `${action.description} was cancelled`,
         });
       };
     },
-    [toast]
+    []
   );
 
   return { executeWithUndo };

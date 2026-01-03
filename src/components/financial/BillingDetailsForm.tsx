@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
@@ -34,7 +34,6 @@ interface BillingDetailsFormProps {
 export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-  const { toast } = useToast();
 
   const form = useForm<BillingFormValues>({
     resolver: zodResolver(billingSchema),
@@ -85,11 +84,7 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
 
   const onSubmit = async (values: BillingFormValues) => {
     if (!companyId) {
-      toast({
-        title: "Error",
-        description: "Company ID not found",
-        variant: "destructive",
-      });
+      notify.error("Company ID not found");
       return;
     }
 
@@ -105,16 +100,9 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Billing details saved successfully",
-      });
+      notify.success("Billing details saved successfully");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error(error.message);
     } finally {
       setLoading(false);
     }

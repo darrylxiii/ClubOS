@@ -31,7 +31,7 @@ import { useNavigate } from "react-router-dom";
 import { CandidateDetailDialog } from "./CandidateDetailDialog";
 import { CandidateActionDialog } from "./CandidateActionDialog";
 import { getVisibleFields } from "@/utils/candidateVisibility";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 
 interface ApplicationsTableProps {
   applications: any[];
@@ -40,7 +40,7 @@ interface ApplicationsTableProps {
 
 export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableProps) => {
   const navigate = useNavigate();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionDialog, setActionDialog] = useState<{

@@ -16,7 +16,7 @@ import {
 import { format, differenceInDays } from "date-fns";
 import { Progress } from "@/components/ui/progress";
 import { useResumeUpload } from "@/hooks/useResumeUpload";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 
 interface Props {
   candidateId: string;
@@ -52,7 +52,7 @@ const DOCUMENT_TYPES = {
 };
 
 export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
