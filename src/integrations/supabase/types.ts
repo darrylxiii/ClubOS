@@ -24443,18 +24443,26 @@ export type Database = {
           id: string
           invoice_date: string | null
           invoice_number: string | null
+          invoice_type: string | null
           moneybird_id: string
           paid_amount: number
           paid_at: string | null
+          payment_terms: string | null
           placement_fee_id: string | null
           raw_data: Json | null
+          reconciled_at: string | null
+          reconciled_by: string | null
+          reconciliation_confidence: string | null
           reconciliation_notes: string | null
           reconciliation_status: string | null
+          requires_finance_review: boolean | null
           state_normalized: string
           state_raw: string | null
           total_amount: number
           unpaid_amount: number
           updated_at: string
+          variance_amount: number | null
+          variance_reason: string | null
           year: number
         }
         Insert: {
@@ -24468,18 +24476,26 @@ export type Database = {
           id?: string
           invoice_date?: string | null
           invoice_number?: string | null
+          invoice_type?: string | null
           moneybird_id: string
           paid_amount?: number
           paid_at?: string | null
+          payment_terms?: string | null
           placement_fee_id?: string | null
           raw_data?: Json | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reconciliation_confidence?: string | null
           reconciliation_notes?: string | null
           reconciliation_status?: string | null
+          requires_finance_review?: boolean | null
           state_normalized?: string
           state_raw?: string | null
           total_amount?: number
           unpaid_amount?: number
           updated_at?: string
+          variance_amount?: number | null
+          variance_reason?: string | null
           year: number
         }
         Update: {
@@ -24493,18 +24509,26 @@ export type Database = {
           id?: string
           invoice_date?: string | null
           invoice_number?: string | null
+          invoice_type?: string | null
           moneybird_id?: string
           paid_amount?: number
           paid_at?: string | null
+          payment_terms?: string | null
           placement_fee_id?: string | null
           raw_data?: Json | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reconciliation_confidence?: string | null
           reconciliation_notes?: string | null
           reconciliation_status?: string | null
+          requires_finance_review?: boolean | null
           state_normalized?: string
           state_raw?: string | null
           total_amount?: number
           unpaid_amount?: number
           updated_at?: string
+          variance_amount?: number | null
+          variance_reason?: string | null
           year?: number
         }
         Relationships: [

@@ -87,12 +87,86 @@ serve(async (req) => {
       invoice_id, 
       company_id,
       year = new Date().getFullYear(),
-      threshold = 0.8 
+      threshold = 0.8,
+      // New comprehensive fields
+      placement_fee_id,
+      invoice_type,
+      variance_reason,
+      variance_amount,
+      payment_terms,
+      reconciliation_notes,
+      requires_finance_review,
     } = body;
 
     console.log(`[Reconcile Invoices] Action: ${action}, Year: ${year}`);
 
-    // Manual reconciliation: link specific invoice to company
+    // Get user ID from auth header for audit trail
+    const authHeader = req.headers.get('authorization');
+    let userId: string | null = null;
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user } } = await supabase.auth.getUser(token);
+        userId = user?.id || null;
+      } catch {
+        // Continue without user ID
+      }
+    }
+
+    // Comprehensive reconciliation: link with all data
+    if (action === 'comprehensive-link' && invoice_id && company_id) {
+      const updateData: Record<string, unknown> = {
+        company_id,
+        reconciliation_status: 'matched',
+        reconciliation_notes: reconciliation_notes || 'Manually reconciled via comprehensive modal',
+        invoice_type: invoice_type || 'placement_fee',
+        payment_terms: payment_terms || 'net_30',
+        requires_finance_review: requires_finance_review || false,
+        reconciliation_confidence: 'manual',
+        reconciled_by: userId,
+        reconciled_at: new Date().toISOString(),
+      };
+
+      // Add variance fields if provided
+      if (variance_reason) updateData.variance_reason = variance_reason;
+      if (variance_amount !== undefined) updateData.variance_amount = variance_amount;
+
+      // Add placement fee link if provided
+      if (placement_fee_id) {
+        updateData.placement_fee_id = placement_fee_id;
+        
+        // Also update the placement_fees table to link back to this invoice
+        const { error: feeError } = await supabase
+          .from('placement_fees')
+          .update({ invoice_id })
+          .eq('id', placement_fee_id);
+        
+        if (feeError) {
+          console.error('[Reconcile Invoices] Error linking placement fee:', feeError);
+        }
+      }
+
+      const { error } = await supabase
+        .from('moneybird_sales_invoices')
+        .update(updateData)
+        .eq('id', invoice_id);
+
+      if (error) throw error;
+
+      // Trigger company revenue sync
+      await supabase.functions.invoke('sync-company-revenue', {
+        body: { company_id }
+      });
+
+      console.log(`[Reconcile Invoices] Comprehensive link complete for invoice ${invoice_id}`);
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Invoice reconciled with comprehensive data' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Manual reconciliation: link specific invoice to company (basic)
     if (action === 'manual-link' && invoice_id && company_id) {
       const { error } = await supabase
         .from('moneybird_sales_invoices')
@@ -100,6 +174,8 @@ serve(async (req) => {
           company_id,
           reconciliation_status: 'matched',
           reconciliation_notes: 'Manually linked by admin',
+          reconciled_by: userId,
+          reconciled_at: new Date().toISOString(),
         })
         .eq('id', invoice_id);
 
