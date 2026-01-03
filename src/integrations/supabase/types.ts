@@ -18355,6 +18355,130 @@ export type Database = {
           },
         ]
       }
+      job_closures: {
+        Row: {
+          actual_closing_date: string
+          actual_salary: number | null
+          avg_time_per_stage: Json | null
+          candidate_quality_rating: number | null
+          candidates_final_round: number | null
+          candidates_interviewed: number | null
+          client_responsiveness_rating: number | null
+          closed_by: string | null
+          closure_type: string
+          created_at: string | null
+          hired_application_id: string | null
+          id: string
+          job_id: string
+          key_learnings: string[] | null
+          loss_reason: string | null
+          market_difficulty_rating: number | null
+          notes: string | null
+          placement_fee: number | null
+          recommendations_for_future: string | null
+          time_to_fill_days: number | null
+          total_applicants: number | null
+          updated_at: string | null
+          what_could_improve: string | null
+          what_went_well: string | null
+        }
+        Insert: {
+          actual_closing_date: string
+          actual_salary?: number | null
+          avg_time_per_stage?: Json | null
+          candidate_quality_rating?: number | null
+          candidates_final_round?: number | null
+          candidates_interviewed?: number | null
+          client_responsiveness_rating?: number | null
+          closed_by?: string | null
+          closure_type: string
+          created_at?: string | null
+          hired_application_id?: string | null
+          id?: string
+          job_id: string
+          key_learnings?: string[] | null
+          loss_reason?: string | null
+          market_difficulty_rating?: number | null
+          notes?: string | null
+          placement_fee?: number | null
+          recommendations_for_future?: string | null
+          time_to_fill_days?: number | null
+          total_applicants?: number | null
+          updated_at?: string | null
+          what_could_improve?: string | null
+          what_went_well?: string | null
+        }
+        Update: {
+          actual_closing_date?: string
+          actual_salary?: number | null
+          avg_time_per_stage?: Json | null
+          candidate_quality_rating?: number | null
+          candidates_final_round?: number | null
+          candidates_interviewed?: number | null
+          client_responsiveness_rating?: number | null
+          closed_by?: string | null
+          closure_type?: string
+          created_at?: string | null
+          hired_application_id?: string | null
+          id?: string
+          job_id?: string
+          key_learnings?: string[] | null
+          loss_reason?: string | null
+          market_difficulty_rating?: number | null
+          notes?: string | null
+          placement_fee?: number | null
+          recommendations_for_future?: string | null
+          time_to_fill_days?: number | null
+          total_applicants?: number | null
+          updated_at?: string | null
+          what_could_improve?: string | null
+          what_went_well?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_closures_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "job_closures_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_closures_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_closures_hired_application_id_fkey"
+            columns: ["hired_application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_closures_hired_application_id_fkey"
+            columns: ["hired_application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_closures_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_interview_recordings: {
         Row: {
           candidate_id: string | null
@@ -18622,6 +18746,7 @@ export type Database = {
           embedding_generated_at: string | null
           employment_type: string | null
           expected_close_date: string | null
+          external_url: string | null
           fee_source: string | null
           hired_count: number | null
           id: string
@@ -18678,6 +18803,7 @@ export type Database = {
           embedding_generated_at?: string | null
           employment_type?: string | null
           expected_close_date?: string | null
+          external_url?: string | null
           fee_source?: string | null
           hired_count?: number | null
           id?: string
@@ -18734,6 +18860,7 @@ export type Database = {
           embedding_generated_at?: string | null
           employment_type?: string | null
           expected_close_date?: string | null
+          external_url?: string | null
           fee_source?: string | null
           hired_count?: number | null
           id?: string

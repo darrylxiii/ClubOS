@@ -87,6 +87,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     company_id: companyId || '',
     is_stealth: false,
     stealth_viewers: [],
+    external_url: '',
   });
 
   // Draft auto-save
@@ -372,6 +373,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           target_hire_count: isContinuous ? (isUnlimitedHires ? null : targetHireCount) : 1,
           hired_count: 0,
           continuous_started_at: isContinuous ? new Date().toISOString() : null,
+          external_url: formData.external_url || null,
           ...jobFeeData,
         } as any)
         .select()
@@ -493,6 +495,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       company_id: companyId || '',
       is_stealth: false,
       stealth_viewers: [],
+      external_url: '',
     });
     setJobDescriptionFile(null);
     setSupportingDocuments([]);
@@ -755,6 +758,32 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                 {getFieldError('salary_max')}
               </p>
             )}
+          </div>
+
+          {/* External URL */}
+          <div className="space-y-2">
+            <Label htmlFor="external-url" className="flex items-center gap-2">
+              External Job URL
+              <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+            </Label>
+            <Input
+              id="external-url"
+              type="url"
+              value={formData.external_url || ''}
+              onChange={(e) => handleInputChange('external_url', e.target.value)}
+              placeholder="https://linkedin.com/jobs/..."
+              disabled={isSubmitting}
+              className={getFieldError('external_url') ? 'border-destructive' : ''}
+            />
+            {getFieldError('external_url') && (
+              <p className="text-sm text-destructive flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {getFieldError('external_url')}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Link to where this job is posted online (LinkedIn, company website, etc.)
+            </p>
           </div>
 
           {/* Pipeline Type Section */}

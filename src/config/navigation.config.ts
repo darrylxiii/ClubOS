@@ -322,6 +322,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Briefcase,
       items: [
         { name: "All Jobs", icon: Briefcase, path: "/jobs" },
+        { name: "Closed Jobs", icon: Archive, path: "/admin/closed-jobs" },
         { name: "All Applications", icon: FileText, path: "/applications" },
         { name: "All Companies", icon: Building, path: "/companies" },
         { name: "Target Companies", icon: Target, path: "/admin/target-companies" },
