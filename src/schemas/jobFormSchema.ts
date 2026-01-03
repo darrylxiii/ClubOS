@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+// Location data structure with geocoordinates
+export const locationDataSchema = z.object({
+  displayName: z.string(),
+  city: z.string().nullable(),
+  country: z.string(),
+  countryCode: z.string(),
+  latitude: z.number(),
+  longitude: z.number(),
+  formattedAddress: z.string(),
+}).nullable().optional();
+
+export type LocationData = z.infer<typeof locationDataSchema>;
+
 export const jobFormSchema = z.object({
   title: z
     .string()
@@ -16,6 +29,14 @@ export const jobFormSchema = z.object({
     .trim()
     .min(2, "Location is required")
     .max(200, "Location must be less than 200 characters"),
+  // New geocoordinate fields
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
+  location_city: z.string().nullable().optional(),
+  location_country_code: z.string().nullable().optional(),
+  location_formatted: z.string().nullable().optional(),
+  // Structured location object for form handling
+  locationData: locationDataSchema,
   employment_type: z.enum(["fulltime", "parttime", "contract", "freelance", "internship"]),
   salary_min: z.string().optional(),
   salary_max: z.string().optional(),

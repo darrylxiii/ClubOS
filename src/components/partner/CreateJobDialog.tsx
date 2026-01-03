@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { stealthJobAuditService } from "@/services/stealthJobAuditService";
 import { PipelineTypeSelector } from "@/components/jobs/PipelineTypeSelector";
 import { JobFeeConfiguration, type FeeConfiguration } from "@/components/jobs/JobFeeConfiguration";
+import { EnhancedLocationAutocomplete, type LocationResult } from "@/components/ui/enhanced-location-autocomplete";
 
 interface CreateJobDialogProps {
   open: boolean;
@@ -76,10 +77,19 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     useOverride: false,
   });
 
+  // Location state with geocoordinates
+  const [locationData, setLocationData] = useState<LocationResult | null>(null);
+
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
     description: '',
     location: '',
+    latitude: null,
+    longitude: null,
+    location_city: null,
+    location_country_code: null,
+    location_formatted: null,
+    locationData: null,
     employment_type: 'fulltime',
     salary_min: '',
     salary_max: '',
@@ -189,6 +199,34 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     setFormData(prev => ({ ...prev, [field]: value }));
     if (value) {
       setTimeout(() => validateField(field, value), 300);
+    }
+  };
+
+  // Handle location selection with geocoordinates
+  const handleLocationChange = (location: LocationResult | null) => {
+    setLocationData(location);
+    if (location) {
+      setFormData(prev => ({
+        ...prev,
+        location: location.formattedAddress,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        location_city: location.city,
+        location_country_code: location.countryCode,
+        location_formatted: location.formattedAddress,
+        locationData: location,
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        location: '',
+        latitude: null,
+        longitude: null,
+        location_city: null,
+        location_country_code: null,
+        location_formatted: null,
+        locationData: null,
+      }));
     }
   };
 
@@ -359,6 +397,11 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           title: formData.title.trim(),
           description: formData.description.trim(),
           location: formData.location.trim(),
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          location_city: formData.location_city,
+          location_country_code: formData.location_country_code,
+          location_formatted: formData.location_formatted,
           employment_type: formData.employment_type,
           salary_min: formData.salary_min ? parseFloat(formData.salary_min) : null,
           salary_max: formData.salary_max ? parseFloat(formData.salary_max) : null,
@@ -667,20 +710,22 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             <Label htmlFor="location" className="flex items-center gap-1">
               Location <span className="text-destructive">*</span>
             </Label>
-            <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => handleInputChange('location', e.target.value)}
+            <EnhancedLocationAutocomplete
+              value={locationData}
+              onChange={handleLocationChange}
               placeholder="e.g. Amsterdam, Netherlands or Remote"
               disabled={isSubmitting}
               className={getFieldError('location') ? 'border-destructive' : ''}
-              aria-invalid={!!getFieldError('location')}
-              aria-describedby={getFieldError('location') ? 'location-error' : undefined}
             />
             {getFieldError('location') && (
               <p id="location-error" className="text-sm text-destructive flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
                 {getFieldError('location')}
+              </p>
+            )}
+            {locationData && (
+              <p className="text-xs text-muted-foreground">
+                📍 Coordinates captured for map display
               </p>
             )}
           </div>
