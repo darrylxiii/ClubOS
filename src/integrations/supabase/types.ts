@@ -18409,8 +18409,11 @@ export type Database = {
           candidates_interviewed: number | null
           client_responsiveness_rating: number | null
           closed_by: string | null
+          closer_name: string | null
           closure_type: string
           created_at: string | null
+          estimated_salary_max: number | null
+          estimated_salary_min: number | null
           hired_application_id: string | null
           id: string
           job_id: string
@@ -18418,8 +18421,13 @@ export type Database = {
           loss_reason: string | null
           market_difficulty_rating: number | null
           notes: string | null
+          original_sourced_by: string | null
           placement_fee: number | null
           recommendations_for_future: string | null
+          salary_variance_percent: number | null
+          sourced_by: string | null
+          sourcer_name: string | null
+          sourcer_override_reason: string | null
           time_to_fill_days: number | null
           total_applicants: number | null
           updated_at: string | null
@@ -18435,8 +18443,11 @@ export type Database = {
           candidates_interviewed?: number | null
           client_responsiveness_rating?: number | null
           closed_by?: string | null
+          closer_name?: string | null
           closure_type: string
           created_at?: string | null
+          estimated_salary_max?: number | null
+          estimated_salary_min?: number | null
           hired_application_id?: string | null
           id?: string
           job_id: string
@@ -18444,8 +18455,13 @@ export type Database = {
           loss_reason?: string | null
           market_difficulty_rating?: number | null
           notes?: string | null
+          original_sourced_by?: string | null
           placement_fee?: number | null
           recommendations_for_future?: string | null
+          salary_variance_percent?: number | null
+          sourced_by?: string | null
+          sourcer_name?: string | null
+          sourcer_override_reason?: string | null
           time_to_fill_days?: number | null
           total_applicants?: number | null
           updated_at?: string | null
@@ -18461,8 +18477,11 @@ export type Database = {
           candidates_interviewed?: number | null
           client_responsiveness_rating?: number | null
           closed_by?: string | null
+          closer_name?: string | null
           closure_type?: string
           created_at?: string | null
+          estimated_salary_max?: number | null
+          estimated_salary_min?: number | null
           hired_application_id?: string | null
           id?: string
           job_id?: string
@@ -18470,8 +18489,13 @@ export type Database = {
           loss_reason?: string | null
           market_difficulty_rating?: number | null
           notes?: string | null
+          original_sourced_by?: string | null
           placement_fee?: number | null
           recommendations_for_future?: string | null
+          salary_variance_percent?: number | null
+          sourced_by?: string | null
+          sourcer_name?: string | null
+          sourcer_override_reason?: string | null
           time_to_fill_days?: number | null
           total_applicants?: number | null
           updated_at?: string | null
@@ -27736,10 +27760,14 @@ export type Database = {
           candidate_id: string | null
           candidate_salary: number | null
           cash_flow_status: string | null
+          closed_by: string | null
+          closer_name: string | null
           continuous_hire_id: string | null
           created_at: string | null
           created_by: string | null
           currency_code: string | null
+          estimated_salary_max: number | null
+          estimated_salary_min: number | null
           expected_collection_date: string | null
           fee_amount: number
           fee_percentage: number
@@ -27750,9 +27778,15 @@ export type Database = {
           invoice_id: string | null
           job_id: string | null
           notes: string | null
+          original_sourced_by: string | null
           partner_company_id: string | null
           payment_due_date: string | null
           referrer_splits: Json | null
+          salary_variance_direction: string | null
+          salary_variance_percent: number | null
+          sourced_by: string | null
+          sourcer_name: string | null
+          sourcer_override_reason: string | null
           status: string | null
           updated_at: string | null
           variance_amount: number | null
@@ -27763,10 +27797,14 @@ export type Database = {
           candidate_id?: string | null
           candidate_salary?: number | null
           cash_flow_status?: string | null
+          closed_by?: string | null
+          closer_name?: string | null
           continuous_hire_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency_code?: string | null
+          estimated_salary_max?: number | null
+          estimated_salary_min?: number | null
           expected_collection_date?: string | null
           fee_amount: number
           fee_percentage: number
@@ -27777,9 +27815,15 @@ export type Database = {
           invoice_id?: string | null
           job_id?: string | null
           notes?: string | null
+          original_sourced_by?: string | null
           partner_company_id?: string | null
           payment_due_date?: string | null
           referrer_splits?: Json | null
+          salary_variance_direction?: string | null
+          salary_variance_percent?: number | null
+          sourced_by?: string | null
+          sourcer_name?: string | null
+          sourcer_override_reason?: string | null
           status?: string | null
           updated_at?: string | null
           variance_amount?: number | null
@@ -27790,10 +27834,14 @@ export type Database = {
           candidate_id?: string | null
           candidate_salary?: number | null
           cash_flow_status?: string | null
+          closed_by?: string | null
+          closer_name?: string | null
           continuous_hire_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency_code?: string | null
+          estimated_salary_max?: number | null
+          estimated_salary_min?: number | null
           expected_collection_date?: string | null
           fee_amount?: number
           fee_percentage?: number
@@ -27804,9 +27852,15 @@ export type Database = {
           invoice_id?: string | null
           job_id?: string | null
           notes?: string | null
+          original_sourced_by?: string | null
           partner_company_id?: string | null
           payment_due_date?: string | null
           referrer_splits?: Json | null
+          salary_variance_direction?: string | null
+          salary_variance_percent?: number | null
+          sourced_by?: string | null
+          sourcer_name?: string | null
+          sourcer_override_reason?: string | null
           status?: string | null
           updated_at?: string | null
           variance_amount?: number | null
@@ -34521,6 +34575,54 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      sourcing_credits: {
+        Row: {
+          application_id: string
+          created_at: string | null
+          created_by: string | null
+          credit_percentage: number
+          credit_type: string
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string | null
+          created_by?: string | null
+          credit_percentage?: number
+          credit_type?: string
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          credit_percentage?: number
+          credit_type?: string
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sourcing_credits_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sourcing_credits_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sso_connections: {
         Row: {

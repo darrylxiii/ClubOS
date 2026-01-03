@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { 
   CheckCircle2, XCircle, Pause, Ban, 
   Star, TrendingUp, Users, Clock,
-  ChevronLeft, ChevronRight, Loader2, X
+  ChevronLeft, ChevronRight, Loader2, X, Award
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -100,6 +100,13 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   const [placementFeeOverridden, setPlacementFeeOverridden] = useState(false);
   const [lossReason, setLossReason] = useState("");
   
+  // Sourcing credit override
+  const [sourcedBy, setSourcedBy] = useState<string>("");
+  const [originalSourcedBy, setOriginalSourcedBy] = useState<string>("");
+  const [sourcerName, setSourcerName] = useState<string>("");
+  const [sourcerOverrideReason, setSourcerOverrideReason] = useState("");
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string }>>([]);
+  
   // Step 3: Takeaways
   const [whatWentWell, setWhatWentWell] = useState("");
   const [whatCouldImprove, setWhatCouldImprove] = useState("");
@@ -123,6 +130,74 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     }
   }, [calculatedFee, placementFeeOverridden]);
 
+  // Calculate salary variance
+  const salaryMin = job?.salary_min || 0;
+  const salaryMax = job?.salary_max || 0;
+  const salaryMidpoint = (salaryMin + salaryMax) / 2;
+  const actualSalaryNum = parseFloat(actualSalary) || 0;
+  const salaryVariancePercent = salaryMidpoint > 0 && actualSalaryNum > 0
+    ? ((actualSalaryNum - salaryMidpoint) / salaryMidpoint) * 100
+    : null;
+  const salaryVarianceDirection = salaryVariancePercent !== null
+    ? salaryVariancePercent > 5 ? 'above' : salaryVariancePercent < -5 ? 'below' : 'within'
+    : null;
+
+  // Load team members for sourcer override
+  useEffect(() => {
+    const loadTeamMembers = async () => {
+      const { data: members } = await supabase
+        .from("employee_profiles")
+        .select("user_id, profiles!inner(full_name)")
+        .eq("is_active", true);
+      
+      if (members) {
+        setTeamMembers(members.map(m => ({
+          id: m.user_id,
+          name: (m.profiles as any)?.full_name || 'Unknown'
+        })));
+      }
+    };
+    loadTeamMembers();
+  }, []);
+
+  // Load sourcer info when application is selected
+  useEffect(() => {
+    const loadSourcerInfo = async () => {
+      if (!selectedApplicationId) {
+        setSourcedBy("");
+        setOriginalSourcedBy("");
+        setSourcerName("");
+        return;
+      }
+
+      const { data: app } = await supabase
+        .from("applications")
+        .select(`
+          sourced_by,
+          candidate_profiles!inner(created_by)
+        `)
+        .eq("id", selectedApplicationId)
+        .single();
+
+      if (app) {
+        const sourcerId = app.sourced_by || (app.candidate_profiles as any)?.created_by;
+        setSourcedBy(sourcerId || "");
+        setOriginalSourcedBy(sourcerId || "");
+        
+        // Get sourcer name
+        if (sourcerId) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", sourcerId)
+            .single();
+          setSourcerName(profile?.full_name || "Unknown");
+        }
+      }
+    };
+    loadSourcerInfo();
+  }, [selectedApplicationId]);
+
   // Pipeline metrics (calculated)
   const totalApplicants = applications.length;
   const candidatesInterviewed = applications.filter(a => a.current_stage_index >= 2).length;
@@ -143,6 +218,10 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     setPlacementFee("");
     setPlacementFeeOverridden(false);
     setLossReason("");
+    setSourcedBy("");
+    setOriginalSourcedBy("");
+    setSourcerName("");
+    setSourcerOverrideReason("");
     setWhatWentWell("");
     setWhatCouldImprove("");
     setCandidateQualityRating(0);
@@ -176,7 +255,12 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         ? Math.ceil((new Date(actualClosingDate).getTime() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))
         : null;
 
-      // Create closure record
+      // Get the final sourcer name for the override
+      const finalSourcerName = sourcedBy !== originalSourcedBy 
+        ? teamMembers.find(m => m.id === sourcedBy)?.name || 'Unknown'
+        : sourcerName;
+
+      // Create closure record with sourcing and salary variance data
       const closureData = {
         job_id: job.id,
         closure_type: closureType,
@@ -198,6 +282,16 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         candidates_final_round: candidatesFinalRound,
         closed_by: user?.id,
         notes: notes || null,
+        // New sourcing attribution fields
+        sourced_by: sourcedBy || null,
+        sourcer_name: finalSourcerName || null,
+        original_sourced_by: originalSourcedBy || null,
+        sourcer_override_reason: sourcedBy !== originalSourcedBy ? sourcerOverrideReason : null,
+        // New salary variance fields
+        estimated_salary_min: salaryMin || null,
+        estimated_salary_max: salaryMax || null,
+        salary_variance_percent: salaryVariancePercent || null,
+        closer_name: user?.email || null, // Will be resolved to name if available
       };
 
       const { error: closureError } = await supabase
@@ -231,7 +325,12 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
           throw new Error(`Failed to update application to hired: ${appError?.message || 'No rows affected'}`);
         }
 
-        // Explicitly create placement fee record (backup if trigger fails)
+        // Get the final sourcer name for the override
+        const placementSourcerName = sourcedBy !== originalSourcedBy 
+          ? teamMembers.find(m => m.id === sourcedBy)?.name || 'Unknown'
+          : sourcerName;
+
+        // Explicitly create placement fee record with sourcing & variance data
         const feePercentage = job?.job_fee_percentage || job?.companies?.placement_fee_percentage || 20;
         const { error: feeError } = await supabase
           .from('placement_fees')
@@ -246,7 +345,20 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             currency_code: job?.currency || 'EUR',
             status: 'pending',
             hired_date: actualClosingDate,
-            notes: 'Created on job closure'
+            notes: 'Created on job closure',
+            // Sourcing attribution
+            sourced_by: sourcedBy || null,
+            sourcer_name: placementSourcerName || null,
+            original_sourced_by: originalSourcedBy || null,
+            sourcer_override_reason: sourcedBy !== originalSourcedBy ? sourcerOverrideReason : null,
+            // Salary variance tracking
+            estimated_salary_min: salaryMin || null,
+            estimated_salary_max: salaryMax || null,
+            salary_variance_percent: salaryVariancePercent || null,
+            salary_variance_direction: salaryVarianceDirection || null,
+            // Closer tracking
+            closed_by: user?.id || null,
+            closer_name: user?.email || null,
           }, { onConflict: 'application_id' });
 
         if (feeError) {
@@ -471,6 +583,82 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                     )}
                   </div>
                 </div>
+
+                {/* Salary Variance Display */}
+                {actualSalary && salaryMin > 0 && (
+                  <div className="p-4 rounded-lg border bg-muted/50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Salary Comparison</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Estimated Range:</span>
+                        <div className="font-medium">€{salaryMin.toLocaleString()} - €{salaryMax.toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Actual:</span>
+                        <div className="font-medium">€{parseFloat(actualSalary).toLocaleString()}</div>
+                      </div>
+                    </div>
+                    {salaryVariancePercent !== null && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <Badge 
+                          className={cn(
+                            "text-xs",
+                            salaryVarianceDirection === 'above' && "bg-green-500/10 text-green-700",
+                            salaryVarianceDirection === 'below' && "bg-amber-500/10 text-amber-700",
+                            salaryVarianceDirection === 'within' && "bg-blue-500/10 text-blue-700"
+                          )}
+                        >
+                          {salaryVariancePercent > 0 ? '▲' : salaryVariancePercent < 0 ? '▼' : '●'} {salaryVariancePercent > 0 ? '+' : ''}{salaryVariancePercent.toFixed(1)}% {salaryVarianceDirection} estimate
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Sourcing Credit Override */}
+                {selectedApplicationId && (
+                  <div className="p-4 rounded-lg border bg-muted/50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Award className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Sourcing Credit</span>
+                      {sourcedBy !== originalSourcedBy && (
+                        <Badge variant="outline" className="text-xs">Overriding</Badge>
+                      )}
+                    </div>
+                    {originalSourcedBy && (
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Original: {sourcerName || 'Unknown'}
+                      </p>
+                    )}
+                    <Select value={sourcedBy} onValueChange={setSourcedBy}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select who gets credit..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teamMembers.map((member) => (
+                          <SelectItem key={member.id} value={member.id}>
+                            {member.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {sourcedBy !== originalSourcedBy && (
+                      <Textarea
+                        className="mt-2"
+                        placeholder="Reason for override (recommended)..."
+                        value={sourcerOverrideReason}
+                        onChange={(e) => setSourcerOverrideReason(e.target.value)}
+                        rows={2}
+                      />
+                    )}
+                    <p className="text-xs text-muted-foreground mt-2">
+                      This person will receive the commission for this placement.
+                    </p>
+                  </div>
+                )}
               </>
             )}
 
