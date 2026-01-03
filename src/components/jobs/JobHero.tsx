@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Briefcase, DollarSign, Clock, Bookmark, Share2, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { LocationMapCard } from "@/components/ui/location-map-card";
 
 interface JobHeroProps {
   title: string;
@@ -14,6 +15,8 @@ interface JobHeroProps {
     cover_image_url?: string;
   };
   location?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   employment_type?: string;
   salary_min?: number;
   salary_max?: number;
@@ -30,6 +33,8 @@ export function JobHero({
   title,
   company,
   location,
+  latitude,
+  longitude,
   employment_type,
   salary_min,
   salary_max,
@@ -178,6 +183,20 @@ export function JobHero({
               Share
             </Button>
           </div>
+
+          {/* Location Map */}
+          {latitude && longitude && (
+            <div className="mt-6 pt-6 border-t border-border/50">
+              <LocationMapCard
+                latitude={latitude}
+                longitude={longitude}
+                label={company.name}
+                address={location}
+                size="card"
+                className="max-w-md"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
