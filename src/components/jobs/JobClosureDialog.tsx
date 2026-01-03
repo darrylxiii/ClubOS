@@ -220,12 +220,38 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
 
       // If hired, update the application status
       if (closureType === "hired" && selectedApplicationId) {
-        const { error: appError } = await supabase
+        const { data: updatedApp, error: appError } = await supabase
           .from('applications')
           .update({ status: 'hired' })
-          .eq('id', selectedApplicationId);
+          .eq('id', selectedApplicationId)
+          .select('id, status, candidate_id')
+          .single();
 
-        if (appError) console.error("Failed to update application:", appError);
+        if (appError || !updatedApp || updatedApp.status !== 'hired') {
+          throw new Error(`Failed to update application to hired: ${appError?.message || 'No rows affected'}`);
+        }
+
+        // Explicitly create placement fee record (backup if trigger fails)
+        const feePercentage = job?.job_fee_percentage || job?.companies?.placement_fee_percentage || 20;
+        const { error: feeError } = await supabase
+          .from('placement_fees')
+          .upsert({
+            application_id: selectedApplicationId,
+            job_id: job?.id,
+            candidate_id: updatedApp.candidate_id,
+            partner_company_id: job?.company_id,
+            fee_percentage: feePercentage,
+            candidate_salary: parseFloat(actualSalary),
+            fee_amount: parseFloat(placementFee),
+            currency_code: job?.currency || 'EUR',
+            status: 'pending',
+            hired_date: actualClosingDate,
+            notes: 'Created on job closure'
+          }, { onConflict: 'application_id' });
+
+        if (feeError) {
+          console.warn("Placement fee insert failed (trigger may handle):", feeError);
+        }
 
         // Close other active applications
         const otherActiveIds = activeApplications
