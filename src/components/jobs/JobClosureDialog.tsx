@@ -103,6 +103,8 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   // Sourcing credit override
   const [sourcedBy, setSourcedBy] = useState<string>("");
   const [originalSourcedBy, setOriginalSourcedBy] = useState<string>(""); // Track original for override detection
+  const [sourcerDisplayName, setSourcerDisplayName] = useState<string>(""); // Display name for read-only mode
+  const [isOverridingSourcer, setIsOverridingSourcer] = useState(false); // Toggle for override mode
   const [addedBy, setAddedBy] = useState<string>("");
   const [addedByName, setAddedByName] = useState<string>("");
   const [sourcerOverrideReason, setSourcerOverrideReason] = useState("");
@@ -207,83 +209,83 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     loadTeamMembers();
   }, []);
 
-  // Load sourcer info when application is selected
-  useEffect(() => {
-    const loadSourcerInfo = async () => {
-      // Reset if no application selected
-      if (!selectedApplicationId) {
-        setSourcedBy("");
-        setOriginalSourcedBy("");
-        setAddedBy("");
-        setAddedByName("");
-        return;
-      }
+  // Load sourcer info directly when candidate is selected
+  const loadSourcerForApplication = async (appId: string, members: Array<{ id: string; name: string }>) => {
+    if (!appId) {
+      setSourcedBy("");
+      setOriginalSourcedBy("");
+      setSourcerDisplayName("");
+      setAddedBy("");
+      setAddedByName("");
+      setIsOverridingSourcer(false);
+      setSourcerOverrideReason("");
+      return;
+    }
 
-      // Wait for team members to be loaded before determining sourcer
-      if (teamMembers.length === 0) {
-        return;
-      }
+    const { data: app } = await supabase
+      .from("applications")
+      .select(`
+        sourced_by,
+        candidate_profiles!inner(created_by)
+      `)
+      .eq("id", appId)
+      .maybeSingle();
 
-      const { data: app } = await supabase
-        .from("applications")
-        .select(`
-          sourced_by,
-          candidate_profiles!inner(created_by)
-        `)
-        .eq("id", selectedApplicationId)
+    if (!app) return;
+
+    const creatorId = (app.candidate_profiles as any)?.created_by;
+    
+    // Helper to check if ID exists in team members
+    const isValidTeamMember = (id: string | null | undefined): boolean => 
+      !!id && members.some(m => m.id === id);
+
+    // Cascading fallback for sourcer:
+    // 1. application.sourced_by (if valid team member)
+    // 2. candidate_profiles.created_by (if valid team member)
+    // 3. Current logged-in user (if valid team member)
+    // 4. First team member (last resort)
+    let finalSourcerId = "";
+    
+    if (isValidTeamMember(app.sourced_by)) {
+      finalSourcerId = app.sourced_by!;
+    } else if (isValidTeamMember(creatorId)) {
+      finalSourcerId = creatorId;
+    } else if (isValidTeamMember(user?.id)) {
+      finalSourcerId = user!.id;
+    } else if (members.length > 0) {
+      finalSourcerId = members[0].id;
+    }
+
+    const sourcerName = members.find(m => m.id === finalSourcerId)?.name || "Unknown";
+
+    console.log("[JobClosureDialog] loadSourcerForApplication:", {
+      appId,
+      teamMembersCount: members.length,
+      appSourcedBy: app.sourced_by,
+      creatorId,
+      currentUserId: user?.id,
+      finalSourcerId,
+      sourcerName,
+      isSourcerInTeam: members.some(m => m.id === finalSourcerId)
+    });
+    
+    setAddedBy(creatorId || "");
+    setSourcedBy(finalSourcerId);
+    setOriginalSourcedBy(finalSourcerId);
+    setSourcerDisplayName(sourcerName);
+    setIsOverridingSourcer(false);
+    setSourcerOverrideReason("");
+    
+    // Get added by name (the creator)
+    if (creatorId) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", creatorId)
         .maybeSingle();
-
-      if (app) {
-        const creatorId = (app.candidate_profiles as any)?.created_by;
-        
-        // Helper to check if ID exists in team members
-        const isValidTeamMember = (id: string | null | undefined): boolean => 
-          !!id && teamMembers.some(m => m.id === id);
-
-        // Cascading fallback for sourcer:
-        // 1. application.sourced_by (if valid team member)
-        // 2. candidate_profiles.created_by (if valid team member)
-        // 3. Current logged-in user (if valid team member)
-        // 4. First team member (last resort)
-        let finalSourcerId = "";
-        
-        if (isValidTeamMember(app.sourced_by)) {
-          finalSourcerId = app.sourced_by!;
-        } else if (isValidTeamMember(creatorId)) {
-          finalSourcerId = creatorId;
-        } else if (isValidTeamMember(user?.id)) {
-          finalSourcerId = user!.id;
-        } else if (teamMembers.length > 0) {
-          finalSourcerId = teamMembers[0].id;
-        }
-
-        console.log("[JobClosureDialog] loadSourcerInfo:", {
-          selectedApplicationId,
-          teamMembersCount: teamMembers.length,
-          appSourcedBy: app.sourced_by,
-          creatorId,
-          currentUserId: user?.id,
-          finalSourcerId,
-          isSourcerInTeam: teamMembers.some(m => m.id === finalSourcerId)
-        });
-        
-        setAddedBy(creatorId || "");           // Who physically added the candidate
-        setSourcedBy(finalSourcerId);           // Current credited person (pre-filled)
-        setOriginalSourcedBy(finalSourcerId);   // Track original for override detection
-        
-        // Get added by name (the creator)
-        if (creatorId) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("full_name")
-            .eq("id", creatorId)
-            .maybeSingle();
-          setAddedByName(profile?.full_name || "Unknown");
-        }
-      }
-    };
-    loadSourcerInfo();
-  }, [selectedApplicationId, teamMembers, user?.id]);
+      setAddedByName(profile?.full_name || "Unknown");
+    }
+  };
 
   // Pipeline metrics (calculated)
   const totalApplicants = applications.length;
@@ -307,6 +309,8 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     setLossReason("");
     setSourcedBy("");
     setOriginalSourcedBy("");
+    setSourcerDisplayName("");
+    setIsOverridingSourcer(false);
     setAddedBy("");
     setAddedByName("");
     setSourcerOverrideReason("");
@@ -370,12 +374,12 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         primarySourcerId = primaryCredit.userId;
         primarySourcerName = primaryCredit.name;
       } else {
-        primarySourcerName = sourcedBy !== originalSourcedBy 
+        primarySourcerName = isOverridingSourcer 
           ? teamMembers.find(m => m.id === sourcedBy)?.name || 'Unknown'
-          : addedByName;
+          : sourcerDisplayName || addedByName;
       }
 
-      const isOverride = isSplittingCredit || sourcedBy !== originalSourcedBy;
+      const isOverride = isSplittingCredit || isOverridingSourcer;
 
       // Create closure record with sourcing and salary variance data
       const closureData = {
@@ -657,7 +661,14 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
               <>
                 <div className="space-y-2">
                   <Label>Select Hired Candidate *</Label>
-                  <Select value={selectedApplicationId} onValueChange={setSelectedApplicationId}>
+                  <Select 
+                    value={selectedApplicationId} 
+                    onValueChange={(appId) => {
+                      setSelectedApplicationId(appId);
+                      // Immediately load sourcer info with current teamMembers
+                      loadSourcerForApplication(appId, teamMembers);
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Choose the hired candidate..." />
                     </SelectTrigger>
@@ -768,24 +779,25 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                       <div className="flex items-center gap-2">
                         <Award className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">Sourcing Credit</span>
-                      {(sourcedBy !== originalSourcedBy || isSplittingCredit) && (
-                        <Badge variant="outline" className="text-xs">Overriding</Badge>
+                        {(isOverridingSourcer || isSplittingCredit) && (
+                          <Badge variant="outline" className="text-xs">Overriding</Badge>
+                        )}
+                      </div>
+                      {(isOverridingSourcer || isSplittingCredit) && (
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs text-muted-foreground">Split credit</Label>
+                          <Switch 
+                            checked={isSplittingCredit} 
+                            onCheckedChange={(checked) => {
+                              setIsSplittingCredit(checked);
+                              if (checked && sourcingCredits.length === 0 && sourcedBy) {
+                                const currentName = teamMembers.find(m => m.id === sourcedBy)?.name || sourcerDisplayName || '';
+                                setSourcingCredits([{ userId: sourcedBy, name: currentName, percentage: 100 }]);
+                              }
+                            }} 
+                          />
+                        </div>
                       )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Label className="text-xs text-muted-foreground">Split credit</Label>
-                        <Switch 
-                          checked={isSplittingCredit} 
-                          onCheckedChange={(checked) => {
-                            setIsSplittingCredit(checked);
-                            if (checked && sourcingCredits.length === 0 && sourcedBy) {
-                              // Initialize with current sourcer at 100%
-                              const currentName = teamMembers.find(m => m.id === sourcedBy)?.name || addedByName || '';
-                              setSourcingCredits([{ userId: sourcedBy, name: currentName, percentage: 100 }]);
-                            }
-                          }} 
-                        />
-                      </div>
                     </div>
                     
                     {addedBy && (
@@ -794,23 +806,78 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                       </p>
                     )}
 
-                    {!isSplittingCredit ? (
-                      <>
-                        <Label className="text-xs">Sourced by (gets commission)</Label>
-                        <Select value={sourcedBy} onValueChange={setSourcedBy}>
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Select who gets credit..." />
-                          </SelectTrigger>
-                          <SelectContent className="z-[999]">
-                            {teamMembers.map((member) => (
-                              <SelectItem key={member.id} value={member.id}>
-                                {member.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </>
+                    {/* Default: Read-only display with Override button */}
+                    {!isOverridingSourcer && !isSplittingCredit ? (
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-xs">Sourced by (gets commission)</Label>
+                          <div className="mt-1 p-3 rounded-md bg-background border flex items-center justify-between">
+                            <span className="font-medium">
+                              {sourcerDisplayName || "Loading..."}
+                            </span>
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setIsOverridingSourcer(true)}
+                            >
+                              Override
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          This person will receive the commission for this placement.
+                        </p>
+                      </div>
+                    ) : !isSplittingCredit && isOverridingSourcer ? (
+                      /* Override mode: Editable dropdown + reason */
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-xs">Sourced by (gets commission)</Label>
+                          <Select value={sourcedBy} onValueChange={setSourcedBy}>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Select who gets credit..." />
+                            </SelectTrigger>
+                            <SelectContent className="z-[999]">
+                              {teamMembers.map((member) => (
+                                <SelectItem key={member.id} value={member.id}>
+                                  {member.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label className="text-xs">Reason for override</Label>
+                          <Textarea
+                            className="mt-1"
+                            placeholder="Why is the sourcing credit being changed?"
+                            value={sourcerOverrideReason}
+                            onChange={(e) => setSourcerOverrideReason(e.target.value)}
+                            rows={2}
+                          />
+                        </div>
+
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            setSourcedBy(originalSourcedBy);
+                            setIsOverridingSourcer(false);
+                            setSourcerOverrideReason("");
+                          }}
+                        >
+                          Cancel Override
+                        </Button>
+                        
+                        <p className="text-xs text-muted-foreground">
+                          This person will receive the commission for this placement.
+                        </p>
+                      </div>
                     ) : (
+                      /* Split credit mode */
                       <div className="space-y-3">
                         <Label className="text-xs">Split commission between team members</Label>
                         {sourcingCredits.map((credit, index) => (
@@ -880,24 +947,37 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                             </p>
                           );
                         })()}
+
+                        <div>
+                          <Label className="text-xs">Reason for override</Label>
+                          <Textarea
+                            className="mt-1"
+                            placeholder="Why is the sourcing credit being changed?"
+                            value={sourcerOverrideReason}
+                            onChange={(e) => setSourcerOverrideReason(e.target.value)}
+                            rows={2}
+                          />
+                        </div>
+
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            setSourcedBy(originalSourcedBy);
+                            setIsSplittingCredit(false);
+                            setSourcingCredits([]);
+                            setSourcerOverrideReason("");
+                          }}
+                        >
+                          Cancel Override
+                        </Button>
+                        
+                        <p className="text-xs text-muted-foreground">
+                          Commission will be split according to the percentages above.
+                        </p>
                       </div>
                     )}
-
-                    {(sourcedBy !== originalSourcedBy || isSplittingCredit) && (
-                      <Textarea
-                        className="mt-3"
-                        placeholder="Reason for override (recommended)..."
-                        value={sourcerOverrideReason}
-                        onChange={(e) => setSourcerOverrideReason(e.target.value)}
-                        rows={2}
-                      />
-                    )}
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {isSplittingCredit 
-                        ? "Commission will be split according to the percentages above."
-                        : "This person will receive the commission for this placement."
-                      }
-                    </p>
                   </div>
                 )}
               </>
