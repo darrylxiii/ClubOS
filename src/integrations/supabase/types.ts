@@ -6517,6 +6517,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_active: boolean | null
           is_default: boolean | null
           max_revenue: number | null
           min_revenue: number
@@ -6527,6 +6528,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          is_active?: boolean | null
           is_default?: boolean | null
           max_revenue?: number | null
           min_revenue?: number
@@ -6537,6 +6539,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          is_active?: boolean | null
           is_default?: boolean | null
           max_revenue?: number | null
           min_revenue?: number
@@ -14418,6 +14421,7 @@ export type Database = {
           approved_by: string | null
           candidate_name: string | null
           commission_rate: number | null
+          commission_type: string | null
           company_name: string | null
           created_at: string | null
           employee_id: string
@@ -14430,8 +14434,10 @@ export type Database = {
           payment_reference: string | null
           period_date: string | null
           placement_fee_base: number | null
+          placement_fee_id: string | null
           source_id: string | null
           source_type: string
+          split_percentage: number | null
           status: string | null
           updated_at: string | null
         }
@@ -14440,6 +14446,7 @@ export type Database = {
           approved_by?: string | null
           candidate_name?: string | null
           commission_rate?: number | null
+          commission_type?: string | null
           company_name?: string | null
           created_at?: string | null
           employee_id: string
@@ -14452,8 +14459,10 @@ export type Database = {
           payment_reference?: string | null
           period_date?: string | null
           placement_fee_base?: number | null
+          placement_fee_id?: string | null
           source_id?: string | null
           source_type: string
+          split_percentage?: number | null
           status?: string | null
           updated_at?: string | null
         }
@@ -14462,6 +14471,7 @@ export type Database = {
           approved_by?: string | null
           candidate_name?: string | null
           commission_rate?: number | null
+          commission_type?: string | null
           company_name?: string | null
           created_at?: string | null
           employee_id?: string
@@ -14474,8 +14484,10 @@ export type Database = {
           payment_reference?: string | null
           period_date?: string | null
           placement_fee_base?: number | null
+          placement_fee_id?: string | null
           source_id?: string | null
           source_type?: string
+          split_percentage?: number | null
           status?: string | null
           updated_at?: string | null
         }
@@ -14487,14 +14499,23 @@ export type Database = {
             referencedRelation: "employee_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "employee_commissions_placement_fee_id_fkey"
+            columns: ["placement_fee_id"]
+            isOneToOne: false
+            referencedRelation: "placement_fees"
+            referencedColumns: ["id"]
+          },
         ]
       }
       employee_profiles: {
         Row: {
           annual_bonus_target: number | null
+          annual_target: number | null
           base_salary: number | null
           commission_percentage: number | null
           commission_structure: string | null
+          commission_tier_id: string | null
           created_at: string | null
           department: string | null
           employee_number: string | null
@@ -14510,9 +14531,11 @@ export type Database = {
         }
         Insert: {
           annual_bonus_target?: number | null
+          annual_target?: number | null
           base_salary?: number | null
           commission_percentage?: number | null
           commission_structure?: string | null
+          commission_tier_id?: string | null
           created_at?: string | null
           department?: string | null
           employee_number?: string | null
@@ -14528,9 +14551,11 @@ export type Database = {
         }
         Update: {
           annual_bonus_target?: number | null
+          annual_target?: number | null
           base_salary?: number | null
           commission_percentage?: number | null
           commission_structure?: string | null
+          commission_tier_id?: string | null
           created_at?: string | null
           department?: string | null
           employee_number?: string | null
@@ -14545,6 +14570,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "employee_profiles_commission_tier_id_fkey"
+            columns: ["commission_tier_id"]
+            isOneToOne: false
+            referencedRelation: "commission_tiers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "employee_profiles_manager_id_fkey"
             columns: ["manager_id"]
@@ -27772,14 +27804,14 @@ export type Database = {
           {
             foreignKeyName: "placement_fees_application_id_fkey"
             columns: ["application_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "placement_fees_application_id_fkey"
             columns: ["application_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
           },
