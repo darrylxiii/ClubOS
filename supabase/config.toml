@@ -986,3 +986,6 @@ verify_jwt = false
 
 [functions.moneybird-fetch-financials]
 verify_jwt = true
+
+[functions.sync-company-revenue]
+verify_jwt = true

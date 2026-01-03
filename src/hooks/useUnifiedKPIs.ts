@@ -10,6 +10,7 @@ import { usePlatformHealth } from './usePlatformHealth';
 import { useFinancialStats } from './useFinancialData';
 import { useSecurityMetrics } from './useSecurityMetrics';
 import { useCompanyMetrics } from './useCompanyMetrics';
+import { useMoneybirdFinancialKPIs } from './useMoneybirdFinancialKPIs';
 
 export type KPIDomain = 'operations' | 'website' | 'sales' | 'platform' | 'intelligence' | 'growth' | 'costs';
 export type KPIStatus = 'success' | 'warning' | 'critical' | 'neutral';
@@ -248,6 +249,7 @@ const categoryDisplayNames: Record<string, string> = {
   revenue: 'Revenue',
   companies: 'Companies',
   referrals: 'Referrals',
+  moneybird: 'Moneybird Finance',
   // Costs
   api_usage: 'API Usage',
   cron_jobs: 'Cron Jobs',
@@ -1097,6 +1099,9 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
   const financialLoading = financialResult.isLoading;
   const { metrics: companyMetrics, isLoading: companyLoading } = useCompanyMetrics();
   
+  // Moneybird Financial KPIs
+  const { kpis: moneybirdKPIs, isLoading: moneybirdLoading } = useMoneybirdFinancialKPIs();
+  
   // Referral stats query
   const { data: referralStats, isLoading: referralLoading } = useQuery({
     queryKey: ['kpi-referral-stats'],
@@ -1129,7 +1134,7 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
   });
   
   const isLoading = opsLoading || webLoading || salesLoading || platformLoading || securityLoading || 
-    intelligenceLoading || appLoading || healthLoading || financialLoading || companyLoading || referralLoading;
+    intelligenceLoading || appLoading || healthLoading || financialLoading || companyLoading || referralLoading || moneybirdLoading;
   
   // Transform all KPIs
   const operationsKPIs = transformOperationsKPIs(operationsData as unknown as Record<string, KPIMetric[]> | undefined);
@@ -1140,7 +1145,25 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
   const intelligenceKPIs = transformIntelligenceKPIs(activeModel, matchPredictions, churnRiskUsers, engagementStats);
   const growthKPIs = transformGrowthKPIs(appMetrics, platformHealthMetrics, financialStats, companyMetrics, referralStats);
   
-  const allKPIs = [...operationsKPIs, ...websiteKPIs, ...salesKPIs, ...platformKPIs, ...securityKPIs, ...intelligenceKPIs, ...growthKPIs];
+  // Transform Moneybird KPIs to UnifiedKPI format
+  const financialUnifiedKPIs: UnifiedKPI[] = moneybirdKPIs.map(kpi => ({
+    id: `moneybird_${kpi.id}`,
+    domain: 'growth' as KPIDomain,
+    category: 'moneybird',
+    name: kpi.name,
+    displayName: kpi.displayName,
+    value: kpi.value,
+    previousValue: kpi.previousValue,
+    targetValue: kpi.targetValue,
+    warningThreshold: kpi.warningThreshold,
+    criticalThreshold: kpi.criticalThreshold,
+    status: kpi.status,
+    format: kpi.format === 'currency' ? 'currency' : kpi.format === 'percent' ? 'percent' : 'number',
+    unit: kpi.unit,
+    lowerIsBetter: kpi.lowerIsBetter,
+  }));
+  
+  const allKPIs = [...operationsKPIs, ...websiteKPIs, ...salesKPIs, ...platformKPIs, ...securityKPIs, ...intelligenceKPIs, ...growthKPIs, ...financialUnifiedKPIs];
   
   // Calculate domain health
   const operationsHealth = calculateDomainHealth(allKPIs, 'operations', 'Operations');

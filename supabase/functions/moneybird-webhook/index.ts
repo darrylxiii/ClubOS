@@ -106,6 +106,77 @@ serve(async (req) => {
         })
         .eq('id', sync.partner_invoice_id);
 
+      // Log financial event for event sourcing
+      await supabase.from('financial_events').insert({
+        event_type: 'invoice.paid',
+        entity_type: 'partner_invoice',
+        entity_id: sync.partner_invoice_id,
+        metadata: { 
+          moneybird_invoice_id: invoiceId,
+          previous_status: previousStatus,
+        },
+      });
+
+      // Auto-approve linked referral payouts (Phase 2: Payment-Triggered Automation)
+      // Find placement_fee linked to this invoice
+      const { data: invoice } = await supabase
+        .from('partner_invoices')
+        .select('id, placement_fee_id')
+        .eq('id', sync.partner_invoice_id)
+        .single();
+
+      if (invoice?.placement_fee_id) {
+        // Update placement fee status to paid
+        await supabase
+          .from('placement_fees')
+          .update({ status: 'paid' })
+          .eq('id', invoice.placement_fee_id);
+
+        // Find the application linked to this placement fee
+        const { data: placementFee } = await supabase
+          .from('placement_fees')
+          .select('application_id, fee_amount')
+          .eq('id', invoice.placement_fee_id)
+          .single();
+
+        if (placementFee?.application_id) {
+          // Find and auto-approve pending referral payouts for this application
+          const { data: pendingPayouts } = await supabase
+            .from('referral_payouts')
+            .select('id, payout_amount, referrer_user_id')
+            .eq('application_id', placementFee.application_id)
+            .eq('status', 'pending');
+
+          if (pendingPayouts && pendingPayouts.length > 0) {
+            console.log(`[Moneybird Webhook] Auto-approving ${pendingPayouts.length} referral payouts`);
+            
+            for (const payout of pendingPayouts) {
+              await supabase
+                .from('referral_payouts')
+                .update({
+                  status: 'approved',
+                  approved_at: new Date().toISOString(),
+                })
+                .eq('id', payout.id);
+
+              // Log referral payout approval event
+              await supabase.from('financial_events').insert({
+                event_type: 'referral_payout.auto_approved',
+                entity_type: 'referral_payout',
+                entity_id: payout.id,
+                amount: payout.payout_amount,
+                metadata: {
+                  trigger: 'invoice_payment',
+                  invoice_id: sync.partner_invoice_id,
+                  placement_fee_id: invoice.placement_fee_id,
+                  referrer_user_id: payout.referrer_user_id,
+                },
+              });
+            }
+          }
+        }
+      }
+
       // Log the webhook event
       await supabase.from('moneybird_sync_logs').insert({
         operation_type: 'webhook_payment',

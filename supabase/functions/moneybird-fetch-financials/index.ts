@@ -273,6 +273,7 @@ serve(async (req) => {
       currency: string;
       year: number;
       raw_data: Record<string, unknown>;
+      reconciliation_status: string;
     }> = [];
 
     // Initialize months
@@ -321,6 +322,8 @@ serve(async (req) => {
           state: invoice.state,
           contact: invoice.contact,
         },
+        // Company reconciliation will be done separately
+        reconciliation_status: 'pending',
       });
       
       // Track drafts separately (don't include in YTD revenue)
