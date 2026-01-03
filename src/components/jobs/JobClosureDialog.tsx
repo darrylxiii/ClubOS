@@ -102,6 +102,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   
   // Sourcing credit override
   const [sourcedBy, setSourcedBy] = useState<string>("");
+  const [originalSourcedBy, setOriginalSourcedBy] = useState<string>(""); // Track original for override detection
   const [addedBy, setAddedBy] = useState<string>("");
   const [addedByName, setAddedByName] = useState<string>("");
   const [sourcerOverrideReason, setSourcerOverrideReason] = useState("");
@@ -211,6 +212,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     const loadSourcerInfo = async () => {
       if (!selectedApplicationId) {
         setSourcedBy("");
+        setOriginalSourcedBy("");
         setAddedBy("");
         setAddedByName("");
         return;
@@ -226,17 +228,21 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         .maybeSingle();
 
       if (app) {
-        const sourcerId = app.sourced_by || (app.candidate_profiles as any)?.created_by;
-        setSourcedBy(sourcerId || "");
-        setAddedBy(sourcerId || "");
+        const creatorId = (app.candidate_profiles as any)?.created_by;
+        // Credit goes to sourced_by if set, otherwise falls back to creator
+        const sourcerId = app.sourced_by || creatorId;
         
-        // Get added by name
-        if (sourcerId) {
+        setAddedBy(creatorId || "");           // Who physically added the candidate
+        setSourcedBy(sourcerId || "");          // Current credited person (pre-filled)
+        setOriginalSourcedBy(sourcerId || "");  // Track original for override detection
+        
+        // Get added by name (the creator)
+        if (creatorId) {
           const { data: profile } = await supabase
             .from("profiles")
             .select("full_name")
-            .eq("id", sourcerId)
-            .single();
+            .eq("id", creatorId)
+            .maybeSingle();
           setAddedByName(profile?.full_name || "Unknown");
         }
       }
@@ -265,6 +271,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     setPlacementFeeOverridden(false);
     setLossReason("");
     setSourcedBy("");
+    setOriginalSourcedBy("");
     setAddedBy("");
     setAddedByName("");
     setSourcerOverrideReason("");
@@ -841,7 +848,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                       </div>
                     )}
 
-                    {(sourcedBy !== addedBy || isSplittingCredit) && (
+                    {(sourcedBy !== originalSourcedBy || isSplittingCredit) && (
                       <Textarea
                         className="mt-3"
                         placeholder="Reason for override (recommended)..."
