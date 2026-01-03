@@ -37,6 +37,18 @@ export const jobsRoutes = (
       }
     />
     <Route
+      path="/jobs/map"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <JobsMap />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
       path="/jobs/:jobId"
       element={
         <ProtectedRoute>
@@ -58,18 +70,6 @@ export const jobsRoutes = (
             </Suspense>
           </RouteErrorBoundary>
         </JobDashboardRoute>
-      }
-    />
-    <Route
-      path="/jobs/map"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <JobsMap />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
       }
     />
     <Route
