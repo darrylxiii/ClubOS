@@ -230,7 +230,8 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         .from("applications")
         .select(`
           sourced_by,
-          candidate_profiles!inner(created_by)
+          candidate_id,
+          candidate_profiles(created_by)
         `)
         .eq("id", appId)
         .maybeSingle();
@@ -242,7 +243,18 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         return;
       }
 
-      const creatorId = (app.candidate_profiles as any)?.created_by;
+      // Get creatorId from join (may be null if RLS blocks candidate_profiles)
+      let creatorId = (app.candidate_profiles as any)?.created_by;
+      
+      // If join didn't return created_by, fetch candidate_profiles separately
+      if (!creatorId && app.candidate_id) {
+        const { data: candidate } = await supabase
+          .from("candidate_profiles")
+          .select("created_by")
+          .eq("id", app.candidate_id)
+          .maybeSingle();
+        creatorId = candidate?.created_by;
+      }
       
       // Determine sourcer ID using cascading fallback (no team member validation for default)
       // 1. application.sourced_by
