@@ -6866,7 +6866,11 @@ export type Database = {
           description: string | null
           fee_type: string | null
           founded_year: number | null
+          headquarters_city: string | null
+          headquarters_country_code: string | null
+          headquarters_latitude: number | null
           headquarters_location: string | null
+          headquarters_longitude: number | null
           hiring_intent_score: number | null
           hiring_intent_updated_at: string | null
           id: string
@@ -6914,7 +6918,11 @@ export type Database = {
           description?: string | null
           fee_type?: string | null
           founded_year?: number | null
+          headquarters_city?: string | null
+          headquarters_country_code?: string | null
+          headquarters_latitude?: number | null
           headquarters_location?: string | null
+          headquarters_longitude?: number | null
           hiring_intent_score?: number | null
           hiring_intent_updated_at?: string | null
           id?: string
@@ -6962,7 +6970,11 @@ export type Database = {
           description?: string | null
           fee_type?: string | null
           founded_year?: number | null
+          headquarters_city?: string | null
+          headquarters_country_code?: string | null
+          headquarters_latitude?: number | null
           headquarters_location?: string | null
+          headquarters_longitude?: number | null
           hiring_intent_score?: number | null
           hiring_intent_updated_at?: string | null
           id?: string
@@ -18762,7 +18774,12 @@ export type Database = {
           job_fee_percentage: number | null
           job_fee_type: string | null
           last_activity_date: string | null
+          latitude: number | null
           location: string | null
+          location_city: string | null
+          location_country_code: string | null
+          location_formatted: string | null
+          longitude: number | null
           loss_reason_id: string | null
           pipeline_stages: Json | null
           published_at: string | null
@@ -18819,7 +18836,12 @@ export type Database = {
           job_fee_percentage?: number | null
           job_fee_type?: string | null
           last_activity_date?: string | null
+          latitude?: number | null
           location?: string | null
+          location_city?: string | null
+          location_country_code?: string | null
+          location_formatted?: string | null
+          longitude?: number | null
           loss_reason_id?: string | null
           pipeline_stages?: Json | null
           published_at?: string | null
@@ -18876,7 +18898,12 @@ export type Database = {
           job_fee_percentage?: number | null
           job_fee_type?: string | null
           last_activity_date?: string | null
+          latitude?: number | null
           location?: string | null
+          location_city?: string | null
+          location_country_code?: string | null
+          location_formatted?: string | null
+          longitude?: number | null
           loss_reason_id?: string | null
           pipeline_stages?: Json | null
           published_at?: string | null

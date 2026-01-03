@@ -36,6 +36,8 @@ import { stealthJobAuditService } from "@/services/stealthJobAuditService";
 import { JobStatusManager } from "@/components/jobs/JobStatusManager";
 import { JobStatus } from "@/components/jobs/JobStatusBadge";
 import { History } from "lucide-react";
+import { EnhancedLocationAutocomplete, type LocationResult } from "@/components/ui/enhanced-location-autocomplete";
+import { LocationMapCard } from "@/components/ui/location-map-card";
 
 interface EditJobSheetProps {
   open: boolean;
@@ -79,10 +81,17 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
   const [stealthViewerIds, setStealthViewerIds] = useState<string[]>([]);
   const [existingViewers, setExistingViewers] = useState<StealthViewer[]>([]);
   
+  // Location state with geocoordinates
+  const [locationData, setLocationData] = useState<LocationResult | null>(null);
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     location: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
+    location_city: null as string | null,
+    location_country_code: null as string | null,
     employment_type: 'fulltime',
     salary_min: '',
     salary_max: '',
@@ -112,6 +121,10 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
         title: job.title || '',
         description: job.description || '',
         location: job.location || '',
+        latitude: job.latitude || null,
+        longitude: job.longitude || null,
+        location_city: job.location_city || null,
+        location_country_code: job.location_country_code || null,
         employment_type: job.employment_type || 'fulltime',
         salary_min: job.salary_min?.toString() || '',
         salary_max: job.salary_max?.toString() || '',
@@ -119,6 +132,21 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
         company_id: job.company_id || '',
         external_url: job.external_url || '',
       });
+
+      // Initialize location data if coordinates exist
+      if (job.latitude && job.longitude) {
+        setLocationData({
+          displayName: job.location || '',
+          city: job.location_city || null,
+          country: '',
+          countryCode: job.location_country_code || '',
+          latitude: job.latitude,
+          longitude: job.longitude,
+          formattedAddress: job.location || '',
+        });
+      } else {
+        setLocationData(null);
+      }
 
       // Only set tools if they've actually changed (compare IDs)
       const newRequiredIds = requiredToolsData.map(t => t.id).sort().join(',');
@@ -186,6 +214,31 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
   const handleFormChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setHasUnsavedChanges(true);
+  };
+
+  // Handle location selection with geocoordinates
+  const handleLocationChange = (location: LocationResult | null) => {
+    setLocationData(location);
+    setHasUnsavedChanges(true);
+    if (location) {
+      setFormData(prev => ({
+        ...prev,
+        location: location.formattedAddress,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        location_city: location.city,
+        location_country_code: location.countryCode,
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        location: '',
+        latitude: null,
+        longitude: null,
+        location_city: null,
+        location_country_code: null,
+      }));
+    }
   };
 
   const handleJobDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -319,6 +372,10 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
           title: formData.title,
           description: formData.description,
           location: formData.location,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          location_city: formData.location_city,
+          location_country_code: formData.location_country_code,
           employment_type: formData.employment_type,
           salary_min: formData.salary_min ? parseInt(formData.salary_min) : null,
           salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
@@ -567,12 +624,14 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="location">Location</Label>
-                        <Input
-                          id="location"
-                          value={formData.location}
-                          onChange={(e) => handleFormChange('location', e.target.value)}
+                        <EnhancedLocationAutocomplete
+                          value={locationData}
+                          onChange={handleLocationChange}
                           placeholder="e.g., Amsterdam, Remote"
                         />
+                        {locationData && (
+                          <p className="text-xs text-muted-foreground">📍 Coordinates captured</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
