@@ -21,7 +21,8 @@ export interface PlacementFee {
   // Sourcing attribution
   sourced_by: string | null;
   sourcer_name: string | null;
-  original_sourced_by: string | null;
+  added_by: string | null;
+  added_by_name: string | null;
   sourcer_override_reason: string | null;
   // Salary variance tracking
   estimated_salary_min: number | null;
