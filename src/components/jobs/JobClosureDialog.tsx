@@ -102,8 +102,8 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   
   // Sourcing credit override
   const [sourcedBy, setSourcedBy] = useState<string>("");
-  const [originalSourcedBy, setOriginalSourcedBy] = useState<string>("");
-  const [sourcerName, setSourcerName] = useState<string>("");
+  const [addedBy, setAddedBy] = useState<string>("");
+  const [addedByName, setAddedByName] = useState<string>("");
   const [sourcerOverrideReason, setSourcerOverrideReason] = useState("");
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string }>>([]);
   
@@ -165,8 +165,8 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     const loadSourcerInfo = async () => {
       if (!selectedApplicationId) {
         setSourcedBy("");
-        setOriginalSourcedBy("");
-        setSourcerName("");
+        setAddedBy("");
+        setAddedByName("");
         return;
       }
 
@@ -182,16 +182,16 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
       if (app) {
         const sourcerId = app.sourced_by || (app.candidate_profiles as any)?.created_by;
         setSourcedBy(sourcerId || "");
-        setOriginalSourcedBy(sourcerId || "");
+        setAddedBy(sourcerId || "");
         
-        // Get sourcer name
+        // Get added by name
         if (sourcerId) {
           const { data: profile } = await supabase
             .from("profiles")
             .select("full_name")
             .eq("id", sourcerId)
             .single();
-          setSourcerName(profile?.full_name || "Unknown");
+          setAddedByName(profile?.full_name || "Unknown");
         }
       }
     };
@@ -219,8 +219,8 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     setPlacementFeeOverridden(false);
     setLossReason("");
     setSourcedBy("");
-    setOriginalSourcedBy("");
-    setSourcerName("");
+    setAddedBy("");
+    setAddedByName("");
     setSourcerOverrideReason("");
     setWhatWentWell("");
     setWhatCouldImprove("");
@@ -256,9 +256,9 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         : null;
 
       // Get the final sourcer name for the override
-      const finalSourcerName = sourcedBy !== originalSourcedBy 
+      const finalSourcerName = sourcedBy !== addedBy 
         ? teamMembers.find(m => m.id === sourcedBy)?.name || 'Unknown'
-        : sourcerName;
+        : addedByName;
 
       // Create closure record with sourcing and salary variance data
       const closureData = {
@@ -285,8 +285,9 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         // New sourcing attribution fields
         sourced_by: sourcedBy || null,
         sourcer_name: finalSourcerName || null,
-        original_sourced_by: originalSourcedBy || null,
-        sourcer_override_reason: sourcedBy !== originalSourcedBy ? sourcerOverrideReason : null,
+        added_by: addedBy || null,
+        added_by_name: addedByName || null,
+        sourcer_override_reason: sourcedBy !== addedBy ? sourcerOverrideReason : null,
         // New salary variance fields
         estimated_salary_min: salaryMin || null,
         estimated_salary_max: salaryMax || null,
@@ -326,9 +327,9 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         }
 
         // Get the final sourcer name for the override
-        const placementSourcerName = sourcedBy !== originalSourcedBy 
+        const placementSourcerName = sourcedBy !== addedBy 
           ? teamMembers.find(m => m.id === sourcedBy)?.name || 'Unknown'
-          : sourcerName;
+          : addedByName;
 
         // Explicitly create placement fee record with sourcing & variance data
         const feePercentage = job?.job_fee_percentage || job?.companies?.placement_fee_percentage || 20;
@@ -349,8 +350,9 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             // Sourcing attribution
             sourced_by: sourcedBy || null,
             sourcer_name: placementSourcerName || null,
-            original_sourced_by: originalSourcedBy || null,
-            sourcer_override_reason: sourcedBy !== originalSourcedBy ? sourcerOverrideReason : null,
+            added_by: addedBy || null,
+            added_by_name: addedByName || null,
+            sourcer_override_reason: sourcedBy !== addedBy ? sourcerOverrideReason : null,
             // Salary variance tracking
             estimated_salary_min: salaryMin || null,
             estimated_salary_max: salaryMax || null,
@@ -624,17 +626,18 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                     <div className="flex items-center gap-2 mb-2">
                       <Award className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-medium">Sourcing Credit</span>
-                      {sourcedBy !== originalSourcedBy && (
+                      {sourcedBy !== addedBy && (
                         <Badge variant="outline" className="text-xs">Overriding</Badge>
                       )}
                     </div>
-                    {originalSourcedBy && (
+                    {addedBy && (
                       <p className="text-xs text-muted-foreground mb-2">
-                        Original: {sourcerName || 'Unknown'}
+                        Added by: {addedByName || 'Unknown'}
                       </p>
                     )}
+                    <Label className="text-xs">Sourced by (gets commission)</Label>
                     <Select value={sourcedBy} onValueChange={setSourcedBy}>
-                      <SelectTrigger>
+                      <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select who gets credit..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -645,7 +648,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                         ))}
                       </SelectContent>
                     </Select>
-                    {sourcedBy !== originalSourcedBy && (
+                    {sourcedBy !== addedBy && (
                       <Textarea
                         className="mt-2"
                         placeholder="Reason for override (recommended)..."

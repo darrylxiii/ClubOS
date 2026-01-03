@@ -100,14 +100,21 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                           <div className="flex items-center gap-1.5">
                             <User className="h-3.5 w-3.5 text-muted-foreground" />
                             <span className="text-sm">{fee.sourcer_name || '-'}</span>
-                            {fee.original_sourced_by && fee.sourced_by !== fee.original_sourced_by && (
+                            {fee.added_by && fee.sourced_by !== fee.added_by && (
                               <AlertCircle className="h-3 w-3 text-amber-500" />
                             )}
                           </div>
                         </TooltipTrigger>
-                        {fee.sourcer_override_reason && (
+                        {(fee.added_by_name || fee.sourcer_override_reason) && fee.sourced_by !== fee.added_by && (
                           <TooltipContent>
-                            <p className="text-xs">Override reason: {fee.sourcer_override_reason}</p>
+                            <div className="space-y-1">
+                              {fee.added_by_name && (
+                                <p className="text-xs">Added by: {fee.added_by_name}</p>
+                              )}
+                              {fee.sourcer_override_reason && (
+                                <p className="text-xs">Reason: {fee.sourcer_override_reason}</p>
+                              )}
+                            </div>
                           </TooltipContent>
                         )}
                       </Tooltip>

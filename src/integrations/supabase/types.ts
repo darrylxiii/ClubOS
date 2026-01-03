@@ -18403,6 +18403,8 @@ export type Database = {
         Row: {
           actual_closing_date: string
           actual_salary: number | null
+          added_by: string | null
+          added_by_name: string | null
           avg_time_per_stage: Json | null
           candidate_quality_rating: number | null
           candidates_final_round: number | null
@@ -18421,7 +18423,6 @@ export type Database = {
           loss_reason: string | null
           market_difficulty_rating: number | null
           notes: string | null
-          original_sourced_by: string | null
           placement_fee: number | null
           recommendations_for_future: string | null
           salary_variance_percent: number | null
@@ -18437,6 +18438,8 @@ export type Database = {
         Insert: {
           actual_closing_date: string
           actual_salary?: number | null
+          added_by?: string | null
+          added_by_name?: string | null
           avg_time_per_stage?: Json | null
           candidate_quality_rating?: number | null
           candidates_final_round?: number | null
@@ -18455,7 +18458,6 @@ export type Database = {
           loss_reason?: string | null
           market_difficulty_rating?: number | null
           notes?: string | null
-          original_sourced_by?: string | null
           placement_fee?: number | null
           recommendations_for_future?: string | null
           salary_variance_percent?: number | null
@@ -18471,6 +18473,8 @@ export type Database = {
         Update: {
           actual_closing_date?: string
           actual_salary?: number | null
+          added_by?: string | null
+          added_by_name?: string | null
           avg_time_per_stage?: Json | null
           candidate_quality_rating?: number | null
           candidates_final_round?: number | null
@@ -18489,7 +18493,6 @@ export type Database = {
           loss_reason?: string | null
           market_difficulty_rating?: number | null
           notes?: string | null
-          original_sourced_by?: string | null
           placement_fee?: number | null
           recommendations_for_future?: string | null
           salary_variance_percent?: number | null
@@ -27756,6 +27759,8 @@ export type Database = {
       }
       placement_fees: {
         Row: {
+          added_by: string | null
+          added_by_name: string | null
           application_id: string | null
           candidate_id: string | null
           candidate_salary: number | null
@@ -27778,7 +27783,6 @@ export type Database = {
           invoice_id: string | null
           job_id: string | null
           notes: string | null
-          original_sourced_by: string | null
           partner_company_id: string | null
           payment_due_date: string | null
           referrer_splits: Json | null
@@ -27793,6 +27797,8 @@ export type Database = {
           variance_reason: string | null
         }
         Insert: {
+          added_by?: string | null
+          added_by_name?: string | null
           application_id?: string | null
           candidate_id?: string | null
           candidate_salary?: number | null
@@ -27815,7 +27821,6 @@ export type Database = {
           invoice_id?: string | null
           job_id?: string | null
           notes?: string | null
-          original_sourced_by?: string | null
           partner_company_id?: string | null
           payment_due_date?: string | null
           referrer_splits?: Json | null
@@ -27830,6 +27835,8 @@ export type Database = {
           variance_reason?: string | null
         }
         Update: {
+          added_by?: string | null
+          added_by_name?: string | null
           application_id?: string | null
           candidate_id?: string | null
           candidate_salary?: number | null
@@ -27852,7 +27859,6 @@ export type Database = {
           invoice_id?: string | null
           job_id?: string | null
           notes?: string | null
-          original_sourced_by?: string | null
           partner_company_id?: string | null
           payment_due_date?: string | null
           referrer_splits?: Json | null
