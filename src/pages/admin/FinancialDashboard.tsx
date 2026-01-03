@@ -14,6 +14,7 @@ import { PaymentAgingChart } from "@/components/financial/PaymentAgingChart";
 import { YearSelector } from "@/components/financial/YearSelector";
 import { InvoiceStatusSummary } from "@/components/financial/InvoiceStatusSummary";
 import { MoneybirdInvoicesTable } from "@/components/financial/MoneybirdInvoicesTable";
+import { ReconciliationAlert } from "@/components/financial/ReconciliationAlert";
 import { useMoneybirdFinancials } from "@/hooks/useMoneybirdFinancials";
 import { useFinancialYearSelector } from "@/hooks/useFinancialYearSelector";
 import { useAutoSyncFinancials } from "@/hooks/useAutoSyncFinancials";
@@ -50,6 +51,9 @@ export default function FinancialDashboard() {
               availableYears={availableYears}
             />
           </div>
+
+          {/* Reconciliation Alert */}
+          <ReconciliationAlert year={selectedYear} />
 
           {/* Invoice Status Summary */}
           <div className="mb-6">
