@@ -10,7 +10,7 @@ import { RoleAssignmentFix } from "@/components/admin/RoleAssignmentFix";
 import { AdminAchievementsManager } from "@/components/admin/AdminAchievementsManager";
 import { AssessmentResultsManager } from "@/components/admin/AssessmentResultsManager";
 import { AdminApplicationHub } from "@/components/admin/AdminApplicationHub";
-import { DataIntegrityChecker } from "@/components/admin/DataIntegrityChecker";
+import { DataIntegrityChecker } from "@/components/admin/revenue/DataIntegrityChecker";
 import { AuditLogViewer } from "@/components/admin/AuditLogViewer";
 import { SSOManagement } from "@/components/admin/SSOManagement";
 import { ActivityMonitoringDashboard } from "@/components/admin/ActivityMonitoringDashboard";
@@ -23,6 +23,9 @@ import { ApplicationsDashboard } from "@/components/admin/applications/Applicati
 import { AchievementsDashboard } from "@/components/admin/achievements/AchievementsDashboard";
 import { AssessmentsDashboard } from "@/components/admin/assessments/AssessmentsDashboard";
 import { SystemHealthDashboard } from "@/components/admin/system/SystemHealthDashboard";
+import { CommissionTiersManager } from "@/components/admin/revenue/CommissionTiersManager";
+import { EmployeeCommissionSettings } from "@/components/admin/revenue/EmployeeCommissionSettings";
+import { BackfillRunner } from "@/components/admin/revenue/BackfillRunner";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -76,6 +79,7 @@ const Admin = () => {
             <TabsList className="flex w-full max-w-[1600px] overflow-x-auto sticky top-4 z-20 gap-2 justify-start">
               <TabsTrigger value="companies">Companies</TabsTrigger>
               <TabsTrigger value="users">Users & Roles</TabsTrigger>
+              <TabsTrigger value="revenue">Revenue</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
               <TabsTrigger value="merge">Merge</TabsTrigger>
               <TabsTrigger value="member-requests">Member Requests</TabsTrigger>
@@ -97,6 +101,34 @@ const Admin = () => {
             <TabsContent value="users" className="space-y-6">
               <UsersDashboard />
               <UnifiedUserManagement />
+            </TabsContent>
+
+            <TabsContent value="revenue" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Commission Management</CardTitle>
+                  <CardDescription>
+                    Configure commission tiers and assign them to employees
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <CommissionTiersManager />
+                  <EmployeeCommissionSettings />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Financial Dashboard</CardTitle>
+                  <CardDescription>
+                    Access the full financial dashboard with cash flow, placement fees, and more
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button onClick={() => navigate('/admin/finance')} className="w-full sm:w-auto">
+                    Open Financial Dashboard
+                  </Button>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="activity" className="space-y-4">
@@ -182,6 +214,7 @@ const Admin = () => {
                 <CardContent className="space-y-6">
                   <DisasterRecoveryDashboard />
                   <DataIntegrityChecker />
+                  <BackfillRunner />
                   <RoleAssignmentFix />
                 </CardContent>
               </Card>

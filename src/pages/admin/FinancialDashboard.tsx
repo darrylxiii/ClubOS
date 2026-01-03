@@ -21,6 +21,8 @@ import { FinancialEventsTimeline } from "@/components/financial/FinancialEventsT
 import { useMoneybirdFinancials } from "@/hooks/useMoneybirdFinancials";
 import { useFinancialYearSelector } from "@/hooks/useFinancialYearSelector";
 import { useAutoSyncFinancials } from "@/hooks/useAutoSyncFinancials";
+import { CashFlowPipeline } from "@/components/admin/revenue/CashFlowPipeline";
+import { PlacementFeeHealth } from "@/components/admin/revenue/PlacementFeeHealth";
 
 export default function FinancialDashboard() {
   const { selectedYear, setSelectedYear, yearOptions, availableYears } = useFinancialYearSelector();
@@ -114,6 +116,22 @@ export default function FinancialDashboard() {
               <MoneybirdInvoicesTable year={selectedYear} limit={20} />
             </CardContent>
           </Card>
+
+          {/* Cash Flow Pipeline */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Cash Flow Pipeline</CardTitle>
+              <CardDescription>Visual pipeline of expected revenue by collection status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CashFlowPipeline />
+            </CardContent>
+          </Card>
+
+          {/* Placement Fee Health */}
+          <div className="mb-8">
+            <PlacementFeeHealth />
+          </div>
 
           {/* Detailed Tables */}
           <Tabs defaultValue="fees" className="space-y-4">

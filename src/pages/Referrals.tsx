@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Building2, Briefcase, Users, History, Plus, TrendingUp, Trophy, Zap, Activity, Share2 } from "lucide-react";
+import { Building2, Briefcase, Users, History, Plus, TrendingUp, Trophy, Zap, Activity, Share2, BarChart3, Link2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/AppLayout";
@@ -16,6 +16,8 @@ import { ReferralTierProgress } from "@/components/referrals/ReferralTierProgres
 import { ReferralChallenges } from "@/components/referrals/ReferralChallenges";
 import { ReferralActivityFeed } from "@/components/referrals/ReferralActivityFeed";
 import { ReferralShareSheet } from "@/components/referrals/ReferralShareSheet";
+import { ReferralAnalytics } from "@/components/referrals/ReferralAnalytics";
+import { ReferralShareGenerator } from "@/components/referrals/ReferralShareGenerator";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { 
   useReferralPolicies, 
@@ -131,6 +133,14 @@ export default function Referrals() {
                 <History className="h-4 w-4" />
                 <span className="hidden sm:inline">History</span>
               </TabsTrigger>
+              <TabsTrigger value="analytics" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Analytics</span>
+              </TabsTrigger>
+              <TabsTrigger value="share" className="gap-2">
+                <Link2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Share Links</span>
+              </TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -165,6 +175,14 @@ export default function Referrals() {
 
           <TabsContent value="history">
             <EarningsHistoryTable earnings={earnings || []} loading={earningsLoading} />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-4">
+            <ReferralAnalytics />
+          </TabsContent>
+
+          <TabsContent value="share" className="space-y-4">
+            <ReferralShareGenerator />
           </TabsContent>
         </Tabs>
 
