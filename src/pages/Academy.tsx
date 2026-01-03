@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import {
   GraduationCap,
   BookOpen,
@@ -46,7 +46,6 @@ export default function Academy() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
 
   const [academy, setAcademy] = useState<any>(null);
   const [courses, setCourses] = useState<any[]>([]);
@@ -206,11 +205,7 @@ export default function Academy() {
         }
       }
     } catch (error: any) {
-      toast({
-        title: "Error loading academy",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error loading academy", { description: error.message });
     } finally {
       setLoading(false);
     }

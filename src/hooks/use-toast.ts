@@ -1,3 +1,13 @@
+/**
+ * @deprecated Use `notify` from `@/lib/notify` instead.
+ * This legacy toast system is being phased out in favor of the unified Sonner-based notification system.
+ * 
+ * Migration guide:
+ * - Replace: `import { useToast } from '@/hooks/use-toast'` 
+ * - With: `import { notify } from '@/lib/notify'`
+ * - Replace: `toast({ title: "...", variant: "destructive" })`
+ * - With: `notify.error("...")`
+ */
 import * as React from "react";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
