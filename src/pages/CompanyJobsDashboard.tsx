@@ -38,7 +38,7 @@ import { JobCard } from "@/components/partner/JobCard";
 import { MobileJobCard } from "@/components/partner/MobileJobCard";
 import { JobCardSkeleton } from "@/components/LoadingSkeletons";
 import { EmptyState } from "@/components/EmptyState";
-import { useMobileDetection } from "@/hooks/useMobileDetection";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Job {
   id: string;
@@ -83,7 +83,7 @@ const CompanyJobsDashboard = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("jobs");
   const [companyName, setCompanyName] = useState("");
-  const isMobile = useMobileDetection();
+  const isMobile = useIsMobile();
   
   // Pipeline Settings
   const [pipelineSettings, setPipelineSettings] = useState<PipelineSettings>({

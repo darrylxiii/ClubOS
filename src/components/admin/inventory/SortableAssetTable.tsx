@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { AssetStatusBadge } from './AssetStatusBadge';
+import { AssetStatusBadge } from '@/components/ui/UnifiedStatusBadge';
 import { AssetDetailDrawer } from './AssetDetailDrawer';
 import { CATEGORY_LABELS } from '@/hooks/useInventoryCategories';
 import type { InventoryAsset, AssetStatus } from '@/hooks/useInventoryAssets';
@@ -151,7 +151,7 @@ export function SortableAssetTable({ assets, onEdit, onStatusChange }: SortableA
                       </div>
                     )}
                   </TableCell>
-                  <TableCell><AssetStatusBadge status={asset.status} /></TableCell>
+                  <TableCell><AssetStatusBadge status={asset.status || 'active'} size="sm" /></TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

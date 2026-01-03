@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMobileDetection } from '@/hooks/useMobileDetection';
+import { useIsMobile } from '@/hooks/use-mobile';
 import ServerSidebar from './ServerSidebar';
 import ChannelList from './ChannelList';
 import VoiceChannel from './VoiceChannel';
@@ -21,7 +21,7 @@ import { Search, Settings, Bell } from 'lucide-react';
 import MobileLiveHubLayout from './MobileLiveHubLayout';
 
 const LiveHubLayout = () => {
-  const isMobile = useMobileDetection();
+  const isMobile = useIsMobile();
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [selectedChannelType, setSelectedChannelType] = useState<string>('text');
   const [autoJoin, setAutoJoin] = useState(false);

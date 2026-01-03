@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { AssetStatusBadge } from './AssetStatusBadge';
+import { AssetStatusBadge } from '@/components/ui/UnifiedStatusBadge';
 import { CATEGORY_LABELS } from '@/hooks/useInventoryCategories';
 import type { InventoryAsset } from '@/hooks/useInventoryAssets';
 import { Edit, MoreHorizontal } from 'lucide-react';
@@ -47,7 +47,7 @@ export function AssetTable({ assets, onEdit, onStatusChange }: AssetTableProps) 
                 <TableCell>{CATEGORY_LABELS[asset.category] || asset.category}</TableCell>
                 <TableCell className="text-right">{formatCurrency(asset.total_purchase_value)}</TableCell>
                 <TableCell className="text-right">{formatCurrency(asset.current_book_value)}</TableCell>
-                <TableCell><AssetStatusBadge status={asset.status} /></TableCell>
+                <TableCell><AssetStatusBadge status={asset.status || 'active'} size="sm" /></TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

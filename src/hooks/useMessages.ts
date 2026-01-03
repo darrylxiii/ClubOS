@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -568,12 +568,35 @@ export const useMessages = (conversationId?: string) => {
     }
   }, [conversationId, loadConversations]);
 
+  // Ref to store the typing channel to prevent memory leaks
+  const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // Cleanup typing channel on unmount or conversation change
+  useEffect(() => {
+    return () => {
+      if (typingChannelRef.current) {
+        supabase.removeChannel(typingChannelRef.current);
+        typingChannelRef.current = null;
+      }
+    };
+  }, [conversationId]);
+
   const broadcastTyping = useCallback(async () => {
-    if (!conversationId) return;
-    const channel = supabase.channel(`presence-${conversationId}`);
-    await channel.track({ user_id: user?.id, typing: true });
-    setTimeout(() => channel.track({ typing: false }), 3000);
-  }, [conversationId, user]);
+    if (!conversationId || !user?.id) return;
+
+    // Reuse existing channel or create new one
+    if (!typingChannelRef.current) {
+      typingChannelRef.current = supabase.channel(`presence-${conversationId}`);
+      await typingChannelRef.current.subscribe();
+    }
+
+    await typingChannelRef.current.track({ user_id: user.id, typing: true });
+    setTimeout(async () => {
+      if (typingChannelRef.current) {
+        await typingChannelRef.current.track({ user_id: user.id, typing: false });
+      }
+    }, 3000);
+  }, [conversationId, user?.id]);
 
   return {
     conversations,
