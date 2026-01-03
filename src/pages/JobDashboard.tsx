@@ -182,7 +182,10 @@ export default function JobDashboard() {
   // Job closure handler - now handled by unified dialog
   const handleClosureComplete = () => {
     setShowClosureDialog(false);
-    fetchJobDetails();
+    // Delay fetch to let dialog animation complete
+    setTimeout(() => {
+      fetchJobDetails();
+    }, 300);
   };
 
   const handleArchive = async () => {
