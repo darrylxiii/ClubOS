@@ -212,6 +212,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   }, []);
 
   // Load sourcer info directly when candidate is selected
+  // Uses the applications prop directly to avoid query issues
   const loadSourcerForApplication = async (appId: string, members: Array<{ id: string; name: string; avatarUrl?: string }>) => {
     if (!appId) {
       setSourcedBy("");
@@ -226,49 +227,48 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     }
 
     try {
-      const { data: app } = await supabase
-        .from("applications")
-        .select(`
-          sourced_by,
-          candidate_id,
-          candidate_profiles(created_by)
-        `)
-        .eq("id", appId)
-        .maybeSingle();
-
-      if (!app) {
-        console.warn("[JobClosureDialog] No application found for:", appId);
-        setSourcerDisplayName("Unknown");
-        setSourcerAvatarUrl("");
-        return;
-      }
-
-      // Get creatorId from join (may be null if RLS blocks candidate_profiles)
-      let creatorId = (app.candidate_profiles as any)?.created_by;
+      // Use the applications prop directly - no need to re-query
+      const selectedApp = applications.find(a => a.id === appId);
       
-      // If join didn't return created_by, fetch candidate_profiles separately
-      if (!creatorId && app.candidate_id) {
-        const { data: candidate } = await supabase
+      // Get sourced_by directly from the application object
+      const appSourcedBy = selectedApp?.sourced_by || null;
+      const candidateId = selectedApp?.candidate_id || null;
+      
+      console.log("[JobClosureDialog] Using application from prop:", {
+        appId,
+        appSourcedBy,
+        candidateId,
+        foundInProp: !!selectedApp
+      });
+
+      // Get creator ID from candidate_profiles if needed (separate query)
+      let creatorId: string | null = null;
+      if (candidateId) {
+        const { data: candidate, error: candidateError } = await supabase
           .from("candidate_profiles")
           .select("created_by")
-          .eq("id", app.candidate_id)
+          .eq("id", candidateId)
           .maybeSingle();
-        creatorId = candidate?.created_by;
+        
+        if (candidateError) {
+          console.warn("[JobClosureDialog] candidate_profiles query failed (RLS?):", candidateError);
+        }
+        creatorId = candidate?.created_by || null;
       }
       
-      // Determine sourcer ID using cascading fallback (no team member validation for default)
-      // 1. application.sourced_by
-      // 2. candidate_profiles.created_by  
-      // 3. Current logged-in user
-      let finalSourcerId = app.sourced_by || creatorId || user?.id || "";
+      // Determine sourcer ID using cascading fallback:
+      // 1. application.sourced_by (primary - who sourced/submitted this candidate)
+      // 2. candidate_profiles.created_by (who added the candidate to the system)
+      // 3. Current logged-in user (fallback)
+      const finalSourcerId = appSourcedBy || creatorId || user?.id || "";
       
-      console.log("[JobClosureDialog] loadSourcerForApplication:", {
+      console.log("[JobClosureDialog] Sourcer resolution:", {
         appId,
-        teamMembersCount: members.length,
-        appSourcedBy: app.sourced_by,
+        appSourcedBy,
         creatorId,
         currentUserId: user?.id,
-        finalSourcerId
+        finalSourcerId,
+        teamMembersCount: members.length
       });
 
       setAddedBy(creatorId || "");
@@ -277,33 +277,46 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
       setIsOverridingSourcer(false);
       setSourcerOverrideReason("");
 
-      // Try to get name from team members first
+      // Resolve display name and avatar
+      let displayName = "Unknown";
+      let avatarUrl = "";
+
+      // Try team members first (fastest)
       const memberMatch = members.find(m => m.id === finalSourcerId);
       if (memberMatch) {
-        setSourcerDisplayName(memberMatch.name);
-        setSourcerAvatarUrl(memberMatch.avatarUrl || "");
+        displayName = memberMatch.name;
+        avatarUrl = memberMatch.avatarUrl || "";
       } else if (finalSourcerId) {
-        // Fetch profile directly as fallback
-        const { data: profile } = await supabase
+        // Fetch profile directly
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("full_name, avatar_url")
           .eq("id", finalSourcerId)
           .maybeSingle();
-        setSourcerDisplayName(profile?.full_name || "Unknown");
-        setSourcerAvatarUrl(profile?.avatar_url || "");
-      } else {
-        setSourcerDisplayName("Unknown");
-        setSourcerAvatarUrl("");
+        
+        if (profileError) {
+          console.warn("[JobClosureDialog] Profile query failed:", profileError);
+        }
+        displayName = profile?.full_name || "Unknown";
+        avatarUrl = profile?.avatar_url || "";
       }
+
+      setSourcerDisplayName(displayName);
+      setSourcerAvatarUrl(avatarUrl);
       
       // Get added by name (the creator)
       if (creatorId) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", creatorId)
-          .maybeSingle();
-        setAddedByName(profile?.full_name || "Unknown");
+        const creatorMatch = members.find(m => m.id === creatorId);
+        if (creatorMatch) {
+          setAddedByName(creatorMatch.name);
+        } else {
+          const { data: creatorProfile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", creatorId)
+            .maybeSingle();
+          setAddedByName(creatorProfile?.full_name || "Unknown");
+        }
       }
     } catch (err) {
       console.error("[JobClosureDialog] Error loading sourcer:", err);
