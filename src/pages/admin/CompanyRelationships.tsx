@@ -12,19 +12,17 @@ import { ContactSentimentList } from '@/components/communication/ContactSentimen
 import { QUINAdvisorWidget } from '@/components/communication/QUINAdvisorWidget';
 import { useCompanyRelationships } from '@/hooks/useCompanyRelationships';
 import { useEmailIntelligenceSync } from '@/hooks/useEmailIntelligenceSync';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 export default function CompanyRelationships() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const { relationships, companies, stats, loading, refetch } = useCompanyRelationships(selectedCompanyId);
   const { syncEmailIntelligence, isSyncing, lastSyncResults } = useEmailIntelligenceSync();
-  const { toast } = useToast();
 
   const handleSendMessage = (companyId: string, channel: 'whatsapp' | 'email') => {
     const company = relationships.find(r => r.company_id === companyId);
-    toast({
-      title: `Opening ${channel}`,
+    notify.info(`Opening ${channel}`, {
       description: `Preparing to contact ${company?.company_name || 'company'}...`
     });
   };
@@ -54,8 +52,7 @@ export default function CompanyRelationships() {
     a.click();
     URL.revokeObjectURL(url);
 
-    toast({
-      title: 'Export complete',
+    notify.success('Export complete', {
       description: `Exported ${relationships.length} company relationships`
     });
   };

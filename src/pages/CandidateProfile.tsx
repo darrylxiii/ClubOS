@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CandidatePipelineStatus } from "@/components/partner/CandidatePipelineStatus";
 import { CandidateLinkedJobs } from "@/components/partner/CandidateLinkedJobs";
@@ -47,7 +47,7 @@ export default function CandidateProfile() {
   const section = searchParams.get('section');
   const noteId = searchParams.get('noteId');
   const { user } = useAuth();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const [candidate, setCandidate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);

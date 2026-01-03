@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserRole } from './useUserRole';
+import { useRole } from '@/contexts/RoleContext';
 
 export function useJobTeamRole(jobId: string) {
   const { user } = useAuth();
-  const { role: globalRole } = useUserRole();
+  const { currentRole: globalRole } = useRole();
   const [jobRole, setJobRole] = useState<string | null>(null);
   const [permissions, setPermissions] = useState<any>(null);
   const [loading, setLoading] = useState(true);

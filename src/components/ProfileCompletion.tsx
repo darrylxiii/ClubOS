@@ -5,7 +5,7 @@ import { CheckCircle2, Circle, ArrowRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { ProfileStrengthDialog } from "./profile/ProfileStrengthDialog";
 import { getTasksForRole, ProfileTask } from "@/lib/profileStrengthTasks";
 
@@ -24,7 +24,7 @@ interface ProfileStats {
 
 export const ProfileCompletion = () => {
   const { user } = useAuth();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const navigate = useNavigate();
   const [stats, setStats] = useState<ProfileStats | null>(null);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());

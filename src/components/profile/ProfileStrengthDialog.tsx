@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle2, Circle, ArrowRight, Trophy, Target, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { getTasksForRole, getTasksByLevel, ProfileTask } from "@/lib/profileStrengthTasks";
@@ -28,7 +28,7 @@ export const ProfileStrengthDialog = ({
   onTaskComplete 
 }: ProfileStrengthDialogProps) => {
   const { user } = useAuth();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const navigate = useNavigate();
   const [activeLevel, setActiveLevel] = useState(stats?.current_level || 1);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());

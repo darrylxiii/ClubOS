@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { canManageJob } from "@/utils/jobNavigation";
 import { trackJobView, trackJobSave } from "@/services/analyticsTracking";
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ export default function JobDetail() {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const [loading, setLoading] = useState(true);
   const [job, setJob] = useState<any>(null);
   const [isSaved, setIsSaved] = useState(false);

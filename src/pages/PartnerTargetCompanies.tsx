@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 
 const PartnerTargetCompanies = () => {
-  const { role, companyId } = useUserRole();
+  const { currentRole: role, companyId } = useRole();
   const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Record<string, any> | null>(null);

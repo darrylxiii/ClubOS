@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 export interface WhatsAppTemplate {
   id: string;
@@ -16,7 +16,6 @@ export function useWhatsAppTemplates() {
   const [templates, setTemplates] = useState<WhatsAppTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const { toast } = useToast();
 
   const fetchTemplates = async () => {
     try {
@@ -42,10 +41,10 @@ export function useWhatsAppTemplates() {
       const { error } = await supabase.functions.invoke('sync-whatsapp-templates');
       if (error) throw error;
       
-      toast({ title: 'Success', description: 'Templates synced from Meta' });
+      notify.success('Templates synced from Meta');
       await fetchTemplates();
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to sync templates', variant: 'destructive' });
+      notify.error('Failed to sync templates');
     } finally {
       setSyncing(false);
     }

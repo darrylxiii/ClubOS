@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface SyncResults {
   domainsExtracted: number;
@@ -13,7 +13,6 @@ interface SyncResults {
 export function useEmailIntelligenceSync() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncResults, setLastSyncResults] = useState<SyncResults | null>(null);
-  const { toast } = useToast();
 
   const syncEmailIntelligence = async () => {
     setIsSyncing(true);
@@ -26,8 +25,7 @@ export function useEmailIntelligenceSync() {
 
       if (data?.success) {
         setLastSyncResults(data.results);
-        toast({
-          title: 'Email Intelligence Synced',
+        notify.success('Email Intelligence Synced', {
           description: `Matched ${data.results.emailsMatched} emails to ${data.results.companiesAggregated} companies`,
         });
         return data.results;
@@ -36,10 +34,8 @@ export function useEmailIntelligenceSync() {
       }
     } catch (error: any) {
       console.error('Email intelligence sync error:', error);
-      toast({
-        title: 'Sync Failed',
+      notify.error('Sync Failed', {
         description: error.message || 'Failed to sync email intelligence',
-        variant: 'destructive',
       });
       return null;
     } finally {

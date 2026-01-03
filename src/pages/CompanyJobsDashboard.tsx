@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { toast } from "sonner";
 import {
   Briefcase,
@@ -77,7 +77,7 @@ interface RoleSettings {
 
 const CompanyJobsDashboard = () => {
   const navigate = useNavigate();
-  const { companyId, role } = useUserRole();
+  const { companyId, currentRole: role } = useRole();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { Send, Bot, User } from "lucide-react";
 
 interface Message {
@@ -16,7 +16,6 @@ export const AIChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -42,11 +41,7 @@ export const AIChat = () => {
       if (error) throw error;
 
       if (data.error) {
-        toast({
-          title: "Configuration Required",
-          description: data.error,
-          variant: "destructive",
-        });
+        notify.error("Configuration Required", { description: data.error });
         setMessages((prev) => prev.slice(0, -1));
         return;
       }
@@ -59,17 +54,9 @@ export const AIChat = () => {
     } catch (error: any) {
       console.error("Error:", error);
       if (error.name === 'AbortError') {
-        toast({
-          title: "Timeout",
-          description: "AI request timed out after 30s",
-          variant: "destructive",
-        });
+        notify.error("Timeout", { description: "AI request timed out after 30s" });
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to get response from AI",
-          variant: "destructive",
-        });
+        notify.error("Failed to get response from AI");
       }
       setMessages((prev) => prev.slice(0, -1));
     } finally {

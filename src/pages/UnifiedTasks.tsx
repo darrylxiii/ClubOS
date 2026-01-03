@@ -29,7 +29,7 @@ import { UnifiedTaskCalendar } from "@/components/unified-tasks/UnifiedTaskCalen
 import { CreateUnifiedTaskDialog } from "@/components/unified-tasks/CreateUnifiedTaskDialog";
 import { AISchedulingSettings } from "@/components/unified-tasks/AISchedulingSettings";
 import { UnifiedTasksByMember } from "@/components/unified-tasks/UnifiedTasksByMember";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { ObjectivesBoard } from "@/components/objectives/ObjectivesBoard";
 import { ObjectivesList } from "@/components/objectives/ObjectivesList";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
@@ -48,7 +48,7 @@ interface SystemPreferences {
 
 const UnifiedTasks = () => {
   const { user } = useAuth();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const [searchParams, setSearchParams] = useSearchParams();
   const [preferences, setPreferences] = useState<SystemPreferences | null>(null);
   const [objectives, setObjectives] = useState<any[]>([]);

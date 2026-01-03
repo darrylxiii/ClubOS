@@ -15,12 +15,11 @@ import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { useState, useEffect } from "react";
 
 const MergeDashboard = () => {
   const { currentRole, loading } = useRole();
-  const { toast } = useToast();
   const [autoMergeEnabled, setAutoMergeEnabled] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
 
@@ -54,19 +53,17 @@ const MergeDashboard = () => {
       .eq('setting_key', 'auto_merge_enabled');
       
     if (error) {
-      toast({
-        title: "Failed to update setting",
-        description: error.message,
-        variant: "destructive"
-      });
+      notify.error("Failed to update setting", { description: error.message });
     } else {
       setAutoMergeEnabled(enabled);
-      toast({
-        title: enabled ? "Auto-merge enabled" : "Auto-merge disabled",
-        description: enabled 
-          ? "New signups will automatically merge with existing candidate profiles"
-          : "New signups will create separate accounts for manual review"
-      });
+      notify.success(
+        enabled ? "Auto-merge enabled" : "Auto-merge disabled",
+        { 
+          description: enabled 
+            ? "New signups will automatically merge with existing candidate profiles"
+            : "New signups will create separate accounts for manual review"
+        }
+      );
     }
   };
 

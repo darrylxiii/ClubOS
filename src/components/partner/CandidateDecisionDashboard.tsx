@@ -9,7 +9,7 @@ import {
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profile-tokens";
 import { useFieldPermissions } from "@/hooks/useFieldPermissions";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 
 interface Props {
   candidate: any;
@@ -18,7 +18,7 @@ interface Props {
 
 export const CandidateDecisionDashboard = ({ candidate, applications }: Props) => {
   const { canEditField } = useFieldPermissions();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   
   // Early return if no candidate data
   if (!candidate) {

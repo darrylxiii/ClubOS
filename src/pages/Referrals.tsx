@@ -25,7 +25,7 @@ import {
   useRevenueShares,
   useReferralStats 
 } from "@/hooks/useReferralSystem";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Referrals() {
@@ -33,7 +33,7 @@ export default function Referrals() {
   const [shareSheetOpen, setShareSheetOpen] = useState(false);
   
   const { user } = useAuth();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const { data: policies, isLoading: policiesLoading } = useReferralPolicies();
   const { data: earnings, isLoading: earningsLoading } = useReferralEarnings();
   const { data: revenueShares } = useRevenueShares();

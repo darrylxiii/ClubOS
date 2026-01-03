@@ -14,7 +14,7 @@ import { Star, MessageSquare, Calendar, FileText, TrendingUp, History } from "lu
 import { CandidateInteractionLog } from "./CandidateInteractionLog";
 import { EnhancedCandidateDetails } from "./EnhancedCandidateDetails";
 import { getVisibleFields } from "@/utils/candidateVisibility";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { trackProfileView } from "@/services/profileViewTracking";
 
 interface CandidateDetailDialogProps {
@@ -26,7 +26,7 @@ interface CandidateDetailDialogProps {
 
 export const CandidateDetailDialog = ({ open, onOpenChange, application, stages }: CandidateDetailDialogProps) => {
   const { user } = useAuth();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
   const [comments, setComments] = useState<any[]>([]);
   const [scorecards, setScorecards] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");

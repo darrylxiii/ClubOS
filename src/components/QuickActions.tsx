@@ -12,11 +12,11 @@ import {
   DollarSign,
   Target
 } from "lucide-react";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 
 export const QuickActions = () => {
   const navigate = useNavigate();
-  const { role } = useUserRole();
+  const { currentRole: role } = useRole();
 
   const candidateActions = [
     {
