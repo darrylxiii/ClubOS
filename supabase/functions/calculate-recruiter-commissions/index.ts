@@ -6,12 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface CommissionTier {
-  min_revenue: number;
-  max_revenue: number | null;
-  commission_rate: number;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -37,9 +31,17 @@ serve(async (req) => {
       .from('placement_fees')
       .select(`
         id, application_id, job_id, candidate_id, partner_company_id,
-        fee_amount, fee_currency, status, created_by, paid_at,
+        fee_amount, currency_code, status, created_by, paid_at,
+        candidate_salary, fee_percentage,
         applications!inner (
-          id, user_id, sourced_by
+          id, user_id, sourced_by,
+          candidate_full_name
+        ),
+        jobs (
+          title
+        ),
+        companies:partner_company_id (
+          name
         )
       `)
       .eq('status', 'paid')
@@ -59,15 +61,16 @@ serve(async (req) => {
     // Get existing commissions to avoid duplicates
     const { data: existingCommissions } = await supabase
       .from('employee_commissions')
-      .select('placement_fee_id')
-      .eq('year', year);
+      .select('placement_fee_id, employee_id, commission_type');
 
-    const existingFeeIds = new Set(existingCommissions?.map(c => c.placement_fee_id) || []);
+    const existingCommissionKeys = new Set(
+      existingCommissions?.map(c => `${c.placement_fee_id}-${c.employee_id}-${c.commission_type}`) || []
+    );
 
-    // Get employee commission tiers
+    // Get employee profiles with commission tiers
     const { data: employees } = await supabase
       .from('employee_profiles')
-      .select('id, user_id, commission_tier_id, annual_target');
+      .select('id, user_id, commission_tier_id, commission_percentage, annual_target');
 
     const employeeMap = new Map(employees?.map(e => [e.user_id, e]) || []);
 
@@ -80,8 +83,8 @@ serve(async (req) => {
 
     const tierMap = new Map(tiers?.map(t => [t.id, t]) || []);
 
-    // Default commission rates if no tier configured
-    const defaultCommissionRate = 0.10; // 10%
+    // Default commission rate if no tier configured
+    const defaultCommissionRate = 10; // 10%
 
     const results = {
       processed: 0,
@@ -92,14 +95,11 @@ serve(async (req) => {
     };
 
     for (const fee of paidFees || []) {
-      // Skip if already processed (unless recalculating)
-      if (!recalculate && existingFeeIds.has(fee.id)) {
-        results.skipped++;
-        continue;
-      }
-
       // Handle applications as array from join
       const application = Array.isArray(fee.applications) ? fee.applications[0] : fee.applications;
+      const job = Array.isArray(fee.jobs) ? fee.jobs[0] : fee.jobs;
+      const company = Array.isArray(fee.companies) ? fee.companies[0] : fee.companies;
+      
       const recruiterId = fee.created_by || application?.sourced_by || application?.user_id;
       
       if (!recruiterId) {
@@ -108,38 +108,60 @@ serve(async (req) => {
       }
 
       const employee = employeeMap.get(recruiterId);
-      let commissionRate = defaultCommissionRate;
-
-      // Get commission rate from tier if available
-      if (employee?.commission_tier_id && tierMap.has(employee.commission_tier_id)) {
-        const tier = tierMap.get(employee.commission_tier_id);
-        commissionRate = tier.base_rate / 100;
+      
+      if (!employee) {
+        results.errors.push(`Fee ${fee.id}: No employee profile found for recruiter ${recruiterId}`);
+        continue;
       }
 
-      const commissionAmount = fee.fee_amount * commissionRate;
+      // Get commission rate from tier or employee profile
+      let commissionRate = defaultCommissionRate;
+      if (employee.commission_tier_id && tierMap.has(employee.commission_tier_id)) {
+        const tier = tierMap.get(employee.commission_tier_id);
+        commissionRate = tier.percentage || tier.base_rate || defaultCommissionRate;
+      } else if (employee.commission_percentage) {
+        commissionRate = employee.commission_percentage;
+      }
+
+      const commissionAmount = fee.fee_amount * (commissionRate / 100);
       const paidDate = new Date(fee.paid_at);
+      const commissionKey = `${fee.id}-${employee.id}-placement`;
+
+      // Skip if already exists (unless recalculating)
+      if (!recalculate && existingCommissionKeys.has(commissionKey)) {
+        results.skipped++;
+        continue;
+      }
 
       try {
         // If recalculating, delete existing commission first
-        if (recalculate && existingFeeIds.has(fee.id)) {
+        if (recalculate) {
           await supabase
             .from('employee_commissions')
             .delete()
-            .eq('placement_fee_id', fee.id);
+            .eq('placement_fee_id', fee.id)
+            .eq('employee_id', employee.id)
+            .eq('commission_type', 'placement');
         }
 
-        // Create commission record
+        // Create commission record with correct column names
         const { data: commission, error: insertError } = await supabase
           .from('employee_commissions')
           .insert({
-            employee_id: employee?.id || recruiterId,
+            employee_id: employee.id,
+            source_type: 'placement_fee',
+            source_id: fee.id,
             placement_fee_id: fee.id,
-            commission_amount: commissionAmount,
-            commission_rate: commissionRate * 100,
-            year: paidDate.getFullYear(),
-            month: paidDate.getMonth() + 1,
+            gross_amount: commissionAmount,
+            commission_rate: commissionRate,
+            placement_fee_base: fee.fee_amount,
+            candidate_name: application?.candidate_full_name || 'Unknown',
+            company_name: company?.name || 'Unknown',
+            job_title: job?.title || 'Unknown',
+            commission_type: 'placement',
+            split_percentage: 100,
             status: 'pending',
-            calculation_notes: `Auto-calculated: ${(commissionRate * 100).toFixed(1)}% of €${fee.fee_amount.toFixed(2)}`,
+            period_date: paidDate.toISOString().split('T')[0],
           })
           .select()
           .single();
@@ -149,6 +171,7 @@ serve(async (req) => {
         results.created++;
         results.commissions.push({
           fee_id: fee.id,
+          employee_id: employee.id,
           recruiter_id: recruiterId,
           fee_amount: fee.fee_amount,
           commission_amount: commissionAmount,
@@ -163,68 +186,83 @@ serve(async (req) => {
       results.processed++;
     }
 
-    // Also create referral payouts for any referrals linked to hired candidates
-    const { data: hiredApplications } = await supabase
-      .from('applications')
+    // Also check for strategist splits on companies with assignments
+    const { data: strategistAssignments } = await supabase
+      .from('company_strategist_assignments')
       .select(`
-        id, candidate_id, job_id,
-        candidate_profiles!inner (
-          id, referred_by
+        company_id, strategist_id, is_active,
+        employee_profiles!inner (
+          id, commission_tier_id, commission_percentage
         )
       `)
-      .eq('status', 'hired')
-      .not('candidate_profiles.referred_by', 'is', null);
+      .eq('is_active', true);
 
-    let referralPayoutsCreated = 0;
+    const assignmentMap = new Map(
+      strategistAssignments?.map(a => [a.company_id, a]) || []
+    );
 
-    for (const app of hiredApplications || []) {
-      // Handle candidate_profiles as array from join
-      const candidateProfile = Array.isArray(app.candidate_profiles) ? app.candidate_profiles[0] : app.candidate_profiles;
-      const referrerId = candidateProfile?.referred_by;
-      if (!referrerId) continue;
+    let strategistSplitsCreated = 0;
 
-      // Check if payout already exists
-      const { data: existingPayout } = await supabase
-        .from('referral_payouts')
-        .select('id')
-        .eq('referrer_id', referrerId)
-        .eq('application_id', app.id)
-        .maybeSingle();
+    for (const fee of paidFees || []) {
+      const assignment = assignmentMap.get(fee.partner_company_id);
+      if (!assignment) continue;
 
-      if (existingPayout) continue;
+      const application = Array.isArray(fee.applications) ? fee.applications[0] : fee.applications;
+      const job = Array.isArray(fee.jobs) ? fee.jobs[0] : fee.jobs;
+      const company = Array.isArray(fee.companies) ? fee.companies[0] : fee.companies;
 
-      // Get referral config
-      const { data: config } = await supabase
-        .from('referral_config')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // Skip if strategist is the same as recruiter
+      const recruiterId = fee.created_by || application?.sourced_by || application?.user_id;
+      if (assignment.strategist_id === recruiterId) continue;
 
-      const payoutAmount = config?.base_reward_amount || 500;
+      const strategistEmployee = Array.isArray(assignment.employee_profiles) 
+        ? assignment.employee_profiles[0] 
+        : assignment.employee_profiles;
 
-      // Create referral payout
-      const { error: payoutError } = await supabase
-        .from('referral_payouts')
+      if (!strategistEmployee) continue;
+
+      const commissionKey = `${fee.id}-${strategistEmployee.id}-strategist_split`;
+      if (existingCommissionKeys.has(commissionKey)) continue;
+
+      // Strategist gets 20% of their normal rate
+      let baseRate = defaultCommissionRate;
+      if (strategistEmployee.commission_tier_id && tierMap.has(strategistEmployee.commission_tier_id)) {
+        const tier = tierMap.get(strategistEmployee.commission_tier_id);
+        baseRate = tier.percentage || tier.base_rate || defaultCommissionRate;
+      } else if (strategistEmployee.commission_percentage) {
+        baseRate = strategistEmployee.commission_percentage;
+      }
+
+      const strategistRate = baseRate * 0.2; // 20% split
+      const strategistAmount = fee.fee_amount * (strategistRate / 100);
+
+      const { error: splitError } = await supabase
+        .from('employee_commissions')
         .insert({
-          referrer_id: referrerId,
-          application_id: app.id,
-          candidate_id: app.candidate_id,
-          payout_amount: payoutAmount,
-          payout_currency: 'EUR',
+          employee_id: strategistEmployee.id,
+          source_type: 'placement_fee',
+          source_id: fee.id,
+          placement_fee_id: fee.id,
+          gross_amount: strategistAmount,
+          commission_rate: strategistRate,
+          placement_fee_base: fee.fee_amount,
+          candidate_name: application?.candidate_full_name || 'Unknown',
+          company_name: company?.name || 'Unknown',
+          job_title: job?.title || 'Unknown',
+          commission_type: 'strategist_split',
+          split_percentage: 20,
           status: 'pending',
-          notes: 'Auto-created on hire',
+          period_date: new Date(fee.paid_at).toISOString().split('T')[0],
         });
 
-      if (!payoutError) {
-        referralPayoutsCreated++;
+      if (!splitError) {
+        strategistSplitsCreated++;
       }
     }
 
     console.log(`[Calculate Commissions] Results:`, {
       ...results,
-      referral_payouts_created: referralPayoutsCreated,
+      strategist_splits_created: strategistSplitsCreated,
     });
 
     return new Response(
@@ -235,7 +273,7 @@ serve(async (req) => {
           commissions_created: results.created,
           skipped: results.skipped,
           errors: results.errors.length,
-          referral_payouts_created: referralPayoutsCreated,
+          strategist_splits_created: strategistSplitsCreated,
         },
         commissions: results.commissions,
         errors: results.errors,

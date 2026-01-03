@@ -18,10 +18,12 @@ import {
   ArchiveRestore,
   Trash2,
   ExternalLink,
+  UserCog,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
+import { StrategistAssignmentDialog } from "./StrategistAssignmentDialog";
 
 interface Company {
   id: string;
@@ -52,6 +54,7 @@ export function CompanyRowActions({
 }: CompanyRowActionsProps) {
   const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
+  const [strategistDialogOpen, setStrategistDialogOpen] = useState(false);
 
   const isArchived = !!company.archived_at;
 
@@ -123,6 +126,10 @@ export function CompanyRowActions({
             <Users className="h-4 w-4 mr-2" />
             Manage Members
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setStrategistDialogOpen(true)}>
+            <UserCog className="h-4 w-4 mr-2" />
+            Assign Strategist
+          </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
@@ -186,6 +193,12 @@ export function CompanyRowActions({
         description={`This will restore ${company.name} from the archive and make it active again.`}
         confirmText="Restore"
         onConfirm={handleRestore}
+      />
+
+      <StrategistAssignmentDialog
+        open={strategistDialogOpen}
+        onOpenChange={setStrategistDialogOpen}
+        company={{ id: company.id, name: company.name }}
       />
     </>
   );
