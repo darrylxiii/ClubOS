@@ -8,17 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { 
   CheckCircle2, XCircle, Pause, Ban, 
   Star, TrendingUp, Users, Clock,
-  ChevronLeft, ChevronRight, Loader2, X, Award
+  ChevronLeft, ChevronRight, Loader2, X, Award, Plus
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-
 interface JobClosureDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -106,6 +106,8 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   const [addedByName, setAddedByName] = useState<string>("");
   const [sourcerOverrideReason, setSourcerOverrideReason] = useState("");
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string }>>([]);
+  const [isSplittingCredit, setIsSplittingCredit] = useState(false);
+  const [sourcingCredits, setSourcingCredits] = useState<Array<{ userId: string; name: string; percentage: number }>>([]);
   
   // Step 3: Takeaways
   const [whatWentWell, setWhatWentWell] = useState("");
@@ -222,6 +224,8 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     setAddedBy("");
     setAddedByName("");
     setSourcerOverrideReason("");
+    setIsSplittingCredit(false);
+    setSourcingCredits([]);
     setWhatWentWell("");
     setWhatCouldImprove("");
     setCandidateQualityRating(0);
@@ -248,6 +252,19 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   const handleSubmit = async () => {
     if (!closureType) return;
     
+    // Validate split credits total 100%
+    if (isSplittingCredit && sourcingCredits.length > 0) {
+      const totalPercentage = sourcingCredits.reduce((sum, c) => sum + c.percentage, 0);
+      if (totalPercentage !== 100) {
+        toast.error("Sourcing credit percentages must total 100%");
+        return;
+      }
+      if (sourcingCredits.some(c => !c.userId)) {
+        toast.error("Please select a team member for each credit split");
+        return;
+      }
+    }
+    
     setLoading(true);
     try {
       // Calculate time to fill for hired closures
@@ -255,10 +272,24 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         ? Math.ceil((new Date(actualClosingDate).getTime() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))
         : null;
 
-      // Get the final sourcer name for the override
-      const finalSourcerName = sourcedBy !== addedBy 
-        ? teamMembers.find(m => m.id === sourcedBy)?.name || 'Unknown'
-        : addedByName;
+      // Determine primary sourcer for single-select or split mode
+      let primarySourcerId = sourcedBy;
+      let primarySourcerName = '';
+      
+      if (isSplittingCredit && sourcingCredits.length > 0) {
+        // Primary sourcer is the one with highest percentage
+        const primaryCredit = sourcingCredits.reduce((a, b) => 
+          a.percentage > b.percentage ? a : b
+        );
+        primarySourcerId = primaryCredit.userId;
+        primarySourcerName = primaryCredit.name;
+      } else {
+        primarySourcerName = sourcedBy !== addedBy 
+          ? teamMembers.find(m => m.id === sourcedBy)?.name || 'Unknown'
+          : addedByName;
+      }
+
+      const isOverride = isSplittingCredit || sourcedBy !== addedBy;
 
       // Create closure record with sourcing and salary variance data
       const closureData = {
@@ -283,11 +314,11 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         closed_by: user?.id,
         notes: notes || null,
         // New sourcing attribution fields
-        sourced_by: sourcedBy || null,
-        sourcer_name: finalSourcerName || null,
+        sourced_by: primarySourcerId || null,
+        sourcer_name: primarySourcerName || null,
         added_by: addedBy || null,
         added_by_name: addedByName || null,
-        sourcer_override_reason: sourcedBy !== addedBy ? sourcerOverrideReason : null,
+        sourcer_override_reason: isOverride ? sourcerOverrideReason : null,
         // New salary variance fields
         estimated_salary_min: salaryMin || null,
         estimated_salary_max: salaryMax || null,
@@ -326,11 +357,6 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
           throw new Error(`Failed to update application to hired: ${appError?.message || 'No rows affected'}`);
         }
 
-        // Get the final sourcer name for the override
-        const placementSourcerName = sourcedBy !== addedBy 
-          ? teamMembers.find(m => m.id === sourcedBy)?.name || 'Unknown'
-          : addedByName;
-
         // Explicitly create placement fee record with sourcing & variance data
         const feePercentage = job?.job_fee_percentage || job?.companies?.placement_fee_percentage || 20;
         const { error: feeError } = await supabase
@@ -346,13 +372,15 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             currency_code: job?.currency || 'EUR',
             status: 'pending',
             hired_date: actualClosingDate,
-            notes: 'Created on job closure',
-            // Sourcing attribution
-            sourced_by: sourcedBy || null,
-            sourcer_name: placementSourcerName || null,
+            notes: isSplittingCredit 
+              ? `Created on job closure - Split: ${sourcingCredits.map(c => `${c.name} ${c.percentage}%`).join(', ')}`
+              : 'Created on job closure',
+            // Sourcing attribution - use primary sourcer
+            sourced_by: primarySourcerId || null,
+            sourcer_name: primarySourcerName || null,
             added_by: addedBy || null,
             added_by_name: addedByName || null,
-            sourcer_override_reason: sourcedBy !== addedBy ? sourcerOverrideReason : null,
+            sourcer_override_reason: isOverride ? sourcerOverrideReason : null,
             // Salary variance tracking
             estimated_salary_min: salaryMin || null,
             estimated_salary_max: salaryMax || null,
@@ -365,6 +393,33 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
 
         if (feeError) {
           console.warn("Placement fee insert failed (trigger may handle):", feeError);
+        }
+
+        // If splitting credit, save to sourcing_credits table
+        if (isSplittingCredit && sourcingCredits.length > 0) {
+          // Delete any existing sourcing credits for this application first
+          await supabase
+            .from('sourcing_credits')
+            .delete()
+            .eq('application_id', selectedApplicationId);
+
+          // Insert new sourcing credits
+          const { error: creditsError } = await supabase
+            .from('sourcing_credits')
+            .insert(
+              sourcingCredits.filter(c => c.userId).map(credit => ({
+                application_id: selectedApplicationId,
+                user_id: credit.userId,
+                credit_type: 'sourcer',
+                credit_percentage: credit.percentage,
+                notes: sourcerOverrideReason || null,
+                created_by: user?.id
+              }))
+            );
+
+          if (creditsError) {
+            console.warn("Sourcing credits insert failed:", creditsError);
+          }
         }
 
         // Close other active applications
@@ -623,34 +678,128 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                 {/* Sourcing Credit Override */}
                 {selectedApplicationId && (
                   <div className="p-4 rounded-lg border bg-muted/50">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Award className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Sourcing Credit</span>
-                      {sourcedBy !== addedBy && (
-                        <Badge variant="outline" className="text-xs">Overriding</Badge>
-                      )}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Award className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Sourcing Credit</span>
+                        {(sourcedBy !== addedBy || isSplittingCredit) && (
+                          <Badge variant="outline" className="text-xs">Overriding</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs text-muted-foreground">Split credit</Label>
+                        <Switch 
+                          checked={isSplittingCredit} 
+                          onCheckedChange={(checked) => {
+                            setIsSplittingCredit(checked);
+                            if (checked && sourcingCredits.length === 0 && sourcedBy) {
+                              // Initialize with current sourcer at 100%
+                              const currentName = teamMembers.find(m => m.id === sourcedBy)?.name || addedByName || '';
+                              setSourcingCredits([{ userId: sourcedBy, name: currentName, percentage: 100 }]);
+                            }
+                          }} 
+                        />
+                      </div>
                     </div>
+                    
                     {addedBy && (
-                      <p className="text-xs text-muted-foreground mb-2">
+                      <p className="text-xs text-muted-foreground mb-3">
                         Added by: {addedByName || 'Unknown'}
                       </p>
                     )}
-                    <Label className="text-xs">Sourced by (gets commission)</Label>
-                    <Select value={sourcedBy} onValueChange={setSourcedBy}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select who gets credit..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {teamMembers.map((member) => (
-                          <SelectItem key={member.id} value={member.id}>
-                            {member.name}
-                          </SelectItem>
+
+                    {!isSplittingCredit ? (
+                      <>
+                        <Label className="text-xs">Sourced by (gets commission)</Label>
+                        <Select value={sourcedBy} onValueChange={setSourcedBy}>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select who gets credit..." />
+                          </SelectTrigger>
+                          <SelectContent className="z-[200]">
+                            {teamMembers.map((member) => (
+                              <SelectItem key={member.id} value={member.id}>
+                                {member.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </>
+                    ) : (
+                      <div className="space-y-3">
+                        <Label className="text-xs">Split commission between team members</Label>
+                        {sourcingCredits.map((credit, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <Select 
+                              value={credit.userId} 
+                              onValueChange={(v) => {
+                                const member = teamMembers.find(m => m.id === v);
+                                setSourcingCredits(prev => prev.map((c, i) => 
+                                  i === index ? { ...c, userId: v, name: member?.name || '' } : c
+                                ));
+                              }}
+                            >
+                              <SelectTrigger className="flex-1">
+                                <SelectValue placeholder="Select person..." />
+                              </SelectTrigger>
+                              <SelectContent className="z-[200]">
+                                {teamMembers.map((member) => (
+                                  <SelectItem key={member.id} value={member.id}>
+                                    {member.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              type="number"
+                              value={credit.percentage}
+                              onChange={(e) => {
+                                setSourcingCredits(prev => prev.map((c, i) => 
+                                  i === index ? { ...c, percentage: Math.min(100, Math.max(0, Number(e.target.value))) } : c
+                                ));
+                              }}
+                              className="w-20"
+                              min={1}
+                              max={100}
+                            />
+                            <span className="text-sm text-muted-foreground">%</span>
+                            {sourcingCredits.length > 1 && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setSourcingCredits(prev => prev.filter((_, i) => i !== index))}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         ))}
-                      </SelectContent>
-                    </Select>
-                    {sourcedBy !== addedBy && (
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setSourcingCredits(prev => [...prev, { userId: '', name: '', percentage: 0 }])}
+                          disabled={sourcingCredits.length >= 4}
+                          className="w-full"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Person
+                        </Button>
+                        
+                        {(() => {
+                          const totalPercentage = sourcingCredits.reduce((sum, c) => sum + c.percentage, 0);
+                          return totalPercentage !== 100 && (
+                            <p className="text-xs text-destructive">
+                              Total must equal 100% (currently {totalPercentage}%)
+                            </p>
+                          );
+                        })()}
+                      </div>
+                    )}
+
+                    {(sourcedBy !== addedBy || isSplittingCredit) && (
                       <Textarea
-                        className="mt-2"
+                        className="mt-3"
                         placeholder="Reason for override (recommended)..."
                         value={sourcerOverrideReason}
                         onChange={(e) => setSourcerOverrideReason(e.target.value)}
@@ -658,7 +807,10 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                       />
                     )}
                     <p className="text-xs text-muted-foreground mt-2">
-                      This person will receive the commission for this placement.
+                      {isSplittingCredit 
+                        ? "Commission will be split according to the percentages above."
+                        : "This person will receive the commission for this placement."
+                      }
                     </p>
                   </div>
                 )}
