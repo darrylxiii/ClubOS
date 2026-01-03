@@ -210,11 +210,17 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   // Load sourcer info when application is selected
   useEffect(() => {
     const loadSourcerInfo = async () => {
+      // Reset if no application selected
       if (!selectedApplicationId) {
         setSourcedBy("");
         setOriginalSourcedBy("");
         setAddedBy("");
         setAddedByName("");
+        return;
+      }
+
+      // Wait for team members to be loaded before determining sourcer
+      if (teamMembers.length === 0) {
         return;
       }
 
@@ -229,12 +235,41 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
 
       if (app) {
         const creatorId = (app.candidate_profiles as any)?.created_by;
-        // Credit goes to sourced_by if set, otherwise falls back to creator
-        const sourcerId = app.sourced_by || creatorId;
+        
+        // Helper to check if ID exists in team members
+        const isValidTeamMember = (id: string | null | undefined): boolean => 
+          !!id && teamMembers.some(m => m.id === id);
+
+        // Cascading fallback for sourcer:
+        // 1. application.sourced_by (if valid team member)
+        // 2. candidate_profiles.created_by (if valid team member)
+        // 3. Current logged-in user (if valid team member)
+        // 4. First team member (last resort)
+        let finalSourcerId = "";
+        
+        if (isValidTeamMember(app.sourced_by)) {
+          finalSourcerId = app.sourced_by!;
+        } else if (isValidTeamMember(creatorId)) {
+          finalSourcerId = creatorId;
+        } else if (isValidTeamMember(user?.id)) {
+          finalSourcerId = user!.id;
+        } else if (teamMembers.length > 0) {
+          finalSourcerId = teamMembers[0].id;
+        }
+
+        console.log("[JobClosureDialog] loadSourcerInfo:", {
+          selectedApplicationId,
+          teamMembersCount: teamMembers.length,
+          appSourcedBy: app.sourced_by,
+          creatorId,
+          currentUserId: user?.id,
+          finalSourcerId,
+          isSourcerInTeam: teamMembers.some(m => m.id === finalSourcerId)
+        });
         
         setAddedBy(creatorId || "");           // Who physically added the candidate
-        setSourcedBy(sourcerId || "");          // Current credited person (pre-filled)
-        setOriginalSourcedBy(sourcerId || "");  // Track original for override detection
+        setSourcedBy(finalSourcerId);           // Current credited person (pre-filled)
+        setOriginalSourcedBy(finalSourcerId);   // Track original for override detection
         
         // Get added by name (the creator)
         if (creatorId) {
@@ -248,7 +283,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
       }
     };
     loadSourcerInfo();
-  }, [selectedApplicationId]);
+  }, [selectedApplicationId, teamMembers, user?.id]);
 
   // Pipeline metrics (calculated)
   const totalApplicants = applications.length;
