@@ -7,8 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Briefcase, MapPin, DollarSign, LayoutDashboard, Edit, Trash2, MoreVertical, Trophy, XCircle, Archive, CheckCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { JobCloseHiredDialog } from "@/components/jobs/JobCloseHiredDialog";
-import { JobCloseLostDialog } from "@/components/jobs/JobCloseLostDialog";
+import { JobClosureDialog } from "@/components/jobs/JobClosureDialog";
 import { JobDeleteDialog } from "@/components/jobs/JobDeleteDialog";
 import { JobArchiveDialog } from "@/components/jobs/JobArchiveDialog";
 import { useCloseJobWon, useCloseJobLost, useArchiveJob, useDeleteJob } from "@/hooks/useDealPipeline";
@@ -26,8 +25,7 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null);
-  const [showCloseHiredDialog, setShowCloseHiredDialog] = useState(false);
-  const [showCloseLostDialog, setShowCloseLostDialog] = useState(false);
+  const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [jobApplications, setJobApplications] = useState<any[]>([]);
@@ -81,18 +79,11 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
     return data || [];
   };
 
-  const handleCloseHiredAction = async (job: any) => {
+  const handleCloseJobAction = async (job: any) => {
     const apps = await fetchApplications(job.id);
     setJobApplications(apps);
     setSelectedJob(job);
-    setShowCloseHiredDialog(true);
-  };
-
-  const handleCloseLostAction = async (job: any) => {
-    const apps = await fetchApplications(job.id);
-    setJobApplications(apps);
-    setSelectedJob(job);
-    setShowCloseLostDialog(true);
+    setShowClosureDialog(true);
   };
 
   const handleArchiveAction = (job: any) => {
@@ -105,36 +96,22 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
     setShowDeleteDialog(true);
   };
 
-  const handleCloseWon = async (hiredCandidateId: string, actualSalary: number, placementFee: number) => {
-    await closeJobWon.mutateAsync({
-      jobId: selectedJob!.id,
-      hiredCandidateId,
-      actualSalary,
-      placementFee
-    });
-    toast.success("Job closed successfully! Revenue tracked.");
-    fetchJobs();
-  };
-
-  const handleCloseLost = async (lossReason: string, lossNotes: string) => {
-    await closeJobLost.mutateAsync({
-      jobId: selectedJob!.id,
-      lossReason,
-      lossNotes
-    });
-    toast.success("Job closed. Loss reason recorded.");
+  const handleClosureComplete = () => {
+    setShowClosureDialog(false);
     fetchJobs();
   };
 
   const handleArchive = async () => {
     await archiveJob.mutateAsync(selectedJob!.id);
     toast.success("Job archived");
+    setShowArchiveDialog(false);
     fetchJobs();
   };
 
   const handleDelete = async () => {
     await deleteJob.mutateAsync(selectedJob!.id);
     toast.success("Job deleted");
+    setShowDeleteDialog(false);
     fetchJobs();
   };
 
@@ -259,16 +236,10 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
                           </DropdownMenuItem>
                         )}
                         {job.status === 'published' && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleCloseHiredAction(job)}>
-                              <Trophy className="w-4 h-4 mr-2 text-success" />
-                              Mark as Hired
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleCloseLostAction(job)}>
-                              <XCircle className="w-4 h-4 mr-2" />
-                              Close - Not Filled
-                            </DropdownMenuItem>
-                          </>
+                          <DropdownMenuItem onClick={() => handleCloseJobAction(job)}>
+                            <Trophy className="w-4 h-4 mr-2 text-success" />
+                            Close Job
+                          </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleArchiveAction(job)}>
@@ -309,6 +280,39 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
           onOpenChange={setEditDialogOpen}
           job={selectedJob}
           onJobUpdated={fetchJobs}
+        />
+      )}
+
+      {/* Job Closure Dialog */}
+      {selectedJob && (
+        <JobClosureDialog
+          open={showClosureDialog}
+          onOpenChange={setShowClosureDialog}
+          job={selectedJob}
+          applications={jobApplications}
+          onComplete={handleClosureComplete}
+        />
+      )}
+
+      {/* Archive Dialog */}
+      {selectedJob && (
+        <JobArchiveDialog
+          open={showArchiveDialog}
+          onOpenChange={setShowArchiveDialog}
+          job={selectedJob}
+          onConfirm={handleArchive}
+        />
+      )}
+
+      {/* Delete Dialog */}
+      {selectedJob && (
+        <JobDeleteDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          job={selectedJob}
+          applicationCount={0}
+          isAdmin={false}
+          onConfirm={handleDelete}
         />
       )}
     </>
