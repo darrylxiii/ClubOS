@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useMobileDetection } from "@/hooks/useMobileDetection";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MobileSheetProps {
   open: boolean;
@@ -21,7 +21,7 @@ export function MobileSheet({
   description,
   children,
 }: MobileSheetProps) {
-  const isMobile = useMobileDetection();
+  const isMobile = useIsMobile();
   const contentRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {

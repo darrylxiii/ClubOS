@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CommandDialog,
@@ -28,7 +28,7 @@ import {
   Target,
   Brain,
 } from "lucide-react";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 
 interface CommandItem {
   id: string;
@@ -77,7 +77,7 @@ const allCommands: CommandItem[] = [
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { role } = useUserRole();
+  const { currentRole } = useRole();
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -91,22 +91,27 @@ export function CommandPalette() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const filteredCommands = allCommands.filter((cmd) =>
-    cmd.roles.includes(role || "user")
+  // Memoize filtered and grouped commands for performance
+  const filteredCommands = useMemo(() => 
+    allCommands.filter((cmd) => cmd.roles.includes(currentRole || "user")),
+    [currentRole]
   );
 
-  const groupedCommands = filteredCommands.reduce((acc, cmd) => {
-    if (!acc[cmd.category]) {
-      acc[cmd.category] = [];
-    }
-    acc[cmd.category].push(cmd);
-    return acc;
-  }, {} as Record<string, CommandItem[]>);
+  const groupedCommands = useMemo(() => 
+    filteredCommands.reduce((acc, cmd) => {
+      if (!acc[cmd.category]) {
+        acc[cmd.category] = [];
+      }
+      acc[cmd.category].push(cmd);
+      return acc;
+    }, {} as Record<string, CommandItem[]>),
+    [filteredCommands]
+  );
 
-  const handleSelect = (path: string) => {
+  const handleSelect = useCallback((path: string) => {
     setOpen(false);
     navigate(path);
-  };
+  }, [navigate]);
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>

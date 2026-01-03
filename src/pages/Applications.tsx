@@ -21,7 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
 import { RejectedApplicationsTab } from "@/components/candidate/RejectedApplicationsTab";
-import { useMobileDetection } from "@/hooks/useMobileDetection";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileApplicationPipeline } from "@/components/applications/MobileApplicationPipeline";
 import { useAchievementTrigger } from "@/hooks/useAchievementTrigger";
 import { useEffect } from "react";
@@ -58,7 +58,7 @@ interface Application {
 export default function Applications() {
   const { user } = useAuth();
   const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true); // Include rejected
-  const isMobile = useMobileDetection();
+  const isMobile = useIsMobile();
   const { triggerAchievementCheck } = useAchievementTrigger();
 
   const activeApplications = applications.filter(app => app.status === "active");

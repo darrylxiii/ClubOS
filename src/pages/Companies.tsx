@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -287,7 +287,7 @@ export default function Companies() {
     }
   };
 
-  const toggleExpanded = (companyId: string) => {
+  const toggleExpanded = useCallback((companyId: string) => {
     setExpandedCompanies(prev => {
       const newSet = new Set(prev);
       if (newSet.has(companyId)) {
@@ -297,63 +297,70 @@ export default function Companies() {
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     loadCompanies();
     loadOverallMetrics();
-  };
+  }, []);
 
-  // Admin action handlers
-  const handleEdit = (company: Company) => {
+  // Admin action handlers - memoized with useCallback
+  const handleEdit = useCallback((company: Company) => {
     setSelectedCompany(company);
     setEditDialogOpen(true);
-  };
+  }, []);
 
-  const handleConfigureFees = (company: Company) => {
+  const handleConfigureFees = useCallback((company: Company) => {
     setSelectedCompany(company);
     setFeeDialogOpen(true);
-  };
+  }, []);
 
-  const handleManageMembers = (company: Company) => {
+  const handleManageMembers = useCallback((company: Company) => {
     setSelectedCompany(company);
     setMembersDialogOpen(true);
-  };
+  }, []);
 
-  const handleArchive = (company: Company) => {
+  const handleArchive = useCallback((company: Company) => {
     setSelectedCompany(company);
     setArchiveDialogOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (company: Company) => {
+  const handleDelete = useCallback((company: Company) => {
     setSelectedCompany(company);
     setDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const industries = Array.from(new Set(companies.map(c => c.industry).filter(Boolean)));
+  // Memoize industries list
+  const industries = useMemo(() => 
+    Array.from(new Set(companies.map(c => c.industry).filter(Boolean))),
+    [companies]
+  );
 
-  const filteredCompanies = companies.filter(company => {
-    const matchesSearch = company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.tagline?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesIndustry = industryFilter === "all" || company.industry === industryFilter;
-    return matchesSearch && matchesIndustry;
-  }).sort((a, b) => {
-    const metricsA = companyMetrics[a.id];
-    const metricsB = companyMetrics[b.id];
-    switch (sortBy) {
-      case "jobs":
-        return (metricsB?.active_jobs || 0) - (metricsA?.active_jobs || 0);
-      case "applications":
-        return (metricsB?.total_applications || 0) - (metricsA?.total_applications || 0);
-      case "followers":
-        return (metricsB?.total_followers || 0) - (metricsA?.total_followers || 0);
-      case "activity":
-        return (metricsB?.recent_activity || "").localeCompare(metricsA?.recent_activity || "");
-      default:
-        return a.name.localeCompare(b.name);
-    }
-  });
+  // Memoize filtered and sorted companies for performance
+  const filteredCompanies = useMemo(() => {
+    return companies.filter(company => {
+      const matchesSearch = company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        company.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        company.tagline?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesIndustry = industryFilter === "all" || company.industry === industryFilter;
+      return matchesSearch && matchesIndustry;
+    }).sort((a, b) => {
+      const metricsA = companyMetrics[a.id];
+      const metricsB = companyMetrics[b.id];
+      switch (sortBy) {
+        case "jobs":
+          return (metricsB?.active_jobs || 0) - (metricsA?.active_jobs || 0);
+        case "applications":
+          return (metricsB?.total_applications || 0) - (metricsA?.total_applications || 0);
+        case "followers":
+          return (metricsB?.total_followers || 0) - (metricsA?.total_followers || 0);
+        case "activity":
+          return (metricsB?.recent_activity || "").localeCompare(metricsA?.recent_activity || "");
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+  }, [companies, searchQuery, industryFilter, sortBy, companyMetrics]);
 
   // If partner, redirect to their company page
   if (isPartner && partnerCompany && !loading) {

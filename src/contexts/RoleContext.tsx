@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/hooks/useUserRole";
@@ -222,8 +222,17 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    currentRole,
+    availableRoles,
+    switchRole,
+    loading,
+    companyId
+  }), [currentRole, availableRoles, switchRole, loading, companyId]);
+
   return (
-    <RoleContext.Provider value={{ currentRole, availableRoles, switchRole, loading, companyId }}>
+    <RoleContext.Provider value={contextValue}>
       {children}
     </RoleContext.Provider>
   );
