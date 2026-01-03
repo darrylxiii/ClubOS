@@ -457,7 +457,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
 
       const { error: closureError } = await supabase
         .from('job_closures')
-        .insert(closureData as any);
+        .upsert(closureData as any, { onConflict: 'job_id' });
 
       if (closureError) throw closureError;
 
