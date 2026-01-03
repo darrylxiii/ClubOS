@@ -27735,10 +27735,12 @@ export type Database = {
           application_id: string | null
           candidate_id: string | null
           candidate_salary: number | null
+          cash_flow_status: string | null
           continuous_hire_id: string | null
           created_at: string | null
           created_by: string | null
           currency_code: string | null
+          expected_collection_date: string | null
           fee_amount: number
           fee_percentage: number
           fee_percentage_used: number | null
@@ -27753,15 +27755,19 @@ export type Database = {
           referrer_splits: Json | null
           status: string | null
           updated_at: string | null
+          variance_amount: number | null
+          variance_reason: string | null
         }
         Insert: {
           application_id?: string | null
           candidate_id?: string | null
           candidate_salary?: number | null
+          cash_flow_status?: string | null
           continuous_hire_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency_code?: string | null
+          expected_collection_date?: string | null
           fee_amount: number
           fee_percentage: number
           fee_percentage_used?: number | null
@@ -27776,15 +27782,19 @@ export type Database = {
           referrer_splits?: Json | null
           status?: string | null
           updated_at?: string | null
+          variance_amount?: number | null
+          variance_reason?: string | null
         }
         Update: {
           application_id?: string | null
           candidate_id?: string | null
           candidate_salary?: number | null
+          cash_flow_status?: string | null
           continuous_hire_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency_code?: string | null
+          expected_collection_date?: string | null
           fee_amount?: number
           fee_percentage?: number
           fee_percentage_used?: number | null
@@ -27799,6 +27809,8 @@ export type Database = {
           referrer_splits?: Json | null
           status?: string | null
           updated_at?: string | null
+          variance_amount?: number | null
+          variance_reason?: string | null
         }
         Relationships: [
           {
@@ -42436,6 +42448,27 @@ export type Database = {
           booking_count: number | null
           confirmed_count: number | null
           user_id: string | null
+        }
+        Relationships: []
+      }
+      cash_flow_pipeline: {
+        Row: {
+          cash_flow_status: string | null
+          count: number | null
+          due_30_days: number | null
+          due_60_days: number | null
+          due_90_plus: number | null
+          overdue_amount: number | null
+          total_amount: number | null
+        }
+        Relationships: []
+      }
+      data_integrity_issues: {
+        Row: {
+          description: string | null
+          detected_at: string | null
+          issue_type: string | null
+          record_id: string | null
         }
         Relationships: []
       }
