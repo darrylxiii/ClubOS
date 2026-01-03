@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { useRole } from "@/contexts/RoleContext";
 import { UserRole } from "@/hooks/useUserRole";
-import { Loader2 } from "lucide-react";
+import { UnifiedLoader } from "@/components/ui/unified-loader";
 
 interface RoleGateProps {
   children: ReactNode;
@@ -19,11 +19,7 @@ export const RoleGate = ({
   const { currentRole: role, loading } = useRole();
 
   if (loading && showLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <UnifiedLoader variant="section" />;
   }
 
   if (loading && !showLoading) {

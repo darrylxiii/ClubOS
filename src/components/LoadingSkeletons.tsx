@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { UnifiedLoader } from "@/components/ui/unified-loader";
 
 export const JobCardSkeleton = () => (
   <Card>
@@ -119,29 +119,19 @@ export const ListSkeleton = ({ count = 3 }: { count?: number }) => (
 
 // Unified page loading skeleton - use this for full page loads
 export const PageLoadingSkeleton = () => (
-  <div className="flex-1 flex items-center justify-center min-h-[400px]">
-    <div className="flex flex-col items-center gap-4">
-      <LoadingSpinner size="xl" />
-      <p className="text-sm text-muted-foreground animate-pulse font-medium tracking-wider text-xs uppercase">Loading Quantum OS...</p>
-    </div>
-  </div>
+  <UnifiedLoader variant="section" text="Loading content..." />
 );
 
 // Card loading skeleton for smaller sections
 export const CardLoadingSkeleton = () => (
   <Card>
     <CardContent className="py-8">
-      <div className="flex items-center justify-center">
-        <LoadingSpinner size="md" />
-      </div>
+      <UnifiedLoader variant="section" className="min-h-[100px]" />
     </CardContent>
   </Card>
 );
 
 // Compact inline loading for buttons and small elements
 export const InlineLoadingSkeleton = () => (
-  <div className="flex items-center gap-2">
-    <LoadingSpinner size="sm" />
-    <span className="text-sm text-muted-foreground">Loading...</span>
-  </div>
+  <UnifiedLoader variant="inline" text="Loading..." />
 );
