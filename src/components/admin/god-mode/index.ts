@@ -1,5 +1,5 @@
 export { UserAccountActionsDialog } from './UserAccountActionsDialog';
-export { AccountStatusBadge } from './AccountStatusBadge';
+export { AccountStatusBadge } from '@/components/ui/UnifiedStatusBadge';
 export { GodModeUserActions } from './GodModeUserActions';
 export { ImpersonationBanner } from './ImpersonationBanner';
 export { ImpersonateUserDialog } from './ImpersonateUserDialog';

@@ -124,7 +124,7 @@ export default function FinancialDashboard() {
               <CardDescription>Visual pipeline of expected revenue by collection status</CardDescription>
             </CardHeader>
             <CardContent>
-              <CashFlowPipeline />
+              <CashFlowPipeline year={selectedYear} />
             </CardContent>
           </Card>
 

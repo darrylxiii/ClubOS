@@ -16,15 +16,28 @@ interface PipelineStage {
   amount: number;
 }
 
-export function CashFlowPipeline() {
+interface CashFlowPipelineProps {
+  year?: number;
+}
+
+export function CashFlowPipeline({ year }: CashFlowPipelineProps) {
   const { data: pipelineData, isLoading } = useQuery({
-    queryKey: ['cash-flow-pipeline'],
+    queryKey: ['cash-flow-pipeline', year],
     queryFn: async () => {
       // Fetch placement fees grouped by cash_flow_status
-      const { data, error } = await supabase
+      let query = supabase
         .from('placement_fees')
-        .select('cash_flow_status, fee_amount, expected_collection_date, status')
+        .select('cash_flow_status, fee_amount, expected_collection_date, status, hired_date')
         .neq('status', 'cancelled');
+
+      // Filter by year if provided
+      if (year) {
+        const startOfYear = `${year}-01-01`;
+        const endOfYear = `${year}-12-31`;
+        query = query.gte('hired_date', startOfYear).lte('hired_date', endOfYear);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -48,7 +61,6 @@ export function CashFlowPipeline() {
       return statusMap;
     },
   });
-
   const { data: commissionLiability } = useQuery({
     queryKey: ['commission-liability'],
     queryFn: async () => {

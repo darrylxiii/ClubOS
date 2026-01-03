@@ -1,6 +1,6 @@
 import { useRole } from "@/contexts/RoleContext";
-
-export type UserRole = 'admin' | 'partner' | 'company_admin' | 'recruiter' | 'user' | 'strategist' | null;
+// Re-export UserRole from centralized types
+export type { UserRole } from "@/types/roles";
 
 /**
  * @deprecated Use useRole from RoleContext instead for better performance

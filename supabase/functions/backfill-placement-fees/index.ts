@@ -12,11 +12,20 @@ serve(async (req) => {
   }
 
   try {
+    // Parse request body for dryRun flag
+    let dryRun = false;
+    try {
+      const body = await req.json();
+      dryRun = body?.dryRun === true;
+    } catch {
+      // No body or invalid JSON - proceed with default (not dry run)
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('Starting placement fees backfill...');
+    console.log(`Starting placement fees backfill... (dryRun: ${dryRun})`);
 
     // Get all hired applications without placement fees
     const { data: hiredApplications, error: appError } = await supabase
@@ -102,60 +111,68 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Creating ${newFees.length} new placement fees (skipped ${skipped.length} existing, ${errors.length} errors)`);
+    console.log(`${dryRun ? '[DRY RUN] Would create' : 'Creating'} ${newFees.length} new placement fees (skipped ${skipped.length} existing, ${errors.length} errors)`);
 
     let insertedCount = 0;
     const insertErrors = [];
 
-    // Insert in batches to handle potential errors better
-    for (const fee of newFees) {
-      const { error: insertError } = await supabase
-        .from('placement_fees')
-        .insert(fee);
+    // Skip inserts if dry run
+    if (!dryRun) {
+      // Insert in batches to handle potential errors better
+      for (const fee of newFees) {
+        const { error: insertError } = await supabase
+          .from('placement_fees')
+          .insert(fee);
 
-      if (insertError) {
-        console.error(`Error inserting fee for app ${fee.application_id}:`, insertError);
-        insertErrors.push({ application_id: fee.application_id, error: insertError.message });
-      } else {
-        insertedCount++;
+        if (insertError) {
+          console.error(`Error inserting fee for app ${fee.application_id}:`, insertError);
+          insertErrors.push({ application_id: fee.application_id, error: insertError.message });
+        } else {
+          insertedCount++;
+        }
       }
+    } else {
+      insertedCount = newFees.length; // In dry run, report what would be created
     }
 
-    // Try to match placement fees with Moneybird invoices
-    const { data: unmatchedFees } = await supabase
-      .from('placement_fees')
-      .select('id, partner_company_id, hired_date, fee_amount')
-      .is('invoice_id', null)
-      .not('partner_company_id', 'is', null);
-
+    // Try to match placement fees with Moneybird invoices (skip in dry run)
     let invoiceMatches = 0;
-    for (const fee of unmatchedFees || []) {
-      // Find invoices for this company around the placement date
-      const { data: matchingInvoices } = await supabase
-        .from('moneybird_sales_invoices')
-        .select('id, moneybird_id, total_amount, invoice_date')
-        .eq('company_id', fee.partner_company_id)
-        .order('invoice_date', { ascending: false })
-        .limit(5);
+    
+    if (!dryRun) {
+      const { data: unmatchedFees } = await supabase
+        .from('placement_fees')
+        .select('id, partner_company_id, hired_date, fee_amount')
+        .is('invoice_id', null)
+        .not('partner_company_id', 'is', null);
 
-      // Try to find a close match by amount
-      const matchingInvoice = matchingInvoices?.find(inv => {
-        const amountDiff = Math.abs(inv.total_amount - fee.fee_amount);
-        const percentDiff = amountDiff / fee.fee_amount;
-        return percentDiff < 0.05; // Within 5% of expected fee
-      });
+      for (const fee of unmatchedFees || []) {
+        // Find invoices for this company around the placement date
+        const { data: matchingInvoices } = await supabase
+          .from('moneybird_sales_invoices')
+          .select('id, moneybird_id, total_amount, invoice_date')
+          .eq('company_id', fee.partner_company_id)
+          .order('invoice_date', { ascending: false })
+          .limit(5);
 
-      if (matchingInvoice) {
-        const { error: updateError } = await supabase
-          .from('placement_fees')
-          .update({ 
-            invoice_id: matchingInvoice.id,
-            notes: `Matched to invoice ${matchingInvoice.moneybird_id} (amount match)`
-          })
-          .eq('id', fee.id);
-        
-        if (!updateError) {
-          invoiceMatches++;
+        // Try to find a close match by amount
+        const matchingInvoice = matchingInvoices?.find(inv => {
+          const amountDiff = Math.abs(inv.total_amount - fee.fee_amount);
+          const percentDiff = amountDiff / fee.fee_amount;
+          return percentDiff < 0.05; // Within 5% of expected fee
+        });
+
+        if (matchingInvoice) {
+          const { error: updateError } = await supabase
+            .from('placement_fees')
+            .update({ 
+              invoice_id: matchingInvoice.id,
+              notes: `Matched to invoice ${matchingInvoice.moneybird_id} (amount match)`
+            })
+            .eq('id', fee.id);
+          
+          if (!updateError) {
+            invoiceMatches++;
+          }
         }
       }
     }
@@ -171,12 +188,14 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
+        dryRun,
         data: {
           found: hiredApplications?.length || 0,
           created: insertedCount,
           skipped: skipped.length,
           errors: errors.length + insertErrors.length,
           invoiceMatches,
+          wouldCreate: dryRun ? newFees : undefined,
           errorDetails: [...errors, ...insertErrors].slice(0, 10), // Return first 10 errors
         }
       }),

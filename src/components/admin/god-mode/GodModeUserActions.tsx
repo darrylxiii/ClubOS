@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import { useGodMode, AccountStatus } from '@/hooks/useGodMode';
 import { UserAccountActionsDialog } from './UserAccountActionsDialog';
-import { AccountStatusBadge } from './AccountStatusBadge';
+import { AccountStatusBadge } from '@/components/ui/UnifiedStatusBadge';
+import { Badge } from '@/components/ui/badge';
 
 interface GodModeUserActionsProps {
   user: {
@@ -62,10 +63,15 @@ export function GodModeUserActions({
 
   if (!canModify) {
     return showStatusBadge ? (
-      <AccountStatusBadge 
-        status={user.account_status} 
-        isSuperAdmin={targetIsSuperAdmin} 
-      />
+      <div className="flex items-center gap-1.5">
+        {targetIsSuperAdmin && (
+          <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+            <Crown className="h-3 w-3" />
+            Super
+          </Badge>
+        )}
+        <AccountStatusBadge status={user.account_status || 'active'} />
+      </div>
     ) : null;
   }
 
@@ -74,10 +80,15 @@ export function GodModeUserActions({
   return (
     <div className="flex items-center gap-2">
       {showStatusBadge && (
-        <AccountStatusBadge 
-          status={accountStatus} 
-          isSuperAdmin={targetIsSuperAdmin} 
-        />
+        <div className="flex items-center gap-1.5">
+          {targetIsSuperAdmin && (
+            <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+              <Crown className="h-3 w-3" />
+              Super
+            </Badge>
+          )}
+          <AccountStatusBadge status={accountStatus} />
+        </div>
       )}
       
       <DropdownMenu>

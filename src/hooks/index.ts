@@ -11,12 +11,12 @@ export { useOutsideClick } from './useOutsideClick';
 export { useInView } from './useInView';
 export { useLazyLoad } from './useLazyLoad';
 
-// Toast (legacy - prefer notify from @/lib/notify)
+// Toast - prefer notify from @/lib/notify for new code
 export { useToast, toast } from './use-toast';
 
-// Authentication & Role (prefer useRole from RoleContext)
+// Authentication & Role
 export { useRole } from '@/contexts/RoleContext';
-export type { UserRole } from './useUserRole';
+export type { UserRole } from '@/types/roles';
 
 // State Management
 export { useTableState } from './useTableState';
