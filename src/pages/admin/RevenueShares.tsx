@@ -1,15 +1,17 @@
 import { RoleGate } from "@/components/RoleGate";
-import { AdminRevenueShareManager } from "@/components/admin/AdminRevenueShareManager";
-import { RevenueShareSummary } from "@/components/admin/RevenueShareSummary";
-import { RevenueShareEarningsTable } from "@/components/admin/RevenueShareEarningsTable";
 import { AppLayout } from "@/components/AppLayout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LayoutDashboard, Briefcase, Gift, Settings } from "lucide-react";
+import { RevenueDistributionSummary } from "@/components/admin/revenue/RevenueDistributionSummary";
+import { RecruiterCommissionsTable } from "@/components/admin/revenue/RecruiterCommissionsTable";
+import { ReferralPayoutsTable } from "@/components/admin/revenue/ReferralPayoutsTable";
+import { AdminRevenueShareManager } from "@/components/admin/AdminRevenueShareManager";
+import { RevenueShareEarningsTable } from "@/components/admin/RevenueShareEarningsTable";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Calculator } from "lucide-react";
 
 export default function RevenueSharesPage() {
-  // Fetch revenue shares for summary and earnings components
+  // Fetch revenue shares for earnings table
   const { data: revenueShares = [] } = useQuery({
     queryKey: ['revenue-shares-page'],
     queryFn: async () => {
@@ -42,20 +44,28 @@ export default function RevenueSharesPage() {
   return (
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="container mx-auto px-4 py-6 max-w-6xl">
-          <h1 className="text-3xl font-bold mb-2">Revenue Shares</h1>
+        <div className="container mx-auto px-4 py-6 max-w-7xl">
+          <h1 className="text-3xl font-bold mb-2">Revenue Distribution</h1>
           <p className="text-muted-foreground mb-6">
-            Configure commission percentages and track earnings from Moneybird invoices
+            Track all revenue shares, recruiter commissions, and referral payouts
           </p>
 
-          {/* Summary cards with Moneybird data */}
-          <RevenueShareSummary revenueShares={revenueShares} />
+          {/* Comprehensive summary */}
+          <RevenueDistributionSummary />
 
-          <Tabs defaultValue="earnings" className="space-y-4">
+          <Tabs defaultValue="overview" className="space-y-4">
             <TabsList>
-              <TabsTrigger value="earnings" className="flex items-center gap-2">
-                <Calculator className="h-4 w-4" />
-                Earnings
+              <TabsTrigger value="overview" className="flex items-center gap-2">
+                <LayoutDashboard className="h-4 w-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="commissions" className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                Recruiter Commissions
+              </TabsTrigger>
+              <TabsTrigger value="referrals" className="flex items-center gap-2">
+                <Gift className="h-4 w-4" />
+                Referral Payouts
               </TabsTrigger>
               <TabsTrigger value="configuration" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
@@ -63,8 +73,23 @@ export default function RevenueSharesPage() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="earnings">
+            <TabsContent value="overview" className="space-y-6">
+              {/* Show earnings from configured revenue shares */}
               <RevenueShareEarningsTable revenueShares={revenueShares} />
+              
+              {/* Quick view of recent commissions and payouts */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RecruiterCommissionsTable />
+                <ReferralPayoutsTable />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="commissions">
+              <RecruiterCommissionsTable />
+            </TabsContent>
+
+            <TabsContent value="referrals">
+              <ReferralPayoutsTable />
             </TabsContent>
 
             <TabsContent value="configuration">
