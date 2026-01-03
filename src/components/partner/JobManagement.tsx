@@ -98,7 +98,10 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
 
   const handleClosureComplete = () => {
     setShowClosureDialog(false);
-    fetchJobs();
+    // Delay fetch to let dialog animation complete
+    setTimeout(() => {
+      fetchJobs();
+    }, 300);
   };
 
   const handleArchive = async () => {
