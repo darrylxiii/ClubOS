@@ -86,7 +86,7 @@ export function useDealPipeline() {
           applications(count),
           hired_count
         `)
-        .eq('status', 'published')
+        .in('status', ['published', 'closed'])
         .eq('is_lost', false)
         .order('created_at', { ascending: false });
       
