@@ -35,11 +35,11 @@ export function MissingFeeWarning() {
         </p>
         <div className="flex flex-wrap gap-2 mt-2">
           {companiesWithoutFee.slice(0, 5).map((company) => (
-            <Button
+              <Button
               key={company.id}
               variant="outline"
               size="sm"
-              onClick={() => navigate(`/company/${company.id}/settings`)}
+              onClick={() => navigate(`/admin/company-fees?configure=${company.id}`)}
               className="bg-background"
             >
               Configure {company.name}

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ interface CompanyWithFee {
 
 export function CompanyFeeManagement() {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [bulkFee, setBulkFee] = useState("20");
@@ -83,6 +85,20 @@ export function CompanyFeeManagement() {
       })) as CompanyWithFee[];
     },
   });
+
+  // Auto-open config dialog when coming from deal pipeline with ?configure=companyId
+  useEffect(() => {
+    const configureId = searchParams.get("configure");
+    if (configureId && companies && !configDialogOpen) {
+      const company = companies.find((c) => c.id === configureId);
+      if (company) {
+        setSelectedCompany(company);
+        setConfigDialogOpen(true);
+        // Clear the query param after opening
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, companies, configDialogOpen, setSearchParams]);
 
   // Update single company fee
   const updateFeeMutation = useMutation({
