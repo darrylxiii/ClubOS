@@ -74,12 +74,6 @@ export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProp
           </h4>
         </div>
         <div className="flex items-center gap-2">
-          {isMultiHire && (
-            <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
-              <Layers className="w-3 h-3 mr-1" />
-              {targetHireCount}x
-            </Badge>
-          )}
           <DealHealthBadge score={deal.deal_health_score} showLabel={false} size="sm" />
           {deal.status === 'draft' && (
             <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
@@ -117,7 +111,10 @@ export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProp
       {isMultiHire && (
         <div className="mb-3 p-2 rounded-md bg-blue-500/5 border border-blue-500/10">
           <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="text-muted-foreground">Positions filled</span>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Layers className="w-3 h-3 text-blue-500" />
+              <span>Multi-Hire</span>
+            </div>
             <span className="font-medium text-foreground">{hiredCount}/{targetHireCount}</span>
           </div>
           <Progress value={progressPercent} className="h-1.5" />
