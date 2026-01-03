@@ -335,12 +335,12 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         primarySourcerId = primaryCredit.userId;
         primarySourcerName = primaryCredit.name;
       } else {
-        primarySourcerName = sourcedBy !== addedBy 
+        primarySourcerName = sourcedBy !== originalSourcedBy 
           ? teamMembers.find(m => m.id === sourcedBy)?.name || 'Unknown'
           : addedByName;
       }
 
-      const isOverride = isSplittingCredit || sourcedBy !== addedBy;
+      const isOverride = isSplittingCredit || sourcedBy !== originalSourcedBy;
 
       // Create closure record with sourcing and salary variance data
       const closureData = {
@@ -733,9 +733,9 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                       <div className="flex items-center gap-2">
                         <Award className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">Sourcing Credit</span>
-                        {(sourcedBy !== addedBy || isSplittingCredit) && (
-                          <Badge variant="outline" className="text-xs">Overriding</Badge>
-                        )}
+                      {(sourcedBy !== originalSourcedBy || isSplittingCredit) && (
+                        <Badge variant="outline" className="text-xs">Overriding</Badge>
+                      )}
                       </div>
                       <div className="flex items-center gap-2">
                         <Label className="text-xs text-muted-foreground">Split credit</Label>
@@ -755,7 +755,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                     
                     {addedBy && (
                       <p className="text-xs text-muted-foreground mb-3">
-                        Added by: {addedByName || 'Unknown'}
+                        Candidate added by: {addedByName || 'Unknown'}
                       </p>
                     )}
 
