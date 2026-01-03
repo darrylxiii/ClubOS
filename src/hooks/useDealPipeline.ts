@@ -30,6 +30,12 @@ export interface Deal {
   updated_at: string;
   active_candidates?: number;
   estimated_value?: number;
+  // Multi-hire fields
+  target_hire_count?: number | null;
+  hired_count?: number;
+  is_continuous?: boolean;
+  remaining_positions?: number;
+  total_deal_value?: number;
   companies?: {
     name: string;
     placement_fee_percentage: number | null;
@@ -77,7 +83,8 @@ export function useDealPipeline() {
         .select(`
           *,
           companies(name, placement_fee_percentage),
-          applications(count)
+          applications(count),
+          hired_count
         `)
         .eq('status', 'published')
         .eq('is_lost', false)
@@ -118,11 +125,23 @@ export function useDealPipeline() {
           const baseSalary = avgSalary || job.salary_max || job.salary_min || 60000;
           const estimatedRevenue = baseSalary * (feePercentage / 100);
           
+          // Multi-hire calculations
+          const targetHireCount = job.target_hire_count || 1;
+          const hiredCount = job.hired_count || 0;
+          const remainingPositions = Math.max(targetHireCount - hiredCount, 0);
+          const singleFeeValue = job.deal_value_override || estimatedRevenue;
+          const totalDealValue = singleFeeValue * remainingPositions;
+          
           return {
             ...job,
             company_name: job.companies?.name || job.company_name || 'Unknown',
             active_candidates: job.applications?.[0]?.count || 0,
-            estimated_value: job.deal_value_override || estimatedRevenue,
+            estimated_value: singleFeeValue,
+            target_hire_count: targetHireCount,
+            hired_count: hiredCount,
+            is_continuous: job.is_continuous || false,
+            remaining_positions: remainingPositions,
+            total_deal_value: totalDealValue,
           };
         })
       ) as Deal[];

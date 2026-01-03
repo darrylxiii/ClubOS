@@ -1,14 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePipelineMetrics, useDealPipeline } from "@/hooks/useDealPipeline";
 import { useReferralPipelineMetrics } from "@/hooks/useReferralPipelineMetrics";
+import { useMultiHirePipelineMetrics } from "@/hooks/useMultiHirePipelineMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, DollarSign, Target, AlertCircle, Gift, Minus } from "lucide-react";
+import { TrendingUp, DollarSign, Target, AlertCircle, Gift, Minus, Layers } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function PipelineMetricsCards() {
   const { data: metrics, isLoading: metricsLoading } = usePipelineMetrics();
   const { data: deals, isLoading: dealsLoading } = useDealPipeline();
   const { data: referralMetrics, isLoading: referralLoading } = useReferralPipelineMetrics();
+  const { data: multiHireMetrics, isLoading: multiHireLoading } = useMultiHirePipelineMetrics();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -19,7 +21,7 @@ export function PipelineMetricsCards() {
     }).format(amount);
   };
 
-  if (metricsLoading || dealsLoading || referralLoading) {
+  if (metricsLoading || dealsLoading || referralLoading || multiHireLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         {[...Array(6)].map((_, i) => (
@@ -44,6 +46,12 @@ export function PipelineMetricsCards() {
     return !companies?.placement_fee_percentage;
   }).length || 0;
 
+  // Calculate multi-hire totals from deals data
+  const multiHireDeals = deals?.filter(d => (d.target_hire_count || 1) > 1) || [];
+  const totalMultiHireValue = multiHireDeals.reduce((sum, d) => sum + (d.total_deal_value || 0), 0);
+  const totalPositions = multiHireDeals.reduce((sum, d) => sum + (d.target_hire_count || 1), 0);
+  const filledPositions = multiHireDeals.reduce((sum, d) => sum + (d.hired_count || 0), 0);
+
   const cards = [
     {
       title: "Gross Pipeline",
@@ -62,6 +70,14 @@ export function PipelineMetricsCards() {
       tooltip: "Revenue adjusted by deal stage probability"
     },
     {
+      title: "Multi-Hire Potential",
+      value: formatCurrency(totalMultiHireValue),
+      icon: Layers,
+      description: `${multiHireDeals.length} roles · ${filledPositions}/${totalPositions} filled`,
+      color: "text-blue-500",
+      tooltip: `${multiHireDeals.length} volume hiring roles with ${totalPositions - filledPositions} positions remaining`
+    },
+    {
       title: "Referral Obligations",
       value: formatCurrency(referralMetrics?.referralObligations || 0),
       icon: Gift,
@@ -76,14 +92,6 @@ export function PipelineMetricsCards() {
       description: "After referral costs",
       color: "text-success",
       tooltip: "Gross pipeline minus referral obligations"
-    },
-    {
-      title: "Avg Deal Size",
-      value: formatCurrency(metrics?.avg_deal_size || 0),
-      icon: TrendingUp,
-      description: "Per placement",
-      color: "text-accent",
-      tooltip: "Average revenue per deal placement"
     },
     {
       title: "Config Status",
