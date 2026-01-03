@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, AlertCircle, RefreshCw, LogIn } from "lucide-react";
+import { AlertCircle, RefreshCw, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UnifiedLoader } from "@/components/ui/unified-loader";
 
 // Cache reset utility - also available from index.html inline script
 const resetCache = async () => {
@@ -100,12 +101,5 @@ export const PageLoader = () => {
         );
     }
 
-    return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-            <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground animate-pulse font-medium tracking-wider text-xs uppercase">
-                Loading Quantum OS...
-            </p>
-        </div>
-    );
+    return <UnifiedLoader variant="page" showBranding />;
 };

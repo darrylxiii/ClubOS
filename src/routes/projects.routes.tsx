@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
-import { Loader2 } from "lucide-react";
+import { PageLoader } from "@/components/PageLoader";
 
 // Lazy load Club Projects pages
 const ProjectsPage = lazy(() => import("@/pages/ProjectsPage"));
@@ -19,13 +19,6 @@ const FreelancerSetupPage = lazy(() => import("@/pages/FreelancerSetupPage"));
 const GigMarketplacePage = lazy(() => import("@/pages/GigMarketplacePage"));
 const ProjectProposalsPage = lazy(() => import("@/pages/ProjectProposalsPage"));
 const ProjectDisputesPage = lazy(() => import("@/pages/ProjectDisputesPage"));
-
-const PageLoader = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-    <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-    <p className="text-muted-foreground animate-pulse">Loading...</p>
-  </div>
-);
 
 export const projectsRoutes = (
   <>

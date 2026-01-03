@@ -1,4 +1,4 @@
-import { ReactNode, lazy, Suspense } from "react";
+import { ReactNode } from "react";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { VideoPlayerProvider } from "@/contexts/VideoPlayerContext";
@@ -9,7 +9,7 @@ import { FloatingVideoPlayer } from "@/components/FloatingVideoPlayer";
 import { ActivityTracker } from "@/components/ActivityTracker";
 import { TrackingProvider } from "@/components/tracking/TrackingProvider";
 import { NavigationTracer } from "@/components/tracing/NavigationTracer";
-import { Loader2 } from "lucide-react";
+import { UnifiedLoader } from "@/components/ui/unified-loader";
 
 interface ProtectedProvidersProps {
   children: ReactNode;
@@ -46,7 +46,5 @@ export const ProtectedProviders = ({ children }: ProtectedProvidersProps) => {
 
 // Loading fallback for protected provider lazy load
 export const ProtectedProvidersLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-background">
-    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-  </div>
+  <UnifiedLoader variant="page" text="Initializing..." />
 );

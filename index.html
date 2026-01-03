@@ -127,7 +127,13 @@
     font-family: Inter, 'Inter-fallback', system-ui, -apple-system, sans-serif;
     font-size: 16px;
     line-height: 1.5;
-    background-color: hsl(30 20% 96%);
+    background-color: hsl(0 0% 5%);
+  }
+  
+  @media (prefers-color-scheme: light) {
+    body {
+      background-color: hsl(30 20% 96%);
+    }
   }
       
       #root { 
@@ -173,10 +179,11 @@
     
     <div id="root">
       <!-- Inline critical first paint content - will be replaced by React -->
-      <div id="initial-loader" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:hsl(30 20% 96%);gap:24px;">
-        <svg id="boot-spinner" width="48" height="48" viewBox="0 0 100 100" style="animation:spin 1s linear infinite;">
-          <circle cx="50" cy="50" r="40" stroke="hsl(45 100% 51%)" stroke-width="4" fill="none" stroke-dasharray="251" stroke-dashoffset="50" stroke-linecap="round"/>
+      <div id="initial-loader" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:hsl(0 0% 5%);gap:16px;">
+        <svg id="boot-spinner" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="hsl(45 61% 55%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite;">
+          <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
         </svg>
+        <p style="margin:0;color:hsl(0 0% 60%);font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;">Loading Quantum OS...</p>
         <!-- Emergency recovery UI - shown if app fails to boot -->
         <div id="boot-error" style="display:none;text-align:center;max-width:420px;padding:24px;font-family:Inter,system-ui,sans-serif;">
           <div style="width:56px;height:56px;margin:0 auto 16px;background:hsl(0 70% 50% / 0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;">

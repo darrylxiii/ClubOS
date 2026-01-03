@@ -1,16 +1,9 @@
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import { Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { JobDashboardRoute } from "@/components/routes/JobDashboardRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
-import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
-
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <Loader2 className="w-12 h-12 animate-spin text-primary" />
-  </div>
-);
+import { PageLoader } from "@/components/PageLoader";
 
 // Job Pages
 const Jobs = lazy(() => import("@/pages/Jobs"));
