@@ -12,6 +12,7 @@ import { ComparisonToggle } from './ComparisonToggle';
 import { KPIDetailModal } from './KPIDetailModal';
 import { AlertConfigDialog, type AlertThreshold } from './AlertConfigDialog';
 import { CostOverview } from './costs/CostOverview';
+import { FinancialKPISection } from './FinancialKPISection';
 import { exportToCSV, exportToPDF } from './KPIExport';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -291,6 +292,11 @@ export function UnifiedKPICommandCenter() {
                     onRefresh={handleRefresh}
                     isRefreshing={isRefreshing}
                   />
+                </div>
+
+                {/* Moneybird Financial KPIs Section */}
+                <div className="mb-6">
+                  <FinancialKPISection />
                 </div>
 
                 <KPIOverview

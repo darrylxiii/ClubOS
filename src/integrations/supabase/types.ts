@@ -6872,7 +6872,9 @@ export type Database = {
           id: string
           industry: string | null
           instagram_url: string | null
+          invoice_count: number | null
           is_active: boolean
+          last_payment_date: string | null
           linkedin_url: string | null
           logo_url: string | null
           member_since: string | null
@@ -6881,11 +6883,16 @@ export type Database = {
           meta_title: string | null
           mission: string | null
           name: string
+          payment_reliability_score: number | null
           placement_fee_fixed: number | null
           placement_fee_percentage: number | null
+          revenue_tier: string | null
           slug: string
           tagline: string | null
           tech_stack: Json | null
+          total_outstanding: number | null
+          total_paid: number | null
+          total_revenue: number | null
           twitter_url: string | null
           updated_at: string
           values: Json | null
@@ -6913,7 +6920,9 @@ export type Database = {
           id?: string
           industry?: string | null
           instagram_url?: string | null
+          invoice_count?: number | null
           is_active?: boolean
+          last_payment_date?: string | null
           linkedin_url?: string | null
           logo_url?: string | null
           member_since?: string | null
@@ -6922,11 +6931,16 @@ export type Database = {
           meta_title?: string | null
           mission?: string | null
           name: string
+          payment_reliability_score?: number | null
           placement_fee_fixed?: number | null
           placement_fee_percentage?: number | null
+          revenue_tier?: string | null
           slug: string
           tagline?: string | null
           tech_stack?: Json | null
+          total_outstanding?: number | null
+          total_paid?: number | null
+          total_revenue?: number | null
           twitter_url?: string | null
           updated_at?: string
           values?: Json | null
@@ -6954,7 +6968,9 @@ export type Database = {
           id?: string
           industry?: string | null
           instagram_url?: string | null
+          invoice_count?: number | null
           is_active?: boolean
+          last_payment_date?: string | null
           linkedin_url?: string | null
           logo_url?: string | null
           member_since?: string | null
@@ -6963,11 +6979,16 @@ export type Database = {
           meta_title?: string | null
           mission?: string | null
           name?: string
+          payment_reliability_score?: number | null
           placement_fee_fixed?: number | null
           placement_fee_percentage?: number | null
+          revenue_tier?: string | null
           slug?: string
           tagline?: string | null
           tech_stack?: Json | null
+          total_outstanding?: number | null
+          total_paid?: number | null
+          total_revenue?: number | null
           twitter_url?: string | null
           updated_at?: string
           values?: Json | null
@@ -14929,6 +14950,63 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      financial_events: {
+        Row: {
+          amount: number | null
+          company_id: string | null
+          created_at: string
+          currency: string | null
+          entity_id: string | null
+          entity_type: string
+          event_type: string
+          id: string
+          is_processed: boolean | null
+          metadata: Json | null
+          processed_at: string | null
+        }
+        Insert: {
+          amount?: number | null
+          company_id?: string | null
+          created_at?: string
+          currency?: string | null
+          entity_id?: string | null
+          entity_type: string
+          event_type: string
+          id?: string
+          is_processed?: boolean | null
+          metadata?: Json | null
+          processed_at?: string | null
+        }
+        Update: {
+          amount?: number | null
+          company_id?: string | null
+          created_at?: string
+          currency?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          event_type?: string
+          id?: string
+          is_processed?: boolean | null
+          metadata?: Json | null
+          processed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_forecasts: {
         Row: {
@@ -24195,6 +24273,8 @@ export type Database = {
       }
       moneybird_sales_invoices: {
         Row: {
+          application_id: string | null
+          company_id: string | null
           contact_id: string | null
           contact_name: string | null
           created_at: string
@@ -24206,7 +24286,10 @@ export type Database = {
           moneybird_id: string
           paid_amount: number
           paid_at: string | null
+          placement_fee_id: string | null
           raw_data: Json | null
+          reconciliation_notes: string | null
+          reconciliation_status: string | null
           state_normalized: string
           state_raw: string | null
           total_amount: number
@@ -24215,6 +24298,8 @@ export type Database = {
           year: number
         }
         Insert: {
+          application_id?: string | null
+          company_id?: string | null
           contact_id?: string | null
           contact_name?: string | null
           created_at?: string
@@ -24226,7 +24311,10 @@ export type Database = {
           moneybird_id: string
           paid_amount?: number
           paid_at?: string | null
+          placement_fee_id?: string | null
           raw_data?: Json | null
+          reconciliation_notes?: string | null
+          reconciliation_status?: string | null
           state_normalized?: string
           state_raw?: string | null
           total_amount?: number
@@ -24235,6 +24323,8 @@ export type Database = {
           year: number
         }
         Update: {
+          application_id?: string | null
+          company_id?: string | null
           contact_id?: string | null
           contact_name?: string | null
           created_at?: string
@@ -24246,7 +24336,10 @@ export type Database = {
           moneybird_id?: string
           paid_amount?: number
           paid_at?: string | null
+          placement_fee_id?: string | null
           raw_data?: Json | null
+          reconciliation_notes?: string | null
+          reconciliation_status?: string | null
           state_normalized?: string
           state_raw?: string | null
           total_amount?: number
@@ -24254,7 +24347,43 @@ export type Database = {
           updated_at?: string
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "moneybird_sales_invoices_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moneybird_sales_invoices_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moneybird_sales_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moneybird_sales_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moneybird_sales_invoices_placement_fee_id_fkey"
+            columns: ["placement_fee_id"]
+            isOneToOne: false
+            referencedRelation: "placement_fees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       moneybird_settings: {
         Row: {
