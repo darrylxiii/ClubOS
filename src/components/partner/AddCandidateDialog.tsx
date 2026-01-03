@@ -318,6 +318,9 @@ export const AddCandidateDialog = ({
       const candidateId = candidateProfile.id;
 
       // STEP 2: Create application (also with null user_id for standalone candidates)
+      // Set sourced_by to first credited team member (primary sourcer)
+      const primarySourcer = creditTo.length > 0 ? creditTo[0] : adminUser.id;
+      
       const { data: newApplication, error: appError } = await supabase
         .from("applications")
         .insert({
@@ -325,6 +328,7 @@ export const AddCandidateDialog = ({
           candidate_id: candidateId,
           job_id: jobId,
           position: jobTitle,
+          sourced_by: primarySourcer, // Track who sourced this candidate
           company_name: formData.currentCompany || "External Candidate",
           current_stage_index: parseInt(formData.startStageIndex),
           status: "active",
@@ -337,7 +341,7 @@ export const AddCandidateDialog = ({
             },
           ],
         })
-        .select('id, job_id, candidate_id, current_stage_index, created_at')
+        .select('id, job_id, candidate_id, current_stage_index, created_at, sourced_by')
         .single();
 
       if (appError) {
@@ -383,7 +387,20 @@ export const AddCandidateDialog = ({
 
       const application = newApplication;
 
-      // STEP 3: Log candidate addition as interaction
+      // STEP 3: Store sourcing credits for potential splits/commission tracking
+      if (creditTo.length > 0 && application) {
+        const sourcingCredits = creditTo.map((userId, idx) => ({
+          application_id: application.id,
+          user_id: userId,
+          credit_type: idx === 0 ? 'sourcer' : 'assist',
+          credit_percentage: 100 / creditTo.length,
+          created_by: adminUser.id
+        }));
+        
+        await supabase.from('sourcing_credits').insert(sourcingCredits);
+      }
+
+      // STEP 4: Log candidate addition as interaction
       if (application) {
         await supabase.from("candidate_interactions").insert({
           candidate_id: candidateId,

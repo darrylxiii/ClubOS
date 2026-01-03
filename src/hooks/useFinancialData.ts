@@ -18,6 +18,19 @@ export interface PlacementFee {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  // Sourcing attribution
+  sourced_by: string | null;
+  sourcer_name: string | null;
+  original_sourced_by: string | null;
+  sourcer_override_reason: string | null;
+  // Salary variance tracking
+  estimated_salary_min: number | null;
+  estimated_salary_max: number | null;
+  salary_variance_percent: number | null;
+  salary_variance_direction: string | null;
+  // Closer tracking
+  closed_by: string | null;
+  closer_name: string | null;
 }
 
 export interface PartnerInvoice {
