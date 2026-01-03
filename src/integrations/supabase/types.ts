@@ -14718,6 +14718,39 @@ export type Database = {
         }
         Relationships: []
       }
+      expense_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       expert_availability: {
         Row: {
           day_of_week: number
@@ -24945,6 +24978,68 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operating_expenses: {
+        Row: {
+          amount: number
+          category_id: string | null
+          category_name: string
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string
+          expense_date: string
+          id: string
+          is_recurring: boolean | null
+          notes: string | null
+          receipt_url: string | null
+          recurring_frequency: string | null
+          updated_at: string | null
+          vendor: string | null
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          category_name: string
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          description: string
+          expense_date: string
+          id?: string
+          is_recurring?: boolean | null
+          notes?: string | null
+          receipt_url?: string | null
+          recurring_frequency?: string | null
+          updated_at?: string | null
+          vendor?: string | null
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          category_name?: string
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          description?: string
+          expense_date?: string
+          id?: string
+          is_recurring?: boolean | null
+          notes?: string | null
+          receipt_url?: string | null
+          recurring_frequency?: string | null
+          updated_at?: string | null
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operating_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
             referencedColumns: ["id"]
           },
         ]

@@ -55,6 +55,7 @@ const WhatsAppSettings = lazy(() => import("@/pages/admin/WhatsAppSettings"));
 const CompanyRelationships = lazy(() => import("@/pages/admin/CompanyRelationships"));
 const RevenueSharesPage = lazy(() => import("@/pages/admin/RevenueShares"));
 const InvoiceReconciliationPage = lazy(() => import("@/pages/admin/InvoiceReconciliation"));
+const ExpenseTrackingPage = lazy(() => import("@/pages/admin/ExpenseTracking"));
 
 // Phase 5: Analytics Dashboards
 const JobAnalyticsDashboard = lazy(() => import("@/pages/admin/JobAnalyticsDashboard"));
@@ -619,5 +620,8 @@ export const adminRoutes = (
     
     {/* Invoice Reconciliation */}
     <Route path="/admin/reconciliation" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><InvoiceReconciliationPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    
+    {/* Expense Tracking */}
+    <Route path="/admin/expenses" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ExpenseTrackingPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );
