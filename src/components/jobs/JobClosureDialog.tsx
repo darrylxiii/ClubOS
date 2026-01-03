@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -108,7 +109,8 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   const [addedBy, setAddedBy] = useState<string>("");
   const [addedByName, setAddedByName] = useState<string>("");
   const [sourcerOverrideReason, setSourcerOverrideReason] = useState("");
-  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string }>>([]);
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string; avatarUrl?: string }>>([]);
+  const [sourcerAvatarUrl, setSourcerAvatarUrl] = useState<string>("");
   const [isSplittingCredit, setIsSplittingCredit] = useState(false);
   const [sourcingCredits, setSourcingCredits] = useState<Array<{ userId: string; name: string; percentage: number }>>([]);
   
@@ -184,10 +186,10 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
           return;
         }
 
-        // Fetch profiles for these users
+        // Fetch profiles for these users (including avatar_url)
         const { data: profiles, error: profileError } = await supabase
           .from("profiles")
-          .select("id, full_name")
+          .select("id, full_name, avatar_url")
           .in("id", userIds);
         
         if (profileError) {
@@ -197,7 +199,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         }
 
         const members = (profiles || [])
-          .map(p => ({ id: p.id, name: p.full_name || 'Unknown' }))
+          .map(p => ({ id: p.id, name: p.full_name || 'Unknown', avatarUrl: p.avatar_url || undefined }))
           .sort((a, b) => a.name.localeCompare(b.name));
         
         setTeamMembers(members);
@@ -210,11 +212,12 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
   }, []);
 
   // Load sourcer info directly when candidate is selected
-  const loadSourcerForApplication = async (appId: string, members: Array<{ id: string; name: string }>) => {
+  const loadSourcerForApplication = async (appId: string, members: Array<{ id: string; name: string; avatarUrl?: string }>) => {
     if (!appId) {
       setSourcedBy("");
       setOriginalSourcedBy("");
       setSourcerDisplayName("");
+      setSourcerAvatarUrl("");
       setAddedBy("");
       setAddedByName("");
       setIsOverridingSourcer(false);
@@ -222,68 +225,78 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
       return;
     }
 
-    const { data: app } = await supabase
-      .from("applications")
-      .select(`
-        sourced_by,
-        candidate_profiles!inner(created_by)
-      `)
-      .eq("id", appId)
-      .maybeSingle();
-
-    if (!app) return;
-
-    const creatorId = (app.candidate_profiles as any)?.created_by;
-    
-    // Helper to check if ID exists in team members
-    const isValidTeamMember = (id: string | null | undefined): boolean => 
-      !!id && members.some(m => m.id === id);
-
-    // Cascading fallback for sourcer:
-    // 1. application.sourced_by (if valid team member)
-    // 2. candidate_profiles.created_by (if valid team member)
-    // 3. Current logged-in user (if valid team member)
-    // 4. First team member (last resort)
-    let finalSourcerId = "";
-    
-    if (isValidTeamMember(app.sourced_by)) {
-      finalSourcerId = app.sourced_by!;
-    } else if (isValidTeamMember(creatorId)) {
-      finalSourcerId = creatorId;
-    } else if (isValidTeamMember(user?.id)) {
-      finalSourcerId = user!.id;
-    } else if (members.length > 0) {
-      finalSourcerId = members[0].id;
-    }
-
-    const sourcerName = members.find(m => m.id === finalSourcerId)?.name || "Unknown";
-
-    console.log("[JobClosureDialog] loadSourcerForApplication:", {
-      appId,
-      teamMembersCount: members.length,
-      appSourcedBy: app.sourced_by,
-      creatorId,
-      currentUserId: user?.id,
-      finalSourcerId,
-      sourcerName,
-      isSourcerInTeam: members.some(m => m.id === finalSourcerId)
-    });
-    
-    setAddedBy(creatorId || "");
-    setSourcedBy(finalSourcerId);
-    setOriginalSourcedBy(finalSourcerId);
-    setSourcerDisplayName(sourcerName);
-    setIsOverridingSourcer(false);
-    setSourcerOverrideReason("");
-    
-    // Get added by name (the creator)
-    if (creatorId) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", creatorId)
+    try {
+      const { data: app } = await supabase
+        .from("applications")
+        .select(`
+          sourced_by,
+          candidate_profiles!inner(created_by)
+        `)
+        .eq("id", appId)
         .maybeSingle();
-      setAddedByName(profile?.full_name || "Unknown");
+
+      if (!app) {
+        console.warn("[JobClosureDialog] No application found for:", appId);
+        setSourcerDisplayName("Unknown");
+        setSourcerAvatarUrl("");
+        return;
+      }
+
+      const creatorId = (app.candidate_profiles as any)?.created_by;
+      
+      // Determine sourcer ID using cascading fallback (no team member validation for default)
+      // 1. application.sourced_by
+      // 2. candidate_profiles.created_by  
+      // 3. Current logged-in user
+      let finalSourcerId = app.sourced_by || creatorId || user?.id || "";
+      
+      console.log("[JobClosureDialog] loadSourcerForApplication:", {
+        appId,
+        teamMembersCount: members.length,
+        appSourcedBy: app.sourced_by,
+        creatorId,
+        currentUserId: user?.id,
+        finalSourcerId
+      });
+
+      setAddedBy(creatorId || "");
+      setSourcedBy(finalSourcerId);
+      setOriginalSourcedBy(finalSourcerId);
+      setIsOverridingSourcer(false);
+      setSourcerOverrideReason("");
+
+      // Try to get name from team members first
+      const memberMatch = members.find(m => m.id === finalSourcerId);
+      if (memberMatch) {
+        setSourcerDisplayName(memberMatch.name);
+        setSourcerAvatarUrl(memberMatch.avatarUrl || "");
+      } else if (finalSourcerId) {
+        // Fetch profile directly as fallback
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, avatar_url")
+          .eq("id", finalSourcerId)
+          .maybeSingle();
+        setSourcerDisplayName(profile?.full_name || "Unknown");
+        setSourcerAvatarUrl(profile?.avatar_url || "");
+      } else {
+        setSourcerDisplayName("Unknown");
+        setSourcerAvatarUrl("");
+      }
+      
+      // Get added by name (the creator)
+      if (creatorId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", creatorId)
+          .maybeSingle();
+        setAddedByName(profile?.full_name || "Unknown");
+      }
+    } catch (err) {
+      console.error("[JobClosureDialog] Error loading sourcer:", err);
+      setSourcerDisplayName("Unknown");
+      setSourcerAvatarUrl("");
     }
   };
 
@@ -310,6 +323,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     setSourcedBy("");
     setOriginalSourcedBy("");
     setSourcerDisplayName("");
+    setSourcerAvatarUrl("");
     setIsOverridingSourcer(false);
     setAddedBy("");
     setAddedByName("");
@@ -812,9 +826,19 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                         <div>
                           <Label className="text-xs">Sourced by (gets commission)</Label>
                           <div className="mt-1 p-3 rounded-md bg-background border flex items-center justify-between">
-                            <span className="font-medium">
-                              {sourcerDisplayName || "Loading..."}
-                            </span>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8">
+                                {sourcerAvatarUrl ? (
+                                  <AvatarImage src={sourcerAvatarUrl} alt={sourcerDisplayName || "Sourcer"} />
+                                ) : null}
+                                <AvatarFallback className="text-xs">
+                                  {sourcerDisplayName?.split(' ').map(n => n[0]).join('').slice(0, 2) || '??'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium">
+                                {sourcerDisplayName || "Unknown"}
+                              </span>
+                            </div>
                             <Button 
                               type="button" 
                               variant="outline" 
