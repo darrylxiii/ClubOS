@@ -144,19 +144,63 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     ? salaryVariancePercent > 5 ? 'above' : salaryVariancePercent < -5 ? 'below' : 'within'
     : null;
 
-  // Load team members for sourcer override
+  // Load team members for sourcer override (Admins + Strategists + active employees)
   useEffect(() => {
     const loadTeamMembers = async () => {
-      const { data: members } = await supabase
-        .from("employee_profiles")
-        .select("user_id, profiles!inner(full_name)")
-        .eq("is_active", true);
-      
-      if (members) {
-        setTeamMembers(members.map(m => ({
-          id: m.user_id,
-          name: (m.profiles as any)?.full_name || 'Unknown'
-        })));
+      try {
+        // Get all admin and strategist user IDs
+        const { data: roleUsers, error: roleError } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .in("role", ["admin", "strategist"]);
+        
+        if (roleError) {
+          console.error("Error fetching user_roles:", roleError);
+        }
+
+        // Get all active employee user IDs
+        const { data: employeeUsers, error: empError } = await supabase
+          .from("employee_profiles")
+          .select("user_id")
+          .eq("is_active", true);
+        
+        if (empError) {
+          console.error("Error fetching employee_profiles:", empError);
+        }
+
+        // Union all unique user IDs
+        const userIdSet = new Set<string>();
+        roleUsers?.forEach(r => userIdSet.add(r.user_id));
+        employeeUsers?.forEach(e => userIdSet.add(e.user_id));
+        
+        const userIds = Array.from(userIdSet);
+        
+        if (userIds.length === 0) {
+          console.warn("No team members found (admins/strategists/employees)");
+          setTeamMembers([]);
+          return;
+        }
+
+        // Fetch profiles for these users
+        const { data: profiles, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds);
+        
+        if (profileError) {
+          console.error("Error fetching profiles:", profileError);
+          toast.error("Could not load team members");
+          return;
+        }
+
+        const members = (profiles || [])
+          .map(p => ({ id: p.id, name: p.full_name || 'Unknown' }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        
+        setTeamMembers(members);
+      } catch (err) {
+        console.error("Error loading team members:", err);
+        toast.error("Could not load team members");
       }
     };
     loadTeamMembers();
@@ -179,7 +223,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
           candidate_profiles!inner(created_by)
         `)
         .eq("id", selectedApplicationId)
-        .single();
+        .maybeSingle();
 
       if (app) {
         const sourcerId = app.sourced_by || (app.candidate_profiles as any)?.created_by;
@@ -715,7 +759,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                           <SelectTrigger className="mt-1">
                             <SelectValue placeholder="Select who gets credit..." />
                           </SelectTrigger>
-                          <SelectContent className="z-[200]">
+                          <SelectContent className="z-[999]">
                             {teamMembers.map((member) => (
                               <SelectItem key={member.id} value={member.id}>
                                 {member.name}
@@ -741,7 +785,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                               <SelectTrigger className="flex-1">
                                 <SelectValue placeholder="Select person..." />
                               </SelectTrigger>
-                              <SelectContent className="z-[200]">
+                              <SelectContent className="z-[999]">
                                 {teamMembers.map((member) => (
                                   <SelectItem key={member.id} value={member.id}>
                                     {member.name}
