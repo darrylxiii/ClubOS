@@ -62,6 +62,7 @@ import {
   Percent,
   Gamepad2,
   Heart,
+  Receipt,
   type LucideIcon,
 } from "lucide-react";
 
@@ -405,12 +406,13 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "Revenue & Finance",
       icon: DollarSign,
       items: [
+        { name: "Financial Dashboard", icon: CreditCard, path: "/admin/financial" },
         { name: "Deal Pipeline", icon: Target, path: "/admin/deals-pipeline" },
         { name: "Company Fees", icon: DollarSign, path: "/admin/company-fees" },
         { name: "Deal Pipeline Settings", icon: Cog, path: "/admin/deal-pipeline-settings" },
-        { name: "Financial Dashboard", icon: CreditCard, path: "/admin/financial" },
-        // Revenue Analytics redirects to Financial Dashboard - removed from nav
         { name: "Revenue Shares", icon: Percent, path: "/admin/revenue-shares" },
+        { name: "Expense Tracking", icon: Receipt, path: "/admin/expenses" },
+        { name: "Invoice Reconciliation", icon: FileCheck, path: "/admin/reconciliation" },
         { name: "Moneybird", icon: CreditCard, path: "/admin/moneybird" },
         { name: "Referral Program", icon: Gift, path: "/referrals" },
       ],
