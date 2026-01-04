@@ -256,12 +256,12 @@ export function MeetingHistoryTab() {
                     </div>
 
                     {uploadProgress > 0 && (
-                      <div className="space-y-2">
+                      <div className="space-y-2" role="status" aria-live="polite">
                         <div className="flex justify-between text-sm">
-                          <span>Uploading...</span>
+                          <span>Upload progress</span>
                           <span>{uploadProgress}%</span>
                         </div>
-                        <div className="w-full bg-muted rounded-full h-2">
+                        <div className="w-full bg-muted rounded-full h-2" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
                           <div
                             className="bg-gradient-accent h-2 rounded-full transition-all duration-300"
                             style={{ width: `${uploadProgress}%` }}
@@ -274,11 +274,13 @@ export function MeetingHistoryTab() {
                       onClick={handleFileUpload}
                       disabled={!uploadFile || uploadProgress > 0}
                       className="w-full"
+                      aria-busy={uploadProgress > 0}
                     >
                       {uploadProgress > 0 ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Uploading...
+                          <span className="sr-only">Upload in progress</span>
+                          Upload Recording
                         </>
                       ) : (
                         'Upload Recording'

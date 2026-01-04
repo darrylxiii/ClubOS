@@ -154,13 +154,20 @@ export function useWorkspaceInvitations(workspaceId: string | undefined) {
       await supabase.functions.invoke('send-workspace-invitation', {
         body: { invitationId },
       });
+      
+      return invitationId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspace-invitations', workspaceId] });
       toast.success('Invitation resent');
     },
-    onError: (error) => {
-      toast.error('Failed to resend invitation');
+    onError: (error, invitationId) => {
+      toast.error('Failed to resend invitation', {
+        action: {
+          label: 'Retry',
+          onClick: () => resendInvitation.mutate(invitationId),
+        },
+      });
       console.error('Resend invitation error:', error);
     },
   });
@@ -173,13 +180,19 @@ export function useWorkspaceInvitations(workspaceId: string | undefined) {
         .eq('id', invitationId);
 
       if (error) throw error;
+      return invitationId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspace-invitations', workspaceId] });
       toast.success('Invitation revoked');
     },
-    onError: (error) => {
-      toast.error('Failed to revoke invitation');
+    onError: (error, invitationId) => {
+      toast.error('Failed to revoke invitation', {
+        action: {
+          label: 'Retry',
+          onClick: () => revokeInvitation.mutate(invitationId),
+        },
+      });
       console.error('Revoke invitation error:', error);
     },
   });

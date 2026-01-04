@@ -196,11 +196,13 @@ export default function Pricing() {
                 disabled={loadingPlan === plan.priceId}
                 className="w-full"
                 variant={plan.popular ? "default" : "outline"}
+                aria-busy={loadingPlan === plan.priceId}
               >
                 {loadingPlan === plan.priceId ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Loading...
+                    <span className="sr-only">Processing subscription</span>
+                    Subscribe Now
                   </>
                 ) : (
                   "Subscribe Now"

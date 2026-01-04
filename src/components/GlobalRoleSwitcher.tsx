@@ -51,7 +51,7 @@ export const GlobalRoleSwitcher = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2" aria-label={`Current role: ${roleConfig[currentRole]?.label || 'Role'}. Click to switch roles.`}>
           <CurrentIcon className="w-4 h-4" />
           <span className="hidden sm:inline">{roleConfig[currentRole]?.label || 'Role'}</span>
           <Badge variant="secondary" className="hidden md:inline-flex">
