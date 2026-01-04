@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useState, useRef, KeyboardEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { EnhancedEmojiPicker } from "./EnhancedEmojiPicker";
 import { GifPicker } from "./GifPicker";
 import { VoiceRecorder } from "./VoiceRecorder";
@@ -37,7 +37,6 @@ export const MessageComposer = ({
   const [showControls, setShowControls] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { toast } = useToast();
 
   const handleSend = async () => {
     if ((!message.trim() && !attachment) || sending) return;
@@ -49,10 +48,8 @@ export const MessageComposer = ({
       setAttachment(null);
     } catch (error) {
       console.error("Error sending message:", error);
-      toast({
-        title: "Error",
+      notify.error("Error", {
         description: "Failed to send message. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setSending(false);
@@ -72,10 +69,8 @@ export const MessageComposer = ({
       // Validate file
       const validation = validatePostMediaFile(file);
       if (!validation.valid) {
-        toast({
-          title: "Invalid file",
+        notify.error("Invalid file", {
           description: validation.error,
-          variant: "destructive",
         });
         return;
       }
@@ -90,13 +85,11 @@ export const MessageComposer = ({
   const handleGifSelect = async (gifUrl: string) => {
     try {
       await onSend("", undefined, { gif_url: gifUrl });
-      toast({ title: "GIF sent" });
+      notify.success("GIF sent");
     } catch (error) {
       console.error("Error sending GIF:", error);
-      toast({
-        title: "Failed to send GIF",
+      notify.error("Failed to send GIF", {
         description: "Please try again",
-        variant: "destructive",
       });
     }
   };
@@ -111,10 +104,8 @@ export const MessageComposer = ({
       });
     } catch (error) {
       console.error("Error sending voice message:", error);
-      toast({
-        title: "Failed to send voice message",
+      notify.error("Failed to send voice message", {
         description: "Please try again",
-        variant: "destructive",
       });
     }
   };
@@ -126,13 +117,11 @@ export const MessageComposer = ({
         media_url: url,
       });
       setMessage("");
-      toast({ title: "YouTube video shared" });
+      notify.success("YouTube video shared");
     } catch (error) {
       console.error("Error sending YouTube video:", error);
-      toast({
-        title: "Failed to share video",
+      notify.error("Failed to share video", {
         description: "Please try again",
-        variant: "destructive",
       });
     }
   };
@@ -148,20 +137,16 @@ export const MessageComposer = ({
           spotify_id: spotifyInfo.id,
         });
         setMessage("");
-        toast({ title: `Spotify ${spotifyInfo.type} shared` });
+        notify.success(`Spotify ${spotifyInfo.type} shared`);
       } catch (error) {
         console.error("Error sending Spotify:", error);
-        toast({
-          title: "Failed to share Spotify",
+        notify.error("Failed to share Spotify", {
           description: "Please try again",
-          variant: "destructive",
         });
       }
     } else {
-      toast({
-        title: "Invalid Spotify link",
+      notify.error("Invalid Spotify link", {
         description: "Please enter a valid Spotify URL",
-        variant: "destructive",
       });
     }
   };

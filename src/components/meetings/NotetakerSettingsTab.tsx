@@ -7,12 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Bot, Calendar, RefreshCw, Link as LinkIcon, Unlink } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { format } from "date-fns";
 
 export function NotetakerSettingsTab() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [autoJoinEnabled, setAutoJoinEnabled] = useState(true);
   const [autoAnalysisEnabled, setAutoAnalysisEnabled] = useState(true);
   const [taskCreationEnabled, setTaskCreationEnabled] = useState(false);
@@ -45,8 +44,7 @@ export function NotetakerSettingsTab() {
       notificationsEnabled,
     };
     localStorage.setItem('club-ai-settings', JSON.stringify(settings));
-    toast({
-      title: "Settings saved",
+    notify.success("Settings saved", {
       description: "Your Club AI Notetaker preferences have been updated.",
     });
   };
@@ -70,14 +68,11 @@ export function NotetakerSettingsTab() {
       .eq('id', connectionId);
 
     if (error) {
-      toast({
-        title: "Error",
+      notify.error("Error", {
         description: "Failed to disconnect calendar",
-        variant: "destructive",
       });
     } else {
-      toast({
-        title: "Calendar disconnected",
+      notify.success("Calendar disconnected", {
         description: "Your calendar has been disconnected successfully.",
       });
       loadCalendarConnections();

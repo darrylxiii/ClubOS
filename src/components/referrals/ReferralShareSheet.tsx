@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { cn } from "@/lib/utils";
 
 interface ReferralShareSheetProps {
@@ -53,7 +53,6 @@ export function ReferralShareSheet({
   onOpenChange: controlledOnOpenChange
 }: ReferralShareSheetProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [internalOpen, setInternalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
@@ -97,8 +96,7 @@ export function ReferralShareSheet({
     // Track share
     trackShare(channel);
     
-    toast({
-      title: "Link copied!",
+    notify.success("Link copied!", {
       description: "Share it with your network",
     });
   };

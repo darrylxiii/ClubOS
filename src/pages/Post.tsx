@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppLayout } from "@/components/AppLayout";
-import { toast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 
 export default function Post() {
   const { id } = useParams();
@@ -44,10 +44,8 @@ export default function Post() {
       if (!user && !postData.is_public) {
         setNotFound(true);
         setLoading(false);
-        toast({
-          title: "Private post",
+        notify.error("Private post", {
           description: "This post is only visible to logged in users.",
-          variant: "destructive"
         });
         return;
       }

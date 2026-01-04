@@ -2,7 +2,7 @@ import { ReactNode, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Loader2 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 
 interface JobDashboardRouteProps {
   children: ReactNode;
@@ -28,11 +28,9 @@ export const JobDashboardRoute = ({ children }: JobDashboardRouteProps) => {
       if (jobId) {
         navigate(`/jobs/${jobId}`, { replace: true });
       } else {
-        toast({
-          title: "Access denied",
-          description: "You don't have permission to access this page",
-          variant: "destructive",
-        });
+      notify.error("Access denied", {
+        description: "You don't have permission to access this page",
+      });
         navigate('/home', { replace: true });
       }
     }

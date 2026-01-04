@@ -7,7 +7,7 @@ import { RecruiterPerformanceChart } from "./RecruiterPerformanceChart";
 import { MetricsOverview } from "./MetricsOverview";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Download } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { useState } from "react";
 
 interface ExecutiveDashboardProps {
@@ -15,7 +15,6 @@ interface ExecutiveDashboardProps {
 }
 
 export function ExecutiveDashboard({ companyId }: ExecutiveDashboardProps) {
-  const { toast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
   
   const { data: hiringMetrics, isLoading: hiringLoading, refetch: refetchHiring } = useHiringMetrics(companyId);
@@ -30,15 +29,12 @@ export function ExecutiveDashboard({ companyId }: ExecutiveDashboardProps) {
         refetchRecruiter(),
         refetchPipeline()
       ]);
-      toast({
-        title: "Analytics Refreshed",
+      notify.success("Analytics Refreshed", {
         description: "All metrics have been updated with the latest data.",
       });
     } catch (error) {
-      toast({
-        title: "Refresh Failed",
+      notify.error("Refresh Failed", {
         description: "Could not refresh analytics. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setRefreshing(false);
@@ -46,8 +42,7 @@ export function ExecutiveDashboard({ companyId }: ExecutiveDashboardProps) {
   };
 
   const handleExport = () => {
-    toast({
-      title: "Export Started",
+    notify.info("Export Started", {
       description: "Your analytics report will be downloaded shortly.",
     });
   };

@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { Loader2, Sparkles, Wand2, Brain, ChevronRight, CheckCircle2 } from "lucide-react";
 
 interface CreateCourseDialogProps {
@@ -38,7 +38,6 @@ export function CreateCourseDialog({
   onSuccess,
 }: CreateCourseDialogProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
@@ -55,10 +54,8 @@ export function CreateCourseDialog({
 
   const generateCourseFromAI = async () => {
     if (!aiPrompt.trim()) {
-      toast({
-        title: "Enter a prompt",
+      notify.error("Enter a prompt", {
         description: "Please describe the course you want to create",
-        variant: "destructive",
       });
       return;
     }
@@ -83,15 +80,12 @@ export function CreateCourseDialog({
       });
       setSuggestedModules(courseData.modules || []);
 
-      toast({
-        title: "Course generated",
+      notify.success("Course generated", {
         description: "Review and customize the AI-generated course details",
       });
     } catch (error: any) {
-      toast({
-        title: "AI generation failed",
+      notify.error("AI generation failed", {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setAiLoading(false);
@@ -100,10 +94,8 @@ export function CreateCourseDialog({
 
   const enhanceDescription = async () => {
     if (!formData.title || !formData.description) {
-      toast({
-        title: "Missing information",
+      notify.error("Missing information", {
         description: "Please add a title and description first",
-        variant: "destructive",
       });
       return;
     }
@@ -121,15 +113,12 @@ export function CreateCourseDialog({
       if (error) throw error;
 
       setFormData({ ...formData, description: data.content });
-      toast({
-        title: "Description enhanced",
+      notify.success("Description enhanced", {
         description: "AI has improved your course description",
       });
     } catch (error: any) {
-      toast({
-        title: "Enhancement failed",
+      notify.error("Enhancement failed", {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setAiLoading(false);
@@ -138,10 +127,8 @@ export function CreateCourseDialog({
 
   const suggestModulesFromAI = async () => {
     if (!formData.title || !formData.description) {
-      toast({
-        title: "Missing information",
+      notify.error("Missing information", {
         description: "Please add a title and description first",
-        variant: "destructive",
       });
       return;
     }
@@ -159,15 +146,12 @@ export function CreateCourseDialog({
 
       const modules = JSON.parse(data.content);
       setSuggestedModules(modules);
-      toast({
-        title: "Modules suggested",
+      notify.success("Modules suggested", {
         description: `AI has generated ${modules.length} module suggestions`,
       });
     } catch (error: any) {
-      toast({
-        title: "Suggestion failed",
+      notify.error("Suggestion failed", {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setAiLoading(false);
@@ -233,8 +217,7 @@ export function CreateCourseDialog({
         }
       }
 
-      toast({
-        title: "Course created",
+      notify.success("Course created", {
         description: suggestedModules.length > 0 
           ? `Course created with ${suggestedModules.length} modules. You can now add content to them.`
           : "Your course has been created successfully. You can now add modules to it.",
@@ -254,10 +237,8 @@ export function CreateCourseDialog({
       setSuggestedModules([]);
       setAiPrompt("");
     } catch (error: any) {
-      toast({
-        title: "Error creating course",
+      notify.error("Error creating course", {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
