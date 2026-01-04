@@ -451,6 +451,16 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
+      title: "Enterprise & Valuation",
+      icon: TrendingUp,
+      badge: "New",
+      items: [
+        { name: "Enterprise Management", icon: Building2, path: "/admin/enterprise" },
+        { name: "Due Diligence Center", icon: FileCheck, path: "/admin/due-diligence" },
+        { name: "Risk Management", icon: Shield, path: "/admin/risk-management" },
+      ],
+    },
+    {
       title: "Club Projects",
       icon: Layers,
       badge: "New",
