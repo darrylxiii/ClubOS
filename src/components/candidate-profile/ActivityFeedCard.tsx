@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ActivityFeedSkeleton } from "@/components/LoadingSkeletons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Eye, FileText, Send, Calendar, UserCheck } from "lucide-react";
@@ -70,7 +71,7 @@ export const ActivityFeedCard = ({ candidateId }: Props) => {
       <CardContent>
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {loading ? (
-            <p className="text-sm text-muted-foreground">Loading...</p>
+            <ActivityFeedSkeleton />
           ) : activities.length === 0 ? (
             <p className="text-sm text-muted-foreground">No activity yet</p>
           ) : (

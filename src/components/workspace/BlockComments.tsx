@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MessageSkeleton } from "@/components/LoadingSkeletons";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -150,8 +151,9 @@ export function BlockComments({ pageId, blockId, className }: BlockCommentsProps
 
         <div className="max-h-[300px] overflow-y-auto">
           {isLoading ? (
-            <div className="p-4 text-center text-muted-foreground text-sm">
-              Loading...
+            <div className="p-4 space-y-3">
+              <MessageSkeleton />
+              <MessageSkeleton />
             </div>
           ) : comments.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground text-sm">

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { InlineLoadingSkeleton } from "@/components/LoadingSkeletons";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -68,7 +69,7 @@ export function MentionPopover({ open, onOpenChange, onSelect, trigger }: Mentio
           />
           <CommandList>
             <CommandEmpty>
-              {loading ? "Loading..." : "No users found."}
+              {loading ? <InlineLoadingSkeleton /> : "No users found."}
             </CommandEmpty>
             <CommandGroup>
               {filteredUsers.map((u) => (

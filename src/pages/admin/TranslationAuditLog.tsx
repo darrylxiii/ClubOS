@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AdminTableSkeleton } from "@/components/LoadingSkeletons";
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -182,7 +183,7 @@ export default function TranslationAuditLog() {
           <Card>
             <CardContent className="p-0">
               {isLoading ? (
-                <div className="p-8 text-center text-muted-foreground">Loading...</div>
+                <AdminTableSkeleton columns={6} />
               ) : auditLog?.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground">No audit entries found</div>
               ) : (
