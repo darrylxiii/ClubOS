@@ -98,6 +98,7 @@ const Subscription = lazy(() => import("./pages/Subscription"));
 const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
+const AgentDashboard = lazy(() => import("./pages/AgentDashboard"));
 const SupportTicketList = lazy(() => import("./pages/support/SupportTicketList"));
 const SupportTicketNew = lazy(() => import("./pages/support/SupportTicketNew"));
 const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
@@ -299,6 +300,7 @@ const App = () => {
                   <Route path="/subscription/success" element={<SubscriptionSuccess />} />
                   <Route path="/pricing" element={<Pricing />} />
                   <Route path="/expert-marketplace" element={<ExpertMarketplace />} />
+                  <Route path="/agent-dashboard" element={<AgentDashboard />} />
 
                   <Route path="*" element={<NotFound />} />
                 </Route>
