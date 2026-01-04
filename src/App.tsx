@@ -11,6 +11,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { PublicProviders } from "@/contexts/PublicProviders";
 import { ProtectedProviders, ProtectedProvidersLoader } from "@/contexts/ProtectedProviders";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { PostHogProvider } from "@/providers/PostHogProvider";
 import { ProtectedLayout } from "@/components/ProtectedLayout";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { SentryErrorBoundary } from "@/components/SentryErrorBoundary";
@@ -137,6 +138,7 @@ const App = () => {
           <TranslationProvider>
           <BrowserRouter>
             <AuthProvider>
+              <PostHogProvider>
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
@@ -302,6 +304,7 @@ const App = () => {
                 </Route>
               </Routes>
               </TooltipProvider>
+              </PostHogProvider>
             </AuthProvider>
           </BrowserRouter>
         </TranslationProvider>

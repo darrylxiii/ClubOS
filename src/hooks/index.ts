@@ -33,8 +33,17 @@ export { usePWAUpdate } from './usePWAUpdate';
 export { useInstallPrompt } from './useInstallPrompt';
 export { useHaptics } from './useHaptics';
 
-// Feature Flags
-export { useFeatureFlags } from './useFeatureFlags';
+// Feature Flags (PostHog)
+export { 
+  useFeatureFlag, 
+  useFeatureFlagVariant, 
+  useFeatureFlagPayload,
+  useFeatureFlags,
+} from './useFeatureFlag';
+export type { FeatureFlagKey } from './useFeatureFlag';
+
+// Legacy Feature Flags (deprecated)
+export { useFeatureFlags as useLegacyFeatureFlags } from './useFeatureFlags';
 
 // Notifications
 export { useNotifications } from './useNotifications';
