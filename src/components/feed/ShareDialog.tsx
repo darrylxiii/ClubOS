@@ -88,8 +88,13 @@ export function ShareDialog({ open, onOpenChange, shareUrl, shareText, onShare }
             <label className="text-sm font-medium">Link</label>
             <div className="flex gap-2">
               <Input value={shareUrl} readOnly className="flex-1" />
-              <Button size="icon" variant="outline" onClick={handleCopy}>
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              <Button 
+                size="icon" 
+                variant="outline" 
+                onClick={handleCopy}
+                aria-label={copied ? "Copied to clipboard" : "Copy link to clipboard"}
+              >
+                {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
               </Button>
             </div>
           </div>

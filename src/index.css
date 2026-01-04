@@ -216,7 +216,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --secondary-foreground: 0 0% 10%;
 
     --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 40%;
+    --muted-foreground: 0 0% 35%; /* Fixed: was 40%, now 35% for 4.5:1 contrast ratio */
 
     --accent: 217 91% 60%;
     --accent-foreground: 210 40% 98%;
@@ -227,7 +227,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --success: 142 65% 50%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 0 0% 40%;
+    --warning: 38 92% 50%; /* Fixed: changed from gray to amber for semantic clarity */
     --warning-foreground: 0 0% 10%;
 
     --destructive: 0 75% 62%;
@@ -257,10 +257,10 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --shadow-inner: inset 0 1px 3px hsl(0 0% 0% / 0.04);
     --shadow-glow: 0 0 24px hsl(0 0% 70% / 0.25), 0 0 48px hsl(0 0% 80% / 0.12);
 
-    /* Blur intensities */
-    --blur-glass: 24px;
-    --blur-glass-strong: 40px;
-    --blur-glass-subtle: 12px;
+    /* Blur intensities - reduced for mobile performance */
+    --blur-glass: 16px; /* Reduced from 24px for better mobile performance */
+    --blur-glass-strong: 24px; /* Reduced from 40px */
+    --blur-glass-subtle: 8px; /* Reduced from 12px */
   }
 
   .dark {
@@ -281,7 +281,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --secondary-foreground: 0 0% 98%;
 
     --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 60%;
+    --muted-foreground: 0 0% 65%; /* Fixed: was 60%, now 65% for 4.5:1 contrast ratio in dark mode */
 
     --accent: 217 91% 60%;
     --accent-foreground: 210 40% 98%;
@@ -292,7 +292,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --success: 142 65% 55%;
     --success-foreground: 0 0% 10%;
 
-    --warning: 0 0% 60%;
+    --warning: 38 92% 55%; /* Fixed: changed from gray to amber for semantic clarity */
     --warning-foreground: 0 0% 10%;
 
     --destructive: 0 75% 65%;
@@ -788,6 +788,24 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     select {
       font-size: 16px;
       /* Prevent iOS zoom on focus */
+    }
+  }
+
+  /* Reduced Motion Support - Accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    
+    .animate-pulse,
+    .animate-spin,
+    .animate-bounce {
+      animation: none !important;
     }
   }
 }

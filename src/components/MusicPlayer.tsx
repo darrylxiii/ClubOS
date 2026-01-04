@@ -41,10 +41,15 @@ export const MusicPlayer = () => {
       
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative group">
-            <Music className="h-5 w-5 transition-all group-hover:scale-110" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative group"
+            aria-label={hasLiveSession ? "Music player (live session active)" : "Music player"}
+          >
+            <Music className="h-5 w-5 transition-all group-hover:scale-110" aria-hidden="true" />
             {hasLiveSession && (
-              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-background animate-pulse" />
+              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-background animate-pulse" aria-hidden="true" />
             )}
           </Button>
         </PopoverTrigger>
