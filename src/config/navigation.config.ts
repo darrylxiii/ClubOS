@@ -164,6 +164,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Briefcase,
       items: [
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
+        { name: "Jobs Map", icon: Globe, path: "/jobs/map" },
         { name: "Applications", icon: FileText, path: "/applications" },
         { name: "Companies", icon: Building2, path: "/companies" },
         { name: "Salary Insights", icon: TrendingUp, path: "/salary-insights" },
@@ -322,6 +323,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Briefcase,
       items: [
         { name: "All Jobs", icon: Briefcase, path: "/jobs" },
+        { name: "Jobs Map", icon: Globe, path: "/jobs/map" },
         { name: "Closed Jobs", icon: Archive, path: "/admin/closed-jobs" },
         { name: "All Applications", icon: FileText, path: "/applications" },
         { name: "All Companies", icon: Building, path: "/companies" },
