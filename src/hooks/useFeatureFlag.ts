@@ -13,16 +13,34 @@ import {
 } from '@/lib/posthog';
 
 // Define known feature flags for type safety
+// These match PostHog dashboard flags for TQC
 export type FeatureFlagKey =
-  | 'pilot_enabled'
-  | 'dossier_sharing_v2'
-  | 'ghost_mode'
-  | 'drops_engine'
-  | 'quin_enhanced'
-  | 'club_sync_v2'
-  | 'ai_matching'
-  | 'new_onboarding'
-  | 'dark_mode_v2'
+  // Core feature rollouts
+  | 'pilot_enabled'           // Club Pilot task engine
+  | 'quin_v2'                 // Enhanced QUIN AI
+  | 'quin_enhanced'           // QUIN improvements (legacy)
+  | 'dossier_sharing_v2'      // New dossier experience
+  | 'ghost_mode'              // Employer visibility controls
+  | 'drops_engine'            // New job drops system
+  | 'club_sync_v2'            // Auto-apply improvements
+  
+  // AI & Matching
+  | 'ai_matching'             // AI-powered matching
+  | 'interview_coach_ai'      // AI interview prep
+  | 'smart_matching_v2'       // Enhanced matching algorithm
+  
+  // Communication
+  | 'whatsapp_automation'     // WhatsApp message automation
+  
+  // UI/UX experiments
+  | 'new_onboarding'          // Redesigned onboarding
+  | 'dark_mode_v2'            // Dark mode improvements
+  | 'compact_job_cards'       // Compact job card design
+  
+  // Monetization
+  | 'premium_features'        // Premium tier features
+  | 'referral_rewards_v2'     // Enhanced referral system
+  
   | string; // Allow custom flags
 
 interface UseFeatureFlagResult {
