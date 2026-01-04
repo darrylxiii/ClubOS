@@ -1946,6 +1946,8 @@ export type Database = {
           match_factors: Json | null
           match_score: number | null
           position: string
+          probation_end_date: string | null
+          probation_status: string | null
           source_context: Json | null
           sourced_by: string | null
           stages: Json
@@ -1974,6 +1976,8 @@ export type Database = {
           match_factors?: Json | null
           match_score?: number | null
           position: string
+          probation_end_date?: string | null
+          probation_status?: string | null
           source_context?: Json | null
           sourced_by?: string | null
           stages?: Json
@@ -2002,6 +2006,8 @@ export type Database = {
           match_factors?: Json | null
           match_score?: number | null
           position?: string
+          probation_end_date?: string | null
+          probation_status?: string | null
           source_context?: Json | null
           sourced_by?: string | null
           stages?: Json
@@ -5273,14 +5279,17 @@ export type Database = {
           created_by: string | null
           equity_percentage: number | null
           expires_at: string | null
+          generated_letter_url: string | null
           id: string
           job_id: string | null
+          letter_generated_at: string | null
           market_competitiveness_score: number | null
           notes: string | null
           responded_at: string | null
           salary_percentile: number | null
           sent_at: string | null
           status: string | null
+          template_id: string | null
           total_compensation: number | null
           updated_at: string | null
         }
@@ -5295,14 +5304,17 @@ export type Database = {
           created_by?: string | null
           equity_percentage?: number | null
           expires_at?: string | null
+          generated_letter_url?: string | null
           id?: string
           job_id?: string | null
+          letter_generated_at?: string | null
           market_competitiveness_score?: number | null
           notes?: string | null
           responded_at?: string | null
           salary_percentile?: number | null
           sent_at?: string | null
           status?: string | null
+          template_id?: string | null
           total_compensation?: number | null
           updated_at?: string | null
         }
@@ -5317,14 +5329,17 @@ export type Database = {
           created_by?: string | null
           equity_percentage?: number | null
           expires_at?: string | null
+          generated_letter_url?: string | null
           id?: string
           job_id?: string | null
+          letter_generated_at?: string | null
           market_competitiveness_score?: number | null
           notes?: string | null
           responded_at?: string | null
           salary_percentile?: number | null
           sent_at?: string | null
           status?: string | null
+          template_id?: string | null
           total_compensation?: number | null
           updated_at?: string | null
         }
@@ -5369,6 +5384,13 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_offers_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "offer_letter_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -5524,6 +5546,7 @@ export type Database = {
           ai_summary: string | null
           application_status: string | null
           assigned_strategist_id: string | null
+          auto_reengagement_enabled: boolean | null
           available_hours_per_week: number | null
           avatar_url: string | null
           blocked_companies: Json | null
@@ -5573,6 +5596,7 @@ export type Database = {
           last_interview_at: string | null
           last_invite_sent_at: string | null
           last_profile_update: string | null
+          last_reengagement_at: string | null
           linkedin_profile_data: Json | null
           linkedin_url: string | null
           merged_at: string | null
@@ -5613,6 +5637,7 @@ export type Database = {
           ai_summary?: string | null
           application_status?: string | null
           assigned_strategist_id?: string | null
+          auto_reengagement_enabled?: boolean | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
@@ -5662,6 +5687,7 @@ export type Database = {
           last_interview_at?: string | null
           last_invite_sent_at?: string | null
           last_profile_update?: string | null
+          last_reengagement_at?: string | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
           merged_at?: string | null
@@ -5702,6 +5728,7 @@ export type Database = {
           ai_summary?: string | null
           application_status?: string | null
           assigned_strategist_id?: string | null
+          auto_reengagement_enabled?: boolean | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
@@ -5751,6 +5778,7 @@ export type Database = {
           last_interview_at?: string | null
           last_invite_sent_at?: string | null
           last_profile_update?: string | null
+          last_reengagement_at?: string | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
           merged_at?: string | null
@@ -25134,6 +25162,63 @@ export type Database = {
           },
         ]
       }
+      offer_letter_templates: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          template_content: string
+          template_variables: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          template_content: string
+          template_variables?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          template_content?: string
+          template_variables?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_letter_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_letter_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_checklists: {
         Row: {
           category: string
@@ -28834,6 +28919,111 @@ export type Database = {
         }
         Relationships: []
       }
+      probation_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_date: string
+          alert_type: string
+          application_id: string | null
+          candidate_id: string | null
+          company_id: string | null
+          created_at: string | null
+          id: string
+          is_acknowledged: boolean | null
+          job_id: string | null
+          notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_date: string
+          alert_type: string
+          application_id?: string | null
+          candidate_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_acknowledged?: boolean | null
+          job_id?: string | null
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_date?: string
+          alert_type?: string
+          application_id?: string | null
+          candidate_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_acknowledged?: boolean | null
+          job_id?: string | null
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "probation_alerts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "probation_alerts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "probation_alerts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "probation_alerts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "probation_alerts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "probation_alerts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "probation_alerts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "probation_alerts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       productivity_privacy_settings: {
         Row: {
           activity_tracking_enabled: boolean
@@ -31587,6 +31777,73 @@ export type Database = {
             columns: ["target_id"]
             isOneToOne: false
             referencedRelation: "employee_targets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reengagement_campaigns: {
+        Row: {
+          campaign_type: string
+          candidate_id: string | null
+          created_at: string | null
+          email_clicked_at: string | null
+          email_opened_at: string | null
+          email_sent_at: string | null
+          id: string
+          metadata: Json | null
+          reactivated: boolean | null
+          response_received_at: string | null
+          triggered_at: string | null
+          triggered_by: string | null
+        }
+        Insert: {
+          campaign_type: string
+          candidate_id?: string | null
+          created_at?: string | null
+          email_clicked_at?: string | null
+          email_opened_at?: string | null
+          email_sent_at?: string | null
+          id?: string
+          metadata?: Json | null
+          reactivated?: boolean | null
+          response_received_at?: string | null
+          triggered_at?: string | null
+          triggered_by?: string | null
+        }
+        Update: {
+          campaign_type?: string
+          candidate_id?: string | null
+          created_at?: string | null
+          email_clicked_at?: string | null
+          email_opened_at?: string | null
+          email_sent_at?: string | null
+          id?: string
+          metadata?: Json | null
+          reactivated?: boolean | null
+          response_received_at?: string | null
+          triggered_at?: string | null
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reengagement_campaigns_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reengagement_campaigns_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "reengagement_campaigns_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
           },
         ]
@@ -35039,6 +35296,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      strategist_performance_snapshots: {
+        Row: {
+          applications_sourced: number | null
+          avg_time_to_fill: number | null
+          candidate_nps_avg: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          deals_closed: number | null
+          deals_in_pipeline: number | null
+          id: string
+          interviews_scheduled: number | null
+          metadata: Json | null
+          offers_accepted: number | null
+          offers_extended: number | null
+          period_type: string
+          placements_count: number | null
+          rank_position: number | null
+          ranking_score: number | null
+          revenue_generated: number | null
+          snapshot_date: string
+          strategist_id: string
+        }
+        Insert: {
+          applications_sourced?: number | null
+          avg_time_to_fill?: number | null
+          candidate_nps_avg?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          deals_closed?: number | null
+          deals_in_pipeline?: number | null
+          id?: string
+          interviews_scheduled?: number | null
+          metadata?: Json | null
+          offers_accepted?: number | null
+          offers_extended?: number | null
+          period_type: string
+          placements_count?: number | null
+          rank_position?: number | null
+          ranking_score?: number | null
+          revenue_generated?: number | null
+          snapshot_date?: string
+          strategist_id: string
+        }
+        Update: {
+          applications_sourced?: number | null
+          avg_time_to_fill?: number | null
+          candidate_nps_avg?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          deals_closed?: number | null
+          deals_in_pipeline?: number | null
+          id?: string
+          interviews_scheduled?: number | null
+          metadata?: Json | null
+          offers_accepted?: number | null
+          offers_extended?: number | null
+          period_type?: string
+          placements_count?: number | null
+          rank_position?: number | null
+          ranking_score?: number | null
+          revenue_generated?: number | null
+          snapshot_date?: string
+          strategist_id?: string
+        }
+        Relationships: []
       }
       stripe_webhook_events: {
         Row: {
@@ -43163,6 +43486,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      calculate_strategist_ranking_score: {
+        Args: {
+          p_avg_time_to_fill: number
+          p_candidate_nps: number
+          p_conversion_rate: number
+          p_placements: number
+          p_revenue: number
+        }
+        Returns: number
+      }
       calculate_user_engagement_score: {
         Args: { p_days?: number; p_user_id: string }
         Returns: number
@@ -43369,6 +43702,7 @@ export type Database = {
       }
       generate_meeting_code: { Args: never; Returns: string }
       generate_pmr_code: { Args: { p_user_id: string }; Returns: string }
+      generate_probation_alerts: { Args: never; Returns: undefined }
       generate_profile_slug: { Args: { name: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_share_token: { Args: never; Returns: string }
