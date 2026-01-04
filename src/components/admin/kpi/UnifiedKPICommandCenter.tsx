@@ -14,6 +14,7 @@ import { AlertConfigDialog, type AlertThreshold } from './AlertConfigDialog';
 import { CostOverview } from './costs/CostOverview';
 import { FinancialKPISection } from './FinancialKPISection';
 import { exportToCSV, exportToPDF } from './KPIExport';
+import { usePinnedKPIs } from '@/hooks/usePinnedKPIs';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -34,11 +35,13 @@ export function UnifiedKPICommandCenter() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [isComparing, setIsComparing] = useState(false);
-  const [pinnedKPIIds, setPinnedKPIIds] = useState<Set<string>>(new Set());
   const [selectedKPI, setSelectedKPI] = useState<UnifiedKPI | null>(null);
   const [alertKPI, setAlertKPI] = useState<UnifiedKPI | null>(null);
   const [alertThresholds, setAlertThresholds] = useState<Record<string, AlertThreshold>>({});
   const isMobile = useIsMobile();
+
+  // Use persistent pinned KPIs hook
+  const { pinnedKPIIds, isPinned, togglePin: persistentTogglePin, isLoading: isPinsLoading } = usePinnedKPIs();
 
   const {
     isLoading,
@@ -84,25 +87,26 @@ export function UnifiedKPICommandCenter() {
     onTarget: allKPIs.filter(k => k.status === 'success').length,
   }), [allKPIs]);
 
-  // Pinned KPIs
+  // Pinned KPIs - convert array to set for lookup
+  const pinnedSet = useMemo(() => new Set(pinnedKPIIds), [pinnedKPIIds]);
   const pinnedKPIs = useMemo(() => 
-    allKPIs.filter(kpi => pinnedKPIIds.has(kpi.id)),
-    [allKPIs, pinnedKPIIds]
+    allKPIs.filter(kpi => pinnedSet.has(kpi.id)),
+    [allKPIs, pinnedSet]
   );
 
-  const togglePin = useCallback((kpiId: string) => {
-    setPinnedKPIIds(prev => {
-      const next = new Set(prev);
-      if (next.has(kpiId)) {
-        next.delete(kpiId);
-        toast.success('KPI unpinned');
-      } else {
-        next.add(kpiId);
-        toast.success('KPI pinned to dashboard');
-      }
-      return next;
-    });
-  }, []);
+  const togglePin = useCallback((kpiId: string, domain?: string) => {
+    // Find the KPI's domain if not provided
+    const kpi = allKPIs.find(k => k.id === kpiId);
+    const kpiDomain = domain || kpi?.domain || 'operations';
+    
+    persistentTogglePin(kpiId, kpiDomain);
+    
+    if (isPinned(kpiId)) {
+      toast.success('KPI unpinned');
+    } else {
+      toast.success('KPI pinned to dashboard');
+    }
+  }, [allKPIs, persistentTogglePin, isPinned]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -318,8 +322,8 @@ export function UnifiedKPICommandCenter() {
         open={!!selectedKPI}
         onOpenChange={(open) => !open && setSelectedKPI(null)}
         kpi={selectedKPI}
-        isPinned={selectedKPI ? pinnedKPIIds.has(selectedKPI.id) : false}
-        onTogglePin={() => selectedKPI && togglePin(selectedKPI.id)}
+        isPinned={selectedKPI ? isPinned(selectedKPI.id) : false}
+        onTogglePin={() => selectedKPI && togglePin(selectedKPI.id, selectedKPI.domain)}
         onConfigureAlert={() => {
           setAlertKPI(selectedKPI);
           setSelectedKPI(null);
