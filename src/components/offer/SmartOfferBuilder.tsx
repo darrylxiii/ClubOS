@@ -13,9 +13,10 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Sparkles, TrendingUp, AlertTriangle, CheckCircle, DollarSign, Target, Lightbulb } from 'lucide-react';
+import { Loader2, Sparkles, TrendingUp, AlertTriangle, CheckCircle, DollarSign, Target, Lightbulb, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { OfferLetterGenerator } from './OfferLetterGenerator';
 
 interface SmartOfferBuilderProps {
   candidateId: string;
@@ -60,7 +61,9 @@ export function SmartOfferBuilder({
 }: SmartOfferBuilderProps) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savedOfferId, setSavedOfferId] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<OfferRecommendation | null>(null);
+  const [candidateInfo, setCandidateInfo] = useState<{ name: string; jobTitle: string; companyName: string; companyId: string } | null>(null);
   
   const [baseSalary, setBaseSalary] = useState(0);
   const [bonusPercentage, setBonusPercentage] = useState(10);
@@ -71,7 +74,28 @@ export function SmartOfferBuilder({
 
   useEffect(() => {
     generateRecommendation();
+    fetchCandidateInfo();
   }, [candidateId, jobId]);
+
+  const fetchCandidateInfo = async () => {
+    try {
+      const [candidateRes, jobRes] = await Promise.all([
+        supabase.from('candidate_profiles').select('full_name').eq('id', candidateId).single(),
+        supabase.from('jobs').select('title, company_id, companies(name)').eq('id', jobId).single()
+      ]);
+
+      if (candidateRes.data && jobRes.data) {
+        setCandidateInfo({
+          name: candidateRes.data.full_name || 'Candidate',
+          jobTitle: jobRes.data.title || 'Position',
+          companyName: (jobRes.data.companies as any)?.name || 'Company',
+          companyId: jobRes.data.company_id || '',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching candidate info:', error);
+    }
+  };
 
   const generateRecommendation = async () => {
     setLoading(true);
@@ -130,6 +154,7 @@ export function SmartOfferBuilder({
         description: 'Offer draft has been created successfully',
       });
 
+      setSavedOfferId(data.id);
       onOfferCreated?.(data.id);
     } catch (error) {
       console.error('Error saving offer:', error);
@@ -390,6 +415,23 @@ export function SmartOfferBuilder({
               Save Offer Draft
             </Button>
           </div>
+
+          {/* Offer Letter Generator - Only show after saving */}
+          {savedOfferId && candidateInfo && (
+            <>
+              <Separator />
+              <OfferLetterGenerator 
+                offerId={savedOfferId}
+                candidateName={candidateInfo.name}
+                jobTitle={candidateInfo.jobTitle}
+                companyName={candidateInfo.companyName}
+                companyId={candidateInfo.companyId}
+                baseSalary={baseSalary}
+                bonusPercentage={bonusPercentage}
+                currency={recommendation?.currency || 'EUR'}
+              />
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

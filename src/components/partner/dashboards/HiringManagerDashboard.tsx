@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Target, Calendar, MessageSquare, TrendingDown } from "lucide-react";
+import { Target, Calendar, MessageSquare, TrendingDown, Users, Heart } from "lucide-react";
 import { PredictiveAnalyticsDashboard } from "@/components/intelligence/PredictiveAnalyticsDashboard";
 import { UpcomingInterviewsWidget } from "@/components/partner/UpcomingInterviewsWidget";
+import { ClientHealthDashboard } from "@/components/client-health/ClientHealthDashboard";
+import { StrategistLeaderboard } from "@/components/leaderboard/StrategistLeaderboard";
 
 interface HiringManagerDashboardProps {
   jobId: string;
@@ -74,6 +76,12 @@ export function HiringManagerDashboard({ jobId }: HiringManagerDashboardProps) {
 
       {/* Predictive Analytics */}
       <PredictiveAnalyticsDashboard jobId={jobId} />
+
+      {/* Client Health & Team Performance */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ClientHealthDashboard />
+        <StrategistLeaderboard />
+      </div>
     </div>
   );
 }

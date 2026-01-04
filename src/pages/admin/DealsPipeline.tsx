@@ -6,10 +6,13 @@ import { PipelineInsights } from "@/components/deals/PipelineInsights";
 import { ProjectedEarnings } from "@/components/financial/ProjectedEarnings";
 import { RevenueIntelligenceDashboard } from "@/components/deals/RevenueIntelligenceDashboard";
 import { RevenuePreCalculation } from "@/components/deals/RevenuePreCalculation";
+import { ProbationTracker } from "@/components/probation/ProbationTracker";
+import { StrategistLeaderboard } from "@/components/leaderboard/StrategistLeaderboard";
+import { ClientHealthDashboard } from "@/components/client-health/ClientHealthDashboard";
 import { RoleGate } from "@/components/RoleGate";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Target, TrendingUp, BarChart3, Lightbulb, Settings, Building2 } from "lucide-react";
+import { Target, TrendingUp, BarChart3, Lightbulb, Settings, Building2, Shield, Users, Heart } from "lucide-react";
 import { useDealPipeline, useDealStages } from "@/hooks/useDealPipeline";
 import { useNavigate } from "react-router-dom";
 
@@ -45,7 +48,7 @@ export default function DealsPipeline() {
 
         {/* Tabs */}
         <Tabs defaultValue="pipeline" className="space-y-6">
-          <TabsList className="grid w-full max-w-3xl grid-cols-5 bg-muted/50">
+          <TabsList className="grid w-full max-w-5xl grid-cols-8 bg-muted/50">
             <TabsTrigger value="pipeline" className="flex items-center gap-2">
               <Target className="h-4 w-4" />
               Pipeline
@@ -57,6 +60,18 @@ export default function DealsPipeline() {
             <TabsTrigger value="forecasting" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Forecasting
+            </TabsTrigger>
+            <TabsTrigger value="probation" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Probation
+            </TabsTrigger>
+            <TabsTrigger value="leaderboard" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Team
+            </TabsTrigger>
+            <TabsTrigger value="client-health" className="flex items-center gap-2">
+              <Heart className="h-4 w-4" />
+              Clients
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -79,6 +94,18 @@ export default function DealsPipeline() {
           <TabsContent value="forecasting" className="space-y-6">
             <RevenueIntelligenceDashboard />
             <ProjectedEarnings />
+          </TabsContent>
+
+          <TabsContent value="probation" className="space-y-6">
+            <ProbationTracker />
+          </TabsContent>
+
+          <TabsContent value="leaderboard" className="space-y-6">
+            <StrategistLeaderboard />
+          </TabsContent>
+
+          <TabsContent value="client-health" className="space-y-6">
+            <ClientHealthDashboard />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
