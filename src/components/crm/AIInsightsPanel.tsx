@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface OutreachInsight {
   id: string;
@@ -33,7 +33,6 @@ interface OutreachInsight {
 }
 
 export function AIInsightsPanel() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [generating, setGenerating] = useState(false);
 
@@ -61,18 +60,11 @@ export function AIInsightsPanel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['outreach-insights'] });
-      toast({
-        title: 'Insights Generated',
-        description: 'New AI insights have been generated.'
-      });
+      notify.success('Insights Generated', { description: 'New AI insights have been generated.' });
       setGenerating(false);
     },
     onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to generate insights.',
-        variant: 'destructive'
-      });
+      notify.error('Failed to generate insights');
       setGenerating(false);
     }
   });

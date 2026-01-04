@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MatchScoreBreakdown } from "./MatchScoreBreakdown";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { Loader2 } from "lucide-react";
 
 interface MatchScoreDialogProps {
@@ -26,7 +26,6 @@ export const MatchScoreDialog = ({
 }: MatchScoreDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [breakdown, setBreakdown] = useState<any>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (open && !breakdown) {
@@ -72,11 +71,7 @@ export const MatchScoreDialog = ({
       }
     } catch (error: any) {
       console.error('Error fetching match breakdown:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load match breakdown",
-        variant: "destructive",
-      });
+      notify.error(error.message || "Failed to load match breakdown");
     } finally {
       setLoading(false);
     }

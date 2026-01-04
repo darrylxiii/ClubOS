@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface AccountHealth {
   id: string;
@@ -33,7 +33,6 @@ interface AccountHealth {
 }
 
 export function AccountHealthDashboard() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [syncing, setSyncing] = useState(false);
 
@@ -59,18 +58,11 @@ export function AccountHealthDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['account-health'] });
-      toast({
-        title: 'Accounts Synced',
-        description: 'Email account health data has been updated.'
-      });
+      notify.success('Accounts Synced', { description: 'Email account health data has been updated.' });
       setSyncing(false);
     },
     onError: () => {
-      toast({
-        title: 'Sync Failed',
-        description: 'Could not sync account health data.',
-        variant: 'destructive'
-      });
+      notify.error('Sync Failed', { description: 'Could not sync account health data.' });
       setSyncing(false);
     }
   });

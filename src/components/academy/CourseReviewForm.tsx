@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface CourseReviewFormProps {
   open: boolean;
@@ -28,15 +28,10 @@ export const CourseReviewForm = memo<CourseReviewFormProps>(({
   const [reviewText, setReviewText] = useState('');
   const [wouldRecommend, setWouldRecommend] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const { toast } = useToast();
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      toast({
-        title: 'Rating required',
-        description: 'Please select a star rating',
-        variant: 'destructive',
-      });
+      notify.warning('Please select a star rating');
       return;
     }
 
@@ -58,10 +53,7 @@ export const CourseReviewForm = memo<CourseReviewFormProps>(({
 
       if (error) throw error;
 
-      toast({
-        title: 'Review submitted',
-        description: 'Thank you for your feedback!',
-      });
+      notify.success('Thank you for your feedback!');
 
       onReviewSubmitted?.();
       onOpenChange(false);
@@ -72,11 +64,7 @@ export const CourseReviewForm = memo<CourseReviewFormProps>(({
       setWouldRecommend(true);
     } catch (error) {
       console.error('Error submitting review:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to submit review. You may have already reviewed this course.',
-        variant: 'destructive',
-      });
+      notify.error('Failed to submit review', { description: 'You may have already reviewed this course.' });
     } finally {
       setSubmitting(false);
     }

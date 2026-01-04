@@ -3,7 +3,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { Bookmark, Save, Loader2 } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 
@@ -21,7 +21,6 @@ export const NoteEditor = memo<NoteEditorProps>(({
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const { toast } = useToast();
   const debouncedContent = useDebounce(content, 2000);
 
   useEffect(() => {
@@ -72,20 +71,13 @@ export const NoteEditor = memo<NoteEditorProps>(({
 
       setLastSaved(new Date());
       if (showToast) {
-        toast({
-          title: 'Note saved',
-          description: 'Your note has been saved successfully',
-        });
+        notify.success('Note saved');
       }
       onSaved?.();
     } catch (error) {
       console.error('Error saving note:', error);
       if (showToast) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save note',
-          variant: 'destructive',
-        });
+        notify.error('Failed to save note');
       }
     } finally {
       setSaving(false);
@@ -105,10 +97,7 @@ export const NoteEditor = memo<NoteEditorProps>(({
         is_bookmark: true,
       });
 
-      toast({
-        title: 'Bookmark added',
-        description: 'Video position bookmarked',
-      });
+      notify.success('Bookmark added');
     } catch (error) {
       console.error('Error adding bookmark:', error);
     }

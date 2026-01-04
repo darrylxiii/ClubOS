@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown, Minus, TrendingUp, TrendingDown } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { cn } from '@/lib/utils';
 
 interface Vote {
@@ -36,7 +36,6 @@ export function InterviewerVotingPanel({
   const [votes, setVotes] = useState<Vote[]>([]);
   const [myVote, setMyVote] = useState<string | null>(null);
   const [voting, setVoting] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     loadVotes();
@@ -94,17 +93,10 @@ export function InterviewerVotingPanel({
     });
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to cast vote',
-        variant: 'destructive',
-      });
+      notify.error('Failed to cast vote');
     } else {
       setMyVote(voteType);
-      toast({
-        title: 'Vote Recorded',
-        description: 'Your vote has been saved',
-      });
+      notify.success('Vote recorded');
     }
     setVoting(false);
   };

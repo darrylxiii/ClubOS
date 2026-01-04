@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { Clock, RefreshCw, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface SendTimeData {
   id: string;
@@ -25,7 +25,6 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 export function SendTimeHeatmap() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [metric, setMetric] = useState<'open_rate' | 'reply_rate'>('reply_rate');
   const [calculating, setCalculating] = useState(false);
@@ -51,18 +50,11 @@ export function SendTimeHeatmap() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['send-time-analytics'] });
-      toast({
-        title: 'Analysis Complete',
-        description: 'Send time optimization data has been updated.'
-      });
+      notify.success('Analysis Complete', { description: 'Send time optimization data has been updated.' });
       setCalculating(false);
     },
     onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to calculate optimal send times.',
-        variant: 'destructive'
-      });
+      notify.error('Failed to calculate optimal send times');
       setCalculating(false);
     }
   });
