@@ -8,8 +8,8 @@ This document tracks TODOs and technical debt items that need to be addressed. I
 
 | ID | File | Line | Description | Impact | Est. Effort |
 |----|------|------|-------------|--------|-------------|
-| TD-001 | `src/services/adminCandidateService.ts` | 170 | Implement proper strategist fetching in getStrategists() | Critical for admin workflow | 2h |
-| TD-002 | `src/pages/ContractDetailPage.tsx` | 115 | Trigger payment release via edge function on milestone approval | Blocks contract payments | 4h |
+| ~~TD-001~~ | ~~`src/services/adminCandidateService.ts`~~ | ~~170~~ | ~~Implement proper strategist fetching in getStrategists()~~ | ~~Critical for admin workflow~~ | ~~2h~~ | ✅ RESOLVED |
+| ~~TD-002~~ | ~~`src/pages/ContractDetailPage.tsx`~~ | ~~115~~ | ~~Trigger payment release via edge function on milestone approval~~ | ~~Blocks contract payments~~ | ~~4h~~ | ✅ RESOLVED |
 
 ---
 

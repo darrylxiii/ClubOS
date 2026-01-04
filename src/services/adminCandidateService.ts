@@ -186,33 +186,43 @@ export const adminCandidateService = {
     return { data, error };
   },
 
-  // Get strategists
+  // Get strategists - TD-001 FIXED: Optimized with better error handling
   async getStrategists() {
     try {
+      // Get all strategist user IDs
       const { data: strategistRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id')
         .eq('role', 'strategist');
 
-      if (rolesError) throw rolesError;
+      if (rolesError) {
+        console.error('Error fetching strategist roles:', rolesError);
+        return { data: [], error: rolesError };
+      }
+
       if (!strategistRoles || strategistRoles.length === 0) {
         return { data: [], error: null };
       }
 
-      const userIds = strategistRoles.map(r => r.user_id);
+      const userIds = strategistRoles.map(r => r.user_id).filter(Boolean);
+      
+      if (userIds.length === 0) {
+        return { data: [], error: null };
+      }
 
+      // Fetch profiles for strategists with specific fields
       const { data: strategists, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name, email, avatar_url, current_title, company_id')
         .in('id', userIds)
         .order('full_name');
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('Error fetching strategist profiles:', profilesError);
+        return { data: [], error: profilesError };
+      }
 
-      return {
-        data: strategists || [],
-        error: null
-      };
+      return { data: strategists || [], error: null };
     } catch (error: any) {
       console.error('Error fetching strategists:', error);
       return { data: [], error };
