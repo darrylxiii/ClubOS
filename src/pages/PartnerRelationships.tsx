@@ -4,7 +4,7 @@ import { Brain, RefreshCw, Download, Settings } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/notify';
 import { useNavigate } from 'react-router-dom';
 import { usePartnerRelationships } from '@/hooks/usePartnerRelationships';
 import { PartnerRelationshipStats } from '@/components/communication/PartnerRelationshipStats';

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { migrateToast as toast } from "@/lib/notify";
 import { ArrowRight, ArrowLeft, CheckCircle, User, Briefcase, Target, DollarSign, MapPin, Phone, Upload, X, Mail, Lock, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
@@ -48,7 +48,7 @@ export function CandidateOnboardingSteps() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { toast } = useToast();
+  
   const navigate = useNavigate();
   
   const { 

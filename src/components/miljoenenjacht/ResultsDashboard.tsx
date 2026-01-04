@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { PsychologicalProfile, GameOutcome, JobMatch } from '@/types/miljoenenjacht';
 import { formatCurrency } from '@/lib/miljoenenjacht/utils';
 import { Download, Share2, Trophy, TrendingUp, Brain, Target } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { migrateToast as toast } from '@/lib/notify';
 import { useNavigate } from 'react-router-dom';
 
 interface ResultsDashboardProps {

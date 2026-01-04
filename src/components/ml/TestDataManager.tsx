@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/notify';
 import { supabase } from '@/integrations/supabase/client';
 
 export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void }) {

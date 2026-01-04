@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/notify';
 import { supabase } from '@/integrations/supabase/client';
 import { useMLMatching } from '@/hooks/useMLMatching';
 import { useNavigate, useSearchParams } from 'react-router-dom';

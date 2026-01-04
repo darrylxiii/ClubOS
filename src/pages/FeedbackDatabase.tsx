@@ -30,7 +30,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/notify';
 import { useRole } from '@/contexts/RoleContext';
 import { formatDistanceToNow, subDays, startOfDay, format } from 'date-fns';
 import { 

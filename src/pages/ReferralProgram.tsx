@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
+import { migrateToast as toast } from "@/lib/notify";
 import { Loader2, Gift, Users, Building2, TrendingUp, Copy, Check, Euro, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
