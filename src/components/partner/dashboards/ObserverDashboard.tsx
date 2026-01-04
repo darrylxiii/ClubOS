@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Eye, Bell } from "lucide-react";
+import { Eye, Bell, TrendingUp, Users } from "lucide-react";
+import { ProbationTracker } from "@/components/probation/ProbationTracker";
 
 interface ObserverDashboardProps {
   jobId: string;
@@ -34,6 +35,20 @@ export function ObserverDashboard({ jobId }: ObserverDashboardProps) {
         </CardHeader>
         <CardContent>
           <p className="text-sm">You'll receive a digest every Monday with key updates</p>
+        </CardContent>
+      </Card>
+
+      {/* Probation Monitoring - Read Only */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Placement Tracking
+          </CardTitle>
+          <CardDescription>Monitor probation periods and guarantees</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ProbationTracker />
         </CardContent>
       </Card>
     </div>

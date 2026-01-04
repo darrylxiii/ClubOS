@@ -35,6 +35,8 @@ import { EditCandidateDialog } from "@/components/partner/EditCandidateDialog";
 import { CandidateSettingsViewer } from "@/components/admin/CandidateSettingsViewer";
 import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
 import { AssessmentHistory } from "@/components/candidate/AssessmentHistory";
+import { TalentPoolTags } from "@/components/candidates/TalentPoolTags";
+import { CandidateNotesPanel } from "@/components/candidates/CandidateNotesPanel";
 
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>();
@@ -342,6 +344,14 @@ export default function CandidateProfile() {
             {/* Score Badges - Admin View Only */}
             {isTeamView && (
               <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4">
+                {/* Talent Pool Tags */}
+                <TalentPoolTags 
+                  candidateId={id!} 
+                  initialTags={candidate.tags || []} 
+                  onTagsChange={() => loadCandidate()}
+                  size="sm"
+                />
+                
                 {candidate.profile_completeness !== null && candidate.profile_completeness !== undefined && (
                   <Badge variant="outline" className="gap-1 text-xs sm:text-sm">
                     <Target className="w-3 h-3 flex-shrink-0" />
@@ -519,6 +529,9 @@ export default function CandidateProfile() {
                     />
                   </CardContent>
                 </Card>
+
+                {/* Candidate Notes Panel */}
+                <CandidateNotesPanel candidateId={id!} />
               </TabsContent>
             )}
 

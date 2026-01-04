@@ -1,12 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UpcomingInterviewsWidget } from "@/components/partner/UpcomingInterviewsWidget";
-import { Calendar, BarChart3, Target } from "lucide-react";
+import { Calendar, BarChart3, Target, Users } from "lucide-react";
+import { AggregatedScorecardView } from "@/components/scorecards/AggregatedScorecardView";
 
 interface InterviewerDashboardProps {
   jobId: string;
+  applicationId?: string;
 }
 
-export function InterviewerDashboard({ jobId }: InterviewerDashboardProps) {
+export function InterviewerDashboard({ jobId, applicationId }: InterviewerDashboardProps) {
   return (
     <div className="space-y-6">
       {/* My Interviews Calendar */}

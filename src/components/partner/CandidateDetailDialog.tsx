@@ -10,12 +10,14 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Star, MessageSquare, Calendar, FileText, TrendingUp, History } from "lucide-react";
+import { Star, MessageSquare, Calendar, FileText, TrendingUp, History, Users } from "lucide-react";
 import { CandidateInteractionLog } from "./CandidateInteractionLog";
 import { EnhancedCandidateDetails } from "./EnhancedCandidateDetails";
 import { getVisibleFields } from "@/utils/candidateVisibility";
 import { useRole } from "@/contexts/RoleContext";
 import { trackProfileView } from "@/services/profileViewTracking";
+import { AggregatedScorecardView } from "@/components/scorecards/AggregatedScorecardView";
+import { ApplicationCommentsThread } from "@/components/applications/ApplicationCommentsThread";
 
 interface CandidateDetailDialogProps {
   open: boolean;
@@ -335,10 +337,16 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
               </CardContent>
             </Card>
 
+            {/* Aggregated Scorecard View - Panel Consensus */}
+            <AggregatedScorecardView applicationId={application.id} />
+
             {scorecards.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Previous Evaluations</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Individual Evaluations
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {scorecards.map((sc) => (
@@ -361,37 +369,8 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
           </TabsContent>
 
           <TabsContent value="comments" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Add Comment</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Share your thoughts..."
-                  rows={3}
-                />
-                <Button onClick={handleAddComment}>
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Add Comment
-                </Button>
-              </CardContent>
-            </Card>
-
-            {comments.map((comment) => (
-              <Card key={comment.id}>
-                <CardContent className="pt-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <span className="font-medium">{comment.profiles?.full_name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(comment.created_at).toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="text-sm">{comment.comment}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {/* Use enhanced comments thread */}
+            <ApplicationCommentsThread applicationId={application.id} />
           </TabsContent>
 
           <TabsContent value="activity">
