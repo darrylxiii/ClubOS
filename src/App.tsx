@@ -95,6 +95,7 @@ const SalaryInsights = lazy(() => import("./pages/SalaryInsights"));
 const CareerPath = lazy(() => import("./pages/CareerPath"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
+const Pricing = lazy(() => import("./pages/Pricing"));
 const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
 const SupportTicketList = lazy(() => import("./pages/support/SupportTicketList"));
 const SupportTicketNew = lazy(() => import("./pages/support/SupportTicketNew"));
@@ -294,6 +295,7 @@ const App = () => {
                   <Route path="/career-path" element={<CareerPath />} />
                   <Route path="/subscription" element={<Subscription />} />
                   <Route path="/subscription/success" element={<SubscriptionSuccess />} />
+                  <Route path="/pricing" element={<Pricing />} />
                   <Route path="/expert-marketplace" element={<ExpertMarketplace />} />
 
                   <Route path="*" element={<NotFound />} />
