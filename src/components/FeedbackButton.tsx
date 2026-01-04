@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigationHistory } from '@/contexts/NavigationHistoryContext';
@@ -32,7 +32,6 @@ export const FeedbackButton = () => {
   const [comment, setComment] = useState('');
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
   const { user } = useAuth();
   const { history } = useNavigationHistory();
   const location = useLocation();
@@ -75,11 +74,7 @@ export const FeedbackButton = () => {
 
   const handleOpen = () => {
     if (!user) {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in to leave feedback.',
-        variant: 'destructive',
-      });
+      notify.warning('Please sign in to leave feedback.');
       return;
     }
     setOpen(true);
@@ -92,20 +87,12 @@ export const FeedbackButton = () => {
 
   const handleSubmit = async () => {
     if (!user) {
-      toast({
-        title: 'Not authenticated',
-        description: 'Please sign in to submit feedback.',
-        variant: 'destructive',
-      });
+      notify.warning('Please sign in to submit feedback.');
       return;
     }
 
     if (!rating) {
-      toast({
-        title: 'Rating required',
-        description: 'Please select a rating from 1 to 10.',
-        variant: 'destructive',
-      });
+      notify.warning('Please select a rating from 1 to 10.');
       return;
     }
 
@@ -140,10 +127,7 @@ export const FeedbackButton = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Thank you for your feedback!',
-        description: 'Your feedback helps us improve The Quantum Club.',
-      });
+      notify.success('Thank you for your feedback!', { description: 'Your feedback helps us improve The Quantum Club.' });
 
       clearDraft();
       setOpen(false);
@@ -154,11 +138,7 @@ export const FeedbackButton = () => {
       }
     } catch (error: any) {
       console.error('Error submitting feedback:', error);
-      toast({
-        title: 'Failed to submit feedback',
-        description: error.message || 'Please try again later.',
-        variant: 'destructive',
-      });
+      notify.error('Failed to submit feedback', { description: error.message || 'Please try again later.' });
     } finally {
       setIsSubmitting(false);
     }

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { Link } from 'react-router-dom';
 
 interface LeadPrediction {
@@ -40,7 +40,6 @@ interface LeadPrediction {
 }
 
 export function LeadPriorityQueue() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -72,18 +71,11 @@ export function LeadPriorityQueue() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lead-predictions'] });
-      toast({
-        title: 'Scores Recalculated',
-        description: 'Lead conversion scores have been updated.'
-      });
+      notify.success('Scores Recalculated', { description: 'Lead conversion scores have been updated.' });
       setRefreshing(false);
     },
     onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'Failed to recalculate scores.',
-        variant: 'destructive'
-      });
+      notify.error('Failed to recalculate scores');
       setRefreshing(false);
     }
   });

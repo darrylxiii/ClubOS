@@ -17,7 +17,7 @@ import {
   Calendar, Sparkles, FileText 
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface EventDetailModalProps {
@@ -28,7 +28,6 @@ interface EventDetailModalProps {
 
 export function EventDetailModal({ event, open, onOpenChange }: EventDetailModalProps) {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   if (!event) return null;
 
@@ -39,10 +38,7 @@ export function EventDetailModal({ event, open, onOpenChange }: EventDetailModal
     if (event.is_quantum_club && event.meeting_id) {
       const link = `${window.location.origin}/meetings/${event.meeting_id}`;
       navigator.clipboard.writeText(link);
-      toast({
-        title: "Link copied",
-        description: "Meeting link copied to clipboard",
-      });
+      notify.success("Meeting link copied to clipboard");
     }
   };
 

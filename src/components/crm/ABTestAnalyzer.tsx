@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface ABTestVariant {
   id: string;
@@ -36,7 +36,6 @@ interface ABTestVariant {
 }
 
 export function ABTestAnalyzer() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [subjectLine, setSubjectLine] = useState('');
   const [generating, setGenerating] = useState(false);
@@ -70,28 +69,18 @@ export function ABTestAnalyzer() {
     },
     onSuccess: (data) => {
       setGeneratedVariants(data.variants || []);
-      toast({
-        title: 'Variants Generated',
-        description: `${data.variants?.length || 0} A/B test variants created.`
-      });
+      notify.success('Variants Generated', { description: `${data.variants?.length || 0} A/B test variants created.` });
       setGenerating(false);
     },
     onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to generate variants.',
-        variant: 'destructive'
-      });
+      notify.error('Failed to generate variants');
       setGenerating(false);
     }
   });
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({
-      title: 'Copied',
-      description: 'Subject line copied to clipboard.'
-    });
+    notify.success('Subject line copied to clipboard');
   };
 
   // Group variants by campaign

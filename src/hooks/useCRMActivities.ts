@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import type { CRMActivity, ActivityType, ActivityOutcome } from '@/types/crm-activities';
 
 interface UseActivitiesOptions {
@@ -17,7 +17,6 @@ export function useCRMActivities(options: UseActivitiesOptions = {}) {
   const [activities, setActivities] = useState<CRMActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { toast } = useToast();
 
   const fetchActivities = useCallback(async () => {
     try {
@@ -135,20 +134,13 @@ export function useCRMActivities(options: UseActivitiesOptions = {}) {
 
       if (createError) throw createError;
 
-      toast({
-        title: 'Activity created',
-        description: `${activity.subject} scheduled`,
-      });
+      notify.success('Activity created', { description: `${activity.subject} scheduled` });
 
       fetchActivities();
       return data;
     } catch (err) {
       console.error('Error creating activity:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to create activity',
-        variant: 'destructive',
-      });
+      notify.error('Failed to create activity');
       return null;
     }
   };
@@ -169,11 +161,7 @@ export function useCRMActivities(options: UseActivitiesOptions = {}) {
       return true;
     } catch (err) {
       console.error('Error updating activity:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to update activity',
-        variant: 'destructive',
-      });
+      notify.error('Failed to update activity');
       return false;
     }
   };
@@ -196,19 +184,12 @@ export function useCRMActivities(options: UseActivitiesOptions = {}) {
         prev.map(a => a.id === activityId ? { ...a, is_done: true, done_at: new Date().toISOString(), outcome } : a)
       );
 
-      toast({
-        title: 'Activity completed',
-        description: 'Well done!',
-      });
+      notify.success('Activity completed');
 
       return true;
     } catch (err) {
       console.error('Error completing activity:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to complete activity',
-        variant: 'destructive',
-      });
+      notify.error('Failed to complete activity');
       return false;
     }
   };
@@ -224,18 +205,12 @@ export function useCRMActivities(options: UseActivitiesOptions = {}) {
 
       setActivities(prev => prev.filter(a => a.id !== activityId));
 
-      toast({
-        title: 'Activity deleted',
-      });
+      notify.success('Activity deleted');
 
       return true;
     } catch (err) {
       console.error('Error deleting activity:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete activity',
-        variant: 'destructive',
-      });
+      notify.error('Failed to delete activity');
       return false;
     }
   };

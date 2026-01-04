@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface Message {
   id: string;
@@ -36,7 +36,6 @@ const QUICK_PROMPTS = [
 ];
 
 export function OutreachStrategist() {
-  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -71,11 +70,7 @@ export function OutreachStrategist() {
       setMessages(prev => [...prev, assistantMessage]);
     },
     onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to get AI response. Please try again.',
-        variant: 'destructive'
-      });
+      notify.error('Failed to get AI response. Please try again.');
     }
   });
 

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface AppearanceSettings {
   backgroundEnabled: boolean;
@@ -37,7 +37,6 @@ const AppearanceContext = createContext<AppearanceContextType | undefined>(undef
 
 export function AppearanceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [settings, setSettings] = useState<AppearanceSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
 
@@ -111,11 +110,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
     } catch (error) {
       console.error('Error updating appearance settings:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save appearance settings',
-        variant: 'destructive',
-      });
+      notify.error('Failed to save appearance settings');
     }
   };
 

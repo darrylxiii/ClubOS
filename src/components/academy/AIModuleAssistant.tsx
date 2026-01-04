@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, Send, Loader2, Sparkles, Lock } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
@@ -32,7 +32,6 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
   const [guestMessageCount, setGuestMessageCount] = useState(0);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -141,11 +140,7 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
       }
     } catch (error) {
       console.error('AI chat error:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to get AI response",
-        variant: "destructive",
-      });
+      notify.error(error instanceof Error ? error.message : "Failed to get AI response");
       setIsLoading(false);
     }
   };

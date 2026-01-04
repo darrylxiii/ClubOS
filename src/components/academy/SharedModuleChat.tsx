@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { MessageSquare, Send, Users } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -30,7 +30,6 @@ interface SharedModuleChatProps {
 
 export function SharedModuleChat({ moduleId, moduleName }: SharedModuleChatProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -156,11 +155,7 @@ export function SharedModuleChat({ moduleId, moduleName }: SharedModuleChatProps
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message",
-        variant: "destructive",
-      });
+      notify.error('Failed to send message');
     } finally {
       setLoading(false);
     }

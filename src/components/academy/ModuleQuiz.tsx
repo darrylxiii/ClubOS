@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { Check, X, Loader2, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { trackAssessmentInteraction } from '@/services/sessionTracking';
@@ -30,7 +30,6 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
   const [showResult, setShowResult] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -101,11 +100,7 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
       onComplete(passed, percentage);
     } catch (error) {
       console.error('Error submitting quiz:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to submit quiz',
-        variant: 'destructive',
-      });
+      notify.error('Failed to submit quiz');
     }
   };
 

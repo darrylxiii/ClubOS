@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, BookOpen } from "lucide-react";
 
@@ -23,7 +23,6 @@ export const CreateModuleDialog = ({
   onSuccess,
   nextDisplayOrder,
 }: CreateModuleDialogProps) => {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -66,10 +65,7 @@ export const CreateModuleDialog = ({
 
       if (error) throw error;
 
-      toast({
-        title: "Module created",
-        description: "Your module has been created successfully.",
-      });
+      notify.success('Module created', { description: 'Your module has been created successfully.' });
 
       onOpenChange(false);
       onSuccess();
@@ -81,11 +77,7 @@ export const CreateModuleDialog = ({
         image_url: "",
       });
     } catch (error: any) {
-      toast({
-        title: "Error creating module",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error('Error creating module', { description: error.message });
     } finally {
       setLoading(false);
     }

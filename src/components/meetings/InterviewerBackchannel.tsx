@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Flag, Lock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -30,7 +30,6 @@ export function InterviewerBackchannel({ meetingId, currentUserId }: Interviewer
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     loadMessages();
@@ -105,11 +104,7 @@ export function InterviewerBackchannel({ meetingId, currentUserId }: Interviewer
       });
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to send message',
-        variant: 'destructive',
-      });
+      notify.error('Failed to send message');
     } else {
       setMessage('');
     }

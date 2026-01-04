@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Check, ChevronRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import confetti from 'canvas-confetti';
 
 interface ModuleCompletionCardProps {
@@ -24,7 +24,6 @@ export const ModuleCompletionCard = memo<ModuleCompletionCardProps>(({
   onNavigateToNext,
 }) => {
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   const handleMarkComplete = async () => {
     try {
@@ -52,19 +51,12 @@ export const ModuleCompletionCard = memo<ModuleCompletionCardProps>(({
         origin: { y: 0.6 },
       });
 
-      toast({
-        title: 'Module completed!',
-        description: `Great job finishing "${moduleName}"`,
-      });
+      notify.success('Module completed!', { description: `Great job finishing "${moduleName}"` });
 
       onComplete();
     } catch (error) {
       console.error('Error marking complete:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to mark module as complete',
-        variant: 'destructive',
-      });
+      notify.error('Failed to mark module as complete');
     } finally {
       setLoading(false);
     }

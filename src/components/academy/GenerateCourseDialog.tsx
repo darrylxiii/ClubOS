@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Sparkles, BookOpen, Check, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface GenerateCourseDialogProps {
@@ -21,7 +21,6 @@ interface GenerateCourseDialogProps {
 export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess }: GenerateCourseDialogProps) {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { toast } = useToast();
 
     const [step, setStep] = useState<'input' | 'preview'>('input');
     const [prompt, setPrompt] = useState("");
@@ -46,11 +45,7 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
             setGeneratedCourse(courseData);
             setStep('preview');
         } catch (error: any) {
-            toast({
-                title: "Generation failed",
-                description: error.message,
-                variant: "destructive",
-            });
+            notify.error("Generation failed", { description: error.message });
         } finally {
             setLoading(false);
         }
@@ -101,21 +96,14 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
                 if (modulesError) throw modulesError;
             }
 
-            toast({
-                title: "Course created!",
-                description: "Your AI-generated course is ready to edit.",
-            });
+            notify.success("Course created!", { description: "Your AI-generated course is ready to edit." });
 
             onSuccess();
             onOpenChange(false);
             navigate(`/courses/${course.slug}/edit`);
 
         } catch (error: any) {
-            toast({
-                title: "Creation failed",
-                description: error.message,
-                variant: "destructive",
-            });
+            notify.error("Creation failed", { description: error.message });
         } finally {
             setLoading(false);
         }
