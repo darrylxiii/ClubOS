@@ -43241,6 +43241,7 @@ export type Database = {
         Args: { p_api_key_id: string; p_limit: number }
         Returns: boolean
       }
+      check_stale_deals: { Args: never; Returns: undefined }
       check_storage_upload_rate_limit: {
         Args: {
           p_bucket_id: string
