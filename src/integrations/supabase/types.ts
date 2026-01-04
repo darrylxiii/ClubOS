@@ -43481,6 +43481,7 @@ export type Database = {
           salary_used: number
         }[]
       }
+      calculate_kpi_trends: { Args: never; Returns: undefined }
       calculate_name_similarity: {
         Args: { name1: string; name2: string }
         Returns: number

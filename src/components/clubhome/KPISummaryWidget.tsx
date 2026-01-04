@@ -8,10 +8,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface KPIStats {
-  healthScore: number;
+  healthScore: number | null;
   criticalAlerts: number;
   warningAlerts: number;
   onTargetCount: number;
+  pendingCount: number;
   hasData: boolean;
 }
 
@@ -33,10 +34,11 @@ export const KPISummaryWidget = () => {
 
       if (!metrics || metrics.length === 0) {
         return {
-          healthScore: 0,
+          healthScore: null,
           criticalAlerts: 0,
           warningAlerts: 0,
           onTargetCount: 0,
+          pendingCount: 0,
           hasData: false
         };
       }
@@ -45,22 +47,28 @@ export const KPISummaryWidget = () => {
       let criticalAlerts = 0;
       let warningAlerts = 0;
       let onTargetCount = 0;
+      let pendingCount = 0;
 
       metrics.forEach(m => {
         const trend = m.trend_direction;
         if (trend === 'up' || trend === 'stable') onTargetCount++;
         else if (trend === 'down') warningAlerts++;
+        else if (trend === null || trend === undefined) pendingCount++;
         else criticalAlerts++;
       });
       
-      const totalMetrics = metrics.length;
-      const healthScore = Math.round((onTargetCount / totalMetrics) * 100);
+      // Health score based only on metrics WITH trend data
+      const metricsWithTrend = metrics.length - pendingCount;
+      const healthScore = metricsWithTrend > 0 
+        ? Math.round((onTargetCount / metricsWithTrend) * 100)
+        : null;
 
       return {
-        healthScore: Math.min(healthScore, 100),
+        healthScore: healthScore !== null ? Math.min(healthScore, 100) : null,
         criticalAlerts,
         warningAlerts,
         onTargetCount,
+        pendingCount,
         hasData: true
       };
     },
@@ -131,14 +139,23 @@ export const KPISummaryWidget = () => {
       <CardContent className="flex-1">
         <div className="flex items-center justify-center mb-4">
           <div className="relative">
-            <div className={`text-4xl font-bold ${getHealthColor(stats.healthScore)}`}>
-              {stats.healthScore}%
-            </div>
-            <div className="text-xs text-muted-foreground text-center">Health Score</div>
+            {stats.healthScore !== null ? (
+              <>
+                <div className={`text-4xl font-bold ${getHealthColor(stats.healthScore)}`}>
+                  {stats.healthScore}%
+                </div>
+                <div className="text-xs text-muted-foreground text-center">Health Score</div>
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-muted-foreground">—</div>
+                <div className="text-xs text-muted-foreground text-center">Awaiting Data</div>
+              </>
+            )}
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-4 gap-2 mb-4">
           <div className="flex flex-col items-center p-2 rounded-lg bg-red-500/10">
             <AlertTriangle className="h-4 w-4 text-red-500 mb-1" />
             <span className="text-lg font-bold text-red-500">{stats.criticalAlerts}</span>
@@ -153,6 +170,11 @@ export const KPISummaryWidget = () => {
             <CheckCircle className="h-4 w-4 text-green-500 mb-1" />
             <span className="text-lg font-bold text-green-500">{stats.onTargetCount}</span>
             <span className="text-xs text-muted-foreground">On Target</span>
+          </div>
+          <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50">
+            <Info className="h-4 w-4 text-muted-foreground mb-1" />
+            <span className="text-lg font-bold text-muted-foreground">{stats.pendingCount}</span>
+            <span className="text-xs text-muted-foreground">Pending</span>
           </div>
         </div>
 
