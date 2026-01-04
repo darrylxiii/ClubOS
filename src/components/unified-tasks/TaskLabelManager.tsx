@@ -147,6 +147,7 @@ export const TaskLabelManager = ({ taskId, assignedLabels, onLabelsChange }: Tas
             <button
               onClick={() => handleRemoveLabel(label.id)}
               className="ml-1 hover:bg-white/20 rounded-full p-0.5"
+              aria-label={`Remove ${label.name} label`}
             >
               <X className="h-3 w-3" />
             </button>

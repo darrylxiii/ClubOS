@@ -78,6 +78,7 @@ export function TimerButton({
       onClick={handleClick}
       disabled={isLoading}
       size={size}
+      aria-label={isLoading ? 'Timer loading' : isRunning ? `Stop timer at ${formatDuration(elapsedSeconds)}` : 'Start timer'}
       className={cn(
         buttonSizes[size],
         "relative gap-3 transition-all duration-300",

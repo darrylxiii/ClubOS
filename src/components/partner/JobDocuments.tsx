@@ -385,9 +385,9 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                 className={uploadingJobDesc ? 'opacity-50' : ''}
               />
               {uploadingJobDesc && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md" role="status" aria-live="polite">
                   <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
-                  <span className="text-sm">Uploading...</span>
+                  <span className="sr-only">Upload in progress</span>
                 </div>
               )}
             </div>

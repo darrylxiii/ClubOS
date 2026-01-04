@@ -80,7 +80,7 @@ export function useSuspiciousSessions() {
 export function useTerminateSession() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (sessionId: string) => {
       const { error } = await supabase
         .from('user_sessions_security')
@@ -88,22 +88,30 @@ export function useTerminateSession() {
         .eq('id', sessionId);
 
       if (error) throw error;
+      return sessionId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['suspicious-sessions'] });
       toast.success('Session terminated');
     },
-    onError: (error) => {
-      toast.error('Failed to terminate session: ' + error.message);
+    onError: (error, sessionId) => {
+      toast.error('Failed to terminate session: ' + error.message, {
+        action: {
+          label: 'Retry',
+          onClick: () => mutation.mutate(sessionId),
+        },
+      });
     },
   });
+  
+  return mutation;
 }
 
 export function useTerminateAllUserSessions() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (userId: string) => {
       const { error } = await supabase
         .from('user_sessions_security')
@@ -111,16 +119,24 @@ export function useTerminateAllUserSessions() {
         .eq('user_id', userId);
 
       if (error) throw error;
+      return userId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['suspicious-sessions'] });
       toast.success('All user sessions terminated');
     },
-    onError: (error) => {
-      toast.error('Failed to terminate sessions: ' + error.message);
+    onError: (error, userId) => {
+      toast.error('Failed to terminate sessions: ' + error.message, {
+        action: {
+          label: 'Retry',
+          onClick: () => mutation.mutate(userId),
+        },
+      });
     },
   });
+  
+  return mutation;
 }
 
 export function useSessionStats() {

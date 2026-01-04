@@ -45,7 +45,7 @@ export function ImpersonationBanner() {
             </div>
             
             <span className="text-sm">
-              Viewing as: <strong>{targetUser?.full_name || 'Loading...'}</strong>
+              Viewing as: <strong>{targetUser?.full_name || <span className="inline-flex items-center gap-1"><span className="h-4 w-20 bg-black/20 rounded animate-pulse" /><span className="sr-only">Loading user info</span></span>}</strong>
               {targetUser?.email && <span className="opacity-75 ml-1">({targetUser.email})</span>}
             </span>
           </div>

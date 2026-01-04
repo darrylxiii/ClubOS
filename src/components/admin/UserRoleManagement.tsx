@@ -420,6 +420,7 @@ export function UserRoleManagement() {
                       variant="ghost"
                       size="icon"
                       onClick={() => openEditDialog(user)}
+                      aria-label={`Edit roles for ${user.email || 'user'}`}
                     >
                       <Pencil className="w-4 h-4" />
                     </Button>

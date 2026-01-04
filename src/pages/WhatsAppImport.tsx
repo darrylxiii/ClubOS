@@ -277,11 +277,13 @@ export default function WhatsAppImport() {
                       onClick={handleUpload}
                       disabled={!selectedCompanyId || uploading}
                       className="flex-1"
+                      aria-busy={uploading}
                     >
                       {uploading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Uploading...
+                          <span className="sr-only">Import in progress</span>
+                          Import Chat
                         </>
                       ) : (
                         'Import Chat'
