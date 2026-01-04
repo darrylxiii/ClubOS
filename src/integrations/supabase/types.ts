@@ -878,6 +878,806 @@ export type Database = {
           },
         ]
       }
+      agent_action_outcomes: {
+        Row: {
+          action_log_id: string | null
+          action_type: string
+          actual_outcome: Json | null
+          context_at_action: Json | null
+          created_at: string | null
+          expected_outcome: Json | null
+          id: string
+          learnings_extracted: Json | null
+          outcome_quality: number | null
+          reviewed_by: string | null
+          time_to_outcome: unknown
+          user_id: string | null
+          was_reviewed: boolean | null
+        }
+        Insert: {
+          action_log_id?: string | null
+          action_type: string
+          actual_outcome?: Json | null
+          context_at_action?: Json | null
+          created_at?: string | null
+          expected_outcome?: Json | null
+          id?: string
+          learnings_extracted?: Json | null
+          outcome_quality?: number | null
+          reviewed_by?: string | null
+          time_to_outcome?: unknown
+          user_id?: string | null
+          was_reviewed?: boolean | null
+        }
+        Update: {
+          action_log_id?: string | null
+          action_type?: string
+          actual_outcome?: Json | null
+          context_at_action?: Json | null
+          created_at?: string | null
+          expected_outcome?: Json | null
+          id?: string
+          learnings_extracted?: Json | null
+          outcome_quality?: number | null
+          reviewed_by?: string | null
+          time_to_outcome?: unknown
+          user_id?: string | null
+          was_reviewed?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_action_outcomes_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "agent_action_outcomes_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_action_outcomes_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_action_outcomes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "agent_action_outcomes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_action_outcomes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_autonomy_settings: {
+        Row: {
+          action_type: string
+          autonomy_level: string | null
+          conditions: Json | null
+          created_at: string | null
+          id: string
+          notification_preference: string | null
+          updated_at: string | null
+          user_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          action_type: string
+          autonomy_level?: string | null
+          conditions?: Json | null
+          created_at?: string | null
+          id?: string
+          notification_preference?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          autonomy_level?: string | null
+          conditions?: Json | null
+          created_at?: string | null
+          id?: string
+          notification_preference?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_autonomy_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "agent_autonomy_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_autonomy_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_behavior_rules: {
+        Row: {
+          action_modifier: Json | null
+          agent_name: string
+          condition: Json | null
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_validated_at: string | null
+          learned_from_count: number | null
+          negative_outcomes: number | null
+          positive_outcomes: number | null
+          rule_description: string | null
+          rule_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          action_modifier?: Json | null
+          agent_name: string
+          condition?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_validated_at?: string | null
+          learned_from_count?: number | null
+          negative_outcomes?: number | null
+          positive_outcomes?: number | null
+          rule_description?: string | null
+          rule_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          action_modifier?: Json | null
+          agent_name?: string
+          condition?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_validated_at?: string | null
+          learned_from_count?: number | null
+          negative_outcomes?: number | null
+          positive_outcomes?: number | null
+          rule_description?: string | null
+          rule_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      agent_decision_log: {
+        Row: {
+          affected_entities: Json | null
+          agent_name: string
+          alternatives_considered: Json | null
+          confidence_score: number | null
+          context_used: Json | null
+          created_at: string | null
+          decision_made: string
+          decision_type: string
+          human_can_override: boolean | null
+          id: string
+          overridden_by: string | null
+          override_reason: string | null
+          reasoning: Json | null
+          user_id: string | null
+          was_overridden: boolean | null
+        }
+        Insert: {
+          affected_entities?: Json | null
+          agent_name: string
+          alternatives_considered?: Json | null
+          confidence_score?: number | null
+          context_used?: Json | null
+          created_at?: string | null
+          decision_made: string
+          decision_type: string
+          human_can_override?: boolean | null
+          id?: string
+          overridden_by?: string | null
+          override_reason?: string | null
+          reasoning?: Json | null
+          user_id?: string | null
+          was_overridden?: boolean | null
+        }
+        Update: {
+          affected_entities?: Json | null
+          agent_name?: string
+          alternatives_considered?: Json | null
+          confidence_score?: number | null
+          context_used?: Json | null
+          created_at?: string | null
+          decision_made?: string
+          decision_type?: string
+          human_can_override?: boolean | null
+          id?: string
+          overridden_by?: string | null
+          override_reason?: string | null
+          reasoning?: Json | null
+          user_id?: string | null
+          was_overridden?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_decision_log_overridden_by_fkey"
+            columns: ["overridden_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "agent_decision_log_overridden_by_fkey"
+            columns: ["overridden_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_decision_log_overridden_by_fkey"
+            columns: ["overridden_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_decision_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "agent_decision_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_decision_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_delegations: {
+        Row: {
+          child_agent: string
+          completed_at: string | null
+          delegated_at: string | null
+          error_message: string | null
+          id: string
+          parent_agent: string
+          result: Json | null
+          started_at: string | null
+          status: string | null
+          task_data: Json
+          task_description: string
+          user_id: string | null
+        }
+        Insert: {
+          child_agent: string
+          completed_at?: string | null
+          delegated_at?: string | null
+          error_message?: string | null
+          id?: string
+          parent_agent: string
+          result?: Json | null
+          started_at?: string | null
+          status?: string | null
+          task_data: Json
+          task_description: string
+          user_id?: string | null
+        }
+        Update: {
+          child_agent?: string
+          completed_at?: string | null
+          delegated_at?: string | null
+          error_message?: string | null
+          id?: string
+          parent_agent?: string
+          result?: Json | null
+          started_at?: string | null
+          status?: string | null
+          task_data?: Json
+          task_description?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_delegations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "agent_delegations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_delegations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_events: {
+        Row: {
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          event_data: Json | null
+          event_source: string
+          event_type: string
+          id: string
+          priority: number | null
+          processed: boolean | null
+          processed_by: string[] | null
+          processing_results: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          event_data?: Json | null
+          event_source: string
+          event_type: string
+          id?: string
+          priority?: number | null
+          processed?: boolean | null
+          processed_by?: string[] | null
+          processing_results?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          event_data?: Json | null
+          event_source?: string
+          event_type?: string
+          id?: string
+          priority?: number | null
+          processed?: boolean | null
+          processed_by?: string[] | null
+          processing_results?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "agent_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_experiments: {
+        Row: {
+          agent_name: string
+          control_strategy: Json | null
+          created_at: string | null
+          created_by: string | null
+          current_sample_size: number | null
+          end_date: string | null
+          experiment_name: string
+          hypothesis: string
+          id: string
+          results: Json | null
+          sample_size_target: number | null
+          start_date: string | null
+          status: string | null
+          success_metric: string
+          variant_strategies: Json[] | null
+          winner_strategy: Json | null
+        }
+        Insert: {
+          agent_name: string
+          control_strategy?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          current_sample_size?: number | null
+          end_date?: string | null
+          experiment_name: string
+          hypothesis: string
+          id?: string
+          results?: Json | null
+          sample_size_target?: number | null
+          start_date?: string | null
+          status?: string | null
+          success_metric: string
+          variant_strategies?: Json[] | null
+          winner_strategy?: Json | null
+        }
+        Update: {
+          agent_name?: string
+          control_strategy?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          current_sample_size?: number | null
+          end_date?: string | null
+          experiment_name?: string
+          hypothesis?: string
+          id?: string
+          results?: Json | null
+          sample_size_target?: number | null
+          start_date?: string | null
+          status?: string | null
+          success_metric?: string
+          variant_strategies?: Json[] | null
+          winner_strategy?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_experiments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "agent_experiments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_experiments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_goal_progress: {
+        Row: {
+          action_taken: string
+          agent_name: string
+          created_at: string | null
+          goal_id: string | null
+          id: string
+          learnings: Json | null
+          metadata: Json | null
+          outcome: string | null
+          progress_delta: number | null
+        }
+        Insert: {
+          action_taken: string
+          agent_name: string
+          created_at?: string | null
+          goal_id?: string | null
+          id?: string
+          learnings?: Json | null
+          metadata?: Json | null
+          outcome?: string | null
+          progress_delta?: number | null
+        }
+        Update: {
+          action_taken?: string
+          agent_name?: string
+          created_at?: string | null
+          goal_id?: string | null
+          id?: string
+          learnings?: Json | null
+          metadata?: Json | null
+          outcome?: string | null
+          progress_delta?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_goal_progress_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "agent_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_goals: {
+        Row: {
+          assigned_agents: string[] | null
+          created_at: string | null
+          created_by: string | null
+          current_progress: number | null
+          deadline: string | null
+          execution_plan: Json | null
+          goal_description: string
+          goal_type: string
+          id: string
+          next_action_at: string | null
+          next_action_description: string | null
+          priority: number | null
+          status: string | null
+          success_criteria: Json | null
+          target_entity_id: string | null
+          target_entity_type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          assigned_agents?: string[] | null
+          created_at?: string | null
+          created_by?: string | null
+          current_progress?: number | null
+          deadline?: string | null
+          execution_plan?: Json | null
+          goal_description: string
+          goal_type: string
+          id?: string
+          next_action_at?: string | null
+          next_action_description?: string | null
+          priority?: number | null
+          status?: string | null
+          success_criteria?: Json | null
+          target_entity_id?: string | null
+          target_entity_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          assigned_agents?: string[] | null
+          created_at?: string | null
+          created_by?: string | null
+          current_progress?: number | null
+          deadline?: string | null
+          execution_plan?: Json | null
+          goal_description?: string
+          goal_type?: string
+          id?: string
+          next_action_at?: string | null
+          next_action_description?: string | null
+          priority?: number | null
+          status?: string | null
+          success_criteria?: Json | null
+          target_entity_id?: string | null
+          target_entity_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_goals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "agent_goals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_goals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_registry: {
+        Row: {
+          agent_name: string
+          autonomy_level: string | null
+          capabilities: string[]
+          config: Json | null
+          created_at: string | null
+          description: string | null
+          display_name: string
+          id: string
+          is_active: boolean | null
+          system_prompt: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_name: string
+          autonomy_level?: string | null
+          capabilities: string[]
+          config?: Json | null
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean | null
+          system_prompt?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_name?: string
+          autonomy_level?: string | null
+          capabilities?: string[]
+          config?: Json | null
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          system_prompt?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      agent_user_preferences: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          last_confirmed_at: string | null
+          learned_from: string[] | null
+          preference_category: string
+          preference_key: string
+          preference_value: Json
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          last_confirmed_at?: string | null
+          learned_from?: string[] | null
+          preference_category: string
+          preference_key: string
+          preference_value: Json
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          last_confirmed_at?: string | null
+          learned_from?: string[] | null
+          preference_category?: string
+          preference_key?: string
+          preference_value?: Json
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "agent_user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_working_memory: {
+        Row: {
+          agent_name: string
+          content: Json
+          context_type: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          priority: number | null
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          agent_name?: string
+          content: Json
+          context_type: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          priority?: number | null
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          agent_name?: string
+          content?: Json
+          context_type?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          priority?: number | null
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_working_memory_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "agent_working_memory_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_working_memory_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_action_log: {
         Row: {
           action_data: Json | null
@@ -35111,6 +35911,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      signal_patterns: {
+        Row: {
+          created_at: string | null
+          detection_rules: Json | null
+          historical_accuracy: number | null
+          id: string
+          is_active: boolean | null
+          pattern_name: string
+          pattern_type: string
+          sample_size: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          detection_rules?: Json | null
+          historical_accuracy?: number | null
+          id?: string
+          is_active?: boolean | null
+          pattern_name: string
+          pattern_type: string
+          sample_size?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          detection_rules?: Json | null
+          historical_accuracy?: number | null
+          id?: string
+          is_active?: boolean | null
+          pattern_name?: string
+          pattern_type?: string
+          sample_size?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       skill_endorsements: {
         Row: {
