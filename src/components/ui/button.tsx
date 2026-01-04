@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -10,11 +11,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-card/40 backdrop-blur-[var(--blur-glass)] border border-border/40 hover:bg-card/60 hover:border-border/60 shadow-glass-md hover:shadow-glass-lg text-foreground transition-all",
+        primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transition-all",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-lg transition-all",
         outline: "border border-border/30 bg-card/20 backdrop-blur-[var(--blur-glass-subtle)] hover:bg-card/40 hover:border-border/50 shadow-glass-sm hover:shadow-glass-md text-foreground transition-all",
         secondary: "bg-card/30 backdrop-blur-[var(--blur-glass-subtle)] border border-border/30 text-foreground hover:bg-card/50 hover:border-border/50 shadow-glass-sm hover:shadow-glass-md transition-all",
         ghost: "hover:bg-card/20 hover:text-foreground text-muted-foreground backdrop-blur-[var(--blur-glass-subtle)] transition-all",
         link: "text-foreground underline-offset-4 hover:underline hover:text-foreground/80",
         glass: "bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/40 hover:bg-card/50 hover:border-border/60 shadow-glass-md hover:shadow-glass-lg text-foreground transition-all",
+        success: "bg-success text-success-foreground hover:bg-success/90 shadow-md hover:shadow-lg transition-all",
+        warning: "bg-warning text-warning-foreground hover:bg-warning/90 shadow-md hover:shadow-lg transition-all",
       },
       size: {
         default: "h-11 px-6 py-2.5 min-h-[44px]",
@@ -34,12 +39,34 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  loading?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, loading = false, disabled, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    const isDisabled = disabled || loading;
+    
+    return (
+      <Comp 
+        className={cn(buttonVariants({ variant, size, className }))} 
+        ref={ref} 
+        disabled={isDisabled}
+        aria-disabled={isDisabled}
+        aria-busy={loading}
+        {...props}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            <span className="sr-only">Loading</span>
+            {typeof children === 'string' ? children : null}
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
+    );
   },
 );
 Button.displayName = "Button";

@@ -21,8 +21,8 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/20">
         <h3 className="font-semibold text-lg">Settings</h3>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-5 w-5" />
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close settings">
+          <X className="h-5 w-5" aria-hidden="true" />
         </Button>
       </div>
 

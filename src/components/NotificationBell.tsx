@@ -63,11 +63,16 @@ export const NotificationBell = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Button variant="ghost" size="icon" className="relative group min-h-[44px] min-w-[44px]">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative group min-h-[44px] min-w-[44px]"
+            aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
+          >
             <Bell className={cn(
               "h-5 w-5 transition-all duration-300",
               unreadCount > 0 && "text-primary"
-            )} />
+            )} aria-hidden="true" />
             
             {unreadCount > 0 && (
               <motion.span
