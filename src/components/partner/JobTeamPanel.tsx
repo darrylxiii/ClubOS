@@ -252,8 +252,8 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100">
-              <MoreVertical className="w-4 h-4" />
+            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100" aria-label="Team member options">
+              <MoreVertical className="w-4 h-4" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -402,8 +402,8 @@ const TeamMemberCard = ({ member, onRemove }: { member: any; onRemove: () => voi
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <MoreVertical className="w-4 h-4" />
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" aria-label="Team member options">
+            <MoreVertical className="w-4 h-4" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

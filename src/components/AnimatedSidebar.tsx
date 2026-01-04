@@ -254,8 +254,9 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
                   variant="ghost"
                   size="icon"
                   onClick={() => setOpen(false)}
+                  aria-label="Close sidebar"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-5 w-5" aria-hidden="true" />
                 </Button>
               </div>
               <div className="flex-1 overflow-y-auto py-4">

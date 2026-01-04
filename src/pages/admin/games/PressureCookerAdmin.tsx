@@ -78,8 +78,8 @@ export default function PressureCookerAdmin() {
       <RoleGate allowedRoles={["admin", "strategist"]}>
         <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back">
+              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
             </Button>
             <div>
               <PageTitle>Pressure Cooker Admin</PageTitle>

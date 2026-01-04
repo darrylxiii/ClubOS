@@ -74,8 +74,8 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
       {/* Header */}
       <div className="flex items-start gap-4">
         {handleBack && (
-          <Button variant="ghost" size="icon" onClick={handleBack}>
-            <ArrowLeft className="h-5 w-5" />
+          <Button variant="ghost" size="icon" onClick={handleBack} aria-label="Go back">
+            <ArrowLeft className="h-5 w-5" aria-hidden="true" />
           </Button>
         )}
         

@@ -51,7 +51,7 @@ export function AssetTable({ assets, onEdit, onStatusChange }: AssetTableProps) 
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" aria-label="Asset actions"><MoreHorizontal className="h-4 w-4" aria-hidden="true" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => onEdit(asset)}><Edit className="h-4 w-4 mr-2" />Edit</DropdownMenuItem>

@@ -80,8 +80,8 @@ export function AdminCommandCenter() {
                     <span><span className="font-medium">{data?.anomalies.active || 0}</span> anomalies</span>
                   </div>
                 )}
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                  {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-label={isOpen ? "Collapse command center" : "Expand command center"}>
+                  {isOpen ? <ChevronUp className="h-4 w-4" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />}
                 </Button>
               </div>
             </div>
