@@ -1007,3 +1007,21 @@ verify_jwt = true
 
 [functions.seed-demo-data]
 verify_jwt = true
+
+# =============================================================================
+# Agent System Functions (Phase 1-4 Agentic OS)
+# =============================================================================
+[functions.agent-memory-manager]
+verify_jwt = true
+
+[functions.agent-orchestrator]
+verify_jwt = true
+
+[functions.agent-event-processor]
+verify_jwt = false
+
+[functions.analyze-agent-performance]
+verify_jwt = true
+
+[functions.predictive-intelligence-engine]
+verify_jwt = true
