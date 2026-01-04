@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useCallSignaling } from "@/hooks/useCallSignaling";
 import { IncomingCallBanner } from "./IncomingCallBanner";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { Database } from "@/integrations/supabase/types";
 
 interface CallNotificationManagerProps {
@@ -13,7 +13,6 @@ export function CallNotificationManager({
   conversationId,
   onAcceptCall
 }: CallNotificationManagerProps) {
-  const { toast } = useToast();
   const { incomingInvitations, acceptCall, declineCall } = useCallSignaling(conversationId);
   const [handledInvitations, setHandledInvitations] = useState<Set<string>>(new Set());
   const [hiddenInvitations, setHiddenInvitations] = useState<Set<string>>(new Set());
@@ -52,14 +51,12 @@ export function CallNotificationManager({
         // Hide immediately
         setHiddenInvitations(prev => new Set(prev).add(invitation.id));
         
-        toast({
-          title: "Call ended",
+        notify.info("Call ended", {
           description: "The caller ended the call",
-          variant: "default"
         });
       }
     });
-  }, [incomingInvitations, toast]);
+  }, [incomingInvitations]);
 
   const handleAccept = async (invitationId: string, callType: string) => {
     // Optimistic UI: hide banner immediately
@@ -77,10 +74,8 @@ export function CallNotificationManager({
     // Then update database
     await declineCall(invitationId);
     
-    toast({
-      title: "Call declined",
+    notify.info("Call declined", {
       description: "You declined the call",
-      variant: "default"
     });
   };
 

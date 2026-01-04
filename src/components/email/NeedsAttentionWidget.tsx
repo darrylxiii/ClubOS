@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Clock, Calendar, CheckCircle, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 
 interface FollowUp {
   id: string;
@@ -36,7 +36,6 @@ export function NeedsAttentionWidget() {
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     loadAttentionItems();
@@ -83,7 +82,7 @@ export function NeedsAttentionWidget() {
 
     if (!error) {
       setFollowUps(followUps.filter(f => f.id !== id));
-      toast({ title: "Follow-up dismissed" });
+      notify.success("Follow-up dismissed");
     }
   }
 
@@ -95,7 +94,7 @@ export function NeedsAttentionWidget() {
 
     if (!error) {
       setFollowUps(followUps.filter(f => f.id !== id));
-      toast({ title: "Follow-up completed" });
+      notify.success("Follow-up completed");
     }
   }
 

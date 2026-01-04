@@ -4,7 +4,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 
 interface JobDescriptionViewerProps {
   documentUrl: string | null;
@@ -20,7 +20,6 @@ export function JobDescriptionViewer({
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
-  const { toast } = useToast();
 
   if (!documentUrl) return null;
 
@@ -45,10 +44,8 @@ export function JobDescriptionViewer({
       setIsViewerOpen(true);
     } catch (error) {
       console.error('Error loading document:', error);
-      toast({
-        title: "Error",
+      notify.error("Error", {
         description: "Failed to load document. Please try downloading instead.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -73,16 +70,13 @@ export function JobDescriptionViewer({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast({
-        title: "Success",
+      notify.success("Success", {
         description: "Job description downloaded successfully",
       });
     } catch (error) {
       console.error('Error downloading document:', error);
-      toast({
-        title: "Error",
+      notify.error("Error", {
         description: "Failed to download document. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);

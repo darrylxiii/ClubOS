@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Play, Save, Trash2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { SavedReportsList } from "./SavedReportsList";
 
@@ -16,7 +16,6 @@ interface ReportBuilderProps {
 }
 
 export function ReportBuilder({ companyId }: ReportBuilderProps) {
-  const { toast } = useToast();
   const [reportName, setReportName] = useState("");
   const [reportDescription, setReportDescription] = useState("");
   const [reportType, setReportType] = useState<string>("hiring_velocity");
@@ -29,10 +28,8 @@ export function ReportBuilder({ companyId }: ReportBuilderProps) {
 
   const handleSaveReport = async () => {
     if (!reportName.trim()) {
-      toast({
-        title: "Validation Error",
+      notify.error("Validation Error", {
         description: "Please enter a report name",
-        variant: "destructive",
       });
       return;
     }
@@ -62,8 +59,7 @@ export function ReportBuilder({ companyId }: ReportBuilderProps) {
 
       if (error) throw error;
 
-      toast({
-        title: "Report Saved",
+      notify.success("Report Saved", {
         description: "Your report has been saved successfully",
       });
 
@@ -76,10 +72,8 @@ export function ReportBuilder({ companyId }: ReportBuilderProps) {
       setRecipients("");
     } catch (error) {
       console.error('Error saving report:', error);
-      toast({
-        title: "Save Failed",
+      notify.error("Save Failed", {
         description: "Could not save report. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -89,23 +83,21 @@ export function ReportBuilder({ companyId }: ReportBuilderProps) {
   const handleRunReport = async () => {
     setRunning(true);
     try {
-      toast({
-        title: "Running Report",
+      notify.loading("Running Report", {
         description: "Your report is being generated...",
       });
 
       // Simulate report execution
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      toast({
-        title: "Report Complete",
+      notify.dismiss();
+      notify.success("Report Complete", {
         description: "Your report is ready to view",
       });
     } catch (error) {
-      toast({
-        title: "Execution Failed",
+      notify.dismiss();
+      notify.error("Execution Failed", {
         description: "Could not run report. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setRunning(false);

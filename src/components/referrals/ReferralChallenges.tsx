@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useReferralChallenges } from "@/hooks/useReferralLeaderboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { cn } from "@/lib/utils";
 
 function formatTimeRemaining(timeStr: string | null): string {
@@ -43,7 +43,6 @@ const challengeTypeIcons: Record<string, any> = {
 
 const ChallengeCard = ({ challenge }: { challenge: any }) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [isJoining, setIsJoining] = useState(false);
   
   const Icon = challengeTypeIcons[challenge.challenge_type] || Zap;
@@ -65,15 +64,12 @@ const ChallengeCard = ({ challenge }: { challenge: any }) => {
       
       if (error) throw error;
       
-      toast({
-        title: "Joined Challenge!",
+      notify.success("Joined Challenge!", {
         description: `You're now competing in "${challenge.title}"`,
       });
     } catch (err) {
-      toast({
-        title: "Error",
+      notify.error("Error", {
         description: "Failed to join challenge",
-        variant: "destructive",
       });
     } finally {
       setIsJoining(false);
