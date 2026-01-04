@@ -69,6 +69,11 @@ export function PostHogProvider({ children, enabled = true }: PostHogProviderPro
     
     initPostHog();
     setIsInitialized(true);
+    
+    // Mark first seen for new user detection
+    if (!localStorage.getItem('tqc_first_seen')) {
+      localStorage.setItem('tqc_first_seen', Date.now().toString());
+    }
   }, [enabled]);
 
   // Handle route changes for recording control
