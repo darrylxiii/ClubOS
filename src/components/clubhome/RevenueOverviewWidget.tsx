@@ -8,10 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-
-// Configuration constant - can be adjusted or moved to settings
-const ESTIMATED_PLACEMENT_FEE = 15000; // €15,000 average placement fee
-const PIPELINE_CONVERSION_RATE = 0.3; // 30% estimated conversion rate
+import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 interface RevenueData {
   currentMonth: number;
@@ -24,13 +21,18 @@ interface RevenueData {
 }
 
 export const RevenueOverviewWidget = () => {
+  const { settings } = usePlatformSettings();
+  
   const { data: revenue, isLoading } = useQuery({
-    queryKey: ['revenue-overview'],
+    queryKey: ['revenue-overview', settings],
     queryFn: async (): Promise<RevenueData> => {
       const now = new Date();
       const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
       const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
+
+      const placementFee = settings.estimated_placement_fee;
+      const conversionRate = settings.pipeline_conversion_rate;
 
       // Get current month placements (hired applications)
       const { count: currentHires } = await supabase
@@ -53,10 +55,10 @@ export const RevenueOverviewWidget = () => {
         .select('*', { count: 'exact', head: true })
         .in('status', ['applied', 'screening', 'interview', 'offer']);
 
-      // Calculate revenue estimates
-      const currentMonth = (currentHires || 0) * ESTIMATED_PLACEMENT_FEE;
-      const lastMonth = (lastMonthHires || 0) * ESTIMATED_PLACEMENT_FEE;
-      const pipelineValue = (pipelineCount || 0) * ESTIMATED_PLACEMENT_FEE * PIPELINE_CONVERSION_RATE;
+      // Calculate revenue estimates using configurable settings
+      const currentMonth = (currentHires || 0) * placementFee;
+      const lastMonth = (lastMonthHires || 0) * placementFee;
+      const pipelineValue = (pipelineCount || 0) * placementFee * conversionRate;
 
       const trend = lastMonth > 0 
         ? ((currentMonth - lastMonth) / lastMonth) * 100 
@@ -72,7 +74,7 @@ export const RevenueOverviewWidget = () => {
         pipelineCount: pipelineCount || 0,
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
   const formatCurrency = (value: number) => {
@@ -121,7 +123,7 @@ export const RevenueOverviewWidget = () => {
                   <Info className="h-3 w-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p>Estimated based on {formatCurrency(ESTIMATED_PLACEMENT_FEE)} avg placement fee × {revenue?.currentHires || 0} hires this month</p>
+                  <p>Estimated based on {formatCurrency(settings.estimated_placement_fee)} avg placement fee × {revenue?.currentHires || 0} hires this month</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -175,7 +177,7 @@ export const RevenueOverviewWidget = () => {
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Estimated at {PIPELINE_CONVERSION_RATE * 100}% conversion rate</p>
+                <p>Estimated at {settings.pipeline_conversion_rate * 100}% conversion rate</p>
               </TooltipContent>
             </Tooltip>
           </div>
