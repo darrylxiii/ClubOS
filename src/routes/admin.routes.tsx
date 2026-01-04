@@ -54,6 +54,7 @@ const ClosedJobs = lazy(() => import("@/pages/admin/ClosedJobs"));
 // Enterprise Management
 const EnterpriseDashboard = lazy(() => import("@/pages/admin/EnterpriseDashboard"));
 const DueDiligenceDashboard = lazy(() => import("@/pages/admin/DueDiligenceDashboard"));
+const RiskManagementDashboard = lazy(() => import("@/pages/admin/RiskManagementDashboard"));
 
 // Phase 5: Analytics Dashboards
 const JobAnalyticsDashboard = lazy(() => import("@/pages/admin/JobAnalyticsDashboard"));
@@ -630,5 +631,8 @@ export const adminRoutes = (
     
     {/* Due Diligence Center */}
     <Route path="/admin/due-diligence" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><DueDiligenceDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    
+    {/* Risk & Scale Management */}
+    <Route path="/admin/risk-management" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RiskManagementDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );
