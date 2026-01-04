@@ -998,3 +998,6 @@ verify_jwt = true
 
 [functions.backfill-placement-fees]
 verify_jwt = true
+
+[functions.calculate-all-kpis]
+verify_jwt = false

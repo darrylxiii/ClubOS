@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUnifiedKPIs, type KPIDomain, type UnifiedKPI, type DomainHealth } from '@/hooks/useUnifiedKPIs';
 import { ExecutiveSummaryBar } from './ExecutiveSummaryBar';
@@ -19,7 +20,7 @@ import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Download, FileText } from 'lucide-react';
+import { Menu, Download, FileText, RefreshCw } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -237,6 +238,15 @@ export function UnifiedKPICommandCenter() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                      >
+                        <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
+                        {isRefreshing ? 'Calculating...' : 'Recalculate'}
+                      </Button>
                       <ComparisonToggle 
                         isComparing={isComparing} 
                         onToggle={() => setIsComparing(!isComparing)}
