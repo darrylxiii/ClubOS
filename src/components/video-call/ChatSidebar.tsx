@@ -78,8 +78,8 @@ export function ChatSidebar({ conversationId, onClose }: ChatSidebarProps) {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/20">
         <h3 className="font-semibold text-lg">Chat</h3>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-5 w-5" />
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close chat panel">
+          <X className="h-5 w-5" aria-hidden="true" />
         </Button>
       </div>
 
@@ -121,8 +121,8 @@ export function ChatSidebar({ conversationId, onClose }: ChatSidebarProps) {
             placeholder="Type a message..."
             className="flex-1"
           />
-          <Button onClick={sendMessage} size="icon">
-            <Send className="h-4 w-4" />
+          <Button onClick={sendMessage} size="icon" aria-label="Send message">
+            <Send className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </div>

@@ -27,8 +27,8 @@ export function ParticipantPanel({ participants, onClose }: ParticipantPanelProp
           <h3 className="font-semibold text-lg">Participants</h3>
           <p className="text-sm text-muted-foreground">{participants.length} in call</p>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-5 w-5" />
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close participants panel">
+          <X className="h-5 w-5" aria-hidden="true" />
         </Button>
       </div>
 

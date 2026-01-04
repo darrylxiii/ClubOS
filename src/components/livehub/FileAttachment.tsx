@@ -59,8 +59,8 @@ const FileAttachment = ({ attachment }: FileAttachmentProps) => {
             {attachment.size && formatFileSize(attachment.size)}
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="flex-shrink-0">
-          <Download className="w-4 h-4" />
+        <Button variant="ghost" size="icon" className="flex-shrink-0" aria-label={`Download ${attachment.name}`}>
+          <Download className="w-4 h-4" aria-hidden="true" />
         </Button>
       </a>
     </div>

@@ -43,8 +43,8 @@ export function BulkActionsBar({
             Assign
           </Button>
           <div className="h-4 w-px bg-border" />
-          <Button variant="ghost" size="icon" onClick={onClearSelection} className="h-8 w-8">
-            <X className="w-4 h-4" />
+          <Button variant="ghost" size="icon" onClick={onClearSelection} className="h-8 w-8" aria-label="Clear selection">
+            <X className="w-4 h-4" aria-hidden="true" />
           </Button>
         </motion.div>
       )}

@@ -97,8 +97,8 @@ export function ActivityList({ prospectId, showProspect = true, maxHeight = '400
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={refetch}>
-            <RefreshCw className="w-4 h-4" />
+          <Button variant="ghost" size="icon" onClick={refetch} aria-label="Refresh activities">
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
           </Button>
           <ActivityQuickAdd 
             prospectId={prospectId}

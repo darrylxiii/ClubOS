@@ -85,8 +85,8 @@ const PinnedMessagesPanel = ({ channelId, onClose, onJumpToMessage }: PinnedMess
           <Pin className="w-4 h-4 text-primary" />
           <h3 className="font-semibold text-sm">Pinned Messages</h3>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="w-4 h-4" />
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close pinned messages">
+          <X className="w-4 h-4" aria-hidden="true" />
         </Button>
       </div>
 
