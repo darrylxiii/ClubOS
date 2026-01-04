@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BlindSpotSelfRating, BlindSpotResult, BlindSpotGap } from '@/types/assessment';
 import { BLIND_SPOT_DIMENSIONS, BLIND_SPOT_SCENARIOS } from '@/data/blindSpotData';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 export function useBlindSpotSession() {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -14,7 +14,6 @@ export function useBlindSpotSession() {
     timeSpent: number;
   }>>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     const initSession = async () => {
@@ -34,14 +33,14 @@ export function useBlindSpotSession() {
 
       if (error) {
         console.error('Failed to create session:', error);
-        toast({ title: 'Error', description: 'Failed to start assessment', variant: 'destructive' });
+        notify.error('Error', { description: 'Failed to start assessment' });
       } else {
         setSessionId(data.id);
       }
     };
 
     initSession();
-  }, [toast]);
+  }, []);
 
   const saveSelfRatings = useCallback(async (ratings: BlindSpotSelfRating[]) => {
     if (!sessionId) return;
@@ -187,15 +186,15 @@ export function useBlindSpotSession() {
         });
       }
 
-      toast({ title: 'Success', description: 'Assessment completed!' });
+      notify.success('Assessment completed!');
       return results;
     } catch (error) {
       console.error('Failed to submit assessment:', error);
-      toast({ title: 'Error', description: 'Failed to save results', variant: 'destructive' });
+      notify.error('Error', { description: 'Failed to save results' });
     } finally {
       setIsSubmitting(false);
     }
-  }, [sessionId, isSubmitting, scenarioResponses, calculateResults, toast]);
+  }, [sessionId, isSubmitting, scenarioResponses, calculateResults]);
 
   return {
     sessionId,

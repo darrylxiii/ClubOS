@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import * as offlineStorage from '@/services/offlineStorage';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 
 interface SyncState {
@@ -19,7 +19,6 @@ export function useOfflineSync(userId: string | undefined) {
     lastSyncAt: null,
   });
   
-  const { toast } = useToast();
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isSyncingRef = useRef(false);
 
@@ -27,20 +26,15 @@ export function useOfflineSync(userId: string | undefined) {
   useEffect(() => {
     const handleOnline = () => {
       setState(prev => ({ ...prev, isOnline: true }));
-      toast({
-        title: "Back online",
-        description: "Syncing your changes...",
-      });
+      notify.success("Back online", { description: "Syncing your changes..." });
       // Trigger sync when coming back online
       syncPendingActions();
     };
 
     const handleOffline = () => {
       setState(prev => ({ ...prev, isOnline: false }));
-      toast({
-        title: "You're offline",
+      notify.error("You're offline", {
         description: "Changes will be synced when you're back online.",
-        variant: "destructive",
       });
     };
 

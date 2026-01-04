@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface RelationshipMetrics {
   total_communications: number;
@@ -48,7 +48,6 @@ interface PredictionResult {
 export function useRelationshipPredictions() {
   const [loading, setLoading] = useState(false);
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
-  const { toast } = useToast();
 
   const getPrediction = useCallback(async (entityType: string, entityId: string) => {
     try {
@@ -70,12 +69,12 @@ export function useRelationshipPredictions() {
       return data;
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to get prediction';
-      toast({ title: 'Prediction failed', description: errorMessage, variant: 'destructive' });
+      notify.error('Prediction failed', { description: errorMessage });
       return null;
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   const clearPrediction = useCallback(() => {
     setPrediction(null);

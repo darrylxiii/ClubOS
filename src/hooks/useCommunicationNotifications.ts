@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface CommunicationNotification {
   id: string;
@@ -20,7 +20,6 @@ export function useCommunicationNotifications() {
   const [notifications, setNotifications] = useState<CommunicationNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -81,9 +80,9 @@ export function useCommunicationNotifications() {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      notify.error('Error', { description: err.message });
     }
-  }, [toast]);
+  }, []);
 
   const markAllAsRead = useCallback(async () => {
     try {
@@ -104,11 +103,11 @@ export function useCommunicationNotifications() {
 
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
-      toast({ title: 'All notifications marked as read' });
+      notify.success('All notifications marked as read');
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      notify.error('Error', { description: err.message });
     }
-  }, [notifications, toast]);
+  }, [notifications]);
 
   const dismissNotification = useCallback(async (notificationId: string) => {
     try {
@@ -128,9 +127,9 @@ export function useCommunicationNotifications() {
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      notify.error('Error', { description: err.message });
     }
-  }, [toast]);
+  }, []);
 
   // Real-time subscription for new patterns
   useEffect(() => {
@@ -162,17 +161,13 @@ export function useCommunicationNotifications() {
 
         // Show toast for high priority
         if (newNotif.priority === 'high') {
-          toast({
-            title: newNotif.title,
-            description: newNotif.message,
-            variant: 'default'
-          });
+          notify.info(newNotif.title, { description: newNotif.message });
         }
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [fetchNotifications, toast]);
+  }, [fetchNotifications]);
 
   return {
     notifications,

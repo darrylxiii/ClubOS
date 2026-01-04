@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { Database } from '@/integrations/supabase/types';
 
 type RelationshipScoreRow = Database['public']['Tables']['communication_relationship_scores']['Row'];
@@ -16,7 +16,6 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
     atRisk: 0,
     critical: 0
   });
-  const { toast } = useToast();
 
   const fetchRelationships = useCallback(async () => {
     try {
@@ -82,13 +81,13 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
       });
 
       if (error) throw error;
-      toast({ title: 'Insights generated', description: 'AI analysis complete' });
+      notify.success('Insights generated', { description: 'AI analysis complete' });
       return data;
     } catch (err: any) {
-      toast({ title: 'Failed to generate insights', description: err.message, variant: 'destructive' });
+      notify.error('Failed to generate insights', { description: err.message });
       return null;
     }
-  }, [toast]);
+  }, []);
 
   const recalculateScore = useCallback(async (type: string, id: string) => {
     try {
@@ -97,11 +96,11 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
       });
       
       await fetchRelationships();
-      toast({ title: 'Score updated', description: 'Relationship score recalculated' });
+      notify.success('Score updated', { description: 'Relationship score recalculated' });
     } catch (err: any) {
-      toast({ title: 'Recalculation failed', description: err.message, variant: 'destructive' });
+      notify.error('Recalculation failed', { description: err.message });
     }
-  }, [fetchRelationships, toast]);
+  }, [fetchRelationships]);
 
   useEffect(() => {
     fetchRelationships();

@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { AssessmentAssignment } from '@/types/assessment';
 
 export const useAssessmentAssignments = () => {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const createAssignment = async (params: {
@@ -40,18 +39,13 @@ export const useAssessmentAssignments = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Assessments assigned',
+      notify.success('Assessments assigned', {
         description: `Successfully assigned to ${params.assigned_to.length} candidate(s)`,
       });
 
       return { success: true, data };
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: error.message });
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
@@ -89,11 +83,7 @@ export const useAssessmentAssignments = () => {
 
       return { success: true, data: data as AssessmentAssignment[] };
     } catch (error: any) {
-      toast({
-        title: 'Error loading assignments',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Error loading assignments', { description: error.message });
       return { success: false, error: error.message };
     }
   };
@@ -121,11 +111,7 @@ export const useAssessmentAssignments = () => {
 
       return { success: true };
     } catch (error: any) {
-      toast({
-        title: 'Error updating assignment',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Error updating assignment', { description: error.message });
       return { success: false, error: error.message };
     }
   };
@@ -139,18 +125,13 @@ export const useAssessmentAssignments = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Reminder sent',
+      notify.success('Reminder sent', {
         description: 'Assessment reminder has been sent to the candidate',
       });
 
       return { success: true };
     } catch (error: any) {
-      toast({
-        title: 'Error sending reminder',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Error sending reminder', { description: error.message });
       return { success: false, error: error.message };
     }
   };

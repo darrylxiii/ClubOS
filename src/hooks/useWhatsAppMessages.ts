@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 export interface WhatsAppMessage {
   id: string;
@@ -20,7 +20,6 @@ export function useWhatsAppMessages(conversationId: string | null) {
   const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-  const { toast } = useToast();
 
   const fetchMessages = async () => {
     if (!conversationId) return;
@@ -62,7 +61,7 @@ export function useWhatsAppMessages(conversationId: string | null) {
       return data;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to send message';
-      toast({ title: 'Error', description: message, variant: 'destructive' });
+      notify.error('Error', { description: message });
       throw error;
     } finally {
       setSending(false);
