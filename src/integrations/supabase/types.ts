@@ -392,6 +392,63 @@ export type Database = {
           },
         ]
       }
+      activation_events: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          event_category: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          milestone_name: string | null
+          milestone_order: number | null
+          session_id: string | null
+          source: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          event_category?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          milestone_name?: string | null
+          milestone_order?: number | null
+          session_id?: string | null
+          source?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          event_category?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          milestone_name?: string | null
+          milestone_order?: number | null
+          session_id?: string | null
+          source?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activation_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activation_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_feed: {
         Row: {
           company_id: string | null
@@ -9649,6 +9706,53 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_renewals: {
+        Row: {
+          contract_id: string
+          created_at: string | null
+          escalator_applied: number | null
+          id: string
+          new_annual_value: number | null
+          previous_annual_value: number | null
+          processed_at: string | null
+          renewal_date: string
+          renewal_notes: string | null
+          renewal_status: string | null
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string | null
+          escalator_applied?: number | null
+          id?: string
+          new_annual_value?: number | null
+          previous_annual_value?: number | null
+          processed_at?: string | null
+          renewal_date: string
+          renewal_notes?: string | null
+          renewal_status?: string | null
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string | null
+          escalator_applied?: number | null
+          id?: string
+          new_annual_value?: number | null
+          previous_annual_value?: number | null
+          processed_at?: string | null
+          renewal_date?: string
+          renewal_notes?: string | null
+          renewal_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_renewals_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "enterprise_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_analytics: {
         Row: {
           avg_response_time_seconds: number | null
@@ -14685,6 +14789,93 @@ export type Database = {
           },
         ]
       }
+      enterprise_contracts: {
+        Row: {
+          annual_escalator_percent: number | null
+          annual_value: number | null
+          auto_renewal: boolean | null
+          company_id: string | null
+          contract_number: string | null
+          contract_type: string
+          created_at: string | null
+          created_by: string | null
+          end_date: string | null
+          id: string
+          metadata: Json | null
+          payment_terms_days: number | null
+          signed_by: string | null
+          signed_date: string | null
+          special_terms: Json | null
+          start_date: string
+          status: string
+          term_months: number | null
+          terms_accepted: boolean | null
+          total_contract_value: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          annual_escalator_percent?: number | null
+          annual_value?: number | null
+          auto_renewal?: boolean | null
+          company_id?: string | null
+          contract_number?: string | null
+          contract_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_terms_days?: number | null
+          signed_by?: string | null
+          signed_date?: string | null
+          special_terms?: Json | null
+          start_date: string
+          status?: string
+          term_months?: number | null
+          terms_accepted?: boolean | null
+          total_contract_value?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          annual_escalator_percent?: number | null
+          annual_value?: number | null
+          auto_renewal?: boolean | null
+          company_id?: string | null
+          contract_number?: string | null
+          contract_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_terms_days?: number | null
+          signed_by?: string | null
+          signed_date?: string | null
+          special_terms?: Json | null
+          start_date?: string
+          status?: string
+          term_months?: number | null
+          terms_accepted?: boolean | null
+          total_contract_value?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enterprise_contracts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enterprise_contracts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_relationships: {
         Row: {
           created_at: string | null
@@ -18165,6 +18356,117 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           vat_percentage?: number | null
+        }
+        Relationships: []
+      }
+      investor_metrics_snapshots: {
+        Row: {
+          active_customers: number | null
+          active_users_mau: number | null
+          arr: number | null
+          avg_deal_size: number | null
+          avg_time_to_hire_days: number | null
+          cac: number | null
+          churned_customers_mtd: number | null
+          created_at: string | null
+          csat_score: number | null
+          deal_count: number | null
+          gross_retention: number | null
+          id: string
+          logo_retention: number | null
+          ltv: number | null
+          ltv_cac_ratio: number | null
+          metadata: Json | null
+          mrr: number | null
+          net_revenue_retention: number | null
+          new_customers_mtd: number | null
+          nps_score: number | null
+          payback_months: number | null
+          pipeline_value: number | null
+          placement_rate: number | null
+          revenue_growth_mom: number | null
+          revenue_growth_yoy: number | null
+          revenue_ytd: number | null
+          snapshot_date: string
+          snapshot_type: string | null
+          total_applications: number | null
+          total_candidates: number | null
+          total_customers: number | null
+          total_placements: number | null
+          total_users: number | null
+          weighted_pipeline: number | null
+        }
+        Insert: {
+          active_customers?: number | null
+          active_users_mau?: number | null
+          arr?: number | null
+          avg_deal_size?: number | null
+          avg_time_to_hire_days?: number | null
+          cac?: number | null
+          churned_customers_mtd?: number | null
+          created_at?: string | null
+          csat_score?: number | null
+          deal_count?: number | null
+          gross_retention?: number | null
+          id?: string
+          logo_retention?: number | null
+          ltv?: number | null
+          ltv_cac_ratio?: number | null
+          metadata?: Json | null
+          mrr?: number | null
+          net_revenue_retention?: number | null
+          new_customers_mtd?: number | null
+          nps_score?: number | null
+          payback_months?: number | null
+          pipeline_value?: number | null
+          placement_rate?: number | null
+          revenue_growth_mom?: number | null
+          revenue_growth_yoy?: number | null
+          revenue_ytd?: number | null
+          snapshot_date?: string
+          snapshot_type?: string | null
+          total_applications?: number | null
+          total_candidates?: number | null
+          total_customers?: number | null
+          total_placements?: number | null
+          total_users?: number | null
+          weighted_pipeline?: number | null
+        }
+        Update: {
+          active_customers?: number | null
+          active_users_mau?: number | null
+          arr?: number | null
+          avg_deal_size?: number | null
+          avg_time_to_hire_days?: number | null
+          cac?: number | null
+          churned_customers_mtd?: number | null
+          created_at?: string | null
+          csat_score?: number | null
+          deal_count?: number | null
+          gross_retention?: number | null
+          id?: string
+          logo_retention?: number | null
+          ltv?: number | null
+          ltv_cac_ratio?: number | null
+          metadata?: Json | null
+          mrr?: number | null
+          net_revenue_retention?: number | null
+          new_customers_mtd?: number | null
+          nps_score?: number | null
+          payback_months?: number | null
+          pipeline_value?: number | null
+          placement_rate?: number | null
+          revenue_growth_mom?: number | null
+          revenue_growth_yoy?: number | null
+          revenue_ytd?: number | null
+          snapshot_date?: string
+          snapshot_type?: string | null
+          total_applications?: number | null
+          total_candidates?: number | null
+          total_customers?: number | null
+          total_placements?: number | null
+          total_users?: number | null
+          weighted_pipeline?: number | null
         }
         Relationships: []
       }
@@ -32850,6 +33152,54 @@ export type Database = {
           },
         ]
       }
+      revenue_cohorts: {
+        Row: {
+          cohort_month: string
+          company_id: string
+          created_at: string | null
+          cumulative_revenue: number | null
+          id: string
+          is_retained: boolean | null
+          month_number: number
+          revenue: number | null
+        }
+        Insert: {
+          cohort_month: string
+          company_id: string
+          created_at?: string | null
+          cumulative_revenue?: number | null
+          id?: string
+          is_retained?: boolean | null
+          month_number: number
+          revenue?: number | null
+        }
+        Update: {
+          cohort_month?: string
+          company_id?: string
+          created_at?: string | null
+          cumulative_revenue?: number | null
+          id?: string
+          is_retained?: boolean | null
+          month_number?: number
+          revenue?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_cohorts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_cohorts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       revenue_metrics: {
         Row: {
           active_subscriptions: number | null
@@ -34586,6 +34936,50 @@ export type Database = {
           skill_name?: string
         }
         Relationships: []
+      }
+      sla_commitments: {
+        Row: {
+          contract_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          measurement_period: string | null
+          sla_name: string
+          sla_type: string
+          target_unit: string
+          target_value: number
+        }
+        Insert: {
+          contract_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          measurement_period?: string | null
+          sla_name: string
+          sla_type: string
+          target_unit: string
+          target_value: number
+        }
+        Update: {
+          contract_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          measurement_period?: string | null
+          sla_name?: string
+          sla_type?: string
+          target_unit?: string
+          target_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sla_commitments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "enterprise_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sla_tracking: {
         Row: {
@@ -43582,6 +43976,10 @@ export type Database = {
       can_view_stealth_job: {
         Args: { _job_id: string; _user_id: string }
         Returns: boolean
+      }
+      capture_investor_metrics_snapshot: {
+        Args: { p_snapshot_type?: string }
+        Returns: string
       }
       check_booking_conflict: {
         Args: {
