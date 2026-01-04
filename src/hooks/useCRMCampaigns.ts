@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import type { CRMCampaign } from '@/types/crm-enterprise';
 
 interface UseCampaignsOptions {
@@ -13,7 +13,6 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
   const [campaigns, setCampaigns] = useState<CRMCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { toast } = useToast();
 
   const fetchCampaigns = useCallback(async () => {
     try {
@@ -88,19 +87,14 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
 
       setCampaigns(prev => [data as CRMCampaign, ...prev]);
 
-      toast({
-        title: 'Campaign created',
+      notify.success('Campaign created', {
         description: `Campaign "${data.name}" has been created`,
       });
 
       return data;
     } catch (err) {
       console.error('Error creating campaign:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to create campaign',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to create campaign' });
       return null;
     }
   };
@@ -124,11 +118,7 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
       return true;
     } catch (err) {
       console.error('Error updating campaign:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to update campaign',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to update campaign' });
       return false;
     }
   };
@@ -144,19 +134,12 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
 
       setCampaigns(prev => prev.filter(c => c.id !== campaignId));
 
-      toast({
-        title: 'Campaign deleted',
-        description: 'The campaign has been removed',
-      });
+      notify.success('Campaign deleted', { description: 'The campaign has been removed' });
 
       return true;
     } catch (err) {
       console.error('Error deleting campaign:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete campaign',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to delete campaign' });
       return false;
     }
   };

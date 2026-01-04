@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ValueAllocation, ValuesPokerResult } from '@/types/assessment';
 import { WORK_VALUES, VALUE_TRADEOFF_SCENARIOS, VALUE_ARCHETYPES } from '@/data/valuesPokerData';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 export function useValuesPokerSession() {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -14,7 +14,6 @@ export function useValuesPokerSession() {
     timeSpent: number;
   }>>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     const initSession = async () => {
@@ -34,14 +33,14 @@ export function useValuesPokerSession() {
 
       if (error) {
         console.error('Failed to create session:', error);
-        toast({ title: 'Error', description: 'Failed to start assessment', variant: 'destructive' });
+        notify.error('Error', { description: 'Failed to start assessment' });
       } else {
         setSessionId(data.id);
       }
     };
 
     initSession();
-  }, [toast]);
+  }, []);
 
   const saveStatedPriorities = useCallback(async (priorities: ValueAllocation[]) => {
     if (!sessionId) return;
@@ -184,15 +183,15 @@ export function useValuesPokerSession() {
         });
       }
 
-      toast({ title: 'Success', description: 'Assessment completed!' });
+      notify.success('Assessment completed!');
       return results;
     } catch (error) {
       console.error('Failed to submit assessment:', error);
-      toast({ title: 'Error', description: 'Failed to save results', variant: 'destructive' });
+      notify.error('Error', { description: 'Failed to save results' });
     } finally {
       setIsSubmitting(false);
     }
-  }, [sessionId, isSubmitting, tradeoffResponses, calculateResults, toast]);
+  }, [sessionId, isSubmitting, tradeoffResponses, calculateResults]);
 
   return {
     sessionId,

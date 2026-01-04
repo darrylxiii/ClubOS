@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { Database } from '@/integrations/supabase/types';
 
 type CrossChannelPatternRow = Database['public']['Tables']['cross_channel_patterns']['Row'];
@@ -9,7 +9,6 @@ export function useCrossChannelPatterns(entityType?: string, entityId?: string) 
   const [patterns, setPatterns] = useState<CrossChannelPatternRow[]>([]);
   const [activeAlerts, setActiveAlerts] = useState<CrossChannelPatternRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   const fetchPatterns = useCallback(async () => {
     try {
@@ -48,13 +47,13 @@ export function useCrossChannelPatterns(entityType?: string, entityId?: string) 
       if (error) throw error;
       await fetchPatterns();
       
-      toast({ title: 'Analysis complete', description: `Found ${data?.patterns_detected || 0} patterns` });
+      notify.success('Analysis complete', { description: `Found ${data?.patterns_detected || 0} patterns` });
       return data;
     } catch (err: any) {
-      toast({ title: 'Analysis failed', description: err.message, variant: 'destructive' });
+      notify.error('Analysis failed', { description: err.message });
       return null;
     }
-  }, [fetchPatterns, toast]);
+  }, [fetchPatterns]);
 
   const resolvePattern = useCallback(async (patternId: string) => {
     try {
@@ -72,11 +71,11 @@ export function useCrossChannelPatterns(entityType?: string, entityId?: string) 
       if (error) throw error;
       await fetchPatterns();
       
-      toast({ title: 'Pattern resolved', description: 'Alert has been dismissed' });
+      notify.success('Pattern resolved', { description: 'Alert has been dismissed' });
     } catch (err: any) {
-      toast({ title: 'Failed to resolve', description: err.message, variant: 'destructive' });
+      notify.error('Failed to resolve', { description: err.message });
     }
-  }, [fetchPatterns, toast]);
+  }, [fetchPatterns]);
 
   const getPatternsByType = useCallback((type: string) => {
     return patterns.filter(p => p.pattern_type === type && p.is_active);

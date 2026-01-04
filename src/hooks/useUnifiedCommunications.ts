@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { Database } from '@/integrations/supabase/types';
 
 type UnifiedCommunicationRow = Database['public']['Tables']['unified_communications']['Row'];
@@ -9,7 +9,6 @@ export function useUnifiedCommunications(entityType?: string, entityId?: string)
   const [communications, setCommunications] = useState<UnifiedCommunicationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { toast } = useToast();
 
   const fetchCommunications = useCallback(async () => {
     try {
@@ -50,11 +49,11 @@ export function useUnifiedCommunications(entityType?: string, entityId?: string)
       if (error) throw error;
       await fetchCommunications();
       
-      toast({ title: 'Communication synced', description: 'Successfully added to unified timeline' });
+      notify.success('Communication synced', { description: 'Successfully added to unified timeline' });
     } catch (err: any) {
-      toast({ title: 'Sync failed', description: err.message, variant: 'destructive' });
+      notify.error('Sync failed', { description: err.message });
     }
-  }, [fetchCommunications, toast]);
+  }, [fetchCommunications]);
 
   const getEntityTimeline = useCallback(async (type: string, id: string) => {
     try {

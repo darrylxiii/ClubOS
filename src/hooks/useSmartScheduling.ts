@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 interface TimeSlotScore {
   slot: string;
@@ -25,7 +24,6 @@ interface SchedulingSuggestion {
 export function useSmartScheduling() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { toast } = useToast();
 
   const analyzeOptimalSlots = async (
     candidateId: string,

@@ -7,7 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface ChurnRiskUser {
   userId: string;
@@ -29,7 +29,6 @@ interface ReengagementCampaign {
 export function useChurnPrevention() {
   const [loading, setLoading] = useState(false);
   const [atRiskUsers, setAtRiskUsers] = useState<ChurnRiskUser[]>([]);
-  const { toast } = useToast();
 
   // Fetch users at risk of churning
   const fetchAtRiskUsers = useCallback(async (
@@ -122,16 +121,12 @@ export function useChurnPrevention() {
       return riskUsers;
     } catch (error) {
       console.error('Error fetching at-risk users:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch at-risk users',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to fetch at-risk users' });
       return [];
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   // Trigger re-engagement campaign
   const triggerReengagement = useCallback(async (
@@ -182,22 +177,17 @@ export function useChurnPrevention() {
         visibility: 'admin',
       });
 
-      toast({
-        title: 'Re-engagement sent',
+      notify.success('Re-engagement sent', {
         description: `Successfully sent ${campaign.type} to ${profile.full_name}`,
       });
 
       return true;
     } catch (error) {
       console.error('Error triggering re-engagement:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to send re-engagement',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to send re-engagement' });
       return false;
     }
-  }, [toast]);
+  }, []);
 
   // Bulk re-engagement for multiple users
   const triggerBulkReengagement = useCallback(async (
@@ -226,14 +216,13 @@ export function useChurnPrevention() {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    toast({
-      title: 'Bulk re-engagement complete',
+    notify.success('Bulk re-engagement complete', {
       description: `Sent ${successCount} of ${users.length} messages`,
     });
 
     setLoading(false);
     return successCount;
-  }, [triggerReengagement, toast]);
+  }, [triggerReengagement]);
 
   return {
     loading,

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 export interface CRMDeal {
   id: string;
@@ -47,7 +47,6 @@ export function useCRMDeals(options: UseDealsOptions = {}) {
   const [metrics, setMetrics] = useState<DealMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { toast } = useToast();
 
   const fetchDeals = useCallback(async () => {
     try {
@@ -173,19 +172,14 @@ export function useCRMDeals(options: UseDealsOptions = {}) {
 
       await fetchDeals();
 
-      toast({
-        title: 'Deal updated',
+      notify.success('Deal updated', {
         description: 'The deal has been updated successfully',
       });
 
       return true;
     } catch (err) {
       console.error('Error updating deal:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to update deal',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to update deal' });
       return false;
     }
   };

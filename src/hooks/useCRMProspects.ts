@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import type { CRMProspect, ProspectStage } from '@/types/crm-enterprise';
 
 interface UseProspectsOptions {
@@ -17,7 +17,6 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
   const [prospects, setProspects] = useState<CRMProspect[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { toast } = useToast();
 
   const fetchProspects = useCallback(async () => {
     try {
@@ -101,17 +100,10 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
         prev.map(p => p.id === prospectId ? { ...p, stage: newStage } : p)
       );
 
-      toast({
-        title: 'Stage updated',
-        description: `Prospect moved to ${newStage}`,
-      });
+      notify.success('Stage updated', { description: `Prospect moved to ${newStage}` });
     } catch (err) {
       console.error('Error updating prospect stage:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to update prospect stage',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to update prospect stage' });
     }
   };
 
@@ -134,11 +126,7 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
       return true;
     } catch (err) {
       console.error('Error updating prospect:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to update prospect',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to update prospect' });
       return false;
     }
   };
@@ -154,19 +142,12 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
 
       setProspects(prev => prev.filter(p => p.id !== prospectId));
 
-      toast({
-        title: 'Prospect deleted',
-        description: 'The prospect has been removed',
-      });
+      notify.success('Prospect deleted', { description: 'The prospect has been removed' });
 
       return true;
     } catch (err) {
       console.error('Error deleting prospect:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete prospect',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to delete prospect' });
       return false;
     }
   };

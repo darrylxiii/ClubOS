@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface AnalyticsSummary {
   total_communications: number;
@@ -63,7 +63,6 @@ interface CommunicationAnalytics {
 export function useCommunicationAnalytics() {
   const [loading, setLoading] = useState(false);
   const [analytics, setAnalytics] = useState<CommunicationAnalytics | null>(null);
-  const { toast } = useToast();
 
   const fetchAnalytics = useCallback(async (options?: {
     user_id?: string;
@@ -83,12 +82,12 @@ export function useCommunicationAnalytics() {
       return data;
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch analytics';
-      toast({ title: 'Analytics failed', description: errorMessage, variant: 'destructive' });
+      notify.error('Analytics failed', { description: errorMessage });
       return null;
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   return {
     loading,

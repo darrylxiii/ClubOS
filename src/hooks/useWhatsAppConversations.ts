@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 export interface WhatsAppConversation {
   id: string;
@@ -24,7 +24,6 @@ export interface WhatsAppConversation {
 export function useWhatsAppConversations() {
   const [conversations, setConversations] = useState<WhatsAppConversation[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   const fetchConversations = async () => {
     try {
@@ -38,11 +37,7 @@ export function useWhatsAppConversations() {
       setConversations(data || []);
     } catch (error) {
       console.error('Error fetching conversations:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load conversations',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to load conversations' });
     } finally {
       setLoading(false);
     }
@@ -68,7 +63,7 @@ export function useWhatsAppConversations() {
       .eq('id', conversationId);
 
     if (error) {
-      toast({ title: 'Error', description: 'Failed to assign strategist', variant: 'destructive' });
+      notify.error('Error', { description: 'Failed to assign strategist' });
     } else {
       await fetchConversations();
     }

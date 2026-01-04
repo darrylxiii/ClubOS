@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 
 interface CandidateRelationship {
@@ -36,7 +36,6 @@ export function usePartnerRelationships() {
     avgResponseRate: 0,
     avgEngagement: 0
   });
-  const { toast } = useToast();
 
   const fetchRelationships = useCallback(async () => {
     try {
@@ -176,11 +175,11 @@ export function usePartnerRelationships() {
 
     } catch (err: any) {
       console.error('Error fetching relationships:', err);
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      notify.error('Error', { description: err.message });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     fetchRelationships();

@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { AssessmentTemplate } from '@/types/assessment';
 
 export const useCustomAssessments = () => {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const createTemplate = async (template: Omit<AssessmentTemplate, 'id' | 'created_by' | 'created_at' | 'updated_at'>) => {
@@ -31,18 +30,13 @@ export const useCustomAssessments = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Template created',
+      notify.success('Template created', {
         description: 'Custom assessment template has been created successfully',
       });
 
       return { success: true, data: data as unknown as AssessmentTemplate };
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: error.message });
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
@@ -69,11 +63,7 @@ export const useCustomAssessments = () => {
 
       return { success: true, data: data as unknown as AssessmentTemplate[] };
     } catch (error: any) {
-      toast({
-        title: 'Error loading templates',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Error loading templates', { description: error.message });
       return { success: false, error: error.message };
     }
   };
@@ -100,18 +90,13 @@ export const useCustomAssessments = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Template updated',
+      notify.success('Template updated', {
         description: 'Assessment template has been updated successfully',
       });
 
       return { success: true, data: data as unknown as AssessmentTemplate };
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: error.message });
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
@@ -128,18 +113,13 @@ export const useCustomAssessments = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Template deleted',
+      notify.success('Template deleted', {
         description: 'Assessment template has been deleted successfully',
       });
 
       return { success: true };
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: error.message });
       return { success: false, error: error.message };
     } finally {
       setLoading(false);

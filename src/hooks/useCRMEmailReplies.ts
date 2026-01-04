@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import type { CRMEmailReply, ReplyClassification } from '@/types/crm-enterprise';
 
 interface UseEmailRepliesOptions {
@@ -17,7 +17,6 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
   const [replies, setReplies] = useState<CRMEmailReply[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { toast } = useToast();
 
   const fetchReplies = useCallback(async () => {
     try {
@@ -140,19 +139,12 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
         } : r)
       );
 
-      toast({
-        title: 'Reply actioned',
-        description: `Marked as: ${action}`,
-      });
+      notify.success('Reply actioned', { description: `Marked as: ${action}` });
 
       return true;
     } catch (err) {
       console.error('Error marking reply as actioned:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to action reply',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to action reply' });
       return false;
     }
   };
@@ -171,19 +163,12 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
 
       setReplies(prev => prev.filter(r => r.id !== replyId));
 
-      toast({
-        title: 'Reply archived',
-        description: 'The reply has been archived',
-      });
+      notify.success('Reply archived', { description: 'The reply has been archived' });
 
       return true;
     } catch (err) {
       console.error('Error archiving reply:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to archive reply',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to archive reply' });
       return false;
     }
   };
@@ -203,19 +188,12 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
 
       setReplies(prev => prev.filter(r => r.id !== replyId));
 
-      toast({
-        title: 'Marked as spam',
-        description: 'The reply has been marked as spam',
-      });
+      notify.success('Marked as spam', { description: 'The reply has been marked as spam' });
 
       return true;
     } catch (err) {
       console.error('Error marking as spam:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to mark as spam',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to mark as spam' });
       return false;
     }
   };
@@ -244,19 +222,14 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
       // Refetch to get updated data
       await fetchReplies();
 
-      toast({
-        title: 'Analysis complete',
+      notify.success('Analysis complete', {
         description: `Classified as: ${response.data.analysis.classification}`,
       });
 
       return response.data.analysis;
     } catch (err) {
       console.error('Error analyzing reply:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to analyze reply',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to analyze reply' });
       return null;
     }
   };

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface Communication {
   id: string;
@@ -48,7 +48,6 @@ export function useCandidateCommunications() {
     channelBreakdown: {} as Record<string, number>,
     lastContactDate: null as string | null
   });
-  const { toast } = useToast();
 
   const fetchCommunications = useCallback(async () => {
     try {
@@ -237,11 +236,11 @@ export function useCandidateCommunications() {
       }
 
       await fetchPreferences();
-      toast({ title: 'Preferences updated' });
+      notify.success('Preferences updated');
     } catch (err: any) {
-      toast({ title: 'Failed to update preferences', description: err.message, variant: 'destructive' });
+      notify.error('Failed to update preferences', { description: err.message });
     }
-  }, [preferences, fetchPreferences, toast]);
+  }, [preferences, fetchPreferences]);
 
   useEffect(() => {
     fetchCommunications();

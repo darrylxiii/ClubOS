@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PressureCookerTask, PressureCookerAction, PressureCookerResult } from '@/types/assessment';
 import { OPTIMAL_TASK_ORDER } from '@/data/pressureCookerScenarios';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 export function usePressureCookerSession(scenarioKey: string, tasks: PressureCookerTask[]) {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -11,7 +11,6 @@ export function usePressureCookerSession(scenarioKey: string, tasks: PressureCoo
   const [actions, setActions] = useState<PressureCookerAction[]>([]);
   const [startTime, setStartTime] = useState<number>(Date.now());
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     const initSession = async () => {
@@ -31,7 +30,7 @@ export function usePressureCookerSession(scenarioKey: string, tasks: PressureCoo
 
       if (error) {
         console.error('Failed to create session:', error);
-        toast({ title: 'Error', description: 'Failed to start assessment', variant: 'destructive' });
+        notify.error('Error', { description: 'Failed to start assessment' });
       } else {
         setSessionId(data.id);
         setStartTime(Date.now());
@@ -39,7 +38,7 @@ export function usePressureCookerSession(scenarioKey: string, tasks: PressureCoo
     };
 
     initSession();
-  }, [scenarioKey, tasks, toast]);
+  }, [scenarioKey, tasks]);
 
   const addVisibleTask = useCallback((task: PressureCookerTask) => {
     setCurrentTasks(prev => {
@@ -305,15 +304,15 @@ export function usePressureCookerSession(scenarioKey: string, tasks: PressureCoo
         });
       }
 
-      toast({ title: 'Success', description: 'Assessment completed!' });
+      notify.success('Assessment completed!');
       return results;
     } catch (error) {
       console.error('Failed to submit assessment:', error);
-      toast({ title: 'Error', description: 'Failed to save results', variant: 'destructive' });
+      notify.error('Error', { description: 'Failed to save results' });
     } finally {
       setIsSubmitting(false);
     }
-  }, [sessionId, isSubmitting, calculateResults, toast]);
+  }, [sessionId, isSubmitting, calculateResults]);
 
   return {
     sessionId,
