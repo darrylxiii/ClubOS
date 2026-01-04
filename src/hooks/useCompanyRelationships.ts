@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { logger } from '@/lib/logger';
 
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
@@ -53,7 +53,6 @@ export function useCompanyRelationships(selectedCompanyId?: string | null) {
     avgEngagement: 0,
     avgSentiment: 0
   });
-  const { toast } = useToast();
 
   const fetchRelationships = useCallback(async () => {
     try {
@@ -200,15 +199,11 @@ export function useCompanyRelationships(selectedCompanyId?: string | null) {
       setStats(statsData);
     } catch (err: any) {
       logger.error('Error fetching company relationships:', err);
-      toast({
-        title: 'Failed to load relationships',
-        description: err.message,
-        variant: 'destructive'
-      });
+      notify.error('Failed to load relationships', { description: err.message });
     } finally {
       setLoading(false);
     }
-  }, [selectedCompanyId, toast]);
+  }, [selectedCompanyId]);
 
   useEffect(() => {
     fetchRelationships();

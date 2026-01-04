@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Send, Bot, X, Sparkles, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { useAuth } from "@/contexts/AuthContext";
 import ReactMarkdown from "react-markdown";
 import { useAnimatedText } from "@/hooks/useAnimatedText";
@@ -22,7 +22,6 @@ export function CourseAIChat({ courseId }: CourseAIChatProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [guestMessageCount, setGuestMessageCount] = useState(0);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
   // Removed useAnimatedText - streaming handles progressive display naturally
@@ -116,11 +115,7 @@ export function CourseAIChat({ courseId }: CourseAIChatProps) {
       }
     } catch (error) {
       console.error('Error asking AI:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to get an answer. Please try again.",
-        variant: "destructive",
-      });
+      notify.error("Error", { description: error instanceof Error ? error.message : "Failed to get an answer. Please try again." });
       setAnswer("");
       setIsExpanded(false);
     } finally {

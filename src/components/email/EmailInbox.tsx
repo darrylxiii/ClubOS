@@ -5,6 +5,7 @@ import { useEmails, Email } from "@/hooks/useEmails";
 import { useKeyboardShortcuts, EMAIL_SHORTCUTS } from "@/hooks/useKeyboardShortcuts";
 import { useAdvancedSearch } from "@/hooks/useAdvancedSearch";
 import { useUndoableAction } from "@/hooks/useUndoableAction";
+import { notify } from "@/lib/notify";
 import { EmailSidebar } from "./EmailSidebar";
 import { EmailList } from "./EmailList";
 import { EmailDetail } from "./EmailDetail";
@@ -20,7 +21,6 @@ import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw, Mail, Settings as SettingsIcon, ArrowLeft, HelpCircle, Menu } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -34,7 +34,6 @@ export function EmailInbox() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [selectedEmailIds, setSelectedEmailIds] = useState<Set<string>>(new Set());
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const { toast } = useToast();
   const { user } = useAuth();
   const { executeWithUndo } = useUndoableAction();
   const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette();
@@ -248,10 +247,7 @@ export function EmailInbox() {
     snoozeUntil.setHours(snoozeUntil.getHours() + 3);
     
     snoozeEmail(selectedEmail.id, snoozeUntil);
-    toast({
-      title: "Email snoozed",
-      description: "This email will reappear in 3 hours",
-    });
+    notify.success("Email snoozed", { description: "This email will reappear in 3 hours" });
     setSelectedEmail(null);
   };
 
@@ -302,14 +298,14 @@ export function EmailInbox() {
     const promises = Array.from(selectedEmailIds).map(id => archiveEmail(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    toast({ title: `Archived ${selectedEmailIds.size} emails` });
+    notify.success(`Archived ${selectedEmailIds.size} emails`);
   };
 
   const handleBulkDelete = async () => {
     const promises = Array.from(selectedEmailIds).map(id => deleteEmail(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    toast({ title: `Deleted ${selectedEmailIds.size} emails` });
+    notify.success(`Deleted ${selectedEmailIds.size} emails`);
   };
 
   const handleBulkSnooze = async () => {
@@ -318,21 +314,21 @@ export function EmailInbox() {
     const promises = Array.from(selectedEmailIds).map(id => snoozeEmail(id, snoozeUntil));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    toast({ title: `Snoozed ${selectedEmailIds.size} emails` });
+    notify.success(`Snoozed ${selectedEmailIds.size} emails`);
   };
 
   const handleBulkMarkAsRead = async () => {
     const promises = Array.from(selectedEmailIds).map(id => markAsRead(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    toast({ title: `Marked ${selectedEmailIds.size} emails as read` });
+    notify.success(`Marked ${selectedEmailIds.size} emails as read`);
   };
 
   const handleBulkMarkAsUnread = async () => {
     const promises = Array.from(selectedEmailIds).map(id => markAsUnread(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    toast({ title: `Marked ${selectedEmailIds.size} emails as unread` });
+    notify.success(`Marked ${selectedEmailIds.size} emails as unread`);
   };
 
   // Show empty state if no connections

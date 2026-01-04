@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Sparkles, TrendingUp, AlertTriangle, CheckCircle, DollarSign, Target, Lightbulb, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { OfferLetterGenerator } from './OfferLetterGenerator';
 
 interface SmartOfferBuilderProps {
@@ -69,8 +69,6 @@ export function SmartOfferBuilder({
   const [bonusPercentage, setBonusPercentage] = useState(10);
   const [equityPercentage, setEquityPercentage] = useState(0);
   const [notes, setNotes] = useState('');
-  
-  const { toast } = useToast();
 
   useEffect(() => {
     generateRecommendation();
@@ -112,11 +110,7 @@ export function SmartOfferBuilder({
       setEquityPercentage(data.recommended_equity_percentage);
     } catch (error) {
       console.error('Error generating recommendation:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to generate offer recommendation',
-        variant: 'destructive',
-      });
+      notify.error('Failed to generate offer recommendation');
     } finally {
       setLoading(false);
     }
@@ -149,20 +143,13 @@ export function SmartOfferBuilder({
 
       if (error) throw error;
 
-      toast({
-        title: 'Offer saved',
-        description: 'Offer draft has been created successfully',
-      });
+      notify.success('Offer saved', { description: 'Offer draft has been created successfully' });
 
       setSavedOfferId(data.id);
       onOfferCreated?.(data.id);
     } catch (error) {
       console.error('Error saving offer:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save offer',
-        variant: 'destructive',
-      });
+      notify.error('Failed to save offer');
     } finally {
       setSaving(false);
     }

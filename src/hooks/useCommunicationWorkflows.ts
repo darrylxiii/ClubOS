@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { Database } from '@/integrations/supabase/types';
 
 type WorkflowRow = Database['public']['Tables']['communication_workflows']['Row'];
@@ -11,7 +11,6 @@ export function useCommunicationWorkflows() {
   const [workflows, setWorkflows] = useState<WorkflowRow[]>([]);
   const [executions, setExecutions] = useState<ExecutionRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   const fetchWorkflows = useCallback(async () => {
     try {
@@ -66,13 +65,13 @@ export function useCommunicationWorkflows() {
       if (error) throw error;
       await fetchWorkflows();
       
-      toast({ title: 'Workflow created', description: `"${workflow.name}" is now active` });
+      notify.success('Workflow created', { description: `"${workflow.name}" is now active` });
       return data;
     } catch (err: any) {
-      toast({ title: 'Failed to create workflow', description: err.message, variant: 'destructive' });
+      notify.error('Failed to create workflow', { description: err.message });
       return null;
     }
-  }, [fetchWorkflows, toast]);
+  }, [fetchWorkflows]);
 
   const updateWorkflow = useCallback(async (id: string, updates: Partial<WorkflowRow>) => {
     try {
@@ -84,11 +83,11 @@ export function useCommunicationWorkflows() {
       if (error) throw error;
       await fetchWorkflows();
       
-      toast({ title: 'Workflow updated' });
+      notify.success('Workflow updated');
     } catch (err: any) {
-      toast({ title: 'Failed to update', description: err.message, variant: 'destructive' });
+      notify.error('Failed to update', { description: err.message });
     }
-  }, [fetchWorkflows, toast]);
+  }, [fetchWorkflows]);
 
   const deleteWorkflow = useCallback(async (id: string) => {
     try {
@@ -100,11 +99,11 @@ export function useCommunicationWorkflows() {
       if (error) throw error;
       await fetchWorkflows();
       
-      toast({ title: 'Workflow deleted' });
+      notify.success('Workflow deleted');
     } catch (err: any) {
-      toast({ title: 'Failed to delete', description: err.message, variant: 'destructive' });
+      notify.error('Failed to delete', { description: err.message });
     }
-  }, [fetchWorkflows, toast]);
+  }, [fetchWorkflows]);
 
   const toggleWorkflow = useCallback(async (id: string, isActive: boolean) => {
     await updateWorkflow(id, { is_active: isActive });
@@ -119,13 +118,13 @@ export function useCommunicationWorkflows() {
       if (error) throw error;
       await fetchExecutions(workflowId);
       
-      toast({ title: 'Workflow executed', description: 'Actions have been triggered' });
+      notify.success('Workflow executed', { description: 'Actions have been triggered' });
       return data;
     } catch (err: any) {
-      toast({ title: 'Execution failed', description: err.message, variant: 'destructive' });
+      notify.error('Execution failed', { description: err.message });
       return null;
     }
-  }, [fetchExecutions, toast]);
+  }, [fetchExecutions]);
 
   useEffect(() => {
     fetchWorkflows();

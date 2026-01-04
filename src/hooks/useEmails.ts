@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { useAuth } from "@/contexts/AuthContext";
-
 export interface Email {
   id: string;
   user_id: string;
@@ -66,7 +65,6 @@ export function useEmails(filter: string = "inbox") {
   const [labels, setLabels] = useState<EmailLabel[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const loadEmails = useCallback(async () => {
@@ -100,15 +98,11 @@ export function useEmails(filter: string = "inbox") {
       setEmails(data || []);
     } catch (error: any) {
       console.error("Error loading emails:", error);
-      toast({
-        title: "Error loading emails",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error loading emails", { description: error.message });
     } finally {
       setLoading(false);
     }
-  }, [filter, toast]);
+  }, [filter]);
 
   const loadLabels = useCallback(async () => {
     try {
@@ -126,11 +120,7 @@ export function useEmails(filter: string = "inbox") {
 
   const syncEmails = async () => {
     if (!user) {
-      toast({
-        title: "Error",
-        description: "Please sign in to sync emails",
-        variant: "destructive",
-      });
+      notify.error("Please sign in to sync emails");
       return;
     }
     
@@ -144,10 +134,7 @@ export function useEmails(filter: string = "inbox") {
         .eq("is_active", true);
 
       if (!connections || connections.length === 0) {
-        toast({
-          title: "No email accounts",
-          description: "Please connect an email account in settings",
-        });
+        notify.info("No email accounts", { description: "Please connect an email account in settings" });
         return;
       }
 
@@ -183,10 +170,7 @@ export function useEmails(filter: string = "inbox") {
           }
       }
 
-      toast({
-        title: "Sync complete",
-        description: `Synced ${totalSynced} new email(s) from ${connections.length} account(s)`,
-      });
+      notify.success("Sync complete", { description: `Synced ${totalSynced} new email(s) from ${connections.length} account(s)` });
 
       // Reload emails
       await loadEmails();
@@ -234,11 +218,7 @@ export function useEmails(filter: string = "inbox") {
       }
     } catch (error: any) {
       console.error("Error syncing emails:", error);
-      toast({
-        title: "Sync failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Sync failed", { description: error.message });
     } finally {
       setSyncing(false);
     }
@@ -288,11 +268,7 @@ export function useEmails(filter: string = "inbox") {
     try {
       await updateEmail(emailId, { is_starred: starred } as Partial<Email>);
     } catch (error: any) {
-      toast({
-        title: "Failed to update",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Failed to update", { description: error.message });
     }
   };
 

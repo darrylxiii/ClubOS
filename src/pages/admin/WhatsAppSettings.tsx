@@ -8,13 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { MessageSquare, Settings, Shield, Zap, RefreshCw, ExternalLink, Copy, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function WhatsAppSettings() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -62,7 +61,7 @@ export default function WhatsAppSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-automation-rules'] });
-      toast({ title: 'Rule updated' });
+      notify.success('Rule updated');
     },
   });
 
@@ -72,9 +71,9 @@ export default function WhatsAppSettings() {
       const { error } = await supabase.functions.invoke('sync-whatsapp-templates');
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['whatsapp-templates'] });
-      toast({ title: 'Templates synced successfully' });
+      notify.success('Templates synced successfully');
     } catch (error) {
-      toast({ title: 'Failed to sync templates', variant: 'destructive' });
+      notify.error('Failed to sync templates');
     } finally {
       setIsSyncing(false);
     }
@@ -83,7 +82,7 @@ export default function WhatsAppSettings() {
   const copyWebhookUrl = () => {
     const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook-receiver`;
     navigator.clipboard.writeText(url);
-    toast({ title: 'Webhook URL copied to clipboard' });
+    notify.success('Webhook URL copied to clipboard');
   };
 
   return (
