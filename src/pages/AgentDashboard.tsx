@@ -4,7 +4,13 @@ import { GoalsDashboard } from "@/components/agent/GoalsDashboard";
 import { AgentActivityFeed } from "@/components/agent/AgentActivityFeed";
 import { AutonomySettings } from "@/components/agent/AutonomySettings";
 import { AgentGovernanceDashboard } from "@/components/agent/AgentGovernanceDashboard";
-import { Target, Activity, Shield, Settings, Bot } from "lucide-react";
+import { AgentApprovalQueue } from "@/components/agent/AgentApprovalQueue";
+import { DecisionExplainer } from "@/components/agent/DecisionExplainer";
+import { LearningInsightsPanel } from "@/components/agent/LearningInsightsPanel";
+import { MemberAgentWidget } from "@/components/agent/MemberAgentWidget";
+import { PartnerAgentWidget } from "@/components/agent/PartnerAgentWidget";
+import { StrategistAgentWidget } from "@/components/agent/StrategistAgentWidget";
+import { Target, Activity, Shield, Settings, Bot, Users, Brain } from "lucide-react";
 
 export default function AgentDashboard() {
   const [activeTab, setActiveTab] = useState("goals");
@@ -24,7 +30,7 @@ export default function AgentDashboard() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-muted/50">
+        <TabsList className="bg-muted/50 flex-wrap h-auto gap-1 p-1">
           <TabsTrigger value="goals" className="gap-2">
             <Target className="h-4 w-4" />
             Goals
@@ -32,6 +38,14 @@ export default function AgentDashboard() {
           <TabsTrigger value="activity" className="gap-2">
             <Activity className="h-4 w-4" />
             Activity
+          </TabsTrigger>
+          <TabsTrigger value="personas" className="gap-2">
+            <Users className="h-4 w-4" />
+            Personas
+          </TabsTrigger>
+          <TabsTrigger value="learning" className="gap-2">
+            <Brain className="h-4 w-4" />
+            Learning
           </TabsTrigger>
           <TabsTrigger value="governance" className="gap-2">
             <Shield className="h-4 w-4" />
@@ -51,29 +65,23 @@ export default function AgentDashboard() {
           <div className="grid gap-6 lg:grid-cols-2">
             <AgentActivityFeed limit={30} />
             <div className="space-y-6">
-              {/* Quick Stats for Activity Tab */}
-              <div className="p-6 rounded-lg border border-border/50 bg-muted/20">
-                <h3 className="font-semibold mb-4">Agent Performance Today</h3>
-                <div className="grid gap-4 grid-cols-2">
-                  <div>
-                    <p className="text-2xl font-bold">-</p>
-                    <p className="text-xs text-muted-foreground">Actions Taken</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">-</p>
-                    <p className="text-xs text-muted-foreground">Goals Progressed</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">-</p>
-                    <p className="text-xs text-muted-foreground">Events Processed</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">-</p>
-                    <p className="text-xs text-muted-foreground">Time Saved</p>
-                  </div>
-                </div>
-              </div>
+              <AgentApprovalQueue />
             </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="personas" className="mt-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <MemberAgentWidget />
+            <PartnerAgentWidget />
+            <StrategistAgentWidget />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="learning" className="mt-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <LearningInsightsPanel />
+            <DecisionExplainer />
           </div>
         </TabsContent>
 

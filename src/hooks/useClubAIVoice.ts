@@ -66,6 +66,138 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
       window.dispatchEvent(event);
       return 'Command palette opened';
     },
+    // Phase 6: New Voice Client Tools
+    schedule_meeting: async ({ title, attendees, duration = 30 }: { title: string; attendees?: string[]; duration?: number }) => {
+      navigate('/calendar/new', { 
+        state: { 
+          prefill: { title, attendees, duration } 
+        } 
+      });
+      return `Opening scheduler for: ${title} (${duration} minutes)`;
+    },
+    update_application_status: async ({ applicationId, newStatus }: { applicationId: string; newStatus: string }) => {
+      try {
+        const { error } = await supabase
+          .from('applications')
+          .update({ status: newStatus })
+          .eq('id', applicationId);
+        if (error) throw error;
+        toast.success('Application Updated', { description: `Status changed to ${newStatus}` });
+        return `Updated application to ${newStatus}`;
+      } catch (e) {
+        toast.error('Update Failed', { description: 'Could not update application status' });
+        return `Failed to update application`;
+      }
+    },
+    complete_task: async ({ taskId }: { taskId: string }) => {
+      try {
+        const { error } = await supabase
+          .from('unified_tasks')
+          .update({ status: 'completed', completed_at: new Date().toISOString() })
+          .eq('id', taskId);
+        if (error) throw error;
+        toast.success('Task Completed');
+        return `Task marked as complete`;
+      } catch (e) {
+        return `Failed to complete task`;
+      }
+    },
+    get_pipeline_summary: async () => {
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) return 'Please log in to see your pipeline';
+        
+        const { data: applications } = await supabase
+          .from('applications')
+          .select('status')
+          .eq('user_id', user.user.id);
+        
+        if (!applications?.length) return 'You have no active applications';
+        
+        const statusCounts = applications.reduce((acc: Record<string, number>, app) => {
+          acc[app.status] = (acc[app.status] || 0) + 1;
+          return acc;
+        }, {});
+        
+        const summary = Object.entries(statusCounts)
+          .map(([status, count]) => `${count} ${status}`)
+          .join(', ');
+        
+        return `You have ${applications.length} applications: ${summary}`;
+      } catch (e) {
+        return 'Unable to fetch pipeline data';
+      }
+    },
+    capture_note: async ({ content, context }: { content: string; context?: string }) => {
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) return 'Please log in to save notes';
+        
+        const { error } = await supabase
+          .from('ai_memory')
+          .insert({
+            user_id: user.user.id,
+            content,
+            memory_type: 'voice_note',
+            context: { source: 'voice', context, capturedAt: new Date().toISOString() },
+          });
+        
+        if (error) throw error;
+        toast.success('Note Captured');
+        return `Note saved: ${content.substring(0, 50)}...`;
+      } catch (e) {
+        return 'Failed to save note';
+      }
+    },
+    get_upcoming_interviews: async () => {
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) return 'Please log in';
+        
+        // Use applications table for interview stage info
+        const { data: interviews } = await supabase
+          .from('applications')
+          .select('id, status')
+          .eq('user_id', user.user.id)
+          .eq('status', 'interview')
+          .limit(5);
+        
+        if (!interviews?.length) return 'No upcoming interviews in your pipeline';
+        
+        return `You have ${interviews.length} applications in interview stage`;
+      } catch (e) {
+        return 'Unable to fetch interview data';
+      }
+    },
+    quick_follow_up: async ({ candidateName, message }: { candidateName: string; message?: string }) => {
+      navigate('/communications', { 
+        state: { 
+          compose: true, 
+          recipient: candidateName,
+          prefillMessage: message || `Hi, just following up on our conversation...`
+        } 
+      });
+      return `Opening follow-up composer for ${candidateName}`;
+    },
+    set_reminder: async ({ text, minutes = 30 }: { text: string; minutes?: number }) => {
+      const reminderTime = new Date(Date.now() + minutes * 60 * 1000);
+      toast.info('Reminder Set', { 
+        description: `"${text}" in ${minutes} minutes`,
+        duration: 5000,
+      });
+      // Store reminder in memory for persistent reminders
+      const { data: user } = await supabase.auth.getUser();
+      if (user.user) {
+        await supabase.from('ai_memory').insert({
+          user_id: user.user.id,
+          content: text,
+          memory_type: 'reminder',
+          context: { reminderTime: reminderTime.toISOString() },
+          expires_at: reminderTime.toISOString(),
+        });
+      }
+      return `Reminder set for ${minutes} minutes from now: ${text}`;
+    },
   };
 
   const conversation = useConversation({
