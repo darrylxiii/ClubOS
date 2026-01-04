@@ -16,7 +16,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import {
   Loader2,
   ChevronLeft,
@@ -32,7 +32,6 @@ export default function CourseEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -73,11 +72,7 @@ export default function CourseEdit() {
 
       // Check if user owns this course
       if (courseData.created_by !== user?.id) {
-        toast({
-          title: "Access denied",
-          description: "You don't have permission to edit this course",
-          variant: "destructive",
-        });
+        notify.error("Access denied", { description: "You don't have permission to edit this course" });
         navigate("/academy/creator");
         return;
       }
@@ -94,11 +89,7 @@ export default function CourseEdit() {
         course_video_url: courseData.course_video_url || "",
       });
     } catch (error: any) {
-      toast({
-        title: "Error loading course",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error loading course", { description: error.message });
       navigate("/academy/creator");
     } finally {
       setLoading(false);
@@ -107,11 +98,7 @@ export default function CourseEdit() {
 
   const enhanceDescription = async () => {
     if (!formData.title || !formData.description) {
-      toast({
-        title: "Missing information",
-        description: "Please add a title and description first",
-        variant: "destructive",
-      });
+      notify.error("Missing information", { description: "Please add a title and description first" });
       return;
     }
 
@@ -128,16 +115,9 @@ export default function CourseEdit() {
       if (error) throw error;
 
       setFormData({ ...formData, description: data.content });
-      toast({
-        title: "Description enhanced",
-        description: "AI has improved your course description",
-      });
+      notify.success("Description enhanced", { description: "AI has improved your course description" });
     } catch (error: any) {
-      toast({
-        title: "Enhancement failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Enhancement failed", { description: error.message });
     } finally {
       setAiLoading(false);
     }
@@ -165,11 +145,7 @@ export default function CourseEdit() {
 
       await Promise.all(promises);
     } catch (error: any) {
-      toast({
-        title: "Error reordering modules",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error reordering modules", { description: error.message });
       loadCourseData();
     }
   };
@@ -185,18 +161,11 @@ export default function CourseEdit() {
 
       if (error) throw error;
 
-      toast({
-        title: "Module deleted",
-        description: "The module has been removed successfully",
-      });
+      notify.success("Module deleted", { description: "The module has been removed successfully" });
 
       loadCourseData();
     } catch (error: any) {
-      toast({
-        title: "Error deleting module",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error deleting module", { description: error.message });
     }
   };
 
@@ -205,11 +174,7 @@ export default function CourseEdit() {
     if (!user || !id) return;
 
     if (!formData.title.trim()) {
-      toast({
-        title: "Title required",
-        description: "Please enter a course title",
-        variant: "destructive",
-      });
+      notify.error("Title required", { description: "Please enter a course title" });
       return;
     }
 
@@ -238,19 +203,12 @@ export default function CourseEdit() {
 
       if (error) throw error;
 
-      toast({
-        title: "Course updated",
-        description: "Your changes have been saved successfully",
-      });
+      notify.success("Course updated", { description: "Your changes have been saved successfully" });
 
       // Reload the course data to show updated values
       await loadCourseData();
     } catch (error: any) {
-      toast({
-        title: "Error saving course",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error saving course", { description: error.message });
     } finally {
       setSaving(false);
     }

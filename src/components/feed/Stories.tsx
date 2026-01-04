@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { EnhancedStoryViewer } from "@/components/social/EnhancedStoryViewer";
 import { validateStoryFile } from "@/lib/fileValidation";
 
@@ -106,11 +106,7 @@ export function Stories() {
       // Validate file before upload
       const validation = validateStoryFile(file);
       if (!validation.valid) {
-        toast({
-          title: "Invalid file",
-          description: validation.error,
-          variant: "destructive"
-        });
+        notify.error("Invalid file", { description: validation.error });
         return;
       }
 
@@ -137,10 +133,10 @@ export function Stories() {
 
         if (error) throw error;
 
-        toast({ title: "Story posted!" });
+        notify.success("Story posted!");
         fetchStories();
       } catch (error) {
-        toast({ title: "Failed to post story", variant: "destructive" });
+        notify.error("Failed to post story");
       } finally {
         setLoading(false);
       }

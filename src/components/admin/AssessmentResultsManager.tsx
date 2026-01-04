@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Eye, Search, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 interface AssessmentResult {
   id: string;
@@ -31,7 +31,6 @@ export const AssessmentResultsManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selectedResult, setSelectedResult] = useState<AssessmentResult | null>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchResults();
@@ -67,11 +66,7 @@ export const AssessmentResultsManager = () => {
 
       setResults(enrichedResults);
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message,
-      });
+      notify.error('Error', { description: error.message });
     } finally {
       setLoading(false);
     }

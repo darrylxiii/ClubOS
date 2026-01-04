@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Heart, ThumbsUp, Smile, Sparkles, Flame, Trophy } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 
 const REACTIONS = [
   { type: 'like', icon: ThumbsUp, label: 'Like', color: 'text-blue-500' },
@@ -82,7 +82,7 @@ export function InteractiveReactions({ postId, postAuthorId, initialReactions = 
 
   const handleReaction = async (reactionType: string) => {
     if (!user) {
-      toast({ title: "Please sign in to react", variant: "destructive" });
+      notify.error("Please sign in to react");
       return;
     }
 

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building, Heart, MoreHorizontal, Youtube, Sparkles } from "lucide-react";
 import { CreatePoll } from "./PollPost";
-import { toast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { MediaEditor } from "./MediaEditor";
 import { VideoEditor } from "./VideoEditor";
 import { AudienceSelection } from "@/components/audience/AudiencePickerButton";
@@ -180,11 +180,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     for (const file of files) {
       const validation = validatePostMediaFile(file);
       if (!validation.valid) {
-        toast({
-          title: "Invalid file",
-          description: validation.error,
-          variant: "destructive"
-        });
+        notify.error("Invalid file", { description: validation.error });
         return;
       }
     }
@@ -294,7 +290,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setContent(updatedText);
       setShowSocialPrompt(false);
       setDetectedSocialEmbeds([]);
-      toast({ title: "Social posts embedded", description: "URLs removed from post content" });
+      notify.success("Social posts embedded", { description: "URLs removed from post content" });
     }
   };
 
@@ -317,7 +313,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setContent(updatedText);
       setShowSpotifyPrompt(false);
       setDetectedSpotifyEmbeds([]);
-      toast({ title: "Spotify content embedded", description: "URLs removed from post content" });
+      notify.success("Spotify content embedded", { description: "URLs removed from post content" });
     }
   };
 
@@ -346,23 +342,17 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);
           setContent(updatedText);
-          toast({ title: "LinkedIn post added", description: "URL removed from post content" });
+          notify.success("LinkedIn post added", { description: "URL removed from post content" });
         } else {
-          toast({ title: "LinkedIn post added", description: "The post will be embedded" });
+          notify.success("LinkedIn post added", { description: "The post will be embedded" });
         }
       } else {
-        toast({ 
-          title: "Invalid LinkedIn URL", 
-          description: "Please paste a valid LinkedIn post URL (must include /posts/ or /feed/update/)", 
-          variant: "destructive" 
+        notify.error("Invalid LinkedIn URL", { 
+          description: "Please paste a valid LinkedIn post URL (must include /posts/ or /feed/update/)" 
         });
       }
     } else {
-      toast({ 
-        title: "Not a LinkedIn URL", 
-        description: "Please paste a LinkedIn post URL", 
-        variant: "destructive" 
-      });
+      notify.error("Not a LinkedIn URL", { description: "Please paste a LinkedIn post URL" });
     }
   };
 
@@ -382,23 +372,17 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);
           setContent(updatedText);
-          toast({ title: "X post added", description: "URL removed from post content" });
+          notify.success("X post added", { description: "URL removed from post content" });
         } else {
-          toast({ title: "X post added", description: "The post will be embedded" });
+          notify.success("X post added", { description: "The post will be embedded" });
         }
       } else {
-        toast({ 
-          title: "Invalid X URL", 
-          description: "Please paste a valid X/Twitter post URL (must include /status/)", 
-          variant: "destructive" 
+        notify.error("Invalid X URL", { 
+          description: "Please paste a valid X/Twitter post URL (must include /status/)" 
         });
       }
     } else {
-      toast({ 
-        title: "Not an X/Twitter URL", 
-        description: "Please paste an X or Twitter post URL", 
-        variant: "destructive" 
-      });
+      notify.error("Not an X/Twitter URL", { description: "Please paste an X or Twitter post URL" });
     }
   };
 
@@ -418,23 +402,17 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);
           setContent(updatedText);
-          toast({ title: "Instagram post added", description: "URL removed from post content" });
+          notify.success("Instagram post added", { description: "URL removed from post content" });
         } else {
-          toast({ title: "Instagram post added", description: "The post will be embedded" });
+          notify.success("Instagram post added", { description: "The post will be embedded" });
         }
       } else {
-        toast({ 
-          title: "Invalid Instagram URL", 
-          description: "Please paste a valid Instagram post URL (must include /p/, /reel/, or /tv/)", 
-          variant: "destructive" 
+        notify.error("Invalid Instagram URL", { 
+          description: "Please paste a valid Instagram post URL (must include /p/, /reel/, or /tv/)" 
         });
       }
     } else {
-      toast({ 
-        title: "Not an Instagram URL", 
-        description: "Please paste an Instagram post URL", 
-        variant: "destructive" 
-      });
+      notify.error("Not an Instagram URL", { description: "Please paste an Instagram post URL" });
     }
   };
 
@@ -520,18 +498,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setYoutubeUrl(null);
       setSocialEmbeds([]);
       setSpotifyEmbeds([]);
-      toast({
-        title: "Posted successfully",
-        description: "Your post is now live on the feed."
-      });
+      notify.success("Posted successfully", { description: "Your post is now live on the feed." });
       onPostCreated();
     } catch (error) {
       console.error('Error creating post:', error);
-      toast({
-        title: "Failed to post",
-        description: "Please try again.",
-        variant: "destructive"
-      });
+      notify.error("Failed to post", { description: "Please try again." });
     } finally {
       setLoading(false);
     }
@@ -681,7 +652,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                 onPollCreated={(data) => {
                   setPollData(data);
                   setShowPollCreator(false);
-                  toast({ title: "Poll added to post" });
+                  notify.success("Poll added to post");
                 }}
               />
             </div>

@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 
 export interface MergeSuggestion {
   candidate_id: string;
@@ -96,11 +96,7 @@ export const mergeService = {
       return (data || []) as MergeSuggestion[];
     } catch (error) {
       console.error('Error fetching merge suggestions:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch merge suggestions",
-        variant: "destructive",
-      });
+      notify.error("Error", { description: "Failed to fetch merge suggestions" });
       return [];
     }
   },
@@ -219,11 +215,7 @@ export const mergeService = {
         stack: error?.stack
       });
       
-      toast({
-        title: "Preview Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      notify.error("Preview Error", { description: errorMessage });
       return null;
     }
   },
@@ -252,10 +244,7 @@ export const mergeService = {
       if (error) throw error;
 
       if (data.success) {
-        toast({
-          title: "Success",
-          description: data.message || "Candidate profile merged successfully",
-        });
+        notify.success("Success", { description: data.message || "Candidate profile merged successfully" });
       }
 
       return data;
@@ -263,11 +252,7 @@ export const mergeService = {
       console.error('Error executing merge:', error);
       const errorMessage = error?.message || 'Failed to merge candidate profile';
       
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      notify.error("Error", { description: errorMessage });
 
       return {
         success: false,
@@ -311,11 +296,11 @@ export const mergeService = {
       });
     }
 
-    toast({
-      title: "Bulk Merge Complete",
-      description: `${results.successful} succeeded, ${results.failed} failed`,
-      variant: results.failed > 0 ? "destructive" : "default",
-    });
+    if (results.failed > 0) {
+      notify.error("Bulk Merge Complete", { description: `${results.successful} succeeded, ${results.failed} failed` });
+    } else {
+      notify.success("Bulk Merge Complete", { description: `${results.successful} succeeded, ${results.failed} failed` });
+    }
 
     return results;
   },
@@ -344,17 +329,10 @@ export const mergeService = {
 
       if (error) throw error;
 
-      toast({
-        title: "Merge Rejected",
-        description: "The merge suggestion has been dismissed",
-      });
+      notify.success("Merge Rejected", { description: "The merge suggestion has been dismissed" });
     } catch (error) {
       console.error('Error rejecting merge:', error);
-      toast({
-        title: "Error",
-        description: "Failed to reject merge suggestion",
-        variant: "destructive",
-      });
+      notify.error("Error", { description: "Failed to reject merge suggestion" });
     }
   },
 
@@ -395,11 +373,7 @@ export const mergeService = {
       return (data || []) as MergeLog[];
     } catch (error) {
       console.error('Error fetching merge history:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch merge history",
-        variant: "destructive",
-      });
+      notify.error("Error", { description: "Failed to fetch merge history" });
       return [];
     }
   },

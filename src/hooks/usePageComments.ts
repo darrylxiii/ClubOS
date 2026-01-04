@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { useEffect, useState } from "react";
 
 interface Comment {
@@ -103,7 +103,7 @@ export function usePageComments(pageId: string | undefined) {
       queryClient.invalidateQueries({ queryKey: ["page-comments", pageId] });
     },
     onError: () => {
-      toast({ title: "Failed to add comment", variant: "destructive" });
+      notify.error("Failed to add comment");
     },
   });
 
@@ -120,7 +120,7 @@ export function usePageComments(pageId: string | undefined) {
       queryClient.invalidateQueries({ queryKey: ["page-comments", pageId] });
     },
     onError: () => {
-      toast({ title: "Failed to update comment", variant: "destructive" });
+      notify.error("Failed to update comment");
     },
   });
 
@@ -135,10 +135,10 @@ export function usePageComments(pageId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["page-comments", pageId] });
-      toast({ title: "Comment deleted" });
+      notify.success("Comment deleted");
     },
     onError: () => {
-      toast({ title: "Failed to delete comment", variant: "destructive" });
+      notify.error("Failed to delete comment");
     },
   });
 
@@ -155,10 +155,10 @@ export function usePageComments(pageId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["page-comments", pageId] });
-      toast({ title: "Comment resolved" });
+      notify.success("Comment resolved");
     },
     onError: () => {
-      toast({ title: "Failed to resolve comment", variant: "destructive" });
+      notify.error("Failed to resolve comment");
     },
   });
 

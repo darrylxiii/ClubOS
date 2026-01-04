@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Check } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 
 interface PollOption {
   id: string;
@@ -60,10 +60,10 @@ export function PollPost({ pollId, question, options, totalVotes, onVote }: Poll
 
       setVoted(true);
       setSelectedOption(optionId);
-      toast({ title: "Vote recorded!" });
+      notify.success("Vote recorded!");
       onVote();
     } catch (error) {
-      toast({ title: "Failed to vote", variant: "destructive" });
+      notify.error("Failed to vote");
     }
   };
 
@@ -146,7 +146,7 @@ export function CreatePoll({ onPollCreated }: { onPollCreated: (pollData: any) =
 
   const handleCreate = () => {
     if (!question.trim() || options.some(o => !o.trim())) {
-      toast({ title: "Please fill in all fields", variant: "destructive" });
+      notify.error("Please fill in all fields");
       return;
     }
 

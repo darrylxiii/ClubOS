@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
 import {
   Loader2,
@@ -26,7 +26,6 @@ export default function ModuleManagement() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [course, setCourse] = useState<Course | null>(null);
@@ -52,11 +51,7 @@ export default function ModuleManagement() {
 
       // Check if user owns this course
       if (courseData.created_by !== user?.id) {
-        toast({
-          title: "Access denied",
-          description: "You don't have permission to manage these modules",
-          variant: "destructive",
-        });
+        notify.error("Access denied", { description: "You don't have permission to manage these modules" });
         navigate("/academy/creator");
         return;
       }
@@ -65,16 +60,14 @@ export default function ModuleManagement() {
       const sortedModules = (courseData.modules || []).sort((a: { display_order: number }, b: { display_order: number }) => a.display_order - b.display_order);
       setModules(sortedModules as unknown as Module[]);
     } catch (error) {
-      toast({
-        title: "Error loading modules",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+      notify.error("Error loading modules", { 
+        description: error instanceof Error ? error.message : "Unknown error" 
       });
       navigate("/academy/creator");
     } finally {
       setLoading(false);
     }
-  }, [id, user, toast, navigate]);
+  }, [id, user, navigate]);
 
   useEffect(() => {
     loadData();
@@ -91,18 +84,11 @@ export default function ModuleManagement() {
 
       if (error) throw error;
 
-      toast({
-        title: "Module deleted",
-        description: "The module has been removed successfully",
-      });
+      notify.success("Module deleted", { description: "The module has been removed successfully" });
 
       loadData();
     } catch (error: any) {
-      toast({
-        title: "Error deleting module",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error deleting module", { description: error.message });
     }
   };
 
@@ -130,11 +116,7 @@ export default function ModuleManagement() {
       await Promise.all(promises);
 
     } catch (error: any) {
-      toast({
-        title: "Error reordering modules",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error reordering modules", { description: error.message });
       // Revert to original order (reload data)
       loadData();
     }
