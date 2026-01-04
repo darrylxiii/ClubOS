@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { FeedbackFlow } from "./FeedbackFlow";
 import { toast } from "sonner";
+import { formatDate } from "@/lib/format";
 
 interface ClosedPipeline {
   id: string;
@@ -75,13 +76,7 @@ export const PendingFeedbackTasks = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  // WS-5: Using centralized formatDate from @/lib/format
 
   if (isLoading) {
     return (
