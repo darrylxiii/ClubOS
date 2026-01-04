@@ -1,10 +1,12 @@
 import { memo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, BookOpen, Award, User } from 'lucide-react';
+import { useHaptics } from '@/hooks/useHaptics';
 
 export const MobileNavigation = memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { impact } = useHaptics();
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/academy' },
@@ -16,10 +18,7 @@ export const MobileNavigation = memo(() => {
   const isActive = (path: string) => location.pathname === path;
 
   const handleNavClick = (path: string) => {
-    // Haptic feedback simulation
-    if ('vibrate' in navigator) {
-      navigator.vibrate(10);
-    }
+    impact('light');
     navigate(path);
   };
 

@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageSquare, Calendar, Mail, Phone, Clock, Activity } from "lucide-react";
+import { CardLoadingSkeleton } from "@/components/LoadingSkeletons";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -96,15 +97,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
         return (
             <Card className="glass-card">
                 <CardHeader>
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-full bg-gradient-to-br from-accent to-purple-500 animate-pulse">
-                            <Activity className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-xl">Loading...</CardTitle>
-                            <CardDescription>Fetching your concierge</CardDescription>
-                        </div>
-                    </div>
+                    <CardLoadingSkeleton />
                 </CardHeader>
             </Card>
         );

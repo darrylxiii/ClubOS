@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, Search, Users, ArrowLeft } from 'lucide-react';
 import { useSwipeable } from 'react-swipeable';
+import { useHaptics } from '@/hooks/useHaptics';
 import MobileVoiceChannel from './MobileVoiceChannel';
 import StageChannel from './StageChannel';
 import MobileTextChannel from './MobileTextChannel';
@@ -60,6 +61,7 @@ const MobileLiveHubLayout = ({
   showChannelSettings,
   setShowChannelSettings,
 }: MobileLiveHubLayoutProps) => {
+  const { impact } = useHaptics();
   const [activePanel, setActivePanel] = useState<'home' | 'servers' | 'messages' | 'notifications' | 'you'>('home');
   const [showChannelSheet, setShowChannelSheet] = useState(false);
   const [showMemberSheet, setShowMemberSheet] = useState(false);
@@ -98,16 +100,14 @@ const MobileLiveHubLayout = ({
       // Only open from edge (left 50px of screen)
       if (eventData.initial[0] < 50) {
         setShowChannelSheet(true);
-        // Haptic feedback
-        if (navigator.vibrate) navigator.vibrate(30);
+        impact('light');
       }
     },
     onSwipedLeft: (eventData) => {
       // Only open from edge (right 50px of screen)
       if (eventData.initial[0] > window.innerWidth - 50) {
         setShowMemberSheet(true);
-        // Haptic feedback
-        if (navigator.vibrate) navigator.vibrate(30);
+        impact('light');
       }
     },
     trackMouse: false,

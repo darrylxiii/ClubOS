@@ -7,6 +7,7 @@ import { Play, Trash2, Calendar, Mail } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { format } from "date-fns";
 import type { SavedReport } from "@/types/analytics";
+import { ListSkeleton } from "@/components/LoadingSkeletons";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -93,9 +94,7 @@ export function SavedReportsList({ companyId }: SavedReportsListProps) {
           <CardDescription>Loading your reports...</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            Loading...
-          </div>
+          <ListSkeleton count={3} />
         </CardContent>
       </Card>
     );

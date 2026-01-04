@@ -22,6 +22,7 @@ import { useAssetEvents, type AssetEvent } from '@/hooks/useAssetEvents';
 import { CATEGORY_LABELS } from '@/hooks/useInventoryCategories';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { CRMActivitySkeleton } from '@/components/LoadingSkeletons';
 
 interface AssetDetailDrawerProps {
   asset: InventoryAsset | null;
@@ -310,7 +311,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
                   </CardHeader>
                   <CardContent>
                     {eventsLoading ? (
-                      <p className="text-sm text-muted-foreground">Loading...</p>
+                      <CRMActivitySkeleton />
                     ) : events.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No events recorded yet.</p>
                     ) : (

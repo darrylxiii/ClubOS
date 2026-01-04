@@ -26,6 +26,7 @@ import {
   Lightbulb
 } from "lucide-react";
 import { RejectedCandidateDetailDialog } from "@/components/partner/RejectedCandidateDetailDialog";
+import { PageLoadingSkeleton } from "@/components/LoadingSkeletons";
 
 const REJECTION_LABELS: { [key: string]: string } = {
   'skills_gap': 'Skills Gap',
@@ -220,7 +221,7 @@ export default function PartnerRejections() {
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-8">
-          <p>Loading...</p>
+          <PageLoadingSkeleton />
         </div>
       </AppLayout>
     );

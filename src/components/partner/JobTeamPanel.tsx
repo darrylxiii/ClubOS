@@ -16,6 +16,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { AddJobTeamMemberDialog } from './AddJobTeamMemberDialog';
 import { resolveTeamMember, getAssignmentTypeBadge, ResolvedTeamMember } from '@/utils/jobTeamUtils';
+import { ListSkeleton } from '@/components/LoadingSkeletons';
 
 interface JobTeamPanelProps {
   jobId: string;
@@ -276,7 +277,7 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-muted-foreground py-4">Loading...</div>
+          <ListSkeleton count={3} />
         </CardContent>
       </Card>
     );
