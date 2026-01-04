@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Loader2, Users, Target, TrendingUp } from "lucide-react";
-const formatCurrency = (amount: number) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(amount);
+import { formatCurrency } from "@/lib/currency";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface EmployeeProfile {

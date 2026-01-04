@@ -17,6 +17,7 @@ import {
   Loader2 
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { getInitials } from '@/lib/strings';
 
 interface PageActivityFeedProps {
   pageId: string;
@@ -38,10 +39,7 @@ const ACTIVITY_CONFIG: Record<ActivityType, { icon: React.ElementType; label: st
 export function PageActivityFeed({ pageId, open, onOpenChange }: PageActivityFeedProps) {
   const { activities, isLoading } = usePageActivity(pageId);
 
-  const getInitials = (name: string | null | undefined) => {
-    if (!name) return '?';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
+  // WS-5: Using centralized getInitials from @/lib/strings
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

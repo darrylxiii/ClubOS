@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { getInitials } from "@/lib/strings";
 
 interface PendingMember {
   id: string;
@@ -74,11 +75,9 @@ export const PendingMemberApprovalsWidget = () => {
     };
   }, [fetchPendingMembers]);
 
-  const getInitials = (name: string | null, email: string) => {
-    if (name) {
-      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    }
-    return email.slice(0, 2).toUpperCase();
+  // WS-5: Using centralized getInitials from @/lib/strings with email fallback
+  const getAvatarInitials = (name: string | null, email: string) => {
+    return name ? getInitials(name) : email.slice(0, 2).toUpperCase();
   };
 
   if (loading) {
@@ -153,7 +152,7 @@ export const PendingMemberApprovalsWidget = () => {
                 >
                   <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                     <AvatarImage src={member.avatar_url || undefined} />
-                    <AvatarFallback className="text-xs">{getInitials(member.full_name, member.email)}</AvatarFallback>
+                    <AvatarFallback className="text-xs">{getAvatarInitials(member.full_name, member.email)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate text-sm sm:text-base">

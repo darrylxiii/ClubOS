@@ -1,3 +1,6 @@
+// WS-5: Re-export formatCurrency from centralized module for backwards compatibility
+export { formatCurrency } from './currency';
+
 export interface RevenueCalculationInput {
   job_id: string;
   company_fee_percentage: number;
@@ -64,13 +67,4 @@ export function calculateRevenueEstimate(input: RevenueCalculationInput): Revenu
     probability_adjusted_value: probabilityAdjustedValue,
     confidence_score: confidence
   };
-}
-
-export function formatCurrency(amount: number, currency: string = 'EUR'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
 }

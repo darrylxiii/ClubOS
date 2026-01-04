@@ -1,5 +1,6 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Calendar, Clock, TrendingUp } from "lucide-react";
+import { formatDateTime, formatRelativeTime } from "@/lib/format";
 
 interface SavedFunnelData {
     formData: any;
@@ -27,30 +28,7 @@ export function ResumeFunnelDialog({
 }: ResumeFunnelDialogProps) {
     if (!savedData) return null;
 
-    const formatDate = (isoString: string) => {
-        const date = new Date(isoString);
-        return date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
-    const getRelativeTime = (isoString: string) => {
-        const timestamp = new Date(isoString);
-        const now = new Date();
-        const diffMs = now.getTime() - timestamp.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-
-        if (diffMins < 1) return 'just now';
-        if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    };
+    // WS-5: Using centralized formatDateTime and formatRelativeTime from @/lib/format
 
     const progressPercentage = Math.round(((savedData.currentStep + 1) / totalSteps) * 100);
 
@@ -69,12 +47,12 @@ export function ResumeFunnelDialog({
                         <div className="space-y-3 p-4 rounded-lg bg-muted/50 border border-border/50">
                             <div className="flex items-center gap-2 text-sm">
                                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                                <span className="font-medium">{formatDate(savedData.timestamp)}</span>
+                                <span className="font-medium">{formatDateTime(savedData.timestamp)}</span>
                             </div>
 
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Clock className="w-4 h-4" />
-                                <span>{getRelativeTime(savedData.timestamp)}</span>
+                                <span>{formatRelativeTime(savedData.timestamp)}</span>
                             </div>
 
                             <div className="flex items-center gap-2 text-sm">

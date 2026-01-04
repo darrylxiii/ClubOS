@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { MeetingAnalysisCard } from "@/components/MeetingAnalysisCard";
+import { formatDate } from "@/lib/format";
 
 interface MeetingRecording {
   id: string;
@@ -259,13 +260,7 @@ const MeetingHistory = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  // WS-5: Using centralized formatDate from @/lib/format
 
   const formatDuration = (minutes: number | null) => {
     if (!minutes) return "N/A";
