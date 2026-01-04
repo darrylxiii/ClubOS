@@ -26,6 +26,11 @@ import { TopClientsWidget } from "./TopClientsWidget";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
 import { AdminCommandCenter } from "@/components/admin/command-center/AdminCommandCenter";
+import { QUINAnalyticsWidget } from "./QUINAnalyticsWidget";
+import { AdminReferralWidget } from "./AdminReferralWidget";
+import { PipelineVelocityWidget } from "./PipelineVelocityWidget";
+import { PartnerEngagementWidget } from "./PartnerEngagementWidget";
+import { EdgeFunctionHealthWidget } from "./EdgeFunctionHealthWidget";
 
 const AdminHomeContent = () => {
   const { stats, loading } = useRoleStats('admin');
@@ -116,9 +121,22 @@ const AdminHomeContent = () => {
         <ActiveMeetingsWidget />
       </DashboardSection>
 
-      {/* Revenue & Messages */}
+      {/* Revenue & Referrals */}
       <DashboardSection columns={2}>
         <RevenueOverviewWidget />
+        <AdminReferralWidget />
+      </DashboardSection>
+
+      {/* Pipeline & Partner Health */}
+      <DashboardSection columns={2}>
+        <PipelineVelocityWidget />
+        <PartnerEngagementWidget />
+      </DashboardSection>
+
+      {/* AI & System Health */}
+      <DashboardSection columns={3} mobileColumns={1}>
+        <QUINAnalyticsWidget />
+        <EdgeFunctionHealthWidget />
         <WhatsAppPreviewWidget />
       </DashboardSection>
 
