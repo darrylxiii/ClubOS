@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,6 @@ import {
   Search, 
   TrendingDown,
   Users,
-  Briefcase,
   AlertTriangle,
   Clock,
   Lightbulb
@@ -371,42 +371,13 @@ export default function PartnerRejections() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {filteredCandidates.map(candidate => (
-                <div
-                  key={candidate.id}
-                  onClick={() => {
-                    setSelectedCandidate(candidate);
-                    setDetailDialogOpen(true);
-                  }}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center gap-4 flex-1">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={candidate.avatar_url} />
-                      <AvatarFallback>{candidate.full_name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-medium">{candidate.full_name}</p>
-                      <p className="text-sm text-muted-foreground">{candidate.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{candidate.jobs?.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(candidate.rejected_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    {candidate.rejection_reason && (
-                      <Badge className={REJECTION_COLORS[candidate.rejection_reason]}>
-                        {REJECTION_LABELS[candidate.rejection_reason]}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <VirtualizedPartnerRejectionList
+              candidates={filteredCandidates}
+              onSelectCandidate={(candidate) => {
+                setSelectedCandidate(candidate);
+                setDetailDialogOpen(true);
+              }}
+            />
           </CardContent>
         </Card>
       </div>
@@ -423,5 +394,95 @@ export default function PartnerRejections() {
         />
       )}
     </AppLayout>
+  );
+}
+
+// Virtualized rejection list for partner view
+function VirtualizedPartnerRejectionList({
+  candidates,
+  onSelectCandidate,
+}: {
+  candidates: any[];
+  onSelectCandidate: (candidate: any) => void;
+}) {
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: candidates.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 88,
+    overscan: 10,
+  });
+
+  if (candidates.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        No rejected candidates found
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={parentRef}
+      className="max-h-[600px] overflow-y-auto"
+      style={{ contain: 'strict' }}
+    >
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const candidate = candidates[virtualRow.index];
+          return (
+            <div
+              key={virtualRow.key}
+              data-index={virtualRow.index}
+              ref={virtualizer.measureElement}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+              className="pb-3"
+            >
+              <div
+                onClick={() => onSelectCandidate(candidate)}
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  <Avatar className="w-12 h-12">
+                    <AvatarImage src={candidate.avatar_url} />
+                    <AvatarFallback>{candidate.full_name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="font-medium">{candidate.full_name}</p>
+                    <p className="text-sm text-muted-foreground">{candidate.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-sm font-medium">{candidate.jobs?.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(candidate.rejected_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {candidate.rejection_reason && (
+                    <Badge className={REJECTION_COLORS[candidate.rejection_reason]}>
+                      {REJECTION_LABELS[candidate.rejection_reason]}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

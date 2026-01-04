@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -5,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Eye, CheckCircle, XCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getInitials } from "@/lib/strings";
 
 interface Application {
   id: string;
@@ -40,15 +43,14 @@ export function ApplicationsTable({
   onQuickApprove,
   onQuickReject
 }: ApplicationsTableProps) {
-  const getInitials = (name: string) => {
-    if (!name) return '👤';
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  const parentRef = useRef<HTMLDivElement>(null);
+  
+  const virtualizer = useVirtualizer({
+    count: applications.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 72,
+    overscan: 10,
+  });
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { label: string; className: string }> = {
@@ -114,94 +116,110 @@ export function ApplicationsTable({
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
-          {applications.map((app) => {
-            // Determine account status
+      </Table>
+      
+      {/* Virtualized table body */}
+      <div
+        ref={parentRef}
+        className="max-h-[500px] overflow-y-auto"
+        style={{ contain: 'strict' }}
+      >
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {virtualizer.getVirtualItems().map((virtualRow) => {
+            const app = applications[virtualRow.index];
             const hasAccount = !!(app.user_id || app.email_verified);
             const accountStatusBadge = hasAccount 
               ? null
               : <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400 text-[10px] ml-2">Pending</Badge>;
             
             return (
-              <TableRow 
-                key={app.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => onViewDetails(app)}
+              <div
+                key={virtualRow.key}
+                data-index={virtualRow.index}
+                ref={virtualizer.measureElement}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
               >
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Checkbox
-                    checked={selectedIds.includes(app.id)}
-                    onCheckedChange={(checked) => onSelectOne(app.id, checked as boolean)}
-                  />
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-3">
+                <div 
+                  className="flex items-center cursor-pointer hover:bg-muted/50 border-b px-4 py-3"
+                  onClick={() => onViewDetails(app)}
+                >
+                  <div className="w-[50px]" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedIds.includes(app.id)}
+                      onCheckedChange={(checked) => onSelectOne(app.id, checked as boolean)}
+                    />
+                  </div>
+                  <div className="flex-1 flex items-center gap-3">
                     <Avatar>
                       <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                         {getInitials(app.full_name || app.email)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex items-center gap-1">
-                      <span className="font-medium">{app.full_name || app.email || 'Unknown Candidate'}</span>
+                      <span className="font-medium">{app.full_name || app.email || 'Unknown'}</span>
                       {accountStatusBadge}
                     </div>
                   </div>
-                </TableCell>
-              <TableCell>
-                <div className="space-y-1">
-                  <div className="text-sm">{app.email}</div>
-                  <div className="text-xs text-muted-foreground">{maskPhone(app.phone)}</div>
+                  <div className="w-[150px]">
+                    <div className="text-sm">{app.email}</div>
+                    <div className="text-xs text-muted-foreground">{maskPhone(app.phone)}</div>
+                  </div>
+                  <div className="w-[150px] truncate text-sm">
+                    {app.current_title || 'Not specified'}
+                  </div>
+                  <div className="w-[120px] text-sm">
+                    {formatSalary(app.desired_salary_min, app.desired_salary_max)}
+                  </div>
+                  <div className="w-[100px] text-sm">
+                    {formatDistanceToNow(new Date(app.created_at), { addSuffix: true })}
+                  </div>
+                  <div className="w-[100px]">
+                    {getStatusBadge(app.application_status)}
+                  </div>
+                  <div className="w-[150px] flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="ghost" onClick={() => onViewDetails(app)}>
+                      <Eye className="w-4 h-4 mr-1" />
+                      View
+                    </Button>
+                    {app.application_status === 'applied' && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                          onClick={() => onQuickApprove(app)}
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          onClick={() => onQuickReject(app)}
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </TableCell>
-              <TableCell className="max-w-[200px] truncate">
-                {app.current_title || 'Not specified'}
-              </TableCell>
-              <TableCell>
-                {formatSalary(app.desired_salary_min, app.desired_salary_max)}
-              </TableCell>
-              <TableCell>
-                <div className="text-sm">
-                  {formatDistanceToNow(new Date(app.created_at), { addSuffix: true })}
-                </div>
-              </TableCell>
-              <TableCell>{getStatusBadge(app.application_status)}</TableCell>
-              <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onViewDetails(app)}
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    View
-                  </Button>
-                  {app.application_status === 'applied' && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
-                        onClick={() => onQuickApprove(app)}
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        onClick={() => onQuickReject(app)}
-                      >
-                        <XCircle className="w-4 h-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </TableCell>
-              </TableRow>
+              </div>
             );
           })}
-        </TableBody>
-      </Table>
+        </div>
+      </div>
     </div>
   );
 }

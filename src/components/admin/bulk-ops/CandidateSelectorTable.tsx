@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -186,59 +187,117 @@ export const CandidateSelectorTable = ({
         </Button>
       </div>
 
-      {/* Candidates list */}
-      <div className="space-y-2 max-h-[400px] overflow-y-auto">
-        {filteredCandidates.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No candidates found
-          </div>
-        ) : (
-          filteredCandidates.map((candidate) => (
-            <div
-              key={candidate.id}
-              className={`flex items-center gap-4 p-3 rounded-lg border cursor-pointer transition-colors ${
-                selectedCandidates.includes(candidate.id)
-                  ? "bg-primary/10 border-primary/30"
-                  : "bg-card hover:bg-muted/50"
-              }`}
-              onClick={() => handleToggleCandidate(candidate.id)}
-            >
-              <Checkbox
-                checked={selectedCandidates.includes(candidate.id)}
-                onCheckedChange={() => handleToggleCandidate(candidate.id)}
-              />
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={candidate.avatar_url || undefined} />
-                <AvatarFallback>
-                  {candidate.full_name?.substring(0, 2).toUpperCase() || "?"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{candidate.full_name}</p>
-                <p className="text-sm text-muted-foreground truncate">
-                  {candidate.email}
-                </p>
-              </div>
-              <div className="hidden sm:flex items-center gap-2">
-                {candidate.current_title && (
-                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
-                    {candidate.current_title}
-                  </span>
-                )}
-                {candidate.user_id ? (
-                  <Badge variant="outline" className="text-xs">
-                    Has Account
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="text-xs">
-                    No Account
-                  </Badge>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      {/* Virtualized Candidates list */}
+      <VirtualizedCandidateList
+        candidates={filteredCandidates}
+        selectedCandidates={selectedCandidates}
+        onToggle={handleToggleCandidate}
+      />
     </div>
   );
 };
+
+// Extracted virtualized list component
+function VirtualizedCandidateList({
+  candidates,
+  selectedCandidates,
+  onToggle,
+}: {
+  candidates: Candidate[];
+  selectedCandidates: string[];
+  onToggle: (id: string) => void;
+}) {
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: candidates.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 72,
+    overscan: 10,
+  });
+
+  if (candidates.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No candidates found
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={parentRef}
+      className="max-h-[400px] overflow-y-auto"
+      style={{ contain: 'strict' }}
+    >
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const candidate = candidates[virtualRow.index];
+          return (
+            <div
+              key={virtualRow.key}
+              data-index={virtualRow.index}
+              ref={virtualizer.measureElement}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+              className="pb-2"
+            >
+              <div
+                className={`flex items-center gap-4 p-3 rounded-lg border cursor-pointer transition-colors ${
+                  selectedCandidates.includes(candidate.id)
+                    ? "bg-primary/10 border-primary/30"
+                    : "bg-card hover:bg-muted/50"
+                }`}
+                onClick={() => onToggle(candidate.id)}
+              >
+                <Checkbox
+                  checked={selectedCandidates.includes(candidate.id)}
+                  onCheckedChange={() => onToggle(candidate.id)}
+                />
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={candidate.avatar_url || undefined} />
+                  <AvatarFallback>
+                    {candidate.full_name?.substring(0, 2).toUpperCase() || "?"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{candidate.full_name}</p>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {candidate.email}
+                  </p>
+                </div>
+                <div className="hidden sm:flex items-center gap-2">
+                  {candidate.current_title && (
+                    <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                      {candidate.current_title}
+                    </span>
+                  )}
+                  {candidate.user_id ? (
+                    <Badge variant="outline" className="text-xs">
+                      Has Account
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="text-xs">
+                      No Account
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

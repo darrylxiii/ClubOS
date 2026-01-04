@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { Bell, Settings, Check, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { NotificationCard } from './NotificationCard';
@@ -315,7 +315,7 @@ export const NotificationsPanel = () => {
       </div>
 
       {/* Content */}
-      <ScrollArea className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         {loading ? (
           <div className="p-3 sm:p-4 space-y-4">
             {[...Array(5)].map((_, i) => (
@@ -342,33 +342,108 @@ export const NotificationsPanel = () => {
             </p>
           </div>
         ) : (
-          <div className="p-3 sm:p-4 space-y-6">
-            {Object.entries(groupedNotifications).map(([period, items]) => (
-              items.length > 0 && (
-                <Collapsible key={period} defaultOpen={period === 'today'}>
-                  <CollapsibleTrigger className="flex items-center gap-2 p-2 w-full hover:bg-muted/50 rounded-lg transition-colors min-h-[44px]">
-                    <ChevronDown className="w-4 h-4 transition-transform data-[state=closed]:-rotate-90" />
-                    <span className="font-semibold capitalize text-sm sm:text-base">{period}</span>
-                    <Badge variant="secondary" className="ml-auto">{items.length}</Badge>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-2 mt-2">
-                    {items.map(notification => (
-                      <NotificationCard
-                        key={notification.id}
-                        notification={notification}
-                        onMarkAsRead={markAsRead}
-                        onArchive={archiveNotification}
-                        onDelete={deleteNotification}
-                        onClick={() => handleNotificationClick(notification)}
-                      />
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-              )
-            ))}
-          </div>
+          <VirtualizedNotificationList
+            groupedNotifications={groupedNotifications}
+            markAsRead={markAsRead}
+            archiveNotification={archiveNotification}
+            deleteNotification={deleteNotification}
+            handleNotificationClick={handleNotificationClick}
+          />
         )}
-      </ScrollArea>
+      </div>
     </div>
   );
 };
+
+// Virtualized notification list component
+function VirtualizedNotificationList({
+  groupedNotifications,
+  markAsRead,
+  archiveNotification,
+  deleteNotification,
+  handleNotificationClick,
+}: {
+  groupedNotifications: Record<string, Notification[]>;
+  markAsRead: (id: string) => Promise<void>;
+  archiveNotification: (id: string) => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
+  handleNotificationClick: (notification: Notification) => Promise<void>;
+}) {
+  // Flatten notifications for virtualization
+  const flatItems = useMemo(() => {
+    const items: Array<{ type: 'header'; period: string; count: number } | { type: 'notification'; notification: Notification }> = [];
+    
+    Object.entries(groupedNotifications).forEach(([period, notifications]) => {
+      if (notifications.length > 0) {
+        items.push({ type: 'header', period, count: notifications.length });
+        notifications.forEach(notification => {
+          items.push({ type: 'notification', notification });
+        });
+      }
+    });
+    
+    return items;
+  }, [groupedNotifications]);
+
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: flatItems.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: (index) => flatItems[index].type === 'header' ? 44 : 88,
+    overscan: 5,
+  });
+
+  return (
+    <div
+      ref={parentRef}
+      className="h-full overflow-y-auto p-3 sm:p-4"
+      style={{ contain: 'strict' }}
+    >
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const item = flatItems[virtualRow.index];
+          
+          return (
+            <div
+              key={virtualRow.key}
+              data-index={virtualRow.index}
+              ref={virtualizer.measureElement}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              {item.type === 'header' ? (
+                <div className="flex items-center gap-2 p-2 mb-2">
+                  <ChevronDown className="w-4 h-4" />
+                  <span className="font-semibold capitalize text-sm sm:text-base">{item.period}</span>
+                  <Badge variant="secondary" className="ml-auto">{item.count}</Badge>
+                </div>
+              ) : (
+                <div className="mb-2">
+                  <NotificationCard
+                    notification={item.notification}
+                    onMarkAsRead={markAsRead}
+                    onArchive={archiveNotification}
+                    onDelete={deleteNotification}
+                    onClick={() => handleNotificationClick(item.notification)}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
