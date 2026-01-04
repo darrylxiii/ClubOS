@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { migrateToast as toast } from "@/lib/notify";
 import {
   MessageSquare, ThumbsUp, CheckCircle2, Send, Plus
 } from "lucide-react";
@@ -36,7 +36,7 @@ interface ModuleDiscussionProps {
 
 export function ModuleDiscussion({ moduleId }: ModuleDiscussionProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
+  
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [showNewDiscussion, setShowNewDiscussion] = useState(false);
   const [newTitle, setNewTitle] = useState('');

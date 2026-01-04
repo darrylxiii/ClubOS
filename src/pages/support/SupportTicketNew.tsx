@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, AlertCircle } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { migrateToast as toast } from "@/lib/notify";
 import { AppLayout } from "@/components/AppLayout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 

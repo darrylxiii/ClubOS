@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useCrossChannelPatterns } from '@/hooks/useCrossChannelPatterns';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/notify';
 
 interface EnhancedQUINAdvisorProps {
   entityType?: string;

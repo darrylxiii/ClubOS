@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { migrateToast as toast } from "@/lib/notify";
 import { Award, Plus, Trash2, Edit, Users, Loader2, BarChart3, TrendingUp } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +42,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
   const [isTimeBound, setIsTimeBound] = useState(false);
   const [timeBoundDays, setTimeBoundDays] = useState(30);
   
-  const { toast } = useToast();
+  
 
   const iconOptions = ["Award", "Trophy", "Star", "Medal", "Crown", "Target", "Zap", "Heart", "Sparkles", "Rocket"];
   

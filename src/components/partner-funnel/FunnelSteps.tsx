@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { migrateToast as toast } from "@/lib/notify";
 import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Phone, Shield, Clock, Keyboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TrackRequestDialog } from "./TrackRequestDialog";
@@ -44,7 +44,7 @@ export function FunnelSteps() {
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
   const [showKeyboardHints, setShowKeyboardHints] = useState(true);
 
-  const { toast } = useToast();
+  
   const navigate = useNavigate();
 
   // Auto-save hook

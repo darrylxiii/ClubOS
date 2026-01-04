@@ -9,7 +9,7 @@ import { useAssessmentAssignments } from '@/hooks/useAssessmentAssignments';
 import { supabase } from '@/integrations/supabase/client';
 import { ASSESSMENTS } from '@/data/assessments';
 import { Search, Send, Calendar } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/notify';
 
 export const SendAssessmentsTab = memo(() => {
   const { createAssignment, loading } = useAssessmentAssignments();

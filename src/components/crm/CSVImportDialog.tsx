@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Upload, FileSpreadsheet, Check, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/notify';
 import { supabase } from '@/integrations/supabase/client';
 import { INSTANTLY_FIELD_MAPPINGS } from '@/types/crm-enterprise';
 

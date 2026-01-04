@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ThumbsUp, ThumbsDown, AlertTriangle, DollarSign, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/notify';
 import { supabase } from '@/integrations/supabase/client';
 import {
   DropdownMenu,

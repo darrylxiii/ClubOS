@@ -131,3 +131,17 @@ export { sonnerToast as toast };
 
 // Default export for cleaner imports
 export default notify;
+
+// ============= Backward Compatibility =============
+
+/**
+ * @deprecated Use `notify` from `@/lib/notify` instead.
+ * This hook exists for backward compatibility during migration.
+ */
+export function useToast() {
+  return {
+    toast: migrateToast,
+    toasts: [] as never[],
+    dismiss: notify.dismiss,
+  };
+}

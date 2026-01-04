@@ -16,7 +16,7 @@ import {
   ChevronLeft, ChevronRight, Flame, Laugh, ThumbsUp,
   Sparkles, MoreHorizontal, Trash2, Send
 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { migrateToast as toast } from "@/lib/notify";
 import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
