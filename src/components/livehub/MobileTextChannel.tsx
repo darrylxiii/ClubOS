@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useSwipeable } from 'react-swipeable';
 import MessageReactions from './MessageReactions';
 import { MessageFormatter } from './MessageFormatter';
+import { useHaptics } from '@/hooks/useHaptics';
 
 interface MobileTextChannelProps {
   channelId: string;
@@ -30,6 +31,7 @@ interface Message {
 
 const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
   const { user } = useAuth();
+  const { impact } = useHaptics();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [channelName, setChannelName] = useState('');
@@ -61,10 +63,7 @@ const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // Haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate(50);
-    }
+    impact('medium');
     await loadMessages();
     setTimeout(() => setIsRefreshing(false), 500);
   };
@@ -134,10 +133,7 @@ const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
 
-    // Haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate(30);
-    }
+    impact('light');
 
     const { error } = await supabase
       .from('live_channel_messages')

@@ -7,6 +7,7 @@ import { Phone, PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff, Volume2, Ch
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { RemoteAudioPlayer } from './RemoteAudioPlayer';
+import { useHaptics } from '@/hooks/useHaptics';
 
 interface MobileVoiceChannelProps {
   channelId: string;
@@ -24,6 +25,7 @@ interface Channel {
 
 const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnect, onDisconnect }: MobileVoiceChannelProps) => {
   const { user } = useAuth();
+  const { notification, impact } = useHaptics();
   const [channel, setChannel] = useState<Channel | null>(null);
   const [isJoining, setIsJoining] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -64,10 +66,7 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
 
   const handleJoinChannel = async () => {
     setIsJoining(true);
-    // Haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate([50, 100, 50]);
-    }
+    notification('success');
     
     try {
       await joinChannel();
@@ -85,10 +84,7 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
   };
 
   const handleLeaveChannel = async () => {
-    // Haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate(50);
-    }
+    impact('medium');
     
     try {
       await leaveChannel();
@@ -101,12 +97,12 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
   };
 
   const handleToggleMute = () => {
-    if (navigator.vibrate) navigator.vibrate(30);
+    impact('light');
     toggleMute();
   };
 
   const handleToggleVideo = () => {
-    if (navigator.vibrate) navigator.vibrate(30);
+    impact('light');
     toggleVideo();
   };
 

@@ -9,6 +9,7 @@ import {
   DollarSign,
   TrendingUp
 } from "lucide-react";
+import { AnalyticsCardSkeleton } from "@/components/LoadingSkeletons";
 
 interface BenchmarkComparisonProps {
   userId: string;
@@ -19,21 +20,7 @@ export function BenchmarkComparison({ userId }: BenchmarkComparisonProps) {
   const { data: benchmarks, isLoading } = useBenchmarks(userId, period);
 
   if (isLoading || !benchmarks) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Performance Benchmarks
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-48 flex items-center justify-center">
-            <div className="animate-pulse text-muted-foreground">Loading...</div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <AnalyticsCardSkeleton />;
   }
 
   const metrics = [

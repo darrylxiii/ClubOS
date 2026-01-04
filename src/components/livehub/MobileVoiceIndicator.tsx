@@ -1,5 +1,6 @@
 import { Volume2, PhoneOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useHaptics } from '@/hooks/useHaptics';
 
 interface MobileVoiceIndicatorProps {
   channelName: string;
@@ -8,6 +9,8 @@ interface MobileVoiceIndicatorProps {
 }
 
 const MobileVoiceIndicator = ({ channelName, onTap, onDisconnect }: MobileVoiceIndicatorProps) => {
+  const { impact } = useHaptics();
+  
   return (
     <div 
       className="fixed bottom-20 left-4 right-4 bg-green-500/90 rounded-xl p-3 flex items-center justify-between shadow-lg z-40 safe-area-bottom"
@@ -28,7 +31,7 @@ const MobileVoiceIndicator = ({ channelName, onTap, onDisconnect }: MobileVoiceI
         className="text-white hover:bg-white/20 shrink-0 ml-2"
         onClick={(e) => {
           e.stopPropagation();
-          if (navigator.vibrate) navigator.vibrate(50);
+          impact('medium');
           onDisconnect();
         }}
       >

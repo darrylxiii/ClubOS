@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Brain, Zap, TestTube, Save, RotateCcw, Loader2, ChevronDown, CheckCircle2, AlertCircle, XCircle, TrendingUp, Clock } from "lucide-react";
+import { InlineLoadingSkeleton } from "@/components/LoadingSkeletons";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
@@ -387,12 +388,17 @@ const AIConfiguration = () => {
                   onClick={fetchRealData}
                   disabled={loadingData}
                 >
-                  {loadingData ? 'Loading...' : 'Refresh Data'}
+                  {loadingData ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      Loading...
+                    </>
+                  ) : 'Refresh Data'}
                 </Button>
               </div>
 
               {loadingData ? (
-                <p className="text-sm text-muted-foreground">Loading data...</p>
+                <InlineLoadingSkeleton />
               ) : (
                 <>
                   <div className="space-y-2">

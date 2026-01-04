@@ -6,6 +6,7 @@ import { Activity, Eye, FileText, MessageSquare, CheckCircle, XCircle, Clock, Vi
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow, parseISO } from "date-fns";
+import { ActivityFeedSkeleton } from "@/components/LoadingSkeletons";
 
 interface EngagementEvent {
   id: string;
@@ -181,16 +182,12 @@ export const CandidateEngagementStream = memo(({ jobId }: CandidateEngagementStr
               </div>
               <div>
                 <CardTitle className="text-base font-bold">Live Activity</CardTitle>
-                <p className="text-xs text-muted-foreground">Loading...</p>
+                <p className="text-xs text-muted-foreground">Fetching updates...</p>
               </div>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="space-y-2">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-12 bg-muted/30 rounded-lg animate-pulse" />
-              ))}
-            </div>
+            <ActivityFeedSkeleton />
           </CardContent>
         </Card>
       </motion.div>

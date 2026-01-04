@@ -23,6 +23,7 @@ import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { BookingApprovalList } from "@/components/booking/BookingApprovalList";
 import { AvailabilityOnboardingWizard } from "@/components/scheduling/AvailabilityOnboardingWizard";
 import { useAvailabilityOnboarding } from "@/hooks/useAvailabilityOnboarding";
+import { SchedulingSkeleton } from "@/components/LoadingSkeletons";
 interface BookingLink {
   id: string;
   slug: string;
@@ -293,11 +294,8 @@ export default function Scheduling() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading...</p>
-          </div>
+        <div className="container mx-auto py-8">
+          <SchedulingSkeleton />
         </div>
       </AppLayout>
     );
