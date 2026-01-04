@@ -1228,8 +1228,18 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
     return acc;
   }, {} as Record<string, UnifiedKPI[]>);
   
-  // Refresh all
+  // Refresh all - call unified KPI calculator then refetch
   const refreshAll = async () => {
+    try {
+      // Call the unified KPI calculator edge function
+      await supabase.functions.invoke('calculate-all-kpis', {
+        body: {},
+      });
+    } catch (error) {
+      console.error('Error calling calculate-all-kpis:', error);
+    }
+    
+    // Then refetch all data
     await Promise.all([
       refetchOps(), 
       refetchWeb(), 
