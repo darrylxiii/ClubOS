@@ -51,6 +51,9 @@ const InvoiceReconciliationPage = lazy(() => import("@/pages/admin/InvoiceReconc
 const ExpenseTrackingPage = lazy(() => import("@/pages/admin/ExpenseTracking"));
 const ClosedJobs = lazy(() => import("@/pages/admin/ClosedJobs"));
 
+// Enterprise Management
+const EnterpriseDashboard = lazy(() => import("@/pages/admin/EnterpriseDashboard"));
+
 // Phase 5: Analytics Dashboards
 const JobAnalyticsDashboard = lazy(() => import("@/pages/admin/JobAnalyticsDashboard"));
 const ConversationAnalytics = lazy(() => import("@/pages/admin/ConversationAnalytics"));
@@ -620,5 +623,8 @@ export const adminRoutes = (
     
     {/* Closed Jobs */}
     <Route path="/admin/closed-jobs" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ClosedJobs /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    
+    {/* Enterprise Management */}
+    <Route path="/admin/enterprise" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EnterpriseDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );

@@ -34723,6 +34723,54 @@ export type Database = {
         }
         Relationships: []
       }
+      security_incidents: {
+        Row: {
+          affected_systems: string[] | null
+          assigned_to: string | null
+          created_at: string
+          description: string
+          id: string
+          incident_type: string
+          reported_by: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          severity: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          affected_systems?: string[] | null
+          assigned_to?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          incident_type: string
+          reported_by?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          affected_systems?: string[] | null
+          assigned_to?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          incident_type?: string
+          reported_by?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       security_logs: {
         Row: {
           created_at: string | null
