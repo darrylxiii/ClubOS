@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AdminTableSkeleton } from "@/components/LoadingSkeletons";
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -124,7 +125,7 @@ export default function BrandTermManager() {
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                <AdminTableSkeleton columns={5} />
               ) : brandTerms?.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No brand terms configured yet

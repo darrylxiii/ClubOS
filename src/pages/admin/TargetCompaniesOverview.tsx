@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { AdminTableSkeleton } from "@/components/LoadingSkeletons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
@@ -313,11 +314,7 @@ const TargetCompaniesOverview = () => {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center py-8">
-                  Loading...
-                </TableCell>
-              </TableRow>
+              <AdminTableSkeleton columns={9} />
             ) : filteredCompanies.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">

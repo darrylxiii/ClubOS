@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { GameResultsSkeleton } from "@/components/LoadingSkeletons";
 import { useQuery } from "@tanstack/react-query";
 import { AppLayout } from "@/components/AppLayout";
 import { RoleGate } from "@/components/RoleGate";
@@ -140,7 +141,7 @@ export default function PressureCookerAdmin() {
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                <GameResultsSkeleton />
               ) : filteredResults?.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No results found

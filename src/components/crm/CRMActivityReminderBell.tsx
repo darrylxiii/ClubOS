@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { CRMActivitySkeleton } from "@/components/LoadingSkeletons";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -145,7 +146,7 @@ export function CRMActivityReminderBell() {
 
         <ScrollArea className="max-h-80">
           {loading ? (
-            <div className="p-4 text-center text-muted-foreground">Loading...</div>
+            <CRMActivitySkeleton />
           ) : activities.length > 0 ? (
             <div className="divide-y divide-border/30">
               {activities.map((activity) => {

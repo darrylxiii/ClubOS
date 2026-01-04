@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AdminTableSkeleton } from "@/components/LoadingSkeletons";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
@@ -231,11 +232,7 @@ export default function ClosedJobs() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
+                  <AdminTableSkeleton columns={7} />
                 ) : filteredClosures.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">

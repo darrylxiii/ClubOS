@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { PageLoadingSkeleton } from "@/components/LoadingSkeletons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -206,7 +207,7 @@ export default function AdminRejections() {
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-8">
-          <p>Loading...</p>
+          <PageLoadingSkeleton />
         </div>
       </AppLayout>
     );

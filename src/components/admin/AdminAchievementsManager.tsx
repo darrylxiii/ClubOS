@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ListSkeleton } from "@/components/LoadingSkeletons";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -603,7 +604,7 @@ export const AdminAchievementsManager = () => {
   });
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading...</div>;
+    return <ListSkeleton count={5} />;
   }
 
   return (

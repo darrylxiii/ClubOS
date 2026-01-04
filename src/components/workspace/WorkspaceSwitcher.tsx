@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from 'react-router-dom';
 import { Check, ChevronDown, Lock, Building2, Users, Plus, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -49,8 +50,8 @@ export function WorkspaceSwitcher({
   if (isLoading) {
     return (
       <Button variant="ghost" className={cn("justify-start gap-2", className)} disabled>
-        <div className="h-6 w-6 rounded bg-muted animate-pulse" />
-        <span className="text-muted-foreground">Loading...</span>
+        <Skeleton className="h-6 w-6 rounded" />
+        <Skeleton className="h-4 w-24" />
       </Button>
     );
   }
