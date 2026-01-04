@@ -158,6 +158,55 @@ export function useTimeToActivation(milestone: string, days: number = 30) {
   });
 }
 
+export function useTimeToMilestone(days: number = 30) {
+  return useQuery({
+    queryKey: ['time-to-milestone', days],
+    queryFn: async () => {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      // Get signup events
+      const { data: signups } = await supabase
+        .from('activation_events')
+        .select('user_id, created_at')
+        .eq('milestone_name', ACTIVATION_MILESTONES.SIGNUP.name)
+        .gte('created_at', startDate.toISOString());
+
+      // Get all milestone events
+      const { data: events } = await supabase
+        .from('activation_events')
+        .select('user_id, milestone_name, created_at')
+        .gte('created_at', startDate.toISOString())
+        .in('milestone_name', Object.values(ACTIVATION_MILESTONES).map(m => m.name));
+
+      if (!signups || !events) return [];
+
+      const signupMap = new Map(signups.map(s => [s.user_id, new Date(s.created_at)]));
+      const milestoneStats: Record<string, { times: number[]; count: number }> = {};
+
+      events.forEach(e => {
+        if (!e.milestone_name) return;
+        const signupTime = signupMap.get(e.user_id);
+        if (!milestoneStats[e.milestone_name]) {
+          milestoneStats[e.milestone_name] = { times: [], count: 0 };
+        }
+        milestoneStats[e.milestone_name].count++;
+        if (signupTime) {
+          const diff = (new Date(e.created_at).getTime() - signupTime.getTime()) / (1000 * 60 * 60);
+          if (diff > 0) milestoneStats[e.milestone_name].times.push(diff);
+        }
+      });
+
+      return Object.entries(milestoneStats).map(([milestone, stats]) => ({
+        milestone: milestone.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        avgHours: stats.times.length > 0 ? stats.times.reduce((a, b) => a + b, 0) / stats.times.length : 0,
+        count: stats.count,
+      }));
+    },
+    staleTime: 60000,
+  });
+}
+
 export function useTrackActivationEvent() {
   const queryClient = useQueryClient();
 
