@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { trackLogin, trackLogout } from "@/services/sessionTracking";
 import { useSecurityTracking, generateDeviceFingerprint } from "@/hooks/useSecurityTracking";
+import { identifyUser as postHogIdentify, resetUser as postHogReset } from "@/lib/posthog";
 
 interface AuthContextType {
   user: User | null;
@@ -106,6 +107,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             sessionCreatedRef.current = userId;
             
             setTimeout(() => {
+              // Identify user in PostHog
+              postHogIdentify(userId, {
+                email: userEmail,
+              });
+              
               // Record successful login attempt
               recordLoginAttempt(userEmail, true).catch(err => {
                 console.log('[AuthContext] Login attempt tracking failed (non-critical):', err);
@@ -160,6 +166,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('[AuthContext] Error during signout (will clear local state anyway):', error);
     } finally {
+      // Reset PostHog identity
+      postHogReset();
+      
       // Always clear local state and redirect, even if backend signout fails
       sessionCreatedRef.current = null;
       setUser(null);
