@@ -53,6 +53,7 @@ const ClosedJobs = lazy(() => import("@/pages/admin/ClosedJobs"));
 
 // Enterprise Management
 const EnterpriseDashboard = lazy(() => import("@/pages/admin/EnterpriseDashboard"));
+const DueDiligenceDashboard = lazy(() => import("@/pages/admin/DueDiligenceDashboard"));
 
 // Phase 5: Analytics Dashboards
 const JobAnalyticsDashboard = lazy(() => import("@/pages/admin/JobAnalyticsDashboard"));
@@ -626,5 +627,8 @@ export const adminRoutes = (
     
     {/* Enterprise Management */}
     <Route path="/admin/enterprise" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EnterpriseDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    
+    {/* Due Diligence Center */}
+    <Route path="/admin/due-diligence" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><DueDiligenceDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );
