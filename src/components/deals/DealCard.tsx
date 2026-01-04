@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Building2, Calendar, Users, TrendingUp, AlertCircle, Rocket, CheckCircl
 import { formatDistanceToNow } from "date-fns";
 import { Deal } from "@/hooks/useDealPipeline";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatCurrency } from "@/lib/format";
 
 interface DealCardProps {
   deal: Deal;
@@ -23,41 +25,75 @@ const FEE_TYPE_CONFIG: Record<FeeType, { icon: typeof Percent; label: string; cl
   hybrid: { icon: Calculator, label: 'Hybrid', className: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
 };
 
-export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+function DealCardComponent({ deal, onDragStart, onClick, onPublish }: DealCardProps) {
+  // Memoize computed values to prevent recalculation on every render
+  const {
+    companies,
+    feeType,
+    feePercentage,
+    feeFixed,
+    hasFeeConfigured,
+    isMultiHire,
+    targetHireCount,
+    hiredCount,
+    remainingPositions,
+    progressPercent,
+    singleFeeAmount,
+    totalFeeAmount,
+    weightedValue,
+    feeConfig,
+  } = useMemo(() => {
+    const companies = deal.companies as any;
+    const feeType = (companies?.fee_type || 'percentage') as FeeType;
+    const feePercentage = companies?.placement_fee_percentage;
+    const feeFixed = companies?.placement_fee_fixed;
+    const hasFeeConfigured = (feePercentage !== null && feePercentage !== undefined && feePercentage > 0) 
+      || (feeFixed !== null && feeFixed !== undefined && feeFixed > 0);
+    
+    const isMultiHire = (deal.target_hire_count || 1) > 1;
+    const targetHireCount = deal.target_hire_count || 1;
+    const hiredCount = deal.hired_count || 0;
+    const remainingPositions = deal.remaining_positions || Math.max(targetHireCount - hiredCount, 1);
+    const progressPercent = targetHireCount > 0 ? (hiredCount / targetHireCount) * 100 : 0;
+    
+    const singleFeeAmount = feeType === 'fixed' && feeFixed 
+      ? feeFixed 
+      : (deal.estimated_value || 0);
+    const totalFeeAmount = isMultiHire ? singleFeeAmount * remainingPositions : singleFeeAmount;
+    const weightedValue = totalFeeAmount * (deal.deal_probability / 100);
+    
+    const feeConfig = FEE_TYPE_CONFIG[feeType];
 
-  const companies = deal.companies as any;
-  const feeType = (companies?.fee_type || 'percentage') as FeeType;
-  const feePercentage = companies?.placement_fee_percentage;
-  const feeFixed = companies?.placement_fee_fixed;
-  const hasFeeConfigured = (feePercentage !== null && feePercentage !== undefined && feePercentage > 0) 
-    || (feeFixed !== null && feeFixed !== undefined && feeFixed > 0);
-  
-  // Multi-hire detection
-  const isMultiHire = (deal.target_hire_count || 1) > 1;
-  const targetHireCount = deal.target_hire_count || 1;
-  const hiredCount = deal.hired_count || 0;
-  const remainingPositions = deal.remaining_positions || Math.max(targetHireCount - hiredCount, 1);
-  const progressPercent = targetHireCount > 0 ? (hiredCount / targetHireCount) * 100 : 0;
-  
-  // Calculate weighted value - estimated_value is ALREADY the fee amount (salary × fee%)
-  // For fixed fees, use the fixed amount directly
-  // Then apply stage probability for weighted value
-  const singleFeeAmount = feeType === 'fixed' && feeFixed 
-    ? feeFixed 
-    : (deal.estimated_value || 0);
-  const totalFeeAmount = isMultiHire ? singleFeeAmount * remainingPositions : singleFeeAmount;
-  const weightedValue = totalFeeAmount * (deal.deal_probability / 100);
-  
-  const feeConfig = FEE_TYPE_CONFIG[feeType];
+    return {
+      companies,
+      feeType,
+      feePercentage,
+      feeFixed,
+      hasFeeConfigured,
+      isMultiHire,
+      targetHireCount,
+      hiredCount,
+      remainingPositions,
+      progressPercent,
+      singleFeeAmount,
+      totalFeeAmount,
+      weightedValue,
+      feeConfig,
+    };
+  }, [deal]);
+
   const FeeIcon = feeConfig.icon;
+
+  // Memoize formatted date
+  const lastActivityFormatted = useMemo(() => 
+    formatDistanceToNow(new Date(deal.last_activity_date), { addSuffix: true }),
+    [deal.last_activity_date]
+  );
+
+  const closeDateFormatted = useMemo(() => {
+    if (!deal.expected_close_date) return null;
+    return new Date(deal.expected_close_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }, [deal.expected_close_date]);
 
   return (
     <Card
@@ -164,16 +200,16 @@ export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProp
           <span>{deal.active_candidates || 0}</span>
         </div>
         
-        {deal.expected_close_date && (
+        {closeDateFormatted && (
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>{new Date(deal.expected_close_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+            <span>{closeDateFormatted}</span>
           </div>
         )}
         
         <div className="flex items-center gap-1">
           <TrendingUp className="h-3 w-3" />
-          <span>{formatDistanceToNow(new Date(deal.last_activity_date), { addSuffix: true })}</span>
+          <span>{lastActivityFormatted}</span>
         </div>
       </div>
 
@@ -196,3 +232,16 @@ export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProp
     </Card>
   );
 }
+
+// Memoize the entire component to prevent re-renders when parent updates
+export const DealCard = memo(DealCardComponent, (prevProps, nextProps) => {
+  // Custom comparison for performance
+  return (
+    prevProps.deal.id === nextProps.deal.id &&
+    prevProps.deal.deal_stage === nextProps.deal.deal_stage &&
+    prevProps.deal.status === nextProps.deal.status &&
+    prevProps.deal.deal_health_score === nextProps.deal.deal_health_score &&
+    prevProps.deal.hired_count === nextProps.deal.hired_count &&
+    prevProps.deal.last_activity_date === nextProps.deal.last_activity_date
+  );
+});
