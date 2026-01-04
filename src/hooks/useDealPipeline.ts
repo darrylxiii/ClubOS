@@ -53,9 +53,10 @@ export function useDealStages() {
   return useQuery({
     queryKey: ['deal-stages'],
     queryFn: async () => {
+      // WS-4: Optimized query with specific fields
       const { data, error } = await (supabase as any)
         .from('deal_stages')
-        .select('*')
+        .select('id, name, stage_order, color, description, is_active')
         .order('stage_order');
       
       if (error) throw error;
@@ -78,13 +79,15 @@ export function useDealPipeline() {
     queryFn: async () => {
       console.log('[DealPipeline] Fetching jobs...');
       
+      // WS-4: Optimized query with specific fields instead of select('*')
       const { data, error } = await supabase
         .from('jobs')
         .select(`
-          *,
+          id, title, company_id, deal_stage, status, deal_value_override,
+          target_hire_count, hired_count, is_lost, created_at, updated_at,
+          min_salary, max_salary, salary_currency,
           companies(name, placement_fee_percentage),
-          applications(count),
-          hired_count
+          applications(count)
         `)
         .in('status', ['published', 'closed'])
         .eq('is_lost', false)
@@ -238,11 +241,13 @@ export function useLostDeals() {
   return useQuery({
     queryKey: ['lost-deals'],
     queryFn: async () => {
+      // WS-4: Optimized query with specific fields
       const { data, error } = await supabase
         .from('jobs')
         .select(`
-          *,
-          deal_loss_reasons(*)
+          id, title, company_id, deal_stage, status, deal_value_override,
+          target_hire_count, hired_count, is_lost, updated_at, created_at,
+          deal_loss_reasons(id, reason, notes, created_at)
         `)
         .eq('is_lost', true)
         .order('updated_at', { ascending: false })
