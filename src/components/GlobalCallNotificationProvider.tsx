@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGlobalCallSignaling } from '@/hooks/useGlobalCallSignaling';
 import { IncomingCallCard } from '@/components/messages/IncomingCallCard';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 
 /**
  * Global provider that renders incoming call notifications anywhere in the app.
@@ -11,7 +11,6 @@ import { useToast } from '@/hooks/use-toast';
  */
 export function GlobalCallNotificationProvider() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { incomingInvitations, acceptCall, declineCall } = useGlobalCallSignaling();
   const [handledInvitations, setHandledInvitations] = useState<Set<string>>(new Set());
   const [hiddenInvitations, setHiddenInvitations] = useState<Set<string>>(new Set());
@@ -50,14 +49,10 @@ export function GlobalCallNotificationProvider() {
     incomingInvitations.forEach(invitation => {
       if (invitation.status === 'cancelled') {
         setHiddenInvitations(prev => new Set(prev).add(invitation.id));
-        
-        toast({
-          title: "Call ended",
-          description: "The caller ended the call",
-        });
+        notify.info("Call ended", { description: "The caller ended the call" });
       }
     });
-  }, [incomingInvitations, toast]);
+  }, [incomingInvitations]);
 
   const handleAccept = useCallback(async (invitation: typeof incomingInvitations[0]) => {
     // Hide card immediately (optimistic UI)
@@ -75,11 +70,8 @@ export function GlobalCallNotificationProvider() {
       }
     });
 
-    toast({
-      title: "Call accepted",
-      description: "Connecting to call...",
-    });
-  }, [acceptCall, navigate, toast]);
+    notify.success("Call accepted", { description: "Connecting to call..." });
+  }, [acceptCall, navigate]);
 
   const handleDecline = useCallback(async (invitationId: string) => {
     // Hide card immediately (optimistic UI)
@@ -88,11 +80,8 @@ export function GlobalCallNotificationProvider() {
     // Update database
     await declineCall(invitationId);
 
-    toast({
-      title: "Call declined",
-      description: "You declined the call",
-    });
-  }, [declineCall, toast]);
+    notify.info("Call declined", { description: "You declined the call" });
+  }, [declineCall]);
 
   // Find the first active ringing invitation that hasn't been hidden
   const activeInvitation = incomingInvitations.find(

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { Search, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
 interface TrackRequestDialogProps {
@@ -18,11 +18,10 @@ export function TrackRequestDialog({ open, onOpenChange }: TrackRequestDialogPro
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [request, setRequest] = useState<any>(null);
-  const { toast } = useToast();
 
   const handleSearch = async () => {
     if (!email) {
-      toast({ title: "Please enter your email", variant: "destructive" });
+      notify.error("Please enter your email");
       return;
     }
 
@@ -38,11 +37,7 @@ export function TrackRequestDialog({ open, onOpenChange }: TrackRequestDialogPro
     setLoading(false);
 
     if (error || !data) {
-      toast({
-        title: "Request not found",
-        description: "No request found with this email address.",
-        variant: "destructive",
-      });
+      notify.error("Request not found", { description: "No request found with this email address." });
       return;
     }
 

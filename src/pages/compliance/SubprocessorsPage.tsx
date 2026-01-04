@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { Shield, Search, Plus, MapPin, CheckCircle2 } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 
@@ -12,7 +12,6 @@ export default function SubprocessorsPage() {
   const [subprocessors, setSubprocessors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const { toast } = useToast();
 
   useEffect(() => {
     loadSubprocessors();
@@ -29,11 +28,7 @@ export default function SubprocessorsPage() {
       setSubprocessors(data || []);
     } catch (error) {
       console.error("Error loading subprocessors:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load subprocessors",
-        variant: "destructive",
-      });
+      notify.error("Failed to load subprocessors");
     } finally {
       setLoading(false);
     }

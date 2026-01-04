@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Trash2, Calendar, Mail } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { format } from "date-fns";
 import type { SavedReport } from "@/types/analytics";
 import {
@@ -24,7 +24,6 @@ interface SavedReportsListProps {
 }
 
 export function SavedReportsList({ companyId }: SavedReportsListProps) {
-  const { toast } = useToast();
 
   const { data: reports, isLoading, refetch } = useQuery<SavedReport[]>({
     queryKey: ['saved-reports', companyId],
@@ -49,19 +48,12 @@ export function SavedReportsList({ companyId }: SavedReportsListProps) {
 
       if (error) throw error;
 
-      toast({
-        title: "Report Executed",
-        description: "Your report has been generated successfully",
-      });
+      notify.success("Report Executed", { description: "Your report has been generated successfully" });
 
       refetch();
     } catch (error) {
       console.error('Error running report:', error);
-      toast({
-        title: "Execution Failed",
-        description: "Could not run report. Please try again.",
-        variant: "destructive",
-      });
+      notify.error("Execution Failed", { description: "Could not run report. Please try again." });
     }
   };
 
@@ -74,19 +66,12 @@ export function SavedReportsList({ companyId }: SavedReportsListProps) {
 
       if (error) throw error;
 
-      toast({
-        title: "Report Deleted",
-        description: "The report has been removed",
-      });
+      notify.success("Report Deleted", { description: "The report has been removed" });
 
       refetch();
     } catch (error) {
       console.error('Error deleting report:', error);
-      toast({
-        title: "Delete Failed",
-        description: "Could not delete report. Please try again.",
-        variant: "destructive",
-      });
+      notify.error("Delete Failed", { description: "Could not delete report. Please try again." });
     }
   };
 

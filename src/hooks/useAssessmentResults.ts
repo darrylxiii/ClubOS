@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface SaveAssessmentResultParams {
@@ -26,16 +26,11 @@ export interface SaveAssessmentResultParams {
  * });
  */
 export const useAssessmentResults = () => {
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const saveResult = async (params: SaveAssessmentResultParams) => {
     if (!user) {
-      toast({
-        variant: 'destructive',
-        title: 'Authentication Required',
-        description: 'You must be logged in to save assessment results.',
-      });
+      notify.error('Authentication Required', { description: 'You must be logged in to save assessment results.' });
       return { success: false, error: 'Not authenticated' };
     }
 
@@ -58,11 +53,7 @@ export const useAssessmentResults = () => {
       return { success: true, data };
     } catch (error: any) {
       console.error('Error saving assessment result:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to save assessment results. Please try again.',
-      });
+      notify.error('Failed to save assessment results. Please try again.');
       return { success: false, error: error.message };
     }
   };

@@ -2,7 +2,7 @@ import { UnifiedCalendarEvent } from "@/types/calendar";
 import { Button } from "@/components/ui/button";
 import { getMeetingStatus } from "@/utils/meetingStatus";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { Video, Clock } from "lucide-react";
 
 interface JoinMeetingButtonProps {
@@ -13,7 +13,6 @@ interface JoinMeetingButtonProps {
 
 export function JoinMeetingButton({ event, size = "default", className }: JoinMeetingButtonProps) {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   if (!event.is_quantum_club || !event.meeting_id) {
     return null;
@@ -26,10 +25,7 @@ export function JoinMeetingButton({ event, size = "default", className }: JoinMe
       if (statusInfo.status === 'ended' && event.insights_available) {
         navigate(`/meetings/${event.meeting_id}/insights`);
       } else {
-        toast({
-          title: "Cannot join meeting",
-          description: statusInfo.description,
-        });
+        notify.info("Cannot join meeting", { description: statusInfo.description });
       }
       return;
     }

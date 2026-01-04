@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Download, Search, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { format } from 'date-fns';
 
 interface AuditEvent {
@@ -29,7 +29,6 @@ interface AuditEvent {
 }
 
 export const AuditLogViewer = () => {
-  const { toast } = useToast();
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,11 +61,7 @@ export const AuditLogViewer = () => {
       if (error) throw error;
       setEvents((data || []) as AuditEvent[]);
     } catch (error: any) {
-      toast({
-        title: 'Failed to Load Audit Logs',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Failed to Load Audit Logs', { description: error.message });
     } finally {
       setLoading(false);
     }
@@ -93,10 +88,7 @@ export const AuditLogViewer = () => {
     a.download = `audit-logs-${format(new Date(), 'yyyy-MM-dd')}.csv`;
     a.click();
 
-    toast({
-      title: 'Export Complete',
-      description: 'Audit logs exported to CSV',
-    });
+    notify.success('Export Complete', { description: 'Audit logs exported to CSV' });
   };
 
   const filteredEvents = events.filter(event => {

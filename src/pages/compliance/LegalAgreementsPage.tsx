@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { FileText, Search, Download, Send } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 
@@ -12,7 +12,6 @@ export default function LegalAgreementsPage() {
   const [agreements, setAgreements] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     loadData();
@@ -32,11 +31,7 @@ export default function LegalAgreementsPage() {
       setTemplates(templatesRes.data || []);
     } catch (error) {
       console.error("Error loading agreements:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load legal agreements",
-        variant: "destructive",
-      });
+      notify.error("Failed to load legal agreements");
     } finally {
       setLoading(false);
     }

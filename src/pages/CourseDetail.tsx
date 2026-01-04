@@ -11,7 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
 import { CourseAIChat } from "@/components/academy/CourseAIChat";
 import { CourseProgressRing } from "@/components/academy/CourseProgressRing";
@@ -37,7 +37,6 @@ export default function CourseDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
   
   const [course, setCourse] = useState<any>(null);
   const [modules, setModules] = useState<any[]>([]);
@@ -107,11 +106,7 @@ export default function CourseDetail() {
         }
       }
     } catch (error: any) {
-      toast({
-        title: "Error loading course",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error loading course", { description: error.message });
     } finally {
       setLoading(false);
     }
@@ -128,20 +123,14 @@ export default function CourseDetail() {
 
       if (error) throw error;
 
-      toast({
-        title: course.is_published ? "Course unpublished" : "Course published",
-        description: course.is_published 
-          ? "Course is now hidden from students" 
-          : "Course is now visible to students",
-      });
+      notify.success(
+        course.is_published ? "Course unpublished" : "Course published",
+        { description: course.is_published ? "Course is now hidden from students" : "Course is now visible to students" }
+      );
 
       setCourse({ ...course, is_published: !course.is_published });
     } catch (error: any) {
-      toast({
-        title: "Error updating course",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error updating course", { description: error.message });
     }
   };
 

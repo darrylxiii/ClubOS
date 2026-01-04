@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, Users, MousePointerClick, CheckCircle, Download, Settings, Eye, EyeOff } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { format } from "date-fns";
 import { AppLayout } from "@/components/AppLayout";
 
@@ -24,7 +24,6 @@ export default function FunnelAnalytics() {
   });
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterDate, setFilterDate] = useState("");
-  const { toast } = useToast();
 
   useEffect(() => {
     loadAnalytics();
@@ -48,10 +47,10 @@ export default function FunnelAnalytics() {
 
     if (!error) {
       setIsActive(!isActive);
-      toast({
-        title: `Funnel ${!isActive ? "Activated" : "Paused"}`,
-        description: !isActive ? "Partner requests are now being accepted" : "Partner requests are temporarily paused",
-      });
+      notify.success(
+        `Funnel ${!isActive ? "Activated" : "Paused"}`,
+        { description: !isActive ? "Partner requests are now being accepted" : "Partner requests are temporarily paused" }
+      );
     }
   };
 

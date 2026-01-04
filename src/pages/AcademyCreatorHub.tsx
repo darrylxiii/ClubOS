@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import {
   GraduationCap,
   BookOpen,
@@ -29,7 +29,6 @@ import { GenerateCourseDialog } from "@/components/academy/GenerateCourseDialog"
 export default function AcademyCreatorHub() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
 
   const [courses, setCourses] = useState<any[]>([]);
   const [academy, setAcademy] = useState<any>(null);
@@ -85,11 +84,7 @@ export default function AcademyCreatorHub() {
       });
 
     } catch (error: any) {
-      toast({
-        title: "Error loading creator data",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error loading creator data", { description: error.message });
     } finally {
       setLoading(false);
     }
@@ -104,20 +99,14 @@ export default function AcademyCreatorHub() {
 
       if (error) throw error;
 
-      toast({
-        title: currentStatus ? "Course unpublished" : "Course published",
-        description: currentStatus
-          ? "Course is now hidden from students"
-          : "Course is now visible to students",
-      });
+      notify.success(
+        currentStatus ? "Course unpublished" : "Course published",
+        { description: currentStatus ? "Course is now hidden from students" : "Course is now visible to students" }
+      );
 
       loadCreatorData();
     } catch (error: any) {
-      toast({
-        title: "Error updating course",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify.error("Error updating course", { description: error.message });
     }
   };
 
