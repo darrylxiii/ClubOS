@@ -5963,6 +5963,42 @@ export type Database = {
         }
         Relationships: []
       }
+      capacity_metrics: {
+        Row: {
+          created_at: string
+          current_value: number
+          id: string
+          max_value: number
+          metric_name: string
+          recorded_at: string
+          status: string | null
+          trend_percentage: number | null
+          unit: string
+        }
+        Insert: {
+          created_at?: string
+          current_value: number
+          id?: string
+          max_value: number
+          metric_name: string
+          recorded_at?: string
+          status?: string | null
+          trend_percentage?: number | null
+          unit: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: number
+          id?: string
+          max_value?: number
+          metric_name?: string
+          recorded_at?: string
+          status?: string | null
+          trend_percentage?: number | null
+          unit?: string
+        }
+        Relationships: []
+      }
       capacity_planning: {
         Row: {
           available_hours: number | null
@@ -12675,6 +12711,48 @@ export type Database = {
           issues_found?: number | null
           status?: string
           table_name?: string | null
+        }
+        Relationships: []
+      }
+      data_room_documents: {
+        Row: {
+          access_level: string
+          category: string
+          created_at: string
+          file_path: string
+          id: string
+          last_viewed_at: string | null
+          name: string
+          size_bytes: number | null
+          updated_at: string
+          uploaded_by: string | null
+          view_count: number | null
+        }
+        Insert: {
+          access_level?: string
+          category: string
+          created_at?: string
+          file_path: string
+          id?: string
+          last_viewed_at?: string | null
+          name: string
+          size_bytes?: number | null
+          updated_at?: string
+          uploaded_by?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          access_level?: string
+          category?: string
+          created_at?: string
+          file_path?: string
+          id?: string
+          last_viewed_at?: string | null
+          name?: string
+          size_bytes?: number | null
+          updated_at?: string
+          uploaded_by?: string | null
+          view_count?: number | null
         }
         Relationships: []
       }
@@ -33269,6 +33347,51 @@ export type Database = {
         }
         Relationships: []
       }
+      risk_registry: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          impact: string
+          last_review: string | null
+          likelihood: string
+          mitigation: string | null
+          owner: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          impact: string
+          last_review?: string | null
+          likelihood: string
+          mitigation?: string | null
+          owner?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          impact?: string
+          last_review?: string | null
+          likelihood?: string
+          mitigation?: string | null
+          owner?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       role_candidate_feedback: {
         Row: {
           application_id: string | null
@@ -34241,6 +34364,78 @@ export type Database = {
           search_query?: string
           sort_order?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      scaling_readiness_checklist: {
+        Row: {
+          category: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          is_complete: boolean | null
+          item: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_complete?: boolean | null
+          item: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_complete?: boolean | null
+          item?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      scaling_triggers: {
+        Row: {
+          action: string
+          created_at: string
+          created_by: string | null
+          id: string
+          last_triggered_at: string | null
+          metric: string
+          status: string
+          threshold: string
+          updated_at: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_triggered_at?: string | null
+          metric: string
+          status?: string
+          threshold: string
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_triggered_at?: string | null
+          metric?: string
+          status?: string
+          threshold?: string
+          updated_at?: string
         }
         Relationships: []
       }
