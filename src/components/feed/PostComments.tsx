@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
-import { toast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 
 interface PostCommentsProps {
   postId: string;
@@ -91,11 +91,7 @@ export function PostComments({ postId, postAuthorId, onCommentAdded }: PostComme
       onCommentAdded();
     } catch (error) {
       console.error('Error posting comment:', error);
-      toast({
-        title: "Failed to comment",
-        description: "Please try again.",
-        variant: "destructive"
-      });
+      notify.error("Failed to comment", { description: "Please try again." });
     } finally {
       setLoading(false);
     }

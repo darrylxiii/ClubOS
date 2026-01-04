@@ -28,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LazyMedia } from "./LazyMedia";
-import { toast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notify";
 import { useEngagementTracking } from "@/hooks/useEngagementTracking";
 import { cn } from "@/lib/utils";
 import { AlgorithmTransparency } from "./AlgorithmTransparency";
@@ -180,24 +180,17 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
 
       if (error) throw error;
 
-      toast({
-        title: "Post deleted",
-        description: "Your post has been deleted successfully."
-      });
+      notify.success("Post deleted", { description: "Your post has been deleted successfully." });
       onUpdate();
     } catch (error) {
       console.error('Error deleting post:', error);
-      toast({
-        title: "Failed to delete",
-        description: "Please try again.",
-        variant: "destructive"
-      });
+      notify.error("Failed to delete", { description: "Please try again." });
     }
   };
 
   const handleSave = async () => {
     if (!user) {
-      toast({ title: "Please sign in to save posts", variant: "destructive" });
+      notify.error("Please sign in to save posts");
       return;
     }
 
@@ -210,17 +203,17 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           .eq('post_id', post.id);
         setIsSaved(false);
         trackSaveEngagement(false);
-        toast({ title: "Removed from saved" });
+        notify.info("Removed from saved");
       } else {
         await supabase
           .from('saved_posts')
           .insert({ user_id: user.id, post_id: post.id });
         setIsSaved(true);
         trackSaveEngagement(true);
-        toast({ title: "Post saved" });
+        notify.success("Post saved");
       }
     } catch (error) {
-      toast({ title: "Error saving post", variant: "destructive" });
+      notify.error("Error saving post");
     }
   };
 
@@ -247,10 +240,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   };
 
   const handleReport = () => {
-    toast({
-      title: "Report submitted",
-      description: "Thank you for helping keep our community safe."
-    });
+    notify.success("Report submitted", { description: "Thank you for helping keep our community safe." });
   };
 
   const handleAuthorClick = () => {

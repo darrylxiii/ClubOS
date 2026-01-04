@@ -11,8 +11,8 @@ export { useOutsideClick } from './useOutsideClick';
 export { useInView } from './useInView';
 export { useLazyLoad } from './useLazyLoad';
 
-// Toast - prefer notify from @/lib/notify for new code
-export { useToast, toast } from './use-toast';
+// Notifications - prefer notify from @/lib/notify for new code
+export { notify } from '@/lib/notify';
 
 // Authentication & Role
 export { useRole } from '@/contexts/RoleContext';

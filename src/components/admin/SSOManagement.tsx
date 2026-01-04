@@ -14,7 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { KeyRound, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import {
   Dialog,
   DialogContent,
@@ -37,7 +37,6 @@ interface SSOConnection {
 }
 
 export const SSOManagement = () => {
-  const { toast } = useToast();
   const [connections, setConnections] = useState<SSOConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -65,11 +64,7 @@ export const SSOManagement = () => {
       if (error) throw error;
       setConnections(data || []);
     } catch (error: any) {
-      toast({
-        title: 'Failed to Load SSO Connections',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Failed to Load SSO Connections', { description: error.message });
     } finally {
       setLoading(false);
     }
@@ -99,10 +94,7 @@ export const SSOManagement = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'SSO Connection Created',
-        description: 'The SSO connection has been configured successfully',
-      });
+      notify.success('SSO Connection Created', { description: 'The SSO connection has been configured successfully' });
 
       setDialogOpen(false);
       setFormData({
@@ -115,11 +107,7 @@ export const SSOManagement = () => {
       });
       loadConnections();
     } catch (error: any) {
-      toast({
-        title: 'Failed to Create Connection',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Failed to Create Connection', { description: error.message });
     }
   };
 
@@ -132,18 +120,13 @@ export const SSOManagement = () => {
 
       if (error) throw error;
 
-      toast({
-        title: isActive ? 'SSO Disabled' : 'SSO Enabled',
-        description: `The SSO connection has been ${isActive ? 'disabled' : 'enabled'}`,
+      notify.success(isActive ? 'SSO Disabled' : 'SSO Enabled', { 
+        description: `The SSO connection has been ${isActive ? 'disabled' : 'enabled'}` 
       });
 
       loadConnections();
     } catch (error: any) {
-      toast({
-        title: 'Failed to Update Connection',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Failed to Update Connection', { description: error.message });
     }
   };
 
@@ -158,18 +141,11 @@ export const SSOManagement = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'SSO Connection Deleted',
-        description: 'The SSO connection has been removed',
-      });
+      notify.success('SSO Connection Deleted', { description: 'The SSO connection has been removed' });
 
       loadConnections();
     } catch (error: any) {
-      toast({
-        title: 'Failed to Delete Connection',
-        description: error.message,
-        variant: 'destructive',
-      });
+      notify.error('Failed to Delete Connection', { description: error.message });
     }
   };
 

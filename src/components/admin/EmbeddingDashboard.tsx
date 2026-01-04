@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useEmbeddingGenerator, type SemanticEntityType } from '@/hooks/useSemanticSearch';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import { Database, Zap, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface EmbeddingStats {
@@ -20,7 +20,6 @@ export function EmbeddingDashboard() {
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState<Record<string, boolean>>({});
   const { batchGenerateEmbeddings } = useEmbeddingGenerator();
-  const { toast } = useToast();
 
   const fetchStats = async () => {
     setLoading(true);
@@ -30,11 +29,7 @@ export function EmbeddingDashboard() {
       setStats(data || []);
     } catch (error) {
       console.error('Error fetching stats:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch embedding statistics',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Failed to fetch embedding statistics' });
     } finally {
       setLoading(false);
     }
@@ -51,21 +46,21 @@ export function EmbeddingDashboard() {
       const result = await batchGenerateEmbeddings(entityType, 100, 0);
       
       if (result) {
-        toast({
-          title: 'Batch Processing Complete',
-          description: `Processed ${result.processed} records with ${result.errors} errors`,
-          variant: result.errors > 0 ? 'destructive' : 'default',
-        });
+        if (result.errors > 0) {
+          notify.error('Batch Processing Complete', { 
+            description: `Processed ${result.processed} records with ${result.errors} errors` 
+          });
+        } else {
+          notify.success('Batch Processing Complete', { 
+            description: `Processed ${result.processed} records with ${result.errors} errors` 
+          });
+        }
         
         // Refresh stats
         await fetchStats();
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Batch processing failed',
-        variant: 'destructive',
-      });
+      notify.error('Error', { description: 'Batch processing failed' });
     } finally {
       setProcessing(prev => ({ ...prev, [entityType]: false }));
     }

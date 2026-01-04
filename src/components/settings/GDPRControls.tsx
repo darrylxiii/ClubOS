@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Download, Trash2, Shield, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export const GDPRControls = () => {
-  const { toast } = useToast();
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deletionReason, setDeletionReason] = useState('');
@@ -34,17 +33,12 @@ export const GDPRControls = () => {
 
       if (data.export_url) {
         window.open(data.export_url, '_blank');
-        toast({
-          title: 'Data Export Ready',
-          description: 'Your data has been exported. The download will start shortly.',
+        notify.success('Data Export Ready', { 
+          description: 'Your data has been exported. The download will start shortly.' 
         });
       }
     } catch (error: any) {
-      toast({
-        title: 'Export Failed',
-        description: error.message || 'Failed to export data',
-        variant: 'destructive',
-      });
+      notify.error('Export Failed', { description: error.message || 'Failed to export data' });
     } finally {
       setExporting(false);
     }
@@ -60,16 +54,13 @@ export const GDPRControls = () => {
       if (error) throw error;
 
       setPendingDeletion(data);
-      toast({
-        title: 'Deletion Scheduled',
-        description: `Your account will be deleted on ${new Date(data.scheduled_for).toLocaleDateString()}. You can cancel this anytime before then.`,
+      notify.success('Deletion Scheduled', { 
+        description: `Your account will be deleted on ${new Date(data.scheduled_for).toLocaleDateString()}. You can cancel this anytime before then.` 
       });
       setDeletionReason('');
     } catch (error: any) {
-      toast({
-        title: 'Deletion Request Failed',
-        description: error.message || 'Failed to schedule account deletion',
-        variant: 'destructive',
+      notify.error('Deletion Request Failed', { 
+        description: error.message || 'Failed to schedule account deletion' 
       });
     } finally {
       setDeleting(false);
@@ -85,16 +76,9 @@ export const GDPRControls = () => {
       if (error) throw error;
 
       setPendingDeletion(null);
-      toast({
-        title: 'Deletion Cancelled',
-        description: 'Your account deletion has been cancelled.',
-      });
+      notify.success('Deletion Cancelled', { description: 'Your account deletion has been cancelled.' });
     } catch (error: any) {
-      toast({
-        title: 'Cancellation Failed',
-        description: error.message || 'Failed to cancel deletion',
-        variant: 'destructive',
-      });
+      notify.error('Cancellation Failed', { description: error.message || 'Failed to cancel deletion' });
     }
   };
 

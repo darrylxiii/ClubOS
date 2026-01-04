@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Copy, QrCode, Twitter, Linkedin, Send, Check } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notify';
 import QRCode from 'qrcode';
 
 interface ShareDialogProps {
@@ -46,11 +46,11 @@ export function ShareDialog({ open, onOpenChange, shareUrl, shareText, onShare }
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
-      toast({ title: "Link copied to clipboard" });
+      notify.success("Link copied to clipboard");
       onShare('copy');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      toast({ title: "Failed to copy", variant: "destructive" });
+      notify.error("Failed to copy");
     }
   };
 
@@ -72,7 +72,7 @@ export function ShareDialog({ open, onOpenChange, shareUrl, shareText, onShare }
     link.download = 'post-qr-code.png';
     link.href = qrCodeUrl;
     link.click();
-    toast({ title: "QR code downloaded" });
+    notify.success("QR code downloaded");
   };
 
   return (
