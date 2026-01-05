@@ -522,6 +522,12 @@ export function MeetingVideoCallInterface({
   const handleToggleLayout = () => setLayout(prev => prev === 'grid' ? 'spotlight' : 'grid');
   const handleToggleBackchannel = () => setShowBackchannel(prev => !prev);
   const handleToggleVoting = () => setShowVoting(prev => !prev);
+  
+  // Phase 6: Advanced AI Features
+  const handleToggleQUINVoice = () => setShowQUINVoice(prev => !prev);
+  const handleToggleTranslation = () => setShowTranslation(prev => !prev);
+  const handleTogglePredictiveHiring = () => setShowPredictiveHiring(prev => !prev);
+  const handleToggleEngagementAnalytics = () => setShowEngagementAnalytics(prev => !prev);
 
   const handleReaction = async (emoji: string) => {
     if (!hostSettings.allowReactions && meeting.host_id !== participantId) {
@@ -1196,6 +1202,27 @@ export function MeetingVideoCallInterface({
               ? handleToggleVoting
               : undefined
           }
+          // Phase 6: Advanced AI Features
+          onToggleQUINVoice={
+            ['host', 'interviewer', 'observer'].includes(userRole)
+              ? handleToggleQUINVoice
+              : undefined
+          }
+          showQUINVoice={showQUINVoice}
+          onToggleTranslation={handleToggleTranslation}
+          showTranslation={showTranslation}
+          onTogglePredictiveHiring={
+            ['host', 'interviewer', 'observer'].includes(userRole)
+              ? handleTogglePredictiveHiring
+              : undefined
+          }
+          showPredictiveHiring={showPredictiveHiring}
+          onToggleEngagementAnalytics={
+            ['host', 'interviewer', 'observer'].includes(userRole)
+              ? handleToggleEngagementAnalytics
+              : undefined
+          }
+          showEngagementAnalytics={showEngagementAnalytics}
         />
       )}
 
