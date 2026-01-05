@@ -25,9 +25,20 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { user_id, company_id, date_range }: AnalyticsInput = await req.json();
+    // Handle empty body gracefully
+    let input: AnalyticsInput = {};
+    try {
+      const body = await req.text();
+      if (body && body.trim()) {
+        input = JSON.parse(body);
+      }
+    } catch (parseError) {
+      console.log('[communication-analytics] No body or invalid JSON, using defaults');
+    }
 
-    console.log('[communication-analytics] Generating analytics');
+    const { user_id, company_id, date_range } = input;
+
+    console.log('[communication-analytics] Generating analytics', { user_id, company_id, date_range });
 
     const startDate = date_range?.start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const endDate = date_range?.end || new Date().toISOString();
