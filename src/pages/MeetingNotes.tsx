@@ -18,6 +18,7 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { AppLayout } from '@/components/AppLayout';
+import { SendToPilotButton } from '@/components/meetings/SendToPilotButton';
 
 export default function MeetingNotes() {
   const { meetingId } = useParams();
@@ -204,6 +205,12 @@ export default function MeetingNotes() {
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-3xl font-bold">{meeting.title}</h1>
             <div className="flex items-center gap-2">
+              <SendToPilotButton
+                meetingId={meetingId!}
+                recordingId={recording?.id}
+                actionItems={analysis.actionItems || []}
+                meetingTitle={meeting.title}
+              />
               <Button onClick={exportPDF} variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 Export PDF
