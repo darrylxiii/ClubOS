@@ -134,6 +134,8 @@ export function useTalentPool(filters: TalentPoolFilters = {}) {
         relationship: candidate.candidate_relationships?.[0] || null,
       })) as TalentPoolCandidate[];
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 
   const { data: stats } = useQuery({
@@ -171,6 +173,8 @@ export function useTalentPool(filters: TalentPoolFilters = {}) {
 
       return stats;
     },
+    staleTime: 2 * 60 * 1000, // 2 minutes for stats
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
   const updateTierMutation = useMutation({

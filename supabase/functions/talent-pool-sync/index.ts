@@ -169,7 +169,12 @@ serve(async (req) => {
       }
     }
 
-    // 6. Update smart lists
+    // 6. Create predictive signals for high-priority actions
+    if (sync_type === 'all' || sync_type === 'signals') {
+      await createPredictiveSignals(supabase, results);
+    }
+
+    // 7. Update smart lists
     if (sync_type === 'all' || sync_type === 'lists') {
       await updateSmartLists(supabase);
     }
@@ -272,4 +277,124 @@ async function updateSmartLists(supabase: any) {
       console.error(`[talent-pool-sync] Error processing smart list ${list.id}:`, err);
     }
   }
+}
+
+async function createPredictiveSignals(supabase: any, results: any) {
+  console.log('[talent-pool-sync] Creating predictive signals');
+
+  // 1. Candidate withdrawal risk - hot candidates with declining engagement
+  const { data: withdrawalRiskCandidates } = await supabase
+    .from('candidate_profiles')
+    .select(`
+      id,
+      full_name,
+      talent_tier,
+      move_probability,
+      candidate_relationships!inner(warmth_score, last_meaningful_contact)
+    `)
+    .eq('talent_tier', 'hot')
+    .gte('move_probability', 70);
+
+  for (const candidate of withdrawalRiskCandidates || []) {
+    const rel = candidate.candidate_relationships?.[0];
+    if (!rel) continue;
+
+    const lastContact = rel.last_meaningful_contact ? new Date(rel.last_meaningful_contact) : null;
+    const daysSinceContact = lastContact 
+      ? Math.floor((Date.now() - lastContact.getTime()) / (1000 * 60 * 60 * 24))
+      : 999;
+
+    // If warmth is declining and no recent contact
+    if (daysSinceContact > 14 && rel.warmth_score < 60) {
+      await supabase.from('predictive_signals').upsert({
+        entity_type: 'candidate',
+        entity_id: candidate.id,
+        signal_type: 'candidate_withdrawal_risk',
+        probability: Math.min(90, 50 + daysSinceContact),
+        confidence: 0.75,
+        contributing_factors: {
+          days_since_contact: daysSinceContact,
+          warmth_score: rel.warmth_score,
+          move_probability: candidate.move_probability
+        },
+        recommended_actions: ['Schedule urgent follow-up call', 'Present new opportunity', 'Send personalized message'],
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      }, { onConflict: 'entity_type,entity_id,signal_type' });
+    }
+  }
+
+  // 2. Relationship decay signals
+  const { data: decayingRelationships } = await supabase
+    .from('candidate_relationships')
+    .select(`
+      id,
+      candidate_id,
+      warmth_score,
+      last_meaningful_contact,
+      candidate_profiles!inner(full_name, talent_tier)
+    `)
+    .lt('warmth_score', 50)
+    .in('candidate_profiles.talent_tier', ['hot', 'warm']);
+
+  for (const rel of decayingRelationships || []) {
+    await supabase.from('predictive_signals').upsert({
+      entity_type: 'relationship',
+      entity_id: rel.id,
+      signal_type: 'relationship_decay',
+      probability: 100 - rel.warmth_score,
+      confidence: 0.8,
+      contributing_factors: {
+        warmth_score: rel.warmth_score,
+        candidate_tier: rel.candidate_profiles?.talent_tier
+      },
+      recommended_actions: ['Reconnect with personalized outreach', 'Share relevant industry news', 'Schedule catch-up call'],
+      expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+    }, { onConflict: 'entity_type,entity_id,signal_type' });
+  }
+
+  // 3. Placement opportunity - hot candidates matching open roles
+  const { data: hotCandidates } = await supabase
+    .from('candidate_profiles')
+    .select('id, full_name, current_title, industries, functions, seniority_level')
+    .eq('talent_tier', 'hot')
+    .gte('move_probability', 75);
+
+  const { data: openRoles } = await supabase
+    .from('jobs')
+    .select('id, title, industries, functions, level')
+    .eq('is_active', true)
+    .limit(50);
+
+  for (const candidate of hotCandidates || []) {
+    for (const role of openRoles || []) {
+      // Simple matching logic
+      const industryMatch = candidate.industries?.some((i: string) => 
+        role.industries?.some((ri: string) => ri.toLowerCase().includes(i.toLowerCase()))
+      );
+      const functionMatch = candidate.functions?.some((f: string) => 
+        role.functions?.some((rf: string) => rf.toLowerCase().includes(f.toLowerCase()))
+      );
+
+      if (industryMatch && functionMatch) {
+        await supabase.from('predictive_signals').upsert({
+          entity_type: 'candidate',
+          entity_id: candidate.id,
+          signal_type: 'placement_opportunity',
+          probability: 70,
+          confidence: 0.65,
+          contributing_factors: {
+            matching_role_id: role.id,
+            matching_role_title: role.title,
+            industry_match: industryMatch,
+            function_match: functionMatch
+          },
+          recommended_actions: [`Present ${role.title} opportunity`, 'Schedule intro call with hiring manager'],
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        }, { onConflict: 'entity_type,entity_id,signal_type' });
+        break; // Only one signal per candidate
+      }
+    }
+  }
+
+  console.log('[talent-pool-sync] Predictive signals created');
 }

@@ -3,7 +3,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { DashboardHeader } from '@/components/admin/shared/DashboardHeader';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Upload, Table2, LayoutGrid, Sparkles } from 'lucide-react';
+import { Plus, Upload, Table2, LayoutGrid } from 'lucide-react';
 import {
   TalentPoolStats,
   SemanticSearchBar,
@@ -11,6 +11,8 @@ import {
   TalentPoolTable,
   TalentPoolKanban,
   CandidateQuickView,
+  LogTouchpointDialog,
+  AddToListDialog,
 } from '@/components/talent-pool';
 import {
   useTalentPool,
@@ -29,6 +31,8 @@ export default function TalentPool() {
   const [filters, setFilters] = useState<Filters>({});
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
   const [quickViewCandidate, setQuickViewCandidate] = useState<TalentPoolCandidate | null>(null);
+  const [touchpointDialogCandidate, setTouchpointDialogCandidate] = useState<TalentPoolCandidate | null>(null);
+  const [addToListDialogCandidate, setAddToListDialogCandidate] = useState<TalentPoolCandidate | null>(null);
 
   const { candidates, stats, isLoading, refetch, updateTier } = useTalentPool(filters);
   const { search, results, lastQuery, isSearching, clearResults } = useSemanticSearch();
@@ -77,13 +81,17 @@ export default function TalentPool() {
   }, [navigate, quickViewCandidate]);
 
   const handleLogTouchpoint = useCallback((candidate?: TalentPoolCandidate) => {
-    // TODO: Open log touchpoint dialog
-    console.log('Log touchpoint for', candidate || quickViewCandidate);
+    const targetCandidate = candidate || quickViewCandidate;
+    if (targetCandidate) {
+      setTouchpointDialogCandidate(targetCandidate);
+    }
   }, [quickViewCandidate]);
 
   const handleAddToList = useCallback((candidate?: TalentPoolCandidate) => {
-    // TODO: Open add to list dialog
-    console.log('Add to list', candidate || quickViewCandidate);
+    const targetCandidate = candidate || quickViewCandidate;
+    if (targetCandidate) {
+      setAddToListDialogCandidate(targetCandidate);
+    }
   }, [quickViewCandidate]);
 
   const handleTierChange = useCallback((candidateId: string, newTier: TalentTier) => {
@@ -180,6 +188,24 @@ export default function TalentPool() {
           onViewFullProfile={() => handleViewProfile()}
           onLogTouchpoint={() => handleLogTouchpoint()}
           onAddToList={() => handleAddToList()}
+        />
+
+        {/* Log Touchpoint Dialog */}
+        <LogTouchpointDialog
+          candidateId={touchpointDialogCandidate?.id || ''}
+          candidateName={touchpointDialogCandidate?.full_name || ''}
+          open={!!touchpointDialogCandidate}
+          onOpenChange={(open) => !open && setTouchpointDialogCandidate(null)}
+          onSuccess={() => refetch()}
+        />
+
+        {/* Add to List Dialog */}
+        <AddToListDialog
+          candidateId={addToListDialogCandidate?.id || ''}
+          candidateName={addToListDialogCandidate?.full_name || ''}
+          open={!!addToListDialogCandidate}
+          onOpenChange={(open) => !open && setAddToListDialogCandidate(null)}
+          onSuccess={() => refetch()}
         />
       </div>
     </AppLayout>

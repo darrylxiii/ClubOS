@@ -109,7 +109,7 @@ async function calculateForCandidate(supabase: any, candidateId: string) {
     linkedin_activity: calculateLinkedInActivity(candidate.enrichment_data),
     career_velocity: calculateCareerVelocity(candidate.career_velocity_score),
     availability_signal: calculateAvailabilitySignal(candidate.availability_status),
-    market_conditions: calculateMarketConditions(candidate.industries),
+    market_conditions: await calculateMarketConditions(supabase, candidate.industries),
     relationship_strength: calculateRelationshipStrength(relationship?.relationship_strength),
   };
 
@@ -291,14 +291,30 @@ function calculateAvailabilitySignal(status: string | null): MoveProbabilityFact
   }
 }
 
-function calculateMarketConditions(industries: string[] | null): MoveProbabilityFactors['market_conditions'] {
+async function calculateMarketConditions(supabase: any, industries: string[] | null): Promise<MoveProbabilityFactors['market_conditions']> {
   const weight = 0.10;
-  
-  // Industry-specific market conditions (simplified - could be enhanced with real market data)
-  const hotIndustries = ['tech', 'ai', 'fintech', 'beauty', 'luxury_fashion'];
   
   if (!industries || industries.length === 0) {
     return { value: 60, weight, reason: 'Market conditions: neutral' };
+  }
+
+  // Fetch hot industries from skills_taxonomy or use defaults
+  let hotIndustries = ['tech', 'ai', 'fintech', 'beauty', 'luxury_fashion'];
+  
+  try {
+    const { data: taxData } = await supabase
+      .from('skills_taxonomy')
+      .select('name')
+      .eq('category', 'industry')
+      .gte('current_demand_score', 0.7)
+      .limit(20);
+    
+    if (taxData && taxData.length > 0) {
+      hotIndustries = taxData.map((t: any) => t.name.toLowerCase());
+    }
+  } catch (e) {
+    // Use defaults if query fails
+    console.log('[calculate-move-probability] Using default hot industries');
   }
 
   const isInHotIndustry = industries.some(ind => 

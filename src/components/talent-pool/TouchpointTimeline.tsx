@@ -121,7 +121,7 @@ export function TouchpointTimeline({ candidateId, onAddTouchpoint, className }: 
 
       if (error) throw error;
       
-      // Map to touchpoint format
+      // Map to touchpoint format with proper data mapping
       return (data || []).map((item: any) => ({
         id: item.id,
         touchpoint_type: item.interaction_type || 'note',
@@ -130,8 +130,8 @@ export function TouchpointTimeline({ candidateId, onAddTouchpoint, className }: 
         created_at: item.created_at,
         strategist_id: item.interviewer_id,
         response_sentiment: item.sentiment,
-        response_received: null,
-        requires_response: null,
+        response_received: item.response_received ?? (item.status === 'completed'),
+        requires_response: item.requires_response ?? (item.scheduled_at != null && new Date(item.scheduled_at) > new Date()),
       })) as Touchpoint[];
     },
     enabled: !!candidateId,
