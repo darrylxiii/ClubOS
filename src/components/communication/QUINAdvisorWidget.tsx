@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, X, ChevronUp, ChevronDown, AlertTriangle, TrendingUp, Clock, MessageSquare, Lightbulb, Sparkles, Send } from 'lucide-react';
+import { Bot, X, ChevronUp, ChevronDown, AlertTriangle, TrendingUp, Clock, Lightbulb, Sparkles, Send, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useCrossChannelPatterns } from '@/hooks/useCrossChannelPatterns';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface QUINAdvisorWidgetProps {
   entityType?: string;
@@ -25,16 +27,25 @@ interface Advice {
   onAction?: () => void;
 }
 
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export function QUINAdvisorWidget({
   entityType,
   entityId,
   context = 'general',
   className
 }: QUINAdvisorWidgetProps) {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [question, setQuestion] = useState('');
   const [advices, setAdvices] = useState<Advice[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
   
   const { activeAlerts, getHighPriorityAlerts } = useCrossChannelPatterns(entityType, entityId);
 
@@ -86,6 +97,13 @@ export function QUINAdvisorWidget({
     setAdvices(newAdvices);
   }, [activeAlerts, context, entityId, getHighPriorityAlerts]);
 
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
   const hasAlerts = advices.some(a => a.type === 'alert' && a.priority === 'high');
 
   const iconConfig = {
@@ -93,6 +111,55 @@ export function QUINAdvisorWidget({
     tip: { icon: Lightbulb, color: 'text-yellow-500' },
     insight: { icon: TrendingUp, color: 'text-green-500' },
     action: { icon: Clock, color: 'text-blue-500' },
+  };
+
+  const handleAskQUIN = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!question.trim() || isLoading) return;
+
+    const userMessage = question.trim();
+    setQuestion('');
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsLoading(true);
+
+    try {
+      // Build context-aware messages
+      const contextInfo = context !== 'general' 
+        ? `\n\nContext: User is viewing the ${context} section.${entityType ? ` Entity type: ${entityType}.` : ''}${entityId ? ` Entity ID: ${entityId}.` : ''}`
+        : '';
+
+      const messages = [
+        ...chatMessages.map(m => ({ role: m.role, content: m.content })),
+        { role: 'user' as const, content: userMessage + contextInfo }
+      ];
+
+      const { data, error } = await supabase.functions.invoke('club-ai-chat', {
+        body: {
+          messages,
+          userId: user?.id,
+          context: {
+            widgetContext: context,
+            entityType,
+            entityId,
+            isQuickAdvice: true
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      const assistantMessage = data?.response || data?.choices?.[0]?.message?.content || 'I apologize, but I could not generate a response. Please try again.';
+      
+      setChatMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
+    } catch (error) {
+      console.error('Error asking QUIN:', error);
+      setChatMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'I encountered an error processing your request. Please try again.' 
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) {
@@ -138,7 +205,7 @@ export function QUINAdvisorWidget({
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-white">QUIN Advisor</h3>
-                <p className="text-[10px] text-white/70">Communication Intelligence</p>
+                <p className="text-[10px] text-white/70">Powered by AI</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -170,88 +237,127 @@ export function QUINAdvisorWidget({
               exit={{ height: 0 }}
             >
               <CardContent className="p-0">
-                <ScrollArea className="h-64 p-3">
-                  {advices.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center py-8">
-                      <Sparkles className="h-8 w-8 text-muted-foreground/50 mb-2" />
-                      <p className="text-sm text-muted-foreground">No insights yet</p>
-                      <p className="text-xs text-muted-foreground/70">
-                        I'll analyze your communications and provide advice
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {advices.map((advice, index) => {
-                        const config = iconConfig[advice.type];
-                        const Icon = config.icon;
+                <ScrollArea className="h-64 p-3" ref={scrollRef}>
+                  {/* Show advices when no chat messages */}
+                  {chatMessages.length === 0 && (
+                    <>
+                      {advices.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                          <Sparkles className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                          <p className="text-sm text-muted-foreground">Ask me anything</p>
+                          <p className="text-xs text-muted-foreground/70">
+                            I can help with career advice, interview prep, and more
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {advices.map((advice, index) => {
+                            const config = iconConfig[advice.type];
+                            const Icon = config.icon;
 
-                        return (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className={cn(
-                              "p-3 rounded-lg border",
-                              advice.priority === 'high' && "bg-red-500/5 border-red-500/20",
-                              advice.priority === 'medium' && "bg-yellow-500/5 border-yellow-500/20",
-                              advice.priority === 'low' && "bg-muted/50 border-border"
-                            )}
-                          >
-                            <div className="flex items-start gap-2">
-                              <Icon className={cn("h-4 w-4 mt-0.5 flex-shrink-0", config.color)} />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-2">
-                                  <p className="text-xs font-medium">{advice.title}</p>
-                                  <Badge 
-                                    variant="outline" 
-                                    className={cn(
-                                      "text-[10px] px-1.5",
-                                      advice.priority === 'high' && "border-red-500/50 text-red-500",
-                                      advice.priority === 'medium' && "border-yellow-500/50 text-yellow-500"
-                                    )}
-                                  >
-                                    {advice.priority}
-                                  </Badge>
-                                </div>
-                                <p className="text-xs text-muted-foreground mt-1">{advice.message}</p>
-                                {advice.actionLabel && (
-                                  <Button
-                                    variant="link"
-                                    size="sm"
-                                    className="h-auto p-0 mt-2 text-xs"
-                                    onClick={advice.onAction}
-                                  >
-                                    {advice.actionLabel} →
-                                  </Button>
+                            return (
+                              <motion.div
+                                key={index}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className={cn(
+                                  "p-3 rounded-lg border",
+                                  advice.priority === 'high' && "bg-red-500/5 border-red-500/20",
+                                  advice.priority === 'medium' && "bg-yellow-500/5 border-yellow-500/20",
+                                  advice.priority === 'low' && "bg-muted/50 border-border"
                                 )}
-                              </div>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
+                              >
+                                <div className="flex items-start gap-2">
+                                  <Icon className={cn("h-4 w-4 mt-0.5 flex-shrink-0", config.color)} />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <p className="text-xs font-medium">{advice.title}</p>
+                                      <Badge 
+                                        variant="outline" 
+                                        className={cn(
+                                          "text-[10px] px-1.5",
+                                          advice.priority === 'high' && "border-red-500/50 text-red-500",
+                                          advice.priority === 'medium' && "border-yellow-500/50 text-yellow-500"
+                                        )}
+                                      >
+                                        {advice.priority}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">{advice.message}</p>
+                                    {advice.actionLabel && (
+                                      <Button
+                                        variant="link"
+                                        size="sm"
+                                        className="h-auto p-0 mt-2 text-xs"
+                                        onClick={advice.onAction}
+                                      >
+                                        {advice.actionLabel} →
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Chat messages */}
+                  {chatMessages.length > 0 && (
+                    <div className="space-y-3">
+                      {chatMessages.map((msg, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={cn(
+                            "p-3 rounded-lg text-xs",
+                            msg.role === 'user' 
+                              ? "bg-primary/10 ml-4" 
+                              : "bg-muted/50 mr-4"
+                          )}
+                        >
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        </motion.div>
+                      ))}
+                      {isLoading && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg mr-4"
+                        >
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <span className="text-xs text-muted-foreground">QUIN is thinking...</span>
+                        </motion.div>
+                      )}
                     </div>
                   )}
                 </ScrollArea>
 
                 {/* Ask QUIN */}
                 <div className="p-3 border-t bg-muted/30">
-                  <form 
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      // TODO: Connect to Club AI
-                      setQuestion('');
-                    }}
-                    className="flex gap-2"
-                  >
+                  <form onSubmit={handleAskQUIN} className="flex gap-2">
                     <Input
                       value={question}
                       onChange={(e) => setQuestion(e.target.value)}
                       placeholder="Ask QUIN anything..."
                       className="h-8 text-xs"
+                      disabled={isLoading}
                     />
-                    <Button type="submit" size="icon" className="h-8 w-8 flex-shrink-0">
-                      <Send className="h-3 w-3" />
+                    <Button 
+                      type="submit" 
+                      size="icon" 
+                      className="h-8 w-8 flex-shrink-0"
+                      disabled={isLoading || !question.trim()}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Send className="h-3 w-3" />
+                      )}
                     </Button>
                   </form>
                 </div>

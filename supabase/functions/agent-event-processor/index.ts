@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
+import { sendWhatsAppMessage, sendSMS, sendEmail, getCandidateContact, logAgentCommunication } from "../_shared/communication-utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -216,12 +217,42 @@ async function handleNewApplication(supabase: any, event: any) {
     relevance_score: 0.7
   });
 
-  return { action: 'task_created', position: applicationData.position };
+  // Send confirmation email if candidate has email
+  if (applicationData.candidate_id) {
+    const contact = await getCandidateContact(supabase, applicationData.candidate_id);
+    
+    if (contact?.email) {
+      const emailResult = await sendEmail({
+        to: contact.email,
+        subject: `Application Received: ${applicationData.position} at ${applicationData.company_name}`,
+        body: `Hi ${contact.name || 'there'},\n\nThank you for applying to ${applicationData.position} at ${applicationData.company_name}. Your application has been received and is now being reviewed.\n\nWe'll be in touch soon with next steps.\n\nBest regards,\nThe Quantum Club Team`,
+        html: `
+          <h2>Application Received</h2>
+          <p>Hi ${contact.name || 'there'},</p>
+          <p>Thank you for applying to <strong>${applicationData.position}</strong> at <strong>${applicationData.company_name}</strong>.</p>
+          <p>Your application has been received and is now being reviewed. We'll be in touch soon with next steps.</p>
+          <p>Best regards,<br>The Quantum Club Team</p>
+        `
+      });
+      
+      await logAgentCommunication(supabase, {
+        agentName: 'quin',
+        userId: event.user_id,
+        candidateId: applicationData.candidate_id,
+        channel: 'email',
+        action: 'application_confirmation',
+        success: emailResult.success,
+        metadata: { application_id: applicationData.id, position: applicationData.position }
+      });
+    }
+  }
+
+  return { action: 'task_created', position: applicationData.position, emailSent: true };
 }
 
 // Handle deadline approaching event
 async function handleDeadlineApproaching(supabase: any, event: any) {
-  // Create reminder notification
+  // Create in-app reminder notification
   await supabase.from('notifications').insert({
     user_id: event.user_id,
     type: 'reminder',
@@ -230,7 +261,38 @@ async function handleDeadlineApproaching(supabase: any, event: any) {
     is_read: false
   });
 
-  return { action: 'reminder_sent' };
+  // If candidate-related, send WhatsApp/SMS reminder
+  if (event.event_data?.candidate_id) {
+    const contact = await getCandidateContact(supabase, event.event_data.candidate_id);
+    
+    if (contact?.phone) {
+      const reminderMessage = `Hi ${contact.name || 'there'}! This is a friendly reminder from The Quantum Club: ${event.event_data?.message || 'You have an upcoming deadline.'}`;
+      
+      // Try WhatsApp first, fall back to SMS
+      let sent = await sendWhatsAppMessage(supabase, {
+        phone: contact.phone,
+        message: reminderMessage,
+        candidateId: event.event_data.candidate_id,
+        userId: event.user_id
+      });
+      
+      if (!sent.success) {
+        sent = await sendSMS({ phone: contact.phone, message: reminderMessage });
+      }
+      
+      await logAgentCommunication(supabase, {
+        agentName: 'engagement_agent',
+        userId: event.user_id,
+        candidateId: event.event_data.candidate_id,
+        channel: sent.messageId ? 'whatsapp' : 'sms',
+        action: 'deadline_reminder',
+        success: sent.success,
+        metadata: { deadline: event.event_data?.deadline }
+      });
+    }
+  }
+
+  return { action: 'reminder_sent', channels: ['in_app', 'whatsapp_or_sms'] };
 }
 
 // Create a suggestion for the user
