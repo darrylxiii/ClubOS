@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Clock, CheckCircle2, Circle, PlayCircle, Pause, Settings, Calendar, Zap, Target } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Sparkles, Clock, CheckCircle2, Circle, PlayCircle, Pause, Settings, Calendar, Zap, Target, GitBranch, Users, Bot } from "lucide-react";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PilotTask {
   id: string;
@@ -27,7 +28,27 @@ interface PilotTask {
   created_at: string;
 }
 
-const taskTypeConfig = {
+interface AgentGoal {
+  id: string;
+  goal_type: string;
+  goal_description: string;
+  status: string;
+  current_progress: number;
+  assigned_agents: string[];
+  next_action_description: string | null;
+  deadline: string | null;
+}
+
+interface AgentDelegation {
+  id: string;
+  parent_agent: string;
+  child_agent: string;
+  task_description: string;
+  status: string;
+  delegated_at: string;
+}
+
+const taskTypeConfig: Record<string, { label: string; icon: typeof Target; color: string }> = {
   review_candidate: { label: "Review Candidate", icon: Target, color: "text-blue-500" },
   schedule_interview: { label: "Schedule Interview", icon: Calendar, color: "text-purple-500" },
   prepare_interview: { label: "Prep Interview", icon: Zap, color: "text-orange-500" },
@@ -37,44 +58,75 @@ const taskTypeConfig = {
   send_offer: { label: "Send Offer", icon: Sparkles, color: "text-gold-500" },
 };
 
+const agentConfig: Record<string, { label: string; color: string }> = {
+  quin: { label: "QUIN", color: "bg-primary/20 text-primary" },
+  sourcing_agent: { label: "Sourcing", color: "bg-blue-500/20 text-blue-500" },
+  interview_agent: { label: "Interview", color: "bg-purple-500/20 text-purple-500" },
+  engagement_agent: { label: "Engagement", color: "bg-green-500/20 text-green-500" },
+  analytics_agent: { label: "Analytics", color: "bg-orange-500/20 text-orange-500" },
+};
+
 export const PilotDashboard = () => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<PilotTask[]>([]);
+  const [goals, setGoals] = useState<AgentGoal[]>([]);
+  const [delegations, setDelegations] = useState<AgentDelegation[]>([]);
   const [loading, setLoading] = useState(true);
   const [orchestrating, setOrchestrating] = useState(false);
 
   useEffect(() => {
     if (user) {
-      loadTasks();
-      subscribeToTasks();
+      loadData();
+      subscribeToUpdates();
     }
   }, [user]);
 
-  const loadTasks = async () => {
+  const loadData = async () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from("pilot_tasks")
-        .select("*")
-        .eq("user_id", user.id)
-        .in("status", ["pending", "scheduled", "in_progress"])
-        .order("priority_score", { ascending: false })
-        .order("scheduled_start", { ascending: true, nullsFirst: false });
+      const [tasksRes, goalsRes, delegationsRes] = await Promise.all([
+        supabase
+          .from("pilot_tasks")
+          .select("*")
+          .eq("user_id", user.id)
+          .in("status", ["pending", "scheduled", "in_progress"])
+          .order("priority_score", { ascending: false })
+          .order("scheduled_start", { ascending: true, nullsFirst: false }),
+        supabase
+          .from("agent_goals")
+          .select("*")
+          .eq("user_id", user.id)
+          .in("status", ["active", "in_progress"])
+          .order("priority", { ascending: false })
+          .limit(5),
+        supabase
+          .from("agent_delegations")
+          .select("*")
+          .eq("user_id", user.id)
+          .in("status", ["pending", "in_progress"])
+          .order("delegated_at", { ascending: false })
+          .limit(10),
+      ]);
 
-      if (error) throw error;
-      setTasks(data || []);
+      if (tasksRes.error) throw tasksRes.error;
+      if (goalsRes.error) throw goalsRes.error;
+      if (delegationsRes.error) throw delegationsRes.error;
+
+      setTasks(tasksRes.data || []);
+      setGoals(goalsRes.data || []);
+      setDelegations(delegationsRes.data || []);
     } catch (error: any) {
-      console.error("Error loading tasks:", error);
-      toast.error("Failed to load tasks");
+      console.error("Error loading data:", error);
+      toast.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
   };
 
-  const subscribeToTasks = () => {
+  const subscribeToUpdates = () => {
     const channel = supabase
-      .channel("pilot_tasks_changes")
+      .channel("pilot_dashboard_changes")
       .on(
         "postgres_changes",
         {
@@ -83,9 +135,27 @@ export const PilotDashboard = () => {
           table: "pilot_tasks",
           filter: `user_id=eq.${user?.id}`,
         },
-        () => {
-          loadTasks();
-        }
+        () => loadData()
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "agent_goals",
+          filter: `user_id=eq.${user?.id}`,
+        },
+        () => loadData()
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "agent_delegations",
+          filter: `user_id=eq.${user?.id}`,
+        },
+        () => loadData()
       )
       .subscribe();
 
@@ -109,7 +179,7 @@ export const PilotDashboard = () => {
         description: `${data.tasks_scheduled} tasks auto-scheduled`,
       });
 
-      await loadTasks();
+      await loadData();
     } catch (error: any) {
       console.error("Error running orchestrator:", error);
       toast.error(error.message || "Failed to run Club Pilot");
@@ -132,7 +202,7 @@ export const PilotDashboard = () => {
       if (error) throw error;
 
       toast.success(status === "completed" ? "Task completed!" : "Task updated");
-      await loadTasks();
+      await loadData();
     } catch (error: any) {
       console.error("Error updating task:", error);
       toast.error("Failed to update task");
@@ -199,6 +269,123 @@ export const PilotDashboard = () => {
           </div>
         </CardHeader>
       </Card>
+
+      {/* Agent Goals & Delegations */}
+      {(goals.length > 0 || delegations.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Active Goals */}
+          {goals.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Target className="h-5 w-5 text-primary" />
+                  Active Goals
+                </CardTitle>
+                <CardDescription>AI-driven objectives in progress</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {goals.map((goal) => (
+                    <motion.div
+                      key={goal.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="p-4 rounded-lg border bg-card"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="outline" className="text-xs">
+                              {goal.goal_type}
+                            </Badge>
+                            {goal.assigned_agents?.map((agent) => {
+                              const config = agentConfig[agent] || { label: agent, color: "bg-muted text-muted-foreground" };
+                              return (
+                                <Badge key={agent} className={cn("text-[10px]", config.color)}>
+                                  {config.label}
+                                </Badge>
+                              );
+                            })}
+                          </div>
+                          <p className="text-sm font-medium">{goal.goal_description}</p>
+                          {goal.next_action_description && (
+                            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                              <Sparkles className="h-3 w-3 text-primary" />
+                              Next: {goal.next_action_description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <span className="text-lg font-bold text-primary">{Math.round((goal.current_progress || 0) * 100)}%</span>
+                        </div>
+                      </div>
+                      <Progress value={(goal.current_progress || 0) * 100} className="mt-3 h-2" />
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Agent Delegations */}
+          {delegations.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <GitBranch className="h-5 w-5 text-purple-500" />
+                  Agent Activity
+                </CardTitle>
+                <CardDescription>Sub-tasks delegated between agents</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <AnimatePresence>
+                    {delegations.map((delegation, index) => {
+                      const parentConfig = agentConfig[delegation.parent_agent] || { label: delegation.parent_agent, color: "bg-muted" };
+                      const childConfig = agentConfig[delegation.child_agent] || { label: delegation.child_agent, color: "bg-muted" };
+                      
+                      return (
+                        <motion.div
+                          key={delegation.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="flex items-center gap-3 p-3 rounded-lg border bg-card"
+                        >
+                          <div className={cn("p-1.5 rounded", parentConfig.color)}>
+                            <Bot className="h-3 w-3" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate">{delegation.task_description}</p>
+                            <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground">
+                              <span>{parentConfig.label}</span>
+                              <span>→</span>
+                              <Badge className={cn("text-[10px] px-1", childConfig.color)}>
+                                {childConfig.label}
+                              </Badge>
+                            </div>
+                          </div>
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-[10px]",
+                              delegation.status === "in_progress" && "border-blue-500/50 text-blue-500",
+                              delegation.status === "pending" && "border-yellow-500/50 text-yellow-500"
+                            )}
+                          >
+                            {delegation.status}
+                          </Badge>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
