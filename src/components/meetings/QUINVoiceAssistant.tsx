@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mic, MicOff, Volume2, Loader2, Sparkles, X, MessageSquare } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Mic, MicOff, Volume2, Loader2, Sparkles, X, MessageSquare, Keyboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -31,15 +32,21 @@ export function QUINVoiceAssistant({
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [textInput, setTextInput] = useState('');
+  const [showTextInput, setShowTextInput] = useState(false);
   const [responses, setResponses] = useState<QUINResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [speechSupported, setSpeechSupported] = useState(true);
   
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // Initialize speech recognition
+  // Check for speech recognition support and initialize
   useEffect(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    setSpeechSupported(hasSpeechRecognition);
+    
+    if (hasSpeechRecognition) {
       const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognitionClass();
       recognitionRef.current.continuous = false;
@@ -58,7 +65,13 @@ export function QUINVoiceAssistant({
 
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        setError(`Voice recognition error: ${event.error}`);
+        // On error, suggest text input as fallback
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          setShowTextInput(true);
+          setError('Microphone access denied. Use text input instead.');
+        } else {
+          setError(`Voice recognition error: ${event.error}`);
+        }
         setIsListening(false);
       };
 
@@ -66,7 +79,8 @@ export function QUINVoiceAssistant({
         setIsListening(false);
       };
     } else {
-      setError('Speech recognition is not supported in this browser');
+      // No speech recognition - show text input by default
+      setShowTextInput(true);
     }
 
     return () => {
@@ -78,6 +92,13 @@ export function QUINVoiceAssistant({
       }
     };
   }, []);
+
+  const handleTextSubmit = () => {
+    if (textInput.trim()) {
+      handleVoiceCommand(textInput.trim());
+      setTextInput('');
+    }
+  };
 
   const startListening = () => {
     if (recognitionRef.current && !isListening && !isProcessing) {
@@ -188,55 +209,89 @@ export function QUINVoiceAssistant({
             </div>
             <div>
               <h4 className="font-semibold text-sm">QUIN Voice Assistant</h4>
-              <p className="text-xs text-muted-foreground">Say "QUIN" to activate</p>
+              <p className="text-xs text-muted-foreground">
+                {speechSupported ? 'Say "QUIN" to activate' : 'Type your command below'}
+              </p>
             </div>
           </div>
-          {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowTextInput(!showTextInput)}
+              className={cn(showTextInput && 'text-primary')}
+            >
+              <Keyboard className="h-4 w-4" />
             </Button>
-          )}
+            {onClose && (
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
 
-        {/* Voice Control */}
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <Button
-            variant={isListening ? 'destructive' : 'default'}
-            size="lg"
-            className="h-16 w-16 rounded-full"
-            onClick={isListening ? stopListening : startListening}
-            disabled={isProcessing}
-          >
-            <AnimatePresence mode="wait">
-              {isProcessing ? (
-                <motion.div
-                  key="processing"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                >
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                </motion.div>
-              ) : isListening ? (
-                <motion.div
-                  key="listening"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                >
-                  <MicOff className="h-6 w-6" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="idle"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                >
-                  <Mic className="h-6 w-6" />
-                </motion.div>
-              )}
-            </AnimatePresence>
+        {/* Text Input Fallback */}
+        {showTextInput && (
+          <div className="flex gap-2 mb-4">
+            <Input
+              placeholder="Type your command..."
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleTextSubmit()}
+              disabled={isProcessing}
+              className="flex-1"
+            />
+            <Button 
+              onClick={handleTextSubmit} 
+              disabled={isProcessing || !textInput.trim()}
+              size="sm"
+            >
+              {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send'}
+            </Button>
+          </div>
+        )}
+
+        {/* Voice Control - only show if speech is supported */}
+        {speechSupported && (
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <Button
+              variant={isListening ? 'destructive' : 'default'}
+              size="lg"
+              className="h-16 w-16 rounded-full"
+              onClick={isListening ? stopListening : startListening}
+              disabled={isProcessing}
+            >
+              <AnimatePresence mode="wait">
+                {isProcessing ? (
+                  <motion.div
+                    key="processing"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                  >
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </motion.div>
+                ) : isListening ? (
+                  <motion.div
+                    key="listening"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                  >
+                    <MicOff className="h-6 w-6" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="idle"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                  >
+                    <Mic className="h-6 w-6" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
           </Button>
 
           {isSpeaking && (
@@ -250,6 +305,7 @@ export function QUINVoiceAssistant({
             </Button>
           )}
         </div>
+        )}
 
         {/* Status */}
         <div className="text-center mb-4">
