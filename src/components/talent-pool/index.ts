@@ -1,4 +1,4 @@
-export { TierBadge, MoveProbabilityBadge } from './TierBadge';
+export { TierBadge, MoveProbabilityBadge, type TalentTier } from './TierBadge';
 export { TalentPoolStats } from './TalentPoolStats';
 export { SemanticSearchBar } from './SemanticSearchBar';
 export { TalentPoolFilters } from './TalentPoolFilters';

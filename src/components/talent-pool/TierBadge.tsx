@@ -1,7 +1,9 @@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Flame, ThermometerSun, Target, Users, Moon, Ban } from 'lucide-react';
-import { TalentTier } from '@/hooks/useTalentPool';
+import type { TalentTier } from '@/hooks/useTalentPool';
+
+export type { TalentTier } from '@/hooks/useTalentPool';
 
 interface TierBadgeProps {
   tier: TalentTier;

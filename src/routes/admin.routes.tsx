@@ -81,6 +81,8 @@ const MiljoenenjachtAdmin = lazy(() => import("@/pages/admin/games/Miljoenenjach
 
 // Talent Pool
 const TalentPool = lazy(() => import("@/pages/TalentPool"));
+const TalentPoolLists = lazy(() => import("@/pages/TalentPoolLists"));
+const TalentPoolListDetail = lazy(() => import("@/pages/TalentPoolListDetail"));
 
 export const adminRoutes = (
   <>
@@ -103,6 +105,30 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <TalentPool />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/talent-pool/lists"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <TalentPoolLists />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/talent-pool/lists/:listId"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <TalentPoolListDetail />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>

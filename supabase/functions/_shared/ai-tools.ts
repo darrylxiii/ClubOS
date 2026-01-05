@@ -107,6 +107,17 @@ export async function executeToolCall(
         result = await cancelMeeting(args, userId, supabase);
         break;
 
+      // ===== TALENT POOL TOOLS =====
+      case 'search_talent_pool':
+        result = await searchTalentPool(args, userId, supabase);
+        break;
+      case 'get_candidate_move_probability':
+        result = await getCandidateMoveProbability(args, userId, supabase);
+        break;
+      case 'get_candidates_needing_attention':
+        result = await getCandidatesNeedingAttention(args, userId, supabase);
+        break;
+
       default:
         result = { error: `Unknown tool: ${name}` };
     }
@@ -1088,6 +1099,53 @@ async function cancelMeeting(args: any, userId: string, supabase: SupabaseClient
   };
 }
 
+// ============= TALENT POOL TOOLS =============
+
+async function searchTalentPool(args: any, userId: string, supabase: SupabaseClient) {
+  const { query, tier, minMoveProbability, limit = 10 } = args;
+  
+  let dbQuery = supabase
+    .from('candidate_profiles')
+    .select('id, full_name, current_title, current_company, talent_tier, move_probability, location')
+    .limit(limit);
+  
+  if (tier) dbQuery = dbQuery.eq('talent_tier', tier);
+  if (minMoveProbability) dbQuery = dbQuery.gte('move_probability', minMoveProbability);
+  if (query) dbQuery = dbQuery.or(`full_name.ilike.%${query}%,current_title.ilike.%${query}%`);
+  
+  const { data, error } = await dbQuery;
+  if (error) throw error;
+  
+  return { candidates: data, count: data?.length || 0 };
+}
+
+async function getCandidateMoveProbability(args: any, userId: string, supabase: SupabaseClient) {
+  const { candidateId } = args;
+  
+  const { data, error } = await supabase
+    .from('candidate_profiles')
+    .select('id, full_name, move_probability, move_probability_factors, talent_tier')
+    .eq('id', candidateId)
+    .single();
+  
+  if (error) throw error;
+  return { candidate: data };
+}
+
+async function getCandidatesNeedingAttention(args: any, userId: string, supabase: SupabaseClient) {
+  const { limit = 10 } = args;
+  
+  const { data, error } = await supabase
+    .from('candidate_profiles')
+    .select('id, full_name, talent_tier, move_probability, last_activity_at')
+    .in('talent_tier', ['hot', 'warm'])
+    .order('move_probability', { ascending: false })
+    .limit(limit);
+  
+  if (error) throw error;
+  return { candidates: data, count: data?.length || 0, message: 'High-priority candidates needing attention' };
+}
+
 // ============= TOOL DEFINITIONS FOR OPENROUTER =============
 
 export const allAITools = [
@@ -1477,6 +1535,50 @@ export const allAITools = [
           notifyParticipants: { type: "boolean", description: "Whether to notify participants (default: true)" }
         },
         required: ["meetingId"]
+      }
+    }
+  },
+  // Talent Pool Tools
+  {
+    type: "function",
+    function: {
+      name: "search_talent_pool",
+      description: "Search the talent pool for candidates matching criteria",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Search query for name or title" },
+          tier: { type: "string", enum: ["hot", "warm", "strategic", "pool", "dormant"] },
+          minMoveProbability: { type: "number", description: "Minimum move probability (0-100)" },
+          limit: { type: "number", description: "Max results (default 10)" }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_candidate_move_probability",
+      description: "Get a candidate's move probability score and factors",
+      parameters: {
+        type: "object",
+        properties: {
+          candidateId: { type: "string", description: "UUID of the candidate" }
+        },
+        required: ["candidateId"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_candidates_needing_attention",
+      description: "Get hot/warm candidates that need strategist attention",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: { type: "number", description: "Max results (default 10)" }
+        }
       }
     }
   }
