@@ -216,11 +216,23 @@ export function MeetingRecordingCard({
               <Button 
                 size="sm" 
                 onClick={handleViewRecording}
-                disabled={recording.processing_status === 'pending' || recording.processing_status === 'failed'}
+                disabled={recording.processing_status === 'failed' && !recording.recording_url}
               >
                 <Play className="h-4 w-4 mr-1" />
                 {recording.processing_status === 'completed' ? 'View Recording' : 'View Details'}
               </Button>
+              
+              {recording.processing_status === 'pending' && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={handleReanalyze}
+                  disabled={isReanalyzing}
+                >
+                  {isReanalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
+                  {isReanalyzing ? 'Starting...' : 'Start Analysis'}
+                </Button>
+              )}
               
               {recording.recording_url && onDownload && (
                 <Button 
