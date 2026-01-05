@@ -16,6 +16,7 @@ const TimeTrackingPage = lazy(() => import("@/pages/TimeTrackingPage"));
 // New Club Projects pages
 const PostProjectPage = lazy(() => import("@/pages/PostProjectPage"));
 const FreelancerSetupPage = lazy(() => import("@/pages/FreelancerSetupPage"));
+const ProjectTalentPage = lazy(() => import("@/pages/ProjectTalentPage"));
 const GigMarketplacePage = lazy(() => import("@/pages/GigMarketplacePage"));
 const ProjectProposalsPage = lazy(() => import("@/pages/ProjectProposalsPage"));
 const ProjectDisputesPage = lazy(() => import("@/pages/ProjectDisputesPage"));
@@ -66,6 +67,18 @@ export const projectsRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <GigMarketplacePage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/projects/talent" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <ProjectTalentPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
