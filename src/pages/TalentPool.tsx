@@ -37,7 +37,7 @@ export default function TalentPool() {
   const [addToListDialogCandidate, setAddToListDialogCandidate] = useState<TalentPoolCandidate | null>(null);
   const [isBulkCalculating, setIsBulkCalculating] = useState(false);
 
-  const { candidates, stats, isLoading, refetch, updateTier } = useTalentPool(filters);
+  const { candidates, stats, isLoading, refetch, updateTier, fetchNextPage, hasNextPage, isFetchingNextPage } = useTalentPool(filters);
   const { search, results, lastQuery, isSearching, clearResults } = useSemanticSearch();
 
   // Handle bulk move probability calculation
@@ -130,6 +130,34 @@ export default function TalentPool() {
     updateTier({ candidateId, tier: newTier, reason: 'Manual tier update from kanban' });
   }, [updateTier]);
 
+  const handleScheduleInterview = useCallback(() => {
+    if (quickViewCandidate) {
+      navigate(`/schedule?candidateId=${quickViewCandidate.id}`);
+    }
+  }, [navigate, quickViewCandidate]);
+
+  const handleGenerateDossier = useCallback(async () => {
+    if (!quickViewCandidate) return;
+    const toastId = toast.loading('Generating dossier...');
+    try {
+      const { error } = await supabase.functions.invoke('generate-candidate-dossier', {
+        body: { candidate_id: quickViewCandidate.id }
+      });
+      if (error) throw error;
+      toast.success('Dossier generated successfully', { id: toastId });
+    } catch (error) {
+      console.error('Dossier error:', error);
+      toast.error('Failed to generate dossier', { id: toastId });
+    }
+  }, [quickViewCandidate]);
+
+  const handleWhatsApp = useCallback(() => {
+    if (quickViewCandidate?.phone) {
+      const cleanPhone = quickViewCandidate.phone.replace(/\D/g, '');
+      window.open(`https://wa.me/${cleanPhone}`, '_blank');
+    }
+  }, [quickViewCandidate]);
+
   return (
     <AppLayout>
       <div className="container mx-auto p-6 space-y-6">
@@ -212,6 +240,9 @@ export default function TalentPool() {
             onLogTouchpoint={handleLogTouchpoint}
             onAddToList={handleAddToList}
             onViewProfile={handleViewProfile}
+            hasNextPage={!lastQuery && hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            onLoadMore={() => fetchNextPage()}
           />
         ) : (
           <TalentPoolKanban
@@ -233,6 +264,9 @@ export default function TalentPool() {
           onViewFullProfile={() => handleViewProfile()}
           onLogTouchpoint={() => handleLogTouchpoint()}
           onAddToList={() => handleAddToList()}
+          onScheduleInterview={handleScheduleInterview}
+          onGenerateDossier={handleGenerateDossier}
+          onWhatsApp={handleWhatsApp}
         />
 
         {/* Log Touchpoint Dialog */}

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -59,12 +59,22 @@ export interface TalentPoolStats {
   needsAttention: number;
 }
 
+const PAGE_SIZE = 50;
+
 export function useTalentPool(filters: TalentPoolFilters = {}) {
   const queryClient = useQueryClient();
 
-  const { data: candidates, isLoading, error, refetch } = useQuery({
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ['talent-pool', filters],
-    queryFn: async () => {
+    queryFn: async ({ pageParam }) => {
       let query = supabase
         .from('candidate_profiles')
         .select(`
@@ -125,56 +135,89 @@ export function useTalentPool(filters: TalentPoolFilters = {}) {
         query = query.or(`full_name.ilike.%${filters.searchQuery}%,current_title.ilike.%${filters.searchQuery}%,current_company.ilike.%${filters.searchQuery}%`);
       }
 
-      const { data, error } = await query.limit(100);
+      // Cursor-based pagination using tier_score and id
+      if (pageParam) {
+        query = query.or(`tier_score.lt.${pageParam.tierScore},and(tier_score.eq.${pageParam.tierScore},id.gt.${pageParam.id})`);
+      }
+
+      const { data, error } = await query.limit(PAGE_SIZE);
 
       if (error) throw error;
 
-      return (data || []).map((candidate: any) => ({
+      const candidates = (data || []).map((candidate: any) => ({
         ...candidate,
         relationship: candidate.candidate_relationships?.[0] || null,
       })) as TalentPoolCandidate[];
+
+      // Determine next cursor
+      const lastCandidate = candidates[candidates.length - 1];
+      const nextCursor = candidates.length === PAGE_SIZE && lastCandidate
+        ? { tierScore: lastCandidate.tier_score ?? 0, id: lastCandidate.id }
+        : null;
+
+      return { candidates, nextCursor };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    initialPageParam: null as { tierScore: number; id: string } | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
+  // Flatten paginated candidates
+  const candidates = data?.pages.flatMap((page) => page.candidates) ?? [];
+
+  // Optimized stats query using aggregation
   const { data: stats } = useQuery({
     queryKey: ['talent-pool-stats'],
     queryFn: async () => {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
 
-      const { data, error } = await supabase
-        .from('candidate_profiles')
-        .select('id, talent_tier, move_probability, last_activity_at')
-        .eq('gdpr_consent', true)
-        .is('data_deletion_requested', false)
-        .neq('talent_tier', 'excluded');
+      // Run count queries in parallel for performance
+      const [
+        { count: total },
+        { count: hot },
+        { count: warm },
+        { count: strategic },
+        { count: pool },
+        { count: dormant },
+        { count: highMoveProbability },
+        { count: needsAttention },
+      ] = await Promise.all([
+        supabase.from('candidate_profiles').select('*', { count: 'exact', head: true })
+          .eq('gdpr_consent', true).is('data_deletion_requested', false).neq('talent_tier', 'excluded'),
+        supabase.from('candidate_profiles').select('*', { count: 'exact', head: true })
+          .eq('gdpr_consent', true).is('data_deletion_requested', false).eq('talent_tier', 'hot'),
+        supabase.from('candidate_profiles').select('*', { count: 'exact', head: true })
+          .eq('gdpr_consent', true).is('data_deletion_requested', false).eq('talent_tier', 'warm'),
+        supabase.from('candidate_profiles').select('*', { count: 'exact', head: true })
+          .eq('gdpr_consent', true).is('data_deletion_requested', false).eq('talent_tier', 'strategic'),
+        supabase.from('candidate_profiles').select('*', { count: 'exact', head: true })
+          .eq('gdpr_consent', true).is('data_deletion_requested', false).eq('talent_tier', 'pool'),
+        supabase.from('candidate_profiles').select('*', { count: 'exact', head: true })
+          .eq('gdpr_consent', true).is('data_deletion_requested', false).eq('talent_tier', 'dormant'),
+        supabase.from('candidate_profiles').select('*', { count: 'exact', head: true })
+          .eq('gdpr_consent', true).is('data_deletion_requested', false).gte('move_probability', 70),
+        supabase.from('candidate_profiles').select('*', { count: 'exact', head: true })
+          .eq('gdpr_consent', true).is('data_deletion_requested', false)
+          .in('talent_tier', ['hot', 'warm'])
+          .or(`last_activity_at.is.null,last_activity_at.lt.${thirtyDaysAgoISO}`),
+      ]);
 
-      if (error) throw error;
-
-      const candidates = data || [];
-      
-      const stats: TalentPoolStats = {
-        total: candidates.length,
-        hot: candidates.filter(c => c.talent_tier === 'hot').length,
-        warm: candidates.filter(c => c.talent_tier === 'warm').length,
-        strategic: candidates.filter(c => c.talent_tier === 'strategic').length,
-        pool: candidates.filter(c => c.talent_tier === 'pool').length,
-        dormant: candidates.filter(c => c.talent_tier === 'dormant').length,
-        highMoveProbability: candidates.filter(c => (c.move_probability || 0) >= 70).length,
-        needsAttention: candidates.filter(c => {
-          const isHotOrWarm = c.talent_tier === 'hot' || c.talent_tier === 'warm';
-          const lastActivity = c.last_activity_at ? new Date(c.last_activity_at) : null;
-          const noRecentContact = !lastActivity || lastActivity < thirtyDaysAgo;
-          return isHotOrWarm && noRecentContact;
-        }).length,
-      };
-
-      return stats;
+      return {
+        total: total ?? 0,
+        hot: hot ?? 0,
+        warm: warm ?? 0,
+        strategic: strategic ?? 0,
+        pool: pool ?? 0,
+        dormant: dormant ?? 0,
+        highMoveProbability: highMoveProbability ?? 0,
+        needsAttention: needsAttention ?? 0,
+      } as TalentPoolStats;
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes for stats
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   const updateTierMutation = useMutation({
@@ -222,7 +265,7 @@ export function useTalentPool(filters: TalentPoolFilters = {}) {
   });
 
   return {
-    candidates: candidates || [],
+    candidates,
     stats: stats || {
       total: 0,
       hot: 0,
@@ -236,6 +279,9 @@ export function useTalentPool(filters: TalentPoolFilters = {}) {
     isLoading,
     error,
     refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     updateTier: updateTierMutation.mutate,
     assignOwner: assignOwnerMutation.mutate,
     isUpdatingTier: updateTierMutation.isPending,

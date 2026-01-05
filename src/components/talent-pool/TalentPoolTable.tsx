@@ -34,6 +34,9 @@ interface TalentPoolTableProps {
   onAddToList?: (candidate: TalentPoolCandidate) => void;
   onViewProfile?: (candidate: TalentPoolCandidate) => void;
   onTierChange?: (candidateId: string, tier: TalentTier) => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
 }
 
 export function TalentPoolTable({
@@ -46,6 +49,9 @@ export function TalentPoolTable({
   onAddToList,
   onViewProfile,
   onTierChange,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
 }: TalentPoolTableProps) {
   const [sortField, setSortField] = useState<'tier_score' | 'move_probability' | 'last_activity'>('tier_score');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -271,6 +277,19 @@ export function TalentPoolTable({
           })}
         </TableBody>
       </Table>
+      
+      {/* Load More Button */}
+      {hasNextPage && (
+        <div className="p-4 border-t border-border/50 flex justify-center">
+          <Button
+            variant="outline"
+            onClick={onLoadMore}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? 'Loading...' : `Load More (${candidates.length} shown)`}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
