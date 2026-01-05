@@ -11164,6 +11164,67 @@ export type Database = {
           },
         ]
       }
+      contract_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          is_system: boolean | null
+          name: string
+          template_type: string
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          name: string
+          template_type: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          name?: string
+          template_type?: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "contract_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_analytics: {
         Row: {
           avg_response_time_seconds: number | null
@@ -35331,6 +35392,165 @@ export type Database = {
           },
         ]
       }
+      retainer_contracts: {
+        Row: {
+          auto_renew: boolean | null
+          client_id: string | null
+          created_at: string | null
+          end_date: string | null
+          freelancer_id: string | null
+          hourly_rate: number | null
+          id: string
+          monthly_hours: number
+          monthly_rate: number
+          start_date: string
+          status: string | null
+          stripe_subscription_id: string | null
+          terms: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          client_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          freelancer_id?: string | null
+          hourly_rate?: number | null
+          id?: string
+          monthly_hours: number
+          monthly_rate: number
+          start_date: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          terms?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_renew?: boolean | null
+          client_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          freelancer_id?: string | null
+          hourly_rate?: number | null
+          id?: string
+          monthly_hours?: number
+          monthly_rate?: number
+          start_date?: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          terms?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retainer_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "retainer_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retainer_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retainer_contracts_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "retainer_contracts_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retainer_contracts_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retainer_hours_log: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          description: string | null
+          hours: number
+          id: string
+          logged_date: string
+          retainer_id: string | null
+          status: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          description?: string | null
+          hours: number
+          id?: string
+          logged_date: string
+          retainer_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          description?: string | null
+          hours?: number
+          id?: string
+          logged_date?: string
+          retainer_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retainer_hours_log_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "retainer_hours_log_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retainer_hours_log_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retainer_hours_log_retainer_id_fkey"
+            columns: ["retainer_id"]
+            isOneToOne: false
+            referencedRelation: "retainer_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       revenue_cohorts: {
         Row: {
           cohort_month: string
@@ -38317,6 +38537,98 @@ export type Database = {
           strategist_id?: string
         }
         Relationships: []
+      }
+      strategist_placements: {
+        Row: {
+          commission_earned: number | null
+          commission_percentage: number | null
+          created_at: string | null
+          freelancer_id: string | null
+          id: string
+          notes: string | null
+          placement_type: string | null
+          project_id: string | null
+          status: string | null
+          strategist_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          commission_earned?: number | null
+          commission_percentage?: number | null
+          created_at?: string | null
+          freelancer_id?: string | null
+          id?: string
+          notes?: string | null
+          placement_type?: string | null
+          project_id?: string | null
+          status?: string | null
+          strategist_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          commission_earned?: number | null
+          commission_percentage?: number | null
+          created_at?: string | null
+          freelancer_id?: string | null
+          id?: string
+          notes?: string | null
+          placement_type?: string | null
+          project_id?: string | null
+          status?: string | null
+          strategist_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategist_placements_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "strategist_placements_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategist_placements_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategist_placements_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategist_placements_strategist_id_fkey"
+            columns: ["strategist_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "strategist_placements_strategist_id_fkey"
+            columns: ["strategist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategist_placements_strategist_id_fkey"
+            columns: ["strategist_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stripe_webhook_events: {
         Row: {

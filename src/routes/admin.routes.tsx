@@ -48,6 +48,7 @@ const WhatsAppSettings = lazy(() => import("@/pages/admin/WhatsAppSettings"));
 const CompanyRelationships = lazy(() => import("@/pages/admin/CompanyRelationships"));
 const RevenueSharesPage = lazy(() => import("@/pages/admin/RevenueShares"));
 const InvoiceReconciliationPage = lazy(() => import("@/pages/admin/InvoiceReconciliation"));
+const StrategistProjectsDashboard = lazy(() => import("@/pages/admin/StrategistProjectsDashboard"));
 const ExpenseTrackingPage = lazy(() => import("@/pages/admin/ExpenseTracking"));
 const ClosedJobs = lazy(() => import("@/pages/admin/ClosedJobs"));
 
@@ -685,5 +686,8 @@ export const adminRoutes = (
     
     {/* Risk & Scale Management */}
     <Route path="/admin/risk-management" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RiskManagementDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    
+    {/* Marketplace Strategist Dashboard */}
+    <Route path="/admin/marketplace/strategist" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><StrategistProjectsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );
