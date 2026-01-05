@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -17,6 +18,7 @@ import {
   ChevronRight, Sparkles, Eye, ThumbsUp, ThumbsDown
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ProjectChat } from "@/components/projects/ProjectChat";
 
 interface Proposal {
   id: string;
@@ -53,6 +55,8 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatRecipient, setChatRecipient] = useState<{ id: string; name: string; projectId: string } | null>(null);
 
   const { data: proposals, isLoading } = useQuery({
     queryKey: ["proposal-inbox", projectId, companyId, activeTab, sortBy],
@@ -388,7 +392,17 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
                       <Star className="h-4 w-4" />
                       Shortlist
                     </Button>
-                    <Button className="flex-1 gap-2">
+                    <Button 
+                      className="flex-1 gap-2"
+                      onClick={() => {
+                        setChatRecipient({
+                          id: selectedProposal.freelancer?.id || "",
+                          name: selectedProposal.freelancer?.full_name || "Freelancer",
+                          projectId: selectedProposal.project?.id || ""
+                        });
+                        setChatOpen(true);
+                      }}
+                    >
                       <MessageSquare className="h-4 w-4" />
                       Message
                     </Button>
@@ -469,6 +483,22 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
           </Card>
         )}
       </div>
+
+      {/* Chat Dialog */}
+      <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Message {chatRecipient?.name}</DialogTitle>
+          </DialogHeader>
+          {chatRecipient && (
+            <ProjectChat
+              projectId={chatRecipient.projectId}
+              recipientId={chatRecipient.id}
+              recipientName={chatRecipient.name}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
