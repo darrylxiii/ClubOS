@@ -55,7 +55,8 @@ export function useLiveHubAutoRecording({
         }
       };
 
-      recorder.start(1000); // Chunk every second
+      // Use single blob mode for correct duration metadata
+      recorder.start();
       mediaRecorderRef.current = recorder;
       setRecordingStartTime(Date.now());
       setIsRecording(true);
@@ -153,13 +154,25 @@ export function useLiveHubAutoRecording({
 
       toast.success('Live Hub recording saved');
 
-      // Trigger transcription and AI analysis
+      // Trigger transcription and AI analysis with retry
       const recordingId = (recordingData as any).id;
-      supabase.functions.invoke('analyze-meeting-recording-advanced', {
-        body: { recordingId, isLiveHub: true }
-      }).catch(err => {
-        console.error('[LiveHub Recording] Analysis trigger failed:', err);
-      });
+      const triggerAnalysis = async (id: string, attempt = 1): Promise<void> => {
+        try {
+          const { error } = await supabase.functions.invoke('analyze-meeting-recording-advanced', {
+            body: { recordingId: id, isLiveHub: true }
+          });
+          if (error) throw error;
+          console.log('[LiveHub Recording] Analysis triggered successfully');
+        } catch (err) {
+          console.error(`[LiveHub Recording] Analysis attempt ${attempt} failed:`, err);
+          if (attempt < 3) {
+            setTimeout(() => triggerAnalysis(id, attempt + 1), 2000 * attempt);
+          } else {
+            toast.error('Recording saved but analysis failed. You can retry from History.');
+          }
+        }
+      };
+      triggerAnalysis(recordingId);
 
       console.log('[LiveHub Recording] Uploaded successfully:', recordingId);
     } catch (error) {

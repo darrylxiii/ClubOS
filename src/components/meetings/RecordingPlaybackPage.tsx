@@ -37,6 +37,7 @@ export default function RecordingPlaybackPage() {
   // Clip creator state
   const [clipDialogOpen, setClipDialogOpen] = useState(false);
   const [clipData, setClipData] = useState({ startMs: 0, endMs: 0, text: '' });
+  const [videoError, setVideoError] = useState(false);
 
   useEffect(() => {
     if (recordingId) {
@@ -297,13 +298,35 @@ export default function RecordingPlaybackPage() {
             <Card>
               <CardContent className="p-0">
                 {recording.recording_url ? (
-                  <video 
-                    ref={videoRef}
-                    src={recording.recording_url} 
-                    controls 
-                    className="w-full rounded-lg"
-                    onTimeUpdate={(e) => setCurrentTimeMs(e.currentTarget.currentTime * 1000)}
-                  />
+                  videoError ? (
+                    <div className="aspect-video bg-muted rounded-lg flex flex-col items-center justify-center gap-4 p-6">
+                      <AlertTriangle className="h-12 w-12 text-muted-foreground" />
+                      <p className="text-muted-foreground text-center">
+                        Video playback failed. The file may be corrupted or in an unsupported format.
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          const a = document.createElement('a');
+                          a.href = recording.recording_url;
+                          a.download = `recording-${recording.id}.webm`;
+                          a.click();
+                        }}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download & Play Locally
+                      </Button>
+                    </div>
+                  ) : (
+                    <video 
+                      ref={videoRef}
+                      src={recording.recording_url} 
+                      controls 
+                      className="w-full rounded-lg"
+                      onTimeUpdate={(e) => setCurrentTimeMs(e.currentTarget.currentTime * 1000)}
+                      onError={() => setVideoError(true)}
+                    />
+                  )
                 ) : (
                   <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
                     <p className="text-muted-foreground">Recording not available</p>

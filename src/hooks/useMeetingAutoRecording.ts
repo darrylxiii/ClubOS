@@ -91,7 +91,8 @@ export function useMeetingAutoRecording({
         stopRecording();
       };
 
-      recorder.start(1000); // Chunk every 1 second
+      // Use single blob mode for correct duration metadata
+      recorder.start();
       mediaRecorderRef.current = recorder;
 
       const startTime = Date.now();
