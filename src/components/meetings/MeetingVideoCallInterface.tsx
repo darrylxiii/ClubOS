@@ -1499,6 +1499,11 @@ export function MeetingVideoCallInterface({
         <div className="absolute top-20 right-4 z-[10000]">
           <LiveTranslationPanel
             meetingId={meeting.id}
+            transcriptSegments={committedTranscripts.map((t, idx) => ({
+              text: t.text,
+              speaker: participantName,
+              timestamp_ms: Date.now() - (committedTranscripts.length - idx) * 5000
+            }))}
             onClose={() => setShowTranslation(false)}
           />
         </div>
@@ -1522,8 +1527,26 @@ export function MeetingVideoCallInterface({
       {showEngagementAnalytics && ['host', 'interviewer'].includes(userRole) && (
         <EngagementAnalyticsOverlay
           meetingId={meeting.id}
-          participants={[]}
-          elapsedTimeMs={0}
+          participants={Array.from(remoteStreams.entries()).map(([id, { name }]) => ({
+            id,
+            name,
+            role: 'participant' as 'host' | 'candidate' | 'interviewer' | 'participant',
+            speakingTimeMs: 0,
+            speakingPercentage: Math.floor(100 / Math.max(1, remoteStreams.size + 1)),
+            isSpeaking: false,
+            engagement: 75,
+            sentimentTrend: 'neutral' as 'positive' | 'neutral' | 'negative'
+          })).concat([{
+            id: participantId,
+            name: participantName,
+            role: (userRole === 'host' || userRole === 'candidate' || userRole === 'interviewer' ? userRole : 'participant') as 'host' | 'candidate' | 'interviewer' | 'participant',
+            speakingTimeMs: 0,
+            speakingPercentage: Math.floor(100 / Math.max(1, remoteStreams.size + 1)),
+            isSpeaking: isTranscribing,
+            engagement: 80,
+            sentimentTrend: 'positive' as 'positive' | 'neutral' | 'negative'
+          }])}
+          elapsedTimeMs={meetingStarted ? Date.now() - (meeting.actual_start_time ? new Date(meeting.actual_start_time).getTime() : Date.now()) : 0}
           onClose={() => setShowEngagementAnalytics(false)}
         />
       )}
