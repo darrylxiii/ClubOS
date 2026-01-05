@@ -3,10 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Flag, Lock } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Send, Flag, Lock, Sparkles } from 'lucide-react';
 import { notify } from '@/lib/notify';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { QUINBackchannelSuggestions } from './QUINBackchannelSuggestions';
 
 interface BackchannelMessage {
   id: string;
@@ -47,7 +49,6 @@ export function InterviewerBackchannel({ meetingId, currentUserId }: Interviewer
         async (payload) => {
           const newMessage = payload.new as BackchannelMessage;
           
-          // Fetch sender profile
           const { data: profile } = await supabase
             .from('profiles')
             .select('full_name, avatar_url')
@@ -133,87 +134,107 @@ export function InterviewerBackchannel({ meetingId, currentUserId }: Interviewer
         <span className="text-xs text-muted-foreground">(Private)</span>
       </div>
 
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef as any}>
-        <div className="space-y-3">
-          {messages.length === 0 ? (
-            <div className="text-center text-sm text-muted-foreground py-8">
-              <Lock className="w-8 h-8 mx-auto mb-2 opacity-30" />
-              <p>Private coordination space for interviewers</p>
-              <p className="text-xs mt-1">Share notes and impressions here</p>
-            </div>
-          ) : (
-            messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={cn(
-                  'p-3 rounded-lg border transition-colors',
-                  msg.is_important
-                    ? 'bg-amber-500/10 border-amber-500/30'
-                    : 'bg-card/50 border-border/50',
-                  msg.sender_id === currentUserId && 'ml-4'
-                )}
-              >
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-foreground">
-                      {msg.sender?.full_name || 'Unknown'}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
-                    </span>
-                  </div>
-                  {msg.sender_id === currentUserId && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleImportant(msg.id, msg.is_important)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Flag
-                        className={cn(
-                          'w-3 h-3',
-                          msg.is_important ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground'
-                        )}
-                      />
-                    </Button>
-                  )}
+      {/* Tabbed Content: Notes + QUIN Suggestions */}
+      <Tabs defaultValue="notes" className="flex-1 flex flex-col overflow-hidden">
+        <TabsList className="grid grid-cols-2 mx-4 mt-2">
+          <TabsTrigger value="notes" className="text-xs gap-1">
+            <Lock className="w-3 h-3" />
+            Notes
+          </TabsTrigger>
+          <TabsTrigger value="quin" className="text-xs gap-1">
+            <Sparkles className="w-3 h-3" />
+            QUIN Suggests
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="notes" className="flex-1 flex flex-col overflow-hidden mt-0">
+          {/* Messages */}
+          <ScrollArea className="flex-1 p-4" ref={scrollRef as any}>
+            <div className="space-y-3">
+              {messages.length === 0 ? (
+                <div className="text-center text-sm text-muted-foreground py-8">
+                  <Lock className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  <p>Private coordination space for interviewers</p>
+                  <p className="text-xs mt-1">Share notes and impressions here</p>
                 </div>
-                <p className="text-sm text-foreground whitespace-pre-wrap">{msg.message}</p>
-              </div>
-            ))
-          )}
-        </div>
-      </ScrollArea>
+              ) : (
+                messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={cn(
+                      'p-3 rounded-lg border transition-colors',
+                      msg.is_important
+                        ? 'bg-amber-500/10 border-amber-500/30'
+                        : 'bg-card/50 border-border/50',
+                      msg.sender_id === currentUserId && 'ml-4'
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-foreground">
+                          {msg.sender?.full_name || 'Unknown'}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                      {msg.sender_id === currentUserId && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleImportant(msg.id, msg.is_important)}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Flag
+                            className={cn(
+                              'w-3 h-3',
+                              msg.is_important ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground'
+                            )}
+                          />
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">{msg.message}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
 
-      {/* Input */}
-      <div className="p-4 border-t border-amber-500/20 bg-amber-500/5">
-        <div className="flex gap-2">
-          <Textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Share notes with other interviewers..."
-            className="min-h-[60px] resize-none bg-background/50"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-          />
-          <Button
-            onClick={handleSend}
-            disabled={!message.trim() || sending}
-            size="icon"
-            className="shrink-0 bg-amber-600 hover:bg-amber-700"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          🔒 Only visible to interviewers • Press Enter to send
-        </p>
-      </div>
+          {/* Input */}
+          <div className="p-4 border-t border-amber-500/20 bg-amber-500/5">
+            <div className="flex gap-2">
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Share notes with other interviewers..."
+                className="min-h-[60px] resize-none bg-background/50"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+              />
+              <Button
+                onClick={handleSend}
+                disabled={!message.trim() || sending}
+                size="icon"
+                className="shrink-0 bg-amber-600 hover:bg-amber-700"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              🔒 Only visible to interviewers • Press Enter to send
+            </p>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="quin" className="flex-1 overflow-hidden mt-0">
+          <QUINBackchannelSuggestions meetingId={meetingId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

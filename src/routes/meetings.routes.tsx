@@ -13,6 +13,7 @@ const MeetingHistory = lazy(() => import("@/pages/MeetingHistory"));
 const Scheduling = lazy(() => import("@/pages/Scheduling"));
 const BookingManagement = lazy(() => import("@/pages/BookingManagement"));
 const RecordingPlaybackPage = lazy(() => import("@/components/meetings/RecordingPlaybackPage"));
+const DossierView = lazy(() => import("@/pages/DossierView"));
 
 export const meetingsRoutes = (
   <>
@@ -110,6 +111,16 @@ export const meetingsRoutes = (
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/dossier/:shareToken"
+      element={
+        <RouteErrorBoundary>
+          <Suspense fallback={<PageLoader />}>
+            <DossierView />
+          </Suspense>
+        </RouteErrorBoundary>
       }
     />
   </>

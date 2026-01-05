@@ -14,7 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { 
   Play, Download, Share2, AlertTriangle, Star, 
   CheckCircle2, Clock, User, ChevronDown, ArrowLeft,
-  RefreshCw, FileText, Mic, Video, BarChart3, Scissors, Mail
+  RefreshCw, FileText, Mic, Video, BarChart3, Scissors, Mail, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -22,6 +22,8 @@ import { AppLayout } from '@/components/AppLayout';
 import { TimestampedTranscript } from './TimestampedTranscript';
 import { SpeakingMetricsPanel } from './SpeakingMetricsPanel';
 import { RecordingClipCreator } from './RecordingClipCreator';
+import { GenerateDossierButton } from './GenerateDossierButton';
+import { AIHighlightClips } from './AIHighlightClips';
 
 export default function RecordingPlaybackPage() {
   const { recordingId } = useParams();
@@ -257,6 +259,10 @@ export default function RecordingPlaybackPage() {
               )}
             </div>
             <div className="flex items-center gap-2">
+              <GenerateDossierButton 
+                recordingId={recording.id}
+                meetingId={recording.meeting_id}
+              />
               <Button onClick={sendSummaryEmail} variant="outline" size="sm" disabled={sendingEmail || !recording.ai_summary}>
                 <Mail className="h-4 w-4 mr-2" />
                 {sendingEmail ? 'Sending...' : 'Email Summary'}
@@ -360,14 +366,23 @@ export default function RecordingPlaybackPage() {
 
             {/* Tabs */}
             <Tabs defaultValue="transcript" className="w-full">
-              <TabsList className="w-full grid grid-cols-6">
+              <TabsList className="w-full grid grid-cols-7">
                 <TabsTrigger value="transcript">Transcript</TabsTrigger>
                 <TabsTrigger value="summary">Summary</TabsTrigger>
+                <TabsTrigger value="highlights" className="gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  AI Highlights
+                </TabsTrigger>
                 <TabsTrigger value="actions">Actions</TabsTrigger>
                 <TabsTrigger value="moments">Key Moments</TabsTrigger>
                 <TabsTrigger value="skills">Skills</TabsTrigger>
                 <TabsTrigger value="metrics">Metrics</TabsTrigger>
               </TabsList>
+
+              {/* AI Highlights Tab - NEW */}
+              <TabsContent value="highlights" className="space-y-4">
+                <AIHighlightClips recordingId={recording.id} />
+              </TabsContent>
 
               {/* Timestamped Transcript Tab */}
               <TabsContent value="transcript" className="space-y-4">
