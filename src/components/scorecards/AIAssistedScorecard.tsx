@@ -95,7 +95,7 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
 
       const { error } = await supabase
         .from('candidate_scorecards')
-        .insert({
+        .insert([{
           application_id: meeting?.application?.id || '',
           evaluator_id: user.user.id,
           overall_rating: overallRating,
@@ -105,8 +105,9 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
           recommendation,
           strengths,
           concerns,
-          notes
-        });
+          notes,
+          stage_index: meeting?.application?.current_stage_index || 0
+        }]);
 
       if (error) throw error;
 

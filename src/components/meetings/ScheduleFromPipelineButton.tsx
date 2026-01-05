@@ -26,34 +26,22 @@ export const ScheduleFromPipelineButton = ({
   className,
   onScheduled
 }: ScheduleFromPipelineButtonProps) => {
-  const [dialogOpen, setDialogOpen] = useState(false);
-
   return (
-    <>
-      <Button
-        variant={variant}
-        size={size}
-        onClick={() => setDialogOpen(true)}
-        className={className}
-      >
-        <Calendar className="w-4 h-4 mr-2" />
-        Schedule Interview
-      </Button>
-
-      {dialogOpen && (
-        <CreateMeetingDialog
-          onSuccess={(meetingId) => {
-            setDialogOpen(false);
-            onScheduled?.(meetingId);
-          }}
-          defaultCandidateId={candidateId}
-          defaultJobId={jobId}
-          defaultApplicationId={applicationId}
-          defaultCompanyId={companyId}
-          defaultInterviewStage={interviewStage}
-        />
-      )}
-    </>
+    <CreateMeetingDialog
+      trigger={
+        <Button
+          variant={variant}
+          size={size}
+          className={className}
+        >
+          <Calendar className="w-4 h-4 mr-2" />
+          Schedule Interview
+        </Button>
+      }
+      onMeetingCreated={(meeting) => {
+        onScheduled?.(meeting?.id);
+      }}
+    />
   );
 };
 
