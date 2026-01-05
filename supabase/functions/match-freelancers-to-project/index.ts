@@ -43,15 +43,33 @@ serve(async (req) => {
       throw new Error("Project ID is required");
     }
 
-    // Fetch project details
-    const { data: project, error: projectError } = await supabase
-      .from("projects")
+    // Fetch project details - try marketplace_projects first, fallback to projects
+    let project: any = null;
+    let projectError: any = null;
+
+    // First try marketplace_projects (Club Projects)
+    const { data: marketplaceProject, error: mpError } = await supabase
+      .from("marketplace_projects")
       .select("*")
       .eq("id", projectId)
       .single();
 
-    if (projectError || !project) {
-      throw new Error("Project not found");
+    if (marketplaceProject) {
+      project = marketplaceProject;
+    } else {
+      // Fallback to legacy projects table
+      const { data: legacyProject, error: lpError } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", projectId)
+        .single();
+      
+      project = legacyProject;
+      projectError = lpError;
+    }
+
+    if (!project) {
+      throw new Error("Project not found in marketplace_projects or projects table");
     }
 
     // Fetch available freelancers with profiles

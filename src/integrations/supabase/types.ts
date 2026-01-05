@@ -10452,6 +10452,42 @@ export type Database = {
         }
         Relationships: []
       }
+      connects_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          reference_id: string | null
+          reference_type: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       consent_receipts: {
         Row: {
           application_id: string | null
@@ -17396,10 +17432,56 @@ export type Database = {
           },
         ]
       }
+      freelancer_badges: {
+        Row: {
+          badge_description: string | null
+          badge_icon: string | null
+          badge_name: string
+          badge_type: string
+          created_at: string
+          earned_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          badge_description?: string | null
+          badge_icon?: string | null
+          badge_name: string
+          badge_type: string
+          created_at?: string
+          earned_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          badge_description?: string | null
+          badge_icon?: string | null
+          badge_name?: string
+          badge_type?: string
+          created_at?: string
+          earned_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       freelancer_gigs: {
         Row: {
           avg_delivery_time_days: number | null
           avg_rating: number | null
+          basic_delivery_days: number | null
+          basic_description: string | null
+          basic_features: Json | null
+          basic_revisions: number | null
           boost_expires_at: string | null
           boost_level: number | null
           category: string
@@ -17409,6 +17491,7 @@ export type Database = {
           description: string | null
           extras: Json | null
           faq: Json | null
+          faqs: Json | null
           freelancer_id: string
           gallery_images: Json | null
           id: string
@@ -17417,12 +17500,23 @@ export type Database = {
           last_order_at: string | null
           order_count: number | null
           packages: Json
+          premium_delivery_days: number | null
+          premium_description: string | null
+          premium_features: Json | null
+          premium_price: number | null
+          premium_revisions: number | null
           published_at: string | null
           rejection_reason: string | null
+          requirements: Json | null
           requirements_form: Json | null
           response_time_hours: number | null
           review_count: number | null
           slug: string | null
+          standard_delivery_days: number | null
+          standard_description: string | null
+          standard_features: Json | null
+          standard_price: number | null
+          standard_revisions: number | null
           status: string | null
           subcategory: string | null
           tags: string[] | null
@@ -17434,6 +17528,10 @@ export type Database = {
         Insert: {
           avg_delivery_time_days?: number | null
           avg_rating?: number | null
+          basic_delivery_days?: number | null
+          basic_description?: string | null
+          basic_features?: Json | null
+          basic_revisions?: number | null
           boost_expires_at?: string | null
           boost_level?: number | null
           category: string
@@ -17443,6 +17541,7 @@ export type Database = {
           description?: string | null
           extras?: Json | null
           faq?: Json | null
+          faqs?: Json | null
           freelancer_id: string
           gallery_images?: Json | null
           id?: string
@@ -17451,12 +17550,23 @@ export type Database = {
           last_order_at?: string | null
           order_count?: number | null
           packages?: Json
+          premium_delivery_days?: number | null
+          premium_description?: string | null
+          premium_features?: Json | null
+          premium_price?: number | null
+          premium_revisions?: number | null
           published_at?: string | null
           rejection_reason?: string | null
+          requirements?: Json | null
           requirements_form?: Json | null
           response_time_hours?: number | null
           review_count?: number | null
           slug?: string | null
+          standard_delivery_days?: number | null
+          standard_description?: string | null
+          standard_features?: Json | null
+          standard_price?: number | null
+          standard_revisions?: number | null
           status?: string | null
           subcategory?: string | null
           tags?: string[] | null
@@ -17468,6 +17578,10 @@ export type Database = {
         Update: {
           avg_delivery_time_days?: number | null
           avg_rating?: number | null
+          basic_delivery_days?: number | null
+          basic_description?: string | null
+          basic_features?: Json | null
+          basic_revisions?: number | null
           boost_expires_at?: string | null
           boost_level?: number | null
           category?: string
@@ -17477,6 +17591,7 @@ export type Database = {
           description?: string | null
           extras?: Json | null
           faq?: Json | null
+          faqs?: Json | null
           freelancer_id?: string
           gallery_images?: Json | null
           id?: string
@@ -17485,12 +17600,23 @@ export type Database = {
           last_order_at?: string | null
           order_count?: number | null
           packages?: Json
+          premium_delivery_days?: number | null
+          premium_description?: string | null
+          premium_features?: Json | null
+          premium_price?: number | null
+          premium_revisions?: number | null
           published_at?: string | null
           rejection_reason?: string | null
+          requirements?: Json | null
           requirements_form?: Json | null
           response_time_hours?: number | null
           review_count?: number | null
           slug?: string | null
+          standard_delivery_days?: number | null
+          standard_description?: string | null
+          standard_features?: Json | null
+          standard_price?: number | null
+          standard_revisions?: number | null
           status?: string | null
           subcategory?: string | null
           tags?: string[] | null
@@ -33073,6 +33199,69 @@ export type Database = {
           },
           {
             foreignKeyName: "project_invitations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_messages: {
+        Row: {
+          attachments: Json | null
+          contract_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          message_type: string
+          metadata: Json | null
+          project_id: string | null
+          read_at: string | null
+          recipient_id: string
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json | null
+          contract_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          message_type?: string
+          metadata?: Json | null
+          project_id?: string | null
+          read_at?: string | null
+          recipient_id: string
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json | null
+          contract_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          message_type?: string
+          metadata?: Json | null
+          project_id?: string | null
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_messages_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "freelance_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_messages_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "marketplace_projects"

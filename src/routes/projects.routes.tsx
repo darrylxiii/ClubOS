@@ -18,6 +18,8 @@ const PostProjectPage = lazy(() => import("@/pages/PostProjectPage"));
 const FreelancerSetupPage = lazy(() => import("@/pages/FreelancerSetupPage"));
 const ProjectTalentPage = lazy(() => import("@/pages/ProjectTalentPage"));
 const GigMarketplacePage = lazy(() => import("@/pages/GigMarketplacePage"));
+const CreateGigPage = lazy(() => import("@/pages/CreateGigPage"));
+const GigDetailPage = lazy(() => import("@/pages/GigDetailPage"));
 const ProjectProposalsPage = lazy(() => import("@/pages/ProjectProposalsPage"));
 const ProjectDisputesPage = lazy(() => import("@/pages/ProjectDisputesPage"));
 
@@ -67,6 +69,30 @@ export const projectsRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <GigMarketplacePage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/projects/gigs/create" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <CreateGigPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/projects/gigs/:gigId" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <GigDetailPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
