@@ -221,6 +221,15 @@ export default function MeetingRoom() {
         console.log('[MeetingRoom] ✅ User joined meeting successfully');
       }
 
+      // Update meeting status to 'in_progress' if host is joining
+      if (user.id === meeting.host_id && meeting.status === 'scheduled') {
+        await supabase
+          .from('meetings')
+          .update({ status: 'in_progress' })
+          .eq('id', meeting.id);
+        console.log('[MeetingRoom] ✅ Meeting status updated to in_progress');
+      }
+
       setInCall(true);
     } catch (error: any) {
       console.error('[MeetingRoom] ❌ Error joining meeting:', error);
@@ -261,6 +270,24 @@ export default function MeetingRoom() {
           .eq('meeting_id', meeting.id)
           .eq('user_id', user.id)
           .is('left_at', null);
+
+        // If host is leaving, check if there are other participants
+        if (user.id === meeting.host_id) {
+          const { count } = await supabase
+            .from('meeting_participants')
+            .select('*', { count: 'exact', head: true })
+            .eq('meeting_id', meeting.id)
+            .is('left_at', null);
+
+          // If no other participants, mark meeting as completed
+          if (!count || count === 0) {
+            await supabase
+              .from('meetings')
+              .update({ status: 'completed' })
+              .eq('id', meeting.id);
+            console.log('[MeetingRoom] ✅ Meeting status updated to completed');
+          }
+        }
       } else if (guestSessionToken) {
         await supabase
           .from('meeting_participants')

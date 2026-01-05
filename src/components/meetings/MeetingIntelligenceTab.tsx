@@ -46,7 +46,8 @@ export function MeetingIntelligenceTab() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // First, try to get meetings with insights from meeting_insights table
+      const { data: meetingsWithInsights, error: insightsError } = await supabase
         .from('meetings')
         .select(`
           id,
@@ -59,17 +60,64 @@ export function MeetingIntelligenceTab() {
         .order('scheduled_start', { ascending: false })
         .limit(20);
 
-      if (error) throw error;
+      // Also get analyzed recordings with AI analysis
+      const { data: analyzedRecordings, error: recordingsError } = await supabase
+        .from('meeting_recordings_extended')
+        .select(`
+          id,
+          meeting_id,
+          title,
+          created_at,
+          duration_seconds,
+          ai_analysis
+        `)
+        .eq('processing_status', 'completed')
+        .not('ai_analysis', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(20);
 
-      const formattedMeetings = (data || []).map((meeting: any) => ({
+      if (insightsError) throw insightsError;
+
+      // Map meetings from both sources
+      const meetingsFromInsights = (meetingsWithInsights || []).map((meeting: any) => ({
         id: meeting.id,
         title: meeting.title,
         scheduled_start: meeting.scheduled_start,
         scheduled_end: meeting.scheduled_end,
         insights: meeting.meeting_insights?.[0],
+        source: 'insights'
       }));
 
-      setMeetings(formattedMeetings);
+      // Map analyzed recordings to meeting format
+      const meetingsFromRecordings = (analyzedRecordings || [])
+        .filter((rec: any) => rec.ai_analysis)
+        .map((rec: any) => {
+          const analysis = typeof rec.ai_analysis === 'string' 
+            ? JSON.parse(rec.ai_analysis) 
+            : rec.ai_analysis;
+          
+          return {
+            id: rec.meeting_id || rec.id,
+            title: rec.title || 'Meeting Recording',
+            scheduled_start: rec.created_at,
+            scheduled_end: new Date(new Date(rec.created_at).getTime() + (rec.duration_seconds || 0) * 1000).toISOString(),
+            insights: {
+              summary: analysis?.summary || analysis?.meeting_summary,
+              action_items: analysis?.action_items || analysis?.actionItems || [],
+              sentiment_analysis: analysis?.sentiment || analysis?.overall_sentiment,
+              topics: analysis?.topics || analysis?.key_topics || []
+            },
+            source: 'recordings'
+          };
+        });
+
+      // Merge and deduplicate by meeting_id, preferring recordings data
+      const allMeetings = [...meetingsFromRecordings, ...meetingsFromInsights];
+      const uniqueMeetings = Array.from(
+        new Map(allMeetings.map(m => [m.id, m])).values()
+      ).sort((a, b) => new Date(b.scheduled_start).getTime() - new Date(a.scheduled_start).getTime());
+
+      setMeetings(uniqueMeetings);
     } catch (error) {
       console.error('Failed to load meetings:', error);
     } finally {
