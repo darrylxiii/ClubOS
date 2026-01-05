@@ -59,6 +59,14 @@ const IntangibleAssets = () => {
             <CardContent>
               {loading ? (
                 <div className="space-y-2">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+              ) : assets.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Code className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                  <p className="text-muted-foreground font-medium">No intangible assets yet</p>
+                  <p className="text-sm text-muted-foreground/70 mt-1 max-w-sm">
+                    Add software licenses, development costs, or other intangible assets to track their value and amortization.
+                  </p>
+                </div>
               ) : (
                 <SortableAssetTable assets={assets} onEdit={handleEdit} onStatusChange={changeStatus} />
               )}
