@@ -13,8 +13,10 @@ import {
   MoreVertical,
   Copy,
   Edit,
-  Trash
+  Trash,
+  UserPlus
 } from 'lucide-react';
+import { InviteParticipantsDialog } from './InviteParticipantsDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -97,6 +99,16 @@ export function MeetingCard({ meeting, onEdit, onDelete }: MeetingCardProps) {
               <Copy className="h-4 w-4 mr-2" />
               Copy Link
             </DropdownMenuItem>
+            <InviteParticipantsDialog
+              meetingId={meeting.id}
+              meetingTitle={meeting.title}
+              trigger={
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Invite Participants
+                </DropdownMenuItem>
+              }
+            />
             {onEdit && (
               <DropdownMenuItem onClick={() => onEdit(meeting)}>
                 <Edit className="h-4 w-4 mr-2" />
