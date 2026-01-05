@@ -1,22 +1,36 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Target, AlertTriangle, CheckCircle2, TrendingUp, 
-  Award, DollarSign, Clock, MapPin, Zap, Briefcase, Activity, Star
+  Award, DollarSign, Clock, MapPin, Zap, Briefcase, Activity, Star,
+  Send, Calendar, FileCheck, ThumbsUp, ThumbsDown
 } from "lucide-react";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profile-tokens";
 import { useFieldPermissions } from "@/hooks/useFieldPermissions";
 import { useRole } from "@/contexts/RoleContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Props {
   candidate: any;
   applications?: any[];
+  jobId?: string;
+  applicationId?: string;
+  onAction?: (action: string) => void;
 }
 
-export const CandidateDecisionDashboard = ({ candidate, applications }: Props) => {
+export const CandidateDecisionDashboard = ({ candidate, applications, jobId, applicationId, onAction }: Props) => {
+  const [showOfferDialog, setShowOfferDialog] = useState(false);
+  const [showVerdictDialog, setShowVerdictDialog] = useState(false);
+  const [verdictNotes, setVerdictNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { canEditField } = useFieldPermissions();
   const { currentRole: role } = useRole();
   
@@ -80,8 +94,195 @@ export const CandidateDecisionDashboard = ({ candidate, applications }: Props) =
   const internalRating = candidate.internal_rating || 0;
   const completeness = candidate.profile_completeness || 0;
 
+  // Action handlers
+  const handleMoveToOffer = async () => {
+    if (!applicationId) {
+      toast.error("No application selected");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("applications")
+        .update({ 
+          status: "offer",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", applicationId);
+
+      if (error) throw error;
+      
+      toast.success("Candidate moved to Offer stage");
+      setShowOfferDialog(false);
+      onAction?.("offer");
+    } catch (error: any) {
+      console.error("Error moving to offer:", error);
+      toast.error("Failed to move candidate to offer stage");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleLogVerdict = async (verdict: "proceed" | "reject") => {
+    if (!applicationId) {
+      toast.error("No application selected");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const newStatus = verdict === "proceed" ? "final_interview" : "rejected";
+      
+      const { error } = await supabase
+        .from("applications")
+        .update({ 
+          status: newStatus,
+          rejection_reason: verdict === "reject" ? verdictNotes : null,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", applicationId);
+
+      if (error) throw error;
+      
+      // Log the decision
+      await supabase.from("candidate_application_logs").insert({
+        candidate_profile_id: candidate.id,
+        action: verdict === "proceed" ? "verdict_proceed" : "verdict_reject",
+        details: { 
+          notes: verdictNotes,
+          application_id: applicationId,
+          job_id: jobId
+        }
+      });
+      
+      toast.success(verdict === "proceed" ? "Candidate proceeding to next stage" : "Candidate rejected");
+      setShowVerdictDialog(false);
+      setVerdictNotes("");
+      onAction?.(verdict);
+    } catch (error: any) {
+      console.error("Error logging verdict:", error);
+      toast.error("Failed to log verdict");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRequestInterview = () => {
+    // Navigate to scheduling or open interview scheduling modal
+    window.open(`/scheduling?candidate=${candidate.id}&job=${jobId}`, '_blank');
+    toast.info("Opening interview scheduler...");
+    onAction?.("schedule_interview");
+  };
+
   return (
     <div className="space-y-4">
+      {/* Quick Actions Bar - For Partners */}
+      {(role === "partner" || role === "admin" || role === "strategist") && applicationId && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-primary" />
+                <span className="font-semibold">Quick Actions</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRequestInterview}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Schedule Interview
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowVerdictDialog(true)}
+                >
+                  <FileCheck className="w-4 h-4 mr-2" />
+                  Log Verdict
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setShowOfferDialog(true)}
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Move to Offer
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Move to Offer Dialog */}
+      <Dialog open={showOfferDialog} onOpenChange={setShowOfferDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Move to Offer Stage</DialogTitle>
+            <DialogDescription>
+              You're about to move {candidate.full_name} to the Offer stage. This will notify the TQC team to prepare an offer package.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Alert>
+              <CheckCircle2 className="w-4 h-4" />
+              <AlertDescription>
+                This action will trigger the offer workflow and notify relevant stakeholders.
+              </AlertDescription>
+            </Alert>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowOfferDialog(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={handleMoveToOffer} disabled={isSubmitting}>
+              {isSubmitting ? "Moving..." : "Confirm Move to Offer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Log Verdict Dialog */}
+      <Dialog open={showVerdictDialog} onOpenChange={setShowVerdictDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Log Final Verdict</DialogTitle>
+            <DialogDescription>
+              Record your decision for {candidate.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <Textarea
+              placeholder="Add notes about your decision..."
+              value={verdictNotes}
+              onChange={(e) => setVerdictNotes(e.target.value)}
+              rows={4}
+            />
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="destructive" 
+              onClick={() => handleLogVerdict("reject")} 
+              disabled={isSubmitting}
+            >
+              <ThumbsDown className="w-4 h-4 mr-2" />
+              Reject
+            </Button>
+            <Button 
+              variant="default" 
+              onClick={() => handleLogVerdict("proceed")} 
+              disabled={isSubmitting}
+            >
+              <ThumbsUp className="w-4 h-4 mr-2" />
+              Proceed
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Overall Assessment Card - Enhanced with Score Badges */}
       <Card>
         <CardHeader>
