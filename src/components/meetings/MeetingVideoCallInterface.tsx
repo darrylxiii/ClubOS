@@ -30,6 +30,10 @@ import { MeetingQAPanel } from '@/components/meetings/MeetingQAPanel';
 import { VirtualBackgroundSelector } from '@/components/meetings/VirtualBackgroundSelector';
 import { InterviewerBackchannel } from '@/components/meetings/InterviewerBackchannel';
 import { InterviewerVotingPanel } from '@/components/meetings/InterviewerVotingPanel';
+import { QUINVoiceAssistant } from '@/components/meetings/QUINVoiceAssistant';
+import { LiveTranslationPanel } from '@/components/meetings/LiveTranslationPanel';
+import { PredictiveHiringPanel } from '@/components/meetings/PredictiveHiringPanel';
+import { EngagementAnalyticsOverlay } from '@/components/meetings/EngagementAnalyticsOverlay';
 import { RecordingIndicator } from '@/components/meetings/RecordingIndicator';
 import { RecordingConsentBanner } from '@/components/meetings/RecordingConsentBanner';
 import { RecordingConsentModal, ConsentOptions } from '@/components/meetings/RecordingConsentModal';
@@ -89,6 +93,10 @@ export function MeetingVideoCallInterface({
   const [showBackgrounds, setShowBackgrounds] = useState(false);
   const [showBackchannel, setShowBackchannel] = useState(false);
   const [showVoting, setShowVoting] = useState(false);
+  const [showQUINVoice, setShowQUINVoice] = useState(false);
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [showPredictiveHiring, setShowPredictiveHiring] = useState(false);
+  const [showEngagementAnalytics, setShowEngagementAnalytics] = useState(false);
   const [meetingStarted, setMeetingStarted] = useState(false);
   const [totalParticipants, setTotalParticipants] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
@@ -1447,6 +1455,50 @@ export function MeetingVideoCallInterface({
             candidateId={meeting.candidate_id}
           />
         </div>
+      )}
+
+      {/* QUIN Voice Assistant */}
+      {showQUINVoice && (
+        <div className="absolute bottom-24 right-4 z-[10001]">
+          <QUINVoiceAssistant
+            meetingId={meeting.id}
+            onClose={() => setShowQUINVoice(false)}
+          />
+        </div>
+      )}
+
+      {/* Live Translation Panel */}
+      {showTranslation && (
+        <div className="absolute top-20 right-4 z-[10000]">
+          <LiveTranslationPanel
+            meetingId={meeting.id}
+            onClose={() => setShowTranslation(false)}
+          />
+        </div>
+      )}
+
+      {/* Predictive Hiring Panel - For host/interviewers */}
+      {showPredictiveHiring && ['host', 'interviewer'].includes(userRole) && (
+        <div className="absolute right-4 top-20 w-96 z-[10000] bg-card/95 backdrop-blur-lg rounded-lg border border-border shadow-2xl">
+          <div className="flex items-center justify-between p-3 border-b border-border">
+            <h3 className="text-sm font-semibold">Hiring Signals</h3>
+            <Button variant="ghost" size="sm" onClick={() => setShowPredictiveHiring(false)} className="h-6 w-6 p-0">✕</Button>
+          </div>
+          <PredictiveHiringPanel
+            meetingId={meeting.id}
+            compact
+          />
+        </div>
+      )}
+
+      {/* Engagement Analytics Overlay */}
+      {showEngagementAnalytics && ['host', 'interviewer'].includes(userRole) && (
+        <EngagementAnalyticsOverlay
+          meetingId={meeting.id}
+          participants={[]}
+          elapsedTimeMs={0}
+          onClose={() => setShowEngagementAnalytics(false)}
+        />
       )}
     </div>
   );
