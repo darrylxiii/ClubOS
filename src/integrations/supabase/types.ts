@@ -10452,6 +10452,48 @@ export type Database = {
         }
         Relationships: []
       }
+      connects_subscriptions: {
+        Row: {
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          monthly_connects: number
+          price_monthly: number
+          status: string | null
+          stripe_subscription_id: string | null
+          tier: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          monthly_connects: number
+          price_monthly: number
+          status?: string | null
+          stripe_subscription_id?: string | null
+          tier: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          monthly_connects?: number
+          price_monthly?: number
+          status?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       connects_transactions: {
         Row: {
           amount: number
@@ -17710,6 +17752,74 @@ export type Database = {
           },
         ]
       }
+      freelancer_team_members: {
+        Row: {
+          id: string
+          joined_at: string | null
+          member_id: string
+          revenue_share_percentage: number | null
+          role: string | null
+          team_id: string | null
+        }
+        Insert: {
+          id?: string
+          joined_at?: string | null
+          member_id: string
+          revenue_share_percentage?: number | null
+          role?: string | null
+          team_id?: string | null
+        }
+        Update: {
+          id?: string
+          joined_at?: string | null
+          member_id?: string
+          revenue_share_percentage?: number | null
+          role?: string | null
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "freelancer_team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "freelancer_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      freelancer_teams: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          owner_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          owner_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          owner_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       funnel_analytics: {
         Row: {
           action: string
@@ -23247,6 +23357,42 @@ export type Database = {
           sample_size?: number | null
           time_period?: string | null
           valid_until?: string | null
+        }
+        Relationships: []
+      }
+      marketplace_fraud_signals: {
+        Row: {
+          action_taken: string | null
+          created_at: string | null
+          details: Json | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          severity: string | null
+          signal_type: string
+          user_id: string
+        }
+        Insert: {
+          action_taken?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: string | null
+          signal_type: string
+          user_id: string
+        }
+        Update: {
+          action_taken?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: string | null
+          signal_type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -33336,6 +33482,7 @@ export type Database = {
           amount: number
           approved_at: string | null
           approved_by: string | null
+          auto_release_date: string | null
           contract_id: string
           created_at: string | null
           currency: string | null
@@ -33344,6 +33491,7 @@ export type Database = {
           due_date: string | null
           escrow_funded: boolean | null
           escrow_funded_at: string | null
+          escrow_status: string | null
           estimated_hours: number | null
           feedback_from_client: string | null
           feedback_rating: number | null
@@ -33371,6 +33519,7 @@ export type Database = {
           amount: number
           approved_at?: string | null
           approved_by?: string | null
+          auto_release_date?: string | null
           contract_id: string
           created_at?: string | null
           currency?: string | null
@@ -33379,6 +33528,7 @@ export type Database = {
           due_date?: string | null
           escrow_funded?: boolean | null
           escrow_funded_at?: string | null
+          escrow_status?: string | null
           estimated_hours?: number | null
           feedback_from_client?: string | null
           feedback_rating?: number | null
@@ -33406,6 +33556,7 @@ export type Database = {
           amount?: number
           approved_at?: string | null
           approved_by?: string | null
+          auto_release_date?: string | null
           contract_id?: string
           created_at?: string | null
           currency?: string | null
@@ -33414,6 +33565,7 @@ export type Database = {
           due_date?: string | null
           escrow_funded?: boolean | null
           escrow_funded_at?: string | null
+          escrow_status?: string | null
           estimated_hours?: number | null
           feedback_from_client?: string | null
           feedback_rating?: number | null
@@ -37523,6 +37675,60 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      signed_documents: {
+        Row: {
+          contract_id: string | null
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          signature_data: string | null
+          signed_at: string | null
+          signer_id: string
+          signer_name: string | null
+          template_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          contract_id?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          signature_data?: string | null
+          signed_at?: string | null
+          signer_id: string
+          signer_name?: string | null
+          template_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          contract_id?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          signature_data?: string | null
+          signed_at?: string | null
+          signer_id?: string
+          signer_name?: string | null
+          template_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signed_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "project_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signed_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       skill_endorsements: {
         Row: {
