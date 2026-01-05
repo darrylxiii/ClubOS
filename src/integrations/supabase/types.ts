@@ -7017,50 +7017,83 @@ export type Database = {
       }
       candidate_scorecards: {
         Row: {
+          ai_prefilled: boolean | null
+          ai_suggested_concerns: string[] | null
+          ai_suggested_rating: number | null
+          ai_suggested_strengths: string[] | null
           application_id: string
+          candidate_id: string | null
           communication_score: number | null
           concerns: string | null
           created_at: string
           cultural_fit_score: number | null
           evaluator_id: string
           id: string
+          key_evidence: Json | null
+          leadership: number | null
+          meeting_id: string | null
           notes: string | null
           overall_rating: number | null
+          problem_solving: number | null
           recommendation: string | null
           stage_index: number
+          status: string | null
           strengths: string | null
+          submitted_at: string | null
           technical_score: number | null
           updated_at: string
         }
         Insert: {
+          ai_prefilled?: boolean | null
+          ai_suggested_concerns?: string[] | null
+          ai_suggested_rating?: number | null
+          ai_suggested_strengths?: string[] | null
           application_id: string
+          candidate_id?: string | null
           communication_score?: number | null
           concerns?: string | null
           created_at?: string
           cultural_fit_score?: number | null
           evaluator_id: string
           id?: string
+          key_evidence?: Json | null
+          leadership?: number | null
+          meeting_id?: string | null
           notes?: string | null
           overall_rating?: number | null
+          problem_solving?: number | null
           recommendation?: string | null
           stage_index: number
+          status?: string | null
           strengths?: string | null
+          submitted_at?: string | null
           technical_score?: number | null
           updated_at?: string
         }
         Update: {
+          ai_prefilled?: boolean | null
+          ai_suggested_concerns?: string[] | null
+          ai_suggested_rating?: number | null
+          ai_suggested_strengths?: string[] | null
           application_id?: string
+          candidate_id?: string | null
           communication_score?: number | null
           concerns?: string | null
           created_at?: string
           cultural_fit_score?: number | null
           evaluator_id?: string
           id?: string
+          key_evidence?: Json | null
+          leadership?: number | null
+          meeting_id?: string | null
           notes?: string | null
           overall_rating?: number | null
+          problem_solving?: number | null
           recommendation?: string | null
           stage_index?: number
+          status?: string | null
           strengths?: string | null
+          submitted_at?: string | null
           technical_score?: number | null
           updated_at?: string
         }
@@ -18805,6 +18838,60 @@ export type Database = {
           },
         ]
       }
+      interview_analytics: {
+        Row: {
+          advanced_to_next_stage: number | null
+          avg_duration_minutes: number | null
+          avg_rating: number | null
+          company_id: string | null
+          completed_interviews: number | null
+          created_at: string | null
+          date: string
+          id: string
+          interview_stage: string | null
+          job_id: string | null
+          negative_recommendations: number | null
+          positive_recommendations: number | null
+          rejected_count: number | null
+          total_interviews: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          advanced_to_next_stage?: number | null
+          avg_duration_minutes?: number | null
+          avg_rating?: number | null
+          company_id?: string | null
+          completed_interviews?: number | null
+          created_at?: string | null
+          date: string
+          id?: string
+          interview_stage?: string | null
+          job_id?: string | null
+          negative_recommendations?: number | null
+          positive_recommendations?: number | null
+          rejected_count?: number | null
+          total_interviews?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          advanced_to_next_stage?: number | null
+          avg_duration_minutes?: number | null
+          avg_rating?: number | null
+          company_id?: string | null
+          completed_interviews?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          interview_stage?: string | null
+          job_id?: string | null
+          negative_recommendations?: number | null
+          positive_recommendations?: number | null
+          rejected_count?: number | null
+          total_interviews?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       interview_feedback: {
         Row: {
           application_id: string
@@ -24323,6 +24410,7 @@ export type Database = {
       }
       meeting_participants: {
         Row: {
+          attended: boolean | null
           created_at: string | null
           guest_email: string | null
           guest_name: string | null
@@ -24331,13 +24419,19 @@ export type Database = {
           last_seen: string | null
           left_at: string | null
           meeting_id: string
+          participant_type: string | null
           permissions: Json | null
           role: string
+          role_in_interview: string | null
+          rsvp_status: string | null
+          scorecard_due_at: string | null
+          scorecard_submitted: boolean | null
           session_token: string | null
           status: string
           user_id: string | null
         }
         Insert: {
+          attended?: boolean | null
           created_at?: string | null
           guest_email?: string | null
           guest_name?: string | null
@@ -24346,13 +24440,19 @@ export type Database = {
           last_seen?: string | null
           left_at?: string | null
           meeting_id: string
+          participant_type?: string | null
           permissions?: Json | null
           role?: string
+          role_in_interview?: string | null
+          rsvp_status?: string | null
+          scorecard_due_at?: string | null
+          scorecard_submitted?: boolean | null
           session_token?: string | null
           status?: string
           user_id?: string | null
         }
         Update: {
+          attended?: boolean | null
           created_at?: string | null
           guest_email?: string | null
           guest_name?: string | null
@@ -24361,8 +24461,13 @@ export type Database = {
           last_seen?: string | null
           left_at?: string | null
           meeting_id?: string
+          participant_type?: string | null
           permissions?: Json | null
           role?: string
+          role_in_interview?: string | null
+          rsvp_status?: string | null
+          scorecard_due_at?: string | null
+          scorecard_submitted?: boolean | null
           session_token?: string | null
           status?: string
           user_id?: string | null
@@ -24683,6 +24788,47 @@ export type Database = {
           },
         ]
       }
+      meeting_reminders: {
+        Row: {
+          content: Json | null
+          created_at: string | null
+          id: string
+          meeting_id: string | null
+          reminder_type: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          meeting_id?: string | null
+          reminder_type?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          meeting_id?: string | null
+          reminder_type?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_reminders_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_summaries: {
         Row: {
           action_items: Json | null
@@ -24723,10 +24869,13 @@ export type Database = {
       }
       meeting_templates: {
         Row: {
+          company_id: string | null
           created_at: string | null
           description: string | null
           duration_minutes: number
+          evaluation_criteria: string[] | null
           id: string
+          interview_stage: string | null
           is_default: boolean | null
           is_public: boolean | null
           name: string
@@ -24740,10 +24889,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          company_id?: string | null
           created_at?: string | null
           description?: string | null
           duration_minutes?: number
+          evaluation_criteria?: string[] | null
           id?: string
+          interview_stage?: string | null
           is_default?: boolean | null
           is_public?: boolean | null
           name: string
@@ -24757,10 +24909,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          company_id?: string | null
           created_at?: string | null
           description?: string | null
           duration_minutes?: number
+          evaluation_criteria?: string[] | null
           id?: string
+          interview_stage?: string | null
           is_default?: boolean | null
           is_public?: boolean | null
           name?: string
@@ -24891,32 +25046,43 @@ export type Database = {
       meetings: {
         Row: {
           access_type: string
+          actual_end: string | null
+          actual_start: string | null
           agenda: string | null
+          ai_analysis_status: string | null
           ai_confidence_score: number | null
+          ai_key_moments: Json | null
+          ai_recommendation: string | null
           ai_suggested_time: boolean | null
+          ai_summary: string | null
           allow_guests: boolean | null
           application_id: string | null
           booking_id: string | null
           branding: Json | null
+          cancellation_reason: string | null
           candidate_id: string | null
           company_id: string | null
           created_at: string | null
           created_by_ai: boolean | null
           created_via: string | null
           description: string | null
+          duration_minutes: number | null
           enable_notetaker: boolean | null
           external_calendar_event_id: string | null
+          has_recording: boolean | null
           host_id: string
           host_settings: Json | null
           id: string
           interview_stage: string | null
           job_id: string | null
+          location_type: string | null
           max_participants: number | null
           meeting_code: string
           meeting_password: string | null
           meeting_type: string | null
           original_user_request: string | null
           pmr_id: string | null
+          recording_url: string | null
           recurrence_rule: string | null
           require_approval: boolean | null
           scheduled_end: string
@@ -24927,6 +25093,7 @@ export type Database = {
           template_id: string | null
           timezone: string
           title: string
+          transcript_url: string | null
           translation_enabled: boolean | null
           translation_languages: string[] | null
           updated_at: string | null
@@ -24934,32 +25101,43 @@ export type Database = {
         }
         Insert: {
           access_type?: string
+          actual_end?: string | null
+          actual_start?: string | null
           agenda?: string | null
+          ai_analysis_status?: string | null
           ai_confidence_score?: number | null
+          ai_key_moments?: Json | null
+          ai_recommendation?: string | null
           ai_suggested_time?: boolean | null
+          ai_summary?: string | null
           allow_guests?: boolean | null
           application_id?: string | null
           booking_id?: string | null
           branding?: Json | null
+          cancellation_reason?: string | null
           candidate_id?: string | null
           company_id?: string | null
           created_at?: string | null
           created_by_ai?: boolean | null
           created_via?: string | null
           description?: string | null
+          duration_minutes?: number | null
           enable_notetaker?: boolean | null
           external_calendar_event_id?: string | null
+          has_recording?: boolean | null
           host_id: string
           host_settings?: Json | null
           id?: string
           interview_stage?: string | null
           job_id?: string | null
+          location_type?: string | null
           max_participants?: number | null
           meeting_code: string
           meeting_password?: string | null
           meeting_type?: string | null
           original_user_request?: string | null
           pmr_id?: string | null
+          recording_url?: string | null
           recurrence_rule?: string | null
           require_approval?: boolean | null
           scheduled_end: string
@@ -24970,6 +25148,7 @@ export type Database = {
           template_id?: string | null
           timezone?: string
           title: string
+          transcript_url?: string | null
           translation_enabled?: boolean | null
           translation_languages?: string[] | null
           updated_at?: string | null
@@ -24977,32 +25156,43 @@ export type Database = {
         }
         Update: {
           access_type?: string
+          actual_end?: string | null
+          actual_start?: string | null
           agenda?: string | null
+          ai_analysis_status?: string | null
           ai_confidence_score?: number | null
+          ai_key_moments?: Json | null
+          ai_recommendation?: string | null
           ai_suggested_time?: boolean | null
+          ai_summary?: string | null
           allow_guests?: boolean | null
           application_id?: string | null
           booking_id?: string | null
           branding?: Json | null
+          cancellation_reason?: string | null
           candidate_id?: string | null
           company_id?: string | null
           created_at?: string | null
           created_by_ai?: boolean | null
           created_via?: string | null
           description?: string | null
+          duration_minutes?: number | null
           enable_notetaker?: boolean | null
           external_calendar_event_id?: string | null
+          has_recording?: boolean | null
           host_id?: string
           host_settings?: Json | null
           id?: string
           interview_stage?: string | null
           job_id?: string | null
+          location_type?: string | null
           max_participants?: number | null
           meeting_code?: string
           meeting_password?: string | null
           meeting_type?: string | null
           original_user_request?: string | null
           pmr_id?: string | null
+          recording_url?: string | null
           recurrence_rule?: string | null
           require_approval?: boolean | null
           scheduled_end?: string
@@ -25013,6 +25203,7 @@ export type Database = {
           template_id?: string | null
           timezone?: string
           title?: string
+          transcript_url?: string | null
           translation_enabled?: boolean | null
           translation_languages?: string[] | null
           updated_at?: string | null
@@ -29616,6 +29807,7 @@ export type Database = {
       pipeline_events: {
         Row: {
           application_id: string
+          candidate_id: string | null
           created_at: string
           event_type: string
           from_stage: number | null
@@ -29623,10 +29815,14 @@ export type Database = {
           job_id: string
           metadata: Json | null
           performed_by: string
+          related_meeting_id: string | null
+          related_scorecard_ids: string[] | null
           to_stage: number | null
+          triggered_by: string | null
         }
         Insert: {
           application_id: string
+          candidate_id?: string | null
           created_at?: string
           event_type: string
           from_stage?: number | null
@@ -29634,10 +29830,14 @@ export type Database = {
           job_id: string
           metadata?: Json | null
           performed_by: string
+          related_meeting_id?: string | null
+          related_scorecard_ids?: string[] | null
           to_stage?: number | null
+          triggered_by?: string | null
         }
         Update: {
           application_id?: string
+          candidate_id?: string | null
           created_at?: string
           event_type?: string
           from_stage?: number | null
@@ -29645,7 +29845,10 @@ export type Database = {
           job_id?: string
           metadata?: Json | null
           performed_by?: string
+          related_meeting_id?: string | null
+          related_scorecard_ids?: string[] | null
           to_stage?: number | null
+          triggered_by?: string | null
         }
         Relationships: []
       }
@@ -45560,6 +45763,26 @@ export type Database = {
           severity: string | null
         }
         Relationships: []
+      }
+      interview_pipeline_metrics: {
+        Row: {
+          avg_rating: number | null
+          interview_stage: string | null
+          job_id: string | null
+          negative_outcomes: number | null
+          positive_outcomes: number | null
+          total_interviews: number | null
+          unique_candidates: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       member_requests_unified: {
         Row: {
