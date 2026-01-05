@@ -20,6 +20,7 @@ import { MeetingHistoryTab } from "@/components/meetings/MeetingHistoryTab";
 import { InstantMeetingButton } from "@/components/meetings/InstantMeetingButton";
 import { PersonalMeetingRoomCard } from "@/components/meetings/PersonalMeetingRoomCard";
 import { MeetingAnalyticsDashboard } from "@/components/meetings/MeetingAnalyticsDashboard";
+import { useAutoCreatePMR } from "@/hooks/useAutoCreatePMR";
 import { toast } from "sonner";
 
 export default function Meetings() {
@@ -39,6 +40,9 @@ export default function Meetings() {
   });
 
   const activeTab = searchParams.get('tab') || 'calendar';
+
+  // Auto-create Personal Meeting Room if user doesn't have one
+  useAutoCreatePMR();
 
   // Debug logging for component lifecycle
   useEffect(() => {
@@ -237,6 +241,10 @@ export default function Meetings() {
               <Sparkles className="h-4 w-4" />
               Intelligence
             </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
               Settings
@@ -287,6 +295,10 @@ export default function Meetings() {
 
           <TabsContent value="intelligence" className="mt-6">
             <MeetingIntelligenceTab />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-6">
+            <MeetingAnalyticsDashboard />
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">

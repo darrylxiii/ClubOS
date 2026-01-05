@@ -304,9 +304,12 @@ export function useCompositorRecording({
   };
 
   /**
-   * Trigger AI analysis pipeline
+   * Trigger AI analysis pipeline with retry logic
    */
-  const triggerAnalysis = async (recordingId: string) => {
+  const triggerAnalysis = async (recordingId: string, attempt = 1) => {
+    const maxAttempts = 3;
+    const baseDelay = 2000;
+
     try {
       // Update status
       await supabase
@@ -320,28 +323,43 @@ export function useCompositorRecording({
       });
 
       if (error) {
-        logger.error('Analysis trigger failed', {
+        throw error;
+      }
+
+      logger.info('AI analysis triggered successfully', {
+        componentName: 'CompositorRecording',
+        recordingId,
+        attempt
+      });
+    } catch (error: any) {
+      logger.error(`Analysis trigger attempt ${attempt} failed`, {
+        componentName: 'CompositorRecording',
+        error,
+        recordingId
+      });
+
+      if (attempt < maxAttempts) {
+        const delay = baseDelay * attempt;
+        logger.info(`Retrying analysis in ${delay}ms (attempt ${attempt + 1}/${maxAttempts})`, {
           componentName: 'CompositorRecording',
-          error
+          recordingId
         });
+        setTimeout(() => triggerAnalysis(recordingId, attempt + 1), delay);
+      } else {
+        // All retries exhausted
+        toast.error('Recording saved but analysis failed', {
+          description: 'You can retry from History tab',
+          duration: 5000
+        });
+        
         await supabase
           .from('meeting_recordings_extended')
           .update({
             processing_status: 'failed',
-            processing_error: error.message
+            processing_error: error.message || 'Analysis trigger failed after 3 attempts'
           })
           .eq('id', recordingId);
-      } else {
-        logger.info('AI analysis triggered', {
-          componentName: 'CompositorRecording',
-          recordingId
-        });
       }
-    } catch (error) {
-      logger.error('Error triggering analysis', {
-        componentName: 'CompositorRecording',
-        error
-      });
     }
   };
 
