@@ -189,8 +189,10 @@ serve(async (req) => {
     
     const emailData: EmailRequest = await req.json();
     
-    const acceptUrl = `${Deno.env.get('APP_URL')}/api/meeting-response?id=${emailData.invitationId}&action=accept`;
-    const declineUrl = `${Deno.env.get('APP_URL')}/api/meeting-response?id=${emailData.invitationId}&action=decline`;
+    // Use APP_URL from env or fallback to production URL
+    const appUrl = Deno.env.get('APP_URL') || 'https://app.thequantumclub.com';
+    const acceptUrl = `${appUrl}/api/meeting-response?id=${emailData.invitationId}&action=accept`;
+    const declineUrl = `${appUrl}/api/meeting-response?id=${emailData.invitationId}&action=decline`;
 
     const icsContent = generateICS(
       emailData.meetingTitle,
