@@ -72,7 +72,7 @@ export function TalentPoolKanban({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-5 gap-4 overflow-x-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-auto">
         {columns.map((column) => {
           const tierCandidates = getCandidatesByTier(column.id);
           const Icon = column.icon;

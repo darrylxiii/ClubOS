@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Clock,
   Medal,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -38,6 +39,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTalentPoolLists, SMART_LIST_PRESETS } from '@/hooks/useTalentPoolLists';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Flame,
@@ -49,10 +51,14 @@ const ICON_MAP: Record<string, React.ElementType> = {
 
 export default function TalentPoolLists() {
   const navigate = useNavigate();
-  const { lists, isLoading, createList, deleteList, isCreating } = useTalentPoolLists();
+  const { lists, isLoading, createList, updateList, deleteList, isCreating } = useTalentPoolLists();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState<string | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState<string | null>(null);
   const [newList, setNewList] = useState({ name: '', description: '' });
+  const [editingList, setEditingList] = useState({ name: '', description: '' });
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const manualLists = lists.filter((l) => l.list_type === 'manual');
   const smartLists = lists.filter((l) => l.list_type === 'smart');
@@ -76,6 +82,38 @@ export default function TalentPoolLists() {
   const handleDeleteList = async (listId: string) => {
     await deleteList(listId);
     setDeleteDialogOpen(null);
+  };
+
+  const handleEditList = async () => {
+    if (!editDialogOpen || !editingList.name.trim()) return;
+    setIsUpdating(true);
+    try {
+      await updateList({ 
+        id: editDialogOpen, 
+        name: editingList.name, 
+        description: editingList.description 
+      });
+      setEditDialogOpen(null);
+      setEditingList({ name: '', description: '' });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const openEditDialog = (list: typeof lists[0]) => {
+    setEditingList({ name: list.name, description: list.description || '' });
+    setEditDialogOpen(list.id);
+  };
+
+  const handleShareList = async () => {
+    if (!shareDialogOpen) return;
+    // Toggle share status
+    const list = lists.find(l => l.id === shareDialogOpen);
+    if (list) {
+      await updateList({ id: shareDialogOpen, is_shared: !list.is_shared });
+      toast.success(list.is_shared ? 'List is now private' : 'List is now shared with your team');
+    }
+    setShareDialogOpen(null);
   };
 
   if (isLoading) {
@@ -160,13 +198,23 @@ export default function TalentPoolLists() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditDialog(list);
+                              }}
+                            >
                               <Pencil className="w-4 h-4 mr-2" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShareDialogOpen(list.id);
+                              }}
+                            >
                               <Share2 className="w-4 h-4 mr-2" />
-                              Share
+                              {list.is_shared ? 'Unshare' : 'Share'}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
@@ -331,6 +379,65 @@ export default function TalentPoolLists() {
             </Button>
             <Button variant="destructive" onClick={() => deleteDialogOpen && handleDeleteList(deleteDialogOpen)}>
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit List Dialog */}
+      <Dialog open={!!editDialogOpen} onOpenChange={() => setEditDialogOpen(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit List</DialogTitle>
+            <DialogDescription>Update the list name and description</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                value={editingList.name}
+                onChange={(e) => setEditingList((prev) => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={editingList.description}
+                onChange={(e) => setEditingList((prev) => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditList} disabled={!editingList.name.trim() || isUpdating}>
+              {isUpdating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share List Dialog */}
+      <Dialog open={!!shareDialogOpen} onOpenChange={() => setShareDialogOpen(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Share List</DialogTitle>
+            <DialogDescription>
+              {lists.find(l => l.id === shareDialogOpen)?.is_shared 
+                ? 'This list is currently shared with your team. Would you like to make it private?'
+                : 'Share this list with your team so they can view the candidates.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShareDialogOpen(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleShareList}>
+              {lists.find(l => l.id === shareDialogOpen)?.is_shared ? 'Make Private' : 'Share with Team'}
             </Button>
           </DialogFooter>
         </DialogContent>
