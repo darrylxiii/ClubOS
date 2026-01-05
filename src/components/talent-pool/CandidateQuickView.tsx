@@ -20,6 +20,9 @@ import {
   Heart,
   Reply,
   Brain,
+  Calendar,
+  FileText,
+  MessageCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TierBadge, MoveProbabilityBadge } from './TierBadge';
@@ -33,6 +36,9 @@ interface CandidateQuickViewProps {
   onViewFullProfile?: () => void;
   onLogTouchpoint?: () => void;
   onAddToList?: () => void;
+  onScheduleInterview?: () => void;
+  onGenerateDossier?: () => void;
+  onWhatsApp?: () => void;
 }
 
 export function CandidateQuickView({
@@ -42,6 +48,9 @@ export function CandidateQuickView({
   onViewFullProfile,
   onLogTouchpoint,
   onAddToList,
+  onScheduleInterview,
+  onGenerateDossier,
+  onWhatsApp,
 }: CandidateQuickViewProps) {
   if (!candidate) return null;
 
@@ -225,10 +234,26 @@ export function CandidateQuickView({
 
             {/* Quick Actions */}
             <div className="space-y-2">
-              <Button onClick={onLogTouchpoint} variant="outline" className="w-full justify-start">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Log Touchpoint
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                {candidate.phone && (
+                  <Button onClick={onWhatsApp} variant="outline" size="sm" className="justify-start">
+                    <MessageCircle className="h-4 w-4 mr-2 text-green-500" />
+                    WhatsApp
+                  </Button>
+                )}
+                <Button onClick={onScheduleInterview} variant="outline" size="sm" className="justify-start">
+                  <Calendar className="h-4 w-4 mr-2 text-blue-500" />
+                  Schedule
+                </Button>
+                <Button onClick={onGenerateDossier} variant="outline" size="sm" className="justify-start">
+                  <FileText className="h-4 w-4 mr-2 text-purple-500" />
+                  Dossier
+                </Button>
+                <Button onClick={onLogTouchpoint} variant="outline" size="sm" className="justify-start">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Touchpoint
+                </Button>
+              </div>
               <Button onClick={onAddToList} variant="outline" className="w-full justify-start">
                 <ListPlus className="h-4 w-4 mr-2" />
                 Add to List
