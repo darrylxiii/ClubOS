@@ -25,6 +25,11 @@ import { AuditLogViewer } from "@/components/candidate-profile/AuditLogViewer";
 import { MeetingIntelligenceCard } from "@/components/candidate-profile/MeetingIntelligenceCard";
 import { AssessmentInsightsCard } from "@/components/candidate-profile/AssessmentInsightsCard";
 import { InterviewScorecard } from "@/components/candidate-profile/InterviewScorecard";
+import { MoveProbabilityCard } from "@/components/talent-pool/MoveProbabilityCard";
+import { RelationshipCard } from "@/components/talent-pool/RelationshipCard";
+import { TierBadge } from "@/components/talent-pool/TierBadge";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 
 export default function UnifiedCandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -51,6 +56,7 @@ export default function UnifiedCandidateProfile() {
   const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
   const [skills, setSkills] = useState<any[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [relationship, setRelationship] = useState<any>(null);
 
   useEffect(() => {
     if (candidateId) {
@@ -269,8 +275,43 @@ export default function UnifiedCandidateProfile() {
 
           {/* Right Sidebar: Sticky Cards - Tighter spacing */}
           <div className="space-y-4">
+            {/* Talent Pool Status - Admin Only */}
+            {isAdmin && (
+              <Card className={`${candidateProfileTokens.glass.card}`}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">Talent Pool Status</CardTitle>
+                    {candidate.talent_tier && (
+                      <TierBadge tier={candidate.talent_tier} size="sm" />
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => window.open(`/talent-pool?candidate=${candidateId}`, '_blank')}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    View in Talent Pool
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Move Probability Card - Admin Only */}
+            {isAdmin && (
+              <MoveProbabilityCard candidateId={candidateId!} />
+            )}
+
+            {/* Relationship Card - Admin Only */}
+            {isAdmin && (
+              <RelationshipCard relationship={relationship} />
+            )}
+
             {/* Career Preferences - Compact */}
-            <Card className={`${candidateProfileTokens.glass.card} sticky top-24`}>
+            <Card className={`${candidateProfileTokens.glass.card}`}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Career Preferences</CardTitle>
               </CardHeader>
@@ -320,9 +361,7 @@ export default function UnifiedCandidateProfile() {
             </Card>
 
             {/* Work Authorization */}
-            <div className="sticky top-[32rem]">
-              <CandidateWorkAuthCard candidate={candidate} />
-            </div>
+            <CandidateWorkAuthCard candidate={candidate} />
 
             {/* Activity Feed */}
             <ActivityFeedCard candidateId={candidateId!} />

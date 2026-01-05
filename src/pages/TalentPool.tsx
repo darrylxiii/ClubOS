@@ -3,7 +3,9 @@ import { AppLayout } from '@/components/AppLayout';
 import { DashboardHeader } from '@/components/admin/shared/DashboardHeader';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Upload, Table2, LayoutGrid } from 'lucide-react';
+import { Plus, Upload, Table2, LayoutGrid, Zap, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   TalentPoolStats,
   SemanticSearchBar,
@@ -33,9 +35,39 @@ export default function TalentPool() {
   const [quickViewCandidate, setQuickViewCandidate] = useState<TalentPoolCandidate | null>(null);
   const [touchpointDialogCandidate, setTouchpointDialogCandidate] = useState<TalentPoolCandidate | null>(null);
   const [addToListDialogCandidate, setAddToListDialogCandidate] = useState<TalentPoolCandidate | null>(null);
+  const [isBulkCalculating, setIsBulkCalculating] = useState(false);
 
   const { candidates, stats, isLoading, refetch, updateTier } = useTalentPool(filters);
   const { search, results, lastQuery, isSearching, clearResults } = useSemanticSearch();
+
+  // Handle bulk move probability calculation
+  const handleBulkCalculate = useCallback(async () => {
+    setIsBulkCalculating(true);
+    const toastId = toast.loading('Calculating move probabilities...');
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('calculate-move-probability-bulk', {
+        body: { force_recalculate: false }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success(
+          `Processed ${data.result.processed} candidates. Updated: ${data.result.updated}, Skipped: ${data.result.skipped}`,
+          { id: toastId }
+        );
+        refetch();
+      } else {
+        throw new Error(data?.error || 'Calculation failed');
+      }
+    } catch (error) {
+      console.error('Bulk calculation error:', error);
+      toast.error('Failed to calculate move probabilities', { id: toastId });
+    } finally {
+      setIsBulkCalculating(false);
+    }
+  }, [refetch]);
 
   // Use search results if available, otherwise use filtered candidates
   const displayCandidates = lastQuery ? results : candidates;
@@ -108,6 +140,19 @@ export default function TalentPool() {
           isRefreshing={isLoading}
           actions={
             <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleBulkCalculate}
+                disabled={isBulkCalculating}
+              >
+                {isBulkCalculating ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="h-4 w-4 mr-2" />
+                )}
+                Calculate Probabilities
+              </Button>
               <Button variant="outline" size="sm">
                 <Upload className="h-4 w-4 mr-2" />
                 Import

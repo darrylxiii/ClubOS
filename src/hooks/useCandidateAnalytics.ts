@@ -138,7 +138,7 @@ export function useCandidateAnalytics(userId: string | undefined, dateRange?: { 
 
       const totalApps = applications?.length || 0;
       const activeApps = applications?.filter(a => !['rejected', 'withdrawn', 'hired'].includes(a.status))?.length || 0;
-      const interviews = applications?.filter(a => ['interview', 'final'].includes(a.status))?.length || 0;
+      const interviewStageCount = applications?.filter(a => ['interview', 'final'].includes(a.status))?.length || 0;
       const offers = applications?.filter(a => a.status === 'offer')?.length || 0;
       const hired = applications?.filter(a => a.status === 'hired')?.length || 0;
 
@@ -165,20 +165,42 @@ export function useCandidateAnalytics(userId: string | undefined, dateRange?: { 
         .map(([date, applications]) => ({ date, applications }))
         .slice(-30);
 
-      // Interview and search data (placeholder until types regenerate)
-      const interviews_data: any[] = [];
-      const searches: any[] = [];
-      
-      const totalInterviews = 0;
-      const completedInterviews = 0;
-      const avgRating = 0;
-      const avgTechnical = 0;
-      const avgCultural = 0;
-      const avgComm = 0;
-      const noShowRate = 0;
+      // Fetch interview performance data - use any to handle schema differences
+      const { data: interviewData } = await (supabase as any)
+        .from('candidate_interview_performance')
+        .select('*')
+        .eq('candidate_id', profile.id);
 
-      const totalSearches = searches?.length || 0;
-      const searchTerms = searches?.reduce((acc: Record<string, number>, search: any) => {
+      const interviewPerformanceData = (interviewData || []) as any[];
+      const totalInterviews = interviewPerformanceData.length;
+      const completedInterviews = interviewPerformanceData.filter(i => i.interview_completed || i.overall_score !== null).length;
+      
+      const avgRating = interviewPerformanceData.length 
+        ? interviewPerformanceData.reduce((sum, i) => sum + (i.overall_rating || i.overall_score || 0), 0) / interviewPerformanceData.length 
+        : 0;
+      const avgTechnical = interviewPerformanceData.length 
+        ? interviewPerformanceData.reduce((sum, i) => sum + (i.technical_score || i.technical_skills_score || 0), 0) / interviewPerformanceData.length 
+        : 0;
+      const avgCultural = interviewPerformanceData.length 
+        ? interviewPerformanceData.reduce((sum, i) => sum + (i.cultural_fit_score || 0), 0) / interviewPerformanceData.length 
+        : 0;
+      const avgComm = interviewPerformanceData.length 
+        ? interviewPerformanceData.reduce((sum, i) => sum + (i.communication_score || i.communication_clarity_score || 0), 0) / interviewPerformanceData.length 
+        : 0;
+      const noShowCount = interviewPerformanceData.filter(i => i.no_show || i.status === 'no_show').length;
+      const noShowRate = totalInterviews > 0 ? (noShowCount / totalInterviews) * 100 : 0;
+
+      // Fetch job search history
+      const { data: searchData } = await (supabase as any)
+        .from('job_search_history')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      const searches = (searchData || []) as any[];
+      const totalSearches = searches.length;
+      const searchTerms = searches.reduce((acc: Record<string, number>, search: any) => {
         const term = search.search_query || 'blank search';
         acc[term] = (acc[term] || 0) + 1;
         return acc;
@@ -189,13 +211,25 @@ export function useCandidateAnalytics(userId: string | undefined, dateRange?: { 
         .sort((a, b) => Number(b.count) - Number(a.count))
         .slice(0, 10);
 
-      // CV downloads (placeholder)
-      const cvDownloads: any[] = [];
+      // CV downloads from activity timeline
+      const { data: cvDownloadsData } = await supabase
+        .from('activity_timeline')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('activity_type', 'cv_download');
 
-      // Fetch referrals (placeholder)
-      const referrals: any[] = [];
-      const referralsMade = 0;
-      const referralsHired = 0;
+      const cvDownloads = cvDownloadsData || [];
+
+      // Fetch referrals - use any to handle schema differences
+      const { data: referralData } = await (supabase as any)
+        .from('referrals')
+        .select('*')
+        .eq('referred_by', userId);
+
+      const referrals = (referralData || []) as any[];
+      const referralsMade = referrals.length;
+      const referralsHired = referrals.filter(r => r.status === 'hired').length;
+      const rewardsEarned = referrals.reduce((sum, r) => sum + (r.reward_paid || r.amount_paid || 0), 0);
 
       setData({
         profileViews: {
@@ -207,7 +241,7 @@ export function useCandidateAnalytics(userId: string | undefined, dateRange?: { 
         applicationMetrics: {
           total: totalApps,
           active: activeApps,
-          interviews,
+          interviews: interviewStageCount,
           offers,
           successRate,
           avgResponseTime: 0,
@@ -238,7 +272,7 @@ export function useCandidateAnalytics(userId: string | undefined, dateRange?: { 
         networkActivity: {
           referralsMade,
           referralsHired,
-          rewardsEarned: referralsHired * 1000,
+          rewardsEarned,
           connectionsGrowth: 0,
         },
       });
