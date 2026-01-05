@@ -295,6 +295,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Users,
       items: [
         { name: "Talent Pool", icon: Sparkles, path: "/talent-pool", badge: "New" },
+        { name: "Talent Lists", icon: FolderOpen, path: "/admin/talent-pool/lists" },
         { name: "All Candidates", icon: Users, path: "/admin/candidates" },
         { name: "All Jobs", icon: Briefcase, path: "/jobs" },
         { name: "Jobs Map", icon: Globe, path: "/jobs/map" },
