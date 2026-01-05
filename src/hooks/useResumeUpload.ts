@@ -120,6 +120,25 @@ export function useResumeUpload(options: UseResumeUploadOptions = {}) {
         }
       }
 
+      // Trigger AI resume parsing in background
+      if (document?.id) {
+        supabase.functions.invoke('parse-resume', {
+          body: { 
+            documentId: document.id, 
+            candidateId: userId,
+            triggerNormalization: true 
+          }
+        }).then(({ error }) => {
+          if (error) {
+            console.error('Resume parsing error:', error);
+          } else {
+            console.log('Resume parsing triggered successfully');
+          }
+        }).catch(err => {
+          console.error('Resume parsing failed:', err);
+        });
+      }
+
       options.onSuccess?.({
         url: publicUrl,
         filename: file.name,

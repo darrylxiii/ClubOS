@@ -28,6 +28,7 @@ import { InterviewScorecard } from "@/components/candidate-profile/InterviewScor
 import { MoveProbabilityCard } from "@/components/talent-pool/MoveProbabilityCard";
 import { RelationshipCard } from "@/components/talent-pool/RelationshipCard";
 import { TierBadge } from "@/components/talent-pool/TierBadge";
+import { ApplicationLogViewer } from "@/components/candidate/ApplicationLogViewer";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 
@@ -365,6 +366,11 @@ export default function UnifiedCandidateProfile() {
 
             {/* Activity Feed */}
             <ActivityFeedCard candidateId={candidateId!} />
+
+            {/* Application Activity Log - Admin Only */}
+            {isAdmin && (
+              <ApplicationLogViewer candidateId={candidateId!} limit={10} />
+            )}
           </div>
         </div>
 
