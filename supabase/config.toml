@@ -1040,3 +1040,6 @@ verify_jwt = true
 
 [functions.enhance-semantic-candidate-search]
 verify_jwt = true
+
+[functions.calculate-move-probability-bulk]
+verify_jwt = true

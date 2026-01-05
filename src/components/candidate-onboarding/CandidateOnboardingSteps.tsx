@@ -466,7 +466,8 @@ export function CandidateOnboardingSteps() {
           resume_filename: formData.resume_filename || null,
           onboarding_completed_at: new Date().toISOString(),
           account_status: 'pending',
-          assigned_strategist_id: '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5',
+          // Auto-assign strategist will be handled by trigger/function
+          // assigned_strategist_id is set automatically based on workload
         })
         .eq('id', authData.user.id);
 

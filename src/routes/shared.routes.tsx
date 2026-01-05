@@ -28,7 +28,7 @@ const Settings = lazy(() => import("@/pages/Settings"));
 const UserSettings = lazy(() => import("@/pages/UserSettings"));
 const EnhancedProfile = lazy(() => import("@/pages/EnhancedProfile"));
 const PublicUserProfile = lazy(() => import("@/pages/PublicUserProfile"));
-const CandidateProfile = lazy(() => import("@/pages/CandidateProfile"));
+const UnifiedCandidateProfile = lazy(() => import("@/pages/UnifiedCandidateProfile"));
 const ClubDJ = lazy(() => import("@/pages/ClubDJ"));
 const Radio = lazy(() => import("@/pages/Radio"));
 const RadioListen = lazy(() => import("@/pages/RadioListen"));
@@ -95,7 +95,7 @@ export const sharedRoutes = (
     {/* Profile & Settings */}
     <Route path="/profile" element={<ProtectedRoute><EnhancedProfile /></ProtectedRoute>} />
     <Route path="/profile/:username" element={<ProtectedRoute><PublicUserProfile /></ProtectedRoute>} />
-    <Route path="/candidate/:id" element={<ProtectedRoute><CandidateProfile /></ProtectedRoute>} />
+    <Route path="/candidate/:candidateId" element={<ProtectedRoute><UnifiedCandidateProfile /></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
     <Route path="/user-settings" element={<ProtectedRoute><UserSettings /></ProtectedRoute>} />
     

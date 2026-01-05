@@ -117,6 +117,12 @@ export async function executeToolCall(
       case 'get_candidates_needing_attention':
         result = await getCandidatesNeedingAttention(args, userId, supabase);
         break;
+      case 'log_candidate_touchpoint':
+        result = await logCandidateTouchpoint(args, userId, supabase);
+        break;
+      case 'update_candidate_tier':
+        result = await updateCandidateTier(args, userId, supabase);
+        break;
 
       default:
         result = { error: `Unknown tool: ${name}` };
@@ -1102,48 +1108,200 @@ async function cancelMeeting(args: any, userId: string, supabase: SupabaseClient
 // ============= TALENT POOL TOOLS =============
 
 async function searchTalentPool(args: any, userId: string, supabase: SupabaseClient) {
-  const { query, tier, minMoveProbability, limit = 10 } = args;
+  const { query, tier, minMoveProbability, limit = 10, industries, locations } = args;
   
   let dbQuery = supabase
     .from('candidate_profiles')
-    .select('id, full_name, current_title, current_company, talent_tier, move_probability, location')
+    .select(`
+      id, full_name, current_title, current_company, talent_tier, 
+      move_probability, location, email, years_of_experience,
+      availability_status, last_engagement_date, tier_score,
+      industries, seniority_level
+    `)
+    .eq('data_deletion_requested', false)
+    .is('gdpr_consent', true)
+    .order('tier_score', { ascending: false })
     .limit(limit);
   
   if (tier) dbQuery = dbQuery.eq('talent_tier', tier);
   if (minMoveProbability) dbQuery = dbQuery.gte('move_probability', minMoveProbability);
-  if (query) dbQuery = dbQuery.or(`full_name.ilike.%${query}%,current_title.ilike.%${query}%`);
+  if (query) dbQuery = dbQuery.or(`full_name.ilike.%${query}%,current_title.ilike.%${query}%,current_company.ilike.%${query}%`);
+  if (locations && locations.length > 0) {
+    const locationConditions = locations.map((loc: string) => `location.ilike.%${loc}%`);
+    dbQuery = dbQuery.or(locationConditions.join(','));
+  }
+  if (industries && industries.length > 0) {
+    dbQuery = dbQuery.overlaps('industries', industries);
+  }
   
   const { data, error } = await dbQuery;
   if (error) throw error;
   
-  return { candidates: data, count: data?.length || 0 };
+  return { 
+    success: true,
+    candidates: data, 
+    count: data?.length || 0,
+    message: `Found ${data?.length || 0} candidates matching criteria`
+  };
 }
 
 async function getCandidateMoveProbability(args: any, userId: string, supabase: SupabaseClient) {
-  const { candidateId } = args;
+  const { candidateId, recalculate } = args;
+  
+  // If recalculate requested, call the edge function
+  if (recalculate) {
+    const { data: calcResult, error: calcError } = await supabase.functions.invoke('calculate-move-probability', {
+      body: { candidate_id: candidateId }
+    });
+    
+    if (calcError) {
+      console.error('Error recalculating move probability:', calcError);
+    }
+  }
   
   const { data, error } = await supabase
     .from('candidate_profiles')
-    .select('id, full_name, move_probability, move_probability_factors, talent_tier')
+    .select(`
+      id, full_name, move_probability, move_probability_factors, talent_tier,
+      current_title, current_company, availability_status, last_engagement_date
+    `)
     .eq('id', candidateId)
     .single();
   
   if (error) throw error;
-  return { candidate: data };
+  
+  // Interpret the probability
+  let interpretation = 'Low likelihood of moving';
+  let recommendation = 'Focus on relationship building';
+  
+  if (data.move_probability >= 80) {
+    interpretation = 'Very high likelihood of moving';
+    recommendation = 'Prioritize immediate engagement with relevant opportunities';
+  } else if (data.move_probability >= 60) {
+    interpretation = 'Good chance of moving';
+    recommendation = 'Actively present opportunities and maintain regular contact';
+  } else if (data.move_probability >= 40) {
+    interpretation = 'Passively open to opportunities';
+    recommendation = 'Keep on radar and nurture relationship';
+  }
+  
+  return { 
+    success: true,
+    candidate: data,
+    interpretation,
+    recommendation
+  };
 }
 
 async function getCandidatesNeedingAttention(args: any, userId: string, supabase: SupabaseClient) {
-  const { limit = 10 } = args;
+  const { limit = 10, daysSinceContact = 14, strategistId } = args;
   
-  const { data, error } = await supabase
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - daysSinceContact);
+  
+  let dbQuery = supabase
     .from('candidate_profiles')
-    .select('id, full_name, talent_tier, move_probability, last_activity_at')
+    .select(`
+      id, full_name, talent_tier, move_probability, last_engagement_date,
+      current_title, current_company, email, owned_by_strategist_id
+    `)
     .in('talent_tier', ['hot', 'warm'])
+    .or(`last_engagement_date.is.null,last_engagement_date.lt.${cutoffDate.toISOString()}`)
     .order('move_probability', { ascending: false })
     .limit(limit);
   
+  if (strategistId) {
+    dbQuery = dbQuery.eq('owned_by_strategist_id', strategistId);
+  }
+  
+  const { data, error } = await dbQuery;
   if (error) throw error;
-  return { candidates: data, count: data?.length || 0, message: 'High-priority candidates needing attention' };
+  
+  // Categorize by urgency
+  const urgent = data?.filter(c => c.talent_tier === 'hot' && c.move_probability >= 70) || [];
+  const important = data?.filter(c => c.talent_tier === 'hot' && c.move_probability < 70) || [];
+  const standard = data?.filter(c => c.talent_tier === 'warm') || [];
+  
+  return { 
+    success: true,
+    urgent,
+    important, 
+    standard,
+    totalCount: data?.length || 0,
+    message: `Found ${urgent.length} urgent, ${important.length} important, and ${standard.length} standard candidates needing attention`
+  };
+}
+
+async function logCandidateTouchpoint(args: any, userId: string, supabase: SupabaseClient) {
+  const { candidateId, touchpointType, notes, responseReceived, requiresResponse, nextActionDate } = args;
+  
+  // Insert interaction record
+  const { data: interaction, error } = await supabase
+    .from('candidate_interactions')
+    .insert({
+      candidate_id: candidateId,
+      interaction_type: touchpointType,
+      notes,
+      interaction_date: new Date().toISOString(),
+      recorded_by: userId
+    })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  
+  // Update candidate's last engagement date
+  await supabase
+    .from('candidate_profiles')
+    .update({ 
+      last_engagement_date: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', candidateId);
+  
+  return {
+    success: true,
+    interaction,
+    message: `Logged ${touchpointType} touchpoint for candidate`
+  };
+}
+
+async function updateCandidateTier(args: any, userId: string, supabase: SupabaseClient) {
+  const { candidateId, newTier, reason } = args;
+  
+  // Get current tier for logging
+  const { data: current } = await supabase
+    .from('candidate_profiles')
+    .select('talent_tier, full_name')
+    .eq('id', candidateId)
+    .single();
+  
+  // Update tier
+  const { error } = await supabase
+    .from('candidate_profiles')
+    .update({ 
+      talent_tier: newTier,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', candidateId);
+  
+  if (error) throw error;
+  
+  // Log the tier change
+  await supabase.from('candidate_interactions').insert({
+    candidate_id: candidateId,
+    interaction_type: 'tier_change',
+    notes: `Tier changed from ${current?.talent_tier} to ${newTier}. Reason: ${reason || 'Not specified'}`,
+    recorded_by: userId
+  });
+  
+  return {
+    success: true,
+    previousTier: current?.talent_tier,
+    newTier,
+    candidateName: current?.full_name,
+    message: `Updated ${current?.full_name} from ${current?.talent_tier} to ${newTier}`
+  };
 }
 
 // ============= TOOL DEFINITIONS FOR OPENROUTER =============

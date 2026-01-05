@@ -206,7 +206,7 @@ export const CandidateHeroSection = ({
                   View Club Profile
                 </Button>
               ) : isAdmin ? (
-                <Button onClick={() => console.log('Send invitation')}>
+                <Button onClick={() => navigate(`/admin/invite?email=${encodeURIComponent(candidate.email || '')}&name=${encodeURIComponent(candidate.full_name || '')}`)}>
                   <Send className="w-4 h-4 mr-2" />
                   Send Invitation
                 </Button>
