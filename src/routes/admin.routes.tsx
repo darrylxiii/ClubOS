@@ -79,6 +79,9 @@ const PressureCookerAdmin = lazy(() => import("@/pages/admin/games/PressureCooke
 const BlindSpotAdmin = lazy(() => import("@/pages/admin/games/BlindSpotAdmin"));
 const MiljoenenjachtAdmin = lazy(() => import("@/pages/admin/games/MiljoenenjachtAdmin"));
 
+// Talent Pool
+const TalentPool = lazy(() => import("@/pages/TalentPool"));
+
 export const adminRoutes = (
   <>
     <Route
@@ -88,6 +91,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <Admin />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/talent-pool"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <TalentPool />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
