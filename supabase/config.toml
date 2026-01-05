@@ -343,6 +343,9 @@ verify_jwt = false
 [functions.bridge-meeting-to-intelligence]
 verify_jwt = false
 
+[functions.bridge-meeting-to-pilot]
+verify_jwt = true
+
 [functions.send-meeting-invitation-email]
 verify_jwt = true
 

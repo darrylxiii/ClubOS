@@ -4844,6 +4844,41 @@ export type Database = {
         }
         Relationships: []
       }
+      breakout_room_participants: {
+        Row: {
+          breakout_room_id: string | null
+          id: string
+          joined_at: string | null
+          left_at: string | null
+          participant_id: string | null
+          participant_name: string | null
+        }
+        Insert: {
+          breakout_room_id?: string | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          participant_id?: string | null
+          participant_name?: string | null
+        }
+        Update: {
+          breakout_room_id?: string | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          participant_id?: string | null
+          participant_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breakout_room_participants_breakout_room_id_fkey"
+            columns: ["breakout_room_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_breakout_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bulk_operation_logs: {
         Row: {
           admin_id: string
@@ -23353,6 +23388,53 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_breakout_rooms: {
+        Row: {
+          broadcast_message: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          meeting_id: string | null
+          name: string
+          recall_requested: boolean | null
+          timer_end_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          broadcast_message?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          meeting_id?: string | null
+          name: string
+          recall_requested?: boolean | null
+          timer_end_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          broadcast_message?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          meeting_id?: string | null
+          name?: string
+          recall_requested?: boolean | null
+          timer_end_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_breakout_rooms_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_clips: {
         Row: {
           created_at: string | null
@@ -24628,6 +24710,8 @@ export type Database = {
           prep_materials_url: string | null
           show_estimated_wait: boolean | null
           show_interviewer_names: boolean | null
+          survey_questions: Json | null
+          template_name: string | null
           updated_at: string | null
           welcome_message: string | null
         }
@@ -24641,6 +24725,8 @@ export type Database = {
           prep_materials_url?: string | null
           show_estimated_wait?: boolean | null
           show_interviewer_names?: boolean | null
+          survey_questions?: Json | null
+          template_name?: string | null
           updated_at?: string | null
           welcome_message?: string | null
         }
@@ -24654,6 +24740,8 @@ export type Database = {
           prep_materials_url?: string | null
           show_estimated_wait?: boolean | null
           show_interviewer_names?: boolean | null
+          survey_questions?: Json | null
+          template_name?: string | null
           updated_at?: string | null
           welcome_message?: string | null
         }
