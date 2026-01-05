@@ -38,7 +38,7 @@ export default function GodMode() {
       const { data, error } = await supabase
         .from('feature_flags')
         .select('*')
-        .order('flag_name');
+        .order('name');
       if (error) throw error;
       return data || [];
     }
