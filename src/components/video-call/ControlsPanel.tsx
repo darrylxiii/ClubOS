@@ -25,7 +25,11 @@ import {
   Lock,
   ThumbsUp,
   Sparkles,
-  LayoutGrid
+  LayoutGrid,
+  Mic2,
+  Languages,
+  Brain,
+  Activity
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -79,6 +83,15 @@ interface ControlsPanelProps {
   isTranscribing?: boolean;
   layout?: 'grid' | 'spotlight';
   onToggleLayout?: () => void;
+  // Phase 6 AI Features
+  onToggleQUINVoice?: () => void;
+  showQUINVoice?: boolean;
+  onToggleTranslation?: () => void;
+  showTranslation?: boolean;
+  onTogglePredictiveHiring?: () => void;
+  showPredictiveHiring?: boolean;
+  onToggleEngagementAnalytics?: () => void;
+  showEngagementAnalytics?: boolean;
 }
 
 export function ControlsPanel({
@@ -115,6 +128,15 @@ export function ControlsPanel({
   isTranscribing = false,
   layout = 'grid',
   onToggleLayout,
+  // Phase 6 AI Features
+  onToggleQUINVoice,
+  showQUINVoice = false,
+  onToggleTranslation,
+  showTranslation = false,
+  onTogglePredictiveHiring,
+  showPredictiveHiring = false,
+  onToggleEngagementAnalytics,
+  showEngagementAnalytics = false,
 }: ControlsPanelProps) {
   const reactions = ['👍', '👏', '❤️', '😂', '🎉', '👋'];
 
@@ -351,7 +373,7 @@ export function ControlsPanel({
             )}
 
             {/* Interview Tools - Only show if interview functions exist */}
-            {(onToggleBackchannel || onToggleVoting || onOpenInterviewIntelligence) && (
+            {(onToggleBackchannel || onToggleVoting || onOpenInterviewIntelligence || onToggleQUINVoice || onToggleTranslation || onTogglePredictiveHiring || onToggleEngagementAnalytics) && (
               <>
                 <DropdownMenuSeparator className="bg-white/10 my-2" />
                 <DropdownMenuLabel className="text-white/40 text-[10px] uppercase tracking-widest px-3 py-2 font-semibold flex items-center gap-2">
@@ -376,6 +398,36 @@ export function ControlsPanel({
                     <Sparkles className="h-4 w-4 text-primary" />
                     <span>AI Intelligence</span>
                     <Badge className="ml-auto bg-primary/20 text-primary text-[10px]">AI</Badge>
+                  </DropdownMenuItem>
+                )}
+                
+                {/* Phase 6: Advanced AI Features */}
+                {onToggleQUINVoice && (
+                  <DropdownMenuItem onClick={onToggleQUINVoice} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
+                    <Mic2 className={`h-4 w-4 ${showQUINVoice ? 'text-green-400' : ''}`} />
+                    <span>QUIN Voice Assistant</span>
+                    {showQUINVoice && <Badge className="ml-auto bg-green-500/20 text-green-300 text-[10px]">ON</Badge>}
+                  </DropdownMenuItem>
+                )}
+                {onToggleTranslation && (
+                  <DropdownMenuItem onClick={onToggleTranslation} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
+                    <Languages className={`h-4 w-4 ${showTranslation ? 'text-blue-400' : ''}`} />
+                    <span>Live Translation</span>
+                    {showTranslation && <Badge className="ml-auto bg-blue-500/20 text-blue-300 text-[10px]">LIVE</Badge>}
+                  </DropdownMenuItem>
+                )}
+                {onTogglePredictiveHiring && (
+                  <DropdownMenuItem onClick={onTogglePredictiveHiring} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
+                    <Brain className={`h-4 w-4 ${showPredictiveHiring ? 'text-purple-400' : ''}`} />
+                    <span>Predictive Signals</span>
+                    {showPredictiveHiring && <Badge className="ml-auto bg-purple-500/20 text-purple-300 text-[10px]">AI</Badge>}
+                  </DropdownMenuItem>
+                )}
+                {onToggleEngagementAnalytics && (
+                  <DropdownMenuItem onClick={onToggleEngagementAnalytics} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
+                    <Activity className={`h-4 w-4 ${showEngagementAnalytics ? 'text-cyan-400' : ''}`} />
+                    <span>Engagement Analytics</span>
+                    {showEngagementAnalytics && <Badge className="ml-auto bg-cyan-500/20 text-cyan-300 text-[10px]">LIVE</Badge>}
                   </DropdownMenuItem>
                 )}
               </>
