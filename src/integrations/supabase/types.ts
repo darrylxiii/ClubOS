@@ -6404,11 +6404,16 @@ export type Database = {
           application_status: string | null
           assigned_strategist_id: string | null
           auto_reengagement_enabled: boolean | null
+          availability_status: string | null
+          availability_updated_at: string | null
           available_hours_per_week: number | null
           avatar_url: string | null
           blocked_companies: Json | null
+          career_velocity_score: number | null
           certifications: Json | null
           company_size_preference: string | null
+          consent_renewal_due: string | null
+          consent_scope: string[] | null
           created_at: string
           created_by: string | null
           current_company: string | null
@@ -6416,6 +6421,8 @@ export type Database = {
           current_salary_min: number | null
           current_title: string | null
           cv_parsed_at: string | null
+          data_deletion_requested: boolean | null
+          data_freshness_score: number | null
           data_retention_date: string | null
           deleted_at: string | null
           deleted_by: string | null
@@ -6425,6 +6432,8 @@ export type Database = {
           desired_locations: Json | null
           desired_salary_max: number | null
           desired_salary_min: number | null
+          detected_job_change: boolean | null
+          earliest_start_date: string | null
           education: Json | null
           email: string | null
           embedding_generated_at: string | null
@@ -6433,6 +6442,7 @@ export type Database = {
           enrichment_last_run: string | null
           fit_score: number | null
           full_name: string
+          functions: string[] | null
           gdpr_consent: boolean | null
           gdpr_consent_date: string | null
           ghost_mode_enabled: boolean | null
@@ -6440,12 +6450,14 @@ export type Database = {
           header_media_type: string | null
           header_media_url: string | null
           id: string
+          industries: string[] | null
           industry_preference: string | null
           internal_rating: number | null
           interview_count: number | null
           interview_score_avg: number | null
           invitation_status: string | null
           job_alert_frequency: string | null
+          job_change_detected_at: string | null
           key_strengths_aggregated: string[] | null
           key_weaknesses_aggregated: string[] | null
           languages: Json | null
@@ -6454,11 +6466,18 @@ export type Database = {
           last_invite_sent_at: string | null
           last_profile_update: string | null
           last_reengagement_at: string | null
+          lawful_basis: string | null
           linkedin_profile_data: Json | null
           linkedin_url: string | null
           merged_at: string | null
           merged_from_user_id: string | null
+          move_probability: number | null
+          move_probability_factors: Json | null
+          move_probability_updated_at: string | null
+          needs_human_review: boolean | null
           notice_period: string | null
+          owned_by_strategist_id: string | null
+          ownership_assigned_at: string | null
           personality_insights: Json | null
           phone: string | null
           portfolio_url: string | null
@@ -6472,15 +6491,23 @@ export type Database = {
           remote_work_aspiration: boolean | null
           resume_filename: string | null
           resume_url: string | null
+          review_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           salary_preference_hidden: boolean | null
+          seniority_level: string | null
           skills: Json | null
           source_channel: string | null
           source_metadata: Json | null
           tags: Json | null
+          talent_tier: string | null
+          tenure_current_months: number | null
+          tier_score: number | null
+          tier_update_reason: string | null
+          tier_updated_at: string | null
           updated_at: string
           user_id: string | null
+          verification_level: string | null
           work_authorization: Json | null
           work_history: Json | null
           years_of_experience: number | null
@@ -6495,11 +6522,16 @@ export type Database = {
           application_status?: string | null
           assigned_strategist_id?: string | null
           auto_reengagement_enabled?: boolean | null
+          availability_status?: string | null
+          availability_updated_at?: string | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
+          career_velocity_score?: number | null
           certifications?: Json | null
           company_size_preference?: string | null
+          consent_renewal_due?: string | null
+          consent_scope?: string[] | null
           created_at?: string
           created_by?: string | null
           current_company?: string | null
@@ -6507,6 +6539,8 @@ export type Database = {
           current_salary_min?: number | null
           current_title?: string | null
           cv_parsed_at?: string | null
+          data_deletion_requested?: boolean | null
+          data_freshness_score?: number | null
           data_retention_date?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
@@ -6516,6 +6550,8 @@ export type Database = {
           desired_locations?: Json | null
           desired_salary_max?: number | null
           desired_salary_min?: number | null
+          detected_job_change?: boolean | null
+          earliest_start_date?: string | null
           education?: Json | null
           email?: string | null
           embedding_generated_at?: string | null
@@ -6524,6 +6560,7 @@ export type Database = {
           enrichment_last_run?: string | null
           fit_score?: number | null
           full_name: string
+          functions?: string[] | null
           gdpr_consent?: boolean | null
           gdpr_consent_date?: string | null
           ghost_mode_enabled?: boolean | null
@@ -6531,12 +6568,14 @@ export type Database = {
           header_media_type?: string | null
           header_media_url?: string | null
           id?: string
+          industries?: string[] | null
           industry_preference?: string | null
           internal_rating?: number | null
           interview_count?: number | null
           interview_score_avg?: number | null
           invitation_status?: string | null
           job_alert_frequency?: string | null
+          job_change_detected_at?: string | null
           key_strengths_aggregated?: string[] | null
           key_weaknesses_aggregated?: string[] | null
           languages?: Json | null
@@ -6545,11 +6584,18 @@ export type Database = {
           last_invite_sent_at?: string | null
           last_profile_update?: string | null
           last_reengagement_at?: string | null
+          lawful_basis?: string | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
           merged_at?: string | null
           merged_from_user_id?: string | null
+          move_probability?: number | null
+          move_probability_factors?: Json | null
+          move_probability_updated_at?: string | null
+          needs_human_review?: boolean | null
           notice_period?: string | null
+          owned_by_strategist_id?: string | null
+          ownership_assigned_at?: string | null
           personality_insights?: Json | null
           phone?: string | null
           portfolio_url?: string | null
@@ -6563,15 +6609,23 @@ export type Database = {
           remote_work_aspiration?: boolean | null
           resume_filename?: string | null
           resume_url?: string | null
+          review_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           salary_preference_hidden?: boolean | null
+          seniority_level?: string | null
           skills?: Json | null
           source_channel?: string | null
           source_metadata?: Json | null
           tags?: Json | null
+          talent_tier?: string | null
+          tenure_current_months?: number | null
+          tier_score?: number | null
+          tier_update_reason?: string | null
+          tier_updated_at?: string | null
           updated_at?: string
           user_id?: string | null
+          verification_level?: string | null
           work_authorization?: Json | null
           work_history?: Json | null
           years_of_experience?: number | null
@@ -6586,11 +6640,16 @@ export type Database = {
           application_status?: string | null
           assigned_strategist_id?: string | null
           auto_reengagement_enabled?: boolean | null
+          availability_status?: string | null
+          availability_updated_at?: string | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
+          career_velocity_score?: number | null
           certifications?: Json | null
           company_size_preference?: string | null
+          consent_renewal_due?: string | null
+          consent_scope?: string[] | null
           created_at?: string
           created_by?: string | null
           current_company?: string | null
@@ -6598,6 +6657,8 @@ export type Database = {
           current_salary_min?: number | null
           current_title?: string | null
           cv_parsed_at?: string | null
+          data_deletion_requested?: boolean | null
+          data_freshness_score?: number | null
           data_retention_date?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
@@ -6607,6 +6668,8 @@ export type Database = {
           desired_locations?: Json | null
           desired_salary_max?: number | null
           desired_salary_min?: number | null
+          detected_job_change?: boolean | null
+          earliest_start_date?: string | null
           education?: Json | null
           email?: string | null
           embedding_generated_at?: string | null
@@ -6615,6 +6678,7 @@ export type Database = {
           enrichment_last_run?: string | null
           fit_score?: number | null
           full_name?: string
+          functions?: string[] | null
           gdpr_consent?: boolean | null
           gdpr_consent_date?: string | null
           ghost_mode_enabled?: boolean | null
@@ -6622,12 +6686,14 @@ export type Database = {
           header_media_type?: string | null
           header_media_url?: string | null
           id?: string
+          industries?: string[] | null
           industry_preference?: string | null
           internal_rating?: number | null
           interview_count?: number | null
           interview_score_avg?: number | null
           invitation_status?: string | null
           job_alert_frequency?: string | null
+          job_change_detected_at?: string | null
           key_strengths_aggregated?: string[] | null
           key_weaknesses_aggregated?: string[] | null
           languages?: Json | null
@@ -6636,11 +6702,18 @@ export type Database = {
           last_invite_sent_at?: string | null
           last_profile_update?: string | null
           last_reengagement_at?: string | null
+          lawful_basis?: string | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
           merged_at?: string | null
           merged_from_user_id?: string | null
+          move_probability?: number | null
+          move_probability_factors?: Json | null
+          move_probability_updated_at?: string | null
+          needs_human_review?: boolean | null
           notice_period?: string | null
+          owned_by_strategist_id?: string | null
+          ownership_assigned_at?: string | null
           personality_insights?: Json | null
           phone?: string | null
           portfolio_url?: string | null
@@ -6654,15 +6727,23 @@ export type Database = {
           remote_work_aspiration?: boolean | null
           resume_filename?: string | null
           resume_url?: string | null
+          review_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           salary_preference_hidden?: boolean | null
+          seniority_level?: string | null
           skills?: Json | null
           source_channel?: string | null
           source_metadata?: Json | null
           tags?: Json | null
+          talent_tier?: string | null
+          tenure_current_months?: number | null
+          tier_score?: number | null
+          tier_update_reason?: string | null
+          tier_updated_at?: string | null
           updated_at?: string
           user_id?: string | null
+          verification_level?: string | null
           work_authorization?: Json | null
           work_history?: Json | null
           years_of_experience?: number | null
@@ -6706,6 +6787,193 @@ export type Database = {
           {
             foreignKeyName: "candidate_profiles_deleted_by_fkey"
             columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_profiles_owned_by_strategist_id_fkey"
+            columns: ["owned_by_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "candidate_profiles_owned_by_strategist_id_fkey"
+            columns: ["owned_by_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_profiles_owned_by_strategist_id_fkey"
+            columns: ["owned_by_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_relationships: {
+        Row: {
+          avg_response_time_hours: number | null
+          best_contact_time: string | null
+          candidate_id: string
+          created_at: string | null
+          follow_up_cadence_days: number | null
+          id: string
+          is_referral_source: boolean | null
+          last_meaningful_contact: string | null
+          last_response_at: string | null
+          next_action: string | null
+          next_action_date: string | null
+          outbound_messages: number | null
+          preferred_contact_channel: string | null
+          primary_strategist_id: string | null
+          referral_quality_score: number | null
+          referrals_made: number | null
+          relationship_notes: string | null
+          relationship_strength: string | null
+          response_rate: number | null
+          responses_received: number | null
+          roles_declined: string[] | null
+          roles_interested: string[] | null
+          roles_interviewed: string[] | null
+          roles_offered: string[] | null
+          roles_placed: string[] | null
+          roles_presented: string[] | null
+          secondary_strategist_id: string | null
+          successful_referrals: number | null
+          total_touchpoints: number | null
+          updated_at: string | null
+          warmth_score: number | null
+        }
+        Insert: {
+          avg_response_time_hours?: number | null
+          best_contact_time?: string | null
+          candidate_id: string
+          created_at?: string | null
+          follow_up_cadence_days?: number | null
+          id?: string
+          is_referral_source?: boolean | null
+          last_meaningful_contact?: string | null
+          last_response_at?: string | null
+          next_action?: string | null
+          next_action_date?: string | null
+          outbound_messages?: number | null
+          preferred_contact_channel?: string | null
+          primary_strategist_id?: string | null
+          referral_quality_score?: number | null
+          referrals_made?: number | null
+          relationship_notes?: string | null
+          relationship_strength?: string | null
+          response_rate?: number | null
+          responses_received?: number | null
+          roles_declined?: string[] | null
+          roles_interested?: string[] | null
+          roles_interviewed?: string[] | null
+          roles_offered?: string[] | null
+          roles_placed?: string[] | null
+          roles_presented?: string[] | null
+          secondary_strategist_id?: string | null
+          successful_referrals?: number | null
+          total_touchpoints?: number | null
+          updated_at?: string | null
+          warmth_score?: number | null
+        }
+        Update: {
+          avg_response_time_hours?: number | null
+          best_contact_time?: string | null
+          candidate_id?: string
+          created_at?: string | null
+          follow_up_cadence_days?: number | null
+          id?: string
+          is_referral_source?: boolean | null
+          last_meaningful_contact?: string | null
+          last_response_at?: string | null
+          next_action?: string | null
+          next_action_date?: string | null
+          outbound_messages?: number | null
+          preferred_contact_channel?: string | null
+          primary_strategist_id?: string | null
+          referral_quality_score?: number | null
+          referrals_made?: number | null
+          relationship_notes?: string | null
+          relationship_strength?: string | null
+          response_rate?: number | null
+          responses_received?: number | null
+          roles_declined?: string[] | null
+          roles_interested?: string[] | null
+          roles_interviewed?: string[] | null
+          roles_offered?: string[] | null
+          roles_placed?: string[] | null
+          roles_presented?: string[] | null
+          secondary_strategist_id?: string | null
+          successful_referrals?: number | null
+          total_touchpoints?: number | null
+          updated_at?: string | null
+          warmth_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_relationships_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_relationships_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_relationships_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_relationships_primary_strategist_id_fkey"
+            columns: ["primary_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "candidate_relationships_primary_strategist_id_fkey"
+            columns: ["primary_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_relationships_primary_strategist_id_fkey"
+            columns: ["primary_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_relationships_secondary_strategist_id_fkey"
+            columns: ["secondary_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "candidate_relationships_secondary_strategist_id_fkey"
+            columns: ["secondary_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_relationships_secondary_strategist_id_fkey"
+            columns: ["secondary_strategist_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
@@ -8705,6 +8973,124 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_intelligence: {
+        Row: {
+          avg_tenure_months: number | null
+          candidates_from_count: number | null
+          candidates_placed_to: number | null
+          company_name: string
+          company_name_normalized: string
+          company_size: string | null
+          compensation_intel: string | null
+          created_at: string | null
+          culture_notes: string | null
+          employee_count_estimate: number | null
+          growth_signal: string | null
+          headquarters_location: string | null
+          hiring_velocity: string | null
+          id: string
+          industry: string | null
+          is_client: boolean | null
+          is_competitor: boolean | null
+          is_prospect: boolean | null
+          is_target_company: boolean | null
+          key_contacts: Json | null
+          linkedin_url: string | null
+          logo_url: string | null
+          org_chart_notes: string | null
+          recent_funding: Json | null
+          recent_news: Json | null
+          relationship_owner: string | null
+          sub_industry: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          avg_tenure_months?: number | null
+          candidates_from_count?: number | null
+          candidates_placed_to?: number | null
+          company_name: string
+          company_name_normalized: string
+          company_size?: string | null
+          compensation_intel?: string | null
+          created_at?: string | null
+          culture_notes?: string | null
+          employee_count_estimate?: number | null
+          growth_signal?: string | null
+          headquarters_location?: string | null
+          hiring_velocity?: string | null
+          id?: string
+          industry?: string | null
+          is_client?: boolean | null
+          is_competitor?: boolean | null
+          is_prospect?: boolean | null
+          is_target_company?: boolean | null
+          key_contacts?: Json | null
+          linkedin_url?: string | null
+          logo_url?: string | null
+          org_chart_notes?: string | null
+          recent_funding?: Json | null
+          recent_news?: Json | null
+          relationship_owner?: string | null
+          sub_industry?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          avg_tenure_months?: number | null
+          candidates_from_count?: number | null
+          candidates_placed_to?: number | null
+          company_name?: string
+          company_name_normalized?: string
+          company_size?: string | null
+          compensation_intel?: string | null
+          created_at?: string | null
+          culture_notes?: string | null
+          employee_count_estimate?: number | null
+          growth_signal?: string | null
+          headquarters_location?: string | null
+          hiring_velocity?: string | null
+          id?: string
+          industry?: string | null
+          is_client?: boolean | null
+          is_competitor?: boolean | null
+          is_prospect?: boolean | null
+          is_target_company?: boolean | null
+          key_contacts?: Json | null
+          linkedin_url?: string | null
+          logo_url?: string | null
+          org_chart_notes?: string | null
+          recent_funding?: Json | null
+          recent_news?: Json | null
+          relationship_owner?: string | null
+          sub_industry?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_intelligence_relationship_owner_fkey"
+            columns: ["relationship_owner"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "company_intelligence_relationship_owner_fkey"
+            columns: ["relationship_owner"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_intelligence_relationship_owner_fkey"
+            columns: ["relationship_owner"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -15663,6 +16049,76 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enrichment_logs: {
+        Row: {
+          api_credits_used: number | null
+          candidate_id: string | null
+          completed_at: string | null
+          data_after: Json | null
+          data_before: Json | null
+          enrichment_type: string
+          error_message: string | null
+          fields_updated: string[] | null
+          id: string
+          retry_count: number | null
+          source: string
+          started_at: string | null
+          status: string | null
+        }
+        Insert: {
+          api_credits_used?: number | null
+          candidate_id?: string | null
+          completed_at?: string | null
+          data_after?: Json | null
+          data_before?: Json | null
+          enrichment_type: string
+          error_message?: string | null
+          fields_updated?: string[] | null
+          id?: string
+          retry_count?: number | null
+          source: string
+          started_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          api_credits_used?: number | null
+          candidate_id?: string | null
+          completed_at?: string | null
+          data_after?: Json | null
+          data_before?: Json | null
+          enrichment_type?: string
+          error_message?: string | null
+          fields_updated?: string[] | null
+          id?: string
+          retry_count?: number | null
+          source?: string
+          started_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrichment_logs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrichment_logs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "enrichment_logs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
           },
         ]
@@ -36016,6 +36472,83 @@ export type Database = {
         }
         Relationships: []
       }
+      skills_taxonomy: {
+        Row: {
+          beauty_relevance: number | null
+          canonical_name: string
+          category: string
+          created_at: string | null
+          current_demand_score: number | null
+          demand_trend: string | null
+          description: string | null
+          display_name: string
+          finance_relevance: number | null
+          id: string
+          is_verified: boolean | null
+          luxury_fashion_relevance: number | null
+          parent_skill_id: string | null
+          related_skill_ids: string[] | null
+          slug: string
+          subcategory: string | null
+          synonyms: string[] | null
+          tech_relevance: number | null
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          beauty_relevance?: number | null
+          canonical_name: string
+          category: string
+          created_at?: string | null
+          current_demand_score?: number | null
+          demand_trend?: string | null
+          description?: string | null
+          display_name: string
+          finance_relevance?: number | null
+          id?: string
+          is_verified?: boolean | null
+          luxury_fashion_relevance?: number | null
+          parent_skill_id?: string | null
+          related_skill_ids?: string[] | null
+          slug: string
+          subcategory?: string | null
+          synonyms?: string[] | null
+          tech_relevance?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          beauty_relevance?: number | null
+          canonical_name?: string
+          category?: string
+          created_at?: string | null
+          current_demand_score?: number | null
+          demand_trend?: string | null
+          description?: string | null
+          display_name?: string
+          finance_relevance?: number | null
+          id?: string
+          is_verified?: boolean | null
+          luxury_fashion_relevance?: number | null
+          parent_skill_id?: string | null
+          related_skill_ids?: string[] | null
+          slug?: string
+          subcategory?: string | null
+          synonyms?: string[] | null
+          tech_relevance?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skills_taxonomy_parent_skill_id_fkey"
+            columns: ["parent_skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills_taxonomy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sla_commitments: {
         Row: {
           contract_id: string | null
@@ -37700,6 +38233,169 @@ export type Database = {
           {
             foreignKeyName: "talent_matches_job_id_fkey"
             columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      talent_pool_list_members: {
+        Row: {
+          added_at: string | null
+          added_by: string | null
+          candidate_id: string
+          id: string
+          list_id: string
+          notes: string | null
+          position: number | null
+        }
+        Insert: {
+          added_at?: string | null
+          added_by?: string | null
+          candidate_id: string
+          id?: string
+          list_id: string
+          notes?: string | null
+          position?: number | null
+        }
+        Update: {
+          added_at?: string | null
+          added_by?: string | null
+          candidate_id?: string
+          id?: string
+          list_id?: string
+          notes?: string | null
+          position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "talent_pool_list_members_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "talent_pool_list_members_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_pool_list_members_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_pool_list_members_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_pool_list_members_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "talent_pool_list_members_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_pool_list_members_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "talent_pool_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      talent_pool_lists: {
+        Row: {
+          auto_refresh: boolean | null
+          candidate_count: number | null
+          color: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_shared: boolean | null
+          linked_job_id: string | null
+          list_type: string | null
+          name: string
+          shared_with: string[] | null
+          smart_criteria: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_refresh?: boolean | null
+          candidate_count?: number | null
+          color?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_shared?: boolean | null
+          linked_job_id?: string | null
+          list_type?: string | null
+          name: string
+          shared_with?: string[] | null
+          smart_criteria?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_refresh?: boolean | null
+          candidate_count?: number | null
+          color?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_shared?: boolean | null
+          linked_job_id?: string | null
+          list_type?: string | null
+          name?: string
+          shared_with?: string[] | null
+          smart_criteria?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "talent_pool_lists_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "talent_pool_lists_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_pool_lists_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_pool_lists_linked_job_id_fkey"
+            columns: ["linked_job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
             referencedColumns: ["id"]
@@ -45019,6 +45715,10 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_tier_score: {
+        Args: { p_candidate_id: string }
+        Returns: number
+      }
       calculate_user_engagement_score: {
         Args: { p_days?: number; p_user_id: string }
         Returns: number
@@ -45449,6 +46149,7 @@ export type Database = {
       get_system_health_metrics: { Args: never; Returns: Json }
       get_system_health_stats: { Args: never; Returns: Json }
       get_threat_summary: { Args: never; Returns: Json }
+      get_tier_from_score: { Args: { p_score: number }; Returns: string }
       get_time_entry_hourly_rate: {
         Args: {
           p_contract_id?: string
@@ -45837,12 +46538,20 @@ export type Database = {
         Returns: undefined
       }
       update_all_leaderboard_ranks: { Args: never; Returns: undefined }
+      update_candidate_tier: {
+        Args: { p_candidate_id: string; p_reason?: string }
+        Returns: undefined
+      }
       update_company_intelligence_score: {
         Args: { p_company_id: string }
         Returns: undefined
       }
       update_expired_assignments: { Args: never; Returns: undefined }
       update_overdue_invoices: { Args: never; Returns: undefined }
+      update_relationship_metrics: {
+        Args: { p_candidate_id: string }
+        Returns: undefined
+      }
       update_relationship_score: {
         Args: { p_related_user_id: string; p_user_id: string }
         Returns: undefined

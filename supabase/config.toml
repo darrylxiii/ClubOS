@@ -1025,3 +1025,18 @@ verify_jwt = true
 
 [functions.predictive-intelligence-engine]
 verify_jwt = true
+
+# =============================================================================
+# Talent Pool System (Phase 2)
+# =============================================================================
+[functions.calculate-move-probability]
+verify_jwt = true
+
+[functions.talent-pool-sync]
+verify_jwt = false
+
+[functions.normalize-candidate-skills]
+verify_jwt = true
+
+[functions.enhance-semantic-candidate-search]
+verify_jwt = true
