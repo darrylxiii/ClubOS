@@ -23437,12 +23437,16 @@ export type Database = {
       }
       meeting_clips: {
         Row: {
+          ai_generated: boolean | null
+          ai_reasoning: string | null
+          confidence_score: number | null
           created_at: string | null
           created_by: string
           description: string | null
           duration_seconds: number
           end_ms: number
           expires_at: string | null
+          highlight_type: string | null
           id: string
           is_public: boolean | null
           recording_id: string
@@ -23453,12 +23457,16 @@ export type Database = {
           view_count: number | null
         }
         Insert: {
+          ai_generated?: boolean | null
+          ai_reasoning?: string | null
+          confidence_score?: number | null
           created_at?: string | null
           created_by: string
           description?: string | null
           duration_seconds: number
           end_ms: number
           expires_at?: string | null
+          highlight_type?: string | null
           id?: string
           is_public?: boolean | null
           recording_id: string
@@ -23469,12 +23477,16 @@ export type Database = {
           view_count?: number | null
         }
         Update: {
+          ai_generated?: boolean | null
+          ai_reasoning?: string | null
+          confidence_score?: number | null
           created_at?: string | null
           created_by?: string
           description?: string | null
           duration_seconds?: number
           end_ms?: number
           expires_at?: string | null
+          highlight_type?: string | null
           id?: string
           is_public?: boolean | null
           recording_id?: string
@@ -23612,6 +23624,65 @@ export type Database = {
           },
         ]
       }
+      meeting_dossiers: {
+        Row: {
+          candidate_id: string | null
+          content: Json
+          created_at: string | null
+          expires_at: string | null
+          generated_by: string | null
+          id: string
+          is_revoked: boolean | null
+          meeting_id: string | null
+          pdf_url: string | null
+          recording_id: string | null
+          share_token: string | null
+          title: string | null
+          view_count: number | null
+          watermark_text: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          content?: Json
+          created_at?: string | null
+          expires_at?: string | null
+          generated_by?: string | null
+          id?: string
+          is_revoked?: boolean | null
+          meeting_id?: string | null
+          pdf_url?: string | null
+          recording_id?: string | null
+          share_token?: string | null
+          title?: string | null
+          view_count?: number | null
+          watermark_text?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          content?: Json
+          created_at?: string | null
+          expires_at?: string | null
+          generated_by?: string | null
+          id?: string
+          is_revoked?: boolean | null
+          meeting_id?: string | null
+          pdf_url?: string | null
+          recording_id?: string | null
+          share_token?: string | null
+          title?: string | null
+          view_count?: number | null
+          watermark_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_dossiers_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_encryption_keys: {
         Row: {
           created_at: string | null
@@ -23640,6 +23711,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "meeting_encryption_keys_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_engagement_metrics: {
+        Row: {
+          attention_indicators: Json | null
+          average_response_latency_ms: number | null
+          engagement_score: number | null
+          id: string
+          meeting_id: string | null
+          participant_id: string | null
+          recorded_at: string | null
+          sentiment_shifts: Json | null
+          speaking_time_seconds: number | null
+        }
+        Insert: {
+          attention_indicators?: Json | null
+          average_response_latency_ms?: number | null
+          engagement_score?: number | null
+          id?: string
+          meeting_id?: string | null
+          participant_id?: string | null
+          recorded_at?: string | null
+          sentiment_shifts?: Json | null
+          speaking_time_seconds?: number | null
+        }
+        Update: {
+          attention_indicators?: Json | null
+          average_response_latency_ms?: number | null
+          engagement_score?: number | null
+          id?: string
+          meeting_id?: string | null
+          participant_id?: string | null
+          recorded_at?: string | null
+          sentiment_shifts?: Json | null
+          speaking_time_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_engagement_metrics_meeting_id_fkey"
             columns: ["meeting_id"]
             isOneToOne: false
             referencedRelation: "meetings"
@@ -24612,9 +24727,15 @@ export type Database = {
           description: string | null
           duration_minutes: number
           id: string
+          is_default: boolean | null
           is_public: boolean | null
           name: string
+          question_bank: Json | null
+          scoring_rubric: Json | null
           settings: Json | null
+          stages: Json | null
+          time_allocation_minutes: number | null
+          type: string | null
           updated_at: string | null
           user_id: string
         }
@@ -24623,9 +24744,15 @@ export type Database = {
           description?: string | null
           duration_minutes?: number
           id?: string
+          is_default?: boolean | null
           is_public?: boolean | null
           name: string
+          question_bank?: Json | null
+          scoring_rubric?: Json | null
           settings?: Json | null
+          stages?: Json | null
+          time_allocation_minutes?: number | null
+          type?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -24634,9 +24761,15 @@ export type Database = {
           description?: string | null
           duration_minutes?: number
           id?: string
+          is_default?: boolean | null
           is_public?: boolean | null
           name?: string
+          question_bank?: Json | null
+          scoring_rubric?: Json | null
           settings?: Json | null
+          stages?: Json | null
+          time_allocation_minutes?: number | null
+          type?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -24794,6 +24927,8 @@ export type Database = {
           template_id: string | null
           timezone: string
           title: string
+          translation_enabled: boolean | null
+          translation_languages: string[] | null
           updated_at: string | null
           video_session_id: string | null
         }
@@ -24835,6 +24970,8 @@ export type Database = {
           template_id?: string | null
           timezone?: string
           title: string
+          translation_enabled?: boolean | null
+          translation_languages?: string[] | null
           updated_at?: string | null
           video_session_id?: string | null
         }
@@ -24876,6 +25013,8 @@ export type Database = {
           template_id?: string | null
           timezone?: string
           title?: string
+          translation_enabled?: boolean | null
+          translation_languages?: string[] | null
           updated_at?: string | null
           video_session_id?: string | null
         }

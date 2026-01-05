@@ -1055,3 +1055,15 @@ verify_jwt = false
 
 [functions.parse-resume]
 verify_jwt = true
+
+# =============================================================================
+# Phase 6: Competitive Dominance Features
+# =============================================================================
+[functions.generate-meeting-dossier]
+verify_jwt = true
+
+[functions.generate-highlight-clips]
+verify_jwt = true
+
+[functions.quin-meeting-voice]
+verify_jwt = true
