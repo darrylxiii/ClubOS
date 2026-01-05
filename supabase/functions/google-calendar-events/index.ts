@@ -288,6 +288,76 @@ serve(async (req) => {
       );
     }
 
+    // Update an existing event
+    if (action === 'updateEvent') {
+      const { eventId } = await req.json();
+      
+      if (!eventId) {
+        return new Response(
+          JSON.stringify({ error: 'Event ID is required for update' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+        {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(event),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('Failed to update event:', error);
+        return new Response(
+          JSON.stringify({ error: 'Failed to update calendar event' }),
+          { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const updatedEvent = await response.json();
+      return new Response(
+        JSON.stringify({ event: updatedEvent }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Delete an event
+    if (action === 'deleteEvent') {
+      const { eventId } = await req.json();
+      
+      if (!eventId) {
+        return new Response(
+          JSON.stringify({ error: 'Event ID is required for deletion' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+        {
+          method: 'DELETE',
+          headers,
+        }
+      );
+
+      if (!response.ok && response.status !== 204) {
+        const error = await response.text();
+        console.error('Failed to delete event:', error);
+        return new Response(
+          JSON.stringify({ error: 'Failed to delete calendar event' }),
+          { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: 'Invalid action' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

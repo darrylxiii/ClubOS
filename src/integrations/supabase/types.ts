@@ -16533,6 +16533,53 @@ export type Database = {
         }
         Relationships: []
       }
+      external_meeting_sessions: {
+        Row: {
+          bot_session_id: string | null
+          created_at: string | null
+          error_message: string | null
+          external_url: string
+          id: string
+          platform: string | null
+          recording_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bot_session_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          external_url: string
+          id?: string
+          platform?: string | null
+          recording_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bot_session_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          external_url?: string
+          id?: string
+          platform?: string | null
+          recording_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_meeting_sessions_recording_id_fkey"
+            columns: ["recording_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_recordings_extended"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_flags: {
         Row: {
           created_at: string | null
@@ -23518,6 +23565,44 @@ export type Database = {
           },
         ]
       }
+      meeting_evaluators: {
+        Row: {
+          assigned_at: string | null
+          created_at: string | null
+          evaluator_id: string
+          id: string
+          meeting_id: string | null
+          reminder_sent_at: string | null
+          scorecard_submitted: boolean | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          created_at?: string | null
+          evaluator_id: string
+          id?: string
+          meeting_id?: string | null
+          reminder_sent_at?: string | null
+          scorecard_submitted?: boolean | null
+        }
+        Update: {
+          assigned_at?: string | null
+          created_at?: string | null
+          evaluator_id?: string
+          id?: string
+          meeting_id?: string | null
+          reminder_sent_at?: string | null
+          scorecard_submitted?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_evaluators_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_insights: {
         Row: {
           action_items: Json | null
@@ -24532,6 +24617,56 @@ export type Database = {
           },
         ]
       }
+      meeting_waiting_room_config: {
+        Row: {
+          background_color: string | null
+          company_logo_url: string | null
+          created_at: string | null
+          id: string
+          meeting_id: string | null
+          pre_meeting_questions: Json | null
+          prep_materials_url: string | null
+          show_estimated_wait: boolean | null
+          show_interviewer_names: boolean | null
+          updated_at: string | null
+          welcome_message: string | null
+        }
+        Insert: {
+          background_color?: string | null
+          company_logo_url?: string | null
+          created_at?: string | null
+          id?: string
+          meeting_id?: string | null
+          pre_meeting_questions?: Json | null
+          prep_materials_url?: string | null
+          show_estimated_wait?: boolean | null
+          show_interviewer_names?: boolean | null
+          updated_at?: string | null
+          welcome_message?: string | null
+        }
+        Update: {
+          background_color?: string | null
+          company_logo_url?: string | null
+          created_at?: string | null
+          id?: string
+          meeting_id?: string | null
+          pre_meeting_questions?: Json | null
+          prep_materials_url?: string | null
+          show_estimated_wait?: boolean | null
+          show_interviewer_names?: boolean | null
+          updated_at?: string | null
+          welcome_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_waiting_room_config_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: true
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           access_type: string
@@ -24549,6 +24684,7 @@ export type Database = {
           created_via: string | null
           description: string | null
           enable_notetaker: boolean | null
+          external_calendar_event_id: string | null
           host_id: string
           host_settings: Json | null
           id: string
@@ -24566,6 +24702,7 @@ export type Database = {
           scheduled_start: string
           settings: Json | null
           status: string
+          synced_to_calendars: string[] | null
           template_id: string | null
           timezone: string
           title: string
@@ -24588,6 +24725,7 @@ export type Database = {
           created_via?: string | null
           description?: string | null
           enable_notetaker?: boolean | null
+          external_calendar_event_id?: string | null
           host_id: string
           host_settings?: Json | null
           id?: string
@@ -24605,6 +24743,7 @@ export type Database = {
           scheduled_start: string
           settings?: Json | null
           status?: string
+          synced_to_calendars?: string[] | null
           template_id?: string | null
           timezone?: string
           title: string
@@ -24627,6 +24766,7 @@ export type Database = {
           created_via?: string | null
           description?: string | null
           enable_notetaker?: boolean | null
+          external_calendar_event_id?: string | null
           host_id?: string
           host_settings?: Json | null
           id?: string
@@ -24644,6 +24784,7 @@ export type Database = {
           scheduled_start?: string
           settings?: Json | null
           status?: string
+          synced_to_calendars?: string[] | null
           template_id?: string | null
           timezone?: string
           title?: string
@@ -36041,6 +36182,61 @@ export type Database = {
           },
         ]
       }
+      scorecard_voting_sessions: {
+        Row: {
+          application_id: string | null
+          closed_at: string | null
+          created_at: string | null
+          id: string
+          meeting_id: string | null
+          opened_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          closed_at?: string | null
+          created_at?: string | null
+          id?: string
+          meeting_id?: string | null
+          opened_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          closed_at?: string | null
+          created_at?: string | null
+          id?: string
+          meeting_id?: string | null
+          opened_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scorecard_voting_sessions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scorecard_voting_sessions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scorecard_voting_sessions_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_alerts: {
         Row: {
           alert_type: string
@@ -41630,6 +41826,8 @@ export type Database = {
         Row: {
           accent_color: string | null
           apply_to_all_pages: boolean | null
+          auto_create_tqc_for_interviews: boolean | null
+          auto_sync_to_calendar: boolean | null
           background_blur_enabled: boolean | null
           background_blur_intensity: number | null
           background_enabled: boolean | null
@@ -41646,6 +41844,8 @@ export type Database = {
         Insert: {
           accent_color?: string | null
           apply_to_all_pages?: boolean | null
+          auto_create_tqc_for_interviews?: boolean | null
+          auto_sync_to_calendar?: boolean | null
           background_blur_enabled?: boolean | null
           background_blur_intensity?: number | null
           background_enabled?: boolean | null
@@ -41662,6 +41862,8 @@ export type Database = {
         Update: {
           accent_color?: string | null
           apply_to_all_pages?: boolean | null
+          auto_create_tqc_for_interviews?: boolean | null
+          auto_sync_to_calendar?: boolean | null
           background_blur_enabled?: boolean | null
           background_blur_intensity?: number | null
           background_enabled?: boolean | null

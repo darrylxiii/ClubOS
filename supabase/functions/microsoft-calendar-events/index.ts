@@ -115,6 +115,75 @@ serve(async (req) => {
       );
     }
 
+    // Handle updateEvent action
+    if (action === 'updateEvent') {
+      const { eventId } = await req.json();
+      
+      if (!eventId) {
+        return new Response(
+          JSON.stringify({ error: 'Event ID is required for update' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const response = await fetch(`https://graph.microsoft.com/v1.0/me/events/${eventId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${msAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('Failed to update event:', error);
+        return new Response(
+          JSON.stringify({ error: 'Failed to update calendar event' }),
+          { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const updatedEvent = await response.json();
+      return new Response(
+        JSON.stringify({ event: updatedEvent }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Handle deleteEvent action
+    if (action === 'deleteEvent') {
+      const { eventId } = await req.json();
+      
+      if (!eventId) {
+        return new Response(
+          JSON.stringify({ error: 'Event ID is required for deletion' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const response = await fetch(`https://graph.microsoft.com/v1.0/me/events/${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${msAccessToken}`,
+        },
+      });
+
+      if (!response.ok && response.status !== 204) {
+        const error = await response.text();
+        console.error('Failed to delete event:', error);
+        return new Response(
+          JSON.stringify({ error: 'Failed to delete calendar event' }),
+          { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Handle listEvents action (backwards compatibility)
     const startDateTime = new Date(timeMin).toISOString();
     const endDateTime = new Date(timeMax).toISOString();

@@ -243,3 +243,148 @@ export async function getCalendarConnections(userId: string) {
 
   return connections || [];
 }
+
+// Two-way sync: Push TQC meeting to external calendar
+export async function syncMeetingToExternalCalendar(
+  meetingId: string,
+  userId: string,
+  action: 'create' | 'update' | 'delete' = 'create'
+): Promise<{ success: boolean; externalEventId?: string; error?: string }> {
+  try {
+    // Get meeting details
+    const { data: meeting, error: meetingError } = await supabase
+      .from('meetings')
+      .select('*')
+      .eq('id', meetingId)
+      .single();
+
+    if (meetingError || !meeting) {
+      return { success: false, error: 'Meeting not found' };
+    }
+
+    // Get user's calendar connections
+    const connections = await getCalendarConnections(userId);
+    if (connections.length === 0) {
+      return { success: true }; // No calendars to sync to
+    }
+
+    const syncedTo: string[] = [];
+    let externalEventId: string | undefined;
+
+    for (const connection of connections) {
+      try {
+        const functionName = connection.provider === 'google' 
+          ? 'google-calendar-events' 
+          : 'microsoft-calendar-events';
+        const provider = connection.provider as 'google' | 'microsoft';
+
+        if (action === 'delete' && meeting.external_calendar_event_id) {
+          // Delete from external calendar
+          await supabase.functions.invoke(functionName, {
+            body: {
+              action: 'deleteEvent',
+              connectionId: connection.id,
+              eventId: meeting.external_calendar_event_id,
+            },
+          });
+          syncedTo.push(provider);
+        } else if (action === 'update' && meeting.external_calendar_event_id) {
+          // Update in external calendar
+          const event = formatMeetingForExternalCalendar(meeting, provider);
+          const { data } = await supabase.functions.invoke(functionName, {
+            body: {
+              action: 'updateEvent',
+              connectionId: connection.id,
+              eventId: meeting.external_calendar_event_id,
+              event,
+            },
+          });
+          if (data?.event?.id) {
+            externalEventId = data.event.id;
+            syncedTo.push(provider);
+          }
+        } else if (action === 'create') {
+          // Create in external calendar
+          const event = formatMeetingForExternalCalendar(meeting, provider);
+          const { data } = await supabase.functions.invoke(functionName, {
+            body: {
+              action: 'createEvent',
+              connectionId: connection.id,
+              event,
+            },
+          });
+          if (data?.event?.id) {
+            externalEventId = data.event.id;
+            syncedTo.push(provider);
+          }
+        }
+      } catch (err) {
+        console.error(`Failed to sync to ${connection.provider}:`, err);
+      }
+    }
+
+    // Update meeting with sync status
+    if (syncedTo.length > 0) {
+      await supabase
+        .from('meetings')
+        .update({
+          external_calendar_event_id: externalEventId,
+          synced_to_calendars: syncedTo,
+        })
+        .eq('id', meetingId);
+    }
+
+    return { success: true, externalEventId };
+  } catch (error) {
+    console.error('Calendar sync error:', error);
+    return { success: false, error: 'Failed to sync to calendar' };
+  }
+}
+
+function formatMeetingForExternalCalendar(
+  meeting: any,
+  provider: 'google' | 'microsoft'
+): any {
+  const meetingUrl = `${window.location.origin}/meetings/${meeting.id}`;
+  
+  if (provider === 'google') {
+    return {
+      summary: meeting.title,
+      description: `${meeting.description || ''}\n\nJoin TQC Meeting: ${meetingUrl}`,
+      start: {
+        dateTime: meeting.scheduled_start,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      end: {
+        dateTime: meeting.scheduled_end,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      conferenceData: {
+        entryPoints: [{
+          entryPointType: 'video',
+          uri: meetingUrl,
+          label: 'Join TQC Meeting',
+        }],
+      },
+    };
+  } else {
+    // Microsoft format
+    return {
+      subject: meeting.title,
+      body: {
+        contentType: 'HTML',
+        content: `${meeting.description || ''}<br><br><a href="${meetingUrl}">Join TQC Meeting</a>`,
+      },
+      start: {
+        dateTime: meeting.scheduled_start,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      end: {
+        dateTime: meeting.scheduled_end,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      isOnlineMeeting: true,
+      onlineMeetingUrl: meetingUrl,
+    };
+  }
+}
