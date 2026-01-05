@@ -23,6 +23,11 @@ const GigDetailPage = lazy(() => import("@/pages/GigDetailPage"));
 const ProjectProposalsPage = lazy(() => import("@/pages/ProjectProposalsPage"));
 const ProjectDisputesPage = lazy(() => import("@/pages/ProjectDisputesPage"));
 
+// Phase 4: Revenue & Growth pages
+const ConnectsStorePage = lazy(() => import("@/pages/ConnectsStorePage"));
+const RetainerContractsPage = lazy(() => import("@/pages/RetainerContractsPage"));
+const TeamManagementPage = lazy(() => import("@/pages/TeamManagementPage"));
+
 export const projectsRoutes = (
   <>
     {/* Projects Marketplace */}
@@ -217,6 +222,48 @@ export const projectsRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <TimeTrackingPage />
+      </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+
+    {/* Connects Store */}
+    <Route 
+      path="/projects/connects" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <ConnectsStorePage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+
+    {/* Retainer Contracts */}
+    <Route 
+      path="/contracts/retainers" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <RetainerContractsPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+
+    {/* Team Management */}
+    <Route 
+      path="/projects/team" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <TeamManagementPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
