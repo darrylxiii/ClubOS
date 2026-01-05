@@ -14,6 +14,7 @@ const Scheduling = lazy(() => import("@/pages/Scheduling"));
 const BookingManagement = lazy(() => import("@/pages/BookingManagement"));
 const RecordingPlaybackPage = lazy(() => import("@/components/meetings/RecordingPlaybackPage"));
 const DossierView = lazy(() => import("@/pages/DossierView"));
+const InterviewComparison = lazy(() => import("@/pages/InterviewComparison"));
 
 export const meetingsRoutes = (
   <>
@@ -121,6 +122,18 @@ export const meetingsRoutes = (
             <DossierView />
           </Suspense>
         </RouteErrorBoundary>
+      }
+    />
+    <Route
+      path="/interview-comparison"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <InterviewComparison />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
       }
     />
   </>
