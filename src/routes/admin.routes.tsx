@@ -49,6 +49,7 @@ const CompanyRelationships = lazy(() => import("@/pages/admin/CompanyRelationshi
 const RevenueSharesPage = lazy(() => import("@/pages/admin/RevenueShares"));
 const InvoiceReconciliationPage = lazy(() => import("@/pages/admin/InvoiceReconciliation"));
 const StrategistProjectsDashboard = lazy(() => import("@/pages/admin/StrategistProjectsDashboard"));
+const MarketplaceAnalytics = lazy(() => import("@/pages/admin/MarketplaceAnalytics"));
 const ExpenseTrackingPage = lazy(() => import("@/pages/admin/ExpenseTracking"));
 const ClosedJobs = lazy(() => import("@/pages/admin/ClosedJobs"));
 
@@ -689,5 +690,8 @@ export const adminRoutes = (
     
     {/* Marketplace Strategist Dashboard */}
     <Route path="/admin/marketplace/strategist" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><StrategistProjectsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    
+    {/* Marketplace Analytics */}
+    <Route path="/admin/marketplace/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><MarketplaceAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );

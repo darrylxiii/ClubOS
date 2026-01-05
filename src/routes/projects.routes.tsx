@@ -28,6 +28,10 @@ const ConnectsStorePage = lazy(() => import("@/pages/ConnectsStorePage"));
 const RetainerContractsPage = lazy(() => import("@/pages/RetainerContractsPage"));
 const TeamManagementPage = lazy(() => import("@/pages/TeamManagementPage"));
 
+// Phase 6: Analytics pages
+const FreelancerAnalyticsPage = lazy(() => import("@/pages/FreelancerAnalyticsPage"));
+const ClientAnalyticsPage = lazy(() => import("@/pages/ClientAnalyticsPage"));
+
 export const projectsRoutes = (
   <>
     {/* Projects Marketplace */}
@@ -264,6 +268,34 @@ export const projectsRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <TeamManagementPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+
+    {/* Freelancer Analytics */}
+    <Route 
+      path="/projects/analytics/freelancer" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <FreelancerAnalyticsPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      } 
+    />
+
+    {/* Client Analytics */}
+    <Route 
+      path="/projects/analytics/client" 
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <ClientAnalyticsPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
