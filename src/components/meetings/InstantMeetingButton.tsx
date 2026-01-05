@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Video, Sparkles, Zap, Briefcase, Users, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -40,12 +40,12 @@ export function InstantMeetingButton({
   const [pmr, setPmr] = useState<any>(null);
 
   // Load templates and PMR on mount
-  useState(() => {
+  useEffect(() => {
     if (user && showTemplates) {
       loadTemplates();
       loadPMR();
     }
-  });
+  }, [user, showTemplates]);
 
   const loadTemplates = async () => {
     const { data } = await supabase
