@@ -348,28 +348,42 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Leaderboard", icon: Trophy, path: "/leaderboard" },
       ],
     },
-    // === OPERATIONS (merged: System Management + Employee Management) ===
+    // === OPERATIONS - Core (streamlined for efficiency) ===
     {
       title: "Operations",
       icon: Shield,
       items: [
         { name: "KPI Command Center", icon: BarChart3, path: "/admin/kpi-command-center" },
-        { name: "Performance Matrix", icon: LayoutDashboard, path: "/admin/performance-matrix" },
         { name: "Employee Dashboard", icon: Users, path: "/admin/employee-management" },
-        { name: "Team Performance", icon: BarChart3, path: "/team-performance" },
-        { name: "Website KPIs", icon: Globe, path: "/admin/website-kpis" },
-        { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
-        { name: "User Activity", icon: Activity, path: "/admin/user-activity" },
         { name: "System Health", icon: Heart, path: "/admin/system-health" },
-        { name: "Anti-Hacking Center", icon: Shield, path: "/admin/anti-hacking" },
-        { name: "God Mode", icon: Shield, path: "/admin/god-mode" },
-        { name: "Security Events", icon: Shield, path: "/admin/security-events" },
-        { name: "Disaster Recovery", icon: Shield, path: "/admin/disaster-recovery" },
-        { name: "Admin Audit Log", icon: FileCheck, path: "/admin/audit-log" },
-        { name: "Error Logs", icon: AlertTriangle, path: "/admin/error-logs" },
         { name: "Bulk Operations", icon: Users, path: "/admin/bulk-operations" },
         { name: "Page Templates", icon: FileText, path: "/admin/templates" },
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
+      ],
+    },
+    // === SECURITY & COMPLIANCE ===
+    {
+      title: "Security & Monitoring",
+      icon: Shield,
+      items: [
+        { name: "Security Events", icon: Shield, path: "/admin/security-events" },
+        { name: "Anti-Hacking Center", icon: Shield, path: "/admin/anti-hacking" },
+        { name: "Admin Audit Log", icon: FileCheck, path: "/admin/audit-log" },
+        { name: "Error Logs", icon: AlertTriangle, path: "/admin/error-logs" },
+        { name: "God Mode", icon: Shield, path: "/admin/god-mode" },
+        { name: "Disaster Recovery", icon: Shield, path: "/admin/disaster-recovery" },
+      ],
+    },
+    // === ANALYTICS (moved from Operations) ===
+    {
+      title: "Performance Analytics",
+      icon: BarChart3,
+      items: [
+        { name: "Performance Matrix", icon: LayoutDashboard, path: "/admin/performance-matrix" },
+        { name: "Team Performance", icon: BarChart3, path: "/team-performance" },
+        { name: "User Activity", icon: Activity, path: "/admin/user-activity" },
+        { name: "Website KPIs", icon: Globe, path: "/admin/website-kpis" },
+        { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
       ],
     },
     // === FINANCE (merged: Revenue & Finance + Inventory & Assets) ===

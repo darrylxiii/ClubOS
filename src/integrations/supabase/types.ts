@@ -8441,6 +8441,91 @@ export type Database = {
           },
         ]
       }
+      company_assets: {
+        Row: {
+          accumulated_depreciation: number | null
+          asset_name: string
+          asset_type: string | null
+          assigned_to: string | null
+          category: string
+          created_at: string | null
+          current_book_value: number | null
+          depreciation_rate: number | null
+          id: string
+          inventory_number: string
+          kia_eligible: boolean | null
+          location: string | null
+          notes: string | null
+          purchase_date: string
+          status: string | null
+          total_purchase_value: number | null
+          updated_at: string | null
+          useful_life_years: number | null
+        }
+        Insert: {
+          accumulated_depreciation?: number | null
+          asset_name: string
+          asset_type?: string | null
+          assigned_to?: string | null
+          category?: string
+          created_at?: string | null
+          current_book_value?: number | null
+          depreciation_rate?: number | null
+          id?: string
+          inventory_number: string
+          kia_eligible?: boolean | null
+          location?: string | null
+          notes?: string | null
+          purchase_date: string
+          status?: string | null
+          total_purchase_value?: number | null
+          updated_at?: string | null
+          useful_life_years?: number | null
+        }
+        Update: {
+          accumulated_depreciation?: number | null
+          asset_name?: string
+          asset_type?: string | null
+          assigned_to?: string | null
+          category?: string
+          created_at?: string | null
+          current_book_value?: number | null
+          depreciation_rate?: number | null
+          id?: string
+          inventory_number?: string
+          kia_eligible?: boolean | null
+          location?: string | null
+          notes?: string | null
+          purchase_date?: string
+          status?: string | null
+          total_purchase_value?: number | null
+          updated_at?: string | null
+          useful_life_years?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_assets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "company_assets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_assets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_branding: {
         Row: {
           accent_color: string | null

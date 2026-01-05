@@ -168,8 +168,12 @@ export default function SecurityEventDashboard() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[250px] flex items-center justify-center text-muted-foreground">
-                  No events recorded
+                <div className="h-[250px] flex flex-col items-center justify-center text-center px-4">
+                  <Shield className="h-12 w-12 text-muted-foreground/30 mb-3" />
+                  <p className="text-muted-foreground font-medium">All Clear</p>
+                  <p className="text-sm text-muted-foreground/70 mt-1">
+                    No security incidents detected. Events are logged automatically.
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -204,8 +208,12 @@ export default function SecurityEventDashboard() {
                     })}
                   </div>
                 ) : (
-                  <div className="h-full flex items-center justify-center text-muted-foreground">
-                    No security events
+                  <div className="h-full flex flex-col items-center justify-center text-center">
+                    <CheckCircle className="h-10 w-10 text-green-500/50 mb-3" />
+                    <p className="text-muted-foreground font-medium">No Incidents</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1 max-w-[200px]">
+                      Security events appear here when suspicious activity is detected
+                    </p>
                   </div>
                 )}
               </ScrollArea>
