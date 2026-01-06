@@ -187,10 +187,10 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
 
       // Initialize fee settings
       setFeeConfig({
-        feeType: job.fee_type_override || 'percentage',
-        feePercentage: job.placement_fee_percentage_override || null,
-        feeFixed: job.placement_fee_fixed_override || null,
-        useOverride: !!(job.fee_type_override || job.placement_fee_percentage_override || job.placement_fee_fixed_override),
+        feeType: job.job_fee_type || 'percentage',
+        feePercentage: job.job_fee_percentage || null,
+        feeFixed: job.job_fee_fixed || null,
+        useOverride: job.fee_source === 'job_override',
       });
       
       setHasUnsavedChanges(false);
@@ -399,13 +399,15 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
       // Calculate pipeline and fee data
       const isContinuous = pipelineType === "continuous";
       const jobFeeData = feeConfig.useOverride ? {
-        fee_type_override: feeConfig.feeType,
-        placement_fee_percentage_override: feeConfig.feeType !== 'fixed' ? feeConfig.feePercentage : null,
-        placement_fee_fixed_override: feeConfig.feeType === 'fixed' || feeConfig.feeType === 'hybrid' ? feeConfig.feeFixed : null,
+        job_fee_type: feeConfig.feeType,
+        job_fee_percentage: feeConfig.feeType !== 'fixed' ? feeConfig.feePercentage : null,
+        job_fee_fixed: feeConfig.feeType === 'fixed' || feeConfig.feeType === 'hybrid' ? feeConfig.feeFixed : null,
+        fee_source: 'job_override',
       } : {
-        fee_type_override: null,
-        placement_fee_percentage_override: null,
-        placement_fee_fixed_override: null,
+        job_fee_type: null,
+        job_fee_percentage: null,
+        job_fee_fixed: null,
+        fee_source: 'company',
       };
 
       const { error: updateError } = await supabase
