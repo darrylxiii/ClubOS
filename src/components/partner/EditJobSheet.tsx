@@ -22,7 +22,9 @@ import {
   FileStack,
   Download,
   Lock,
-  Activity
+  Activity,
+  Users,
+  History
 } from "lucide-react";
 import { ToolSelector } from "@/components/jobs/ToolSelector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,9 +37,10 @@ import { StealthAuditTimeline } from "@/components/jobs/StealthAuditTimeline";
 import { stealthJobAuditService } from "@/services/stealthJobAuditService";
 import { JobStatusManager } from "@/components/jobs/JobStatusManager";
 import { JobStatus } from "@/components/jobs/JobStatusBadge";
-import { History } from "lucide-react";
 import { EnhancedLocationAutocomplete, type LocationResult } from "@/components/ui/enhanced-location-autocomplete";
 import { LocationMapCard } from "@/components/ui/location-map-card";
+import { PipelineTypeSelector } from "@/components/jobs/PipelineTypeSelector";
+import { JobFeeConfiguration, type FeeConfiguration } from "@/components/jobs/JobFeeConfiguration";
 
 interface EditJobSheetProps {
   open: boolean;
@@ -83,6 +86,19 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
   
   // Location state with geocoordinates
   const [locationData, setLocationData] = useState<LocationResult | null>(null);
+  
+  // Pipeline configuration state
+  const [pipelineType, setPipelineType] = useState<"standard" | "continuous">("standard");
+  const [targetHireCount, setTargetHireCount] = useState<number | null>(null);
+  const [isUnlimitedHires, setIsUnlimitedHires] = useState(true);
+
+  // Fee configuration state
+  const [feeConfig, setFeeConfig] = useState<FeeConfiguration>({
+    feeType: 'percentage',
+    feePercentage: null,
+    feeFixed: null,
+    useOverride: false,
+  });
   
   const [formData, setFormData] = useState({
     title: '',
@@ -163,6 +179,20 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
 
       setExistingDocuments(job.supporting_documents || []);
       setIsStealthEnabled(job.is_stealth || false);
+      
+      // Initialize pipeline settings
+      setPipelineType(job.is_continuous ? "continuous" : "standard");
+      setTargetHireCount(job.target_hire_count || null);
+      setIsUnlimitedHires(job.target_hire_count === null);
+
+      // Initialize fee settings
+      setFeeConfig({
+        feeType: job.fee_type_override || 'percentage',
+        feePercentage: job.placement_fee_percentage_override || null,
+        feeFixed: job.placement_fee_fixed_override || null,
+        useOverride: !!(job.fee_type_override || job.placement_fee_percentage_override || job.placement_fee_fixed_override),
+      });
+      
       setHasUnsavedChanges(false);
       fetchCompanies();
       if (job.id) fetchStealthViewers(job.id);
@@ -366,6 +396,18 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
     setLoading(true);
 
     try {
+      // Calculate pipeline and fee data
+      const isContinuous = pipelineType === "continuous";
+      const jobFeeData = feeConfig.useOverride ? {
+        fee_type_override: feeConfig.feeType,
+        placement_fee_percentage_override: feeConfig.feeType !== 'fixed' ? feeConfig.feePercentage : null,
+        placement_fee_fixed_override: feeConfig.feeType === 'fixed' || feeConfig.feeType === 'hybrid' ? feeConfig.feeFixed : null,
+      } : {
+        fee_type_override: null,
+        placement_fee_percentage_override: null,
+        placement_fee_fixed_override: null,
+      };
+
       const { error: updateError } = await supabase
         .from('jobs')
         .update({
@@ -386,6 +428,11 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
           is_stealth: isStealthEnabled,
           stealth_enabled_by: isStealthEnabled ? user?.id : null,
           stealth_enabled_at: isStealthEnabled ? new Date().toISOString() : null,
+          // Pipeline settings
+          is_continuous: isContinuous,
+          target_hire_count: isContinuous ? (isUnlimitedHires ? null : targetHireCount) : 1,
+          // Fee settings
+          ...jobFeeData,
         })
         .eq('id', job.id);
 
@@ -520,7 +567,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
         <ScrollArea className="flex-1">
           <div className="p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-5 mb-6">
+              <TabsList className="grid w-full grid-cols-6 mb-6">
                 <TabsTrigger value="basic" className="gap-2">
                   <Settings className="h-4 w-4" />
                   Basic Info
@@ -528,6 +575,10 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                 <TabsTrigger value="tools" className="gap-2">
                   <Briefcase className="h-4 w-4" />
                   Tools & Skills
+                </TabsTrigger>
+                <TabsTrigger value="pipeline" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Pipeline & Fees
                 </TabsTrigger>
                 <TabsTrigger value="status" className="gap-2">
                   <Activity className="h-4 w-4" />
@@ -648,6 +699,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                             <SelectItem value="parttime">Part-time</SelectItem>
                             <SelectItem value="contract">Contract</SelectItem>
                             <SelectItem value="freelance">Freelance</SelectItem>
+                            <SelectItem value="internship">Internship</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -757,6 +809,59 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              {/* Pipeline & Fees Tab */}
+              <TabsContent value="pipeline" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Pipeline Type</CardTitle>
+                    <CardDescription>
+                      Configure how this job handles multiple hires
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <PipelineTypeSelector
+                      pipelineType={pipelineType}
+                      onPipelineTypeChange={(type) => {
+                        setPipelineType(type);
+                        setHasUnsavedChanges(true);
+                      }}
+                      targetHireCount={targetHireCount}
+                      onTargetHireCountChange={(count) => {
+                        setTargetHireCount(count);
+                        setHasUnsavedChanges(true);
+                      }}
+                      isUnlimited={isUnlimitedHires}
+                      onIsUnlimitedChange={(unlimited) => {
+                        setIsUnlimitedHires(unlimited);
+                        setHasUnsavedChanges(true);
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+
+                {formData.company_id && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Fee Configuration</CardTitle>
+                      <CardDescription>
+                        Override company default placement fees for this role
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <JobFeeConfiguration
+                        companyId={formData.company_id}
+                        feeConfig={feeConfig}
+                        onFeeConfigChange={(config) => {
+                          setFeeConfig(config);
+                          setHasUnsavedChanges(true);
+                        }}
+                        salaryMax={formData.salary_max ? parseInt(formData.salary_max) : null}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               {/* Status Tab */}
