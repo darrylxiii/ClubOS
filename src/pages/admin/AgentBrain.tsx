@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Brain, Database, RefreshCw, Eye } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import {
     Table,
     TableBody,
@@ -38,7 +38,6 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
-    const { toast } = useToast();
 
     const handleSearch = async () => {
         if (!query.trim()) return;
@@ -54,11 +53,7 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
             setResults(data?.matches || []);
 
         } catch (err: any) {
-            toast({
-                title: "Search Failed",
-                description: err.message,
-                variant: "destructive"
-            });
+            toast.error(`Search failed: ${err.message}`);
         } finally {
             setIsSearching(false);
         }
@@ -121,7 +116,6 @@ export default function AgentBrain() {
     const [embeddings, setEmbeddings] = useState<Embedding[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isIngesting, setIsIngesting] = useState(false);
-    const { toast } = useToast();
 
     useEffect(() => {
         fetchCompanies();
@@ -143,7 +137,7 @@ export default function AgentBrain() {
             .limit(50);
 
         if (error) {
-            toast({ title: "Error fetching companies", description: error.message, variant: "destructive" });
+            toast.error(`Error fetching companies: ${error.message}`);
         } else {
             setCompanies(data || []);
         }
@@ -160,7 +154,7 @@ export default function AgentBrain() {
             .order("created_at", { ascending: false });
 
         if (error) {
-            toast({ title: "Error fetching context", description: error.message, variant: "destructive" });
+            toast.error(`Error fetching context: ${error.message}`);
         } else {
             setEmbeddings(data || []);
         }
@@ -175,10 +169,7 @@ export default function AgentBrain() {
 
             if (error) throw error;
 
-            toast({
-                title: "Ingestion Complete",
-                description: `Generated ${data?.processed?.length || 0} context chunks.`,
-            });
+            toast.success(`Ingestion complete - generated ${data?.processed?.length || 0} context chunks.`);
 
             // Refresh embeddings list
             if (selectedCompany === companyId) {
@@ -188,11 +179,7 @@ export default function AgentBrain() {
             }
 
         } catch (err: any) {
-            toast({
-                title: "Ingestion Failed",
-                description: err.message || "Unknown error",
-                variant: "destructive"
-            });
+            toast.error(`Ingestion failed: ${err.message || "Unknown error"}`);
         } finally {
             setIsIngesting(false);
         }
