@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { HorizontalFilters } from "@/components/jobs/HorizontalFilters";
 import type { JobFilters } from "@/components/jobs/JobFilterSidebar";
 import { cn } from "@/lib/utils";
+import { JobsForYouSection } from "@/components/jobs/JobsForYouSection";
 
 type SortOption = "match" | "newest" | "salary";
 
@@ -118,6 +119,9 @@ const Jobs = () => {
           created_at,
           company_id,
           tags,
+          is_continuous,
+          hired_count,
+          target_hire_count,
           companies (
             name,
             slug,
@@ -160,7 +164,10 @@ const Jobs = () => {
           salary: job.salary_max || 0,
           salaryMin: job.salary_min || 0,
           salaryMax: job.salary_max || 0,
-          currency: job.currency as Currency
+          currency: job.currency as Currency,
+          isContinuous: job.is_continuous || false,
+          hiredCount: job.hired_count || 0,
+          targetHireCount: job.target_hire_count,
         })) || [];
         setJobs(transformedJobs);
       } catch (error) {
@@ -468,6 +475,20 @@ const Jobs = () => {
             onToggleExpanded={setFiltersExpanded}
           />
 
+          {/* Jobs For You Section */}
+          {!loading && user && (
+            <JobsForYouSection
+              jobs={filteredJobs}
+              savedJobIds={savedJobIds}
+              onApply={handleApply}
+              onRefer={handleRefer}
+              onClubSync={handleClubSync}
+              onToggleSave={toggleSaveJob}
+              matchThreshold={85}
+              maxJobs={5}
+            />
+          )}
+
           {/* Tabs */}
           <Tabs defaultValue="all" className="space-y-6">
             <div className="flex items-center justify-between">
@@ -544,7 +565,10 @@ const Jobs = () => {
                         tags={job.tags} 
                         salary={job.convertedSalary || undefined} 
                         matchScore={job.matchScore ?? undefined} 
-                        isSaved={savedJobIds.includes(job.id)} 
+                        isSaved={savedJobIds.includes(job.id)}
+                        isContinuous={job.isContinuous}
+                        hiredCount={job.hiredCount}
+                        targetHireCount={job.targetHireCount}
                         onApply={() => handleApply(job.title)} 
                         onRefer={() => handleRefer(job.id, job.title, job.company)} 
                         onClubSync={() => handleClubSync(job.title)} 
@@ -602,7 +626,10 @@ const Jobs = () => {
                         tags={job.tags} 
                         salary={job.convertedSalary || undefined} 
                         matchScore={job.matchScore ?? undefined} 
-                        isSaved={true} 
+                        isSaved={true}
+                        isContinuous={job.isContinuous}
+                        hiredCount={job.hiredCount}
+                        targetHireCount={job.targetHireCount}
                         onApply={() => handleApply(job.title)} 
                         onRefer={() => handleRefer(job.id, job.title, job.company)} 
                         onClubSync={() => handleClubSync(job.title)} 
