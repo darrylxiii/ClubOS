@@ -16,9 +16,11 @@ import {
   Users,
   Settings,
   Camera,
-  ExternalLink
+  ExternalLink,
+  Repeat
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ContinuousPipelineBadge } from "./ContinuousPipelineBadge";
 
 interface JobProfileHeroProps {
   job: {
@@ -32,6 +34,9 @@ interface JobProfileHeroProps {
     created_at: string;
     status?: string;
     match_score?: number | null;
+    is_continuous?: boolean;
+    hired_count?: number;
+    target_hire_count?: number | null;
   };
   company: {
     name: string;
@@ -167,6 +172,13 @@ export function JobProfileHero({
                     Draft
                   </Badge>
                 )}
+                <ContinuousPipelineBadge
+                  isContinuous={job.is_continuous}
+                  hiredCount={job.hired_count || 0}
+                  targetHireCount={job.target_hire_count}
+                  size="md"
+                  showProgress={true}
+                />
                 {job.match_score !== null && job.match_score !== undefined && (
                   <Badge className="bg-gradient-to-r from-primary to-accent text-white">
                     {job.match_score}% Match

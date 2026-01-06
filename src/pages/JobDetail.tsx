@@ -384,6 +384,9 @@ export default function JobDetail() {
               created_at: job.created_at,
               status: job.status,
               match_score: job.match_score,
+              is_continuous: job.is_continuous,
+              hired_count: job.hired_count,
+              target_hire_count: job.target_hire_count,
             }}
             company={{
               name: job.companies?.name || 'Unknown Company',
@@ -393,8 +396,8 @@ export default function JobDetail() {
               tagline: job.companies?.tagline,
             }}
             metrics={{
-              applicants: 24,
-              views: 156,
+              applicants: job.applications_count || 0,
+              views: job.views_count || 0,
               daysOpen: daysOpen,
             }}
             isSaved={isSaved}
