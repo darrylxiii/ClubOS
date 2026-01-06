@@ -1408,6 +1408,8 @@ const MemoizedJobCard = memo(({
           activeStageCount={job.active_stage_count}
           daysSinceOpened={job.days_since_opened}
           conversionRate={job.conversion_rate}
+          hiredCount={job.hired_count}
+          targetHireCount={job.target_hire_count}
         />
 
         {/* Last Activity */}
