@@ -4,13 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Briefcase, MapPin, DollarSign, Clock, Building2, 
-  ChevronDown, ChevronUp, Edit, ExternalLink, Users, Repeat
+  ChevronDown, ChevronUp, Edit, Users, Repeat
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
+import { HiringProgressBar } from "@/components/jobs/HiringProgressBar";
+import { formatSalaryCompact, formatEmploymentType } from "@/lib/jobFormatters";
+import type { JobWithMetrics } from "@/types/job";
 
 interface JobSummaryCardProps {
-  job: any;
+  job: JobWithMetrics & {
+    description?: string | null;
+    requirements?: string[] | null;
+    department?: string | null;
+    experience_level?: string | null;
+    job_tools?: Array<{ id: string; tools_and_skills?: { name: string } }>;
+  };
   onEdit?: () => void;
 }
 
@@ -26,19 +34,12 @@ export const JobSummaryCard = memo(({ job, onEdit }: JobSummaryCardProps) => {
   const displayRequirements = requirements.slice(0, 5);
   const hasMoreRequirements = requirements.length > 5;
   
-  // Format salary range
-  const formatSalary = (amount: number) => {
-    if (amount >= 1000) {
-      return `€${(amount / 1000).toFixed(0)}k`;
-    }
-    return `€${amount}`;
-  };
-  
-  const salaryRange = job?.salary_min && job?.salary_max 
-    ? `${formatSalary(job.salary_min)} - ${formatSalary(job.salary_max)}`
-    : job?.salary_min 
-      ? `From ${formatSalary(job.salary_min)}`
-      : 'Not specified';
+  // Format salary using centralized utility
+  const salaryRange = formatSalaryCompact(
+    job?.salary_min,
+    job?.salary_max,
+    job?.currency || 'EUR'
+  ) || 'Not specified';
 
   return (
     <Card className="border-2 border-primary/20 bg-gradient-to-br from-card/95 to-card/70 backdrop-blur-xl shadow-[var(--shadow-glass-md)]">
@@ -68,7 +69,7 @@ export const JobSummaryCard = memo(({ job, onEdit }: JobSummaryCardProps) => {
           {/* Employment Type */}
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="w-4 h-4 flex-shrink-0" />
-            <span className="capitalize truncate">{job?.employment_type || 'Full-time'}</span>
+            <span className="capitalize truncate">{formatEmploymentType(job?.employment_type)}</span>
           </div>
           
           {/* Salary */}
