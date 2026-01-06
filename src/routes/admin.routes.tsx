@@ -93,6 +93,9 @@ const TalentPool = lazy(() => import("@/pages/TalentPool"));
 const TalentPoolLists = lazy(() => import("@/pages/TalentPoolLists"));
 const TalentPoolListDetail = lazy(() => import("@/pages/TalentPoolListDetail"));
 
+// Missing Routes
+const ArchivedCandidates = lazy(() => import("@/pages/ArchivedCandidates"));
+
 export const adminRoutes = (
   <>
     <Route
@@ -698,5 +701,8 @@ export const adminRoutes = (
 
     {/* Agent Brain */}
     <Route path="/admin/agent-brain" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AgentBrain /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* Archived Candidates */}
+    <Route path="/archived-candidates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ArchivedCandidates /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );

@@ -51,36 +51,13 @@ import { StreamingCaptions } from '@/components/video-call/StreamingCaptions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
 import { Video, Users, Brain, WifiOff, RefreshCw } from 'lucide-react';
-// ... imports
 import { useMeetingTranscript } from '@/hooks/useMeetingTranscript';
 import { LiveInterviewAnalysis } from './analysis/LiveInterviewAnalysis';
+import { LiveKitMeetingWrapper } from './LiveKitMeetingWrapper';
 
-// ... inside component
-
-// AI Intelligence Hook (The Neural Link)
-const { transcript } = useMeetingTranscript({
-  enabled: meetingStarted,
-  simulate: true // Enable simulation for demo Phase 3
-});
-
-// ... inside return
-
-{/* AI Interview Analysis Overlay (The Neural Link) */ }
-{
-  !isMobile && meetingStarted && (
-    <LiveInterviewAnalysis
-      meetingId={meeting.id}
-      transcript={transcript}
-    />
-  )
-}
-
-{/* On-Screen Reactions */ }
-<OnScreenReactions reactions={reactions.map(r => ({
-  // ...
-
-  interface MeetingVideoCallInterfaceProps {
+interface MeetingVideoCallInterfaceProps {
   meeting: any;
   participantId: string;
   participantName: string;

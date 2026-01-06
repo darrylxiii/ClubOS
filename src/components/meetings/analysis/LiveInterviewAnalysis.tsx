@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Sparkles, AlertTriangle, CheckCircle, Activity, ChevronRight, ChevronLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface LiveInterviewAnalysisProps {
     meetingId: string;
@@ -27,7 +27,6 @@ export function LiveInterviewAnalysis({ meetingId, transcript }: LiveInterviewAn
     const [isExpanded, setIsExpanded] = useState(true);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState<AnalysisResult | null>(null);
-    const { toast } = useToast();
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll transcript
@@ -39,11 +38,7 @@ export function LiveInterviewAnalysis({ meetingId, transcript }: LiveInterviewAn
 
     const handleAnalyze = async () => {
         if (!transcript || transcript.length < 50) {
-            toast({
-                title: "Not enough data",
-                description: "Wait for more conversation before analyzing.",
-                variant: "destructive"
-            });
+            toast.error("Not enough data - wait for more conversation before analyzing.");
             return;
         }
 
@@ -60,18 +55,11 @@ export function LiveInterviewAnalysis({ meetingId, transcript }: LiveInterviewAn
 
             if (data?.scores) {
                 setResult(data.scores);
-                toast({
-                    title: "Analysis Complete",
-                    description: "AI insights generated successfully.",
-                });
+                toast.success("Analysis complete - AI insights generated successfully.");
             }
         } catch (error: any) {
             console.error('Analysis failed:', error);
-            toast({
-                title: "Analysis Failed",
-                description: error.message || "Could not generate insights.",
-                variant: "destructive"
-            });
+            toast.error(error.message || "Analysis failed - could not generate insights.");
         } finally {
             setIsAnalyzing(false);
         }

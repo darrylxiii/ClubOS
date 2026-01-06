@@ -90,8 +90,8 @@ serve(async (req) => {
 
       if (embeddingError) {
         console.error('[ML Match] Failed to generate job embedding:', embeddingError);
-        // Fall back to rule-based matching
-        return await fallbackRuleBasedMatching(supabase, job_id, candidate_ids, limit, modelVersion);
+        // Fall back to rule-based matching with default version
+        return await fallbackRuleBasedMatching(supabase, job_id, candidate_ids, limit, 1);
       }
 
       // Fetch the job again with the new embedding
