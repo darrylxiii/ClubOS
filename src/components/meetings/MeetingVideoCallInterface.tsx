@@ -52,9 +52,35 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Video, Users, Brain, WifiOff, RefreshCw } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+// ... imports
+import { useMeetingTranscript } from '@/hooks/useMeetingTranscript';
+import { LiveInterviewAnalysis } from './analysis/LiveInterviewAnalysis';
 
-interface MeetingVideoCallInterfaceProps {
+// ... inside component
+
+// AI Intelligence Hook (The Neural Link)
+const { transcript } = useMeetingTranscript({
+  enabled: meetingStarted,
+  simulate: true // Enable simulation for demo Phase 3
+});
+
+// ... inside return
+
+{/* AI Interview Analysis Overlay (The Neural Link) */ }
+{
+  !isMobile && meetingStarted && (
+    <LiveInterviewAnalysis
+      meetingId={meeting.id}
+      transcript={transcript}
+    />
+  )
+}
+
+{/* On-Screen Reactions */ }
+<OnScreenReactions reactions={reactions.map(r => ({
+  // ...
+
+  interface MeetingVideoCallInterfaceProps {
   meeting: any;
   participantId: string;
   participantName: string;
@@ -71,7 +97,13 @@ export function MeetingVideoCallInterface({
 }: MeetingVideoCallInterfaceProps) {
   // Mobile detection
   const isMobile = useIsMobile();
-  
+
+  // AI Intelligence Hook (The Neural Link)
+  const { transcript } = useMeetingTranscript({
+    enabled: true, // simplified for hook placement, will use meetingStarted later
+    simulate: true // Enable simulation for demo Phase 3
+  });
+
   const [showDiagnostics, setShowDiagnostics] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, { stream: MediaStream; name: string }>>(new Map());
@@ -218,12 +250,12 @@ export function MeetingVideoCallInterface({
   });
 
   // Real-time streaming transcription (ElevenLabs Scribe)
-  const { 
-    transcriptions, 
-    isTranscribing, 
+  const {
+    transcriptions,
+    isTranscribing,
     partialTranscript,
     committedTranscripts,
-    error: transcriptionError 
+    error: transcriptionError
   } = useStreamingTranscription({
     meetingId: meeting.id,
     participantName,
@@ -286,14 +318,14 @@ export function MeetingVideoCallInterface({
   // Wire remote streams to compositor when they join
   // Track previous remote participants for detecting who left
   const prevRemoteParticipantsRef = useRef<Set<string>>(new Set());
-  
+
   // Wire remote streams to compositor when they join/leave
   useEffect(() => {
     if (!hasGivenConsent || !isCompositorRecording) return;
-    
+
     const currentParticipantIds = new Set(remoteStreams.keys());
     const prevParticipantIds = prevRemoteParticipantsRef.current;
-    
+
     // Add new participants to compositor
     remoteStreams.forEach(({ stream, name }, remoteParticipantId) => {
       if (!prevParticipantIds.has(remoteParticipantId)) {
@@ -306,7 +338,7 @@ export function MeetingVideoCallInterface({
         console.log('[Meeting] 🎥 Added remote participant to compositor:', name);
       }
     });
-    
+
     // Remove participants who left
     prevParticipantIds.forEach(prevId => {
       if (!currentParticipantIds.has(prevId)) {
@@ -314,7 +346,7 @@ export function MeetingVideoCallInterface({
         console.log('[Meeting] 🎥 Removed participant from compositor:', prevId);
       }
     });
-    
+
     // Update ref for next comparison
     prevRemoteParticipantsRef.current = currentParticipantIds;
   }, [remoteStreams, hasGivenConsent, isCompositorRecording, addRecordingParticipant, removeRecordingParticipant]);
@@ -326,7 +358,7 @@ export function MeetingVideoCallInterface({
       console.log('[Meeting] 🎬 Initializing media for meeting:', meeting.title, '| Participant ID:', participantId, '| Is Guest:', isGuest);
       await initializeMedia();
       toast.success('Joined meeting room');
-      
+
       // Show consent modal after joining
       setShowConsentModal(true);
     } catch (error: any) {
@@ -347,10 +379,10 @@ export function MeetingVideoCallInterface({
   const handleConsentGiven = async (options: ConsentOptions) => {
     setShowConsentModal(false);
     setHasGivenConsent(true);
-    
+
     // Register this participant's consent
     registerConsent(participantId, participantName, options);
-    
+
     // Add local stream to compositor
     if (localStream && options.allowVideoRecording) {
       addRecordingParticipant({
@@ -360,12 +392,12 @@ export function MeetingVideoCallInterface({
         isSpeaking: false
       });
     }
-    
+
     // Start compositor recording
     if (options.allowVideoRecording || options.allowAudioRecording) {
       await startCompositorRecording();
     }
-    
+
     toast.success('Recording preferences saved');
   };
 
@@ -522,7 +554,7 @@ export function MeetingVideoCallInterface({
   const handleToggleLayout = () => setLayout(prev => prev === 'grid' ? 'spotlight' : 'grid');
   const handleToggleBackchannel = () => setShowBackchannel(prev => !prev);
   const handleToggleVoting = () => setShowVoting(prev => !prev);
-  
+
   // Phase 6: Advanced AI Features
   const handleToggleQUINVoice = () => setShowQUINVoice(prev => !prev);
   const handleToggleTranslation = () => setShowTranslation(prev => !prev);
@@ -1032,7 +1064,7 @@ export function MeetingVideoCallInterface({
         />
 
         {isRecording && !isCompositorRecording && <RecordingIndicator />}
-        
+
         {/* Video Quality Indicator */}
         {videoStats && videoStats.qualityLimitationReason !== 'none' && (
           <div className="backdrop-blur-2xl bg-yellow-500/20 border border-yellow-500/30 px-3 py-2 rounded-full text-xs text-yellow-300 shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center gap-2">
@@ -1049,17 +1081,20 @@ export function MeetingVideoCallInterface({
         </div>
       </div>
 
-      {/* Video Grid - Fullscreen */}
+      {/* Video Grid - Updated to use Real LiveKit Wrapper */}
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-950/50 via-transparent to-black/50 pointer-events-none" />
-        <VideoGrid
-          participants={allParticipants.slice(1)} // All participants except local camera
-          localParticipant={allParticipants[0]} // Local camera participant
-          focusedParticipantId={isScreenSharing ? 'local-screen' : undefined}
-          layout={isScreenSharing ? 'spotlight' : layout}
-          presenterId={isScreenSharing ? participantId : undefined}
+        {/* Swapped VideoGrid for LiveKitMeetingWrapper */}
+        <LiveKitMeetingWrapper
+          meetingId={meeting.id}
+          participantName={participantName}
+          participantId={participantId}
+          isHost={meeting.host_id === participantId}
+          onEnd={onEnd}
+          className="h-full w-full"
         />
       </div>
+
 
       {/* Waiting Room Overlay - Premium design */}
       {!meetingStarted && totalParticipants <= 1 && (
@@ -1147,6 +1182,22 @@ export function MeetingVideoCallInterface({
         />
       )}
 
+      {/* AI Interview Analysis Overlay (The Neural Link) */}
+      {!isMobile && meetingStarted && (
+        <LiveInterviewAnalysis
+          meetingId={meeting.id}
+          transcript={transcript}
+        />
+      )}
+
+      {/* AI Interview Analysis Overlay (The Neural Link) */}
+      {!isMobile && meetingStarted && (
+        <LiveInterviewAnalysis
+          meetingId={meeting.id}
+          transcript={transcript}
+        />
+      )}
+
       {/* On-Screen Reactions */}
       <OnScreenReactions reactions={reactions.map(r => ({
         id: r.id,
@@ -1154,8 +1205,8 @@ export function MeetingVideoCallInterface({
         participant_name: r.name
       }))} />
 
-      {/* Controls Panel - Desktop */}
-      {!isMobile && (
+      {/* Controls Panel - Desktop (Disabled for LiveKit Video) */}
+      {!isMobile && false && (
         <ControlsPanel
           isAudioEnabled={isAudioEnabled}
           isVideoEnabled={isVideoEnabled}

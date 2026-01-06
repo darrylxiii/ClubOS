@@ -63,6 +63,8 @@ const JobAnalyticsDashboard = lazy(() => import("@/pages/admin/JobAnalyticsDashb
 const ConversationAnalytics = lazy(() => import("@/pages/admin/ConversationAnalytics"));
 const SecurityEventDashboard = lazy(() => import("@/pages/admin/SecurityEventDashboard"));
 const UserEngagementDashboard = lazy(() => import("@/pages/admin/UserEngagementDashboard"));
+// Phase 6: Agent Brain
+const AgentBrain = lazy(() => import("@/pages/admin/AgentBrain"));
 
 // Missing Operations Pages
 const GodMode = lazy(() => import("@/pages/admin/GodMode"));
@@ -655,43 +657,46 @@ export const adminRoutes = (
     <Route path="/admin/inventory/intangible" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><IntangibleAssets /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/inventory/kia" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><KIAOptimization /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/bulk-operations" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><BulkOperationsHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    
+
     {/* Phase 5: Analytics Dashboards */}
     <Route path="/admin/jobs/:jobId/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/job-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsIndex /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/conversation-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ConversationAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/security-events" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SecurityEventDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/user-engagement" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><UserEngagementDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    
+
     {/* Missing Operations Routes */}
     <Route path="/admin/god-mode" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><GodMode /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/error-logs" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ErrorLogs /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    
+
     {/* Revenue Shares */}
     <Route path="/admin/revenue-shares" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RevenueSharesPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    
+
     {/* Invoice Reconciliation */}
     <Route path="/admin/reconciliation" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><InvoiceReconciliationPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    
+
     {/* Expense Tracking */}
     <Route path="/admin/expenses" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ExpenseTrackingPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    
+
     {/* Closed Jobs */}
     <Route path="/admin/closed-jobs" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ClosedJobs /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    
+
     {/* Enterprise Management */}
     <Route path="/admin/enterprise" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EnterpriseDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    
+
     {/* Due Diligence Center */}
     <Route path="/admin/due-diligence" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><DueDiligenceDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    
+
     {/* Risk & Scale Management */}
     <Route path="/admin/risk-management" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RiskManagementDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    
+
     {/* Marketplace Strategist Dashboard */}
     <Route path="/admin/marketplace/strategist" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><StrategistProjectsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    
+
     {/* Marketplace Analytics */}
     <Route path="/admin/marketplace/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><MarketplaceAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* Agent Brain */}
+    <Route path="/admin/agent-brain" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AgentBrain /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );

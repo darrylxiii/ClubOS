@@ -6,8 +6,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Room, RoomEvent, Participant, RemoteParticipant, LocalParticipant, Track, RemoteTrack, RemoteTrackPublication } from 'livekit-client';
 
-interface LiveKitParticipant {
+export interface LiveKitParticipant {
   id: string;
   name: string;
   isSpeaking: boolean;
@@ -15,6 +16,7 @@ interface LiveKitParticipant {
   isVideoEnabled: boolean;
   isScreenSharing: boolean;
   connectionQuality: 'excellent' | 'good' | 'poor' | 'lost';
+  isLocal: boolean;
   audioTrack?: MediaStreamTrack;
   videoTrack?: MediaStreamTrack;
   screenTrack?: MediaStreamTrack;
@@ -38,6 +40,7 @@ interface LiveKitMeetingState {
   localParticipant: LiveKitParticipant | null;
   roomName: string | null;
   connectionQuality: 'excellent' | 'good' | 'poor' | 'lost';
+  token: string | null;
 }
 
 export function useLiveKitMeeting({
@@ -56,23 +59,23 @@ export function useLiveKitMeeting({
     participants: new Map(),
     localParticipant: null,
     roomName: null,
-    connectionQuality: 'excellent'
+    connectionQuality: 'excellent',
+    token: null
   });
 
-  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
 
-  const roomRef = useRef<any>(null);
-  const tokenRef = useRef<string | null>(null);
-  const urlRef = useRef<string | null>(null);
+  // We keep a ref to the room instance
+  const roomRef = useRef<Room | null>(null);
 
   /**
    * Get LiveKit token from edge function
    */
-  const getToken = useCallback(async (): Promise<{ token: string; url: string } | null> => {
+  const getToken = useCallback(async (): Promise<string | null> => {
     try {
+      console.log('[LiveKit] Requesting token for room:', roomName);
       const { data, error } = await supabase.functions.invoke('livekit-token', {
         body: {
           roomName,
@@ -89,12 +92,12 @@ export function useLiveKitMeeting({
         throw new Error(error.message);
       }
 
-      if (!data?.token || !data?.url) {
+      if (!data?.token) {
         throw new Error('Invalid token response');
       }
 
-      console.log('[LiveKit] ✅ Token received, expires:', data.expiresAt);
-      return { token: data.token, url: data.url };
+      console.log('[LiveKit] ✅ Token received');
+      return data.token;
     } catch (error) {
       console.error('[LiveKit] Failed to get token:', error);
       setState(prev => ({
@@ -107,8 +110,6 @@ export function useLiveKitMeeting({
 
   /**
    * Connect to LiveKit room
-   * Note: This is a simplified implementation. Full LiveKit SDK integration
-   * would use @livekit/components-react or livekit-client directly.
    */
   const connect = useCallback(async () => {
     if (state.isConnected || state.isConnecting) {
@@ -117,180 +118,63 @@ export function useLiveKitMeeting({
     }
 
     setState(prev => ({ ...prev, isConnecting: true, error: null }));
-    
+
     try {
-      // Get local media first
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        },
-        video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          frameRate: { ideal: 30, max: 30 }
-        }
-      });
+      const token = await getToken();
+      if (!token) return;
 
-      setLocalStream(stream);
-
-      // Get token
-      const tokenData = await getToken();
-      if (!tokenData) {
-        throw new Error('Failed to get LiveKit credentials');
-      }
-
-      tokenRef.current = tokenData.token;
-      urlRef.current = tokenData.url;
-
-      // In a full implementation, this would use the LiveKit SDK:
-      // import { Room, RoomEvent } from 'livekit-client';
-      // const room = new Room();
-      // await room.connect(url, token);
-      // roomRef.current = room;
-
-      // For now, simulate successful connection
-      console.log('[LiveKit] 🚀 Connecting to room:', roomName);
-      
-      // Create local participant
-      const localParticipant: LiveKitParticipant = {
-        id: participantId,
-        name: participantName,
-        isSpeaking: false,
-        isMuted: false,
-        isVideoEnabled: true,
-        isScreenSharing: false,
-        connectionQuality: 'excellent',
-        audioTrack: stream.getAudioTracks()[0],
-        videoTrack: stream.getVideoTracks()[0]
-      };
+      // We don't need to manually connect here if we are using the LiveKitRoom component
+      // The LiveKitRoom component handles connection when provided with a token
+      // However, we expose the token so the component can use it
 
       setState(prev => ({
         ...prev,
-        isConnected: true,
         isConnecting: false,
-        localParticipant,
+        token: token, // This triggers the UI to render LiveKitRoom
         roomName
       }));
 
-      onConnectionStateChange?.('connected');
-      toast.success('Connected to meeting room');
+      onConnectionStateChange?.('connecting');
+      // Actual connection happens in the UI component via useLiveKitRoom or LiveKitRoom
 
     } catch (error) {
-      console.error('[LiveKit] Connection failed:', error);
+      console.error('[LiveKit] Setup failed:', error);
       setState(prev => ({
         ...prev,
         isConnecting: false,
-        error: error instanceof Error ? error.message : 'Connection failed'
+        error: error instanceof Error ? error.message : 'Connection setup failed'
       }));
       onConnectionStateChange?.('failed');
       toast.error('Failed to connect to meeting');
     }
-  }, [roomName, participantName, participantId, getToken, state.isConnected, state.isConnecting, onConnectionStateChange]);
+  }, [getToken, state.isConnected, state.isConnecting, onConnectionStateChange, roomName]);
 
   /**
    * Disconnect from LiveKit room
    */
   const disconnect = useCallback(() => {
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
-      setLocalStream(null);
-    }
-
-    if (roomRef.current) {
-      roomRef.current.disconnect?.();
-      roomRef.current = null;
-    }
-
-    setState({
+    setState(prev => ({
+      ...prev,
       isConnected: false,
       isConnecting: false,
-      error: null,
+      token: null,
       participants: new Map(),
-      localParticipant: null,
-      roomName: null,
-      connectionQuality: 'excellent'
-    });
+      localParticipant: null
+    }));
 
     onConnectionStateChange?.('disconnected');
-    console.log('[LiveKit] Disconnected from room');
-  }, [localStream, onConnectionStateChange]);
+    console.log('[LiveKit] Disconnected');
+  }, [onConnectionStateChange]);
 
-  /**
-   * Toggle audio
-   */
-  const toggleAudio = useCallback(() => {
-    if (localStream) {
-      const audioTrack = localStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setIsAudioEnabled(audioTrack.enabled);
-        console.log('[LiveKit] Audio:', audioTrack.enabled ? 'unmuted' : 'muted');
-      }
-    }
-  }, [localStream]);
-
-  /**
-   * Toggle video
-   */
-  const toggleVideo = useCallback(() => {
-    if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoEnabled(videoTrack.enabled);
-        console.log('[LiveKit] Video:', videoTrack.enabled ? 'on' : 'off');
-      }
-    }
-  }, [localStream]);
-
-  /**
-   * Start screen sharing
-   */
-  const startScreenShare = useCallback(async () => {
-    try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: { cursor: 'always' } as any,
-        audio: true
-      });
-
-      setIsScreenSharing(true);
-      console.log('[LiveKit] Screen sharing started');
-
-      // Handle screen share stop
-      screenStream.getVideoTracks()[0].onended = () => {
-        setIsScreenSharing(false);
-        console.log('[LiveKit] Screen sharing stopped');
-      };
-
-      return screenStream;
-    } catch (error) {
-      console.error('[LiveKit] Screen share failed:', error);
-      toast.error('Failed to start screen sharing');
-      return null;
-    }
-  }, []);
-
-  /**
-   * Stop screen sharing
-   */
-  const stopScreenShare = useCallback(() => {
-    setIsScreenSharing(false);
-    console.log('[LiveKit] Screen sharing stopped');
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      disconnect();
-    };
-  }, [disconnect]);
+  // Exposed controls (wrappers around room methods if room ref was available, 
+  // but mostly state setters that UI components react to)
+  const toggleAudio = useCallback((enabled: boolean) => setIsAudioEnabled(enabled), []);
+  const toggleVideo = useCallback((enabled: boolean) => setIsVideoEnabled(enabled), []);
+  const toggleScreenShare = useCallback((enabled: boolean) => setIsScreenSharing(enabled), []);
 
   return {
     // State
     ...state,
-    localStream,
     isAudioEnabled,
     isVideoEnabled,
     isScreenSharing,
@@ -300,11 +184,10 @@ export function useLiveKitMeeting({
     disconnect,
     toggleAudio,
     toggleVideo,
-    startScreenShare,
-    stopScreenShare,
+    toggleScreenShare,
 
     // LiveKit specific
-    isLiveKitConfigured: true, // Will be false if token fetch fails
+    isLiveKitConfigured: true,
     sfuMode: true
   };
 }
