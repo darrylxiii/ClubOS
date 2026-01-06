@@ -13,6 +13,7 @@ import { AdminRoleManager } from './AdminRoleManager';
 import { ChannelSettingsDialog } from './ChannelSettingsDialog';
 import { DirectMessageView } from './DirectMessageView';
 import { UserStatusSelector } from './UserStatusSelector';
+import { VoiceChatWidget } from './VoiceChatWidget';
 import { useLiveHubPresence } from '@/hooks/useLiveHubPresence';
 import { useUserPresenceExtended } from '@/hooks/useUserPresenceExtended';
 import { useActiveCall } from '@/contexts/ActiveCallContext';
@@ -195,6 +196,12 @@ const LiveHubLayout = () => {
         open={showChannelSettings}
         onOpenChange={setShowChannelSettings}
         channelId={selectedChannelId}
+      />
+
+      {/* Voice Chat Widget */}
+      <VoiceChatWidget 
+        className="bottom-6 right-6" 
+        onJoinChannel={(channelId) => handleChannelSelect(channelId, 'voice', true)}
       />
     </div>
   );
