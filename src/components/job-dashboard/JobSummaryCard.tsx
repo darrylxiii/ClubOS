@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Briefcase, MapPin, DollarSign, Clock, Building2, 
-  ChevronDown, ChevronUp, Edit, ExternalLink, Users
+  ChevronDown, ChevronUp, Edit, ExternalLink, Users, Repeat
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
 
 interface JobSummaryCardProps {
   job: any;
@@ -88,6 +89,21 @@ export const JobSummaryCard = memo(({ job, onEdit }: JobSummaryCardProps) => {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Building2 className="w-4 h-4 flex-shrink-0" />
             <span>{job.department}</span>
+          </div>
+        )}
+        
+        {/* Pipeline Progress for Continuous Roles */}
+        {job?.is_continuous && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Repeat className="w-4 h-4 flex-shrink-0 text-primary" />
+            <span className="font-medium">Pipeline:</span>
+            <ContinuousPipelineBadge
+              isContinuous={true}
+              hiredCount={job.hired_count || 0}
+              targetHireCount={job.target_hire_count}
+              size="md"
+              showProgress={true}
+            />
           </div>
         )}
         

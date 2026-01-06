@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2 } from "lucide-react";
+import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { JobClosureDialog } from "@/components/jobs/JobClosureDialog";
 import { JobDeleteDialog } from "@/components/jobs/JobDeleteDialog";
@@ -551,6 +552,15 @@ export default function JobDashboard() {
               >
                 {job.status}
               </Badge>
+              
+              {/* Continuous Pipeline Badge */}
+              <ContinuousPipelineBadge
+                isContinuous={job.is_continuous}
+                hiredCount={job.hired_count || 0}
+                targetHireCount={job.target_hire_count}
+                size="lg"
+                showProgress={true}
+              />
             </div>
           </div>
         </div>
