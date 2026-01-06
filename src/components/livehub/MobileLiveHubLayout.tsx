@@ -17,6 +17,7 @@ import MobileChannelSheet from './MobileChannelSheet';
 import MobileMemberSheet from './MobileMemberSheet';
 import ChannelList from './ChannelList';
 import MobileVoiceIndicator from './MobileVoiceIndicator';
+import { VoiceChatWidget } from './VoiceChatWidget';
 
 interface MobileLiveHubLayoutProps {
   selectedChannelId: string | null;
@@ -220,6 +221,12 @@ const MobileLiveHubLayout = ({
           onDisconnect={onDisconnect}
         />
       )}
+
+      {/* Voice Chat Widget - positioned above bottom nav */}
+      <VoiceChatWidget 
+        className="bottom-20 right-4" 
+        onJoinChannel={(channelId) => handleChannelSelect(channelId, 'voice', true)}
+      />
 
       {/* Bottom Navigation - Discord-style 4 items */}
       <LiveHubBottomNav activePanel={activePanel} onPanelChange={handleNavChange} />
