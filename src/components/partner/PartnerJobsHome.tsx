@@ -1278,6 +1278,10 @@ const MemoizedJobCard = memo(({
             isContinuous={job.is_continuous}
             hiredCount={job.hired_count}
             targetHireCount={job.target_hire_count}
+            externalUrl={job.external_url}
+            daysOpen={job.days_open || Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))}
+            lastActivityDaysAgo={job.last_activity_at ? Math.floor((Date.now() - new Date(job.last_activity_at).getTime()) / (1000 * 60 * 60 * 24)) : 999}
+            applicantsCount={job.applications_count || 0}
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

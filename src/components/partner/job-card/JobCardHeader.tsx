@@ -11,6 +11,7 @@ import {
 import { Lock, ExternalLink } from "lucide-react";
 import { JobStatusBadge, JobStatus } from "@/components/jobs/JobStatusBadge";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
+import { UrgencyBadge } from "@/components/jobs/UrgencyBadge";
 
 interface JobCardHeaderProps {
   companyLogo: string | null;
@@ -23,6 +24,9 @@ interface JobCardHeaderProps {
   hiredCount?: number;
   targetHireCount?: number | null;
   externalUrl?: string | null;
+  daysOpen?: number;
+  lastActivityDaysAgo?: number;
+  applicantsCount?: number;
 }
 
 export const JobCardHeader = memo(({
@@ -36,6 +40,9 @@ export const JobCardHeader = memo(({
   hiredCount = 0,
   targetHireCount,
   externalUrl,
+  daysOpen = 0,
+  lastActivityDaysAgo = 0,
+  applicantsCount = 0,
 }: JobCardHeaderProps) => {
   return (
     <div className="flex items-center gap-3 flex-1">
@@ -78,6 +85,12 @@ export const JobCardHeader = memo(({
             isContinuous={isContinuous}
             hiredCount={hiredCount}
             targetHireCount={targetHireCount}
+            size="sm"
+          />
+          <UrgencyBadge
+            daysOpen={daysOpen}
+            lastActivityDaysAgo={lastActivityDaysAgo}
+            applicantsCount={applicantsCount}
             size="sm"
           />
           {isStealth && (
