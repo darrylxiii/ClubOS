@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, MapPin, Clock, Bookmark, Zap } from "lucide-react";
+import { Building2, MapPin, Clock, Bookmark, Zap, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,9 @@ interface JobCardProps {
   salary?: string;
   matchScore?: number;
   isSaved?: boolean;
+  isContinuous?: boolean;
+  hiredCount?: number;
+  targetHireCount?: number | null;
   onApply?: () => void;
   onRefer?: () => void;
   onClubSync?: () => void;
@@ -46,6 +49,9 @@ export const JobCard = ({
   salary,
   matchScore,
   isSaved = false,
+  isContinuous = false,
+  hiredCount = 0,
+  targetHireCount,
   onApply,
   onRefer,
   onClubSync,
@@ -140,8 +146,20 @@ export const JobCard = ({
         </div>
       </CardHeader>
       <CardContent className="pt-0 space-y-4">
-        {/* Tags & Salary Section */}
+        {/* Tags, Salary & Continuous Badge Section */}
         <div className="flex flex-wrap gap-2 overflow-x-auto scrollbar-hide">
+          {isContinuous && (
+            <Badge 
+              variant="secondary" 
+              className="text-xs font-medium bg-primary/10 text-primary border-0 px-3 py-1 gap-1"
+            >
+              <Users className="w-3 h-3" />
+              {targetHireCount 
+                ? `${hiredCount}/${targetHireCount} filled`
+                : `Multiple Openings${hiredCount > 0 ? ` (${hiredCount} hired)` : ''}`
+              }
+            </Badge>
+          )}
           {tags.map((tag) => (
             <Badge 
               key={tag} 

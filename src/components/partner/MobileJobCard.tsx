@@ -1,9 +1,12 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Users, Calendar, DollarSign, Edit, Eye, Share2 } from "lucide-react";
+import { MapPin, Users, Calendar, DollarSign, Edit, Eye, Share2, Repeat } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
+import { ClubSyncBadge } from "@/components/jobs/ClubSyncBadge";
+import { toast } from "sonner";
 
 interface Job {
   id: string;
@@ -16,6 +19,10 @@ interface Job {
   salary_min?: number;
   salary_max?: number;
   currency?: string;
+  is_continuous?: boolean;
+  hired_count?: number;
+  target_hire_count?: number | null;
+  club_sync_enabled?: boolean;
 }
 
 interface MobileJobCardProps {
@@ -44,13 +51,23 @@ export function MobileJobCard({ job }: MobileJobCardProps) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-base truncate">{job.title}</h3>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <Badge className={getStatusColor(job.status)} variant="secondary">
                 {job.status}
               </Badge>
               <Badge variant="outline" className="text-xs">
                 {job.employment_type}
               </Badge>
+              <ContinuousPipelineBadge
+                isContinuous={job.is_continuous}
+                hiredCount={job.hired_count || 0}
+                targetHireCount={job.target_hire_count}
+                size="sm"
+              />
+              <ClubSyncBadge 
+                status={job.club_sync_enabled ? "accepted" : null} 
+                size="sm" 
+              />
             </div>
           </div>
         </div>
@@ -95,11 +112,11 @@ export function MobileJobCard({ job }: MobileJobCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(`/jobs/${job.id}/edit`)}
+            onClick={() => navigate(`/jobs/${job.id}/dashboard`)}
             className="min-h-[44px] flex-col gap-1 h-auto py-2"
           >
             <Edit className="h-4 w-4" />
-            <span className="text-xs">Edit</span>
+            <span className="text-xs">Manage</span>
           </Button>
           <Button
             variant="ghost"
@@ -108,6 +125,7 @@ export function MobileJobCard({ job }: MobileJobCardProps) {
               navigator.clipboard.writeText(
                 `${window.location.origin}/jobs/${job.id}`
               );
+              toast.success("Link copied to clipboard");
             }}
             className="min-h-[44px] flex-col gap-1 h-auto py-2"
           >
