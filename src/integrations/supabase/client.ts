@@ -2,28 +2,31 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 
-// Validate environment variables
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  console.error('[Supabase Client] ❌ CRITICAL: Missing environment variables:', {
-    hasUrl: !!SUPABASE_URL,
-    hasKey: !!SUPABASE_PUBLISHABLE_KEY,
-    url: SUPABASE_URL,
-  });
-  throw new Error('Missing Supabase environment variables. Please check your deployment configuration.');
+if (!supabaseUrl || !supabaseKey) {
+  console.warn(
+    'Supabase URL or Key is missing. The app is running in a mode where env vars are not set (e.g. preview). ' +
+    'Please set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in .env or your build environment.'
+  );
 }
 
-console.log('[Supabase Client] ✅ Initializing with URL:', SUPABASE_URL);
-
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
-
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
+// Use a dummy URL if missing to prevent createClient from crashing immediately
+export const supabase = createClient<Database>(
+  supabaseUrl || 'https://placeholder-project.supabase.co',
+  supabaseKey || 'placeholder-key',
+  {
+    auth: {
+      storageKey: 'supabase-auth-token',
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+    global: {
+      headers: {
+        'x-application-name': 'thequantumclub',
+      },
+    },
   }
-});
+);

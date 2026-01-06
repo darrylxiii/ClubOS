@@ -7,7 +7,7 @@ import { TrendingUp } from "lucide-react";
 export const RolesDistributionCard = () => {
   const { roleDistribution, isLoading } = useUserMetrics();
 
-  if (isLoading || !roleDistribution) {
+  if (isLoading) {
     return <MetricCardSkeleton />;
   }
 
@@ -47,4 +47,3 @@ export const RolesDistributionCard = () => {
     </AnimatedCard>
   );
 };
-

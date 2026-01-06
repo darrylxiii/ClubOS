@@ -7,7 +7,7 @@ import { TrendingUp } from "lucide-react";
 export const TotalUsersCard = () => {
   const { metrics, isLoading } = useUserMetrics();
 
-  if (isLoading || !metrics) {
+  if (isLoading) {
     return <MetricCardSkeleton />;
   }
 
