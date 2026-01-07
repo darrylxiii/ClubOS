@@ -12,8 +12,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Percent, DollarSign, Shuffle, Info } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Loader2, Percent, DollarSign, Shuffle, Info, ChevronDown, Building2, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -27,12 +38,44 @@ interface CompanyFeeData {
   placement_fee_percentage: number | null;
   placement_fee_fixed: number | null;
   default_fee_notes: string | null;
+  // Bank details
+  bank_name?: string | null;
+  bank_iban?: string | null;
+  bank_bic?: string | null;
+  bank_account_holder?: string | null;
+  // Payment terms
+  default_payment_terms_days?: number | null;
+  payment_code?: string | null;
 }
 
 interface CompanyFeeConfigDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   company: CompanyFeeData | null;
+}
+
+const PAYMENT_TERMS_OPTIONS = [
+  { value: 7, label: "Net 7 days" },
+  { value: 14, label: "Net 14 days" },
+  { value: 21, label: "Net 21 days" },
+  { value: 30, label: "Net 30 days" },
+  { value: 45, label: "Net 45 days" },
+  { value: 60, label: "Net 60 days" },
+  { value: 90, label: "Net 90 days" },
+];
+
+// IBAN validation regex (simplified - allows most European IBANs)
+const IBAN_REGEX = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{4,30}$/;
+
+function validateIBAN(iban: string): boolean {
+  if (!iban) return true; // Empty is ok
+  const cleanIban = iban.replace(/\s/g, '').toUpperCase();
+  return IBAN_REGEX.test(cleanIban);
+}
+
+function formatIBAN(iban: string): string {
+  const clean = iban.replace(/\s/g, '').toUpperCase();
+  return clean.replace(/(.{4})/g, '$1 ').trim();
 }
 
 export function CompanyFeeConfigDialog({
@@ -45,6 +88,18 @@ export function CompanyFeeConfigDialog({
   const [percentage, setPercentage] = useState("");
   const [fixedAmount, setFixedAmount] = useState("");
   const [notes, setNotes] = useState("");
+  
+  // Bank details
+  const [bankName, setBankName] = useState("");
+  const [bankIban, setBankIban] = useState("");
+  const [bankBic, setBankBic] = useState("");
+  const [bankAccountHolder, setBankAccountHolder] = useState("");
+  const [bankSectionOpen, setBankSectionOpen] = useState(false);
+  
+  // Payment terms
+  const [paymentTerms, setPaymentTerms] = useState<number>(30);
+  const [paymentCode, setPaymentCode] = useState("");
+  const [paymentSectionOpen, setPaymentSectionOpen] = useState(false);
 
   useEffect(() => {
     if (company) {
@@ -52,6 +107,20 @@ export function CompanyFeeConfigDialog({
       setPercentage(company.placement_fee_percentage?.toString() || "20");
       setFixedAmount(company.placement_fee_fixed?.toString() || "");
       setNotes(company.default_fee_notes || "");
+      
+      // Bank details
+      setBankName(company.bank_name || "");
+      setBankIban(company.bank_iban || "");
+      setBankBic(company.bank_bic || "");
+      setBankAccountHolder(company.bank_account_holder || "");
+      
+      // Payment terms
+      setPaymentTerms(company.default_payment_terms_days || 30);
+      setPaymentCode(company.payment_code || "");
+      
+      // Auto-expand sections if data exists
+      setBankSectionOpen(!!company.bank_iban);
+      setPaymentSectionOpen(!!company.payment_code || (company.default_payment_terms_days && company.default_payment_terms_days !== 30));
     }
   }, [company]);
 
@@ -59,9 +128,22 @@ export function CompanyFeeConfigDialog({
     mutationFn: async () => {
       if (!company) throw new Error("No company selected");
 
-      const updates: Record<string, any> = {
+      // Validate IBAN if provided
+      if (bankIban && !validateIBAN(bankIban)) {
+        throw new Error("Invalid IBAN format");
+      }
+
+      const updates: Record<string, unknown> = {
         fee_type: feeType,
         default_fee_notes: notes || null,
+        // Bank details
+        bank_name: bankName || null,
+        bank_iban: bankIban ? bankIban.replace(/\s/g, '').toUpperCase() : null,
+        bank_bic: bankBic || null,
+        bank_account_holder: bankAccountHolder || null,
+        // Payment terms
+        default_payment_terms_days: paymentTerms,
+        payment_code: paymentCode || null,
       };
 
       if (feeType === "percentage") {
@@ -99,11 +181,12 @@ export function CompanyFeeConfigDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-fees"] });
       queryClient.invalidateQueries({ queryKey: ["deal-pipeline"] });
-      toast.success("Company fee configuration updated");
+      queryClient.invalidateQueries({ queryKey: ["company"] });
+      toast.success("Company configuration updated");
       onOpenChange(false);
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update fee configuration");
+      toast.error(error.message || "Failed to update configuration");
     },
   });
 
@@ -124,13 +207,13 @@ export function CompanyFeeConfigDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            Configure Fees for {company?.name}
+            Configure {company?.name}
           </DialogTitle>
           <DialogDescription>
-            Set how placement fees are calculated for this company
+            Fee structure, bank details, and payment terms
           </DialogDescription>
         </DialogHeader>
 
@@ -265,6 +348,116 @@ export function CompanyFeeConfigDialog({
               </p>
             </div>
           )}
+
+          {/* Bank Details Section */}
+          <Collapsible open={bankSectionOpen} onOpenChange={setBankSectionOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <Building2 className="h-4 w-4" />
+                  Bank Details
+                  {bankIban && <span className="text-xs text-muted-foreground">(configured)</span>}
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${bankSectionOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bank-name">Bank Name</Label>
+                  <Input
+                    id="bank-name"
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                    placeholder="e.g., ING Bank"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bank-bic">BIC/SWIFT</Label>
+                  <Input
+                    id="bank-bic"
+                    value={bankBic}
+                    onChange={(e) => setBankBic(e.target.value.toUpperCase())}
+                    placeholder="e.g., INGBNL2A"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bank-iban">IBAN</Label>
+                <Input
+                  id="bank-iban"
+                  value={formatIBAN(bankIban)}
+                  onChange={(e) => setBankIban(e.target.value)}
+                  placeholder="e.g., NL91 ABNA 0417 1643 00"
+                  className={bankIban && !validateIBAN(bankIban) ? "border-destructive" : ""}
+                />
+                {bankIban && !validateIBAN(bankIban) && (
+                  <p className="text-xs text-destructive">Invalid IBAN format</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bank-holder">Account Holder Name</Label>
+                <Input
+                  id="bank-holder"
+                  value={bankAccountHolder}
+                  onChange={(e) => setBankAccountHolder(e.target.value)}
+                  placeholder="e.g., Company B.V."
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Bank details enable automatic payment matching when banking integrations are connected.
+              </p>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Payment Terms Section */}
+          <Collapsible open={paymentSectionOpen} onOpenChange={setPaymentSectionOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <CreditCard className="h-4 w-4" />
+                  Payment Terms
+                  {paymentCode && <span className="text-xs text-muted-foreground">({paymentCode})</span>}
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${paymentSectionOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="payment-terms">Payment Terms</Label>
+                  <Select
+                    value={paymentTerms.toString()}
+                    onValueChange={(v) => setPaymentTerms(parseInt(v))}
+                  >
+                    <SelectTrigger id="payment-terms">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_TERMS_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value.toString()}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="payment-code">Payment Code</Label>
+                  <Input
+                    id="payment-code"
+                    value={paymentCode}
+                    onChange={(e) => setPaymentCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))}
+                    placeholder="e.g., ACME"
+                    maxLength={8}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Payment code creates structured invoice references (TQC-{paymentCode || 'CODE'}-XXXX) for automatic matching.
+              </p>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         <DialogFooter>

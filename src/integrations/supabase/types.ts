@@ -8143,6 +8143,10 @@ export type Database = {
           archive_reason: string | null
           archived_at: string | null
           archived_by: string | null
+          bank_account_holder: string | null
+          bank_bic: string | null
+          bank_iban: string | null
+          bank_name: string | null
           benefits: Json | null
           careers_email: string | null
           careers_page_url: string | null
@@ -8151,6 +8155,7 @@ export type Database = {
           created_at: string
           culture_highlights: Json | null
           default_fee_notes: string | null
+          default_payment_terms_days: number | null
           description: string | null
           fee_type: string | null
           founded_year: number | null
@@ -8175,6 +8180,7 @@ export type Database = {
           meta_title: string | null
           mission: string | null
           name: string
+          payment_code: string | null
           payment_reliability_score: number | null
           placement_fee_fixed: number | null
           placement_fee_percentage: number | null
@@ -8195,6 +8201,10 @@ export type Database = {
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          bank_account_holder?: string | null
+          bank_bic?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
           benefits?: Json | null
           careers_email?: string | null
           careers_page_url?: string | null
@@ -8203,6 +8213,7 @@ export type Database = {
           created_at?: string
           culture_highlights?: Json | null
           default_fee_notes?: string | null
+          default_payment_terms_days?: number | null
           description?: string | null
           fee_type?: string | null
           founded_year?: number | null
@@ -8227,6 +8238,7 @@ export type Database = {
           meta_title?: string | null
           mission?: string | null
           name: string
+          payment_code?: string | null
           payment_reliability_score?: number | null
           placement_fee_fixed?: number | null
           placement_fee_percentage?: number | null
@@ -8247,6 +8259,10 @@ export type Database = {
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          bank_account_holder?: string | null
+          bank_bic?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
           benefits?: Json | null
           careers_email?: string | null
           careers_page_url?: string | null
@@ -8255,6 +8271,7 @@ export type Database = {
           created_at?: string
           culture_highlights?: Json | null
           default_fee_notes?: string | null
+          default_payment_terms_days?: number | null
           description?: string | null
           fee_type?: string | null
           founded_year?: number | null
@@ -8279,6 +8296,7 @@ export type Database = {
           meta_title?: string | null
           mission?: string | null
           name?: string
+          payment_code?: string | null
           payment_reliability_score?: number | null
           placement_fee_fixed?: number | null
           placement_fee_percentage?: number | null
@@ -16282,6 +16300,7 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          batch_id: string | null
           candidate_name: string | null
           commission_rate: number | null
           commission_type: string | null
@@ -16307,6 +16326,7 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          batch_id?: string | null
           candidate_name?: string | null
           commission_rate?: number | null
           commission_type?: string | null
@@ -16332,6 +16352,7 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          batch_id?: string | null
           candidate_name?: string | null
           commission_rate?: number | null
           commission_type?: string | null
@@ -16355,6 +16376,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "employee_commissions_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "payout_batches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "employee_commissions_employee_id_fkey"
             columns: ["employee_id"]
@@ -30097,6 +30125,58 @@ export type Database = {
           },
         ]
       }
+      payment_references: {
+        Row: {
+          amount: number | null
+          company_id: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          invoice_id: string | null
+          reference_code: string
+        }
+        Insert: {
+          amount?: number | null
+          company_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          invoice_id?: string | null
+          reference_code: string
+        }
+        Update: {
+          amount?: number | null
+          company_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          invoice_id?: string | null
+          reference_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_references_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_references_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_references_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "moneybird_sales_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_transactions: {
         Row: {
           amount: number
@@ -30155,6 +30235,70 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "partner_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payout_batches: {
+        Row: {
+          batch_code: string
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          exported_at: string | null
+          id: string
+          notes: string | null
+          payout_count: number
+          status: string | null
+          total_amount: number
+        }
+        Insert: {
+          batch_code: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          exported_at?: string | null
+          id?: string
+          notes?: string | null
+          payout_count?: number
+          status?: string | null
+          total_amount: number
+        }
+        Update: {
+          batch_code?: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          exported_at?: string | null
+          id?: string
+          notes?: string | null
+          payout_count?: number
+          status?: string | null
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_batches_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "payout_batches_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_batches_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -35636,6 +35780,7 @@ export type Database = {
           application_id: string | null
           approved_at: string | null
           approved_by: string | null
+          batch_id: string | null
           calculation_basis: Json | null
           candidate_id: string | null
           created_at: string | null
@@ -35659,6 +35804,7 @@ export type Database = {
           application_id?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          batch_id?: string | null
           calculation_basis?: Json | null
           candidate_id?: string | null
           created_at?: string | null
@@ -35682,6 +35828,7 @@ export type Database = {
           application_id?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          batch_id?: string | null
           calculation_basis?: Json | null
           candidate_id?: string | null
           created_at?: string | null
@@ -35722,6 +35869,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "employee_pipeline_value"
             referencedColumns: ["application_id"]
+          },
+          {
+            foreignKeyName: "referral_payouts_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "payout_batches"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "referral_payouts_candidate_id_fkey"
