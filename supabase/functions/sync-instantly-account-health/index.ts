@@ -1,46 +1,78 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { instantlyRequest } from '../_shared/instantly-client.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface InstantlyEmailAccount {
+  email: string;
+  status?: string;
+  warmup_status?: string;
+  warmup_progress?: number;
+  inbox_placement_rate?: number;
+  spam_rate?: number;
+  bounce_rate?: number;
+  daily_limit?: number;
+  emails_sent_today?: number;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  console.log('[sync-instantly-account-health] Starting sync...');
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const instantlyApiKey = Deno.env.get('INSTANTLY_API_KEY');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    if (!instantlyApiKey) {
-      return new Response(JSON.stringify({ error: 'Instantly API key not configured' }), {
-        status: 400,
+    // Use the shared client which handles API key fallbacks
+    const accountsResponse = await instantlyRequest<{ items?: InstantlyEmailAccount[]; data?: InstantlyEmailAccount[] } | InstantlyEmailAccount[]>('/accounts');
+
+    if (accountsResponse.error) {
+      console.error('[sync-instantly-account-health] API error:', accountsResponse.error);
+      
+      // Log the sync failure
+      await supabase.from('crm_sync_logs').insert({
+        sync_type: 'instantly_account_health',
+        source: 'instantly',
+        direction: 'pull',
+        total_records: 0,
+        synced_records: 0,
+        failed_records: 1,
+        errors: [{ error: accountsResponse.error }],
+        triggered_by: 'system',
+        started_at: new Date(startTime).toISOString(),
+        completed_at: new Date().toISOString(),
+      });
+
+      return new Response(JSON.stringify({ 
+        error: accountsResponse.error,
+        hint: 'Check that InstantlyAPI secret is configured correctly'
+      }), {
+        status: accountsResponse.status || 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Fetch accounts from Instantly
-    const accountsResponse = await fetch('https://api.instantly.ai/api/v2/accounts', {
-      headers: {
-        'Authorization': `Bearer ${instantlyApiKey}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!accountsResponse.ok) {
-      console.error('Instantly accounts fetch failed:', accountsResponse.status);
-      return new Response(JSON.stringify({ error: 'Failed to fetch Instantly accounts' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Handle different response formats from Instantly API
+    const rawData = accountsResponse.data;
+    let accounts: InstantlyEmailAccount[] = [];
+    
+    if (Array.isArray(rawData)) {
+      accounts = rawData;
+    } else if (rawData && typeof rawData === 'object') {
+      accounts = (rawData as { items?: InstantlyEmailAccount[]; data?: InstantlyEmailAccount[] }).items || 
+                 (rawData as { items?: InstantlyEmailAccount[]; data?: InstantlyEmailAccount[] }).data || 
+                 [];
     }
 
-    const accountsData = await accountsResponse.json();
-    const accounts = accountsData.data || accountsData || [];
+    console.log(`[sync-instantly-account-health] Found ${accounts.length} accounts`);
 
     const results = [];
 
