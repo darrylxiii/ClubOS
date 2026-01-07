@@ -134,7 +134,7 @@ export function WhatsAppConversationList({
   }
 
   return (
-    <div className="h-full flex flex-col bg-card/50">
+    <div className="min-h-[600px] h-full flex flex-col bg-card/50">
       {/* Search & Filters */}
       <div className="p-4 space-y-3 border-b border-border">
         <div className="relative">
@@ -183,11 +183,25 @@ export function WhatsAppConversationList({
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="p-8 text-center text-muted-foreground"
+              className="p-8 text-center"
             >
-              <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="font-medium">No conversations found</p>
-              <p className="text-sm">Try adjusting your filters</p>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#25d366]/20 to-[#128c7e]/20 flex items-center justify-center">
+                <MessageSquare className="w-8 h-8 text-[#25d366]" />
+              </div>
+              <p className="font-semibold text-foreground mb-1">No conversations yet</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {filter !== 'all' ? 'Try adjusting your filters' : 'Import chats or wait for incoming messages'}
+              </p>
+              {filter !== 'all' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFilter('all')}
+                  className="text-xs"
+                >
+                  Clear Filters
+                </Button>
+              )}
             </motion.div>
           ) : (
             filteredConversations.map((conversation, index) => {

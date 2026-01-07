@@ -29,6 +29,7 @@ import { WhatsAppAutomationsTab } from '@/components/whatsapp/tabs/WhatsAppAutom
 import { WhatsAppImportTab } from '@/components/whatsapp/tabs/WhatsAppImportTab';
 import { WhatsAppSettingsTab } from '@/components/whatsapp/tabs/WhatsAppSettingsTab';
 import { WhatsAppMetricsBar } from '@/components/whatsapp/WhatsAppMetricsBar';
+import { WhatsAppOnboardingCard } from '@/components/whatsapp/WhatsAppOnboardingCard';
 
 type TabId = 'inbox' | 'analytics' | 'campaigns' | 'automations' | 'import' | 'settings';
 
@@ -84,9 +85,42 @@ export default function WhatsAppHub() {
     refetchInterval: 30000,
   });
 
+  // Check for templates
+  const { data: templates } = useQuery({
+    queryKey: ['whatsapp-templates-count'],
+    queryFn: async () => {
+      const { data } = await supabase.from('whatsapp_templates').select('id').limit(1);
+      return data || [];
+    },
+  });
+
+  // Check for conversations
+  const { data: conversationCount } = useQuery({
+    queryKey: ['whatsapp-conversation-count'],
+    queryFn: async () => {
+      const { data } = await supabase.from('whatsapp_conversations').select('id').limit(1);
+      return data || [];
+    },
+  });
+
   const isConnected = !!account?.is_active;
+  const hasTemplates = (templates?.length || 0) > 0;
+  const hasConversations = (conversationCount?.length || 0) > 0;
+  const needsOnboarding = !isConnected && !hasConversations;
 
   const renderTabContent = () => {
+    // Show onboarding for inbox tab when no data
+    if (activeTab === 'inbox' && needsOnboarding) {
+      return (
+        <WhatsAppOnboardingCard
+          hasAccount={isConnected}
+          hasTemplates={hasTemplates}
+          hasConversations={hasConversations}
+          onNavigate={setActiveTab}
+        />
+      );
+    }
+    
     switch (activeTab) {
       case 'inbox':
         return <WhatsAppInboxTab />;
@@ -108,7 +142,7 @@ export default function WhatsAppHub() {
   return (
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist', 'partner']} showLoading>
-        <div className="h-full flex flex-col">
+        <div className="min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)] flex flex-col">
           {/* Header */}
           <div className="h-14 border-b border-border bg-card/50 flex items-center justify-between px-4 shrink-0">
             <div className="flex items-center gap-3">
