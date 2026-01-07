@@ -80,6 +80,7 @@ function ProspectPipelineContent() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [syncingInstantly, setSyncingInstantly] = useState(false);
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { showHelp, setShowHelp } = useCRMKeyboardShortcuts({
@@ -213,9 +214,32 @@ function ProspectPipelineContent() {
     setSelectedIds(new Set());
   }, [selectedIds, updateProspectStage]);
 
-  const handleBulkAssign = useCallback(() => {
-    toast.info('Assign functionality coming soon');
-  }, []);
+  const handleBulkAssignClick = useCallback(() => {
+    if (selectedIds.size === 0) return;
+    // For now, assign to the first available owner as a quick action
+    if (owners.length > 0) {
+      const assignToOwner = async () => {
+        const count = selectedIds.size;
+        try {
+          for (const id of selectedIds) {
+            await supabase
+              .from('crm_prospects')
+              .update({ owner_id: owners[0].id })
+              .eq('id', id);
+          }
+          toast.success(`Assigned ${count} prospects to ${owners[0].full_name}`);
+          setSelectedIds(new Set());
+          refetch();
+        } catch (error) {
+          console.error('Bulk assign error:', error);
+          toast.error('Failed to assign prospects');
+        }
+      };
+      assignToOwner();
+    } else {
+      toast.info('No owners available for assignment');
+    }
+  }, [selectedIds, owners, refetch]);
 
   const clearFilters = () => {
     setSelectedOwner('all');
