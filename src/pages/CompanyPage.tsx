@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Globe, Linkedin, Twitter, Instagram, 
   Settings, Eye, Share2, Image as ImageIcon, Building2, 
-  MapPin, Users, Calendar, Briefcase, Heart, Star, Mail, Sparkles, Target, Newspaper, Brain, BarChart3
+  MapPin, Users, Calendar, Briefcase, Heart, Star, Mail, Sparkles, Target, Newspaper, Brain, BarChart3, Wallet
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ import { NewsArticleCard } from "@/components/company/NewsArticleCard";
 import { AddNewsArticleDialog } from "@/components/company/AddNewsArticleDialog";
 import { CompanyIntelligenceSummary } from "@/components/intelligence/CompanyIntelligenceSummary";
 import { CompanyMLInsights } from "@/components/intelligence/CompanyMLInsights";
+import { CompanyFinancialsTab } from "@/components/companies/CompanyFinancialsTab";
 
 interface Company {
   id: string;
@@ -554,7 +555,7 @@ export default function CompanyPage() {
 
         {/* Additional Tabs */}
         <Tabs defaultValue="about" className="w-full">
-          <TabsList className={`grid w-full ${(isAdmin || isCompanyMember) ? 'grid-cols-8' : (canAccessTargets ? 'grid-cols-6' : 'grid-cols-5')}`}>
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-9' : ((isAdmin || isCompanyMember) ? 'grid-cols-8' : (canAccessTargets ? 'grid-cols-6' : 'grid-cols-5'))}`}>
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="jobs">Jobs ({jobCount})</TabsTrigger>
             <TabsTrigger value="news">
@@ -578,6 +579,12 @@ export default function CompanyPage() {
               <TabsTrigger value="ml-insights">
                 <BarChart3 className="w-4 h-4 mr-1.5" />
                 ML
+              </TabsTrigger>
+            )}
+            {isAdmin && (
+              <TabsTrigger value="financials">
+                <Wallet className="w-4 h-4 mr-1.5" />
+                Financials
               </TabsTrigger>
             )}
           </TabsList>
@@ -833,6 +840,13 @@ export default function CompanyPage() {
           {isAdmin && (
             <TabsContent value="ml-insights" className="space-y-6 mt-6">
               <CompanyMLInsights companyId={company.id} />
+            </TabsContent>
+          )}
+
+          {/* Financials Tab - Admin Only */}
+          {isAdmin && (
+            <TabsContent value="financials" className="space-y-6 mt-6">
+              <CompanyFinancialsTab companyId={company.id} />
             </TabsContent>
           )}
         </Tabs>

@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ReferralPayout } from "@/hooks/useFinancialData";
 import { usePayoutActions } from "@/hooks/usePayoutActions";
 import { format } from "date-fns";
-import { Search, Check, X, Loader2, CreditCard } from "lucide-react";
+import { Search, Check, X, Loader2, CreditCard, Download, Package } from "lucide-react";
+import { toast } from "sonner";
 
 interface PayoutApprovalQueueProps {
   payouts: ReferralPayout[];
@@ -21,12 +23,70 @@ export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
   const [selectedPayoutId, setSelectedPayoutId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [paymentReference, setPaymentReference] = useState("");
+  const [selectedForBatch, setSelectedForBatch] = useState<Set<string>>(new Set());
 
   const { approvePayout, rejectPayout, markPaid, isLoading } = usePayoutActions();
 
   const filteredPayouts = payouts.filter((payout) =>
     payout.referrer_user_id.toLowerCase().includes(search.toLowerCase())
   );
+
+  const pendingPayouts = filteredPayouts.filter(p => p.status === 'pending');
+  const approvedPayouts = filteredPayouts.filter(p => p.status === 'approved');
+  const otherPayouts = filteredPayouts.filter(p => !['pending', 'approved'].includes(p.status));
+
+  // Batch selection calculations
+  const selectedBatchPayouts = approvedPayouts.filter(p => selectedForBatch.has(p.id));
+  const batchTotal = useMemo(() => 
+    selectedBatchPayouts.reduce((sum, p) => sum + p.payout_amount, 0),
+    [selectedBatchPayouts]
+  );
+
+  const toggleBatchSelect = (payoutId: string) => {
+    setSelectedForBatch(prev => {
+      const next = new Set(prev);
+      if (next.has(payoutId)) {
+        next.delete(payoutId);
+      } else {
+        next.add(payoutId);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedForBatch.size === approvedPayouts.length) {
+      setSelectedForBatch(new Set());
+    } else {
+      setSelectedForBatch(new Set(approvedPayouts.map(p => p.id)));
+    }
+  };
+
+  const exportBatchCSV = () => {
+    if (selectedBatchPayouts.length === 0) {
+      toast.error("Select at least one payout to export");
+      return;
+    }
+
+    const headers = ['Recipient ID', 'Amount (EUR)', 'Payment Method', 'Reference'];
+    const rows = selectedBatchPayouts.map(p => [
+      p.referrer_user_id,
+      p.payout_amount.toFixed(2),
+      p.payment_method || 'Bank Transfer',
+      `TQC-REF-${p.id.substring(0, 8).toUpperCase()}`
+    ]);
+
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payout-batch-${format(new Date(), 'yyyy-MM-dd-HHmm')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast.success(`Exported ${selectedBatchPayouts.length} payouts (€${batchTotal.toFixed(2)})`);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -81,9 +141,6 @@ export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
     }
   };
 
-  const pendingPayouts = filteredPayouts.filter(p => p.status === 'pending');
-  const approvedPayouts = filteredPayouts.filter(p => p.status === 'approved');
-  const otherPayouts = filteredPayouts.filter(p => !['pending', 'approved'].includes(p.status));
 
   return (
     <div className="space-y-6">
@@ -169,14 +226,34 @@ export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
 
       {approvedPayouts.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-            <span className="h-2 w-2 bg-blue-500 rounded-full" />
-            Approved - Awaiting Payment ({approvedPayouts.length})
-          </h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium flex items-center gap-2">
+              <span className="h-2 w-2 bg-blue-500 rounded-full" />
+              Approved - Awaiting Payment ({approvedPayouts.length})
+            </h3>
+            {selectedForBatch.size > 0 && (
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary" className="gap-1">
+                  <Package className="h-3 w-3" />
+                  {selectedForBatch.size} selected · {formatCurrency(batchTotal)}
+                </Badge>
+                <Button size="sm" variant="outline" onClick={exportBatchCSV}>
+                  <Download className="h-4 w-4 mr-1" />
+                  Export Batch
+                </Button>
+              </div>
+            )}
+          </div>
           <div className="border rounded-lg">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox 
+                      checked={selectedForBatch.size === approvedPayouts.length && approvedPayouts.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>Approved</TableHead>
                   <TableHead>Referrer</TableHead>
                   <TableHead>Amount</TableHead>
@@ -186,7 +263,13 @@ export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
               </TableHeader>
               <TableBody>
                 {approvedPayouts.map((payout) => (
-                  <TableRow key={payout.id}>
+                  <TableRow key={payout.id} className={selectedForBatch.has(payout.id) ? 'bg-muted/50' : ''}>
+                    <TableCell>
+                      <Checkbox 
+                        checked={selectedForBatch.has(payout.id)}
+                        onCheckedChange={() => toggleBatchSelect(payout.id)}
+                      />
+                    </TableCell>
                     <TableCell>
                       {payout.approved_at 
                         ? format(new Date(payout.approved_at), 'MMM dd, yyyy')
