@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar as CalendarIcon, Settings, Video, Clock, Sparkles, BarChart3 } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Settings, Video, Clock, Sparkles, BarChart3, Link2 } from "lucide-react";
 import { CreateMeetingDialog } from "@/components/meetings/CreateMeetingDialog";
 import { MeetingCard } from "@/components/meetings/MeetingCard";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -20,6 +20,7 @@ import { MeetingHistoryTab } from "@/components/meetings/MeetingHistoryTab";
 import { InstantMeetingButton } from "@/components/meetings/InstantMeetingButton";
 import { PersonalMeetingRoomCard } from "@/components/meetings/PersonalMeetingRoomCard";
 import { MeetingAnalyticsDashboard } from "@/components/meetings/MeetingAnalyticsDashboard";
+import { MeetingsSchedulingTab } from "@/components/meetings/MeetingsSchedulingTab";
 import { useAutoCreatePMR } from "@/hooks/useAutoCreatePMR";
 import { toast } from "sonner";
 
@@ -245,6 +246,10 @@ export default function Meetings() {
               <BarChart3 className="h-4 w-4" />
               Analytics
             </TabsTrigger>
+            <TabsTrigger value="scheduling" className="gap-2">
+              <Link2 className="h-4 w-4" />
+              Scheduling
+            </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
               Settings
@@ -299,6 +304,10 @@ export default function Meetings() {
 
           <TabsContent value="analytics" className="mt-6">
             <MeetingAnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="scheduling" className="mt-6">
+            <MeetingsSchedulingTab />
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">
