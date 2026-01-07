@@ -27199,6 +27199,7 @@ export type Database = {
           invoice_count_paid: number | null
           last_synced_at: string | null
           metadata: Json | null
+          net_revenue: number | null
           payment_aging: Json | null
           period_end: string
           period_start: string
@@ -27209,6 +27210,8 @@ export type Database = {
           total_paid: number | null
           total_revenue: number | null
           updated_at: string | null
+          vat_collected: number | null
+          vat_outstanding: number | null
         }
         Insert: {
           created_at?: string | null
@@ -27219,6 +27222,7 @@ export type Database = {
           invoice_count_paid?: number | null
           last_synced_at?: string | null
           metadata?: Json | null
+          net_revenue?: number | null
           payment_aging?: Json | null
           period_end: string
           period_start: string
@@ -27229,6 +27233,8 @@ export type Database = {
           total_paid?: number | null
           total_revenue?: number | null
           updated_at?: string | null
+          vat_collected?: number | null
+          vat_outstanding?: number | null
         }
         Update: {
           created_at?: string | null
@@ -27239,6 +27245,7 @@ export type Database = {
           invoice_count_paid?: number | null
           last_synced_at?: string | null
           metadata?: Json | null
+          net_revenue?: number | null
           payment_aging?: Json | null
           period_end?: string
           period_start?: string
@@ -27249,6 +27256,8 @@ export type Database = {
           total_paid?: number | null
           total_revenue?: number | null
           updated_at?: string | null
+          vat_collected?: number | null
+          vat_outstanding?: number | null
         }
         Relationships: []
       }
@@ -27316,6 +27325,7 @@ export type Database = {
           invoice_number: string | null
           invoice_type: string | null
           moneybird_id: string
+          net_amount: number
           paid_amount: number
           paid_at: string | null
           payment_terms: string | null
@@ -27334,6 +27344,9 @@ export type Database = {
           updated_at: string
           variance_amount: number | null
           variance_reason: string | null
+          vat_amount: number
+          vat_rate: number | null
+          vat_type: string | null
           year: number
         }
         Insert: {
@@ -27349,6 +27362,7 @@ export type Database = {
           invoice_number?: string | null
           invoice_type?: string | null
           moneybird_id: string
+          net_amount?: number
           paid_amount?: number
           paid_at?: string | null
           payment_terms?: string | null
@@ -27367,6 +27381,9 @@ export type Database = {
           updated_at?: string
           variance_amount?: number | null
           variance_reason?: string | null
+          vat_amount?: number
+          vat_rate?: number | null
+          vat_type?: string | null
           year: number
         }
         Update: {
@@ -27382,6 +27399,7 @@ export type Database = {
           invoice_number?: string | null
           invoice_type?: string | null
           moneybird_id?: string
+          net_amount?: number
           paid_amount?: number
           paid_at?: string | null
           payment_terms?: string | null
@@ -27400,6 +27418,9 @@ export type Database = {
           updated_at?: string
           variance_amount?: number | null
           variance_reason?: string | null
+          vat_amount?: number
+          vat_rate?: number | null
+          vat_type?: string | null
           year?: number
         }
         Relationships: [
@@ -43947,6 +43968,72 @@ export type Database = {
           tradeoff_responses?: Json
           user_id?: string
           value_archetype?: string | null
+        }
+        Relationships: []
+      }
+      vat_register: {
+        Row: {
+          created_at: string | null
+          filing_date: string | null
+          filing_status: string | null
+          gross_revenue: number
+          id: string
+          invoice_count: number
+          net_revenue: number
+          notes: string | null
+          payment_date: string | null
+          period_end: string
+          period_number: number
+          period_start: string
+          period_type: string
+          period_year: number
+          updated_at: string | null
+          vat_collected: number
+          vat_collected_outstanding: number
+          vat_input: number
+          vat_net_payable: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          filing_date?: string | null
+          filing_status?: string | null
+          gross_revenue?: number
+          id?: string
+          invoice_count?: number
+          net_revenue?: number
+          notes?: string | null
+          payment_date?: string | null
+          period_end: string
+          period_number: number
+          period_start: string
+          period_type?: string
+          period_year: number
+          updated_at?: string | null
+          vat_collected?: number
+          vat_collected_outstanding?: number
+          vat_input?: number
+          vat_net_payable?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          filing_date?: string | null
+          filing_status?: string | null
+          gross_revenue?: number
+          id?: string
+          invoice_count?: number
+          net_revenue?: number
+          notes?: string | null
+          payment_date?: string | null
+          period_end?: string
+          period_number?: number
+          period_start?: string
+          period_type?: string
+          period_year?: number
+          updated_at?: string | null
+          vat_collected?: number
+          vat_collected_outstanding?: number
+          vat_input?: number
+          vat_net_payable?: number | null
         }
         Relationships: []
       }
