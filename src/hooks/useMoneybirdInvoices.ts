@@ -15,6 +15,10 @@ export interface MoneybirdInvoice {
   total_amount: number;
   paid_amount: number;
   unpaid_amount: number;
+  net_amount: number;
+  vat_amount: number;
+  vat_rate: number | null;
+  vat_type: string | null;
   currency: string;
   year: number;
   created_at: string;

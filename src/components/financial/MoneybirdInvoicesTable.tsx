@@ -51,45 +51,51 @@ export function MoneybirdInvoicesTable({ year, limit }: MoneybirdInvoicesTablePr
             <TableHead>Date</TableHead>
             <TableHead>Client</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead className="text-right">Net</TableHead>
+            <TableHead className="text-right">VAT</TableHead>
             <TableHead className="text-right">Total</TableHead>
             <TableHead className="text-right">Paid</TableHead>
-            <TableHead className="text-right">Outstanding</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {displayInvoices.map((invoice) => (
-            <TableRow key={invoice.id}>
-              <TableCell className="whitespace-nowrap">
-                {invoice.invoice_date 
-                  ? format(new Date(invoice.invoice_date), 'dd MMM yyyy')
-                  : '-'
-                }
-              </TableCell>
-              <TableCell className="max-w-[200px] truncate">
-                {invoice.contact_name || 'Unknown'}
-              </TableCell>
-              <TableCell>
-                <Badge 
-                  variant="outline" 
-                  className={stateColors[invoice.state_normalized] || stateColors.open}
-                >
-                  {invoice.state_normalized}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right font-medium">
-                {formatCurrency(invoice.total_amount)}
-              </TableCell>
-              <TableCell className="text-right text-green-600">
-                {formatCurrency(invoice.paid_amount)}
-              </TableCell>
-              <TableCell className="text-right text-muted-foreground">
-                {Number(invoice.unpaid_amount) > 0 
-                  ? formatCurrency(invoice.unpaid_amount)
-                  : '-'
-                }
-              </TableCell>
-            </TableRow>
-          ))}
+          {displayInvoices.map((invoice) => {
+            const netAmount = Number(invoice.net_amount) || Number(invoice.total_amount) / 1.21;
+            const vatAmount = Number(invoice.vat_amount) || Number(invoice.total_amount) - netAmount;
+            
+            return (
+              <TableRow key={invoice.id}>
+                <TableCell className="whitespace-nowrap">
+                  {invoice.invoice_date 
+                    ? format(new Date(invoice.invoice_date), 'dd MMM yyyy')
+                    : '-'
+                  }
+                </TableCell>
+                <TableCell className="max-w-[200px] truncate">
+                  {invoice.contact_name || 'Unknown'}
+                </TableCell>
+                <TableCell>
+                  <Badge 
+                    variant="outline" 
+                    className={stateColors[invoice.state_normalized] || stateColors.open}
+                  >
+                    {invoice.state_normalized}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  {formatCurrency(netAmount)}
+                </TableCell>
+                <TableCell className="text-right text-muted-foreground">
+                  {formatCurrency(vatAmount)}
+                </TableCell>
+                <TableCell className="text-right font-medium">
+                  {formatCurrency(invoice.total_amount)}
+                </TableCell>
+                <TableCell className="text-right text-green-600">
+                  {formatCurrency(invoice.paid_amount)}
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
       {limit && invoices && invoices.length > limit && (

@@ -25,6 +25,8 @@ import { useAutoSyncFinancials } from "@/hooks/useAutoSyncFinancials";
 import { CashFlowPipeline } from "@/components/admin/revenue/CashFlowPipeline";
 import { PlacementFeeHealth } from "@/components/admin/revenue/PlacementFeeHealth";
 import { usePlacementFeesWithContext } from "@/hooks/usePlacementFeesWithContext";
+import { VATLiabilityCard } from "@/components/financial/VATLiabilityCard";
+import { VATRegisterTable } from "@/components/financial/VATRegisterTable";
 
 export default function FinancialDashboard() {
   const { selectedYear, setSelectedYear, yearOptions, availableYears } = useFinancialYearSelector();
@@ -142,6 +144,7 @@ export default function FinancialDashboard() {
               <TabsTrigger value="fees">Placement Fees</TabsTrigger>
               <TabsTrigger value="invoices">Invoices</TabsTrigger>
               <TabsTrigger value="payouts">Referral Payouts</TabsTrigger>
+              <TabsTrigger value="vat">VAT & Tax</TabsTrigger>
             </TabsList>
 
             <TabsContent value="fees" className="space-y-4">
@@ -200,6 +203,21 @@ export default function FinancialDashboard() {
                   ) : (
                     <PayoutApprovalQueue payouts={payouts || []} />
                   )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="vat" className="space-y-6">
+              <VATLiabilityCard year={selectedYear} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>VAT Register</CardTitle>
+                  <CardDescription>
+                    Quarterly VAT breakdown for BTW-aangifte filing
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <VATRegisterTable year={selectedYear} />
                 </CardContent>
               </Card>
             </TabsContent>

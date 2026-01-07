@@ -13,16 +13,25 @@ export function RevenueDistributionSummary() {
   const { data, isLoading } = useQuery({
     queryKey: ['revenue-distribution-summary', currentYear],
     queryFn: async () => {
-      // Fetch Moneybird revenue
+      // Fetch Moneybird revenue - use net_amount for true revenue (excl. VAT)
       const { data: invoices } = await supabase
         .from('moneybird_sales_invoices')
-        .select('total_amount, state_normalized')
+        .select('total_amount, net_amount, vat_amount, state_normalized')
         .gte('invoice_date', startOfYear);
 
-      const totalRevenue = invoices?.reduce((sum, inv) => 
+      // Net revenue (excluding 21% VAT)
+      const totalNetRevenue = invoices?.reduce((sum, inv) => 
+        sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0), 0) || 0;
+      const collectedNetRevenue = invoices?.filter(inv => inv.state_normalized === 'paid')
+        .reduce((sum, inv) => sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0), 0) || 0;
+      
+      // VAT tracking
+      const vatCollected = invoices?.filter(inv => inv.state_normalized === 'paid')
+        .reduce((sum, inv) => sum + (Number(inv.vat_amount) || (Number(inv.total_amount) - Number(inv.total_amount) / 1.21) || 0), 0) || 0;
+      
+      // Gross for reference
+      const totalGrossRevenue = invoices?.reduce((sum, inv) => 
         sum + (Number(inv.total_amount) || 0), 0) || 0;
-      const collectedRevenue = invoices?.filter(inv => inv.state_normalized === 'paid')
-        .reduce((sum, inv) => sum + (Number(inv.total_amount) || 0), 0) || 0;
 
       // Fetch employee commissions
       const { data: commissions } = await supabase
@@ -52,10 +61,10 @@ export function RevenueDistributionSummary() {
         .select('share_percentage, share_fixed_amount, share_type, is_active')
         .eq('is_active', true);
 
-      // Calculate share obligations
+      // Calculate share obligations based on NET revenue
       const shareObligations = shares?.reduce((total, share) => {
         if (share.share_type === 'fixed_percentage' && share.share_percentage) {
-          return total + (totalRevenue * (share.share_percentage / 100));
+          return total + (totalNetRevenue * (share.share_percentage / 100));
         } else if (share.share_type === 'per_placement' && share.share_fixed_amount) {
           return total + (share.share_fixed_amount * (invoices?.length || 0));
         }
@@ -63,18 +72,20 @@ export function RevenueDistributionSummary() {
       }, 0) || 0;
 
       const totalObligations = totalCommissions + totalPayouts + shareObligations;
-      const netRevenue = totalRevenue - totalObligations;
+      const netAfterDistributions = totalNetRevenue - totalObligations;
 
       return {
-        totalRevenue,
-        collectedRevenue,
+        totalNetRevenue,
+        totalGrossRevenue,
+        collectedNetRevenue,
+        vatCollected,
         totalCommissions,
         paidCommissions,
         totalPayouts,
         paidPayouts,
         shareObligations,
         totalObligations,
-        netRevenue,
+        netAfterDistributions,
         activeShares: shares?.length || 0,
       };
     },
@@ -97,17 +108,17 @@ export function RevenueDistributionSummary() {
 
   const cards = [
     {
-      title: 'YTD Revenue',
-      value: data?.totalRevenue || 0,
+      title: 'Net Revenue (excl. VAT)',
+      value: data?.totalNetRevenue || 0,
       icon: Euro,
-      subtitle: 'From Moneybird',
+      subtitle: `Gross: ${formatCurrency(data?.totalGrossRevenue || 0)}`,
       color: 'text-foreground',
     },
     {
-      title: 'Collected',
-      value: data?.collectedRevenue || 0,
+      title: 'Net Collected',
+      value: data?.collectedNetRevenue || 0,
       icon: TrendingUp,
-      subtitle: 'Paid invoices',
+      subtitle: `+${formatCurrency(data?.vatCollected || 0)} VAT`,
       color: 'text-success',
     },
     {
@@ -132,11 +143,11 @@ export function RevenueDistributionSummary() {
       color: 'text-warning',
     },
     {
-      title: 'Net Revenue',
-      value: data?.netRevenue || 0,
+      title: 'Net After Distributions',
+      value: data?.netAfterDistributions || 0,
       icon: Percent,
       subtitle: 'After all distributions',
-      color: (data?.netRevenue || 0) >= 0 ? 'text-success' : 'text-destructive',
+      color: (data?.netAfterDistributions || 0) >= 0 ? 'text-success' : 'text-destructive',
     },
   ];
 
