@@ -5,22 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PlacementFee } from "@/hooks/useFinancialData";
+import { PlacementFeeWithContext } from "@/hooks/usePlacementFeesWithContext";
 import { format } from "date-fns";
-import { Search, FileText, TrendingUp, TrendingDown, Minus, User, AlertCircle } from "lucide-react";
+import { Search, FileText, TrendingUp, TrendingDown, Minus, User, AlertCircle, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AddPlacementFeeDialog } from "./AddPlacementFeeDialog";
 
 interface PlacementFeesTableProps {
-  fees: PlacementFee[];
+  fees: PlacementFee[] | PlacementFeeWithContext[];
 }
 
 export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
   const [search, setSearch] = useState("");
 
-  const filteredFees = fees.filter((fee) => 
-    fee.invoice_id?.toLowerCase().includes(search.toLowerCase()) ||
-    fee.application_id.toLowerCase().includes(search.toLowerCase()) ||
-    fee.sourcer_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredFees = fees.filter((fee) => {
+    const searchLower = search.toLowerCase();
+    const feeWithContext = fee as PlacementFeeWithContext;
+    return (
+      fee.invoice_id?.toLowerCase().includes(searchLower) ||
+      fee.application_id.toLowerCase().includes(searchLower) ||
+      fee.sourcer_name?.toLowerCase().includes(searchLower) ||
+      feeWithContext.job_title?.toLowerCase().includes(searchLower) ||
+      feeWithContext.company_name?.toLowerCase().includes(searchLower)
+    );
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -54,12 +62,13 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by application, invoice, or sourcer..."
+            placeholder="Search by role, company, sourcer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
           />
         </div>
+        <AddPlacementFeeDialog />
         <Button>
           <FileText className="mr-2 h-4 w-4" />
           Generate Invoice
@@ -70,10 +79,10 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Role / Company</TableHead>
               <TableHead>Hired Date</TableHead>
               <TableHead>Sourced By</TableHead>
               <TableHead>Salary</TableHead>
-              <TableHead>Variance</TableHead>
               <TableHead>Fee</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Closed By</TableHead>
@@ -88,8 +97,19 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredFees.map((fee) => (
+              filteredFees.map((fee) => {
+                const feeWithContext = fee as PlacementFeeWithContext;
+                return (
                 <TableRow key={fee.id}>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{feeWithContext.job_title || '-'}</span>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Building2 className="h-3 w-3" />
+                        {feeWithContext.company_name || '-'}
+                      </span>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     {format(new Date(fee.hired_date), 'MMM dd, yyyy')}
                   </TableCell>
@@ -168,7 +188,8 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                     )}
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>

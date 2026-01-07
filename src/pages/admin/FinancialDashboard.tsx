@@ -18,17 +18,19 @@ import { ReconciliationAlert } from "@/components/financial/ReconciliationAlert"
 import { CashFlowProjection } from "@/components/financial/CashFlowProjection";
 import { ProfitLossCard } from "@/components/financial/ProfitLossCard";
 import { FinancialEventsTimeline } from "@/components/financial/FinancialEventsTimeline";
+import { MissingFeesAlert } from "@/components/financial/MissingFeesAlert";
 import { useMoneybirdFinancials } from "@/hooks/useMoneybirdFinancials";
 import { useFinancialYearSelector } from "@/hooks/useFinancialYearSelector";
 import { useAutoSyncFinancials } from "@/hooks/useAutoSyncFinancials";
 import { CashFlowPipeline } from "@/components/admin/revenue/CashFlowPipeline";
 import { PlacementFeeHealth } from "@/components/admin/revenue/PlacementFeeHealth";
+import { usePlacementFeesWithContext } from "@/hooks/usePlacementFeesWithContext";
 
 export default function FinancialDashboard() {
   const { selectedYear, setSelectedYear, yearOptions, availableYears } = useFinancialYearSelector();
   const { data: metrics, isLoading: metricsLoading } = useMoneybirdFinancials(selectedYear);
   const { isSyncing } = useAutoSyncFinancials(selectedYear);
-  const { data: fees, isLoading: feesLoading } = usePlacementFees();
+  const { data: fees, isLoading: feesLoading } = usePlacementFeesWithContext(selectedYear);
   const { data: invoices, isLoading: invoicesLoading } = usePartnerInvoices();
   const { data: payouts, isLoading: payoutsLoading } = useReferralPayouts();
 
@@ -57,8 +59,9 @@ export default function FinancialDashboard() {
             />
           </div>
 
-          {/* Reconciliation Alert */}
+          {/* Reconciliation & Missing Fees Alerts */}
           <ReconciliationAlert year={selectedYear} />
+          <MissingFeesAlert />
 
           {/* Invoice Status Summary */}
           <div className="mb-6">
