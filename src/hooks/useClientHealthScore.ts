@@ -67,7 +67,7 @@ export function useClientHealthScores() {
           (a: any) => a.company_id === company.id
         );
         
-        const activeJobs = companyJobs.filter((j: any) => j.status === 'open').length;
+        const activeJobs = companyJobs.filter((j: any) => ['open', 'published'].includes(j.status)).length;
         const pipelineValue = 0; // Simplified - would need deals query
         
         const intelligence = company.company_intelligence_scores?.[0];
