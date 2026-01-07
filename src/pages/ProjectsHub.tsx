@@ -20,7 +20,7 @@ export default function ProjectsHub() {
 
   return (
     <AppLayout>
-      <RoleGate allowedRoles={["candidate", "partner", "admin"]}>
+      <RoleGate allowedRoles={["user", "partner", "admin"]}>
         <div className="container mx-auto py-6 px-4 max-w-7xl">
           <div className="mb-6">
             <h1 className="text-3xl font-bold flex items-center gap-3">
