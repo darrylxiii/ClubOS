@@ -160,21 +160,21 @@ export default function ClubDJ() {
           <TabsList className="grid w-full max-w-md grid-cols-3 bg-black/20 backdrop-blur-xl border border-white/10 p-1">
             <TabsTrigger 
               value="playlists" 
-              className="data-[state=active]:bg-white data-[state=active]:text-black"
+              className="data-[state=active]:bg-card data-[state=active]:text-foreground"
             >
               <Music2 className="h-4 w-4 mr-2" />
               Playlists
             </TabsTrigger>
             <TabsTrigger 
               value="upload"
-              className="data-[state=active]:bg-white data-[state=active]:text-black"
+              className="data-[state=active]:bg-card data-[state=active]:text-foreground"
             >
               <Upload className="h-4 w-4 mr-2" />
               Upload
             </TabsTrigger>
             <TabsTrigger 
               value="mixer"
-              className="data-[state=active]:bg-white data-[state=active]:text-black"
+              className="data-[state=active]:bg-card data-[state=active]:text-foreground"
             >
               <Radio className="h-4 w-4 mr-2" />
               DJ Mixer

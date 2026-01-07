@@ -178,15 +178,15 @@ export function getCandidateStatusDisplay(status: string): {
   color: string;
 } {
   const statusMap: Record<string, { label: string; color: string }> = {
-    active: { label: 'Active', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-    new: { label: 'New', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-    screening: { label: 'Screening', color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-    interviewing: { label: 'Interviewing', color: 'bg-purple-50 text-purple-700 border-purple-200' },
-    offer: { label: 'Offer', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-    hired: { label: 'Hired', color: 'bg-green-50 text-green-700 border-green-200' },
-    rejected: { label: 'Rejected', color: 'bg-rose-50 text-rose-700 border-rose-200' },
-    withdrawn: { label: 'Withdrawn', color: 'bg-slate-50 text-slate-700 border-slate-200' },
-    archived: { label: 'Archived', color: 'bg-gray-50 text-gray-700 border-gray-200' },
+    active: { label: 'Active', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+    new: { label: 'New', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+    screening: { label: 'Screening', color: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20' },
+    interviewing: { label: 'Interviewing', color: 'bg-purple-500/10 text-purple-600 border-purple-500/20' },
+    offer: { label: 'Offer', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+    hired: { label: 'Hired', color: 'bg-green-500/10 text-green-600 border-green-500/20' },
+    rejected: { label: 'Rejected', color: 'bg-rose-500/10 text-rose-600 border-rose-500/20' },
+    withdrawn: { label: 'Withdrawn', color: 'bg-slate-500/10 text-slate-600 border-slate-500/20' },
+    archived: { label: 'Archived', color: 'bg-muted text-muted-foreground border-border' },
   };
   
   return statusMap[status?.toLowerCase()] || statusMap.active;

@@ -295,7 +295,7 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-full w-full bg-gray-100">
+            <div className="flex items-center justify-center h-full w-full bg-muted">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                     <p className="text-sm text-muted-foreground">Loading whiteboard...</p>
@@ -305,9 +305,9 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
     }
 
     return (
-        <div className="flex flex-col h-full w-full bg-gray-100 relative">
+        <div className="flex flex-col h-full w-full bg-muted relative">
             {/* Toolbar */}
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-2 flex items-center gap-2 z-10">
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-card rounded-lg shadow-lg p-2 flex items-center gap-2 z-10 border border-border">
                 <Button
                     variant={!isEraser ? "secondary" : "ghost"}
                     size="icon"

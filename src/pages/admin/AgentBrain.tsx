@@ -81,7 +81,7 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
                     </Button>
                 </div>
 
-                <ScrollArea className="flex-1 bg-slate-50 rounded-md border p-4">
+                <ScrollArea className="flex-1 bg-muted rounded-md border p-4">
                     {results.length === 0 ? (
                         <div className="text-center text-muted-foreground mt-10">
                             {isSearching ? "Thinking..." : "Results will appear here"}
@@ -92,7 +92,7 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
                                 Retrieved Context ({results.length})
                             </div>
                             {results.map((result, idx) => (
-                                <div key={idx} className="bg-white p-3 rounded shadow-sm border text-sm">
+                                <div key={idx} className="bg-card p-3 rounded shadow-sm border text-sm">
                                     <div className="flex justify-between items-start mb-1">
                                         <Badge variant="secondary" className="text-xs">{result.similarity ? `${Math.round(result.similarity * 100)}% Match` : "Match"}</Badge>
                                         <span className="text-xs text-muted-foreground capitalize">

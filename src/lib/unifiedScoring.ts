@@ -238,11 +238,11 @@ export function calculateUnifiedScore(
  */
 export function getScoreTierColor(tier: UnifiedScore['tier']): string {
   const colors: Record<UnifiedScore['tier'], string> = {
-    exceptional: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-    strong: 'text-blue-600 bg-blue-50 border-blue-200',
-    good: 'text-indigo-600 bg-indigo-50 border-indigo-200',
-    fair: 'text-amber-600 bg-amber-50 border-amber-200',
-    developing: 'text-slate-600 bg-slate-50 border-slate-200',
+    exceptional: 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20',
+    strong: 'text-blue-600 bg-blue-500/10 border-blue-500/20',
+    good: 'text-indigo-600 bg-indigo-500/10 border-indigo-500/20',
+    fair: 'text-amber-600 bg-amber-500/10 border-amber-500/20',
+    developing: 'text-muted-foreground bg-muted border-border',
   };
   return colors[tier];
 }
