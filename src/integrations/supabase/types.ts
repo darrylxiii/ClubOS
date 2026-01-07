@@ -4713,6 +4713,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "bookings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "bookings_booking_link_id_fkey"
             columns: ["booking_link_id"]
             isOneToOne: false
@@ -5656,6 +5663,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "candidate_interactions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "candidate_interactions_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
@@ -5756,6 +5770,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_interview_performance_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
           },
           {
             foreignKeyName: "candidate_interview_performance_candidate_id_fkey"
@@ -6249,6 +6270,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_offers_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
           },
           {
             foreignKeyName: "candidate_offers_candidate_id_fkey"
@@ -8669,6 +8697,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "company_candidate_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "company_candidate_feedback_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
@@ -10648,6 +10683,13 @@ export type Database = {
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "consent_receipts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
         ]
       }
       contact_email_sentiment: {
@@ -11129,6 +11171,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "continuous_pipeline_hires_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "continuous_pipeline_hires_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
@@ -11558,6 +11607,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
           },
         ]
       }
@@ -13749,6 +13805,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "csat_surveys_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "csat_surveys_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
@@ -14663,6 +14726,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
           },
           {
             foreignKeyName: "detected_interviews_calendar_connection_id_fkey"
@@ -16301,6 +16371,116 @@ export type Database = {
           },
         ]
       }
+      employee_gamification: {
+        Row: {
+          created_at: string
+          current_level: string
+          current_streak: number
+          id: string
+          last_activity_date: string | null
+          longest_streak: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_level?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_level?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_gamification_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "employee_gamification_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_gamification_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_milestones: {
+        Row: {
+          created_at: string
+          id: string
+          milestone_type: string
+          milestone_value: number | null
+          unlocked_at: string
+          user_id: string
+          xp_awarded: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          milestone_type: string
+          milestone_value?: number | null
+          unlocked_at?: string
+          user_id: string
+          xp_awarded?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          milestone_type?: string
+          milestone_value?: number | null
+          unlocked_at?: string
+          user_id?: string
+          xp_awarded?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_milestones_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "employee_milestones_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_milestones_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_profiles: {
         Row: {
           annual_bonus_target: number | null
@@ -16446,6 +16626,61 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_xp_events: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          user_id: string
+          xp_amount: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          user_id: string
+          xp_amount: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          user_id?: string
+          xp_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_xp_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "employee_xp_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_xp_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -19462,6 +19697,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "interview_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "interview_feedback_booking_id_fkey"
             columns: ["booking_id"]
             isOneToOne: false
@@ -20860,6 +21102,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_closures_hired_application_id_fkey"
+            columns: ["hired_application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
           },
           {
             foreignKeyName: "job_closures_job_id_fkey"
@@ -25300,6 +25549,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "meeting_recordings_extended_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "meeting_recordings_extended_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
@@ -25785,6 +26041,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
           },
           {
             foreignKeyName: "meetings_booking_id_fkey"
@@ -27439,6 +27702,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "moneybird_sales_invoices_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "moneybird_sales_invoices_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
@@ -27847,6 +28117,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nps_surveys_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
           },
           {
             foreignKeyName: "nps_surveys_job_id_fkey"
@@ -30763,6 +31040,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "placement_fees_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "placement_fees_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
@@ -31818,6 +32102,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "probation_alerts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
           },
           {
             foreignKeyName: "probation_alerts_candidate_id_fkey"
@@ -34188,6 +34479,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "projected_earnings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "projected_earnings_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
@@ -35120,6 +35418,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "referral_earnings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "referral_earnings_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
@@ -35410,6 +35715,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_payouts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
           },
           {
             foreignKeyName: "referral_payouts_candidate_id_fkey"
@@ -36096,6 +36408,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_candidate_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
           },
           {
             foreignKeyName: "role_candidate_feedback_candidate_id_fkey"
@@ -37470,6 +37789,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "scorecard_voting_sessions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
             foreignKeyName: "scorecard_voting_sessions_meeting_id_fkey"
             columns: ["meeting_id"]
             isOneToOne: false
@@ -38430,6 +38756,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sourcing_credits_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
           },
         ]
       }
@@ -46855,6 +47188,111 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_earnings_summary: {
+        Row: {
+          employee_id: string | null
+          raw_pipeline_value: number | null
+          realized_revenue: number | null
+          stage_0_count: number | null
+          stage_0_value: number | null
+          stage_1_count: number | null
+          stage_1_value: number | null
+          stage_2_count: number | null
+          stage_2_value: number | null
+          stage_3_count: number | null
+          stage_3_value: number | null
+          stage_4_count: number | null
+          stage_4_value: number | null
+          total_applications: number | null
+          total_placements: number | null
+          weighted_pipeline_value: number | null
+        }
+        Relationships: []
+      }
+      employee_pipeline_value: {
+        Row: {
+          application_date: string | null
+          application_id: string | null
+          candidate_full_name: string | null
+          candidate_id: string | null
+          company_id: string | null
+          company_name: string | null
+          employee_id: string | null
+          job_id: string | null
+          job_title: string | null
+          potential_fee: number | null
+          probability: number | null
+          stage: number | null
+          stage_name: string | null
+          status: string | null
+          weighted_value: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_applications_candidate_profiles"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_applications_candidate_profiles"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "fk_applications_candidate_profiles"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       error_analytics_summary: {
         Row: {
           avg_resolution_hours: number | null
@@ -47384,6 +47822,7 @@ export type Database = {
       }
       calculate_current_mrr: { Args: never; Returns: number }
       calculate_deal_health_score: { Args: { job_id: string }; Returns: number }
+      calculate_employee_level: { Args: { xp: number }; Returns: string }
       calculate_job_placement_fee: {
         Args: { p_job_id: string }
         Returns: {
