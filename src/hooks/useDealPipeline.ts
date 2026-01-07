@@ -85,7 +85,7 @@ export function useDealPipeline() {
         .select(`
           id, title, company_id, deal_stage, status, deal_value_override,
           target_hire_count, hired_count, is_lost, created_at, updated_at,
-          min_salary, max_salary, salary_currency,
+          salary_min, salary_max, currency,
           companies(name, placement_fee_percentage),
           applications(count)
         `)
