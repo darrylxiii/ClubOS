@@ -27,6 +27,7 @@ import { PlacementFeeHealth } from "@/components/admin/revenue/PlacementFeeHealt
 import { usePlacementFeesWithContext } from "@/hooks/usePlacementFeesWithContext";
 import { VATLiabilityCard } from "@/components/financial/VATLiabilityCard";
 import { VATRegisterTable } from "@/components/financial/VATRegisterTable";
+import { EmployeeCommissionsTable } from "@/components/financial/EmployeeCommissionsTable";
 
 export default function FinancialDashboard() {
   const { selectedYear, setSelectedYear, yearOptions, availableYears } = useFinancialYearSelector();
@@ -142,6 +143,7 @@ export default function FinancialDashboard() {
           <Tabs defaultValue="fees" className="space-y-4">
             <TabsList>
               <TabsTrigger value="fees">Placement Fees</TabsTrigger>
+              <TabsTrigger value="commissions">Commissions</TabsTrigger>
               <TabsTrigger value="invoices">Invoices</TabsTrigger>
               <TabsTrigger value="payouts">Referral Payouts</TabsTrigger>
               <TabsTrigger value="vat">VAT & Tax</TabsTrigger>
@@ -165,6 +167,10 @@ export default function FinancialDashboard() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="commissions" className="space-y-4">
+              <EmployeeCommissionsTable year={selectedYear} />
             </TabsContent>
 
             <TabsContent value="invoices" className="space-y-4">
