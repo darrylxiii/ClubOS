@@ -293,7 +293,7 @@ const App = () => {
                   <Route path="/communication-analytics" element={<CommunicationAnalyticsPage />} />
                   <Route path="/social-management" element={<SocialManagement />} />
                   <Route path="/partner-onboarding" element={<PartnerOnboarding />} />
-                  <Route path="/whatsapp-import" element={<WhatsAppImport />} />
+                  <Route path="/whatsapp-import" element={<Navigate to="/admin/whatsapp?tab=import" replace />} />
                   <Route path="/salary-insights" element={<SalaryInsights />} />
                   <Route path="/career-path" element={<CareerPath />} />
                   <Route path="/subscription" element={<Subscription />} />

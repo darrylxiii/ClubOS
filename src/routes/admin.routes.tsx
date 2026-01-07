@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
@@ -43,8 +43,8 @@ const TranslationCoverage = lazy(() => import("@/pages/admin/TranslationCoverage
 const BrandTermManager = lazy(() => import("@/pages/admin/BrandTermManager"));
 const TranslationAuditLog = lazy(() => import("@/pages/admin/TranslationAuditLog"));
 const TemplateManagement = lazy(() => import("@/pages/admin/TemplateManagement"));
-const WhatsAppAnalytics = lazy(() => import("@/pages/admin/WhatsAppAnalytics"));
-const WhatsAppSettings = lazy(() => import("@/pages/admin/WhatsAppSettings"));
+// WhatsApp pages consolidated into WhatsAppHub
+const WhatsAppHub = lazy(() => import("@/pages/admin/WhatsAppHub"));
 const CompanyRelationships = lazy(() => import("@/pages/admin/CompanyRelationships"));
 const RevenueSharesPage = lazy(() => import("@/pages/admin/RevenueShares"));
 const InvoiceReconciliationPage = lazy(() => import("@/pages/admin/InvoiceReconciliation"));
@@ -570,30 +570,22 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
+    {/* WhatsApp Hub - consolidated from analytics, settings, inbox, import */}
     <Route
-      path="/admin/whatsapp-analytics"
+      path="/admin/whatsapp"
       element={
         <ProtectedRoute>
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <WhatsAppAnalytics />
+              <WhatsAppHub />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/whatsapp-settings"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <WhatsAppSettings />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Redirects from old WhatsApp routes */}
+    <Route path="/admin/whatsapp-analytics" element={<Navigate to="/admin/whatsapp?tab=analytics" replace />} />
+    <Route path="/admin/whatsapp-settings" element={<Navigate to="/admin/whatsapp?tab=settings" replace />} />
     <Route
       path="/admin/company-relationships"
       element={
