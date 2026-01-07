@@ -107,7 +107,7 @@ export function CompanyEnrichment() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold text-lg">{enrichmentData.name}</h3>
+                  <h3 className="font-semibold text-lg">{enrichmentData.company_name}</h3>
                   <p className="text-sm text-muted-foreground">{enrichmentData.description}</p>
                 </div>
                 <Badge variant="outline">{enrichmentData.industry}</Badge>
@@ -120,7 +120,7 @@ export function CompanyEnrichment() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>{enrichmentData.employeeCount} employees</span>
+                  <span>{enrichmentData.employee_count} employees</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -128,7 +128,7 @@ export function CompanyEnrichment() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span>Founded {enrichmentData.founded}</span>
+                  <span>Founded {enrichmentData.founded_year}</span>
                 </div>
               </div>
 

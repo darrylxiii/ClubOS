@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, TrendingUp, TrendingDown, Phone, Mail, MessageSquare, Video, User, Calendar, Settings } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown, Phone, Mail, MessageSquare, Video, User, Calendar, Settings, AlertTriangle, Lightbulb, Target, Sparkles } from 'lucide-react';
 import type { CompanyInteraction, CompanyStakeholder } from '@/types/interaction';
 import { AppLayout } from '@/components/AppLayout';
+import { toast } from 'sonner';
 
 export default function CompanyIntelligence() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +17,8 @@ export default function CompanyIntelligence() {
   const [company, setCompany] = useState<any>(null);
   const [interactions, setInteractions] = useState<CompanyInteraction[]>([]);
   const [stakeholders, setStakeholders] = useState<CompanyStakeholder[]>([]);
+  const [insights, setInsights] = useState<any>(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -54,6 +57,28 @@ export default function CompanyIntelligence() {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const generateInsights = async () => {
+    if (!id) return;
+    setLoadingInsights(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-company-insights', {
+        body: { companyId: id }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.insights) {
+        setInsights(data.insights);
+        toast.success("Insights generated successfully");
+      }
+    } catch (error) {
+      console.error('Error generating insights:', error);
+      toast.error("Failed to generate insights");
+    } finally {
+      setLoadingInsights(false);
     }
   };
 
@@ -294,13 +319,110 @@ export default function CompanyIntelligence() {
         <TabsContent value="insights">
           <Card>
             <CardHeader>
-              <CardTitle>Intelligence Insights</CardTitle>
-              <CardDescription>AI-extracted insights coming soon</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    Intelligence Insights
+                  </CardTitle>
+                  <CardDescription>AI-powered analysis of your company interactions</CardDescription>
+                </div>
+                <Button onClick={generateInsights} disabled={loadingInsights}>
+                  {loadingInsights ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  Generate Insights
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Intelligence insights will be available in Phase 4
-              </p>
+              {insights ? (
+                <div className="space-y-6">
+                  {/* Engagement Score */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Target className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">Engagement Score</span>
+                      </div>
+                      <div className="text-3xl font-bold">{insights.engagement_score}/100</div>
+                    </Card>
+                    <Card className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        {insights.sentiment_trend === 'positive' ? (
+                          <TrendingUp className="h-4 w-4 text-green-500" />
+                        ) : insights.sentiment_trend === 'negative' ? (
+                          <TrendingDown className="h-4 w-4 text-red-500" />
+                        ) : (
+                          <TrendingUp className="h-4 w-4 text-yellow-500" />
+                        )}
+                        <span className="text-sm font-medium">Sentiment Trend</span>
+                      </div>
+                      <div className="text-xl font-bold capitalize">{insights.sentiment_trend}</div>
+                    </Card>
+                    <Card className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MessageSquare className="h-4 w-4 text-blue-500" />
+                        <span className="text-sm font-medium">Preferred Channel</span>
+                      </div>
+                      <div className="text-xl font-bold capitalize">{insights.preferred_channel?.replace('_', ' ')}</div>
+                    </Card>
+                  </div>
+
+                  {/* Signals */}
+                  {insights.signals?.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-orange-500" />
+                        Active Signals
+                      </h4>
+                      <div className="space-y-2">
+                        {insights.signals.map((signal: any, idx: number) => (
+                          <div key={idx} className={`p-3 rounded-lg border ${
+                            signal.priority === 'high' ? 'border-red-500/50 bg-red-500/10' : 
+                            signal.priority === 'medium' ? 'border-yellow-500/50 bg-yellow-500/10' : 
+                            'border-border'
+                          }`}>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={signal.priority === 'high' ? 'destructive' : 'secondary'}>
+                                {signal.priority}
+                              </Badge>
+                              <span className="text-sm">{signal.message}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Recommendations */}
+                  {insights.recommendations?.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <Lightbulb className="h-4 w-4 text-primary" />
+                        Recommendations
+                      </h4>
+                      <ul className="space-y-2">
+                        {insights.recommendations.map((rec: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <span className="text-primary">•</span>
+                            {rec}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground mb-4">
+                    Click "Generate Insights" to analyze company interactions
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

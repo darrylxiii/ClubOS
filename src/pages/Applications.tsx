@@ -242,9 +242,15 @@ function ApplicationCard({ application }: { application: Application }) {
               size="icon" 
               variant="ghost"
               className="min-h-[44px] min-w-[44px]"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                toast.info("Share application feature coming soon");
+                try {
+                  const shareUrl = `${window.location.origin}/applications/${application.id}/share`;
+                  await navigator.clipboard.writeText(shareUrl);
+                  toast.success("Share link copied to clipboard");
+                } catch {
+                  toast.error("Failed to copy share link");
+                }
               }}
             >
               <Share2 className="w-4 h-4" />

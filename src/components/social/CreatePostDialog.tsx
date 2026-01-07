@@ -59,8 +59,40 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
     );
   };
 
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+
   const handleAISuggestion = async () => {
-    toast.info("AI-powered content suggestions coming soon to help you create engaging posts!");
+    setLoadingSuggestions(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-post-suggestions', {
+        body: { 
+          postType,
+          platform: selectedPlatforms[0] || 'linkedin',
+          currentContent: content
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.suggestions && data.suggestions.length > 0) {
+        setAiSuggestions(data.suggestions);
+        toast.success("AI suggestions generated");
+      } else {
+        toast.info("No suggestions available. Try again later.");
+      }
+    } catch (error) {
+      console.error('AI suggestion error:', error);
+      toast.error("Failed to generate suggestions");
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const applySuggestion = (suggestion: string) => {
+    setContent(suggestion);
+    setAiSuggestions([]);
+    toast.success("Suggestion applied");
   };
 
   const handleSubmit = async () => {
@@ -298,10 +330,37 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
           </Tabs>
 
           {/* AI Suggestions */}
-          <Button variant="outline" onClick={handleAISuggestion} className="w-full gap-2">
-            <Sparkles className="h-4 w-4" />
-            Get AI Suggestions
+          <Button variant="outline" onClick={handleAISuggestion} className="w-full gap-2" disabled={loadingSuggestions}>
+            {loadingSuggestions ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Get AI Suggestions
+              </>
+            )}
           </Button>
+
+          {/* Display AI Suggestions */}
+          {aiSuggestions.length > 0 && (
+            <div className="space-y-2">
+              <Label>AI Suggestions (click to use)</Label>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {aiSuggestions.map((suggestion, idx) => (
+                  <Card 
+                    key={idx} 
+                    className="p-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => applySuggestion(suggestion)}
+                  >
+                    <p className="text-sm line-clamp-2">{suggestion}</p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Submit */}
           <div className="flex gap-3">
