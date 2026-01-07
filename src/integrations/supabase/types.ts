@@ -44524,6 +44524,245 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_renewal_reminders: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string | null
+          id: string
+          is_sent: boolean | null
+          reminder_date: string
+          reminder_type: string
+          sent_at: string | null
+          subscription_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string | null
+          id?: string
+          is_sent?: boolean | null
+          reminder_date: string
+          reminder_type: string
+          sent_at?: string | null
+          subscription_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string | null
+          id?: string
+          is_sent?: boolean | null
+          reminder_date?: string
+          reminder_type?: string
+          sent_at?: string | null
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_renewal_reminders_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "vendor_renewal_reminders_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_renewal_reminders_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_renewal_reminders_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_subscription_history: {
+        Row: {
+          change_reason: string | null
+          change_type: string
+          changed_by: string | null
+          created_at: string | null
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          subscription_id: string
+        }
+        Insert: {
+          change_reason?: string | null
+          change_type: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          subscription_id: string
+        }
+        Update: {
+          change_reason?: string | null
+          change_type?: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_subscription_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "vendor_subscription_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_subscription_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_subscription_history_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_subscriptions: {
+        Row: {
+          annual_cost: number | null
+          auto_renewal: boolean | null
+          billing_cycle: string | null
+          business_criticality: string | null
+          cancellation_notice_days: number | null
+          category: string
+          contract_end_date: string | null
+          contract_start_date: string
+          created_at: string | null
+          currency: string | null
+          department: string | null
+          expected_bank_reference: string | null
+          id: string
+          linked_bank_account: string | null
+          monthly_cost: number
+          next_billing_date: string | null
+          next_renewal_date: string | null
+          notes: string | null
+          payment_method: string | null
+          primary_owner_id: string | null
+          seats_licensed: number | null
+          seats_used: number | null
+          status: string | null
+          updated_at: string | null
+          vendor_logo_url: string | null
+          vendor_name: string
+          vendor_website: string | null
+        }
+        Insert: {
+          annual_cost?: number | null
+          auto_renewal?: boolean | null
+          billing_cycle?: string | null
+          business_criticality?: string | null
+          cancellation_notice_days?: number | null
+          category: string
+          contract_end_date?: string | null
+          contract_start_date: string
+          created_at?: string | null
+          currency?: string | null
+          department?: string | null
+          expected_bank_reference?: string | null
+          id?: string
+          linked_bank_account?: string | null
+          monthly_cost: number
+          next_billing_date?: string | null
+          next_renewal_date?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          primary_owner_id?: string | null
+          seats_licensed?: number | null
+          seats_used?: number | null
+          status?: string | null
+          updated_at?: string | null
+          vendor_logo_url?: string | null
+          vendor_name: string
+          vendor_website?: string | null
+        }
+        Update: {
+          annual_cost?: number | null
+          auto_renewal?: boolean | null
+          billing_cycle?: string | null
+          business_criticality?: string | null
+          cancellation_notice_days?: number | null
+          category?: string
+          contract_end_date?: string | null
+          contract_start_date?: string
+          created_at?: string | null
+          currency?: string | null
+          department?: string | null
+          expected_bank_reference?: string | null
+          id?: string
+          linked_bank_account?: string | null
+          monthly_cost?: number
+          next_billing_date?: string | null
+          next_renewal_date?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          primary_owner_id?: string | null
+          seats_licensed?: number | null
+          seats_used?: number | null
+          status?: string | null
+          updated_at?: string | null
+          vendor_logo_url?: string | null
+          vendor_name?: string
+          vendor_website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_subscriptions_primary_owner_id_fkey"
+            columns: ["primary_owner_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "vendor_subscriptions_primary_owner_id_fkey"
+            columns: ["primary_owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_subscriptions_primary_owner_id_fkey"
+            columns: ["primary_owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       verification_attempts: {
         Row: {
           action: string
