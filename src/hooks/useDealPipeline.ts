@@ -56,7 +56,7 @@ export function useDealStages() {
       // WS-4: Optimized query with specific fields
       const { data, error } = await (supabase as any)
         .from('deal_stages')
-        .select('id, name, stage_order, color, description, is_active')
+        .select('id, name, stage_order, color, description, probability_weight, is_terminal, stage_type')
         .order('stage_order');
       
       if (error) throw error;
