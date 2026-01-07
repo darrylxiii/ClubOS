@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import { HorizontalFilters } from "@/components/jobs/HorizontalFilters";
 import type { JobFilters } from "@/components/jobs/JobFilterSidebar";
 import { cn } from "@/lib/utils";
 import { JobsForYouSection } from "@/components/jobs/JobsForYouSection";
+import { ClubSyncConfirmationDialog } from "@/components/clubsync";
 
 type SortOption = "match" | "newest" | "salary";
 
@@ -54,6 +55,10 @@ const Jobs = () => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userCurrency, setUserCurrency] = useState<Currency>('EUR');
+  const [clubSyncDialogOpen, setClubSyncDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [matchFilterActive, setMatchFilterActive] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   // Fetch user's preferred currency and settings
   useEffect(() => {
@@ -267,6 +272,50 @@ const Jobs = () => {
     });
   };
 
+  const handleClubSyncToggle = async (enabled: boolean, preferences?: any) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          club_sync_enabled: enabled,
+          ...(preferences && { club_sync_preferences: preferences })
+        })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      setClubSyncEnabled(enabled);
+      toast.success(enabled ? "Club Sync enabled" : "Club Sync disabled", {
+        description: enabled ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
+      });
+    } catch (error) {
+      console.error('Error updating Club Sync:', error);
+      toast.error('Failed to update Club Sync setting');
+    }
+  };
+
+  const handleViewAllTopMatches = () => {
+    setMatchFilterActive(true);
+    setActiveTab("all");
+    // Scroll to tabs section
+    tabsRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Get eligible jobs for ClubSync preview
+  const eligibleJobsForClubSync = useMemo(() => {
+    return jobs
+      .filter(job => job.matchScore && job.matchScore >= 85)
+      .map(job => ({
+        id: job.id,
+        title: job.title,
+        company: job.company,
+        matchScore: job.matchScore,
+        location: job.location,
+      }));
+  }, [jobs]);
+
   const toggleSaveJob = async (jobId: string, jobTitle: string) => {
     if (!user) {
       toast.error('Please sign in to save jobs');
@@ -426,27 +475,18 @@ const Jobs = () => {
             </div>
             <Switch 
               checked={clubSyncEnabled} 
-              onCheckedChange={async (checked) => {
+              onCheckedChange={(checked) => {
                 if (!user) {
                   toast.error('Please sign in to use Club Sync');
                   return;
                 }
                 
-                try {
-                  const { error } = await supabase
-                    .from('profiles')
-                    .update({ club_sync_enabled: checked })
-                    .eq('id', user.id);
-                  
-                  if (error) throw error;
-                  
-                  setClubSyncEnabled(checked);
-                  toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
-                    description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
-                  });
-                } catch (error) {
-                  console.error('Error updating Club Sync:', error);
-                  toast.error('Failed to update Club Sync setting');
+                if (checked) {
+                  // Open confirmation dialog when enabling
+                  setClubSyncDialogOpen(true);
+                } else {
+                  // Disable directly
+                  handleClubSyncToggle(false);
                 }
               }} 
             />
@@ -484,13 +524,15 @@ const Jobs = () => {
               onRefer={handleRefer}
               onClubSync={handleClubSync}
               onToggleSave={toggleSaveJob}
+              onViewAll={handleViewAllTopMatches}
               matchThreshold={85}
               maxJobs={5}
             />
           )}
 
           {/* Tabs */}
-          <Tabs defaultValue="all" className="space-y-6">
+          <div ref={tabsRef}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <div className="flex items-center justify-between">
               <TabsList className="grid w-full max-w-md grid-cols-2">
                 <TabsTrigger value="all">
@@ -640,6 +682,7 @@ const Jobs = () => {
               )}
             </TabsContent>
           </Tabs>
+          </div>
         </div>
       </div>
 
@@ -652,6 +695,14 @@ const Jobs = () => {
           companyName={selectedJob.company} 
         />
       )}
+      
+      <ClubSyncConfirmationDialog
+        open={clubSyncDialogOpen}
+        onOpenChange={setClubSyncDialogOpen}
+        onConfirm={(preferences) => handleClubSyncToggle(true, preferences)}
+        eligibleJobs={eligibleJobsForClubSync}
+      />
+      
       <AIPageCopilot 
         currentPage="/jobs" 
         contextData={{ jobsCount: jobs.length }}

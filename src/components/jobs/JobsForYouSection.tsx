@@ -30,6 +30,7 @@ interface JobsForYouSectionProps {
   onRefer: (id: string, title: string, company: string) => void;
   onClubSync: (title: string) => void;
   onToggleSave: (id: string, title: string) => void;
+  onViewAll?: () => void;
   matchThreshold?: number;
   maxJobs?: number;
 }
@@ -41,6 +42,7 @@ export function JobsForYouSection({
   onRefer,
   onClubSync,
   onToggleSave,
+  onViewAll,
   matchThreshold = 85,
   maxJobs = 5,
 }: JobsForYouSectionProps) {
@@ -80,8 +82,8 @@ export function JobsForYouSection({
             </p>
           </div>
         </div>
-        {topMatches.length > 3 && (
-          <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
+        {topMatches.length > 3 && onViewAll && (
+          <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={onViewAll}>
             View all
             <ChevronRight className="w-4 h-4" />
           </Button>
