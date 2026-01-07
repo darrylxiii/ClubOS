@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, DollarSign, FileText, AlertCircle, CheckCircle } from "lucide-react";
+import { DollarSign, FileText, AlertCircle, CheckCircle } from "lucide-react";
 import { MoneybirdFinancialMetrics } from "@/hooks/useMoneybirdFinancials";
-import { formatDistanceToNow } from "date-fns";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface RevenueSummaryCardsProps {
   metrics: MoneybirdFinancialMetrics | null;
@@ -18,24 +18,35 @@ export function RevenueSummaryCards({ metrics, isLoading }: RevenueSummaryCardsP
     }).format(amount);
   };
 
-  const collectionRate = metrics && metrics.total_revenue > 0
-    ? ((metrics.total_paid / metrics.total_revenue) * 100).toFixed(1)
+  // Calculate net revenue (excluding 21% VAT)
+  const grossRevenue = metrics?.total_revenue || 0;
+  const netRevenue = Math.round(grossRevenue / 1.21 * 100) / 100;
+  const vatAmount = grossRevenue - netRevenue;
+  
+  // Calculate net collected
+  const grossCollected = metrics?.total_paid || 0;
+  const netCollected = Math.round(grossCollected / 1.21 * 100) / 100;
+
+  const collectionRate = grossRevenue > 0
+    ? ((grossCollected / grossRevenue) * 100).toFixed(1)
     : '0';
 
   const cards = [
     {
-      title: 'YTD Revenue',
-      value: formatCurrency(metrics?.total_revenue || 0),
-      description: `${metrics?.invoice_count_paid || 0} paid invoices`,
+      title: 'Net Revenue',
+      value: formatCurrency(netRevenue),
+      description: `Excl. ${formatCurrency(vatAmount)} VAT`,
       icon: DollarSign,
       iconColor: 'text-green-500',
+      tooltip: `Gross: ${formatCurrency(grossRevenue)} (incl. 21% BTW)`,
     },
     {
-      title: 'Total Collected',
-      value: formatCurrency(metrics?.total_paid || 0),
+      title: 'Net Collected',
+      value: formatCurrency(netCollected),
       description: `${collectionRate}% collection rate`,
       icon: CheckCircle,
       iconColor: 'text-blue-500',
+      tooltip: `Gross: ${formatCurrency(grossCollected)} (incl. 21% BTW)`,
     },
     {
       title: 'Outstanding',
@@ -43,6 +54,7 @@ export function RevenueSummaryCards({ metrics, isLoading }: RevenueSummaryCardsP
       description: `${metrics?.invoice_count_open || 0} open invoices`,
       icon: FileText,
       iconColor: 'text-amber-500',
+      tooltip: 'Total outstanding amount (incl. VAT)',
     },
     {
       title: 'Overdue',
@@ -55,6 +67,7 @@ export function RevenueSummaryCards({ metrics, isLoading }: RevenueSummaryCardsP
       description: `${metrics?.invoice_count_late || 0} late invoices`,
       icon: AlertCircle,
       iconColor: 'text-red-500',
+      tooltip: 'Invoices past due date',
     },
   ];
 
@@ -78,19 +91,28 @@ export function RevenueSummaryCards({ metrics, isLoading }: RevenueSummaryCardsP
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {cards.map((card) => (
-        <Card key={card.title}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-            <card.icon className={`h-4 w-4 ${card.iconColor}`} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{card.value}</div>
-            <p className="text-xs text-muted-foreground">{card.description}</p>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <TooltipProvider>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {cards.map((card) => (
+          <Tooltip key={card.title}>
+            <TooltipTrigger asChild>
+              <Card className="cursor-help">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                  <card.icon className={`h-4 w-4 ${card.iconColor}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{card.value}</div>
+                  <p className="text-xs text-muted-foreground">{card.description}</p>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{card.tooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+    </TooltipProvider>
   );
 }
