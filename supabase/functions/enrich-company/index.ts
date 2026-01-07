@@ -41,7 +41,9 @@ serve(async (req) => {
       );
     }
 
-    // Use Lovable AI to enrich company data
+    // Use Lovable AI Gateway for company enrichment (no external API key required)
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    
     const aiPrompt = `You are a company data enrichment API. Given the domain "${domain}", provide realistic company information in JSON format with these fields:
     - company_name: The company's official name
     - description: A brief 1-2 sentence description
@@ -53,32 +55,63 @@ serve(async (req) => {
     
     Return ONLY valid JSON, no markdown or explanation.`;
 
-    const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': Deno.env.get('ANTHROPIC_API_KEY') || '',
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 500,
-        messages: [{ role: 'user', content: aiPrompt }]
-      })
-    });
-
     let enrichmentData;
-    
-    if (aiResponse.ok) {
-      const aiResult = await aiResponse.json();
-      const content = aiResult.content?.[0]?.text;
+
+    if (LOVABLE_API_KEY) {
       try {
-        enrichmentData = JSON.parse(content);
-      } catch {
-        // Fallback to domain-based inference
+        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [{ role: 'user', content: aiPrompt }],
+            max_tokens: 500,
+          })
+        });
+
+        if (aiResponse.ok) {
+          const aiResult = await aiResponse.json();
+          const content = aiResult.choices?.[0]?.message?.content;
+          try {
+            // Extract JSON from response (handle markdown code blocks)
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              enrichmentData = JSON.parse(jsonMatch[0]);
+            } else {
+              enrichmentData = JSON.parse(content);
+            }
+          } catch {
+            console.log('Failed to parse AI response, using fallback');
+            enrichmentData = inferFromDomain(domain);
+          }
+        } else {
+          const errorText = await aiResponse.text();
+          console.error('Lovable AI error:', aiResponse.status, errorText);
+          
+          if (aiResponse.status === 429) {
+            return new Response(
+              JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          if (aiResponse.status === 402) {
+            return new Response(
+              JSON.stringify({ error: 'AI credits exhausted. Please add funds to continue.' }),
+              { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          
+          enrichmentData = inferFromDomain(domain);
+        }
+      } catch (aiError) {
+        console.error('AI enrichment error:', aiError);
         enrichmentData = inferFromDomain(domain);
       }
     } else {
+      console.log('LOVABLE_API_KEY not configured, using fallback');
       enrichmentData = inferFromDomain(domain);
     }
 
@@ -94,7 +127,7 @@ serve(async (req) => {
         location: enrichmentData.location,
         founded_year: enrichmentData.founded_year,
         linkedin_url: enrichmentData.linkedin_url,
-        enrichment_source: 'lovable_ai',
+        enrichment_source: LOVABLE_API_KEY ? 'lovable_ai' : 'inference',
         enrichment_data: enrichmentData,
         fetched_at: new Date().toISOString(),
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
