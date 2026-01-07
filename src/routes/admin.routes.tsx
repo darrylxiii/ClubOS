@@ -380,15 +380,7 @@ export const adminRoutes = (
     />
     <Route
       path="/admin/sales-kpis"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <SalesKPIDashboardPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
+      element={<Navigate to="/admin/financial?tab=sales-kpis" replace />}
     />
     <Route
       path="/admin/kpi-command-center"
