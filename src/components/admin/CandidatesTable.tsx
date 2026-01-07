@@ -40,10 +40,10 @@ export function CandidatesTable({
 
   const getActivityBgColor = (color: string) => {
     switch (color) {
-      case 'green': return 'bg-green-100 text-green-700 border-green-200';
-      case 'yellow': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'red': return 'bg-red-100 text-red-700 border-red-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      case 'green': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+      case 'yellow': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+      case 'red': return 'bg-destructive/10 text-destructive border-destructive/20';
+      default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 

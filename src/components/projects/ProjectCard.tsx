@@ -29,10 +29,10 @@ export function ProjectCard({ project, isFreelancer }: ProjectCardProps) {
   };
 
   const getMatchColor = (score: number) => {
-    if (score >= 80) return "text-green-600 bg-green-50 border-green-200";
-    if (score >= 60) return "text-blue-600 bg-blue-50 border-blue-200";
-    if (score >= 40) return "text-yellow-600 bg-yellow-50 border-yellow-200";
-    return "text-gray-600 bg-gray-50 border-gray-200";
+    if (score >= 80) return "text-emerald-600 bg-emerald-500/10 border-emerald-500/20";
+    if (score >= 60) return "text-blue-600 bg-blue-500/10 border-blue-500/20";
+    if (score >= 40) return "text-amber-600 bg-amber-500/10 border-amber-500/20";
+    return "text-muted-foreground bg-muted border-border";
   };
 
   return (

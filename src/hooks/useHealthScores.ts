@@ -58,11 +58,11 @@ function getHealthStatus(score: number): HealthScore['status'] {
  */
 function getHealthDisplay(status: HealthScore['status']): { label: string; color: string } {
   const displays: Record<HealthScore['status'], { label: string; color: string }> = {
-    excellent: { label: 'Healthy', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-    good: { label: 'Good', color: 'text-blue-600 bg-blue-50 border-blue-200' },
-    at_risk: { label: 'Needs Attention', color: 'text-amber-600 bg-amber-50 border-amber-200' },
-    critical: { label: 'At Risk', color: 'text-rose-600 bg-rose-50 border-rose-200' },
-    unknown: { label: 'Unknown', color: 'text-slate-600 bg-slate-50 border-slate-200' },
+    excellent: { label: 'Healthy', color: 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20' },
+    good: { label: 'Good', color: 'text-blue-600 bg-blue-500/10 border-blue-500/20' },
+    at_risk: { label: 'Needs Attention', color: 'text-amber-600 bg-amber-500/10 border-amber-500/20' },
+    critical: { label: 'At Risk', color: 'text-rose-600 bg-rose-500/10 border-rose-500/20' },
+    unknown: { label: 'Unknown', color: 'text-muted-foreground bg-muted border-border' },
   };
   return displays[status];
 }
