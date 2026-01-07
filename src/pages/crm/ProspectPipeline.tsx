@@ -100,7 +100,8 @@ function ProspectPipelineContent() {
   });
   const { campaigns } = useCRMCampaigns({});
   const { owners } = useCRMOwners();
-  const { data: lastSyncLog, refetch: refetchSyncLog } = useSyncDiagnostics();
+  const { data: syncDiagnostics, refetch: refetchSyncLog } = useSyncDiagnostics();
+  const lastSyncLog = syncDiagnostics?.lastSync || null;
 
   // Auto-refresh on page visit and visibility change
   useEffect(() => {
