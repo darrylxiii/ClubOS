@@ -22,12 +22,31 @@ interface Campaign {
 export function WhatsAppCampaignsTab() {
   const [showBuilder, setShowBuilder] = useState(false);
 
-  // Note: whatsapp_campaigns table may not exist yet - using empty array as fallback
+  // Fetch from real whatsapp_broadcast_campaigns table
   const { data: campaigns, isLoading } = useQuery<Campaign[]>({
     queryKey: ['whatsapp-campaigns'],
     queryFn: async () => {
-      // Return empty array since table may not exist
-      return [];
+      const { data, error } = await supabase
+        .from('whatsapp_broadcast_campaigns')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching campaigns:', error);
+        return [];
+      }
+      
+      // Map to expected interface
+      return (data || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        status: c.status || 'draft',
+        template_name: c.template_name || 'Unknown',
+        recipient_count: c.total_recipients || 0,
+        sent_count: c.sent_count || 0,
+        delivered_count: c.delivered_count || 0,
+        created_at: c.created_at,
+      }));
     },
   });
 

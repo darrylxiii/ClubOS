@@ -101,14 +101,28 @@ export function WhatsAppChatThread({
 
   if (!conversation) {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-gradient-to-br from-background to-muted/30 p-8">
-        <div className="w-24 h-24 rounded-full bg-[#25d366]/10 flex items-center justify-center mb-6">
-          <MessageSquare className="w-12 h-12 text-[#25d366]" />
+      <div className="min-h-[600px] h-full flex flex-col items-center justify-center bg-gradient-to-br from-background to-muted/30 p-8">
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#25d366]/20 to-[#128c7e]/20 flex items-center justify-center mb-6 ring-1 ring-[#25d366]/20">
+          <MessageSquare className="w-10 h-10 text-[#25d366]" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">WhatsApp Business</h2>
-        <p className="text-muted-foreground text-center max-w-md">
-          Select a conversation to start messaging. Connect with candidates directly through WhatsApp.
+        <h2 className="text-xl font-bold text-foreground mb-2">Select a Conversation</h2>
+        <p className="text-muted-foreground text-center max-w-sm mb-6">
+          Choose a conversation from the list to view messages and connect with candidates.
         </p>
+        <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[#25d366]" />
+            <span>Real-time messaging with WhatsApp Business API</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[#25d366]" />
+            <span>AI-powered insights and smart replies</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[#25d366]" />
+            <span>Template messages for consistent outreach</span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -137,7 +151,7 @@ export function WhatsAppChatThread({
   }
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-background via-background to-[#25d366]/5">
+    <div className="min-h-[600px] h-full flex flex-col bg-gradient-to-br from-background via-background to-[#25d366]/5">
       {/* Header */}
       <div className="h-16 border-b border-border bg-card/80 backdrop-blur-sm flex items-center gap-3 px-4">
         <Avatar className="w-10 h-10 border-2 border-[#25d366]/30">
