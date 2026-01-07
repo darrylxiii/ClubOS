@@ -382,7 +382,7 @@ serve(async (req) => {
       const companyRetainer = companyId ? retainerCompanyMap.get(companyId) : null;
       
       // Classify invoice type
-      const invoiceType = classifyInvoice(description, netAmount, companyRetainer);
+      const invoiceType = classifyInvoice(description, netAmount, companyRetainer ?? null);
       
       // Prepare invoice row for storage
       invoiceRows.push({
