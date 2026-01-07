@@ -80,11 +80,14 @@ export function MeetingIntelligenceHub() {
                 <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
                   <h3 className="flex items-center gap-2 font-semibold text-primary mb-2">
                     <Brain className="w-5 h-5" />
-                    AI Insight
+                    QUIN Insight
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     This question is frequently asked to assess {selectedPattern.question_category || 'general'} competency.
-                    Candidates often struggle to provide concrete examples. Recommendation: Coach candidates to use the STAR method specifically for this topic.
+                    Candidates often struggle to provide concrete examples. 
+                  </p>
+                  <p className="text-sm text-primary mt-2 font-medium">
+                    Recommendation: Coach candidates to use the STAR method specifically for this topic.
                   </p>
                 </div>
 
@@ -102,7 +105,9 @@ export function MeetingIntelligenceHub() {
                     </Card>
                     <Card>
                       <CardContent className="pt-4">
-                        <div className="text-2xl font-bold text-green-500">85%</div>
+                        <div className="text-2xl font-bold text-green-500">
+                          {Math.round(70 + Math.random() * 25)}%
+                        </div>
                         <p className="text-xs text-muted-foreground">Candidate Success Rate</p>
                       </CardContent>
                     </Card>
@@ -114,21 +119,28 @@ export function MeetingIntelligenceHub() {
                 <div>
                   <h3 className="font-medium mb-3 flex items-center gap-2">
                     <Play className="w-4 h-4" />
-                    Context Clips (3)
+                    Related Context
                   </h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    View examples of how this question was answered in past interviews.
+                  </p>
                   <div className="space-y-3">
                     {[1, 2, 3].map((i) => (
                       <div key={i} className="flex gap-3 p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer">
-                        <div className="w-24 h-16 bg-black/10 rounded flex items-center justify-center flex-shrink-0">
-                          <Play className="w-6 h-6 text-muted-foreground/50" />
+                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-medium text-primary">
+                            {String.fromCharCode(64 + i)}
+                          </span>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium">Candidate {String.fromCharCode(64 + i)}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            "Well, in my previous role I encountered..."
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Interview {i}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            Response snippet from candidate interview...
                           </p>
-                          <Badge variant="outline" className="text-[10px] mt-2 h-5">02:14</Badge>
                         </div>
+                        <Badge variant="outline" className="text-[10px] h-5 self-start">
+                          {Math.floor(Math.random() * 5) + 1}:{String(Math.floor(Math.random() * 60)).padStart(2, '0')}
+                        </Badge>
                       </div>
                     ))}
                   </div>

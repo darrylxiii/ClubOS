@@ -11,3 +11,5 @@ export { RelationshipCard } from './RelationshipCard';
 export { TouchpointTimeline } from './TouchpointTimeline';
 export { LogTouchpointDialog } from './LogTouchpointDialog';
 export { AddToListDialog } from './AddToListDialog';
+export { ImportCandidatesDialog } from './ImportCandidatesDialog';
+export { AddCandidateDialog } from './AddCandidateDialog';

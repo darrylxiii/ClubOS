@@ -549,7 +549,7 @@ function ProspectPipelineContent() {
         selectedCount={selectedIds.size}
         onArchive={handleBulkArchive}
         onMarkActioned={handleBulkMarkActioned}
-        onAssign={handleBulkAssign}
+        onAssign={handleBulkAssignClick}
         onClearSelection={handleClearSelection}
       />
 

@@ -15,6 +15,8 @@ import {
   CandidateQuickView,
   LogTouchpointDialog,
   AddToListDialog,
+  ImportCandidatesDialog,
+  AddCandidateDialog,
 } from '@/components/talent-pool';
 import {
   useTalentPool,
@@ -36,6 +38,8 @@ export default function TalentPool() {
   const [touchpointDialogCandidate, setTouchpointDialogCandidate] = useState<TalentPoolCandidate | null>(null);
   const [addToListDialogCandidate, setAddToListDialogCandidate] = useState<TalentPoolCandidate | null>(null);
   const [isBulkCalculating, setIsBulkCalculating] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   const { candidates, stats, isLoading, refetch, updateTier, fetchNextPage, hasNextPage, isFetchingNextPage } = useTalentPool(filters);
   const { search, results, lastQuery, isSearching, clearResults } = useSemanticSearch();
@@ -181,11 +185,15 @@ export default function TalentPool() {
                 )}
                 Calculate Probabilities
               </Button>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setImportDialogOpen(true)}
+              >
                 <Upload className="h-4 w-4 mr-2" />
                 Import
               </Button>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setAddDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Candidate
               </Button>
@@ -284,6 +292,20 @@ export default function TalentPool() {
           candidateName={addToListDialogCandidate?.full_name || ''}
           open={!!addToListDialogCandidate}
           onOpenChange={(open) => !open && setAddToListDialogCandidate(null)}
+          onSuccess={() => refetch()}
+        />
+
+        {/* Import Candidates Dialog */}
+        <ImportCandidatesDialog
+          open={importDialogOpen}
+          onOpenChange={setImportDialogOpen}
+          onSuccess={() => refetch()}
+        />
+
+        {/* Add Candidate Dialog */}
+        <AddCandidateDialog
+          open={addDialogOpen}
+          onOpenChange={setAddDialogOpen}
           onSuccess={() => refetch()}
         />
       </div>
