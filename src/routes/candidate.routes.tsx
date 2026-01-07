@@ -26,9 +26,7 @@ const ValuesPoker = lazy(() => import("@/pages/ValuesPoker"));
  */
 export const candidateRoutes = (
   <>
-    {/* Jobs & Career */}
-    <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
-    <Route path="/jobs/:jobId" element={<ProtectedRoute><JobDetail /></ProtectedRoute>} />
+    {/* Jobs routes are handled in jobsRoutes to avoid conflicts with /jobs/map */}
     
     {/* Applications */}
     <Route path="/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
