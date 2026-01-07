@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { 
   Users, 
   Mail, 
@@ -18,7 +18,7 @@ import {
   Calendar,
   MessageSquare,
   Focus,
-  Plug,
+  DollarSign
 } from 'lucide-react';
 import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
@@ -29,18 +29,10 @@ import { CRMWeightedPipeline } from '@/components/crm/CRMWeightedPipeline';
 import { CRMActivityReminderBell } from '@/components/crm/CRMActivityReminderBell';
 import { CRMRealtimeProvider } from '@/components/crm/CRMRealtimeProvider';
 import { SeedCRMDataButton } from '@/components/crm/SeedCRMDataButton';
-import { CRMFocusContent } from '@/components/crm/CRMFocusContent';
-import { CRMAutomationsContent } from '@/components/crm/CRMAutomationsContent';
-import { CRMIntegrationsContent } from '@/components/crm/CRMIntegrationsContent';
+import { useState } from 'react';
 
 export default function CRMDashboard() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get('tab') || 'overview';
-  
-  const setActiveTab = (tab: string) => {
-    setSearchParams({ tab });
-  };
-  
+  const [activeTab, setActiveTab] = useState('overview');
   const { prospects, loading: prospectsLoading, refetch: refetchProspects } = useCRMProspects({ limit: 100 });
   const { campaigns, loading: campaignsLoading, refetch: refetchCampaigns } = useCRMCampaigns({ limit: 100 });
   const { replies, loading: repliesLoading, refetch: refetchReplies } = useCRMEmailReplies({ isActioned: false, limit: 100 });
@@ -176,22 +168,10 @@ export default function CRMDashboard() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="flex-wrap h-auto gap-1">
+            <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="focus" className="flex items-center gap-1.5">
-                <Focus className="w-3.5 h-3.5" />
-                Focus
-              </TabsTrigger>
-              <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
+              <TabsTrigger value="pipeline">Pipeline Revenue</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="automations" className="flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5" />
-                Automations
-              </TabsTrigger>
-              <TabsTrigger value="integrations" className="flex items-center gap-1.5">
-                <Plug className="w-3.5 h-3.5" />
-                Integrations
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6 mt-6">
@@ -359,24 +339,12 @@ export default function CRMDashboard() {
               </div>
             </TabsContent>
 
-            <TabsContent value="focus" className="mt-6">
-              <CRMFocusContent />
-            </TabsContent>
-
             <TabsContent value="pipeline" className="mt-6">
               <CRMWeightedPipeline />
             </TabsContent>
 
             <TabsContent value="analytics" className="mt-6">
               <CRMAnalyticsOverview />
-            </TabsContent>
-
-            <TabsContent value="automations" className="mt-6">
-              <CRMAutomationsContent />
-            </TabsContent>
-
-            <TabsContent value="integrations" className="mt-6">
-              <CRMIntegrationsContent />
             </TabsContent>
           </Tabs>
         </div>

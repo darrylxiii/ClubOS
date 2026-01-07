@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route, Navigate } from "react-router-dom";
+import { Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
@@ -9,6 +9,9 @@ const Meetings = lazy(() => import("@/pages/Meetings"));
 const MeetingRoom = lazy(() => import("@/pages/MeetingRoom"));
 const JoinMeeting = lazy(() => import("@/pages/JoinMeeting"));
 const MeetingNotes = lazy(() => import("@/pages/MeetingNotes"));
+const MeetingHistory = lazy(() => import("@/pages/MeetingHistory"));
+const Scheduling = lazy(() => import("@/pages/Scheduling"));
+const BookingManagement = lazy(() => import("@/pages/BookingManagement"));
 const RecordingPlaybackPage = lazy(() => import("@/components/meetings/RecordingPlaybackPage"));
 const DossierView = lazy(() => import("@/pages/DossierView"));
 const InterviewComparison = lazy(() => import("@/pages/InterviewComparison"));
@@ -63,21 +66,42 @@ export const meetingsRoutes = (
         </ProtectedRoute>
       }
     />
-    
-    {/* Redirects for consolidated routes */}
     <Route
       path="/meeting-history"
-      element={<Navigate to="/meetings?tab=history" replace />}
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <MeetingHistory />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
     />
     <Route
       path="/scheduling"
-      element={<Navigate to="/meetings?tab=scheduling" replace />}
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Scheduling />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
     />
     <Route
       path="/booking-management"
-      element={<Navigate to="/meetings?tab=scheduling" replace />}
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <BookingManagement />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
     />
-    
     <Route
       path="/recording/:recordingId"
       element={
