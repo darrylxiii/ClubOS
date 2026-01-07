@@ -70,6 +70,7 @@ const AgentBrain = lazy(() => import("@/pages/admin/AgentBrain"));
 const GodMode = lazy(() => import("@/pages/admin/GodMode"));
 const ErrorLogs = lazy(() => import("@/pages/admin/ErrorLogs"));
 const JobAnalyticsIndex = lazy(() => import("@/pages/admin/JobAnalyticsIndex"));
+const DataHealthPage = lazy(() => import("@/pages/admin/DataHealthPage"));
 
 // Inventory Pages
 const AssetRegister = lazy(() => import("@/pages/admin/inventory/AssetRegister"));
@@ -335,6 +336,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <SystemHealth />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/data-health"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <DataHealthPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
