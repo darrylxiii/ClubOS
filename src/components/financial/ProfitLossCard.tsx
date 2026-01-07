@@ -53,14 +53,39 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
       const totalPayouts = payouts?.reduce((sum, p) => 
         sum + (p.payout_amount || 0), 0) || 0;
 
-      // Fetch operating expenses
+      // Fetch operating expenses (non-subscription)
       const { data: expenses } = await supabase
         .from('operating_expenses')
         .select('amount')
         .gte('expense_date', startOfYear);
 
-      const totalExpenses = expenses?.reduce((sum, e) => 
+      const totalOtherExpenses = expenses?.reduce((sum, e) => 
         sum + (e.amount || 0), 0) || 0;
+
+      // Fetch SaaS subscription costs (active subscriptions, annualized for YTD)
+      const { data: subscriptions } = await supabase
+        .from('vendor_subscriptions')
+        .select('monthly_cost, contract_start_date, status')
+        .eq('status', 'active');
+
+      // Calculate subscription costs YTD
+      const now = new Date();
+      const yearStart = new Date(currentYear, 0, 1);
+      const monthsElapsed = (now.getFullYear() - yearStart.getFullYear()) * 12 + 
+                           (now.getMonth() - yearStart.getMonth()) + 1;
+      
+      const totalSubscriptionCosts = subscriptions?.reduce((sum, sub) => {
+        // Calculate months active in current year
+        const startDate = new Date(sub.contract_start_date);
+        const effectiveStart = startDate > yearStart ? startDate : yearStart;
+        const monthsActive = Math.max(0, 
+          (now.getFullYear() - effectiveStart.getFullYear()) * 12 + 
+          (now.getMonth() - effectiveStart.getMonth()) + 1
+        );
+        return sum + (sub.monthly_cost * Math.min(monthsActive, monthsElapsed));
+      }, 0) || 0;
+
+      const totalExpenses = totalOtherExpenses + totalSubscriptionCosts;
 
       // Calculate margins based on NET revenue (excluding VAT)
       const grossMargin = netRevenue - totalCommissions - totalPayouts;
@@ -74,6 +99,8 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
         vatCollected,
         totalCommissions,
         totalPayouts,
+        totalOtherExpenses,
+        totalSubscriptionCosts,
         totalExpenses,
         grossMargin,
         netProfit,
@@ -162,10 +189,14 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
         </div>
 
         {/* Operating Expenses */}
-        <div className="pl-4 border-l-2 border-muted">
+        <div className="pl-4 border-l-2 border-muted space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Operating Expenses</span>
-            <span className="text-destructive">-{formatCurrency(data?.totalExpenses || 0)}</span>
+            <span className="text-muted-foreground">SaaS & Subscriptions</span>
+            <span className="text-destructive">-{formatCurrency(data?.totalSubscriptionCosts || 0)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Other Operating Expenses</span>
+            <span className="text-destructive">-{formatCurrency(data?.totalOtherExpenses || 0)}</span>
           </div>
         </div>
 

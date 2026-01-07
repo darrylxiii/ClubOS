@@ -7,6 +7,7 @@ interface ForecastPeriod {
   days: number;
   expectedCollections: number;
   expectedPayouts: number;
+  subscriptionCosts: number;
   pipelineRevenue: number;
   netCashFlow: number;
   invoiceCount: number;
@@ -23,6 +24,7 @@ interface RevenueForecasting {
   pendingPayouts: number;
   pipelineTotal: number;
   pipelineDealsCount: number;
+  monthlySubscriptionCosts: number;
   isLoading: boolean;
 }
 
@@ -71,6 +73,15 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
         .select('amount, is_recurring')
         .eq('is_recurring', true);
 
+      // Fetch active vendor subscriptions for SaaS costs
+      const { data: activeSubscriptions } = await supabase
+        .from('vendor_subscriptions')
+        .select('monthly_cost, billing_cycle')
+        .eq('status', 'active');
+
+      const monthlySubscriptionCosts = activeSubscriptions?.reduce((sum, sub) => 
+        sum + (sub.monthly_cost || 0), 0) || 0;
+
       // Fetch pipeline data from placement_fees if included
       let pipelineDeals: any[] = [];
       if (includePipeline) {
@@ -112,7 +123,10 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
         
         const collectionsInPeriod = collectionsData.netCollections;
 
-        // Expected payouts (commissions + referrals + recurring)
+        // Subscription costs for the period
+        const subscriptionCostsForPeriod = monthlySubscriptionCosts * (days / 30);
+
+        // Expected payouts (commissions + referrals + recurring expenses)
         const expectedPayouts = (
           (pendingCommissions?.reduce((sum, c) => sum + (c.gross_amount || 0), 0) || 0) +
           (pendingPayouts?.reduce((sum, p) => sum + (p.payout_amount || 0), 0) || 0) +
@@ -132,13 +146,17 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
           });
         }
 
+        // Total outflows include payouts + subscription costs
+        const totalOutflows = expectedPayouts + subscriptionCostsForPeriod;
+
         return {
           label: `${days} Days`,
           days,
           expectedCollections: collectionsInPeriod,
           expectedPayouts: expectedPayouts,
+          subscriptionCosts: subscriptionCostsForPeriod,
           pipelineRevenue,
-          netCashFlow: collectionsInPeriod + pipelineRevenue - expectedPayouts,
+          netCashFlow: collectionsInPeriod + pipelineRevenue - totalOutflows,
           invoiceCount: unpaidInvoices?.length || 0,
           pipelineDealsCount: pipelineDealsInPeriod,
         };
@@ -181,6 +199,7 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
         pendingPayouts: pendingPayouts?.reduce((sum, p) => sum + (p.payout_amount || 0), 0) || 0,
         pipelineTotal,
         pipelineDealsCount: pipelineDeals.length,
+        monthlySubscriptionCosts,
       };
     },
   });
@@ -195,6 +214,7 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
     pendingPayouts: data?.pendingPayouts || 0,
     pipelineTotal: data?.pipelineTotal || 0,
     pipelineDealsCount: data?.pipelineDealsCount || 0,
+    monthlySubscriptionCosts: data?.monthlySubscriptionCosts || 0,
     isLoading,
   };
 }

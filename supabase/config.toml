@@ -1067,3 +1067,6 @@ verify_jwt = true
 
 [functions.quin-meeting-voice]
 verify_jwt = true
+
+[functions.process-subscription-reminders]
+verify_jwt = false
