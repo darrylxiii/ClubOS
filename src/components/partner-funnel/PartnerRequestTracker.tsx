@@ -54,17 +54,47 @@ export function PartnerRequestTracker() {
   }, []);
 
   const loadStrategist = async () => {
-    // Fetch Darryl's profile (hardcoded for now as requested)
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, full_name, avatar_url")
-      .eq("id", "8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5")
-      .single();
+    try {
+      // First try to get assigned strategist from strategist_assignments
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { data: assignment } = await supabase
+          .from("strategist_assignments")
+          .select(`
+            strategist_id,
+            profiles:strategist_id (id, full_name, avatar_url)
+          `)
+          .eq("partner_id", user.id)
+          .eq("is_active", true)
+          .eq("assignment_type", "primary")
+          .single();
 
-    if (data) {
-      setStrategist(data);
+        if (assignment?.profiles) {
+          setStrategist(assignment.profiles as unknown as Profile);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Fallback: Get any available strategist
+      const { data: strategists } = await supabase
+        .from("user_roles")
+        .select(`
+          user_id,
+          profiles:user_id (id, full_name, avatar_url)
+        `)
+        .eq("role", "strategist")
+        .limit(1);
+
+      if (strategists?.[0]?.profiles) {
+        setStrategist(strategists[0].profiles as unknown as Profile);
+      }
+    } catch (error) {
+      console.error("Error loading strategist:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const completedSteps = TRACKER_STEPS.filter(s => s.status === "completed").length;
