@@ -266,7 +266,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "CRM Dashboard", icon: LayoutDashboard, path: "/crm" },
         { name: "Prospect Pipeline", icon: Target, path: "/crm/prospects" },
-        { name: "Focus View", icon: Target, path: "/crm/focus" },
         { name: "Reply Inbox", icon: Mail, path: "/crm/inbox" },
         { name: "WhatsApp Inbox", icon: Phone, path: "/whatsapp" },
         { name: "Campaigns", icon: Zap, path: "/crm/campaigns" },
@@ -275,10 +274,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Partner Funnel", icon: Target, path: "/partner-funnel" },
         { name: "Partner Relationships", icon: Link2, path: "/partner/relationships" },
         { name: "Relationships Dashboard", icon: Building2, path: "/admin/company-relationships" },
-        { name: "CRM Analytics", icon: BarChart3, path: "/crm/analytics" },
         { name: "WhatsApp Analytics", icon: BarChart3, path: "/admin/whatsapp-analytics" },
-        { name: "Automations", icon: Zap, path: "/crm/automations" },
-        { name: "Integrations", icon: Link2, path: "/crm/integrations" },
         { name: "CRM Settings", icon: Settings, path: "/crm/settings" },
         { name: "WhatsApp Settings", icon: Settings, path: "/admin/whatsapp-settings" },
       ],
