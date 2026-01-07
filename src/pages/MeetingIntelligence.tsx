@@ -511,18 +511,172 @@ export default function MeetingIntelligence() {
 
           {/* Insights Tab */}
           <TabsContent value="insights" className="space-y-6">
+            {/* Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Avg. Meeting Duration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {meetings.length > 0 
+                      ? `${Math.round(meetings.reduce((acc, m) => acc + (m.duration || 0), 0) / meetings.length)} min`
+                      : 'N/A'}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Meetings This Month
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-500">
+                    {meetings.filter(m => {
+                      const meetingDate = new Date(m.scheduled_start);
+                      const now = new Date();
+                      return meetingDate.getMonth() === now.getMonth() && 
+                             meetingDate.getFullYear() === now.getFullYear();
+                    }).length}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Analysis Rate
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-500">
+                    {meetings.length > 0 
+                      ? `${Math.round((meetings.filter(m => m.has_insights).length / meetings.length) * 100)}%`
+                      : '0%'}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Top Topics */}
             <Card>
               <CardHeader>
-                <CardTitle>Analytics Dashboard</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-blue-500" />
+                  Top Discussion Topics
+                </CardTitle>
                 <CardDescription>
-                  Coming soon: Deeper insights across all your meetings
+                  Most frequently discussed topics across your meetings
                 </CardDescription>
               </CardHeader>
-              <CardContent className="py-12 text-center">
-                <BarChart3 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">
-                  Advanced analytics and trends will be available here
-                </p>
+              <CardContent>
+                {(() => {
+                  const topicCounts: Record<string, number> = {};
+                  meetings.forEach(m => {
+                    m.insights?.topics?.forEach(topic => {
+                      topicCounts[topic] = (topicCounts[topic] || 0) + 1;
+                    });
+                  });
+                  const sortedTopics = Object.entries(topicCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+
+                  if (sortedTopics.length === 0) {
+                    return (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p>No topics analyzed yet</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="flex flex-wrap gap-2">
+                      {sortedTopics.map(([topic, count]) => (
+                        <Badge key={topic} variant="secondary" className="text-sm py-1.5 px-3">
+                          {topic}
+                          <span className="ml-2 text-muted-foreground">×{count}</span>
+                        </Badge>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Sentiment Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-orange-500" />
+                  Sentiment Distribution
+                </CardTitle>
+                <CardDescription>
+                  Overall sentiment across analyzed meetings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const sentiments = { positive: 0, neutral: 0, negative: 0 };
+                  meetings.forEach(m => {
+                    const s = m.insights?.sentiment;
+                    if (s && s in sentiments) {
+                      sentiments[s as keyof typeof sentiments]++;
+                    }
+                  });
+                  const total = sentiments.positive + sentiments.neutral + sentiments.negative;
+
+                  if (total === 0) {
+                    return (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p>No sentiment data available</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <span className="w-20 text-sm">Positive</span>
+                        <div className="flex-1 bg-muted rounded-full h-3">
+                          <div 
+                            className="bg-green-500 h-3 rounded-full transition-all" 
+                            style={{ width: `${(sentiments.positive / total) * 100}%` }}
+                          />
+                        </div>
+                        <span className="w-12 text-sm text-right">{sentiments.positive}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="w-20 text-sm">Neutral</span>
+                        <div className="flex-1 bg-muted rounded-full h-3">
+                          <div 
+                            className="bg-yellow-500 h-3 rounded-full transition-all" 
+                            style={{ width: `${(sentiments.neutral / total) * 100}%` }}
+                          />
+                        </div>
+                        <span className="w-12 text-sm text-right">{sentiments.neutral}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="w-20 text-sm">Negative</span>
+                        <div className="flex-1 bg-muted rounded-full h-3">
+                          <div 
+                            className="bg-red-500 h-3 rounded-full transition-all" 
+                            style={{ width: `${(sentiments.negative / total) * 100}%` }}
+                          />
+                        </div>
+                        <span className="w-12 text-sm text-right">{sentiments.negative}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           </TabsContent>
