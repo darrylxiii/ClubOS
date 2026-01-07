@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
@@ -63,6 +63,7 @@ const JobAnalyticsDashboard = lazy(() => import("@/pages/admin/JobAnalyticsDashb
 const ConversationAnalytics = lazy(() => import("@/pages/admin/ConversationAnalytics"));
 const SecurityEventDashboard = lazy(() => import("@/pages/admin/SecurityEventDashboard"));
 const UserEngagementDashboard = lazy(() => import("@/pages/admin/UserEngagementDashboard"));
+const IntelligenceCenter = lazy(() => import("@/pages/admin/IntelligenceCenter"));
 // Phase 6: Agent Brain
 const AgentBrain = lazy(() => import("@/pages/admin/AgentBrain"));
 
@@ -717,5 +718,16 @@ export const adminRoutes = (
 
     {/* Archived Candidates */}
     <Route path="/archived-candidates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ArchivedCandidates /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* Intelligence Center - Unified analytics hub */}
+    <Route path="/admin/intelligence" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><IntelligenceCenter /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* Redirects for consolidated intelligence pages */}
+    <Route path="/admin/global-analytics" element={<Navigate to="/admin/intelligence?tab=overview" replace />} />
+    <Route path="/ml-dashboard" element={<Navigate to="/admin/intelligence?tab=ml" replace />} />
+    <Route path="/hiring-intelligence" element={<Navigate to="/admin/intelligence?tab=hiring" replace />} />
+    <Route path="/funnel-analytics" element={<Navigate to="/admin/intelligence?tab=funnel" replace />} />
+    <Route path="/communication-analytics" element={<Navigate to="/admin/intelligence?tab=communication" replace />} />
+    <Route path="/messaging-analytics" element={<Navigate to="/admin/intelligence?tab=communication" replace />} />
   </>
 );
