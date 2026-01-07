@@ -95,7 +95,7 @@ export function useJobLocations(filters: JobLocationFilters = {}) {
         .not("longitude", "is", null);
 
       if (filters.isActive !== false) {
-        query = query.eq("status", "open");
+        query = query.in("status", ["open", "published"]);
       }
 
       if (filters.employmentType) {
