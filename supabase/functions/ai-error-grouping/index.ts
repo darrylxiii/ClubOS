@@ -60,14 +60,19 @@ Respond with JSON only:
 }`;
 
   try {
-    // Use Lovable AI (Gemini) for analysis
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    // Use Lovable AI Gateway (no external API key required)
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    
+    if (!LOVABLE_API_KEY) {
+      console.log('LOVABLE_API_KEY not configured, using fallback grouping');
+      return generateFallbackGrouping(error);
+    }
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENROUTER_API_KEY')}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://lovable.dev',
-        'X-Title': 'Quantum Club Error Analysis',
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
@@ -78,12 +83,20 @@ Respond with JSON only:
           },
           { role: 'user', content: prompt },
         ],
-        temperature: 0.3,
         max_tokens: 500,
       }),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Lovable AI error:', response.status, errorText);
+      
+      // Don't throw for rate limits, just use fallback
+      if (response.status === 429 || response.status === 402) {
+        console.log('AI rate limited or credits exhausted, using fallback');
+        return generateFallbackGrouping(error);
+      }
+      
       throw new Error(`AI request failed: ${response.status}`);
     }
 
