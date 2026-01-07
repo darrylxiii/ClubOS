@@ -6,16 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, Globe, Users, MapPin, Loader2, Search, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EnrichmentData {
-  name: string;
+  company_name: string;
   domain: string;
   description: string;
   industry: string;
-  employeeCount: string;
+  employee_count: string;
   location: string;
-  linkedin: string;
-  founded: string;
+  linkedin_url: string;
+  founded_year: string;
 }
 
 export function CompanyEnrichment() {
@@ -31,31 +32,38 @@ export function CompanyEnrichment() {
 
     setLoading(true);
     
-    // Simulate enrichment API call
-    // In production, this would call Clearbit, Apollo, or similar API
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock enrichment data
-    const mockData: EnrichmentData = {
-      name: domain.split(".")[0].charAt(0).toUpperCase() + domain.split(".")[0].slice(1),
-      domain: domain,
-      description: "A leading technology company specializing in innovative solutions.",
-      industry: "Technology",
-      employeeCount: "50-200",
-      location: "Amsterdam, Netherlands",
-      linkedin: `https://linkedin.com/company/${domain.split(".")[0]}`,
-      founded: "2018",
-    };
-    
-    setEnrichmentData(mockData);
-    setLoading(false);
-    toast.success("Company data enriched successfully");
+    try {
+      // Call edge function for real enrichment
+      const { data, error } = await supabase.functions.invoke('enrich-company', {
+        body: { domain: domain.trim().toLowerCase() }
+      });
+
+      if (error) throw error;
+
+      const enriched = data?.data;
+      if (enriched) {
+        setEnrichmentData({
+          company_name: enriched.company_name || domain.split(".")[0],
+          domain: domain,
+          description: enriched.description || "Company information retrieved.",
+          industry: enriched.industry || "Technology",
+          employee_count: enriched.employee_count || "Unknown",
+          location: enriched.location || "Unknown",
+          linkedin_url: enriched.linkedin_url || `https://linkedin.com/company/${domain.split(".")[0]}`,
+          founded_year: enriched.founded_year || "Unknown",
+        });
+        toast.success("Company data enriched successfully");
+      }
+    } catch (error: any) {
+      console.error('Enrichment error:', error);
+      toast.error("Failed to enrich company data");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const applyToProspect = () => {
     if (!enrichmentData) return;
-    
-    // In production, this would update the prospect record
     toast.success("Enrichment data applied to prospect");
     setEnrichmentData(null);
     setDomain("");

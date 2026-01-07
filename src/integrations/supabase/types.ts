@@ -9091,6 +9091,63 @@ export type Database = {
           },
         ]
       }
+      company_enrichment_cache: {
+        Row: {
+          company_name: string | null
+          created_at: string | null
+          description: string | null
+          domain: string
+          employee_count: string | null
+          enrichment_data: Json | null
+          enrichment_source: string | null
+          expires_at: string | null
+          fetched_at: string | null
+          founded_year: string | null
+          id: string
+          industry: string | null
+          linkedin_url: string | null
+          location: string | null
+          logo_url: string | null
+          website: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          domain: string
+          employee_count?: string | null
+          enrichment_data?: Json | null
+          enrichment_source?: string | null
+          expires_at?: string | null
+          fetched_at?: string | null
+          founded_year?: string | null
+          id?: string
+          industry?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          logo_url?: string | null
+          website?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          domain?: string
+          employee_count?: string | null
+          enrichment_data?: Json | null
+          enrichment_source?: string | null
+          expires_at?: string | null
+          fetched_at?: string | null
+          founded_year?: string | null
+          id?: string
+          industry?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          logo_url?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       company_followers: {
         Row: {
           company_id: string
@@ -15220,6 +15277,54 @@ export type Database = {
           status?: string | null
           success_criteria?: Json | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      edge_function_registry: {
+        Row: {
+          avg_execution_time_ms: number | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          display_name: string | null
+          error_rate: number | null
+          function_name: string
+          id: string
+          invocation_count: number | null
+          is_active: boolean | null
+          last_invoked_at: string | null
+          updated_at: string | null
+          verify_jwt: boolean | null
+        }
+        Insert: {
+          avg_execution_time_ms?: number | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_name?: string | null
+          error_rate?: number | null
+          function_name: string
+          id?: string
+          invocation_count?: number | null
+          is_active?: boolean | null
+          last_invoked_at?: string | null
+          updated_at?: string | null
+          verify_jwt?: boolean | null
+        }
+        Update: {
+          avg_execution_time_ms?: number | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_name?: string | null
+          error_rate?: number | null
+          function_name?: string
+          id?: string
+          invocation_count?: number | null
+          is_active?: boolean | null
+          last_invoked_at?: string | null
+          updated_at?: string | null
+          verify_jwt?: boolean | null
         }
         Relationships: []
       }
@@ -21850,6 +21955,45 @@ export type Database = {
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+        }
+        Relationships: []
+      }
+      leaderboard_entries: {
+        Row: {
+          created_at: string | null
+          id: string
+          leaderboard_type: string
+          metadata: Json | null
+          period_end: string | null
+          period_start: string
+          rank: number | null
+          score: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          leaderboard_type: string
+          metadata?: Json | null
+          period_end?: string | null
+          period_start: string
+          rank?: number | null
+          score?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          leaderboard_type?: string
+          metadata?: Json | null
+          period_end?: string | null
+          period_start?: string
+          rank?: number | null
+          score?: number | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -38674,6 +38818,85 @@ export type Database = {
             columns: ["story_id"]
             isOneToOne: false
             referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strategist_assignments: {
+        Row: {
+          assigned_at: string | null
+          assignment_type: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          notes: string | null
+          partner_id: string | null
+          strategist_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assignment_type?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          partner_id?: string | null
+          strategist_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assignment_type?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          partner_id?: string | null
+          strategist_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategist_assignments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "strategist_assignments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategist_assignments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategist_assignments_strategist_id_fkey"
+            columns: ["strategist_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "strategist_assignments_strategist_id_fkey"
+            columns: ["strategist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategist_assignments_strategist_id_fkey"
+            columns: ["strategist_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
