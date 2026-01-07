@@ -8,6 +8,14 @@ const corsHeaders = {
 
 const MONEYBIRD_API_BASE = 'https://moneybird.com/api/v2';
 
+interface MoneybirdInvoiceDetail {
+  id: string;
+  description: string;
+  amount: string;
+  price: string;
+  total_price_excl_tax_with_discount: string;
+}
+
 interface MoneybirdInvoice {
   id: string;
   contact_id: string;
@@ -15,12 +23,20 @@ interface MoneybirdInvoice {
   invoice_id: string;
   state: string;
   total_price_incl_tax: string;
+  total_price_excl_tax: string;
   total_paid: string;
   total_unpaid: string;
   invoice_date: string;
   due_date: string;
   paid_at: string | null;
   currency: string;
+  details?: MoneybirdInvoiceDetail[];
+}
+
+interface CompanyRetainerInfo {
+  id: string;
+  has_retainer: boolean;
+  monthly_retainer_amount: number | null;
 }
 
 // Normalize Moneybird states to consistent vocabulary
@@ -50,6 +66,41 @@ function parseAmount(value: string | number | null | undefined): number {
   const num = Number(str) || 0;
   // Amounts from Moneybird are in euros, not cents
   return num;
+}
+
+// Classify invoice as retainer or placement based on description patterns
+function classifyInvoice(
+  description: string,
+  netAmount: number,
+  companyRetainer: CompanyRetainerInfo | null
+): 'retainer' | 'placement_fee' | 'other' {
+  if (!description) {
+    return companyRetainer?.has_retainer ? 'other' : 'placement_fee';
+  }
+  
+  // Pattern 1: Month + Year pattern = Retainer (e.g., "January 2025", "Januari 2025")
+  const monthYearPattern = /\b(january|february|march|april|may|june|july|august|september|october|november|december|januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)\s*\d{4}\b/i;
+  if (monthYearPattern.test(description)) {
+    return 'retainer';
+  }
+  
+  // Pattern 2: Company has retainer + amount matches (within €10 tolerance) = Retainer
+  if (companyRetainer?.has_retainer && companyRetainer.monthly_retainer_amount) {
+    const tolerance = 10;
+    if (Math.abs(netAmount - companyRetainer.monthly_retainer_amount) < tolerance) {
+      return 'retainer';
+    }
+  }
+  
+  // Pattern 3: Contains a person's name (First Last format) = Placement Fee
+  // This is a heuristic: if description starts with capitalized words that look like a name
+  const namePattern = /^[A-Z][a-z]+\s+[A-Z][a-z]+/;
+  if (namePattern.test(description.trim())) {
+    return 'placement_fee';
+  }
+  
+  // Default: placement_fee for non-retainer companies, 'other' for retainer companies
+  return companyRetainer?.has_retainer ? 'other' : 'placement_fee';
 }
 
 // Helper: extract date from invoice with fallback chain
@@ -256,6 +307,23 @@ serve(async (req) => {
     const clientRevenue: Record<string, { name: string; revenue: number; paid: number }> = {};
     const now = new Date();
     
+    // Fetch companies with retainer info for classification
+    const { data: retainerCompanies } = await supabase
+      .from('companies')
+      .select('id, name, has_retainer, monthly_retainer_amount')
+      .eq('has_retainer', true);
+    
+    const retainerCompanyMap = new Map<string, CompanyRetainerInfo>();
+    const companyNameMap = new Map<string, string>();
+    retainerCompanies?.forEach(c => {
+      companyNameMap.set(c.name?.toLowerCase() || '', c.id);
+      retainerCompanyMap.set(c.id, {
+        id: c.id,
+        has_retainer: c.has_retainer,
+        monthly_retainer_amount: c.monthly_retainer_amount,
+      });
+    });
+
     // Prepare invoice rows for storage
     const invoiceRows: Array<{
       moneybird_id: string;
@@ -268,12 +336,15 @@ serve(async (req) => {
       due_date: string | null;
       paid_at: string | null;
       total_amount: number;
+      net_amount: number;
       paid_amount: number;
       unpaid_amount: number;
       currency: string;
       year: number;
       raw_data: Record<string, unknown>;
       reconciliation_status: string;
+      invoice_type: string;
+      invoice_description: string | null;
     }> = [];
 
     // Initialize months
@@ -293,6 +364,7 @@ serve(async (req) => {
 
     for (const invoice of allInvoices) {
       const amount = parseAmount(invoice.total_price_incl_tax);
+      const netAmount = parseAmount(invoice.total_price_excl_tax) || amount / 1.21;
       const paidAmount = parseAmount(invoice.total_paid);
       const unpaidAmount = parseAmount(invoice.total_unpaid);
       const normalizedState = normalizeState(invoice.state);
@@ -301,6 +373,16 @@ serve(async (req) => {
       const contactName = invoice.contact?.company_name || 
         `${invoice.contact?.firstname || ''} ${invoice.contact?.lastname || ''}`.trim() ||
         'Unknown';
+      
+      // Get invoice description from details
+      const description = invoice.details?.[0]?.description || '';
+      
+      // Find matching retainer company by name
+      const companyId = companyNameMap.get(contactName.toLowerCase());
+      const companyRetainer = companyId ? retainerCompanyMap.get(companyId) : null;
+      
+      // Classify invoice type
+      const invoiceType = classifyInvoice(description, netAmount, companyRetainer);
       
       // Prepare invoice row for storage
       invoiceRows.push({
@@ -314,6 +396,7 @@ serve(async (req) => {
         due_date: invoice.due_date || null,
         paid_at: invoice.paid_at || null,
         total_amount: amount,
+        net_amount: netAmount,
         paid_amount: paidAmount,
         unpaid_amount: unpaidAmount,
         currency: invoice.currency || 'EUR',
@@ -321,9 +404,11 @@ serve(async (req) => {
         raw_data: { 
           state: invoice.state,
           contact: invoice.contact,
+          details: invoice.details,
         },
-        // Company reconciliation will be done separately
         reconciliation_status: 'pending',
+        invoice_type: invoiceType,
+        invoice_description: description || null,
       });
       
       // Track drafts separately (don't include in YTD revenue)

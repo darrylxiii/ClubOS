@@ -22,6 +22,12 @@ export interface Company extends CompanyBasic {
   placement_fee_percentage: number | null;
   placement_fee_fixed: number | null;
   default_fee_notes: string | null;
+  // Retainer fields
+  has_retainer: boolean;
+  monthly_retainer_amount: number | null;
+  retainer_start_date: string | null;
+  retainer_end_date: string | null;
+  retainer_notes: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
