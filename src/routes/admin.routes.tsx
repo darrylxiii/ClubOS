@@ -10,13 +10,11 @@ const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const MergeDashboard = lazy(() => import("@/pages/admin/MergeDashboard"));
 const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
-// CompanyManagement removed - consolidated into /companies page
-const GlobalAnalytics = lazy(() => import("@/pages/admin/GlobalAnalytics"));
 const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
+const GlobalAnalytics = lazy(() => import("@/pages/admin/GlobalAnalytics"));
 const TranslationManager = lazy(() => import("@/pages/admin/TranslationManager"));
 const LanguageManager = lazy(() => import("@/pages/admin/LanguageManager"));
 const DisasterRecoveryPage = lazy(() => import("@/pages/admin/DisasterRecoveryPage"));
-// DRRunbooks and ComprehensiveDRPage consolidated into DisasterRecoveryPage
 const MemberRequestsPage = lazy(() => import("@/pages/admin/MemberRequestsPage"));
 const EmailTemplateManager = lazy(() => import("@/pages/admin/EmailTemplateManager"));
 const TargetCompaniesOverview = lazy(() => import("@/pages/admin/TargetCompaniesOverview"));
@@ -33,7 +31,6 @@ const DealPipelineSettings = lazy(() => import("@/pages/admin/DealPipelineSettin
 const MoneybirdSettings = lazy(() => import("@/pages/admin/MoneybirdSettings"));
 const AntiHacking = lazy(() => import("@/pages/admin/AntiHacking"));
 const AdminAuditLog = lazy(() => import("@/pages/admin/AdminAuditLog"));
-// AdminEmployees removed - consolidated into EmployeeManagement
 const EmployeeDetailPage = lazy(() => import("@/pages/admin/EmployeeDetailPage"));
 const EmployeeManagement = lazy(() => import("@/pages/admin/EmployeeManagement"));
 const MyPerformance = lazy(() => import("@/pages/MyPerformance"));
@@ -64,10 +61,9 @@ const ConversationAnalytics = lazy(() => import("@/pages/admin/ConversationAnaly
 const SecurityEventDashboard = lazy(() => import("@/pages/admin/SecurityEventDashboard"));
 const UserEngagementDashboard = lazy(() => import("@/pages/admin/UserEngagementDashboard"));
 const IntelligenceCenter = lazy(() => import("@/pages/admin/IntelligenceCenter"));
-// Phase 6: Agent Brain
 const AgentBrain = lazy(() => import("@/pages/admin/AgentBrain"));
 
-// Missing Operations Pages
+// Operations Pages
 const GodMode = lazy(() => import("@/pages/admin/GodMode"));
 const ErrorLogs = lazy(() => import("@/pages/admin/ErrorLogs"));
 const JobAnalyticsIndex = lazy(() => import("@/pages/admin/JobAnalyticsIndex"));
@@ -95,8 +91,16 @@ const TalentPool = lazy(() => import("@/pages/TalentPool"));
 const TalentPoolLists = lazy(() => import("@/pages/TalentPoolLists"));
 const TalentPoolListDetail = lazy(() => import("@/pages/TalentPoolListDetail"));
 
-// Missing Routes
+// Archived/Legacy
 const ArchivedCandidates = lazy(() => import("@/pages/ArchivedCandidates"));
+
+// === NEW CONSOLIDATED HUB PAGES ===
+const TalentHub = lazy(() => import("@/pages/admin/TalentHub"));
+const OpsCenter = lazy(() => import("@/pages/admin/OpsCenter"));
+const ComplianceHub = lazy(() => import("@/pages/admin/ComplianceHub"));
+const TranslationHub = lazy(() => import("@/pages/admin/TranslationHub"));
+const InventoryHub = lazy(() => import("@/pages/admin/InventoryHub"));
+const ProjectsHub = lazy(() => import("@/pages/ProjectsHub"));
 
 export const adminRoutes = (
   <>
@@ -721,5 +725,63 @@ export const adminRoutes = (
     <Route path="/funnel-analytics" element={<Navigate to="/admin/intelligence?tab=funnel" replace />} />
     <Route path="/communication-analytics" element={<Navigate to="/admin/intelligence?tab=communication" replace />} />
     <Route path="/messaging-analytics" element={<Navigate to="/admin/intelligence?tab=communication" replace />} />
+
+    {/* === NEW CONSOLIDATED HUB ROUTES === */}
+    <Route path="/admin/talent-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><TalentHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/ops-center" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><OpsCenter /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/compliance-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ComplianceHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/translation-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><TranslationHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/inventory-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><InventoryHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/projects-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ProjectsHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* === REDIRECTS FOR CONSOLIDATED PAGES === */}
+    {/* Talent Hub redirects */}
+    <Route path="/admin/talent-pool/lists" element={<Navigate to="/admin/talent-hub?tab=lists" replace />} />
+    <Route path="/admin/candidates" element={<Navigate to="/admin/talent-hub?tab=candidates" replace />} />
+    <Route path="/admin/target-companies" element={<Navigate to="/admin/talent-hub?tab=targets" replace />} />
+    <Route path="/admin/merge" element={<Navigate to="/admin/talent-hub?tab=merge" replace />} />
+    <Route path="/admin/rejections" element={<Navigate to="/admin/talent-hub?tab=rejections" replace />} />
+    <Route path="/archived-candidates" element={<Navigate to="/admin/talent-hub?tab=archived" replace />} />
+
+    {/* Ops Center redirects */}
+    <Route path="/admin/kpi-command-center" element={<Navigate to="/admin/ops-center?tab=kpi" replace />} />
+    <Route path="/admin/employee-management" element={<Navigate to="/admin/ops-center?tab=employees" replace />} />
+    <Route path="/admin/system-health" element={<Navigate to="/admin/ops-center?tab=health" replace />} />
+    <Route path="/admin/bulk-operations" element={<Navigate to="/admin/ops-center?tab=bulk" replace />} />
+    <Route path="/admin/security-events" element={<Navigate to="/admin/ops-center?tab=security" replace />} />
+    <Route path="/admin/anti-hacking" element={<Navigate to="/admin/ops-center?tab=anti-hacking" replace />} />
+    <Route path="/admin/audit-log" element={<Navigate to="/admin/ops-center?tab=audit" replace />} />
+    <Route path="/admin/error-logs" element={<Navigate to="/admin/ops-center?tab=errors" replace />} />
+    <Route path="/admin/god-mode" element={<Navigate to="/admin/ops-center?tab=god-mode" replace />} />
+    <Route path="/admin/disaster-recovery" element={<Navigate to="/admin/ops-center?tab=disaster" replace />} />
+
+    {/* Compliance Hub redirects */}
+    <Route path="/compliance/dashboard" element={<Navigate to="/admin/compliance-hub?tab=overview" replace />} />
+    <Route path="/admin/risk-management" element={<Navigate to="/admin/compliance-hub?tab=risk" replace />} />
+    <Route path="/compliance/legal-agreements" element={<Navigate to="/admin/compliance-hub?tab=legal" replace />} />
+    <Route path="/compliance/subprocessors" element={<Navigate to="/admin/compliance-hub?tab=subprocessors" replace />} />
+    <Route path="/compliance/data-classification" element={<Navigate to="/admin/compliance-hub?tab=data" replace />} />
+    <Route path="/compliance/audit-requests" element={<Navigate to="/admin/compliance-hub?tab=audits" replace />} />
+
+    {/* Translation Hub redirects */}
+    <Route path="/admin/translations" element={<Navigate to="/admin/translation-hub?tab=overview" replace />} />
+    <Route path="/admin/translation-editor" element={<Navigate to="/admin/translation-hub?tab=editor" replace />} />
+    <Route path="/admin/translation-coverage" element={<Navigate to="/admin/translation-hub?tab=coverage" replace />} />
+    <Route path="/admin/brand-terms" element={<Navigate to="/admin/translation-hub?tab=brand" replace />} />
+    <Route path="/admin/translation-audit" element={<Navigate to="/admin/translation-hub?tab=audit" replace />} />
+    <Route path="/admin/languages" element={<Navigate to="/admin/translation-hub?tab=languages" replace />} />
+
+    {/* Inventory Hub redirects */}
+    <Route path="/admin/inventory/dashboard" element={<Navigate to="/admin/inventory-hub?tab=overview" replace />} />
+    <Route path="/admin/inventory" element={<Navigate to="/admin/inventory-hub?tab=assets" replace />} />
+    <Route path="/admin/inventory/depreciation" element={<Navigate to="/admin/inventory-hub?tab=depreciation" replace />} />
+    <Route path="/admin/inventory/intangible" element={<Navigate to="/admin/inventory-hub?tab=intangible" replace />} />
+    <Route path="/admin/inventory/kia" element={<Navigate to="/admin/inventory-hub?tab=kia" replace />} />
+
+    {/* Projects Hub redirects */}
+    <Route path="/projects/freelancer/setup" element={<Navigate to="/projects-hub?tab=setup" replace />} />
+    <Route path="/projects/gigs" element={<Navigate to="/projects-hub?tab=gigs" replace />} />
+    <Route path="/projects/proposals" element={<Navigate to="/projects-hub?tab=proposals" replace />} />
+    <Route path="/time-tracking" element={<Navigate to="/projects-hub?tab=time" replace />} />
   </>
 );
