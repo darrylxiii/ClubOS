@@ -86,7 +86,8 @@ export function useDealPipeline() {
           id, title, company_id, deal_stage, status, deal_value_override,
           target_hire_count, hired_count, is_lost, created_at, updated_at,
           salary_min, salary_max, currency,
-          companies(name, placement_fee_percentage),
+          last_activity_date, deal_probability, deal_health_score, expected_close_date,
+          companies(name, placement_fee_percentage, placement_fee_fixed, fee_type),
           applications(count)
         `)
         .in('status', ['published', 'closed'])

@@ -84,11 +84,15 @@ function DealCardComponent({ deal, onDragStart, onClick, onPublish }: DealCardPr
 
   const FeeIcon = feeConfig.icon;
 
-  // Memoize formatted date
-  const lastActivityFormatted = useMemo(() => 
-    formatDistanceToNow(new Date(deal.last_activity_date), { addSuffix: true }),
-    [deal.last_activity_date]
-  );
+  // Memoize formatted date with null safety
+  const lastActivityFormatted = useMemo(() => {
+    if (!deal.last_activity_date) return 'No activity';
+    try {
+      return formatDistanceToNow(new Date(deal.last_activity_date), { addSuffix: true });
+    } catch {
+      return 'Unknown';
+    }
+  }, [deal.last_activity_date]);
 
   const closeDateFormatted = useMemo(() => {
     if (!deal.expected_close_date) return null;
