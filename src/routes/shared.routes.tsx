@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 // Lazy load shared pages accessible to all authenticated users
@@ -34,7 +34,7 @@ const Radio = lazy(() => import("@/pages/Radio"));
 const RadioListen = lazy(() => import("@/pages/RadioListen"));
 const DocumentManagement = lazy(() => import("@/pages/DocumentManagement"));
 const EmailSettings = lazy(() => import("@/pages/EmailSettings"));
-const WhatsAppInbox = lazy(() => import("@/pages/WhatsAppInbox"));
+// WhatsApp now consolidated into WhatsAppHub at /admin/whatsapp
 
 // Workspace / Quantum OS Pages
 const WorkspaceList = lazy(() => import("@/pages/WorkspaceList"));
@@ -108,8 +108,8 @@ export const sharedRoutes = (
     <Route path="/documents" element={<ProtectedRoute><DocumentManagement /></ProtectedRoute>} />
     <Route path="/email-settings" element={<ProtectedRoute><EmailSettings /></ProtectedRoute>} />
     
-    {/* WhatsApp Business */}
-    <Route path="/whatsapp" element={<ProtectedRoute><WhatsAppInbox /></ProtectedRoute>} />
+    {/* WhatsApp Business - Redirect to unified hub */}
+    <Route path="/whatsapp" element={<Navigate to="/admin/whatsapp" replace />} />
     
     {/* Quantum OS Workspace */}
     <Route path="/pages" element={<ProtectedRoute><WorkspaceList /></ProtectedRoute>} />
