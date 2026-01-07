@@ -2,7 +2,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGate } from "@/components/RoleGate";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, TrendingUp, Link2 } from "lucide-react";
 import { useFinancialStats, usePlacementFees, usePartnerInvoices, useReferralPayouts } from "@/hooks/useFinancialData";
 import { PlacementFeesTable } from "@/components/financial/PlacementFeesTable";
 import { InvoicesTable } from "@/components/financial/InvoicesTable";
@@ -28,14 +28,23 @@ import { usePlacementFeesWithContext } from "@/hooks/usePlacementFeesWithContext
 import { VATLiabilityCard } from "@/components/financial/VATLiabilityCard";
 import { VATRegisterTable } from "@/components/financial/VATRegisterTable";
 import { EmployeeCommissionsTable } from "@/components/financial/EmployeeCommissionsTable";
+import { SalesKPIContent } from "@/components/financial/SalesKPIContent";
+import { ReconciliationContent } from "@/components/financial/ReconciliationContent";
+import { useSearchParams } from "react-router-dom";
 
 export default function FinancialDashboard() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'overview';
   const { selectedYear, setSelectedYear, yearOptions, availableYears } = useFinancialYearSelector();
   const { data: metrics, isLoading: metricsLoading } = useMoneybirdFinancials(selectedYear);
   const { isSyncing } = useAutoSyncFinancials(selectedYear);
   const { data: fees, isLoading: feesLoading } = usePlacementFeesWithContext(selectedYear);
   const { data: invoices, isLoading: invoicesLoading } = usePartnerInvoices();
   const { data: payouts, isLoading: payoutsLoading } = useReferralPayouts();
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+  };
 
   return (
     <AppLayout>
@@ -140,14 +149,32 @@ export default function FinancialDashboard() {
           </div>
 
           {/* Detailed Tables */}
-          <Tabs defaultValue="fees" className="space-y-4">
-            <TabsList>
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
+            <TabsList className="flex flex-wrap h-auto gap-1">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="fees">Placement Fees</TabsTrigger>
               <TabsTrigger value="commissions">Commissions</TabsTrigger>
               <TabsTrigger value="invoices">Invoices</TabsTrigger>
               <TabsTrigger value="payouts">Referral Payouts</TabsTrigger>
               <TabsTrigger value="vat">VAT & Tax</TabsTrigger>
+              <TabsTrigger value="sales-kpis" className="flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" />
+                Sales KPIs
+              </TabsTrigger>
+              <TabsTrigger value="reconciliation" className="flex items-center gap-1">
+                <Link2 className="h-3 w-3" />
+                Reconciliation
+              </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="overview" className="space-y-4">
+              {/* Overview is shown above the tabs - this tab shows nothing extra */}
+              <Card>
+                <CardContent className="p-8 text-center text-muted-foreground">
+                  The overview metrics are displayed above. Select a specific tab for detailed data.
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             <TabsContent value="fees" className="space-y-4">
               <Card>
@@ -226,6 +253,14 @@ export default function FinancialDashboard() {
                   <VATRegisterTable year={selectedYear} />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="sales-kpis" className="space-y-4">
+              <SalesKPIContent />
+            </TabsContent>
+
+            <TabsContent value="reconciliation" className="space-y-4">
+              <ReconciliationContent year={selectedYear} />
             </TabsContent>
           </Tabs>
         </div>

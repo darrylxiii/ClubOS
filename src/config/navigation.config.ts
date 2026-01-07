@@ -363,10 +363,9 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Team Performance", icon: BarChart3, path: "/team-performance" },
         { name: "User Activity", icon: Activity, path: "/admin/user-activity" },
         { name: "Website KPIs", icon: Globe, path: "/admin/website-kpis" },
-        { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
       ],
     },
-    // === FINANCE (merged: Revenue & Finance + Inventory & Assets) ===
+    // === FINANCE (consolidated into Financial Dashboard) ===
     {
       title: "Finance",
       icon: DollarSign,
@@ -376,7 +375,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Company Fees", icon: DollarSign, path: "/admin/company-fees" },
         { name: "Revenue Shares", icon: Percent, path: "/admin/revenue-shares" },
         { name: "Expense Tracking", icon: Receipt, path: "/admin/expenses" },
-        { name: "Invoice Reconciliation", icon: FileCheck, path: "/admin/reconciliation" },
         { name: "Moneybird", icon: CreditCard, path: "/admin/moneybird" },
         { name: "Inventory Dashboard", icon: LayoutDashboard, path: "/admin/inventory/dashboard" },
         { name: "Asset Register", icon: Database, path: "/admin/inventory" },
