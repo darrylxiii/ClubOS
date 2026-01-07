@@ -12,9 +12,10 @@ import {
   UserPlus, 
   Gift,
   Clock,
-  AlertCircle
+  AlertCircle,
+  CreditCard
 } from "lucide-react";
-import { formatDistanceToNow, parseISO } from "date-fns";
+import { formatDistanceToNow, parseISO, addDays, differenceInDays } from "date-fns";
 
 interface FinancialEvent {
   id: string;
@@ -110,6 +111,39 @@ export function FinancialEventsTimeline() {
         });
       });
 
+      // Upcoming subscription renewals
+      const { data: upcomingRenewals } = await supabase
+        .from('vendor_subscriptions')
+        .select('id, vendor_name, next_renewal_date, monthly_cost, annual_cost, billing_cycle, cancellation_notice_days')
+        .eq('status', 'active')
+        .not('next_renewal_date', 'is', null)
+        .order('next_renewal_date', { ascending: true })
+        .limit(10);
+
+      const now = new Date();
+      const thirtyDaysFromNow = addDays(now, 30);
+
+      upcomingRenewals?.forEach(sub => {
+        const renewalDate = parseISO(sub.next_renewal_date!);
+        const daysUntil = differenceInDays(renewalDate, now);
+        
+        // Only show renewals in next 30 days
+        if (renewalDate >= now && renewalDate <= thirtyDaysFromNow) {
+          const cost = sub.billing_cycle === 'annually' ? sub.annual_cost : sub.monthly_cost;
+          const urgency = daysUntil <= sub.cancellation_notice_days ? 'urgent' : 'upcoming';
+          
+          allEvents.push({
+            id: `renewal-${sub.id}`,
+            type: 'subscription_renewal',
+            title: urgency === 'urgent' ? 'Renewal Notice Required' : 'Upcoming Renewal',
+            description: `${sub.vendor_name} renews in ${daysUntil} days`,
+            amount: cost,
+            timestamp: sub.next_renewal_date!,
+            status: urgency,
+          });
+        }
+      });
+
       // Sort by timestamp descending
       return allEvents.sort((a, b) => 
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -131,12 +165,16 @@ export function FinancialEventsTimeline() {
         return status === 'paid'
           ? <Gift className="h-4 w-4 text-success" />
           : <Clock className="h-4 w-4 text-warning" />;
+      case 'subscription_renewal':
+        return status === 'urgent'
+          ? <CreditCard className="h-4 w-4 text-destructive" />
+          : <CreditCard className="h-4 w-4 text-warning" />;
       default:
         return <FileText className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
-  const getStatusBadge = (status?: string) => {
+  const getStatusBadge = (status?: string, type?: string) => {
     if (!status) return null;
     
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -144,6 +182,8 @@ export function FinancialEventsTimeline() {
       pending: 'secondary',
       approved: 'default',
       rejected: 'destructive',
+      urgent: 'destructive',
+      upcoming: 'secondary',
     };
 
     return (

@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/revenueCalculations";
-import { TrendingUp, TrendingDown, DollarSign, Clock, AlertTriangle, Target } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Clock, AlertTriangle, Target, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { useRevenueForecasting } from "@/hooks/useRevenueForecasting";
 
@@ -25,6 +25,7 @@ export function CashFlowProjection({ year }: CashFlowProjectionProps) {
     pendingPayouts,
     pipelineTotal,
     pipelineDealsCount,
+    monthlySubscriptionCosts,
     isLoading,
   } = useRevenueForecasting(currentYear, includePipeline);
 
@@ -124,6 +125,16 @@ export function CashFlowProjection({ year }: CashFlowProjectionProps) {
               <p className="text-xs text-muted-foreground">{pipelineDealsCount} active deals</p>
             </div>
           )}
+          {monthlySubscriptionCosts > 0 && (
+            <div className="bg-destructive/10 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                <CreditCard className="h-4 w-4" />
+                SaaS Costs (MRC)
+              </div>
+              <p className="text-xl font-bold text-destructive">{formatCurrency(monthlySubscriptionCosts)}</p>
+              <p className="text-xs text-muted-foreground">Monthly recurring</p>
+            </div>
+          )}
         </div>
 
         {/* 30/60/90 Day Projections */}
@@ -155,6 +166,14 @@ export function CashFlowProjection({ year }: CashFlowProjectionProps) {
                     -{formatCurrency(period.expectedPayouts)}
                   </span>
                 </div>
+                {period.subscriptionCosts > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">SaaS Subscriptions</span>
+                    <span className="font-medium text-destructive">
+                      -{formatCurrency(period.subscriptionCosts)}
+                    </span>
+                  </div>
+                )}
                 <div className="border-t pt-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Net Cash Flow</span>
