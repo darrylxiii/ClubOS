@@ -107,8 +107,8 @@ export default function WhatsAppHub() {
 
   return (
     <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist', 'partner']}>
-        <div className="h-[calc(100vh-4rem)] flex flex-col">
+      <RoleGate allowedRoles={['admin', 'strategist', 'partner']} showLoading>
+        <div className="h-full flex flex-col">
           {/* Header */}
           <div className="h-14 border-b border-border bg-card/50 flex items-center justify-between px-4 shrink-0">
             <div className="flex items-center gap-3">
