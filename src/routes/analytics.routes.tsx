@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
@@ -15,7 +15,7 @@ const HiringIntelligenceHub = lazy(() => import("@/pages/HiringIntelligenceHub")
 const CompanyIntelligence = lazy(() => import("@/pages/CompanyIntelligence"));
 const MeetingIntelligence = lazy(() => import("@/pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("@/pages/MeetingInsights"));
-const CareerInsightsDashboard = lazy(() => import("@/pages/CareerInsightsDashboard"));
+const CareerHub = lazy(() => import("@/pages/CareerHub"));
 const InvestorDashboard = lazy(() => import("@/pages/admin/InvestorDashboard"));
 const MessagingAnalytics = lazy(() => import("@/pages/MessagingAnalytics"));
 
@@ -130,18 +130,23 @@ export const analyticsRoutes = (
         </ProtectedRoute>
       }
     />
+    {/* Career Hub - Unified career intelligence center */}
     <Route
-      path="/career-insights"
+      path="/career"
       element={
         <ProtectedRoute>
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <CareerInsightsDashboard />
+              <CareerHub />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
       }
     />
+    {/* Redirects for deprecated career routes */}
+    <Route path="/career-insights" element={<Navigate to="/career?tab=insights" replace />} />
+    <Route path="/career-path" element={<Navigate to="/career?tab=path" replace />} />
+    <Route path="/salary-insights" element={<Navigate to="/career?tab=salary" replace />} />
     <Route
       path="/investor-dashboard"
       element={
