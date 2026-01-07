@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface CompanyFinancialsTabProps {
   companyId: string;
-  companyName: string;
+  companyName?: string;
 }
 
 interface CompanyFinancials {
