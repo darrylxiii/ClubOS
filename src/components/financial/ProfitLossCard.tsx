@@ -17,12 +17,21 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
   const { data, isLoading } = useQuery({
     queryKey: ['profit-loss-summary', currentYear],
     queryFn: async () => {
-      // Fetch revenue from Moneybird
+      // Fetch revenue from Moneybird - use net_amount for true revenue (excl. VAT)
       const { data: invoices } = await supabase
         .from('moneybird_sales_invoices')
-        .select('total_amount, state_normalized')
+        .select('total_amount, net_amount, vat_amount, state_normalized')
         .gte('invoice_date', startOfYear);
 
+      // Net revenue (excluding 21% VAT) - this is our actual revenue
+      const netRevenue = invoices?.reduce((sum, inv) => 
+        sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0), 0) || 0;
+      
+      // VAT collected (liability to tax authority)
+      const vatCollected = invoices?.reduce((sum, inv) => 
+        sum + (Number(inv.vat_amount) || Number(inv.total_amount) - Number(inv.total_amount) / 1.21 || 0), 0) || 0;
+      
+      // Gross for reference
       const grossRevenue = invoices?.reduce((sum, inv) => 
         sum + (Number(inv.total_amount) || 0), 0) || 0;
 
@@ -53,14 +62,16 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
       const totalExpenses = expenses?.reduce((sum, e) => 
         sum + (e.amount || 0), 0) || 0;
 
-      // Calculate margins
-      const grossMargin = grossRevenue - totalCommissions - totalPayouts;
+      // Calculate margins based on NET revenue (excluding VAT)
+      const grossMargin = netRevenue - totalCommissions - totalPayouts;
       const netProfit = grossMargin - totalExpenses;
-      const grossMarginPercent = grossRevenue > 0 ? (grossMargin / grossRevenue) * 100 : 0;
-      const netMarginPercent = grossRevenue > 0 ? (netProfit / grossRevenue) * 100 : 0;
+      const grossMarginPercent = netRevenue > 0 ? (grossMargin / netRevenue) * 100 : 0;
+      const netMarginPercent = netRevenue > 0 ? (netProfit / netRevenue) * 100 : 0;
 
       return {
-        grossRevenue,
+        netRevenue,
+        grossRevenue, // For reference/tooltip
+        vatCollected,
         totalCommissions,
         totalPayouts,
         totalExpenses,
@@ -111,11 +122,14 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
         <CardDescription>Year-to-date financial performance</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Revenue */}
+        {/* Net Revenue (excl. VAT) */}
         <div className="space-y-1">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Gross Revenue</span>
-            <span className="font-medium">{formatCurrency(data?.grossRevenue || 0)}</span>
+            <span className="text-muted-foreground">Net Revenue (excl. VAT)</span>
+            <span className="font-medium">{formatCurrency(data?.netRevenue || 0)}</span>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Gross: {formatCurrency(data?.grossRevenue || 0)} incl. €{((data?.vatCollected || 0) / 1000).toFixed(1)}k VAT
           </div>
           <Progress value={100} className="h-2" />
         </div>

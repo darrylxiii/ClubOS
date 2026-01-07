@@ -18,6 +18,7 @@ export function CashFlowProjection({ year }: CashFlowProjectionProps) {
   const {
     periods,
     totalOutstanding,
+    totalOutstandingVAT,
     avgDSO,
     unpaidCount,
     pendingCommissions,
@@ -72,14 +73,22 @@ export function CashFlowProjection({ year }: CashFlowProjectionProps) {
       </CardHeader>
       <CardContent>
         {/* Key Metrics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <DollarSign className="h-4 w-4" />
-              Outstanding AR
+              Outstanding AR (Net)
             </div>
             <p className="text-xl font-bold">{formatCurrency(totalOutstanding)}</p>
             <p className="text-xs text-muted-foreground">{unpaidCount} invoices</p>
+          </div>
+          <div className="bg-warning/10 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <AlertTriangle className="h-4 w-4" />
+              VAT Reserve
+            </div>
+            <p className="text-xl font-bold text-warning">{formatCurrency(totalOutstandingVAT)}</p>
+            <p className="text-xs text-muted-foreground">Owed to Belastingdienst</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">

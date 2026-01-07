@@ -34,13 +34,16 @@ export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
         <TableRow>
           <TableHead className="w-12">#</TableHead>
           <TableHead>Client</TableHead>
-          <TableHead className="text-right">Revenue</TableHead>
-          <TableHead className="text-right">Collected</TableHead>
+          <TableHead className="text-right">Net Revenue</TableHead>
+          <TableHead className="text-right">VAT</TableHead>
           <TableHead className="text-right">Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {displayClients.map((client, index) => {
+          // Calculate net revenue (excluding 21% VAT)
+          const netRevenue = client.revenue / 1.21;
+          const vatAmount = client.revenue - netRevenue;
           const collectionRate = client.revenue > 0 
             ? (client.paid / client.revenue) * 100 
             : 0;
@@ -54,10 +57,10 @@ export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
                 {client.name || 'Unknown'}
               </TableCell>
               <TableCell className="text-right">
-                {formatCurrency(client.revenue)}
+                {formatCurrency(netRevenue)}
               </TableCell>
-              <TableCell className="text-right">
-                {formatCurrency(client.paid)}
+              <TableCell className="text-right text-muted-foreground">
+                {formatCurrency(vatAmount)}
               </TableCell>
               <TableCell className="text-right">
                 <Badge 

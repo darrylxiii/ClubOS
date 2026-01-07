@@ -16,6 +16,7 @@ interface ForecastPeriod {
 interface RevenueForecasting {
   periods: ForecastPeriod[];
   totalOutstanding: number;
+  totalOutstandingVAT: number;
   avgDSO: number;
   unpaidCount: number;
   pendingCommissions: number;
@@ -43,10 +44,10 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
   const { data, isLoading } = useQuery({
     queryKey: ['revenue-forecasting', currentYear, includePipeline],
     queryFn: async () => {
-      // Fetch unpaid invoices for AR forecast
+      // Fetch unpaid invoices for AR forecast - include net_amount and vat_amount
       const { data: unpaidInvoices } = await supabase
         .from('moneybird_sales_invoices')
-        .select('total_amount, invoice_date, due_date, state_normalized')
+        .select('total_amount, net_amount, vat_amount, invoice_date, due_date, state_normalized')
         .in('state_normalized', ['open', 'late', 'pending'])
         .gte('invoice_date', `${currentYear}-01-01`);
 
@@ -87,7 +88,8 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
         const periodEnd = addDays(today, days);
 
         // Weight collections by aging (older = less likely to collect)
-        const collectionsInPeriod = unpaidInvoices?.reduce((sum, inv) => {
+        // Use net_amount for operating cash, track VAT separately
+        const collectionsData = unpaidInvoices?.reduce((acc, inv) => {
           const dueDate = inv.due_date ? parseISO(inv.due_date) : parseISO(inv.invoice_date);
           const daysOverdue = differenceInDays(today, dueDate);
 
@@ -98,8 +100,17 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
           else if (daysOverdue > 30) probability = 0.7;
           else if (daysOverdue > 0) probability = 0.85;
 
-          return sum + (Number(inv.total_amount) || 0) * probability;
-        }, 0) || 0;
+          const netAmount = Number(inv.net_amount) || Number(inv.total_amount) / 1.21;
+          const vatAmount = Number(inv.vat_amount) || Number(inv.total_amount) - netAmount;
+          
+          return {
+            netCollections: acc.netCollections + netAmount * probability,
+            vatCollections: acc.vatCollections + vatAmount * probability,
+            totalCollections: acc.totalCollections + (Number(inv.total_amount) || 0) * probability,
+          };
+        }, { netCollections: 0, vatCollections: 0, totalCollections: 0 }) || { netCollections: 0, vatCollections: 0, totalCollections: 0 };
+        
+        const collectionsInPeriod = collectionsData.netCollections;
 
         // Expected payouts (commissions + referrals + recurring)
         const expectedPayouts = (
@@ -133,9 +144,11 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
         };
       });
 
-      // Total outstanding AR
-      const totalOutstanding = unpaidInvoices?.reduce((sum, inv) =>
-        sum + (Number(inv.total_amount) || 0), 0) || 0;
+      // Total outstanding AR - show net amount (excl. VAT)
+      const totalOutstandingNet = unpaidInvoices?.reduce((sum, inv) =>
+        sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0), 0) || 0;
+      const totalOutstandingVAT = unpaidInvoices?.reduce((sum, inv) =>
+        sum + (Number(inv.vat_amount) || (Number(inv.total_amount) - Number(inv.total_amount) / 1.21) || 0), 0) || 0;
 
       // Days Sales Outstanding (DSO)
       const { data: paidInvoices } = await supabase
@@ -160,7 +173,8 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
 
       return {
         periods,
-        totalOutstanding,
+        totalOutstanding: totalOutstandingNet,
+        totalOutstandingVAT,
         avgDSO: Math.round(avgDSO),
         unpaidCount: unpaidInvoices?.length || 0,
         pendingCommissions: pendingCommissions?.reduce((sum, c) => sum + (c.gross_amount || 0), 0) || 0,
@@ -174,6 +188,7 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
   return {
     periods: data?.periods || [],
     totalOutstanding: data?.totalOutstanding || 0,
+    totalOutstandingVAT: data?.totalOutstandingVAT || 0,
     avgDSO: data?.avgDSO || 0,
     unpaidCount: data?.unpaidCount || 0,
     pendingCommissions: data?.pendingCommissions || 0,
