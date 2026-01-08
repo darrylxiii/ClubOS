@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useInvestorMetrics } from "@/hooks/useInvestorMetrics";
 import { ARRTracker } from "@/components/admin/revenue/ARRTracker";
 import { RevenueDistributionSummary } from "@/components/admin/revenue/RevenueDistributionSummary";
@@ -9,32 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   DollarSign, TrendingUp, Users, Target, 
-  Download, RefreshCw, BarChart3, PieChart 
+  Download, RefreshCw, PieChart 
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export default function RevenueDashboard() {
-  const [isSeeding, setIsSeeding] = useState(false);
   const { data: metrics, isLoading, refetch } = useInvestorMetrics();
-
-  const handleSeedDemoData = async () => {
-    setIsSeeding(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('seed-demo-data', {
-        body: { dataType: 'all', count: 15 }
-      });
-
-      if (error) throw error;
-      toast.success(`Demo data seeded: ${JSON.stringify(data.results)}`);
-      refetch();
-    } catch (error) {
-      console.error('Seed error:', error);
-      toast.error('Failed to seed demo data');
-    } finally {
-      setIsSeeding(false);
-    }
-  };
 
   const handleCaptureSnapshot = async () => {
     try {
@@ -56,10 +36,6 @@ export default function RevenueDashboard() {
           <p className="text-muted-foreground">Track ARR, MRR, and revenue metrics for due diligence</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleSeedDemoData} disabled={isSeeding}>
-            {isSeeding ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <BarChart3 className="h-4 w-4 mr-2" />}
-            Seed Demo Data
-          </Button>
           <Button variant="outline" onClick={handleCaptureSnapshot}>
             <Download className="h-4 w-4 mr-2" />
             Capture Snapshot
