@@ -2,12 +2,19 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
 
+export interface WhatsAppTemplateComponent {
+  type: 'HEADER' | 'BODY' | 'FOOTER' | 'BUTTONS';
+  format?: string;
+  text?: string;
+  buttons?: Array<{ type: string; text: string; url?: string; phone_number?: string }>;
+}
+
 export interface WhatsAppTemplate {
   id: string;
   template_name: string;
   template_category: string;
   language_code: string;
-  components: any;
+  components: WhatsAppTemplateComponent[] | Record<string, unknown> | unknown;
   approval_status: string;
   is_active: boolean;
 }
