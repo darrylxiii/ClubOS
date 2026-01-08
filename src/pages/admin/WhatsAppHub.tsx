@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { useRole } from '@/contexts/RoleContext';
 import { cn } from '@/lib/utils';
@@ -62,6 +61,15 @@ export default function WhatsAppHub() {
       prev.set('tab', tab);
       return prev;
     }, { replace: true });
+  };
+
+  // Handle back navigation - go back in history or fallback to /admin
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/admin');
+    }
   };
 
   // Connection status
@@ -144,110 +152,108 @@ export default function WhatsAppHub() {
   };
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist', 'partner']} showLoading>
-        <div className="h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
-          {/* Header */}
-          <div className="h-14 border-b border-border bg-card/50 flex items-center justify-between px-4 flex-shrink-0">
-            <div className="flex items-center gap-3">
-              {/* Back Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/admin/dashboard')}
-                className="shrink-0"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-              <div className="w-10 h-10 rounded-xl bg-[#25d366] flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="font-bold text-lg">WhatsApp Business Hub</h1>
-                <p className="text-xs text-muted-foreground">
-                  {account?.verified_name || 'Manage your WhatsApp communications'}
-                </p>
-              </div>
+    <RoleGate allowedRoles={['admin', 'strategist', 'partner']} showLoading>
+      <div className="h-full min-h-0 flex flex-col">
+        {/* Header */}
+        <div className="h-14 border-b border-border bg-card/50 flex items-center justify-between px-4 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            {/* Back Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              className="shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div className="w-10 h-10 rounded-xl bg-[#25d366] flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-white" />
             </div>
-            <div className="flex items-center gap-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium",
-                    isConnected 
-                      ? "bg-green-500/10 text-green-500 border border-green-500/20" 
-                      : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
-                  )}>
-                    {isConnected ? (
-                      <>
-                        <Wifi className="w-3.5 h-3.5" />
-                        Connected
-                      </>
-                    ) : (
-                      <>
-                        <WifiOff className="w-3.5 h-3.5" />
-                        Not Connected
-                      </>
-                    )}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {isConnected 
-                    ? 'WhatsApp Business API is connected and active' 
-                    : 'Configure your WhatsApp connection in Settings'}
-                </TooltipContent>
-              </Tooltip>
+            <div>
+              <h1 className="font-bold text-lg">WhatsApp Business Hub</h1>
+              <p className="text-xs text-muted-foreground">
+                {account?.verified_name || 'Manage your WhatsApp communications'}
+              </p>
             </div>
           </div>
-
-          {/* Top Navigation Tabs - Always Visible */}
-          <div className="border-b border-border bg-card/30 px-4 flex-shrink-0">
-            <nav className="flex items-center gap-1 overflow-x-auto -mb-px">
-              {sidebarItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                const badgeCount = item.id === 'inbox' ? unreadCount : undefined;
-                
-                // Check role access for settings tab
-                if (item.roles && !item.roles.includes(currentRole || '')) {
-                  return null;
-                }
-                
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
-                      isActive
-                        ? "border-[#25d366] text-[#25d366]"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                    {badgeCount && badgeCount > 0 && (
-                      <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-[10px]">
-                        {badgeCount > 99 ? '99+' : badgeCount}
-                      </Badge>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Metrics Bar */}
-          <div className="flex-shrink-0">
-            <WhatsAppMetricsBar />
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 min-h-0 overflow-auto">
-            {renderTabContent()}
+          <div className="flex items-center gap-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={cn(
+                  "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium",
+                  isConnected 
+                    ? "bg-green-500/10 text-green-500 border border-green-500/20" 
+                    : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                )}>
+                  {isConnected ? (
+                    <>
+                      <Wifi className="w-3.5 h-3.5" />
+                      Connected
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff className="w-3.5 h-3.5" />
+                      Not Connected
+                    </>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isConnected 
+                  ? 'WhatsApp Business API is connected and active' 
+                  : 'Configure your WhatsApp connection in Settings'}
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
-      </RoleGate>
-    </AppLayout>
+
+        {/* Top Navigation Tabs - Always Visible */}
+        <div className="border-b border-border bg-card/30 px-4 flex-shrink-0">
+          <nav className="flex items-center gap-1 overflow-x-auto -mb-px">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              const badgeCount = item.id === 'inbox' ? unreadCount : undefined;
+              
+              // Check role access for settings tab
+              if (item.roles && !item.roles.includes(currentRole || '')) {
+                return null;
+              }
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                    isActive
+                      ? "border-[#25d366] text-[#25d366]"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                  {badgeCount && badgeCount > 0 && (
+                    <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-[10px]">
+                      {badgeCount > 99 ? '99+' : badgeCount}
+                    </Badge>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Metrics Bar */}
+        <div className="flex-shrink-0">
+          <WhatsAppMetricsBar />
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 min-h-0 overflow-auto">
+          {renderTabContent()}
+        </div>
+      </div>
+    </RoleGate>
   );
 }
