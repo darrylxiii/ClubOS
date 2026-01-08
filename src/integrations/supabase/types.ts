@@ -46179,6 +46179,70 @@ export type Database = {
           },
         ]
       }
+      whatsapp_broadcast_consent: {
+        Row: {
+          campaign_send_count: number | null
+          candidate_id: string | null
+          consent_given_at: string | null
+          consent_revoked_at: string | null
+          consent_source: string | null
+          consent_status: string
+          created_at: string | null
+          id: string
+          last_campaign_sent_at: string | null
+          phone_number: string
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_send_count?: number | null
+          candidate_id?: string | null
+          consent_given_at?: string | null
+          consent_revoked_at?: string | null
+          consent_source?: string | null
+          consent_status?: string
+          created_at?: string | null
+          id?: string
+          last_campaign_sent_at?: string | null
+          phone_number: string
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_send_count?: number | null
+          candidate_id?: string | null
+          consent_given_at?: string | null
+          consent_revoked_at?: string | null
+          consent_source?: string | null
+          consent_status?: string
+          created_at?: string | null
+          id?: string
+          last_campaign_sent_at?: string | null
+          phone_number?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_broadcast_consent_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_broadcast_consent_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_broadcast_consent_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_broadcast_recipients: {
         Row: {
           campaign_id: string | null
@@ -46748,6 +46812,62 @@ export type Database = {
             columns: ["sent_by"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_template_analytics: {
+        Row: {
+          avg_response_time_minutes: number | null
+          created_at: string | null
+          date: string
+          delivered_count: number | null
+          id: string
+          negative_sentiment_count: number | null
+          positive_sentiment_count: number | null
+          read_count: number | null
+          replied_count: number | null
+          sent_count: number | null
+          template_id: string | null
+          template_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          avg_response_time_minutes?: number | null
+          created_at?: string | null
+          date?: string
+          delivered_count?: number | null
+          id?: string
+          negative_sentiment_count?: number | null
+          positive_sentiment_count?: number | null
+          read_count?: number | null
+          replied_count?: number | null
+          sent_count?: number | null
+          template_id?: string | null
+          template_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          avg_response_time_minutes?: number | null
+          created_at?: string | null
+          date?: string
+          delivered_count?: number | null
+          id?: string
+          negative_sentiment_count?: number | null
+          positive_sentiment_count?: number | null
+          read_count?: number | null
+          replied_count?: number | null
+          sent_count?: number | null
+          template_id?: string | null
+          template_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_template_analytics_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_templates"
             referencedColumns: ["id"]
           },
         ]

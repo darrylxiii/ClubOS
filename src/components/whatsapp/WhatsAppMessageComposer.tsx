@@ -12,7 +12,8 @@ import {
   Clock,
   AlertTriangle,
   Sparkles,
-  X
+  X,
+  Mail
 } from "lucide-react";
 import {
   Popover,
@@ -35,6 +36,7 @@ interface WhatsAppMessageComposerProps {
   onSmartReplySelect?: (reply: string) => void;
   disabled?: boolean;
   sending?: boolean;
+  onOpenEmailBridge?: () => void;
 }
 
 const EMOJI_QUICK_ACCESS = ['👍', '❤️', '😊', '🙏', '✨', '🎉', '💪', '👋'];
@@ -46,7 +48,8 @@ export function WhatsAppMessageComposer({
   smartReplies = [],
   onSmartReplySelect,
   disabled = false,
-  sending = false
+  sending = false,
+  onOpenEmailBridge
 }: WhatsAppMessageComposerProps) {
   const [message, setMessage] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
@@ -125,15 +128,28 @@ export function WhatsAppMessageComposer({
               <span>{windowStatus.hoursLeft}h left to send freeform messages</span>
             )}
             {windowStatus.status === 'expired' && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="ml-auto h-7 text-xs"
-                onClick={onOpenTemplates}
-              >
-                <FileText className="w-3.5 h-3.5 mr-1" />
-                Use Template
-              </Button>
+              <div className="ml-auto flex items-center gap-2">
+                {onOpenEmailBridge && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-7 text-xs"
+                    onClick={onOpenEmailBridge}
+                  >
+                    <Mail className="w-3.5 h-3.5 mr-1" />
+                    Email Instead
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-7 text-xs"
+                  onClick={onOpenTemplates}
+                >
+                  <FileText className="w-3.5 h-3.5 mr-1" />
+                  Use Template
+                </Button>
+              </div>
             )}
           </motion.div>
         )}
