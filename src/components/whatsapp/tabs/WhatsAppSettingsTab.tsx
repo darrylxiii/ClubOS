@@ -153,6 +153,12 @@ export function WhatsAppSettingsTab() {
   const [diagnosticsResult, setDiagnosticsResult] = useState<DiagnosticsResult | null>(null);
   const [isRunningDiagnostics, setIsRunningDiagnostics] = useState(false);
   const [sessionStatus, setSessionStatus] = useState<'valid' | 'expiring' | 'expired' | 'checking'>('checking');
+  const [connectivityProbe, setConnectivityProbe] = useState<{
+    running: boolean;
+    optionsResult?: { ok: boolean; status?: number; error?: string; headers?: string };
+    invokeResult?: { ok: boolean; status?: number; error?: string; data?: string };
+    pingResult?: { ok: boolean; status?: number; error?: string; data?: string };
+  }>({ running: false });
 
   // Check session status on mount and periodically
   useEffect(() => {
@@ -220,6 +226,66 @@ export function WhatsAppSettingsTab() {
       return data || [];
     },
   });
+
+  // Run connectivity probe (tests raw network before full diagnostics)
+  const runConnectivityProbe = async () => {
+    setConnectivityProbe({ running: true });
+    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-whatsapp-account`;
+    const results: typeof connectivityProbe = { running: false };
+
+    // Test 1: Direct OPTIONS preflight
+    try {
+      const optionsRes = await fetch(functionUrl, {
+        method: 'OPTIONS',
+        headers: {
+          'Origin': window.location.origin,
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'authorization,content-type,apikey,x-client-info',
+        },
+      });
+      const allowHeaders = optionsRes.headers.get('access-control-allow-headers') || 'none';
+      const allowOrigin = optionsRes.headers.get('access-control-allow-origin') || 'none';
+      results.optionsResult = {
+        ok: optionsRes.status === 204 || optionsRes.status === 200,
+        status: optionsRes.status,
+        headers: `Allow-Origin: ${allowOrigin}, Allow-Headers: ${allowHeaders}`,
+      };
+    } catch (err) {
+      results.optionsResult = { ok: false, error: (err as Error).message };
+    }
+
+    // Test 2: supabase.functions.invoke with 'ping' action
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-whatsapp-account', {
+        body: { action: 'ping' },
+      });
+      if (error) {
+        const parsed = parseEdgeFunctionError(error);
+        results.pingResult = { ok: false, error: parsed.message };
+      } else {
+        results.pingResult = { ok: true, data: JSON.stringify(data).slice(0, 200) };
+      }
+    } catch (err) {
+      results.pingResult = { ok: false, error: (err as Error).message };
+    }
+
+    // Test 3: supabase.functions.invoke with 'diagnostics' action
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-whatsapp-account', {
+        body: { action: 'diagnostics' },
+      });
+      if (error) {
+        const parsed = parseEdgeFunctionError(error);
+        results.invokeResult = { ok: false, error: parsed.message };
+      } else {
+        results.invokeResult = { ok: true, data: JSON.stringify(data).slice(0, 200) };
+      }
+    } catch (err) {
+      results.invokeResult = { ok: false, error: (err as Error).message };
+    }
+
+    setConnectivityProbe(results);
+  };
 
   // Run diagnostics
   const runDiagnostics = async () => {
@@ -771,6 +837,84 @@ export function WhatsAppSettingsTab() {
 
         {/* DIAGNOSTICS TAB */}
         <TabsContent value="diagnostics" className="space-y-4">
+          {/* Connectivity Probe Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Wifi className="h-5 w-5" />
+                Connectivity Probe
+              </CardTitle>
+              <CardDescription>
+                Test raw network connectivity before running full diagnostics
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={runConnectivityProbe} 
+                disabled={connectivityProbe.running}
+                variant="outline"
+                className="w-full"
+              >
+                {connectivityProbe.running ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Testing connectivity...
+                  </>
+                ) : (
+                  <>
+                    <Activity className="h-4 w-4 mr-2" />
+                    Run Connectivity Probe
+                  </>
+                )}
+              </Button>
+
+              {(connectivityProbe.optionsResult || connectivityProbe.pingResult || connectivityProbe.invokeResult) && (
+                <div className="space-y-3 text-sm">
+                  {/* OPTIONS Test */}
+                  {connectivityProbe.optionsResult && (
+                    <div className={`p-3 rounded-lg border ${connectivityProbe.optionsResult.ok ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                      <div className="flex items-center gap-2 font-medium">
+                        {connectivityProbe.optionsResult.ok ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
+                        OPTIONS Preflight
+                        {connectivityProbe.optionsResult.status && <Badge variant="outline" className="ml-auto text-xs">{connectivityProbe.optionsResult.status}</Badge>}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 font-mono break-all">
+                        {connectivityProbe.optionsResult.headers || connectivityProbe.optionsResult.error}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Ping Test */}
+                  {connectivityProbe.pingResult && (
+                    <div className={`p-3 rounded-lg border ${connectivityProbe.pingResult.ok ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                      <div className="flex items-center gap-2 font-medium">
+                        {connectivityProbe.pingResult.ok ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
+                        Ping (minimal invoke)
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 font-mono break-all">
+                        {connectivityProbe.pingResult.data || connectivityProbe.pingResult.error}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Diagnostics Invoke Test */}
+                  {connectivityProbe.invokeResult && (
+                    <div className={`p-3 rounded-lg border ${connectivityProbe.invokeResult.ok ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                      <div className="flex items-center gap-2 font-medium">
+                        {connectivityProbe.invokeResult.ok ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
+                        Diagnostics Invoke
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 font-mono break-all">
+                        {connectivityProbe.invokeResult.data || connectivityProbe.invokeResult.error}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Full Diagnostics Card */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
