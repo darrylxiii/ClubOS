@@ -20,9 +20,11 @@ import { cn } from '@/lib/utils';
 
 interface Props {
   conversations: WhatsAppConversation[];
-  loading: boolean;
+  needsResponse?: WhatsAppConversation[];
+  loading?: boolean;
   onSelectConversation: (conversationId: string) => void;
   selectedConversationId?: string | null;
+  onClose?: () => void;
 }
 
 interface SlaStatus {
@@ -80,12 +82,21 @@ function getSlaStatus(lastMessageAt: string | null, direction: string | null): S
 
 export function WhatsAppOpsPanel({ 
   conversations, 
-  loading, 
+  needsResponse: needsResponseProp,
+  loading = false, 
   onSelectConversation,
-  selectedConversationId 
+  selectedConversationId,
+  onClose
 }: Props) {
-  // Compute needs response queue - sorted by wait time (longest first)
+  // Use provided needsResponse or compute it
   const needsResponseQueue = useMemo(() => {
+    if (needsResponseProp) {
+      return needsResponseProp.map(c => ({
+        ...c,
+        sla: getSlaStatus(c.last_message_at, c.last_message_direction),
+      })).filter(c => c.sla);
+    }
+    
     return conversations
       .filter(c => c.last_message_direction === 'inbound' && (c.unread_count || 0) > 0)
       .map(c => ({
@@ -94,7 +105,7 @@ export function WhatsAppOpsPanel({
       }))
       .filter(c => c.sla)
       .sort((a, b) => (b.sla?.waitMinutes || 0) - (a.sla?.waitMinutes || 0));
-  }, [conversations]);
+  }, [conversations, needsResponseProp]);
 
   // Compute stats
   const stats = useMemo(() => {
