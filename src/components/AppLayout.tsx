@@ -183,19 +183,28 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       <GlobalRunningTimerHeader />
 
       {/* Main Content - Adjusted for sidebar - Mobile Optimized */}
+      {/* Workspace routes (/messages, /admin/whatsapp) manage their own scrolling */}
       <main 
         id="main-content"
         tabIndex={-1}
         className={cn(
           "flex-1 w-full md:ml-20",
-          location.pathname === '/messages' ? 'overflow-hidden' : 'overflow-y-auto'
+          (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp')) 
+            ? 'overflow-hidden' 
+            : 'overflow-y-auto'
         )}
       >
         <div className={cn(
-          "min-h-screen pt-14 sm:pt-16",
-          location.pathname !== '/messages' && 'pb-4'
+          "pt-14 sm:pt-16",
+          (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp')) 
+            ? 'h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] flex flex-col' 
+            : 'min-h-screen pb-4'
         )}
-        style={{ paddingBottom: location.pathname !== '/messages' ? 'max(env(safe-area-inset-bottom), 1rem)' : undefined }}
+        style={{ 
+          paddingBottom: (location.pathname !== '/messages' && !location.pathname.startsWith('/admin/whatsapp')) 
+            ? 'max(env(safe-area-inset-bottom), 1rem)' 
+            : undefined 
+        }}
         >
           {children}
         </div>
