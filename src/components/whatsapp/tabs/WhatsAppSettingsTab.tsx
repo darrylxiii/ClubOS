@@ -8,10 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { notify } from '@/lib/notify';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { FunctionsHttpError, FunctionsFetchError } from '@supabase/supabase-js';
 import { 
   MessageSquare, Shield, RefreshCw, ExternalLink, Copy, CheckCircle, 
   AlertCircle, Key, Globe, Loader2, Users, Wifi, WifiOff, Clock,
-  ShieldCheck, Activity
+  ShieldCheck, Activity, Stethoscope, AlertTriangle, CheckCircle2, XCircle
 } from 'lucide-react';
 
 interface WhatsAppAccount {
@@ -28,10 +29,147 @@ interface WhatsAppAccount {
   account_label?: string;
 }
 
+interface DiagnosticsResult {
+  overall_status: string;
+  diagnostics: {
+    request_id: string;
+    timestamp: string;
+    checks: {
+      auth: { ok: boolean; user_id?: string; role?: string; error?: string; code?: string };
+      secrets: { ok: boolean; missing?: string[]; skipped?: string };
+      meta_api: { ok: boolean; phone_number?: string; verified_name?: string; error?: string; skipped?: string };
+      database: { ok: boolean; accounts_count?: number; error?: string; skipped?: string };
+    };
+  };
+}
+
+/**
+ * Ensures we have a valid session, refreshing if needed
+ * Returns the session or throws an error
+ */
+async function ensureValidSession() {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError) {
+    console.error('[WhatsApp] Session error:', sessionError);
+    throw new Error('SESSION_ERROR');
+  }
+  
+  if (!sessionData.session) {
+    // Try to refresh
+    console.log('[WhatsApp] No session, attempting refresh...');
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+    
+    if (refreshError || !refreshData.session) {
+      console.error('[WhatsApp] Refresh failed:', refreshError);
+      throw new Error('SESSION_EXPIRED');
+    }
+    
+    return refreshData.session;
+  }
+  
+  // Check if session is about to expire (within 60 seconds)
+  const expiresAt = sessionData.session.expires_at;
+  if (expiresAt && expiresAt * 1000 < Date.now() + 60000) {
+    console.log('[WhatsApp] Session expiring soon, refreshing...');
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+    
+    if (refreshError || !refreshData.session) {
+      throw new Error('SESSION_EXPIRED');
+    }
+    
+    return refreshData.session;
+  }
+  
+  return sessionData.session;
+}
+
+/**
+ * Parse error from edge function invocation
+ */
+function parseEdgeFunctionError(error: unknown): { message: string; code?: string; action?: string } {
+  // Handle FunctionsHttpError (non-2xx response)
+  if (error instanceof FunctionsHttpError) {
+    try {
+      // The context contains the parsed JSON body
+      const errorBody = error.context as { error?: string; code?: string; action?: string; message?: string };
+      return {
+        message: errorBody?.error || errorBody?.message || error.message,
+        code: errorBody?.code,
+        action: errorBody?.action,
+      };
+    } catch {
+      return { message: error.message };
+    }
+  }
+  
+  // Handle FunctionsFetchError (network/CORS issues)
+  if (error instanceof FunctionsFetchError) {
+    return {
+      message: 'Network error connecting to backend',
+      code: 'NETWORK_ERROR',
+      action: 'Check your internet connection, disable ad blockers, or try refreshing the page',
+    };
+  }
+  
+  // Handle regular errors
+  if (error instanceof Error) {
+    // Check for session errors we threw
+    if (error.message === 'SESSION_EXPIRED' || error.message === 'SESSION_ERROR') {
+      return {
+        message: 'Session expired',
+        code: 'SESSION_EXPIRED',
+        action: 'Please sign in again',
+      };
+    }
+    
+    // Try to parse JSON from message (legacy format)
+    try {
+      const parsed = JSON.parse(error.message);
+      return {
+        message: parsed.error || parsed.message || error.message,
+        code: parsed.code,
+        action: parsed.action || parsed.details?.action,
+      };
+    } catch {
+      return { message: error.message };
+    }
+  }
+  
+  return { message: 'An unexpected error occurred' };
+}
+
+/**
+ * Call edge function with proper session handling
+ */
+async function invokeWhatsAppFunction(action: string, extraData: Record<string, unknown> = {}) {
+  // Ensure valid session first
+  await ensureValidSession();
+  
+  const { data, error } = await supabase.functions.invoke('manage-whatsapp-account', {
+    body: { action, ...extraData }
+  });
+  
+  if (error) {
+    throw error;
+  }
+  
+  if (data && !data.success && data.error) {
+    const err = new Error(data.error);
+    (err as unknown as Record<string, unknown>).code = data.code;
+    (err as unknown as Record<string, unknown>).action = data.action;
+    throw err;
+  }
+  
+  return data;
+}
+
 export function WhatsAppSettingsTab() {
   const queryClient = useQueryClient();
   const [isSyncing, setIsSyncing] = useState(false);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  const [diagnosticsResult, setDiagnosticsResult] = useState<DiagnosticsResult | null>(null);
+  const [isRunningDiagnostics, setIsRunningDiagnostics] = useState(false);
 
   // Fetch all accounts
   const { data: accounts, isLoading: accountsLoading, refetch: refetchAccounts } = useQuery({
@@ -62,96 +200,97 @@ export function WhatsAppSettingsTab() {
     },
   });
 
-  // Activate account mutation with session preflight
-  const activateMutation = useMutation({
-    mutationFn: async () => {
-      // Preflight: ensure session is valid
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !sessionData.session) {
-        // Try to refresh
-        const { error: refreshError } = await supabase.auth.refreshSession();
-        if (refreshError) {
-          throw new Error('Session expired. Please sign in again.');
-        }
-      }
-
+  // Run diagnostics
+  const runDiagnostics = async () => {
+    setIsRunningDiagnostics(true);
+    setDiagnosticsResult(null);
+    
+    try {
       const { data, error } = await supabase.functions.invoke('manage-whatsapp-account', {
-        body: { action: 'activate' }
+        body: { action: 'diagnostics' }
       });
       
       if (error) {
-        // Parse structured error from edge function
-        if (error.message) {
-          try {
-            const parsed = JSON.parse(error.message);
-            if (parsed.code === 'SESSION_EXPIRED') {
-              throw new Error('Session expired. Please sign in again.');
-            }
-            throw new Error(parsed.error || parsed.message || 'Connection failed');
-          } catch {
-            throw error;
-          }
-        }
-        throw error;
+        const parsed = parseEdgeFunctionError(error);
+        setDiagnosticsResult({
+          overall_status: 'error',
+          diagnostics: {
+            request_id: 'unknown',
+            timestamp: new Date().toISOString(),
+            checks: {
+              auth: { ok: false, error: parsed.message, code: parsed.code },
+              secrets: { ok: false, skipped: 'request failed' },
+              meta_api: { ok: false, skipped: 'request failed' },
+              database: { ok: false, skipped: 'request failed' },
+            },
+          },
+        });
+        return;
       }
       
-      if (!data.success) {
-        const action = data.details?.action || data.action || '';
-        throw new Error(data.error + (action ? `. ${action}` : ''));
-      }
-      return data;
+      setDiagnosticsResult(data as DiagnosticsResult);
+    } catch (err) {
+      const parsed = parseEdgeFunctionError(err);
+      setDiagnosticsResult({
+        overall_status: 'error',
+        diagnostics: {
+          request_id: 'unknown',
+          timestamp: new Date().toISOString(),
+          checks: {
+            auth: { ok: false, error: parsed.message, code: parsed.code },
+            secrets: { ok: false, skipped: 'request failed' },
+            meta_api: { ok: false, skipped: 'request failed' },
+            database: { ok: false, skipped: 'request failed' },
+          },
+        },
+      });
+    } finally {
+      setIsRunningDiagnostics(false);
+    }
+  };
+
+  // Activate account mutation
+  const activateMutation = useMutation({
+    mutationFn: async () => {
+      return invokeWhatsAppFunction('activate');
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts-settings'] });
       queryClient.invalidateQueries({ queryKey: ['whatsapp-account-status'] });
       notify.success(`Connected: ${data.account?.display_phone_number || 'WhatsApp Business'}`);
     },
-    onError: (error: Error) => {
-      if (error.message.includes('sign in')) {
-        notify.error(error.message, {
-          description: 'Your session has expired',
+    onError: (error: unknown) => {
+      const parsed = parseEdgeFunctionError(error);
+      
+      if (parsed.code === 'SESSION_EXPIRED' || parsed.code === 'AUTH_REQUIRED' || parsed.code === 'AUTH_ERROR') {
+        notify.error('Session expired', {
+          description: 'Please sign in again to continue',
           action: {
             label: 'Sign In',
             onClick: () => window.location.href = '/auth'
           }
         });
+      } else if (parsed.code === 'NETWORK_ERROR') {
+        notify.error('Connection failed', {
+          description: parsed.action || 'Check your network connection'
+        });
+      } else if (parsed.code === 'MISSING_CREDENTIALS') {
+        notify.error('Missing API credentials', {
+          description: parsed.action || 'Configure WhatsApp API credentials in backend settings'
+        });
       } else {
-        notify.error(error.message);
+        notify.error(parsed.message, {
+          description: parsed.action
+        });
       }
     },
   });
 
-  // Verify account mutation with session preflight
+  // Verify account mutation
   const verifyMutation = useMutation({
     mutationFn: async (accountId: string) => {
       setVerifyingId(accountId);
-      
-      // Preflight session check
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        const { error: refreshError } = await supabase.auth.refreshSession();
-        if (refreshError) {
-          throw new Error('Session expired. Please sign in again.');
-        }
-      }
-
-      const { data, error } = await supabase.functions.invoke('manage-whatsapp-account', {
-        body: { action: 'verify', account_id: accountId }
-      });
-      
-      if (error) {
-        try {
-          const parsed = JSON.parse(error.message);
-          if (parsed.code === 'SESSION_EXPIRED') {
-            throw new Error('Session expired. Please sign in again.');
-          }
-          throw new Error(parsed.error || 'Verification failed');
-        } catch {
-          throw error;
-        }
-      }
-      return data;
+      return invokeWhatsAppFunction('verify', { account_id: accountId });
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts-settings'] });
@@ -161,13 +300,15 @@ export function WhatsAppSettingsTab() {
         notify.warning(data.error || 'Verification failed');
       }
     },
-    onError: (error: Error) => {
-      if (error.message.includes('sign in')) {
-        notify.error(error.message, {
-          description: 'Your session has expired'
+    onError: (error: unknown) => {
+      const parsed = parseEdgeFunctionError(error);
+      
+      if (parsed.code === 'SESSION_EXPIRED' || parsed.code === 'AUTH_REQUIRED') {
+        notify.error('Session expired', {
+          description: 'Please sign in again'
         });
       } else {
-        notify.error(error.message);
+        notify.error(parsed.message);
       }
     },
     onSettled: () => {
@@ -178,12 +319,14 @@ export function WhatsAppSettingsTab() {
   const syncTemplates = async () => {
     setIsSyncing(true);
     try {
+      await ensureValidSession();
       const { error } = await supabase.functions.invoke('sync-whatsapp-templates');
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['whatsapp-templates'] });
       notify.success('Templates synced');
-    } catch {
-      notify.error('Failed to sync templates');
+    } catch (err) {
+      const parsed = parseEdgeFunctionError(err);
+      notify.error(parsed.message || 'Failed to sync templates');
     } finally {
       setIsSyncing(false);
     }
@@ -213,6 +356,29 @@ export function WhatsAppSettingsTab() {
       default: return 'text-muted-foreground';
     }
   };
+
+  const DiagnosticsCheckRow = ({ label, check }: { label: string; check: { ok: boolean; error?: string; skipped?: string; [key: string]: unknown } }) => (
+    <div className="flex items-center justify-between py-2 border-b last:border-0">
+      <span className="font-medium">{label}</span>
+      <div className="flex items-center gap-2">
+        {check.ok ? (
+          <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
+            <CheckCircle2 className="w-3 h-3 mr-1" />
+            OK
+          </Badge>
+        ) : check.skipped ? (
+          <Badge variant="outline" className="bg-muted text-muted-foreground">
+            Skipped
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20">
+            <XCircle className="w-3 h-3 mr-1" />
+            {String(check.error || check.code || 'Failed')}
+          </Badge>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
@@ -248,6 +414,10 @@ export function WhatsAppSettingsTab() {
           <TabsTrigger value="api" className="gap-2">
             <Key className="w-4 h-4" />
             API
+          </TabsTrigger>
+          <TabsTrigger value="diagnostics" className="gap-2">
+            <Stethoscope className="w-4 h-4" />
+            Diagnostics
           </TabsTrigger>
         </TabsList>
 
@@ -452,19 +622,20 @@ export function WhatsAppSettingsTab() {
 
               <div>
                 <Label>Verify Token</Label>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Set WHATSAPP_WEBHOOK_VERIFY_TOKEN in backend secrets
-                </p>
-                <Input value="••••••••••••" disabled className="font-mono" />
+                <Input 
+                  value="Use WHATSAPP_WEBHOOK_VERIFY_TOKEN from backend secrets"
+                  readOnly 
+                  className="font-mono text-sm text-muted-foreground"
+                />
               </div>
 
-              <div className="p-4 rounded-lg bg-muted/50">
-                <h4 className="font-medium mb-2">Required Webhook Fields</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• <code className="bg-muted px-1 rounded">messages</code> - Incoming messages</li>
-                  <li>• <code className="bg-muted px-1 rounded">message_deliveries</code> - Delivery status</li>
-                  <li>• <code className="bg-muted px-1 rounded">message_reads</code> - Read receipts</li>
-                </ul>
+              <div className="pt-4">
+                <Button variant="outline" asChild>
+                  <a href="https://business.facebook.com/settings/whatsapp-business-accounts" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open Meta Business Suite
+                  </a>
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -476,46 +647,186 @@ export function WhatsAppSettingsTab() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Key className="h-5 w-5" />
-                API Configuration
+                API Credentials
               </CardTitle>
               <CardDescription>
-                Your WhatsApp API credentials are stored securely in backend secrets
+                Required secrets for WhatsApp Business API
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 rounded-lg border border-green-500/20 bg-green-500/5">
-                <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-green-500 mt-0.5" />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div>
-                    <p className="font-medium text-green-600 dark:text-green-400">Secure Storage</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      API credentials are encrypted and stored as backend secrets. They are never exposed to the client.
+                    <p className="font-medium">WHATSAPP_ACCESS_TOKEN</p>
+                    <p className="text-sm text-muted-foreground">Permanent access token from Meta</p>
+                  </div>
+                  <Badge variant="outline">Required</Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg border">
+                  <div>
+                    <p className="font-medium">WHATSAPP_PHONE_NUMBER_ID</p>
+                    <p className="text-sm text-muted-foreground">Phone number ID from WhatsApp Business</p>
+                  </div>
+                  <Badge variant="outline">Required</Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg border">
+                  <div>
+                    <p className="font-medium">WHATSAPP_BUSINESS_ACCOUNT_ID</p>
+                    <p className="text-sm text-muted-foreground">Business account ID from Meta</p>
+                  </div>
+                  <Badge variant="outline">Required</Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg border">
+                  <div>
+                    <p className="font-medium">WHATSAPP_WEBHOOK_VERIFY_TOKEN</p>
+                    <p className="text-sm text-muted-foreground">Custom token for webhook verification</p>
+                  </div>
+                  <Badge variant="secondary">Optional</Badge>
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-2">
+                <Button variant="outline" asChild>
+                  <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Meta Developer Portal
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* DIAGNOSTICS TAB */}
+        <TabsContent value="diagnostics" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Stethoscope className="h-5 w-5" />
+                Connection Diagnostics
+              </CardTitle>
+              <CardDescription>
+                Run health checks to diagnose connection issues
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={runDiagnostics} 
+                disabled={isRunningDiagnostics}
+                className="w-full"
+              >
+                {isRunningDiagnostics ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Running diagnostics...
+                  </>
+                ) : (
+                  <>
+                    <Stethoscope className="h-4 w-4 mr-2" />
+                    Run Diagnostics
+                  </>
+                )}
+              </Button>
+
+              {diagnosticsResult && (
+                <div className="space-y-4">
+                  {/* Overall Status */}
+                  <div className={`p-4 rounded-lg border ${
+                    diagnosticsResult.overall_status === 'healthy' 
+                      ? 'bg-green-500/10 border-green-500/20' 
+                      : 'bg-red-500/10 border-red-500/20'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      {diagnosticsResult.overall_status === 'healthy' ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <AlertTriangle className="h-5 w-5 text-red-500" />
+                      )}
+                      <span className="font-medium">
+                        {diagnosticsResult.overall_status === 'healthy' 
+                          ? 'All systems operational' 
+                          : 'Issues found'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Request ID: {diagnosticsResult.diagnostics.request_id} • {diagnosticsResult.diagnostics.timestamp}
                     </p>
                   </div>
+
+                  {/* Individual Checks */}
+                  <div className="border rounded-lg divide-y">
+                    <DiagnosticsCheckRow label="Authentication" check={diagnosticsResult.diagnostics.checks.auth} />
+                    <DiagnosticsCheckRow label="API Credentials" check={diagnosticsResult.diagnostics.checks.secrets} />
+                    <DiagnosticsCheckRow label="Meta API Connection" check={diagnosticsResult.diagnostics.checks.meta_api} />
+                    <DiagnosticsCheckRow label="Database Access" check={diagnosticsResult.diagnostics.checks.database} />
+                  </div>
+
+                  {/* Detailed Info */}
+                  {diagnosticsResult.diagnostics.checks.auth.ok && (
+                    <div className="text-sm text-muted-foreground">
+                      <p>Signed in as: <code className="bg-muted px-1 rounded">{diagnosticsResult.diagnostics.checks.auth.user_id}</code></p>
+                      <p>Role: <code className="bg-muted px-1 rounded">{diagnosticsResult.diagnostics.checks.auth.role}</code></p>
+                    </div>
+                  )}
+
+                  {diagnosticsResult.diagnostics.checks.secrets.missing && (
+                    <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                      <p className="text-sm font-medium text-amber-600 flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        Missing credentials:
+                      </p>
+                      <ul className="text-sm mt-1 space-y-1">
+                        {diagnosticsResult.diagnostics.checks.secrets.missing.map((s: string) => (
+                          <li key={s} className="font-mono text-xs">{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {diagnosticsResult.diagnostics.checks.meta_api.ok && (
+                    <div className="text-sm text-muted-foreground">
+                      <p>Phone: <code className="bg-muted px-1 rounded">{diagnosticsResult.diagnostics.checks.meta_api.phone_number}</code></p>
+                      <p>Name: <code className="bg-muted px-1 rounded">{diagnosticsResult.diagnostics.checks.meta_api.verified_name}</code></p>
+                    </div>
+                  )}
+
+                  {diagnosticsResult.diagnostics.checks.database.ok && (
+                    <div className="text-sm text-muted-foreground">
+                      <p>Existing accounts: <code className="bg-muted px-1 rounded">{diagnosticsResult.diagnostics.checks.database.accounts_count}</code></p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Troubleshooting Tips */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Troubleshooting</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex gap-3">
+                <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium">Session expired errors</p>
+                  <p className="text-muted-foreground">Sign out and sign back in to refresh your session.</p>
                 </div>
               </div>
-
-              <div className="space-y-3">
+              <div className="flex gap-3">
+                <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
-                  <Label>Access Token</Label>
-                  <Input value="WHATSAPP_ACCESS_TOKEN (encrypted)" disabled className="font-mono text-muted-foreground" />
-                </div>
-                <div>
-                  <Label>Phone Number ID</Label>
-                  <Input value={primaryAccount?.phone_number_id || 'WHATSAPP_PHONE_NUMBER_ID'} disabled className="font-mono" />
-                </div>
-                <div>
-                  <Label>Business Account ID</Label>
-                  <Input value={primaryAccount?.business_account_id || 'WHATSAPP_BUSINESS_ACCOUNT_ID'} disabled className="font-mono" />
+                  <p className="font-medium">Network errors</p>
+                  <p className="text-muted-foreground">Disable ad blockers, check VPN/proxy settings, or try a different browser.</p>
                 </div>
               </div>
-
-              <Button variant="outline" className="w-full" asChild>
-                <a href="https://business.facebook.com/settings/whatsapp-business-accounts" target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Open Meta Business Suite
-                </a>
-              </Button>
+              <div className="flex gap-3">
+                <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium">Missing credentials</p>
+                  <p className="text-muted-foreground">Add the required API keys in backend settings.</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

@@ -1,75 +1,89 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { createErrorResponse, createSuccessResponse, CommonErrors } from '../_shared/error-responses.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface AuthResult {
+  userId: string;
+  role: string;
+}
+
 /**
- * Validates auth and returns user ID, or an error response
+ * Create a standardized JSON response
  */
-async function validateAuth(req: Request): Promise<{ userId: string } | Response> {
+function jsonResponse(data: Record<string, unknown>, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+/**
+ * Validates auth and returns user ID + role, or an error response
+ */
+async function validateAuth(req: Request, requestId: string): Promise<AuthResult | Response> {
   const authHeader = req.headers.get('Authorization');
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return createErrorResponse({
-      message: 'Authentication required',
-      status: 401,
-      corsHeaders,
+    console.log(`[${requestId}] No auth header`);
+    return jsonResponse({
+      success: false,
+      error: 'Authentication required',
       code: 'AUTH_REQUIRED',
-      details: { action: 'Please sign in to manage WhatsApp accounts' }
-    });
+      action: 'Please sign in to manage WhatsApp accounts',
+      request_id: requestId,
+    }, 401);
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const token = authHeader.replace('Bearer ', '');
 
+  // First, try to get user directly without getClaims (more reliable)
   const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
     global: { headers: { Authorization: authHeader } },
   });
 
-  const token = authHeader.replace('Bearer ', '');
-  
   try {
-    const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
+    const { data: userData, error: userError } = await supabaseUser.auth.getUser(token);
     
-    if (claimsError) {
-      // Check for specific JWT errors
-      const errorMessage = claimsError.message?.toLowerCase() || '';
+    if (userError) {
+      const errorMessage = userError.message?.toLowerCase() || '';
+      console.log(`[${requestId}] Auth error: ${userError.message}`);
       
-      if (errorMessage.includes('expired') || errorMessage.includes('jwt')) {
-        console.log('[manage-whatsapp-account] JWT expired or invalid');
-        return createErrorResponse({
-          message: 'Session expired',
-          status: 401,
-          corsHeaders,
+      if (errorMessage.includes('expired') || errorMessage.includes('jwt') || errorMessage.includes('invalid')) {
+        return jsonResponse({
+          success: false,
+          error: 'Session expired',
           code: 'SESSION_EXPIRED',
-          details: { action: 'Please sign in again', retry: false }
-        });
+          action: 'Please sign in again',
+          request_id: requestId,
+        }, 401);
       }
       
-      return createErrorResponse({
-        message: 'Authentication failed',
-        status: 401,
-        corsHeaders,
+      return jsonResponse({
+        success: false,
+        error: 'Authentication failed',
         code: 'AUTH_FAILED',
-        details: { action: 'Please sign in again' }
-      });
+        action: 'Please sign in again',
+        request_id: requestId,
+      }, 401);
     }
     
-    if (!claimsData?.claims?.sub) {
-      return createErrorResponse({
-        message: 'Invalid session',
-        status: 401,
-        corsHeaders,
+    if (!userData?.user?.id) {
+      return jsonResponse({
+        success: false,
+        error: 'Invalid session',
         code: 'INVALID_SESSION',
-        details: { action: 'Please sign in again' }
-      });
+        action: 'Please sign in again',
+        request_id: requestId,
+      }, 401);
     }
 
-    const userId = claimsData.claims.sub as string;
+    const userId = userData.user.id;
 
     // Check admin role using service client for RLS bypass
     const supabaseService = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -79,39 +93,42 @@ async function validateAuth(req: Request): Promise<{ userId: string } | Response
       .eq('id', userId)
       .single();
 
-    if (!profile || !['admin', 'super_admin'].includes(profile.system_role)) {
-      return createErrorResponse({
-        message: 'Admin access required',
-        status: 403,
-        corsHeaders,
+    const role = profile?.system_role || 'user';
+    
+    if (!['admin', 'super_admin'].includes(role)) {
+      console.log(`[${requestId}] User ${userId} has role ${role}, access denied`);
+      return jsonResponse({
+        success: false,
+        error: 'Admin access required',
         code: 'FORBIDDEN',
-        details: { action: 'Contact your administrator for WhatsApp management access' }
-      });
+        action: 'Contact your administrator for WhatsApp management access',
+        request_id: requestId,
+      }, 403);
     }
 
-    return { userId };
+    console.log(`[${requestId}] Auth OK: user=${userId}, role=${role}`);
+    return { userId, role };
   } catch (error) {
-    console.error('[manage-whatsapp-account] Auth error:', error);
     const errorMessage = (error as Error).message?.toLowerCase() || '';
+    console.error(`[${requestId}] Auth exception:`, error);
     
-    // Catch JWT expired errors that might be thrown
-    if (errorMessage.includes('expired') || errorMessage.includes('jwt')) {
-      return createErrorResponse({
-        message: 'Session expired',
-        status: 401,
-        corsHeaders,
+    if (errorMessage.includes('expired') || errorMessage.includes('jwt') || errorMessage.includes('invalid')) {
+      return jsonResponse({
+        success: false,
+        error: 'Session expired',
         code: 'SESSION_EXPIRED',
-        details: { action: 'Please sign in again', retry: false }
-      });
+        action: 'Please sign in again',
+        request_id: requestId,
+      }, 401);
     }
     
-    return createErrorResponse({
-      message: 'Authentication error',
-      status: 401,
-      corsHeaders,
+    return jsonResponse({
+      success: false,
+      error: 'Authentication error',
       code: 'AUTH_ERROR',
-      details: { action: 'Please sign in again' }
-    });
+      action: 'Please sign in again',
+      request_id: requestId,
+    }, 401);
   }
 }
 
@@ -121,11 +138,142 @@ serve(async (req) => {
   }
 
   const requestId = crypto.randomUUID().slice(0, 8);
-  console.log(`[manage-whatsapp-account][${requestId}] Request started`);
+  console.log(`[${requestId}] Request started: ${req.method}`);
 
   try {
-    // Validate authentication
-    const authResult = await validateAuth(req);
+    // Parse body first to check for diagnostics action (which we allow without full auth for debugging)
+    let body: Record<string, unknown> = {};
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({
+        success: false,
+        error: 'Invalid JSON body',
+        code: 'BAD_REQUEST',
+        request_id: requestId,
+      }, 400);
+    }
+
+    const { action, account_id, ...data } = body;
+    console.log(`[${requestId}] Action: ${action}`);
+
+    // ==================== DIAGNOSTICS (special handling) ====================
+    if (action === 'diagnostics') {
+      const diagnostics: Record<string, unknown> = {
+        request_id: requestId,
+        timestamp: new Date().toISOString(),
+        checks: {},
+      };
+
+      // Check 1: Auth
+      const authResult = await validateAuth(req, requestId);
+      if (authResult instanceof Response) {
+        // Get the error details from the response
+        const authBody = await authResult.clone().json();
+        diagnostics.checks = {
+          auth: { ok: false, error: authBody.error, code: authBody.code },
+          secrets: { ok: false, skipped: 'auth failed' },
+          meta_api: { ok: false, skipped: 'auth failed' },
+          database: { ok: false, skipped: 'auth failed' },
+        };
+        return jsonResponse({
+          success: true,
+          diagnostics,
+        });
+      }
+
+      diagnostics.checks = { auth: { ok: true, user_id: authResult.userId, role: authResult.role } };
+
+      // Check 2: Secrets
+      const accessToken = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
+      const phoneNumberId = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
+      const businessAccountId = Deno.env.get('WHATSAPP_BUSINESS_ACCOUNT_ID');
+      
+      const missingSecrets: string[] = [];
+      if (!accessToken) missingSecrets.push('WHATSAPP_ACCESS_TOKEN');
+      if (!phoneNumberId) missingSecrets.push('WHATSAPP_PHONE_NUMBER_ID');
+      if (!businessAccountId) missingSecrets.push('WHATSAPP_BUSINESS_ACCOUNT_ID');
+      
+      (diagnostics.checks as Record<string, unknown>).secrets = {
+        ok: missingSecrets.length === 0,
+        missing: missingSecrets.length > 0 ? missingSecrets : undefined,
+      };
+
+      // Check 3: Meta API (only if secrets present)
+      if (accessToken && phoneNumberId) {
+        try {
+          const metaResponse = await fetch(
+            `https://graph.facebook.com/v21.0/${phoneNumberId}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+          const metaData = await metaResponse.json();
+          
+          if (metaData.error) {
+            (diagnostics.checks as Record<string, unknown>).meta_api = {
+              ok: false,
+              error: metaData.error.message,
+              code: metaData.error.code,
+            };
+          } else {
+            (diagnostics.checks as Record<string, unknown>).meta_api = {
+              ok: true,
+              phone_number: metaData.display_phone_number,
+              verified_name: metaData.verified_name,
+            };
+          }
+        } catch (e) {
+          (diagnostics.checks as Record<string, unknown>).meta_api = {
+            ok: false,
+            error: 'Network error connecting to Meta API',
+          };
+        }
+      } else {
+        (diagnostics.checks as Record<string, unknown>).meta_api = {
+          ok: false,
+          skipped: 'missing secrets',
+        };
+      }
+
+      // Check 4: Database access
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseService = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+        
+        const { count, error } = await supabaseService
+          .from('whatsapp_business_accounts')
+          .select('*', { count: 'exact', head: true });
+        
+        if (error) {
+          (diagnostics.checks as Record<string, unknown>).database = {
+            ok: false,
+            error: error.message,
+          };
+        } else {
+          (diagnostics.checks as Record<string, unknown>).database = {
+            ok: true,
+            accounts_count: count || 0,
+          };
+        }
+      } catch (e) {
+        (diagnostics.checks as Record<string, unknown>).database = {
+          ok: false,
+          error: 'Database connection failed',
+        };
+      }
+
+      // Overall status
+      const checks = diagnostics.checks as Record<string, { ok: boolean }>;
+      const allOk = Object.values(checks).every(c => c.ok);
+      
+      return jsonResponse({
+        success: true,
+        overall_status: allOk ? 'healthy' : 'issues_found',
+        diagnostics,
+      });
+    }
+
+    // Validate authentication for all other actions
+    const authResult = await validateAuth(req, requestId);
     if (authResult instanceof Response) {
       return authResult;
     }
@@ -134,11 +282,6 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const body = await req.json();
-    const { action, account_id, ...data } = body;
-
-    console.log(`[manage-whatsapp-account][${requestId}] Action: ${action}, User: ${userId}`);
 
     switch (action) {
       // ==================== ACTIVATE (from env secrets) ====================
@@ -153,20 +296,18 @@ serve(async (req) => {
           if (!phoneNumberId) missing.push('WHATSAPP_PHONE_NUMBER_ID');
           if (!businessAccountId) missing.push('WHATSAPP_BUSINESS_ACCOUNT_ID');
           
-          return new Response(JSON.stringify({
+          return jsonResponse({
             success: false,
             error: 'WhatsApp credentials not configured',
             code: 'MISSING_CREDENTIALS',
             action: 'Add WhatsApp API credentials in backend settings',
             missing,
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            request_id: requestId,
+          }, 400);
         }
 
         // Verify connection with Meta API
-        console.log('[manage-whatsapp-account] Verifying Meta API connection...');
+        console.log(`[${requestId}] Verifying Meta API connection...`);
         const metaResponse = await fetch(
           `https://graph.facebook.com/v21.0/${phoneNumberId}`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -175,16 +316,14 @@ serve(async (req) => {
         const metaData = await metaResponse.json();
 
         if (metaData.error) {
-          console.error('[manage-whatsapp-account] Meta API error:', metaData.error);
-          return new Response(JSON.stringify({
+          console.error(`[${requestId}] Meta API error:`, metaData.error);
+          return jsonResponse({
             success: false,
             error: metaData.error.message || 'Invalid Meta API credentials',
             code: 'META_API_ERROR',
             action: 'Check your WhatsApp access token and phone number ID',
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            request_id: requestId,
+          }, 400);
         }
 
         // Check if account exists
@@ -252,14 +391,13 @@ serve(async (req) => {
           new_state: result,
         });
 
-        console.log('[manage-whatsapp-account] Account activated:', result.display_phone_number);
+        console.log(`[${requestId}] Account activated: ${result.display_phone_number}`);
 
-        return new Response(JSON.stringify({
+        return jsonResponse({
           success: true,
           account: result,
           webhook_url: `${supabaseUrl}/functions/v1/whatsapp-webhook-receiver`,
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          request_id: requestId,
         });
       }
 
@@ -268,15 +406,13 @@ serve(async (req) => {
         const { phone_number_id, business_account_id, display_phone_number, account_label } = data;
 
         if (!phone_number_id || !business_account_id || !display_phone_number) {
-          return new Response(JSON.stringify({ 
+          return jsonResponse({ 
             success: false, 
             error: 'Missing required fields',
             code: 'VALIDATION_ERROR',
-            action: 'Provide phone_number_id, business_account_id, and display_phone_number'
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            action: 'Provide phone_number_id, business_account_id, and display_phone_number',
+            request_id: requestId,
+          }, 400);
         }
 
         const { data: existing } = await supabase
@@ -286,15 +422,13 @@ serve(async (req) => {
           .maybeSingle();
 
         if (existing) {
-          return new Response(JSON.stringify({ 
+          return jsonResponse({ 
             success: false, 
             error: 'Account already exists',
             code: 'DUPLICATE',
-            action: 'Use the existing account or delete it first'
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            action: 'Use the existing account or delete it first',
+            request_id: requestId,
+          }, 400);
         }
 
         const { count } = await supabase
@@ -325,22 +459,18 @@ serve(async (req) => {
           new_state: newAccount,
         });
 
-        return new Response(JSON.stringify({ success: true, account: newAccount }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return jsonResponse({ success: true, account: newAccount, request_id: requestId });
       }
 
       // ==================== UPDATE ====================
       case 'update': {
         if (!account_id) {
-          return new Response(JSON.stringify({ 
+          return jsonResponse({ 
             success: false, 
             error: 'account_id required',
-            code: 'VALIDATION_ERROR'
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            code: 'VALIDATION_ERROR',
+            request_id: requestId,
+          }, 400);
         }
 
         const { data: existing } = await supabase
@@ -350,14 +480,12 @@ serve(async (req) => {
           .maybeSingle();
 
         if (!existing) {
-          return new Response(JSON.stringify({ 
+          return jsonResponse({ 
             success: false, 
             error: 'Account not found',
-            code: 'NOT_FOUND'
-          }), {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            code: 'NOT_FOUND',
+            request_id: requestId,
+          }, 404);
         }
 
         const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
@@ -381,22 +509,18 @@ serve(async (req) => {
           new_state: updated,
         });
 
-        return new Response(JSON.stringify({ success: true, account: updated }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return jsonResponse({ success: true, account: updated, request_id: requestId });
       }
 
       // ==================== DELETE ====================
       case 'delete': {
         if (!account_id) {
-          return new Response(JSON.stringify({ 
+          return jsonResponse({ 
             success: false, 
             error: 'account_id required',
-            code: 'VALIDATION_ERROR'
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            code: 'VALIDATION_ERROR',
+            request_id: requestId,
+          }, 400);
         }
 
         const { data: existing } = await supabase
@@ -406,17 +530,15 @@ serve(async (req) => {
           .maybeSingle();
 
         if (!existing) {
-          return new Response(JSON.stringify({ 
+          return jsonResponse({ 
             success: false, 
             error: 'Account not found',
-            code: 'NOT_FOUND'
-          }), {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            code: 'NOT_FOUND',
+            request_id: requestId,
+          }, 404);
         }
 
-        console.log(`[manage-whatsapp-account] Deleting: ${existing.display_phone_number}`);
+        console.log(`[${requestId}] Deleting: ${existing.display_phone_number}`);
 
         const { error: deleteError } = await supabase
           .from('whatsapp_business_accounts')
@@ -425,25 +547,22 @@ serve(async (req) => {
 
         if (deleteError) throw deleteError;
 
-        return new Response(JSON.stringify({ 
+        return jsonResponse({ 
           success: true, 
-          deleted: existing.display_phone_number 
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          deleted: existing.display_phone_number,
+          request_id: requestId,
         });
       }
 
       // ==================== SET PRIMARY ====================
       case 'set-primary': {
         if (!account_id) {
-          return new Response(JSON.stringify({ 
+          return jsonResponse({ 
             success: false, 
             error: 'account_id required',
-            code: 'VALIDATION_ERROR'
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            code: 'VALIDATION_ERROR',
+            request_id: requestId,
+          }, 400);
         }
 
         await supabase
@@ -467,22 +586,18 @@ serve(async (req) => {
           new_state: updated,
         });
 
-        return new Response(JSON.stringify({ success: true, account: updated }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return jsonResponse({ success: true, account: updated, request_id: requestId });
       }
 
       // ==================== VERIFY ====================
       case 'verify': {
         if (!account_id) {
-          return new Response(JSON.stringify({ 
+          return jsonResponse({ 
             success: false, 
             error: 'account_id required',
-            code: 'VALIDATION_ERROR'
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            code: 'VALIDATION_ERROR',
+            request_id: requestId,
+          }, 400);
         }
 
         const { data: account } = await supabase
@@ -492,25 +607,22 @@ serve(async (req) => {
           .maybeSingle();
 
         if (!account) {
-          return new Response(JSON.stringify({ 
+          return jsonResponse({ 
             success: false, 
             error: 'Account not found',
-            code: 'NOT_FOUND'
-          }), {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            code: 'NOT_FOUND',
+            request_id: requestId,
+          }, 404);
         }
 
         const accessToken = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
         if (!accessToken) {
-          return new Response(JSON.stringify({ 
+          return jsonResponse({ 
             success: true, 
             verified: false, 
             error: 'Access token not configured',
-            code: 'MISSING_TOKEN'
-          }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            code: 'MISSING_TOKEN',
+            request_id: requestId,
           });
         }
 
@@ -532,13 +644,12 @@ serve(async (req) => {
               })
               .eq('id', account_id);
 
-            return new Response(JSON.stringify({ 
+            return jsonResponse({ 
               success: true, 
               verified: false, 
               error: metaData.error.message,
-              code: 'META_VERIFICATION_FAILED'
-            }), {
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              code: 'META_VERIFICATION_FAILED',
+              request_id: requestId,
             });
           }
 
@@ -553,50 +664,44 @@ serve(async (req) => {
             })
             .eq('id', account_id);
 
-          return new Response(JSON.stringify({ 
+          return jsonResponse({ 
             success: true, 
             verified: true,
             phone_number: metaData.display_phone_number,
             verified_name: metaData.verified_name,
             quality_rating: metaData.quality_rating,
-          }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            request_id: requestId,
           });
         } catch (metaError) {
-          console.error('[manage-whatsapp-account] Meta API error:', metaError);
-          return new Response(JSON.stringify({ 
+          console.error(`[${requestId}] Meta API error:`, metaError);
+          return jsonResponse({ 
             success: true, 
             verified: false, 
             error: 'Connection to Meta API failed',
-            code: 'META_CONNECTION_ERROR'
-          }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            code: 'META_CONNECTION_ERROR',
+            request_id: requestId,
           });
         }
       }
 
       default:
-        return new Response(JSON.stringify({ 
+        return jsonResponse({ 
           success: false, 
           error: `Unknown action: ${action}`,
           code: 'INVALID_ACTION',
-          action: 'Valid actions: activate, create, update, delete, set-primary, verify'
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+          action: 'Valid actions: activate, create, update, delete, set-primary, verify, diagnostics',
+          request_id: requestId,
+        }, 400);
     }
   } catch (error: unknown) {
-    console.error('[manage-whatsapp-account] Error:', error);
+    console.error(`[${requestId}] Unhandled error:`, error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return new Response(JSON.stringify({ 
+    return jsonResponse({ 
       success: false, 
       error: errorMessage,
       code: 'INTERNAL_ERROR',
-      retry: true
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+      retry: true,
+      request_id: requestId,
+    }, 500);
   }
 });
