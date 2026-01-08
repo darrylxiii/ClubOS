@@ -17187,6 +17187,130 @@ export type Database = {
           },
         ]
       }
+      external_context_imports: {
+        Row: {
+          action_items: Json | null
+          ai_summary: string | null
+          analysis_status: string | null
+          content_type: string
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          entity_id: string
+          entity_type: string
+          error_message: string | null
+          file_name: string | null
+          file_size_kb: number | null
+          file_url: string | null
+          id: string
+          key_topics: string[] | null
+          mime_type: string | null
+          original_date: string | null
+          parsed_content: Json | null
+          participants: Json | null
+          processing_status: string | null
+          raw_content: string | null
+          secondary_entity_id: string | null
+          secondary_entity_type: string | null
+          sentiment_label: string | null
+          sentiment_score: number | null
+          source_platform: string | null
+          title: string
+          transcription_status: string | null
+          updated_at: string | null
+          uploaded_by: string | null
+          urgency_level: string | null
+        }
+        Insert: {
+          action_items?: Json | null
+          ai_summary?: string | null
+          analysis_status?: string | null
+          content_type: string
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          entity_id: string
+          entity_type: string
+          error_message?: string | null
+          file_name?: string | null
+          file_size_kb?: number | null
+          file_url?: string | null
+          id?: string
+          key_topics?: string[] | null
+          mime_type?: string | null
+          original_date?: string | null
+          parsed_content?: Json | null
+          participants?: Json | null
+          processing_status?: string | null
+          raw_content?: string | null
+          secondary_entity_id?: string | null
+          secondary_entity_type?: string | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
+          source_platform?: string | null
+          title: string
+          transcription_status?: string | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+          urgency_level?: string | null
+        }
+        Update: {
+          action_items?: Json | null
+          ai_summary?: string | null
+          analysis_status?: string | null
+          content_type?: string
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          entity_id?: string
+          entity_type?: string
+          error_message?: string | null
+          file_name?: string | null
+          file_size_kb?: number | null
+          file_url?: string | null
+          id?: string
+          key_topics?: string[] | null
+          mime_type?: string | null
+          original_date?: string | null
+          parsed_content?: Json | null
+          participants?: Json | null
+          processing_status?: string | null
+          raw_content?: string | null
+          secondary_entity_id?: string | null
+          secondary_entity_type?: string | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
+          source_platform?: string | null
+          title?: string
+          transcription_status?: string | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+          urgency_level?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_context_imports_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "external_context_imports_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_context_imports_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       external_health_checks: {
         Row: {
           check_source: string
