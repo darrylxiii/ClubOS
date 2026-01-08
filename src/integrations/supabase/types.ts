@@ -8023,6 +8023,42 @@ export type Database = {
           },
         ]
       }
+      communication_task_queue: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          priority: number | null
+          processed_at: string | null
+          processing_status: string | null
+          result: Json | null
+          source_id: string
+          source_table: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          priority?: number | null
+          processed_at?: string | null
+          processing_status?: string | null
+          result?: Json | null
+          source_id: string
+          source_table: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          priority?: number | null
+          processed_at?: string | null
+          processing_status?: string | null
+          result?: Json | null
+          source_id?: string
+          source_table?: string
+        }
+        Relationships: []
+      }
       communication_workflows: {
         Row: {
           actions: Json
@@ -38659,6 +38695,127 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: []
+      }
+      sms_messages: {
+        Row: {
+          candidate_id: string | null
+          company_id: string | null
+          content: string | null
+          created_at: string | null
+          delivered_at: string | null
+          direction: string
+          id: string
+          intent_classification: string | null
+          owner_id: string | null
+          phone_number: string
+          prospect_id: string | null
+          sent_at: string | null
+          sentiment_score: number | null
+          status: string | null
+          twilio_sid: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          company_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          direction?: string
+          id?: string
+          intent_classification?: string | null
+          owner_id?: string | null
+          phone_number: string
+          prospect_id?: string | null
+          sent_at?: string | null
+          sentiment_score?: number | null
+          status?: string | null
+          twilio_sid?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          company_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          direction?: string
+          id?: string
+          intent_classification?: string | null
+          owner_id?: string | null
+          phone_number?: string
+          prospect_id?: string | null
+          sent_at?: string | null
+          sentiment_score?: number | null
+          status?: string | null
+          twilio_sid?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_messages_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_messages_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "sms_messages_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_messages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_messages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_messages_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "sms_messages_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_messages_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_messages_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "crm_prospects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       social_campaigns: {
         Row: {
