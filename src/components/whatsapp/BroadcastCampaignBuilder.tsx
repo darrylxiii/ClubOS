@@ -7,10 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/lib/notify';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Send, Users, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { useWhatsAppBroadcastConsent } from '@/hooks/useWhatsAppBroadcastConsent';
+import { Plus, Send, Users, Clock, CheckCircle, XCircle, Loader2, Shield, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Campaign {
@@ -26,12 +28,15 @@ export function BroadcastCampaignBuilder() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
+  const [recipientSource, setRecipientSource] = useState<'manual' | 'consented'>('consented');
   const [newCampaign, setNewCampaign] = useState({
     name: '',
     template_name: '',
     segment_criteria: {} as Record<string, unknown>,
     recipient_phones: [] as string[],
   });
+
+  const { allConsents, stats, getOptedInPhones, loading: loadingConsents } = useWhatsAppBroadcastConsent();
 
   const { data: campaigns } = useQuery({
     queryKey: ['whatsapp-campaigns'],
@@ -183,18 +188,66 @@ export function BroadcastCampaignBuilder() {
                 </div>
 
                 <div>
-                  <Label>Recipients (phone numbers, one per line)</Label>
-                  <Textarea
-                    placeholder="+31612345678&#10;+31698765432"
-                    rows={4}
-                    onChange={(e) => setNewCampaign({
-                      ...newCampaign,
-                      recipient_phones: e.target.value.split('\n').filter(p => p.trim()),
-                    })}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {newCampaign.recipient_phones.length} recipients
-                  </p>
+                  <Label>Recipients</Label>
+                  <Tabs value={recipientSource} onValueChange={(v) => setRecipientSource(v as 'manual' | 'consented')}>
+                    <TabsList className="w-full mb-3">
+                      <TabsTrigger value="consented" className="flex-1 gap-1.5">
+                        <Shield className="h-3.5 w-3.5" />
+                        Consented ({stats.optedIn})
+                      </TabsTrigger>
+                      <TabsTrigger value="manual" className="flex-1">Manual</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="consented" className="mt-0">
+                      <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-2">
+                          <Shield className="h-4 w-4" />
+                          <span className="font-medium text-sm">GDPR Compliant</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Using {stats.optedIn} opted-in contacts. {stats.unknown > 0 && (
+                            <span className="text-amber-500">({stats.unknown} with unknown consent excluded)</span>
+                          )}
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={async () => {
+                            const phones = await getOptedInPhones();
+                            setNewCampaign({ ...newCampaign, recipient_phones: phones });
+                            toast({ title: `${phones.length} consented recipients loaded` });
+                          }}
+                          disabled={loadingConsents}
+                        >
+                          Load Consented Recipients
+                        </Button>
+                      </div>
+                      {stats.optedOut > 0 && (
+                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                          <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                          {stats.optedOut} opted-out contacts will be excluded
+                        </div>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="manual" className="mt-0">
+                      <Textarea
+                        placeholder="+31612345678&#10;+31698765432"
+                        rows={4}
+                        onChange={(e) => setNewCampaign({
+                          ...newCampaign,
+                          recipient_phones: e.target.value.split('\n').filter(p => p.trim()),
+                        })}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {newCampaign.recipient_phones.length} recipients (manual entry)
+                      </p>
+                      <p className="text-xs text-amber-500 mt-1">
+                        ⚠️ Ensure you have consent for all manually entered numbers
+                      </p>
+                    </TabsContent>
+                  </Tabs>
                 </div>
 
                 <Button

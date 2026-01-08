@@ -9,6 +9,7 @@ import { WhatsAppTemplateSelector } from '@/components/whatsapp/WhatsAppTemplate
 import { WhatsAppAIInsights } from '@/components/whatsapp/WhatsAppAIInsights';
 import { WhatsAppCandidateContextCard } from '@/components/whatsapp/WhatsAppCandidateContextCard';
 import { WhatsAppConversationEventLog } from '@/components/whatsapp/WhatsAppConversationEventLog';
+import { WhatsAppEmailBridge } from '@/components/whatsapp/WhatsAppEmailBridge';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { notify } from '@/lib/notify';
@@ -18,6 +19,7 @@ export function WhatsAppInboxTab() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
+  const [showEmailBridge, setShowEmailBridge] = useState(false);
   const [rightPanelTab, setRightPanelTab] = useState<'insights' | 'context' | 'events'>('insights');
 
   const { conversations, loading: conversationsLoading, markAsRead } = useWhatsAppConversations();
@@ -83,6 +85,7 @@ export function WhatsAppInboxTab() {
           onSend={handleSendMessage}
           onOpenTemplates={() => setShowTemplates(true)}
           onOpenInsights={() => setShowInsights(true)}
+          onOpenEmailBridge={() => setShowEmailBridge(true)}
           onViewProfile={() => {
             if (selectedConversation?.candidate_id) {
               navigate(`/candidate/${selectedConversation.candidate_id}`);
@@ -153,6 +156,18 @@ export function WhatsAppInboxTab() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Email Bridge Dialog */}
+      {selectedConversation && (
+        <WhatsAppEmailBridge
+          open={showEmailBridge}
+          onClose={() => setShowEmailBridge(false)}
+          conversationId={selectedConversation.id}
+          candidateId={selectedConversation.candidate_id}
+          candidatePhone={selectedConversation.candidate_phone}
+          messages={messages}
+        />
+      )}
     </div>
   );
 }
