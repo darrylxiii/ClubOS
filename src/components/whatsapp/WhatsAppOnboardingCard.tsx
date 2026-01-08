@@ -179,7 +179,7 @@ export function WhatsAppOnboardingCard({
         await supabase.from('whatsapp_messages').insert(demoMessages);
       }
 
-      // Create demo templates
+      // Create demo templates with correct Meta API format (array of components)
       const demoTemplates = [
         {
           account_id: account.id,
@@ -187,7 +187,11 @@ export function WhatsAppOnboardingCard({
           template_category: 'MARKETING',
           language_code: 'en',
           approval_status: 'APPROVED',
-          components: { body: 'Hi, we have an exciting opportunity that matches your profile!' },
+          components: [
+            { type: 'HEADER', format: 'TEXT', text: 'The Quantum Club' },
+            { type: 'BODY', text: 'Hi {{1}}, we have an exciting {{2}} opportunity that matches your profile! Would you like to learn more?' },
+            { type: 'FOOTER', text: 'Reply STOP to unsubscribe' }
+          ],
         },
         {
           account_id: account.id,
@@ -195,7 +199,9 @@ export function WhatsAppOnboardingCard({
           template_category: 'UTILITY',
           language_code: 'en',
           approval_status: 'APPROVED',
-          components: { body: 'Reminder: Your interview is scheduled soon.' },
+          components: [
+            { type: 'BODY', text: 'Hi {{1}}, this is a reminder about your interview on {{2}} at {{3}}. Please confirm your attendance.' }
+          ],
         },
       ];
 

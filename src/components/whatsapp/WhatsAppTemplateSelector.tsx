@@ -57,34 +57,57 @@ export function WhatsAppTemplateSelector({
   // Extract variables from template
   const extractVariables = (template: WhatsAppTemplate): string[] => {
     const variables: string[] = [];
-    const components = template.components as any[];
+    const components = template.components;
     
-    if (!components) return variables;
-    
-    components.forEach(comp => {
-      if (comp.text) {
-        const matches = comp.text.match(/\{\{(\d+)\}\}/g);
-        if (matches) {
-          matches.forEach((match: string) => {
-            const num = match.replace(/[{}]/g, '');
-            if (!variables.includes(num)) {
-              variables.push(num);
-            }
-          });
+    // Handle array format (correct Meta API format)
+    if (Array.isArray(components)) {
+      components.forEach(comp => {
+        if (comp.text) {
+          const matches = comp.text.match(/\{\{(\d+)\}\}/g);
+          if (matches) {
+            matches.forEach((match: string) => {
+              const num = match.replace(/[{}]/g, '');
+              if (!variables.includes(num)) {
+                variables.push(num);
+              }
+            });
+          }
         }
+      });
+    }
+    // Handle legacy object format
+    else if (components && typeof components === 'object' && (components as any).body) {
+      const bodyText = (components as any).body as string;
+      const matches = bodyText.match(/\{\{(\d+)\}\}/g);
+      if (matches) {
+        matches.forEach((match: string) => {
+          const num = match.replace(/[{}]/g, '');
+          if (!variables.includes(num)) {
+            variables.push(num);
+          }
+        });
       }
-    });
+    }
     
     return variables.sort();
   };
 
   // Get preview text from template
   const getTemplatePreview = (template: WhatsAppTemplate): string => {
-    const components = template.components as any[];
-    if (!components) return '';
+    const components = template.components;
     
-    const bodyComp = components.find(c => c.type === 'BODY');
-    return bodyComp?.text || '';
+    // Handle array format (correct Meta API format)
+    if (Array.isArray(components)) {
+      const bodyComp = components.find(c => c.type === 'BODY');
+      return bodyComp?.text || '';
+    }
+    
+    // Handle legacy object format
+    if (components && typeof components === 'object' && (components as any).body) {
+      return (components as any).body as string;
+    }
+    
+    return '';
   };
 
   // Get template with variables replaced
