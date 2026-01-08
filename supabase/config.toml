@@ -1,10 +1,8 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
 # =============================================================================
-# WhatsApp Business Integration
+# WhatsApp Business Integration (Enterprise)
 # =============================================================================
-[functions.activate-whatsapp-account]
-verify_jwt = true
 
 # =============================================================================
 # Phase 3: Booking Approval Workflow
@@ -314,7 +312,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.manage-whatsapp-account]
-verify_jwt = true
+verify_jwt = false
 
 [functions.orchestrate-intelligence-pipeline]
 verify_jwt = true
@@ -697,8 +695,7 @@ verify_jwt = true
 [functions.check-secret-achievements]
 verify_jwt = true
 
-[functions.seed-achievements]
-verify_jwt = true
+# seed-achievements - REMOVED (use migration instead)
 
 [functions.generate-daily-challenges]
 verify_jwt = true
@@ -835,8 +832,7 @@ verify_jwt = false
 [functions.enrich-prospect-company]
 verify_jwt = true
 
-[functions.seed-crm-data]
-verify_jwt = true
+# seed-crm-data - REMOVED (demo artifact)
 
 # =============================================================================
 # CRM Scheduled Tasks (Cron Jobs - configure via pg_cron)
@@ -1011,8 +1007,7 @@ verify_jwt = false
 [functions.automate-placement-fee]
 verify_jwt = true
 
-[functions.seed-demo-data]
-verify_jwt = true
+# seed-demo-data - REMOVED (demo artifact)
 
 # =============================================================================
 # Agent System Functions (Phase 1-4 Agentic OS)
