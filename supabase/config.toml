@@ -1070,3 +1070,18 @@ verify_jwt = true
 
 [functions.process-subscription-reminders]
 verify_jwt = false
+
+# =============================================================================
+# Communication Intelligence - Phase 2-6
+# =============================================================================
+[functions.generate-communication-tasks]
+verify_jwt = true
+
+[functions.twilio-sms-webhook]
+verify_jwt = false
+
+[functions.send-sms]
+verify_jwt = true
+
+[functions.update-relationship-scores]
+verify_jwt = true
