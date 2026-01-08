@@ -18,47 +18,46 @@ export interface WhatsAppAccount {
   updated_at: string;
 }
 
+async function fetchAllAccounts(): Promise<WhatsAppAccount[]> {
+  const { data, error } = await supabase
+    .from('whatsapp_business_accounts')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  
+  // Sort by is_primary in JS to avoid complex query
+  const accounts = (data || []) as unknown as WhatsAppAccount[];
+  return accounts.sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0));
+}
+
+async function fetchActiveAccount(): Promise<WhatsAppAccount | null> {
+  const { data, error } = await supabase
+    .from('whatsapp_business_accounts')
+    .select('*')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  if (!data || data.length === 0) return null;
+  
+  const accounts = data as unknown as WhatsAppAccount[];
+  // Prefer primary account
+  const primary = accounts.find(a => a.is_primary);
+  return primary || accounts[0];
+}
+
 export function useWhatsAppAccounts() {
   return useQuery({
     queryKey: ['whatsapp-accounts-all'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('whatsapp_business_accounts')
-        .select('*')
-        .order('is_primary', { ascending: false })
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return (data || []) as unknown as WhatsAppAccount[];
-    },
+    queryFn: fetchAllAccounts,
   });
 }
 
 export function useActiveWhatsAppAccount() {
   return useQuery({
     queryKey: ['whatsapp-account-active'],
-    queryFn: async () => {
-      // First try to get primary account
-      const { data: primary } = await supabase
-        .from('whatsapp_business_accounts')
-        .select('*')
-        .eq('is_primary', true)
-        .eq('is_active', true)
-        .maybeSingle();
-      
-      if (primary) return primary as unknown as WhatsAppAccount;
-      
-      // Otherwise get any active account
-      const { data: active } = await supabase
-        .from('whatsapp_business_accounts')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      return active as unknown as WhatsAppAccount | null;
-    },
+    queryFn: fetchActiveAccount,
   });
 }
 
@@ -81,7 +80,8 @@ export function useManageWhatsAppAccount() {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts-all'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-account-active'] });
       notify.success('WhatsApp account added successfully');
     },
     onError: (error: Error) => {
@@ -103,7 +103,8 @@ export function useManageWhatsAppAccount() {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts-all'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-account-active'] });
       notify.success('Account updated');
     },
     onError: (error: Error) => {
@@ -121,7 +122,8 @@ export function useManageWhatsAppAccount() {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts-all'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-account-active'] });
       notify.success('Account removed');
     },
     onError: (error: Error) => {
@@ -139,7 +141,8 @@ export function useManageWhatsAppAccount() {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts-all'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-account-active'] });
       notify.success('Primary account updated');
     },
     onError: (error: Error) => {
@@ -157,7 +160,8 @@ export function useManageWhatsAppAccount() {
       return result;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts-all'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-account-active'] });
       if (data.verified) {
         notify.success('Connection verified successfully');
       } else {
