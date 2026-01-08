@@ -1,6 +1,15 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { getCorsHeaders, handleCorsPreFlight, publicCorsHeaders } from '../_shared/cors-config.ts';
+
+/**
+ * Unified CORS headers - must include all headers browsers/supabase-js might send
+ */
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Max-Age': '86400',
+};
 
 interface AuthResult {
   userId: string;
@@ -9,13 +18,11 @@ interface AuthResult {
 
 /**
  * Create a standardized JSON response with CORS headers
- * Uses shared CORS config that includes all required headers
  */
-function jsonResponse(data: Record<string, unknown>, status = 200, req?: Request): Response {
-  const headers = req ? getCorsHeaders(req) : publicCorsHeaders;
+function jsonResponse(data: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...headers, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }
 
@@ -83,38 +90,24 @@ async function validateAuth(req: Request, requestId: string): Promise<AuthResult
     const userId = userData.user.id;
 
     // Check admin role using service client for RLS bypass
-    // Use user_roles table which is the source of truth for roles
     const supabaseService = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const { data: userRoles, error: roleError } = await supabaseService
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId);
+    const { data: profile } = await supabaseService
+      .from('profiles')
+      .select('system_role')
+      .eq('id', userId)
+      .single();
 
-    if (roleError) {
-      console.error(`[${requestId}] Failed to fetch user roles:`, roleError);
-      return jsonResponse({
-        success: false,
-        error: 'Failed to verify permissions',
-        code: 'ROLE_CHECK_FAILED',
-        action: 'Please try again or contact support',
-        request_id: requestId,
-      }, 500, req);
-    }
-
-    // Check if user has admin role (user may have multiple roles)
-    const roles = (userRoles || []).map(r => r.role);
-    const isAdmin = roles.includes('admin');
-    const role = isAdmin ? 'admin' : (roles[0] || 'user');
+    const role = profile?.system_role || 'user';
     
-    if (!isAdmin) {
-      console.log(`[${requestId}] User ${userId} has roles [${roles.join(', ')}], admin access denied`);
+    if (!['admin', 'super_admin'].includes(role)) {
+      console.log(`[${requestId}] User ${userId} has role ${role}, access denied`);
       return jsonResponse({
         success: false,
         error: 'Admin access required',
         code: 'FORBIDDEN',
         action: 'Contact your administrator for WhatsApp management access',
         request_id: requestId,
-      }, 403, req);
+      }, 403);
     }
 
     console.log(`[${requestId}] Auth OK: user=${userId}, role=${role}`);
@@ -151,7 +144,10 @@ serve(async (req) => {
   // Handle CORS preflight with detailed logging
   if (req.method === 'OPTIONS') {
     console.log(`[${requestId}] CORS preflight: origin=${origin}, requested-headers=${requestedHeaders}`);
-    return handleCorsPreFlight(req, requestId);
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    });
   }
 
   console.log(`[${requestId}] ${req.method} request from: ${origin}`);
