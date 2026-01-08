@@ -1,15 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/**
+ * Unified CORS headers (for app-initiated calls, not Meta webhooks)
+ */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 serve(async (req) => {
-  // Handle CORS preflight
+  const requestId = crypto.randomUUID().slice(0, 8);
+
+  // Handle CORS preflight (for app-initiated calls)
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    console.log(`[${requestId}] CORS preflight`);
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -25,35 +33,35 @@ serve(async (req) => {
     const token = url.searchParams.get('hub.verify_token');
     const challenge = url.searchParams.get('hub.challenge');
 
-    console.log('Webhook verification request:', { mode, token, challenge });
+    console.log(`[${requestId}] Webhook verification request:`, { mode, tokenMatch: token === verifyToken });
 
     if (mode === 'subscribe' && token === verifyToken) {
-      console.log('Webhook verified successfully');
+      console.log(`[${requestId}] Webhook verified successfully`);
       return new Response(challenge, { 
         status: 200,
         headers: { 'Content-Type': 'text/plain' }
       });
     } else {
-      console.error('Webhook verification failed');
+      console.error(`[${requestId}] Webhook verification failed`);
       return new Response('Verification failed', { status: 403 });
     }
   }
 
-  // Handle incoming webhook events (POST request)
+  // Handle incoming webhook events (POST request from Meta)
   if (req.method === 'POST') {
     try {
       const body = await req.json();
-      console.log('Received webhook payload:', JSON.stringify(body, null, 2));
+      console.log(`[${requestId}] Received webhook payload`);
 
       const entry = body.entry?.[0];
       if (!entry) {
-        console.log('No entry in webhook payload');
+        console.log(`[${requestId}] No entry in webhook payload`);
         return new Response('OK', { status: 200 });
       }
 
       const changes = entry.changes?.[0];
       if (!changes) {
-        console.log('No changes in webhook payload');
+        console.log(`[${requestId}] No changes in webhook payload`);
         return new Response('OK', { status: 200 });
       }
 
@@ -68,28 +76,28 @@ serve(async (req) => {
         .single();
 
       if (accountError || !account) {
-        console.error('Account not found for phone_number_id:', phoneNumberId);
+        console.error(`[${requestId}] Account not found for phone_number_id:`, phoneNumberId);
         return new Response('OK', { status: 200 });
       }
 
       // Handle incoming messages
       if (value.messages) {
         for (const message of value.messages) {
-          await handleIncomingMessage(supabase, account, message, value.contacts?.[0]);
+          await handleIncomingMessage(supabase, account, message, value.contacts?.[0], requestId);
         }
       }
 
       // Handle status updates (sent, delivered, read)
       if (value.statuses) {
         for (const status of value.statuses) {
-          await handleStatusUpdate(supabase, status);
+          await handleStatusUpdate(supabase, status, requestId);
         }
       }
 
       return new Response('OK', { status: 200 });
 
     } catch (error) {
-      console.error('Error processing webhook:', error);
+      console.error(`[${requestId}] Error processing webhook:`, error);
       // Always return 200 to prevent Meta from retrying
       return new Response('OK', { status: 200 });
     }
@@ -102,9 +110,10 @@ async function handleIncomingMessage(
   supabase: any,
   account: any,
   message: any,
-  contact: any
+  contact: any,
+  requestId: string
 ) {
-  console.log('Processing incoming message:', { messageId: message.id, from: message.from });
+  console.log(`[${requestId}] Processing incoming message:`, { messageId: message.id, from: message.from });
 
   const senderPhone = message.from;
   const senderName = contact?.profile?.name || contact?.wa_id;
@@ -140,7 +149,7 @@ async function handleIncomingMessage(
       .single();
 
     if (createError) {
-      console.error('Error creating conversation:', createError);
+      console.error(`[${requestId}] Error creating conversation:`, createError);
       return;
     }
     conversation = newConv;
@@ -159,7 +168,6 @@ async function handleIncomingMessage(
   let messageType = message.type;
   let content = '';
   let mediaId = null;
-  let mediaUrl = null;
   let mediaMimeType = null;
   let mediaFilename = null;
   let reactionEmoji = null;
@@ -240,11 +248,11 @@ async function handleIncomingMessage(
     .single();
 
   if (messageError) {
-    console.error('Error storing message:', messageError);
+    console.error(`[${requestId}] Error storing message:`, messageError);
     return;
   }
 
-  console.log('Message stored successfully:', storedMessage.id);
+  console.log(`[${requestId}] Message stored successfully:`, storedMessage.id);
 
   // Queue AI analysis for text messages
   if (messageType === 'text' && content) {
@@ -253,13 +261,13 @@ async function handleIncomingMessage(
         body: { messageId: storedMessage.id }
       });
     } catch (error) {
-      console.error('Error queueing message for AI analysis:', error);
+      console.error(`[${requestId}] Error queueing message for AI analysis:`, error);
     }
   }
 }
 
-async function handleStatusUpdate(supabase: any, status: any) {
-  console.log('Processing status update:', { messageId: status.id, status: status.status });
+async function handleStatusUpdate(supabase: any, status: any, requestId: string) {
+  console.log(`[${requestId}] Processing status update:`, { messageId: status.id, status: status.status });
 
   const statusMap: Record<string, string> = {
     'sent': 'sent',
@@ -275,7 +283,6 @@ async function handleStatusUpdate(supabase: any, status: any) {
     status_timestamp: new Date(parseInt(status.timestamp) * 1000).toISOString()
   };
 
-  // Add error info if failed
   if (status.errors?.length > 0) {
     updateData.error_code = status.errors[0].code?.toString();
     updateData.error_message = status.errors[0].title || status.errors[0].message;
@@ -287,8 +294,8 @@ async function handleStatusUpdate(supabase: any, status: any) {
     .eq('wa_message_id', status.id);
 
   if (error) {
-    console.error('Error updating message status:', error);
+    console.error(`[${requestId}] Error updating message status:`, error);
   } else {
-    console.log('Status updated successfully');
+    console.log(`[${requestId}] Status updated successfully`);
   }
 }

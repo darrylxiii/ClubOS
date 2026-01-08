@@ -1,10 +1,14 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+/**
+ * Unified CORS headers - must include all headers browsers/supabase-js might send
+ */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 interface AuthResult {
@@ -13,7 +17,7 @@ interface AuthResult {
 }
 
 /**
- * Create a standardized JSON response
+ * Create a standardized JSON response with CORS headers
  */
 function jsonResponse(data: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -43,7 +47,6 @@ async function validateAuth(req: Request, requestId: string): Promise<AuthResult
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
   const token = authHeader.replace('Bearer ', '');
 
-  // First, try to get user directly without getClaims (more reliable)
   const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
     global: { headers: { Authorization: authHeader } },
   });
@@ -136,17 +139,21 @@ async function validateAuth(req: Request, requestId: string): Promise<AuthResult
 serve(async (req) => {
   const requestId = crypto.randomUUID().slice(0, 8);
   const origin = req.headers.get('origin') || 'unknown';
+  const requestedHeaders = req.headers.get('access-control-request-headers') || '';
   
-  // Handle CORS preflight
+  // Handle CORS preflight with detailed logging
   if (req.method === 'OPTIONS') {
-    console.log(`[${requestId}] CORS preflight from: ${origin}`);
-    return new Response(null, { headers: corsHeaders });
+    console.log(`[${requestId}] CORS preflight: origin=${origin}, requested-headers=${requestedHeaders}`);
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    });
   }
 
-  console.log(`[${requestId}] ${req.method} from: ${origin}`);
+  console.log(`[${requestId}] ${req.method} request from: ${origin}`);
 
   try {
-    // Parse body first to check for diagnostics action (which we allow without full auth for debugging)
+    // Parse body first
     let body: Record<string, unknown> = {};
     try {
       body = await req.json();
@@ -162,6 +169,17 @@ serve(async (req) => {
     const { action, account_id, ...data } = body;
     console.log(`[${requestId}] Action: ${action}`);
 
+    // ==================== PING (ultra-simple connectivity test) ====================
+    if (action === 'ping') {
+      console.log(`[${requestId}] Ping received, responding with pong`);
+      return jsonResponse({
+        success: true,
+        pong: true,
+        timestamp: new Date().toISOString(),
+        request_id: requestId,
+      });
+    }
+
     // ==================== DIAGNOSTICS (special handling) ====================
     if (action === 'diagnostics') {
       const diagnostics: Record<string, unknown> = {
@@ -173,7 +191,6 @@ serve(async (req) => {
       // Check 1: Auth
       const authResult = await validateAuth(req, requestId);
       if (authResult instanceof Response) {
-        // Get the error details from the response
         const authBody = await authResult.clone().json();
         diagnostics.checks = {
           auth: { ok: false, error: authBody.error, code: authBody.code },
@@ -183,6 +200,7 @@ serve(async (req) => {
         };
         return jsonResponse({
           success: true,
+          overall_status: 'error',
           diagnostics,
         });
       }
@@ -353,7 +371,6 @@ serve(async (req) => {
 
         let result;
         if (existing) {
-          // Remove primary from others first
           await supabase
             .from('whatsapp_business_accounts')
             .update({ is_primary: false })
@@ -369,7 +386,6 @@ serve(async (req) => {
           if (error) throw error;
           result = data;
         } else {
-          // Remove primary from all existing
           await supabase
             .from('whatsapp_business_accounts')
             .update({ is_primary: false });
@@ -379,7 +395,7 @@ serve(async (req) => {
             .insert({
               ...accountData,
               created_by: userId,
-              access_token_encrypted: '***', // Token stored in secrets
+              access_token_encrypted: '***',
             })
             .select()
             .single();
@@ -388,7 +404,6 @@ serve(async (req) => {
           result = data;
         }
 
-        // Log the activation
         await supabase.from('whatsapp_account_changes').insert({
           account_id: result.id,
           changed_by: userId,
@@ -510,7 +525,7 @@ serve(async (req) => {
           account_id,
           changed_by: userId,
           change_type: 'updated',
-          previous_state: existing,
+          old_state: existing,
           new_state: updated,
         });
 
@@ -543,7 +558,12 @@ serve(async (req) => {
           }, 404);
         }
 
-        console.log(`[${requestId}] Deleting: ${existing.display_phone_number}`);
+        await supabase.from('whatsapp_account_changes').insert({
+          account_id,
+          changed_by: userId,
+          change_type: 'deleted',
+          old_state: existing,
+        });
 
         const { error: deleteError } = await supabase
           .from('whatsapp_business_accounts')
@@ -552,15 +572,11 @@ serve(async (req) => {
 
         if (deleteError) throw deleteError;
 
-        return jsonResponse({ 
-          success: true, 
-          deleted: existing.display_phone_number,
-          request_id: requestId,
-        });
+        return jsonResponse({ success: true, deleted: true, request_id: requestId });
       }
 
       // ==================== SET PRIMARY ====================
-      case 'set-primary': {
+      case 'set_primary': {
         if (!account_id) {
           return jsonResponse({ 
             success: false, 
@@ -572,8 +588,7 @@ serve(async (req) => {
 
         await supabase
           .from('whatsapp_business_accounts')
-          .update({ is_primary: false })
-          .neq('id', account_id);
+          .update({ is_primary: false });
 
         const { data: updated, error: updateError } = await supabase
           .from('whatsapp_business_accounts')
@@ -605,6 +620,16 @@ serve(async (req) => {
           }, 400);
         }
 
+        const accessToken = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
+        if (!accessToken) {
+          return jsonResponse({
+            success: false,
+            error: 'WhatsApp access token not configured',
+            code: 'MISSING_CREDENTIALS',
+            request_id: requestId,
+          }, 400);
+        }
+
         const { data: account } = await supabase
           .from('whatsapp_business_accounts')
           .select('*')
@@ -620,92 +645,65 @@ serve(async (req) => {
           }, 404);
         }
 
-        const accessToken = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
-        if (!accessToken) {
-          return jsonResponse({ 
-            success: true, 
-            verified: false, 
-            error: 'Access token not configured',
-            code: 'MISSING_TOKEN',
-            request_id: requestId,
-          });
-        }
+        const metaResponse = await fetch(
+          `https://graph.facebook.com/v21.0/${account.phone_number_id}`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
 
-        try {
-          const metaResponse = await fetch(
-            `https://graph.facebook.com/v21.0/${account.phone_number_id}`,
-            { headers: { Authorization: `Bearer ${accessToken}` } }
-          );
+        const metaData = await metaResponse.json();
 
-          const metaData = await metaResponse.json();
-
-          if (metaData.error) {
-            await supabase
-              .from('whatsapp_business_accounts')
-              .update({ 
-                verification_status: 'failed',
-                last_verified_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', account_id);
-
-            return jsonResponse({ 
-              success: true, 
-              verified: false, 
-              error: metaData.error.message,
-              code: 'META_VERIFICATION_FAILED',
-              request_id: requestId,
-            });
-          }
-
+        if (metaData.error) {
           await supabase
             .from('whatsapp_business_accounts')
-            .update({ 
-              verification_status: 'verified',
+            .update({
+              verification_status: 'failed',
               last_verified_at: new Date().toISOString(),
-              verified_name: metaData.verified_name || account.verified_name,
-              quality_rating: metaData.quality_rating,
-              updated_at: new Date().toISOString(),
             })
             .eq('id', account_id);
 
-          return jsonResponse({ 
-            success: true, 
-            verified: true,
-            phone_number: metaData.display_phone_number,
-            verified_name: metaData.verified_name,
-            quality_rating: metaData.quality_rating,
-            request_id: requestId,
-          });
-        } catch (metaError) {
-          console.error(`[${requestId}] Meta API error:`, metaError);
-          return jsonResponse({ 
-            success: true, 
-            verified: false, 
-            error: 'Connection to Meta API failed',
-            code: 'META_CONNECTION_ERROR',
+          return jsonResponse({
+            success: true,
+            verified: false,
+            error: metaData.error.message,
             request_id: requestId,
           });
         }
+
+        const { data: updated } = await supabase
+          .from('whatsapp_business_accounts')
+          .update({
+            display_phone_number: metaData.display_phone_number || account.display_phone_number,
+            verified_name: metaData.verified_name,
+            quality_rating: metaData.quality_rating,
+            verification_status: 'verified',
+            last_verified_at: new Date().toISOString(),
+          })
+          .eq('id', account_id)
+          .select()
+          .single();
+
+        return jsonResponse({
+          success: true,
+          verified: true,
+          account: updated,
+          request_id: requestId,
+        });
       }
 
       default:
         return jsonResponse({ 
           success: false, 
           error: `Unknown action: ${action}`,
-          code: 'INVALID_ACTION',
-          action: 'Valid actions: activate, create, update, delete, set-primary, verify, diagnostics',
+          code: 'UNKNOWN_ACTION',
           request_id: requestId,
         }, 400);
     }
-  } catch (error: unknown) {
-    console.error(`[${requestId}] Unhandled error:`, error);
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return jsonResponse({ 
-      success: false, 
-      error: errorMessage,
+  } catch (error) {
+    console.error(`[${requestId}] Error:`, error);
+    return jsonResponse({
+      success: false,
+      error: (error as Error).message || 'Internal server error',
       code: 'INTERNAL_ERROR',
-      retry: true,
       request_id: requestId,
     }, 500);
   }

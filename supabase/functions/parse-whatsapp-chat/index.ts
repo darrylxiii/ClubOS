@@ -1,9 +1,14 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+/**
+ * Unified CORS headers
+ */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 interface WhatsAppMessage {
@@ -13,9 +18,16 @@ interface WhatsAppMessage {
 }
 
 serve(async (req) => {
+  const requestId = crypto.randomUUID().slice(0, 8);
+  const origin = req.headers.get('origin') || 'unknown';
+
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    console.log(`[${requestId}] CORS preflight from: ${origin}`);
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
+
+  console.log(`[${requestId}] ${req.method} from: ${origin}`);
 
   try {
     const supabaseClient = createClient(
@@ -44,7 +56,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('[WhatsApp Parser] Starting parse for import:', import_id);
+    console.log(`[${requestId}] Starting parse for import: ${import_id}`);
 
     // Update import status
     await supabaseClient
@@ -57,7 +69,6 @@ serve(async (req) => {
     const fileContent = await fileResponse.text();
 
     // Parse WhatsApp format
-    // Format: [12/11/2024, 10:23:45] John Smith: Hey, still looking for that senior dev?
     const messages: WhatsAppMessage[] = [];
     const participants = new Set<string>();
     
@@ -65,31 +76,25 @@ serve(async (req) => {
     let currentMessage: WhatsAppMessage | null = null;
 
     for (const line of lines) {
-      // Match WhatsApp message format with various date formats
       const match = line.match(/^\[?(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[AP]M)?)\]?\s*[-:]?\s*([^:]+):\s*(.+)$/i);
       
       if (match) {
-        // Save previous message
         if (currentMessage) {
           messages.push(currentMessage);
         }
 
         const [, dateStr, timeStr, sender, content] = match;
         
-        // Parse date (handle both DD/MM/YYYY and MM/DD/YYYY)
         const dateParts = dateStr.split(/[\/\-]/);
         let year = parseInt(dateParts[2]);
-        if (year < 100) year += 2000; // Handle 2-digit years
+        if (year < 100) year += 2000;
         
-        // Try MM/DD/YYYY format first (US)
         let timestamp = new Date(year, parseInt(dateParts[0]) - 1, parseInt(dateParts[1]));
         
-        // If invalid, try DD/MM/YYYY format (EU)
         if (isNaN(timestamp.getTime())) {
           timestamp = new Date(year, parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
         }
 
-        // Parse time
         const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s?([AP]M))?/i);
         if (timeMatch) {
           let hours = parseInt(timeMatch[1]);
@@ -103,7 +108,7 @@ serve(async (req) => {
           timestamp.setHours(hours, minutes, seconds);
         }
 
-        const cleanSender = sender.trim().replace(/^~/, ''); // Remove ~ prefix
+        const cleanSender = sender.trim().replace(/^~/, '');
         participants.add(cleanSender);
         
         currentMessage = {
@@ -112,28 +117,24 @@ serve(async (req) => {
           content: content.trim(),
         };
       } else if (currentMessage && line.trim()) {
-        // Continuation of previous message
         currentMessage.content += '\n' + line.trim();
       }
     }
 
-    // Don't forget the last message
     if (currentMessage) {
       messages.push(currentMessage);
     }
 
-    console.log(`[WhatsApp Parser] Parsed ${messages.length} messages from ${participants.size} participants`);
+    console.log(`[${requestId}] Parsed ${messages.length} messages from ${participants.size} participants`);
 
     if (messages.length === 0) {
       throw new Error('No messages found in file. Please check the format.');
     }
 
-    // Get date range
     const timestamps = messages.map(m => m.timestamp.getTime());
     const dateRangeStart = new Date(Math.min(...timestamps));
     const dateRangeEnd = new Date(Math.max(...timestamps));
 
-    // Create interaction record
     const { data: interaction, error: interactionError } = await supabaseClient
       .from('company_interactions')
       .insert({
@@ -158,7 +159,6 @@ serve(async (req) => {
 
     if (interactionError) throw interactionError;
 
-    // Store individual messages
     const messageRecords = messages.map((msg, index) => ({
       interaction_id: interaction.id,
       sender_name: msg.sender,
@@ -167,7 +167,6 @@ serve(async (req) => {
       message_index: index,
     }));
 
-    // Insert in batches of 100
     for (let i = 0; i < messageRecords.length; i += 100) {
       const batch = messageRecords.slice(i, i + 100);
       await supabaseClient
@@ -175,7 +174,6 @@ serve(async (req) => {
         .insert(batch);
     }
 
-    // Update import with results
     await supabaseClient
       .from('whatsapp_imports')
       .update({
@@ -188,9 +186,8 @@ serve(async (req) => {
       })
       .eq('id', import_id);
 
-    console.log('[WhatsApp Parser] Parse complete, triggering entity resolution');
+    console.log(`[${requestId}] Parse complete, triggering entity resolution`);
 
-    // Trigger entity resolution
     await supabaseClient.functions.invoke('resolve-stakeholder-entities', {
       body: {
         import_id,
@@ -214,7 +211,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('[WhatsApp Parser] Error:', error);
+    console.error(`[${requestId}] Error:`, error);
     return new Response(
       JSON.stringify({ error: (error as Error).message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
