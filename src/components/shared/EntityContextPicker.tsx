@@ -83,17 +83,12 @@ export function EntityContextPicker({
     queryKey: ['entity-picker-candidates', search],
     queryFn: async () => {
       if (!allowedTypes.includes('candidate')) return [];
-      const query = supabase
-        .from('candidate_profiles')
-        .select('id, full_name, email, current_title, avatar_url')
-        .limit(20);
-      
+      let query = supabase.from('candidate_profiles').select('id, full_name, email, current_title, avatar_url');
       if (search) {
-        query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%,current_title.ilike.%${search}%`);
+        query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
       }
-      
-      const { data } = await query;
-      return data || [];
+      const { data } = await query.limit(20);
+      return (data || []) as { id: string; full_name: string | null; email: string | null; current_title: string | null; avatar_url: string | null }[];
     },
     enabled: open && allowedTypes.includes('candidate'),
   });
@@ -103,17 +98,12 @@ export function EntityContextPicker({
     queryKey: ['entity-picker-companies', search],
     queryFn: async () => {
       if (!allowedTypes.includes('company')) return [];
-      const query = supabase
-        .from('companies')
-        .select('id, name, industry, logo_url')
-        .limit(20);
-      
+      let query = supabase.from('companies').select('id, name, industry, logo_url');
       if (search) {
-        query.or(`name.ilike.%${search}%,industry.ilike.%${search}%`);
+        query = query.or(`name.ilike.%${search}%,industry.ilike.%${search}%`);
       }
-      
-      const { data } = await query;
-      return data || [];
+      const { data } = await query.limit(20);
+      return (data || []) as { id: string; name: string; industry: string | null; logo_url: string | null }[];
     },
     enabled: open && allowedTypes.includes('company'),
   });
@@ -123,17 +113,12 @@ export function EntityContextPicker({
     queryKey: ['entity-picker-users', search],
     queryFn: async () => {
       if (!allowedTypes.includes('user')) return [];
-      const query = supabase
-        .from('profiles')
-        .select('id, full_name, email, avatar_url, current_title')
-        .limit(20);
-      
+      let query = supabase.from('profiles').select('id, full_name, email, avatar_url, current_title');
       if (search) {
-        query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
+        query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
       }
-      
-      const { data } = await query;
-      return data || [];
+      const { data } = await query.limit(20);
+      return (data || []) as { id: string; full_name: string | null; email: string | null; avatar_url: string | null; current_title: string | null }[];
     },
     enabled: open && allowedTypes.includes('user'),
   });
@@ -143,37 +128,24 @@ export function EntityContextPicker({
     queryKey: ['entity-picker-prospects', search],
     queryFn: async () => {
       if (!allowedTypes.includes('prospect')) return [];
-      const query = supabase
-        .from('crm_prospects')
-        .select('id, name, email, status, company_name')
-        .limit(20);
-      
+      let query = supabase.from('crm_prospects').select('id, full_name, email, stage, company_name');
       if (search) {
-        query.or(`name.ilike.%${search}%,email.ilike.%${search}%,company_name.ilike.%${search}%`);
+        query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
       }
-      
-      const { data } = await query;
-      return data || [];
+      const { data } = await query.limit(20);
+      return (data || []) as { id: string; full_name: string | null; email: string | null; stage: string | null; company_name: string | null }[];
     },
     enabled: open && allowedTypes.includes('prospect'),
   });
 
   // Search jobs
-  const { data: jobs, isLoading: jobsLoading } = useQuery({
+  type JobResult = { id: string; title: string; location: string | null; employment_type: string | null };
+  const { data: jobs, isLoading: jobsLoading } = useQuery<JobResult[]>({
     queryKey: ['entity-picker-jobs', search],
     queryFn: async () => {
       if (!allowedTypes.includes('job')) return [];
-      const query = supabase
-        .from('jobs')
-        .select('id, title, location, employment_type, companies(name)')
-        .eq('is_active', true)
-        .limit(20);
-      
-      if (search) {
-        query.or(`title.ilike.%${search}%,location.ilike.%${search}%`);
-      }
-      
-      const { data } = await query;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase.from('jobs') as any).select('id, title, location, employment_type').eq('is_active', true).limit(20);
       return data || [];
     },
     enabled: open && allowedTypes.includes('job'),
@@ -184,17 +156,12 @@ export function EntityContextPicker({
     queryKey: ['entity-picker-applications', search],
     queryFn: async () => {
       if (!allowedTypes.includes('application')) return [];
-      const query = supabase
-        .from('applications')
-        .select('id, position, company_name, status, user_id')
-        .limit(20);
-      
+      let query = supabase.from('applications').select('id, position, company_name, status, user_id');
       if (search) {
-        query.or(`position.ilike.%${search}%,company_name.ilike.%${search}%`);
+        query = query.or(`position.ilike.%${search}%,company_name.ilike.%${search}%`);
       }
-      
-      const { data } = await query;
-      return data || [];
+      const { data } = await query.limit(20);
+      return (data || []) as { id: string; position: string; company_name: string | null; status: string | null; user_id: string | null }[];
     },
     enabled: open && allowedTypes.includes('application'),
   });
@@ -254,23 +221,20 @@ export function EntityContextPicker({
         }));
         break;
       case 'prospect':
-        items = (prospects || []).map(p => ({
+        items = (prospects || []).map((p: any) => ({
           type: 'prospect' as const,
           id: p.id,
-          name: p.name || p.email,
+          name: p.full_name || p.email || 'Unknown',
           subtitle: p.company_name,
         }));
         break;
       case 'job':
-        items = (jobs || []).map(j => {
-          const company = Array.isArray(j.companies) ? j.companies[0] : j.companies;
-          return {
-            type: 'job' as const,
-            id: j.id,
-            name: j.title,
-            subtitle: `${company?.name || 'Unknown'} • ${j.location || 'Remote'}`,
-          };
-        });
+        items = (jobs || []).map((j: any) => ({
+          type: 'job' as const,
+          id: j.id,
+          name: j.title,
+          subtitle: j.location || 'Remote',
+        }));
         break;
       case 'application':
         items = (applications || []).map(a => ({

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useRelationshipHealth, RelationshipScore } from '@/hooks/useRelationshipHealth';
+import { useRelationshipHealth, RiskFilter } from '@/hooks/useRelationshipHealth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,8 +28,11 @@ import {
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Database } from '@/integrations/supabase/types';
 
-const riskColors = {
+type RelationshipScoreRow = Database['public']['Tables']['communication_relationship_scores']['Row'];
+
+const riskColors: Record<string, string> = {
   low: 'bg-green-500/10 text-green-600 border-green-200',
   medium: 'bg-yellow-500/10 text-yellow-600 border-yellow-200',
   high: 'bg-orange-500/10 text-orange-600 border-orange-200',
@@ -42,7 +45,7 @@ const trendIcons = {
   declining: TrendingDown,
 };
 
-const trendColors = {
+const trendColors: Record<string, string> = {
   improving: 'text-green-500',
   stable: 'text-muted-foreground',
   declining: 'text-red-500',
@@ -56,23 +59,23 @@ const entityIcons = {
 
 export function RelationshipHealthDashboard() {
   const [entityFilter, setEntityFilter] = useState<string>('all');
-  const [riskFilter, setRiskFilter] = useState<string>('all');
+  const [riskFilter, setRiskFilter] = useState<RiskFilter>('all');
 
-  const { relationships, isLoading, stats, refreshScore, isRefreshing } = useRelationshipHealth({
-    entityType: entityFilter !== 'all' ? entityFilter : undefined,
-    limit: 100,
-  });
-
-  const filteredRelationships = relationships.filter(r => {
-    if (riskFilter !== 'all' && r.risk_level !== riskFilter) return false;
-    return true;
-  });
+  const entityTypeFilter = entityFilter === 'all' ? undefined : entityFilter;
+  const { relationships, loading, stats, refetch, recalculateScore } = useRelationshipHealth(entityTypeFilter, riskFilter);
 
   const criticalRelationships = relationships.filter(r => 
     r.risk_level === 'critical' || r.risk_level === 'high'
   );
 
-  const RelationshipCard = ({ relationship }: { relationship: RelationshipScore }) => {
+  // Calculate derived stats
+  const avgHealthScore = relationships.length > 0 
+    ? Math.round(relationships.reduce((sum, r) => sum + (r.health_score || 0), 0) / relationships.length)
+    : 0;
+
+  const decliningCount = relationships.filter(r => r.sentiment_trend === 'declining').length;
+
+  const RelationshipCard = ({ relationship }: { relationship: RelationshipScoreRow }) => {
     const TrendIcon = trendIcons[relationship.sentiment_trend as keyof typeof trendIcons] || Minus;
     const EntityIcon = entityIcons[relationship.entity_type as keyof typeof entityIcons] || User;
 
@@ -89,29 +92,29 @@ export function RelationshipHealthDashboard() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-medium capitalize">{relationship.entity_type}</span>
-                <Badge variant="outline" className={cn("text-xs", riskColors[relationship.risk_level])}>
+                <Badge variant="outline" className={cn("text-xs", riskColors[relationship.risk_level || 'low'])}>
                   {relationship.risk_level}
                 </Badge>
-                <TrendIcon className={cn("h-4 w-4 ml-auto", trendColors[relationship.sentiment_trend as keyof typeof trendColors])} />
+                <TrendIcon className={cn("h-4 w-4 ml-auto", trendColors[relationship.sentiment_trend || 'stable'])} />
               </div>
               
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {relationship.days_since_contact} days ago
+                  {relationship.days_since_contact ?? 0} days ago
                 </span>
                 <span className="flex items-center gap-1">
                   <MessageSquare className="h-3 w-3" />
-                  {relationship.total_touchpoints} touchpoints
+                  {relationship.total_communications ?? 0} comms
                 </span>
               </div>
 
               <div className="mt-3">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-muted-foreground">Health Score</span>
-                  <span className="text-xs font-medium">{relationship.health_score}%</span>
+                  <span className="text-xs font-medium">{relationship.health_score ?? 0}%</span>
                 </div>
-                <Progress value={relationship.health_score} className="h-1.5" />
+                <Progress value={relationship.health_score ?? 0} className="h-1.5" />
               </div>
 
               {relationship.recommended_action && (
@@ -133,7 +136,7 @@ export function RelationshipHealthDashboard() {
         <Card>
           <CardContent className="p-4 text-center">
             <Heart className="h-6 w-6 mx-auto text-primary mb-2" />
-            <p className="text-2xl font-bold">{stats.totalRelationships}</p>
+            <p className="text-2xl font-bold">{stats.total}</p>
             <p className="text-xs text-muted-foreground">Total Relationships</p>
           </CardContent>
         </Card>
@@ -156,16 +159,16 @@ export function RelationshipHealthDashboard() {
         <Card>
           <CardContent className="p-4 text-center">
             <TrendingDown className="h-6 w-6 mx-auto text-red-500 mb-2" />
-            <p className="text-2xl font-bold text-red-600">{stats.declining}</p>
+            <p className="text-2xl font-bold text-red-600">{decliningCount}</p>
             <p className="text-xs text-muted-foreground">Declining</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="h-6 w-6 mx-auto mb-2 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-xs font-bold text-primary">{stats.avgHealthScore}</span>
+              <span className="text-xs font-bold text-primary">{avgHealthScore}</span>
             </div>
-            <p className="text-2xl font-bold">{stats.avgHealthScore}%</p>
+            <p className="text-2xl font-bold">{avgHealthScore}%</p>
             <p className="text-xs text-muted-foreground">Avg Health</p>
           </CardContent>
         </Card>
@@ -215,7 +218,7 @@ export function RelationshipHealthDashboard() {
                   <SelectItem value="prospect">Prospects</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={riskFilter} onValueChange={setRiskFilter}>
+              <Select value={riskFilter} onValueChange={(v) => setRiskFilter(v as RiskFilter)}>
                 <SelectTrigger className="w-[120px]">
                   <SelectValue placeholder="Risk Level" />
                 </SelectTrigger>
@@ -227,22 +230,25 @@ export function RelationshipHealthDashboard() {
                   <SelectItem value="low">Low</SelectItem>
                 </SelectContent>
               </Select>
+              <Button variant="outline" size="icon" onClick={() => refetch()}>
+                <RefreshCw className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {loading ? (
             <div className="flex items-center justify-center py-8">
               <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-          ) : filteredRelationships.length === 0 ? (
+          ) : relationships.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No relationships found matching your filters
             </div>
           ) : (
             <ScrollArea className="h-[500px]">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {filteredRelationships.map(r => (
+                {relationships.map(r => (
                   <RelationshipCard key={r.id} relationship={r} />
                 ))}
               </div>

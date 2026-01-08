@@ -1085,3 +1085,6 @@ verify_jwt = true
 
 [functions.update-relationship-scores]
 verify_jwt = true
+
+[functions.process-external-import]
+verify_jwt = true
