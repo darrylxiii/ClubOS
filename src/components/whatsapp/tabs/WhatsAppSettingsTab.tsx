@@ -8,13 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { notify } from '@/lib/notify';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageSquare, Shield, RefreshCw, ExternalLink, Copy, CheckCircle, AlertCircle, Key, Globe } from 'lucide-react';
+import { MessageSquare, Shield, RefreshCw, ExternalLink, Copy, CheckCircle, AlertCircle, Key, Globe, Zap, Loader2 } from 'lucide-react';
 
 export function WhatsAppSettingsTab() {
   const queryClient = useQueryClient();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
 
-  const { data: account } = useQuery({
+  const { data: account, refetch: refetchAccount } = useQuery({
     queryKey: ['whatsapp-accounts'],
     queryFn: async () => {
       const { data } = await supabase
@@ -37,6 +38,25 @@ export function WhatsAppSettingsTab() {
     },
   });
 
+  const activateAccount = async () => {
+    setIsActivating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('activate-whatsapp-account');
+      if (error) throw error;
+      
+      if (data.success) {
+        await refetchAccount();
+        notify.success(`WhatsApp activated: ${data.account.display_phone_number}`);
+      } else {
+        notify.error(data.error || 'Activation failed');
+      }
+    } catch (error: any) {
+      notify.error(error.message || 'Failed to activate WhatsApp');
+    } finally {
+      setIsActivating(false);
+    }
+  };
+
   const syncTemplates = async () => {
     setIsSyncing(true);
     try {
@@ -56,6 +76,8 @@ export function WhatsAppSettingsTab() {
     navigator.clipboard.writeText(url);
     notify.success('Webhook URL copied to clipboard');
   };
+
+  const isRealAccount = account?.display_phone_number === '+31622888444';
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
@@ -84,17 +106,57 @@ export function WhatsAppSettingsTab() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Activation Button */}
+              {(!account || !isRealAccount) && (
+                <div className="p-4 rounded-lg border border-amber-500/20 bg-amber-500/5 mb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Zap className="h-5 w-5 text-amber-500" />
+                      <div>
+                        <p className="font-medium">Activate Real Account</p>
+                        <p className="text-sm text-muted-foreground">
+                          Connect +31622888444 to start receiving messages
+                        </p>
+                      </div>
+                    </div>
+                    <Button onClick={activateAccount} disabled={isActivating}>
+                      {isActivating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Activating...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="h-4 w-4 mr-2" />
+                          Activate Now
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {account ? (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                  <div className={`flex items-center justify-between p-4 rounded-lg ${
+                    isRealAccount 
+                      ? 'bg-green-500/10 border border-green-500/20' 
+                      : 'bg-amber-500/10 border border-amber-500/20'
+                  }`}>
                     <div className="flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      {isRealAccount ? (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <AlertCircle className="h-5 w-5 text-amber-500" />
+                      )}
                       <div>
-                        <p className="font-medium">Connected</p>
+                        <p className="font-medium">{isRealAccount ? 'Connected' : 'Demo Mode'}</p>
                         <p className="text-sm text-muted-foreground">{account.verified_name || 'WhatsApp Business'}</p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="bg-green-500/10 text-green-500">Active</Badge>
+                    <Badge variant="outline" className={isRealAccount ? 'bg-green-500/10 text-green-500' : 'bg-amber-500/10 text-amber-500'}>
+                      {isRealAccount ? 'Active' : 'Demo'}
+                    </Badge>
                   </div>
 
                   <div className="grid gap-4">
@@ -113,12 +175,8 @@ export function WhatsAppSettingsTab() {
                   <AlertCircle className="h-12 w-12 mx-auto mb-4 text-amber-500" />
                   <h3 className="font-medium mb-2">Not Connected</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Connect your WhatsApp Business account to start messaging
+                    Click "Activate Now" above to connect your WhatsApp Business account
                   </p>
-                  <Button>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Connect WhatsApp
-                  </Button>
                 </div>
               )}
             </CardContent>
