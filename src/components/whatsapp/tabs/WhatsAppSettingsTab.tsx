@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,7 @@ import { FunctionsHttpError, FunctionsFetchError } from '@supabase/supabase-js';
 import { 
   MessageSquare, Shield, RefreshCw, ExternalLink, Copy, CheckCircle, 
   AlertCircle, Key, Globe, Loader2, Users, Wifi, WifiOff, Clock,
-  ShieldCheck, Activity, Stethoscope, AlertTriangle, CheckCircle2, XCircle
+  ShieldCheck, Activity, Stethoscope, AlertTriangle, CheckCircle2, XCircle, LogIn
 } from 'lucide-react';
 
 interface WhatsAppAccount {
@@ -45,9 +46,9 @@ interface DiagnosticsResult {
 
 /**
  * Ensures we have a valid session, refreshing if needed
- * Returns the session or throws an error
+ * Returns the session or throws an error with redirect flag
  */
-async function ensureValidSession() {
+async function ensureValidSession(navigate: ReturnType<typeof useNavigate>) {
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
   
   if (sessionError) {
@@ -62,15 +63,21 @@ async function ensureValidSession() {
     
     if (refreshError || !refreshData.session) {
       console.error('[WhatsApp] Refresh failed:', refreshError);
-      throw new Error('SESSION_EXPIRED');
+      // Auto-redirect on expired session
+      notify.error('Session expired', {
+        description: 'Redirecting to sign in...',
+        action: { label: 'Sign In Now', onClick: () => navigate('/auth') }
+      });
+      setTimeout(() => navigate('/auth'), 2000);
+      throw new Error('SESSION_EXPIRED_REDIRECT');
     }
     
     return refreshData.session;
   }
   
-  // Check if session is about to expire (within 60 seconds)
+  // Proactively refresh if expiring within 5 minutes
   const expiresAt = sessionData.session.expires_at;
-  if (expiresAt && expiresAt * 1000 < Date.now() + 60000) {
+  if (expiresAt && expiresAt * 1000 < Date.now() + 300000) {
     console.log('[WhatsApp] Session expiring soon, refreshing...');
     const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
     
@@ -138,38 +145,52 @@ function parseEdgeFunctionError(error: unknown): { message: string; code?: strin
   
   return { message: 'An unexpected error occurred' };
 }
-
-/**
- * Call edge function with proper session handling
- */
-async function invokeWhatsAppFunction(action: string, extraData: Record<string, unknown> = {}) {
-  // Ensure valid session first
-  await ensureValidSession();
-  
-  const { data, error } = await supabase.functions.invoke('manage-whatsapp-account', {
-    body: { action, ...extraData }
-  });
-  
-  if (error) {
-    throw error;
-  }
-  
-  if (data && !data.success && data.error) {
-    const err = new Error(data.error);
-    (err as unknown as Record<string, unknown>).code = data.code;
-    (err as unknown as Record<string, unknown>).action = data.action;
-    throw err;
-  }
-  
-  return data;
-}
-
 export function WhatsAppSettingsTab() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [isSyncing, setIsSyncing] = useState(false);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [diagnosticsResult, setDiagnosticsResult] = useState<DiagnosticsResult | null>(null);
   const [isRunningDiagnostics, setIsRunningDiagnostics] = useState(false);
+  const [sessionStatus, setSessionStatus] = useState<'valid' | 'expiring' | 'expired' | 'checking'>('checking');
+
+  // Check session status on mount and periodically
+  useEffect(() => {
+    async function checkSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setSessionStatus('expired');
+        return;
+      }
+      const expiresAt = session.expires_at ? session.expires_at * 1000 : 0;
+      const now = Date.now();
+      if (expiresAt < now) {
+        setSessionStatus('expired');
+      } else if (expiresAt < now + 600000) { // 10 minutes
+        setSessionStatus('expiring');
+      } else {
+        setSessionStatus('valid');
+      }
+    }
+    checkSession();
+    const interval = setInterval(checkSession, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handle session refresh
+  async function handleRefreshSession() {
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error || !data.session) {
+      notify.error('Could not refresh session', { description: 'Please sign in again.' });
+      navigate('/auth');
+    } else {
+      setSessionStatus('valid');
+      notify.success('Session refreshed');
+    }
+  }
+
+  // Wrap ensureValidSession with navigate
+  const ensureSession = () => ensureValidSession(navigate);
 
   // Fetch all accounts
   const { data: accounts, isLoading: accountsLoading, refetch: refetchAccounts } = useQuery({
@@ -249,10 +270,32 @@ export function WhatsAppSettingsTab() {
     }
   };
 
+  // Helper to invoke with session check
+  async function invokeWithSession(action: string, extraData: Record<string, unknown> = {}) {
+    await ensureSession();
+    
+    const { data, error } = await supabase.functions.invoke('manage-whatsapp-account', {
+      body: { action, ...extraData }
+    });
+    
+    if (error) {
+      throw error;
+    }
+    
+    if (data && !data.success && data.error) {
+      const err = new Error(data.error);
+      (err as unknown as Record<string, unknown>).code = data.code;
+      (err as unknown as Record<string, unknown>).action = data.action;
+      throw err;
+    }
+    
+    return data;
+  }
+
   // Activate account mutation
   const activateMutation = useMutation({
     mutationFn: async () => {
-      return invokeWhatsAppFunction('activate');
+      return invokeWithSession('activate');
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts-settings'] });
@@ -290,7 +333,7 @@ export function WhatsAppSettingsTab() {
   const verifyMutation = useMutation({
     mutationFn: async (accountId: string) => {
       setVerifyingId(accountId);
-      return invokeWhatsAppFunction('verify', { account_id: accountId });
+      return invokeWithSession('verify', { account_id: accountId });
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts-settings'] });
@@ -319,12 +362,13 @@ export function WhatsAppSettingsTab() {
   const syncTemplates = async () => {
     setIsSyncing(true);
     try {
-      await ensureValidSession();
+      await ensureSession();
       const { error } = await supabase.functions.invoke('sync-whatsapp-templates');
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['whatsapp-templates'] });
       notify.success('Templates synced');
     } catch (err) {
+      if ((err as Error).message === 'SESSION_EXPIRED_REDIRECT') return;
       const parsed = parseEdgeFunctionError(err);
       notify.error(parsed.message || 'Failed to sync templates');
     } finally {
@@ -382,6 +426,34 @@ export function WhatsAppSettingsTab() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
+      {/* Session Status Banner */}
+      {sessionStatus === 'expired' && (
+        <Card className="border-destructive bg-destructive/10">
+          <CardContent className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <span className="text-sm font-medium">Session expired. Please sign in again.</span>
+            </div>
+            <Button size="sm" variant="destructive" onClick={() => navigate('/auth')}>
+              <LogIn className="h-4 w-4 mr-1" /> Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+      {sessionStatus === 'expiring' && (
+        <Card className="border-amber-500 bg-amber-500/10">
+          <CardContent className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="h-4 w-4" />
+              <span className="text-sm font-medium">Session expiring soon.</span>
+            </div>
+            <Button size="sm" variant="outline" onClick={handleRefreshSession}>
+              <RefreshCw className="h-4 w-4 mr-1" /> Refresh Session
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">WhatsApp Settings</h2>
