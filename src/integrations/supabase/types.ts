@@ -46348,6 +46348,41 @@ export type Database = {
           },
         ]
       }
+      whatsapp_conversation_events: {
+        Row: {
+          actor_id: string | null
+          conversation_id: string | null
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+        }
+        Update: {
+          actor_id?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversation_events_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_conversations: {
         Row: {
           account_id: string | null
