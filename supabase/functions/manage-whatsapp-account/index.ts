@@ -1,15 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-/**
- * Unified CORS headers - must include all headers browsers/supabase-js might send
- */
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-  'Access-Control-Max-Age': '86400',
-};
+import { getCorsHeaders, handleCorsPreFlight, publicCorsHeaders } from '../_shared/cors-config.ts';
 
 interface AuthResult {
   userId: string;
@@ -18,11 +9,13 @@ interface AuthResult {
 
 /**
  * Create a standardized JSON response with CORS headers
+ * Uses shared CORS config that includes all required headers
  */
-function jsonResponse(data: Record<string, unknown>, status = 200): Response {
+function jsonResponse(data: Record<string, unknown>, status = 200, req?: Request): Response {
+  const headers = req ? getCorsHeaders(req) : publicCorsHeaders;
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...headers, 'Content-Type': 'application/json' },
   });
 }
 
@@ -144,10 +137,7 @@ serve(async (req) => {
   // Handle CORS preflight with detailed logging
   if (req.method === 'OPTIONS') {
     console.log(`[${requestId}] CORS preflight: origin=${origin}, requested-headers=${requestedHeaders}`);
-    return new Response(null, { 
-      status: 204,
-      headers: corsHeaders 
-    });
+    return handleCorsPreFlight(req, requestId);
   }
 
   console.log(`[${requestId}] ${req.method} request from: ${origin}`);
