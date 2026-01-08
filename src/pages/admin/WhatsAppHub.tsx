@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
+import { useRole } from '@/contexts/RoleContext';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import { 
   MessageSquare, 
   BarChart3, 
@@ -11,7 +13,8 @@ import {
   Upload, 
   Settings,
   Wifi,
-  WifiOff
+  WifiOff,
+  ArrowLeft
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -49,6 +52,8 @@ const sidebarItems: SidebarItem[] = [
 
 export default function WhatsAppHub() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { currentRole } = useRole();
   
   const activeTab = (searchParams.get('tab') as TabId) || 'inbox';
   
@@ -141,10 +146,19 @@ export default function WhatsAppHub() {
   return (
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist', 'partner']} showLoading>
-        <div className="min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)] flex flex-col">
+        <div className="h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="h-14 border-b border-border bg-card/50 flex items-center justify-between px-4 shrink-0">
+          <div className="h-14 border-b border-border bg-card/50 flex items-center justify-between px-4 flex-shrink-0">
             <div className="flex items-center gap-3">
+              {/* Back Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/admin/dashboard')}
+                className="shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
               <div className="w-10 h-10 rounded-xl bg-[#25d366] flex items-center justify-center">
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
@@ -187,15 +201,15 @@ export default function WhatsAppHub() {
           </div>
 
           {/* Top Navigation Tabs - Always Visible */}
-          <div className="border-b border-border bg-card/30 px-4 shrink-0">
+          <div className="border-b border-border bg-card/30 px-4 flex-shrink-0">
             <nav className="flex items-center gap-1 overflow-x-auto -mb-px">
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
                 const badgeCount = item.id === 'inbox' ? unreadCount : undefined;
                 
-                // Check role access for settings
-                if (item.roles && !item.roles.includes('admin')) {
+                // Check role access for settings tab
+                if (item.roles && !item.roles.includes(currentRole || '')) {
                   return null;
                 }
                 
@@ -224,10 +238,12 @@ export default function WhatsAppHub() {
           </div>
 
           {/* Metrics Bar */}
-          <WhatsAppMetricsBar />
+          <div className="flex-shrink-0">
+            <WhatsAppMetricsBar />
+          </div>
 
           {/* Main Content */}
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 min-h-0 overflow-auto">
             {renderTabContent()}
           </div>
         </div>
