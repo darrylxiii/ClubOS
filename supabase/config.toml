@@ -313,10 +313,7 @@ verify_jwt = true
 [functions.generate-company-intelligence-report]
 verify_jwt = true
 
-[functions.seed-test-intelligence-data]
-verify_jwt = true
-
-[functions.cleanup-test-intelligence-data]
+[functions.manage-whatsapp-account]
 verify_jwt = true
 
 [functions.orchestrate-intelligence-pipeline]
