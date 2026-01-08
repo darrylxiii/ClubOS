@@ -1,12 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/**
+ * Unified CORS headers
+ */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
-const WHATSAPP_API_URL = 'https://graph.facebook.com/v18.0';
+const WHATSAPP_API_URL = 'https://graph.facebook.com/v21.0';
 
 interface SendMessageRequest {
   conversationId?: string;
@@ -21,9 +26,16 @@ interface SendMessageRequest {
 }
 
 serve(async (req) => {
+  const requestId = crypto.randomUUID().slice(0, 8);
+  const origin = req.headers.get('origin') || 'unknown';
+
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    console.log(`[${requestId}] CORS preflight from: ${origin}`);
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
+
+  console.log(`[${requestId}] ${req.method} from: ${origin}`);
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -64,7 +76,7 @@ serve(async (req) => {
       mediaCaption 
     } = body;
 
-    console.log('Sending WhatsApp message:', { messageType, conversationId, candidatePhone });
+    console.log(`[${requestId}] Sending WhatsApp message:`, { messageType, conversationId, candidatePhone });
 
     // Get or create conversation
     let conversation;
@@ -144,7 +156,6 @@ serve(async (req) => {
     };
 
     if (messageType === 'template' && templateName) {
-      // Check if within 24h window or use template
       const windowExpired = conversation.messaging_window_expires_at 
         ? new Date(conversation.messaging_window_expires_at) < new Date()
         : true;
@@ -187,7 +198,7 @@ serve(async (req) => {
     }
 
     // Send to WhatsApp API
-    console.log('Sending to WhatsApp API:', JSON.stringify(messagePayload, null, 2));
+    console.log(`[${requestId}] Sending to WhatsApp API`);
     
     const waResponse = await fetch(
       `${WHATSAPP_API_URL}/${phoneNumberId}/messages`,
@@ -202,10 +213,9 @@ serve(async (req) => {
     );
 
     const waResult = await waResponse.json();
-    console.log('WhatsApp API response:', waResult);
 
     if (!waResponse.ok) {
-      console.error('WhatsApp API error:', waResult);
+      console.error(`[${requestId}] WhatsApp API error:`, waResult);
       throw new Error(waResult.error?.message || 'Failed to send WhatsApp message');
     }
 
@@ -233,10 +243,10 @@ serve(async (req) => {
       .single();
 
     if (messageError) {
-      console.error('Error storing message:', messageError);
+      console.error(`[${requestId}] Error storing message:`, messageError);
     }
 
-    console.log('Message sent successfully:', { waMessageId, messageId: message?.id });
+    console.log(`[${requestId}] Message sent successfully:`, { waMessageId, messageId: message?.id });
 
     return new Response(
       JSON.stringify({
@@ -249,7 +259,7 @@ serve(async (req) => {
     );
 
   } catch (error: unknown) {
-    console.error('Error in send-whatsapp-message:', error);
+    console.error(`[${requestId}] Error:`, error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: message }),

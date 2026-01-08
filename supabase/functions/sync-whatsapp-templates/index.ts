@@ -1,17 +1,29 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/**
+ * Unified CORS headers
+ */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
-const WHATSAPP_API_URL = 'https://graph.facebook.com/v18.0';
+const WHATSAPP_API_URL = 'https://graph.facebook.com/v21.0';
 
 serve(async (req) => {
+  const requestId = crypto.randomUUID().slice(0, 8);
+  const origin = req.headers.get('origin') || 'unknown';
+
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    console.log(`[${requestId}] CORS preflight from: ${origin}`);
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
+
+  console.log(`[${requestId}] ${req.method} from: ${origin}`);
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -39,16 +51,20 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    console.log('Syncing WhatsApp templates for business account:', businessAccountId);
+    console.log(`[${requestId}] Syncing WhatsApp templates for business account: ${businessAccountId}`);
 
-    // Get default account
-    const { data: account, error: accountError } = await supabase
+    // Get or create account
+    let { data: account, error: accountError } = await supabase
       .from('whatsapp_business_accounts')
       .select('*')
       .eq('business_account_id', businessAccountId)
-      .single();
+      .maybeSingle();
 
-    if (accountError) {
+    if (accountError && accountError.code !== 'PGRST116') {
+      throw accountError;
+    }
+
+    if (!account) {
       // Create the account if it doesn't exist
       const phoneNumberId = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
       
@@ -64,9 +80,14 @@ serve(async (req) => {
         .single();
 
       if (createError) throw createError;
+      account = newAccount;
     }
 
+    // Ensure we have accountId
     const accountId = account?.id;
+    if (!accountId) {
+      throw new Error('Could not determine account ID');
+    }
 
     // Fetch templates from Meta API
     const templatesResponse = await fetch(
@@ -86,7 +107,7 @@ serve(async (req) => {
     const templatesData = await templatesResponse.json();
     const templates = templatesData.data || [];
 
-    console.log(`Found ${templates.length} templates from Meta`);
+    console.log(`[${requestId}] Found ${templates.length} templates from Meta`);
 
     // Upsert templates
     const upsertedTemplates = [];
@@ -113,13 +134,13 @@ serve(async (req) => {
         .single();
 
       if (upsertError) {
-        console.error('Error upserting template:', template.name, upsertError);
+        console.error(`[${requestId}] Error upserting template:`, template.name, upsertError);
       } else {
         upsertedTemplates.push(upserted);
       }
     }
 
-    console.log(`Synced ${upsertedTemplates.length} templates`);
+    console.log(`[${requestId}] Synced ${upsertedTemplates.length} templates`);
 
     return new Response(
       JSON.stringify({
@@ -131,7 +152,7 @@ serve(async (req) => {
     );
 
   } catch (error: unknown) {
-    console.error('Error syncing templates:', error);
+    console.error(`[${requestId}] Error:`, error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: message }),
