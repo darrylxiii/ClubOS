@@ -10,12 +10,9 @@ import {
   Zap, 
   Upload, 
   Settings,
-  ChevronLeft,
-  ChevronRight,
   Wifi,
   WifiOff
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQuery } from '@tanstack/react-query';
@@ -52,12 +49,14 @@ const sidebarItems: SidebarItem[] = [
 
 export default function WhatsAppHub() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [collapsed, setCollapsed] = useState(false);
   
   const activeTab = (searchParams.get('tab') as TabId) || 'inbox';
   
   const setActiveTab = (tab: TabId) => {
-    setSearchParams({ tab });
+    setSearchParams(prev => {
+      prev.set('tab', tab);
+      return prev;
+    }, { replace: true });
   };
 
   // Connection status
@@ -187,88 +186,49 @@ export default function WhatsAppHub() {
             </div>
           </div>
 
+          {/* Top Navigation Tabs - Always Visible */}
+          <div className="border-b border-border bg-card/30 px-4 shrink-0">
+            <nav className="flex items-center gap-1 overflow-x-auto -mb-px">
+              {sidebarItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                const badgeCount = item.id === 'inbox' ? unreadCount : undefined;
+                
+                // Check role access for settings
+                if (item.roles && !item.roles.includes('admin')) {
+                  return null;
+                }
+                
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                      isActive
+                        ? "border-[#25d366] text-[#25d366]"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                    {badgeCount && badgeCount > 0 && (
+                      <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-[10px]">
+                        {badgeCount > 99 ? '99+' : badgeCount}
+                      </Badge>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
           {/* Metrics Bar */}
           <WhatsAppMetricsBar />
 
           {/* Main Content */}
-          <div className="flex-1 flex overflow-hidden">
-            {/* Sidebar */}
-            <div className={cn(
-              "border-r border-border bg-card/30 flex flex-col shrink-0 transition-all duration-200",
-              collapsed ? "w-16" : "w-52"
-            )}>
-              <nav className="flex-1 p-2 space-y-1">
-                {sidebarItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeTab === item.id;
-                  const badgeCount = item.id === 'inbox' ? unreadCount : undefined;
-                  
-                  return (
-                    <Tooltip key={item.id} delayDuration={collapsed ? 0 : 1000}>
-                      <TooltipTrigger asChild>
-                        <button
-                          onClick={() => setActiveTab(item.id)}
-                          className={cn(
-                            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
-                            isActive
-                              ? "bg-[#25d366]/10 text-[#25d366] border border-[#25d366]/20"
-                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                          )}
-                        >
-                          <Icon className={cn("w-5 h-5 shrink-0", isActive && "text-[#25d366]")} />
-                          {!collapsed && (
-                            <>
-                              <span className="flex-1 text-left">{item.label}</span>
-                              {badgeCount && badgeCount > 0 && (
-                                <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-[10px]">
-                                  {badgeCount > 99 ? '99+' : badgeCount}
-                                </Badge>
-                              )}
-                            </>
-                          )}
-                        </button>
-                      </TooltipTrigger>
-                      {collapsed && (
-                        <TooltipContent side="right">
-                          <div className="flex items-center gap-2">
-                            {item.label}
-                            {badgeCount && badgeCount > 0 && (
-                              <Badge variant="destructive" className="h-4 min-w-[16px] px-1 text-[9px]">
-                                {badgeCount}
-                              </Badge>
-                            )}
-                          </div>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  );
-                })}
-              </nav>
-              
-              {/* Collapse button */}
-              <div className="p-2 border-t border-border">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setCollapsed(!collapsed)}
-                  className="w-full justify-center"
-                >
-                  {collapsed ? (
-                    <ChevronRight className="w-4 h-4" />
-                  ) : (
-                    <>
-                      <ChevronLeft className="w-4 h-4 mr-2" />
-                      <span>Collapse</span>
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            {/* Content Area */}
-            <div className="flex-1 overflow-auto">
-              {renderTabContent()}
-            </div>
+          <div className="flex-1 overflow-auto">
+            {renderTabContent()}
           </div>
         </div>
       </RoleGate>
