@@ -201,19 +201,18 @@ export function WhatsAppOnboardingCard({
 
       await supabase.from('whatsapp_templates').insert(demoTemplates);
 
-      // Invalidate all queries
-      queryClient.invalidateQueries({ queryKey: ['whatsapp'] });
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-account-status'] });
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-unread-count'] });
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-quick-metrics'] });
+      // Invalidate all queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ['whatsapp'] });
+      await queryClient.invalidateQueries({ queryKey: ['whatsapp-account-status'] });
+      await queryClient.invalidateQueries({ queryKey: ['whatsapp-unread-count'] });
+      await queryClient.invalidateQueries({ queryKey: ['whatsapp-quick-metrics'] });
+      await queryClient.invalidateQueries({ queryKey: ['whatsapp-templates-count'] });
+      await queryClient.invalidateQueries({ queryKey: ['whatsapp-conversation-count'] });
 
       notify.success('Demo data created', { description: 'Sample conversations and templates added' });
       
-      // Navigate to inbox
+      // Navigate to inbox - no reload needed, queries are invalidated
       onNavigate('inbox');
-      
-      // Force page refresh to show new data
-      window.location.reload();
     } catch (error: any) {
       console.error('Seed error:', error);
       notify.error('Failed to create demo data', { description: error.message });
