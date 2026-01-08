@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { format, subDays } from 'date-fns';
+import { WhatsAppTemplateAnalytics } from '@/components/whatsapp/WhatsAppTemplateAnalytics';
 
 export function WhatsAppAnalyticsTab() {
   const [period, setPeriod] = useState('7d');
@@ -235,37 +236,7 @@ export function WhatsAppAnalyticsTab() {
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Template Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {analytics?.templates.map((template) => {
-                  const templateMessages = analytics?.messages.filter(m => m.template_name === template.template_name) || [];
-                  const sent = templateMessages.length;
-                  const delivered = templateMessages.filter(m => m.status === 'delivered' || m.status === 'read').length;
-                  const rate = sent > 0 ? ((delivered / sent) * 100).toFixed(0) : '0';
-                  
-                  return (
-                    <div key={template.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                      <div>
-                        <p className="font-medium">{template.template_name}</p>
-                        <p className="text-sm text-muted-foreground">{template.language_code}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">{sent} sent</p>
-                        <p className="text-sm text-muted-foreground">{rate}% delivered</p>
-                      </div>
-                    </div>
-                  );
-                })}
-                {(!analytics?.templates || analytics.templates.length === 0) && (
-                  <p className="text-center text-muted-foreground py-8">No templates yet</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <WhatsAppTemplateAnalytics periodDays={period === '7d' ? 7 : period === '30d' ? 30 : 90} />
         </TabsContent>
 
         <TabsContent value="conversations" className="space-y-4">

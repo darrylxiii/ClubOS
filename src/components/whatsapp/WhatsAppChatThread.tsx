@@ -39,6 +39,7 @@ interface WhatsAppChatThreadProps {
   onSend: (content: string) => Promise<void>;
   onOpenTemplates: () => void;
   onOpenInsights: () => void;
+  onOpenEmailBridge?: () => void;
   onPin?: () => void;
   onViewProfile?: () => void;
 }
@@ -52,6 +53,7 @@ export function WhatsAppChatThread({
   onSend,
   onOpenTemplates,
   onOpenInsights,
+  onOpenEmailBridge,
   onPin,
   onViewProfile
 }: WhatsAppChatThreadProps) {
@@ -286,6 +288,7 @@ export function WhatsAppChatThread({
       <WhatsAppMessageComposer
         onSend={onSend}
         onOpenTemplates={onOpenTemplates}
+        onOpenEmailBridge={onOpenEmailBridge}
         messagingWindowExpiresAt={conversation.messaging_window_expires_at}
         smartReplies={smartReplies}
         sending={sending}

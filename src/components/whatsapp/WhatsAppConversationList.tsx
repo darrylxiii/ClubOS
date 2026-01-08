@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { WhatsAppConsentBadge } from "@/components/whatsapp/WhatsAppConsentBadge";
 import { 
   Search, 
   Filter, 
@@ -289,6 +290,9 @@ export function WhatsAppConversationList({
 
                     {/* Tags, SLA & Status */}
                     <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                      {/* Consent Badge */}
+                      <WhatsAppConsentBadge phoneNumber={conversation.candidate_phone} size="sm" />
+                      
                       {conversation.unread_count > 0 && (
                         <Badge className="bg-[#25d366] text-white h-5 min-w-[20px] px-1.5 text-xs">
                           {conversation.unread_count}
