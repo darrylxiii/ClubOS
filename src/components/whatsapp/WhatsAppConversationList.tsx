@@ -17,17 +17,19 @@ import {
   HelpCircle,
   Calendar,
   AlertTriangle,
-  X
+  X,
+  Timer
 } from "lucide-react";
 import { formatDistanceToNow, differenceInHours } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import type { WhatsAppConversation } from "@/hooks/useWhatsAppConversations";
+import type { WhatsAppConversation, SlaStatus } from "@/hooks/useWhatsAppConversations";
 
 interface WhatsAppConversationListProps {
   conversations: WhatsAppConversation[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   loading?: boolean;
+  sortBySla?: boolean;
 }
 
 type FilterType = 'all' | 'unread' | 'needs_response' | 'hot_leads' | 'expiring';
@@ -36,10 +38,22 @@ export function WhatsAppConversationList({
   conversations, 
   selectedId, 
   onSelect,
-  loading 
+  loading,
+  sortBySla = false
 }: WhatsAppConversationListProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterType>('all');
+
+  const getSlaLevelColor = (slaStatus: SlaStatus | null | undefined) => {
+    if (!slaStatus) return '';
+    switch (slaStatus.level) {
+      case 'critical': return 'border-l-red-600';
+      case 'overdue': return 'border-l-red-500';
+      case 'warning': return 'border-l-amber-500';
+      case 'attention': return 'border-l-yellow-500';
+      default: return '';
+    }
+  };
 
   const getIntentIcon = (tags: string[]) => {
     if (tags.includes('interested') || tags.includes('hot')) return <Flame className="w-3.5 h-3.5 text-orange-400" />;
@@ -91,15 +105,23 @@ export function WhatsAppConversationList({
         break;
     }
     
-    // Sort: pinned first, then by last message
+    // Sort: pinned first, then by SLA urgency or last message
     return filtered.sort((a, b) => {
       if (a.is_pinned && !b.is_pinned) return -1;
       if (!a.is_pinned && b.is_pinned) return 1;
+      
+      // Sort by SLA urgency if enabled
+      if (sortBySla) {
+        const aWait = a.slaStatus?.waitMinutes || 0;
+        const bWait = b.slaStatus?.waitMinutes || 0;
+        if (aWait !== bWait) return bWait - aWait;
+      }
+      
       const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
       const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
       return bTime - aTime;
     });
-  }, [conversations, search, filter]);
+  }, [conversations, search, filter, sortBySla]);
 
   const filterButtons: { key: FilterType; label: string; icon: React.ReactNode }[] = [
     { key: 'all', label: 'All', icon: <MessageSquare className="w-3.5 h-3.5" /> },
@@ -217,10 +239,12 @@ export function WhatsAppConversationList({
                   transition={{ delay: index * 0.03 }}
                   onClick={() => onSelect(conversation.id)}
                   className={cn(
-                    "flex items-center gap-3 p-4 cursor-pointer border-b border-border/50 transition-all",
+                    "flex items-center gap-3 p-4 cursor-pointer border-b border-border/50 transition-all border-l-2",
                     isSelected 
-                      ? "bg-[#25d366]/10 border-l-2 border-l-[#25d366]" 
-                      : "hover:bg-muted/50"
+                      ? "bg-[#25d366]/10 border-l-[#25d366]" 
+                      : conversation.slaStatus
+                        ? getSlaLevelColor(conversation.slaStatus)
+                        : "border-l-transparent hover:bg-muted/50"
                   )}
                 >
                   {/* Avatar */}
@@ -263,11 +287,27 @@ export function WhatsAppConversationList({
                       </p>
                     </div>
 
-                    {/* Tags & Status */}
-                    <div className="flex items-center gap-1.5 mt-1.5">
+                    {/* Tags, SLA & Status */}
+                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                       {conversation.unread_count > 0 && (
                         <Badge className="bg-[#25d366] text-white h-5 min-w-[20px] px-1.5 text-xs">
                           {conversation.unread_count}
+                        </Badge>
+                      )}
+                      {/* SLA Status Badge */}
+                      {conversation.slaStatus && (
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "h-5 text-xs animate-pulse",
+                            conversation.slaStatus.level === 'critical' && "border-red-600 text-red-600 bg-red-600/10",
+                            conversation.slaStatus.level === 'overdue' && "border-red-500 text-red-500 bg-red-500/10",
+                            conversation.slaStatus.level === 'warning' && "border-amber-500 text-amber-500 bg-amber-500/10",
+                            conversation.slaStatus.level === 'attention' && "border-yellow-500 text-yellow-500"
+                          )}
+                        >
+                          <Timer className="w-3 h-3 mr-1" />
+                          {conversation.slaStatus.label}
                         </Badge>
                       )}
                       {windowStatus && windowStatus.status !== 'ok' && (

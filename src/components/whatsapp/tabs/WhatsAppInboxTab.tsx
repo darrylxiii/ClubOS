@@ -7,7 +7,10 @@ import { WhatsAppConversationList } from '@/components/whatsapp/WhatsAppConversa
 import { WhatsAppChatThread } from '@/components/whatsapp/WhatsAppChatThread';
 import { WhatsAppTemplateSelector } from '@/components/whatsapp/WhatsAppTemplateSelector';
 import { WhatsAppAIInsights } from '@/components/whatsapp/WhatsAppAIInsights';
+import { WhatsAppCandidateContextCard } from '@/components/whatsapp/WhatsAppCandidateContextCard';
+import { WhatsAppConversationEventLog } from '@/components/whatsapp/WhatsAppConversationEventLog';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { notify } from '@/lib/notify';
 
 export function WhatsAppInboxTab() {
@@ -15,6 +18,7 @@ export function WhatsAppInboxTab() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
+  const [rightPanelTab, setRightPanelTab] = useState<'insights' | 'context' | 'events'>('insights');
 
   const { conversations, loading: conversationsLoading, markAsRead } = useWhatsAppConversations();
   const { messages, loading: messagesLoading, sending, sendMessage } = useWhatsAppMessages(selectedConversationId);
@@ -87,15 +91,41 @@ export function WhatsAppInboxTab() {
         />
       </div>
 
-      {/* AI Insights Panel (Desktop) */}
+      {/* Right Panel (Desktop) - Tabbed */}
       {showInsights && selectedConversation && (
-        <div className="w-[320px] border-l border-border hidden xl:block shrink-0">
-          <WhatsAppAIInsights
-            conversationId={selectedConversation.id}
-            candidateName={selectedConversation.candidate_name || 'Candidate'}
-            insights={mockInsights}
-            onClose={() => setShowInsights(false)}
-          />
+        <div className="w-[340px] border-l border-border hidden xl:flex flex-col shrink-0">
+          <Tabs value={rightPanelTab} onValueChange={(v) => setRightPanelTab(v as typeof rightPanelTab)} className="flex flex-col h-full">
+            <TabsList className="w-full rounded-none border-b justify-start px-2 h-10 bg-transparent shrink-0">
+              <TabsTrigger value="insights" className="text-xs">Insights</TabsTrigger>
+              <TabsTrigger value="context" className="text-xs">Context</TabsTrigger>
+              <TabsTrigger value="events" className="text-xs">Events</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="insights" className="flex-1 m-0 overflow-hidden">
+              <WhatsAppAIInsights
+                conversationId={selectedConversation.id}
+                candidateName={selectedConversation.candidate_name || 'Candidate'}
+                insights={mockInsights}
+                onClose={() => setShowInsights(false)}
+              />
+            </TabsContent>
+            
+            <TabsContent value="context" className="flex-1 m-0 overflow-auto p-4">
+              {selectedConversation.candidate_id ? (
+                <WhatsAppCandidateContextCard
+                  candidateId={selectedConversation.candidate_id}
+                />
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  <p className="text-sm">No linked candidate profile</p>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="events" className="flex-1 m-0 overflow-hidden">
+              <WhatsAppConversationEventLog conversationId={selectedConversation.id} />
+            </TabsContent>
+          </Tabs>
         </div>
       )}
 

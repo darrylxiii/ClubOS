@@ -16,14 +16,16 @@ import {
   Home,
   ChevronRight,
   AlertTriangle,
-  Clock
+  Clock,
+  PanelRight,
+  PanelRightClose
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-// Tab components (used when not using nested routes)
+// Tab components
 import { WhatsAppInboxTab } from '@/components/whatsapp/tabs/WhatsAppInboxTab';
 import { WhatsAppAnalyticsTab } from '@/components/whatsapp/tabs/WhatsAppAnalyticsTab';
 import { WhatsAppCampaignsTab } from '@/components/whatsapp/tabs/WhatsAppCampaignsTab';
@@ -32,6 +34,9 @@ import { WhatsAppImportTab } from '@/components/whatsapp/tabs/WhatsAppImportTab'
 import { WhatsAppSettingsTab } from '@/components/whatsapp/tabs/WhatsAppSettingsTab';
 import { WhatsAppMetricsBar } from '@/components/whatsapp/WhatsAppMetricsBar';
 import { WhatsAppOnboardingCard } from '@/components/whatsapp/WhatsAppOnboardingCard';
+import { WhatsAppTabErrorBoundary } from '@/components/whatsapp/WhatsAppTabErrorBoundary';
+import { WhatsAppOpsPanel } from '@/components/whatsapp/WhatsAppOpsPanel';
+import { useWhatsAppConversations } from '@/hooks/useWhatsAppConversations';
 
 type TabId = 'inbox' | 'analytics' | 'campaigns' | 'automations' | 'import' | 'settings';
 
@@ -58,6 +63,10 @@ export default function WhatsAppHub() {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentRole } = useRole();
+  const [showOpsPanel, setShowOpsPanel] = useState(false);
+  
+  // Get conversations for Ops Panel
+  const { conversations, needsResponse, loading: conversationsLoading } = useWhatsAppConversations();
   
   // Support both query params (legacy) and path-based navigation
   const getActiveTab = (): TabId => {
@@ -154,31 +163,41 @@ export default function WhatsAppHub() {
     // Show onboarding for inbox tab when no data
     if (activeTab === 'inbox' && needsOnboarding) {
       return (
-        <WhatsAppOnboardingCard
-          hasAccount={isConnected}
-          hasTemplates={hasTemplates}
-          hasConversations={hasConversations}
-          onNavigate={handleTabChange}
-        />
+        <WhatsAppTabErrorBoundary tabName="Inbox">
+          <WhatsAppOnboardingCard
+            hasAccount={isConnected}
+            hasTemplates={hasTemplates}
+            hasConversations={hasConversations}
+            onNavigate={handleTabChange}
+          />
+        </WhatsAppTabErrorBoundary>
       );
     }
     
-    switch (activeTab) {
-      case 'inbox':
-        return <WhatsAppInboxTab />;
-      case 'analytics':
-        return <WhatsAppAnalyticsTab />;
-      case 'campaigns':
-        return <WhatsAppCampaignsTab />;
-      case 'automations':
-        return <WhatsAppAutomationsTab />;
-      case 'import':
-        return <WhatsAppImportTab />;
-      case 'settings':
-        return <WhatsAppSettingsTab />;
-      default:
-        return <WhatsAppInboxTab />;
-    }
+    const content = (() => {
+      switch (activeTab) {
+        case 'inbox':
+          return <WhatsAppInboxTab />;
+        case 'analytics':
+          return <WhatsAppAnalyticsTab />;
+        case 'campaigns':
+          return <WhatsAppCampaignsTab />;
+        case 'automations':
+          return <WhatsAppAutomationsTab />;
+        case 'import':
+          return <WhatsAppImportTab />;
+        case 'settings':
+          return <WhatsAppSettingsTab />;
+        default:
+          return <WhatsAppInboxTab />;
+      }
+    })();
+
+    return (
+      <WhatsAppTabErrorBoundary tabName={activeTab}>
+        {content}
+      </WhatsAppTabErrorBoundary>
+    );
   };
 
   return (
@@ -205,6 +224,36 @@ export default function WhatsAppHub() {
             </div>
             
             <div className="flex items-center gap-3">
+              {/* Ops Panel Toggle (desktop only) */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowOpsPanel(!showOpsPanel)}
+                    className={cn(
+                      "h-8 gap-1.5 hidden lg:flex",
+                      showOpsPanel && "bg-primary/10 border-primary"
+                    )}
+                  >
+                    {showOpsPanel ? (
+                      <PanelRightClose className="w-4 h-4" />
+                    ) : (
+                      <PanelRight className="w-4 h-4" />
+                    )}
+                    <span className="text-xs">Ops</span>
+                    {needsResponse.length > 0 && (
+                      <Badge variant="destructive" className="h-4 px-1 text-[10px]">
+                        {needsResponse.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {showOpsPanel ? 'Close Ops Panel' : 'Open Ops Panel'}
+                </TooltipContent>
+              </Tooltip>
+
               {/* Urgent indicator */}
               {(urgentCount || 0) > 0 && (
                 <Tooltip>
@@ -296,9 +345,30 @@ export default function WhatsAppHub() {
           <WhatsAppMetricsBar />
         </div>
 
-        {/* Main Content - Scrollable */}
-        <div className="flex-1 min-h-0 overflow-auto">
-          {renderTabContent()}
+        {/* Main Content Area with Ops Panel */}
+        <div className="flex-1 min-h-0 flex overflow-hidden">
+          {/* Main Content - Scrollable */}
+          <div className="flex-1 min-w-0 overflow-auto">
+            {renderTabContent()}
+          </div>
+
+          {/* Ops Panel (Desktop) */}
+          {showOpsPanel && (
+            <div className="w-[320px] border-l border-border hidden lg:block overflow-y-auto">
+              <WhatsAppOpsPanel
+                conversations={conversations}
+                needsResponse={needsResponse}
+                onSelectConversation={(id) => {
+                  // Navigate to inbox if not already there
+                  if (activeTab !== 'inbox') {
+                    handleTabChange('inbox');
+                  }
+                  // Will be handled by InboxTab context
+                }}
+                onClose={() => setShowOpsPanel(false)}
+              />
+            </div>
+          )}
         </div>
       </div>
     </RoleGate>
