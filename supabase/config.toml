@@ -1,6 +1,12 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
 # =============================================================================
+# WhatsApp Business Integration
+# =============================================================================
+[functions.activate-whatsapp-account]
+verify_jwt = true
+
+# =============================================================================
 # Phase 3: Booking Approval Workflow
 # =============================================================================
 [functions.approve-booking]
