@@ -570,7 +570,7 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    {/* WhatsApp Hub - consolidated from analytics, settings, inbox, import */}
+    {/* WhatsApp Hub - consolidated workspace with nested routes */}
     <Route
       path="/admin/whatsapp"
       element={
@@ -583,9 +583,71 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    {/* Redirects from old WhatsApp routes */}
-    <Route path="/admin/whatsapp-analytics" element={<Navigate to="/admin/whatsapp?tab=analytics" replace />} />
-    <Route path="/admin/whatsapp-settings" element={<Navigate to="/admin/whatsapp?tab=settings" replace />} />
+    <Route
+      path="/admin/whatsapp/analytics"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <WhatsAppHub />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/whatsapp/campaigns"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <WhatsAppHub />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/whatsapp/automations"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <WhatsAppHub />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/whatsapp/import"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <WhatsAppHub />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/whatsapp/settings"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <WhatsAppHub />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    {/* Redirects from old WhatsApp routes and legacy query params */}
+    <Route path="/admin/whatsapp-analytics" element={<Navigate to="/admin/whatsapp/analytics" replace />} />
+    <Route path="/admin/whatsapp-settings" element={<Navigate to="/admin/whatsapp/settings" replace />} />
+    {/* Catch dead admin/dashboard route */}
+    <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
     <Route
       path="/admin/company-relationships"
       element={

@@ -59,8 +59,8 @@ export function WhatsAppInboxTab() {
 
   return (
     <div className="h-full flex overflow-hidden">
-      {/* Conversation List - ConversationList handles its own search/filter */}
-      <div className="w-[340px] border-r border-border flex flex-col shrink-0 h-full overflow-y-auto">
+      {/* Conversation List */}
+      <div className="w-[340px] border-r border-border flex flex-col shrink-0 h-full">
         <WhatsAppConversationList
           conversations={conversations}
           selectedId={selectedConversationId}
