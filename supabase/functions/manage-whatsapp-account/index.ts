@@ -3,7 +3,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
 };
 
 interface AuthResult {
@@ -133,12 +134,16 @@ async function validateAuth(req: Request, requestId: string): Promise<AuthResult
 }
 
 serve(async (req) => {
+  const requestId = crypto.randomUUID().slice(0, 8);
+  const origin = req.headers.get('origin') || 'unknown';
+  
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
+    console.log(`[${requestId}] CORS preflight from: ${origin}`);
     return new Response(null, { headers: corsHeaders });
   }
 
-  const requestId = crypto.randomUUID().slice(0, 8);
-  console.log(`[${requestId}] Request started: ${req.method}`);
+  console.log(`[${requestId}] ${req.method} from: ${origin}`);
 
   try {
     // Parse body first to check for diagnostics action (which we allow without full auth for debugging)
