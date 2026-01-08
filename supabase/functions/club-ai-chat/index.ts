@@ -337,6 +337,56 @@ Based on this history, provide contextually aware responses that reference previ
         .order("updated_at", { ascending: false })
         .limit(5);
 
+      // === WHATSAPP COMMUNICATIONS ===
+      const { data: recentWhatsApp } = await supabase
+        .from('whatsapp_messages')
+        .select(`
+          content, direction, sentiment_score, intent_classification, created_at,
+          conversation:whatsapp_conversations(contact_name, contact_phone, candidate_id)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      // === SMS COMMUNICATIONS ===
+      const { data: recentSMS } = await supabase
+        .from('sms_messages')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+      // === COMPANY INTERACTIONS (Phone, LinkedIn, etc.) ===
+      const { data: companyInteractions } = await supabase
+        .from('company_interactions')
+        .select(`
+          interaction_type, direction, summary, sentiment_score,
+          interaction_date, duration_minutes, next_action, companies(name)
+        `)
+        .order('interaction_date', { ascending: false })
+        .limit(30);
+
+      // === RELATIONSHIP HEALTH SCORES ===
+      const { data: relationshipAlerts } = await supabase
+        .from('communication_relationship_scores')
+        .select('*')
+        .in('risk_level', ['high', 'critical'])
+        .order('days_since_contact', { ascending: false })
+        .limit(10);
+
+      // === UNIFIED COMMUNICATION TIMELINE ===
+      const { data: unifiedTimeline } = await supabase
+        .from('unified_communications')
+        .select('*')
+        .order('original_timestamp', { ascending: false })
+        .limit(100);
+
+      // === EXTERNAL CONTEXT IMPORTS ===
+      const { data: externalImports } = await supabase
+        .from('external_context_imports')
+        .select('*')
+        .eq('processing_status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
       // === EMAIL INBOX DATA ===
       const { data: recentEmails } = await supabase
         .from("emails")
@@ -664,6 +714,51 @@ ${meetingHistory && meetingHistory.length > 0 ?
   meetingHistory.map(m => `- ${m.title} (${m.duration_minutes}min) - ${new Date(m.meeting_date).toLocaleDateString()}
   Summary: ${m.analysis_summary?.substring(0, 100) || "No summary"}...`).join("\n")
   : "No meeting history"}
+
+=== WHATSAPP COMMUNICATIONS ===
+Recent WhatsApp Messages (${recentWhatsApp?.length || 0}):
+${recentWhatsApp && recentWhatsApp.length > 0 ?
+  recentWhatsApp.slice(0, 10).map(m => {
+    const conv = Array.isArray(m.conversation) ? m.conversation[0] : m.conversation;
+    return `- ${m.direction}: "${m.content?.substring(0, 100)}..." (Contact: ${conv?.contact_name || 'Unknown'}, Sentiment: ${m.sentiment_score || 'N/A'})`;
+  }).join("\n")
+  : "No WhatsApp messages"}
+
+=== SMS COMMUNICATIONS ===
+Recent SMS (${recentSMS?.length || 0}):
+${recentSMS && recentSMS.length > 0 ?
+  recentSMS.slice(0, 10).map(s => `- ${s.direction}: "${s.content?.substring(0, 80)}..." (${new Date(s.created_at).toLocaleDateString()})`).join("\n")
+  : "No SMS messages"}
+
+=== COMPANY INTERACTIONS ===
+Recent Phone/LinkedIn/Meetings:
+${companyInteractions && companyInteractions.length > 0 ?
+  companyInteractions.slice(0, 10).map(i => {
+    const company = Array.isArray(i.companies) ? i.companies[0] : i.companies;
+    return `- ${i.interaction_type} with ${company?.name || 'Unknown'}: ${i.summary?.substring(0, 100) || 'No summary'}... (Sentiment: ${i.sentiment_score || 'N/A'})`;
+  }).join("\n")
+  : "No company interactions"}
+
+=== RELATIONSHIP HEALTH ALERTS ===
+At-Risk Relationships (${relationshipAlerts?.length || 0}):
+${relationshipAlerts && relationshipAlerts.length > 0 ?
+  relationshipAlerts.map(r => `- ${r.entity_type} (${r.entity_id?.substring(0, 8)}...): Risk Level ${r.risk_level?.toUpperCase()} - ${r.days_since_contact} days since contact. Avg sentiment: ${r.avg_sentiment_score || 'N/A'}`).join("\n")
+  : "No at-risk relationships - all healthy!"}
+
+=== UNIFIED COMMUNICATION TIMELINE ===
+Recent Cross-Channel Communications (${unifiedTimeline?.length || 0}):
+${unifiedTimeline && unifiedTimeline.length > 0 ?
+  unifiedTimeline.slice(0, 15).map(c => `- [${c.channel?.toUpperCase()}] ${c.direction}: ${c.content_preview?.substring(0, 80) || 'No preview'}... (${new Date(c.original_timestamp).toLocaleDateString()})`).join("\n")
+  : "No unified communications"}
+
+=== EXTERNAL CONTEXT IMPORTS ===
+Recently Imported External Data (${externalImports?.length || 0}):
+${externalImports && externalImports.length > 0 ?
+  externalImports.map(e => `- ${e.content_type}: "${e.title}" (Linked to ${e.entity_type})
+  ${e.ai_summary ? `Summary: ${e.ai_summary.substring(0, 150)}...` : ''}
+  ${e.action_items && Array.isArray(e.action_items) && e.action_items.length > 0 ? `Action Items: ${e.action_items.length} items` : ''}
+  Urgency: ${e.urgency_level || 'normal'}`).join("\n")
+  : "No external imports"}
 
 === EMAIL INTELLIGENCE ===
 Inbox Overview:

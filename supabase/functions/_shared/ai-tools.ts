@@ -124,6 +124,17 @@ export async function executeToolCall(
         result = await updateCandidateTier(args, userId, supabase);
         break;
 
+      // ===== COMMUNICATION INTELLIGENCE TOOLS =====
+      case 'search_communications':
+        result = await searchCommunications(args, userId, supabase);
+        break;
+      case 'get_entity_communication_summary':
+        result = await getEntityCommunicationSummary(args, userId, supabase);
+        break;
+      case 'get_relationship_health':
+        result = await getRelationshipHealth(args, userId, supabase);
+        break;
+
       default:
         result = { error: `Unknown tool: ${name}` };
     }
@@ -1304,6 +1315,286 @@ async function updateCandidateTier(args: any, userId: string, supabase: Supabase
   };
 }
 
+// ============= COMMUNICATION INTELLIGENCE TOOLS =============
+
+async function searchCommunications(args: any, userId: string, supabase: SupabaseClient) {
+  const { query, channel = 'all', entity_type, entity_id, date_range = 'last_30_days' } = args;
+  
+  // Calculate date filter
+  const now = new Date();
+  let dateFilter: Date;
+  switch (date_range) {
+    case 'last_7_days':
+      dateFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      break;
+    case 'last_30_days':
+      dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      break;
+    case 'last_90_days':
+      dateFilter = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      break;
+    default:
+      dateFilter = new Date(0); // All time
+  }
+  
+  // Search unified communications
+  let ucQuery = supabase
+    .from('unified_communications')
+    .select('*')
+    .gte('original_timestamp', dateFilter.toISOString())
+    .ilike('content_preview', `%${query}%`)
+    .order('original_timestamp', { ascending: false })
+    .limit(50);
+  
+  if (channel !== 'all') {
+    ucQuery = ucQuery.eq('channel', channel);
+  }
+  if (entity_type) {
+    ucQuery = ucQuery.eq('entity_type', entity_type);
+  }
+  if (entity_id) {
+    ucQuery = ucQuery.eq('entity_id', entity_id);
+  }
+  
+  const { data: communications, error } = await ucQuery;
+  
+  if (error) throw error;
+  
+  // Also search external imports
+  let importQuery = supabase
+    .from('external_context_imports')
+    .select('*')
+    .gte('created_at', dateFilter.toISOString())
+    .or(`title.ilike.%${query}%,ai_summary.ilike.%${query}%,raw_content.ilike.%${query}%`)
+    .order('created_at', { ascending: false })
+    .limit(20);
+  
+  if (entity_type) {
+    importQuery = importQuery.eq('entity_type', entity_type);
+  }
+  if (entity_id) {
+    importQuery = importQuery.eq('entity_id', entity_id);
+  }
+  
+  const { data: imports } = await importQuery;
+  
+  // Combine and format results
+  const results = [
+    ...(communications || []).map(c => ({
+      type: 'communication',
+      channel: c.channel,
+      direction: c.direction,
+      preview: c.content_preview?.substring(0, 200),
+      sentiment: c.sentiment_score,
+      date: c.original_timestamp,
+      entity_type: c.entity_type,
+      entity_id: c.entity_id
+    })),
+    ...(imports || []).map(i => ({
+      type: 'import',
+      channel: i.content_type,
+      title: i.title,
+      summary: i.ai_summary?.substring(0, 200),
+      sentiment: i.sentiment_score,
+      date: i.created_at,
+      entity_type: i.entity_type,
+      entity_id: i.entity_id
+    }))
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  
+  return {
+    success: true,
+    query,
+    channel,
+    date_range,
+    total_results: results.length,
+    results: results.slice(0, 30),
+    message: `Found ${results.length} communications matching "${query}"`
+  };
+}
+
+async function getEntityCommunicationSummary(args: any, userId: string, supabase: SupabaseClient) {
+  const { entity_type, entity_id } = args;
+  
+  // Get relationship score
+  const { data: relationshipScore } = await supabase
+    .from('communication_relationship_scores')
+    .select('*')
+    .eq('entity_type', entity_type)
+    .eq('entity_id', entity_id)
+    .single();
+  
+  // Get recent communications
+  const { data: recentComms } = await supabase
+    .from('unified_communications')
+    .select('*')
+    .eq('entity_type', entity_type)
+    .eq('entity_id', entity_id)
+    .order('original_timestamp', { ascending: false })
+    .limit(50);
+  
+  // Get external imports
+  const { data: imports } = await supabase
+    .from('external_context_imports')
+    .select('*')
+    .eq('entity_type', entity_type)
+    .eq('entity_id', entity_id)
+    .order('created_at', { ascending: false })
+    .limit(10);
+  
+  // Get entity name based on type
+  let entityName = 'Unknown';
+  if (entity_type === 'candidate') {
+    const { data: candidate } = await supabase
+      .from('candidate_profiles')
+      .select('full_name')
+      .eq('id', entity_id)
+      .single();
+    entityName = candidate?.full_name || 'Unknown Candidate';
+  } else if (entity_type === 'company') {
+    const { data: company } = await supabase
+      .from('companies')
+      .select('name')
+      .eq('id', entity_id)
+      .single();
+    entityName = company?.name || 'Unknown Company';
+  }
+  
+  // Calculate channel breakdown
+  const channelBreakdown: Record<string, number> = {};
+  (recentComms || []).forEach(c => {
+    channelBreakdown[c.channel] = (channelBreakdown[c.channel] || 0) + 1;
+  });
+  
+  // Calculate sentiment trend
+  const sentimentScores = (recentComms || [])
+    .filter(c => c.sentiment_score !== null)
+    .map(c => c.sentiment_score);
+  const avgSentiment = sentimentScores.length > 0
+    ? sentimentScores.reduce((a, b) => a + b, 0) / sentimentScores.length
+    : null;
+  
+  // Get pending action items from imports
+  const actionItems = (imports || [])
+    .flatMap(i => i.action_items || [])
+    .slice(0, 5);
+  
+  // Determine recommended next action
+  let recommendedAction = 'Schedule check-in call';
+  if (relationshipScore?.risk_level === 'critical') {
+    recommendedAction = 'URGENT: Re-engage immediately - relationship at critical risk';
+  } else if (relationshipScore?.risk_level === 'high') {
+    recommendedAction = 'Schedule call this week to strengthen relationship';
+  } else if (relationshipScore?.days_since_contact > 14) {
+    recommendedAction = 'Send personalized follow-up message';
+  } else if (avgSentiment && avgSentiment < 0.4) {
+    recommendedAction = 'Address potential concerns - sentiment trending negative';
+  }
+  
+  return {
+    success: true,
+    entity_type,
+    entity_id,
+    entity_name: entityName,
+    summary: {
+      total_communications: recentComms?.length || 0,
+      channel_breakdown: channelBreakdown,
+      last_contact: recentComms?.[0]?.original_timestamp || null,
+      days_since_contact: relationshipScore?.days_since_contact || null,
+      avg_sentiment: avgSentiment,
+      relationship_health: relationshipScore?.health_score || null,
+      risk_level: relationshipScore?.risk_level || 'unknown',
+      external_imports: imports?.length || 0
+    },
+    pending_action_items: actionItems,
+    recommended_next_action: recommendedAction,
+    recent_highlights: (recentComms || []).slice(0, 5).map(c => ({
+      channel: c.channel,
+      direction: c.direction,
+      preview: c.content_preview?.substring(0, 100),
+      date: c.original_timestamp
+    }))
+  };
+}
+
+async function getRelationshipHealth(args: any, userId: string, supabase: SupabaseClient) {
+  const { risk_level = 'all', entity_type, limit = 20 } = args;
+  
+  let query = supabase
+    .from('communication_relationship_scores')
+    .select('*')
+    .order('days_since_contact', { ascending: false })
+    .limit(limit);
+  
+  if (risk_level !== 'all') {
+    query = query.eq('risk_level', risk_level);
+  }
+  if (entity_type) {
+    query = query.eq('entity_type', entity_type);
+  }
+  
+  const { data: scores, error } = await query;
+  
+  if (error) throw error;
+  
+  // Enrich with entity names
+  const enrichedScores = await Promise.all((scores || []).map(async (score) => {
+    let entityName = 'Unknown';
+    
+    if (score.entity_type === 'candidate') {
+      const { data: candidate } = await supabase
+        .from('candidate_profiles')
+        .select('full_name')
+        .eq('id', score.entity_id)
+        .single();
+      entityName = candidate?.full_name || 'Unknown';
+    } else if (score.entity_type === 'company') {
+      const { data: company } = await supabase
+        .from('companies')
+        .select('name')
+        .eq('id', score.entity_id)
+        .single();
+      entityName = company?.name || 'Unknown';
+    }
+    
+    return {
+      ...score,
+      entity_name: entityName,
+      recommended_action: score.risk_level === 'critical' 
+        ? 'URGENT: Immediate outreach required'
+        : score.risk_level === 'high'
+        ? 'Schedule contact this week'
+        : score.days_since_contact > 14
+        ? 'Consider follow-up'
+        : 'Relationship healthy'
+    };
+  }));
+  
+  // Calculate summary stats
+  const healthyCnt = enrichedScores.filter(s => s.risk_level === 'healthy').length;
+  const warningCnt = enrichedScores.filter(s => s.risk_level === 'warning').length;
+  const highRiskCnt = enrichedScores.filter(s => s.risk_level === 'high').length;
+  const criticalCnt = enrichedScores.filter(s => s.risk_level === 'critical').length;
+  
+  return {
+    success: true,
+    filter: { risk_level, entity_type },
+    summary: {
+      total: enrichedScores.length,
+      healthy: healthyCnt,
+      warning: warningCnt,
+      high_risk: highRiskCnt,
+      critical: criticalCnt
+    },
+    relationships: enrichedScores,
+    message: criticalCnt > 0 
+      ? `⚠️ ${criticalCnt} critical relationships need immediate attention`
+      : highRiskCnt > 0
+      ? `${highRiskCnt} relationships at high risk`
+      : 'All relationships are healthy'
+  };
+}
+
 // ============= TOOL DEFINITIONS FOR OPENROUTER =============
 
 export const allAITools = [
@@ -1736,6 +2027,79 @@ export const allAITools = [
         type: "object",
         properties: {
           limit: { type: "number", description: "Max results (default 10)" }
+        }
+      }
+    }
+  },
+  // ===== COMMUNICATION INTELLIGENCE TOOLS =====
+  {
+    type: "function",
+    function: {
+      name: "search_communications",
+      description: "Search ALL communications across email, WhatsApp, SMS, phone calls, and meetings for a specific person, company, or topic. Use this to find relevant conversations and interactions.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Search term or topic to search for" },
+          channel: { 
+            type: "string", 
+            enum: ["all", "email", "whatsapp", "sms", "phone", "meeting", "linkedin"],
+            description: "Filter by communication channel (default: all)"
+          },
+          entity_type: { 
+            type: "string", 
+            enum: ["candidate", "company", "prospect"],
+            description: "Filter by entity type"
+          },
+          entity_id: { type: "string", description: "Specific entity UUID to filter by" },
+          date_range: {
+            type: "string",
+            enum: ["last_7_days", "last_30_days", "last_90_days", "all_time"],
+            description: "Time range to search within (default: last_30_days)"
+          }
+        },
+        required: ["query"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_entity_communication_summary",
+      description: "Get a complete communication summary for a specific candidate, company, or prospect including total interactions, sentiment trend, last contact, relationship health, and recommended next action.",
+      parameters: {
+        type: "object",
+        properties: {
+          entity_type: { 
+            type: "string", 
+            enum: ["candidate", "company", "prospect"],
+            description: "Type of entity"
+          },
+          entity_id: { type: "string", description: "UUID of the entity" }
+        },
+        required: ["entity_type", "entity_id"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_relationship_health",
+      description: "Get relationship health scores and at-risk relationships. Use this to identify candidates or companies that need re-engagement.",
+      parameters: {
+        type: "object",
+        properties: {
+          risk_level: { 
+            type: "string", 
+            enum: ["all", "healthy", "warning", "high", "critical"],
+            description: "Filter by risk level"
+          },
+          entity_type: { 
+            type: "string", 
+            enum: ["candidate", "company", "prospect"],
+            description: "Filter by entity type"
+          },
+          limit: { type: "number", description: "Max results (default 20)" }
         }
       }
     }
