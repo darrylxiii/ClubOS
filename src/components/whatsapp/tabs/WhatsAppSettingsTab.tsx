@@ -62,14 +62,44 @@ export function WhatsAppSettingsTab() {
     },
   });
 
-  // Activate account mutation
+  // Activate account mutation with session preflight
   const activateMutation = useMutation({
     mutationFn: async () => {
+      // Preflight: ensure session is valid
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !sessionData.session) {
+        // Try to refresh
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          throw new Error('Session expired. Please sign in again.');
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('manage-whatsapp-account', {
         body: { action: 'activate' }
       });
-      if (error) throw error;
-      if (!data.success) throw new Error(data.error || 'Activation failed');
+      
+      if (error) {
+        // Parse structured error from edge function
+        if (error.message) {
+          try {
+            const parsed = JSON.parse(error.message);
+            if (parsed.code === 'SESSION_EXPIRED') {
+              throw new Error('Session expired. Please sign in again.');
+            }
+            throw new Error(parsed.error || parsed.message || 'Connection failed');
+          } catch {
+            throw error;
+          }
+        }
+        throw error;
+      }
+      
+      if (!data.success) {
+        const action = data.details?.action || data.action || '';
+        throw new Error(data.error + (action ? `. ${action}` : ''));
+      }
       return data;
     },
     onSuccess: (data) => {
@@ -78,18 +108,49 @@ export function WhatsAppSettingsTab() {
       notify.success(`Connected: ${data.account?.display_phone_number || 'WhatsApp Business'}`);
     },
     onError: (error: Error) => {
-      notify.error(error.message);
+      if (error.message.includes('sign in')) {
+        notify.error(error.message, {
+          description: 'Your session has expired',
+          action: {
+            label: 'Sign In',
+            onClick: () => window.location.href = '/auth'
+          }
+        });
+      } else {
+        notify.error(error.message);
+      }
     },
   });
 
-  // Verify account mutation
+  // Verify account mutation with session preflight
   const verifyMutation = useMutation({
     mutationFn: async (accountId: string) => {
       setVerifyingId(accountId);
+      
+      // Preflight session check
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          throw new Error('Session expired. Please sign in again.');
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('manage-whatsapp-account', {
         body: { action: 'verify', account_id: accountId }
       });
-      if (error) throw error;
+      
+      if (error) {
+        try {
+          const parsed = JSON.parse(error.message);
+          if (parsed.code === 'SESSION_EXPIRED') {
+            throw new Error('Session expired. Please sign in again.');
+          }
+          throw new Error(parsed.error || 'Verification failed');
+        } catch {
+          throw error;
+        }
+      }
       return data;
     },
     onSuccess: (data) => {
@@ -101,7 +162,13 @@ export function WhatsAppSettingsTab() {
       }
     },
     onError: (error: Error) => {
-      notify.error(error.message);
+      if (error.message.includes('sign in')) {
+        notify.error(error.message, {
+          description: 'Your session has expired'
+        });
+      } else {
+        notify.error(error.message);
+      }
     },
     onSettled: () => {
       setVerifyingId(null);

@@ -1,83 +1,144 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createErrorResponse, createSuccessResponse, CommonErrors } from '../_shared/error-responses.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+/**
+ * Validates auth and returns user ID, or an error response
+ */
+async function validateAuth(req: Request): Promise<{ userId: string } | Response> {
+  const authHeader = req.headers.get('Authorization');
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return createErrorResponse({
+      message: 'Authentication required',
+      status: 401,
+      corsHeaders,
+      code: 'AUTH_REQUIRED',
+      details: { action: 'Please sign in to manage WhatsApp accounts' }
+    });
   }
 
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+  const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const token = authHeader.replace('Bearer ', '');
+  
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'Authentication required',
-        code: 'AUTH_REQUIRED',
-        action: 'Please sign in to manage WhatsApp accounts'
-      }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-    // Create client with user auth to check permissions
-    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    // Get user claims
-    const token = authHeader.replace('Bearer ', '');
     const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
     
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'Invalid session',
-        code: 'INVALID_SESSION',
-        action: 'Please sign in again'
-      }), {
+    if (claimsError) {
+      // Check for specific JWT errors
+      const errorMessage = claimsError.message?.toLowerCase() || '';
+      
+      if (errorMessage.includes('expired') || errorMessage.includes('jwt')) {
+        console.log('[manage-whatsapp-account] JWT expired or invalid');
+        return createErrorResponse({
+          message: 'Session expired',
+          status: 401,
+          corsHeaders,
+          code: 'SESSION_EXPIRED',
+          details: { action: 'Please sign in again', retry: false }
+        });
+      }
+      
+      return createErrorResponse({
+        message: 'Authentication failed',
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        corsHeaders,
+        code: 'AUTH_FAILED',
+        details: { action: 'Please sign in again' }
+      });
+    }
+    
+    if (!claimsData?.claims?.sub) {
+      return createErrorResponse({
+        message: 'Invalid session',
+        status: 401,
+        corsHeaders,
+        code: 'INVALID_SESSION',
+        details: { action: 'Please sign in again' }
       });
     }
 
     const userId = claimsData.claims.sub as string;
 
-    // Check admin role
-    const { data: profile } = await supabaseUser
+    // Check admin role using service client for RLS bypass
+    const supabaseService = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data: profile } = await supabaseService
       .from('profiles')
       .select('system_role')
       .eq('id', userId)
       .single();
 
     if (!profile || !['admin', 'super_admin'].includes(profile.system_role)) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'Admin access required',
-        code: 'FORBIDDEN',
-        action: 'Contact your administrator for WhatsApp management access'
-      }), {
+      return createErrorResponse({
+        message: 'Admin access required',
         status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        corsHeaders,
+        code: 'FORBIDDEN',
+        details: { action: 'Contact your administrator for WhatsApp management access' }
       });
     }
 
-    // Use service role for database operations
+    return { userId };
+  } catch (error) {
+    console.error('[manage-whatsapp-account] Auth error:', error);
+    const errorMessage = (error as Error).message?.toLowerCase() || '';
+    
+    // Catch JWT expired errors that might be thrown
+    if (errorMessage.includes('expired') || errorMessage.includes('jwt')) {
+      return createErrorResponse({
+        message: 'Session expired',
+        status: 401,
+        corsHeaders,
+        code: 'SESSION_EXPIRED',
+        details: { action: 'Please sign in again', retry: false }
+      });
+    }
+    
+    return createErrorResponse({
+      message: 'Authentication error',
+      status: 401,
+      corsHeaders,
+      code: 'AUTH_ERROR',
+      details: { action: 'Please sign in again' }
+    });
+  }
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const requestId = crypto.randomUUID().slice(0, 8);
+  console.log(`[manage-whatsapp-account][${requestId}] Request started`);
+
+  try {
+    // Validate authentication
+    const authResult = await validateAuth(req);
+    if (authResult instanceof Response) {
+      return authResult;
+    }
+    const { userId } = authResult;
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
     const { action, account_id, ...data } = body;
 
-    console.log(`[manage-whatsapp-account] Action: ${action}, User: ${userId}`);
+    console.log(`[manage-whatsapp-account][${requestId}] Action: ${action}, User: ${userId}`);
 
     switch (action) {
       // ==================== ACTIVATE (from env secrets) ====================
