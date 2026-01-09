@@ -74,7 +74,7 @@ export function AlertConfigDialog({
   if (!kpi) return null;
 
   const formatLabel = () => {
-    switch (kpi.format) {
+    switch (kpi?.format) {
       case 'percent':
         return '%';
       case 'currency':
@@ -83,6 +83,12 @@ export function AlertConfigDialog({
         return 'hours';
       case 'days':
         return 'days';
+      case 'minutes':
+        return 'min';
+      case 'ms':
+        return 'ms';
+      case 'number':
+        return '';
       default:
         return '';
     }
@@ -115,14 +121,14 @@ export function AlertConfigDialog({
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Current Value</span>
               <Badge variant="outline" className="font-mono">
-                {kpi.value.toFixed(1)} {formatLabel()}
+                {(typeof kpi?.value === 'number' ? kpi.value : 0).toFixed(1)} {formatLabel()}
               </Badge>
             </div>
-            {kpi.targetValue && (
+            {kpi?.targetValue != null && (
               <div className="flex items-center justify-between mt-2">
                 <span className="text-sm text-muted-foreground">Target</span>
                 <Badge variant="outline" className="font-mono">
-                  {kpi.targetValue.toFixed(1)} {formatLabel()}
+                  {(typeof kpi.targetValue === 'number' ? kpi.targetValue : 0).toFixed(1)} {formatLabel()}
                 </Badge>
               </div>
             )}

@@ -17,21 +17,35 @@ export function useKPIHistory(kpiName: string, domain: string, days: number = 30
   return useQuery({
     queryKey: ['kpi-history', kpiName, domain, days],
     queryFn: async () => {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
+      // Guard against empty/invalid inputs
+      if (!kpiName || !domain) {
+        return [] as KPIHistoryPoint[];
+      }
+      
+      try {
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
 
-      const { data, error } = await supabase
-        .from('kpi_history')
-        .select('*')
-        .eq('kpi_name', kpiName)
-        .eq('domain', domain)
-        .gte('recorded_at', startDate.toISOString())
-        .order('recorded_at', { ascending: true });
+        const { data, error } = await supabase
+          .from('kpi_history')
+          .select('*')
+          .eq('kpi_name', kpiName)
+          .eq('domain', domain)
+          .gte('recorded_at', startDate.toISOString())
+          .order('recorded_at', { ascending: true });
 
-      if (error) throw error;
-      return data as KPIHistoryPoint[];
+        if (error) {
+          console.error('KPI History fetch error:', error);
+          return [] as KPIHistoryPoint[];
+        }
+        return (data || []) as KPIHistoryPoint[];
+      } catch (err) {
+        console.error('KPI History unexpected error:', err);
+        return [] as KPIHistoryPoint[];
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1, // Only retry once on failure
   });
 }
 

@@ -30,23 +30,27 @@ export function AIExecutiveSummary({
   onRefresh,
   isRefreshing,
 }: AIExecutiveSummaryProps) {
+  // Safe domainHealth with fallback
+  const safeDomainHealth = domainHealth || {};
+  const safeAllKPIs = Array.isArray(allKPIs) ? allKPIs : [];
+  
   // Fetch Real AI Insights
-  const { data: aiInsights, isLoading: isAiLoading, refetch: refreshAi } = useKPIInsights(allKPIs, Object.values(domainHealth));
+  const { data: aiInsights, isLoading: isAiLoading, refetch: refreshAi } = useKPIInsights(safeAllKPIs, Object.values(safeDomainHealth));
 
   const insights = useMemo(() => {
     // Fallback to rules-based if AI is loading or failed/null, 
     // OR if we want to mix both (e.g. use AI for text, rules for counts)
 
-    // ... (Keep existing rule-based logic for 'counts' like criticalKPIs list) ...
-    const criticalKPIs = allKPIs.filter(k => k.status === 'critical');
-    const warningKPIs = allKPIs.filter(k => k.status === 'warning');
-    const improvingKPIs = allKPIs.filter(k =>
-      k.trendDirection === 'up' && !k.lowerIsBetter ||
-      k.trendDirection === 'down' && k.lowerIsBetter
+    // Use safe arrays for calculations
+    const criticalKPIs = safeAllKPIs.filter(k => k?.status === 'critical');
+    const warningKPIs = safeAllKPIs.filter(k => k?.status === 'warning');
+    const improvingKPIs = safeAllKPIs.filter(k =>
+      (k?.trendDirection === 'up' && !k?.lowerIsBetter) ||
+      (k?.trendDirection === 'down' && k?.lowerIsBetter)
     );
-    const decliningKPIs = allKPIs.filter(k =>
-      k.trendDirection === 'down' && !k.lowerIsBetter ||
-      k.trendDirection === 'up' && k.lowerIsBetter
+    const decliningKPIs = safeAllKPIs.filter(k =>
+      (k?.trendDirection === 'down' && !k?.lowerIsBetter) ||
+      (k?.trendDirection === 'up' && k?.lowerIsBetter)
     );
 
     // Use AI summary if available, otherwise fallback
@@ -61,7 +65,7 @@ export function AIExecutiveSummary({
       // Pass through recommendations if present
       aiRecommendations: aiInsights?.recommendations
     };
-  }, [allKPIs, domainHealth, aiInsights]);
+  }, [safeAllKPIs, safeDomainHealth, aiInsights]);
 
 
   // Generate recommendations (Mix of AI and Rules)

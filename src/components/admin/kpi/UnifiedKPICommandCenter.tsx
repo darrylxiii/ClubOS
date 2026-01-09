@@ -233,12 +233,12 @@ export function UnifiedKPICommandCenter() {
           <div className="container mx-auto px-4 py-6 max-w-7xl">
             {selectedDomain === 'costs' ? (
               <CostOverview />
-            ) : selectedCategory ? (
+            ) : selectedCategory && selectedDomain && selectedCat ? (
               <CategoryView
                 domain={selectedDomain as KPIDomain}
-                category={selectedCat!}
-                categoryDisplayName={categoryDisplayName}
-                kpis={selectedKPIs}
+                category={selectedCat}
+                categoryDisplayName={categoryDisplayName || selectedCat}
+                kpis={selectedKPIs || []}
                 onBack={handleSelectOverview}
               />
             ) : (
