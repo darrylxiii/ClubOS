@@ -1,0 +1,419 @@
+import React, { useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  Database,
+  GitBranch,
+  Search,
+  ArrowRight,
+  RefreshCw,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+  Layers,
+  FileCode,
+  Server,
+  Zap,
+} from 'lucide-react';
+import { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
+
+interface DataSource {
+  id: string;
+  name: string;
+  type: 'database' | 'api' | 'calculation' | 'manual';
+  table?: string;
+  refreshRate: string;
+  lastUpdated: string;
+  status: 'active' | 'stale' | 'error';
+}
+
+interface DataLineage {
+  kpiId: string;
+  sources: DataSource[];
+  transformations: string[];
+  dependencies: string[];
+  consumers: string[];
+}
+
+interface DataLineageViewerProps {
+  kpis: UnifiedKPI[];
+  selectedKPI?: UnifiedKPI | null;
+  onSelectKPI?: (kpi: UnifiedKPI) => void;
+}
+
+// Mock lineage data - would come from metadata in production
+const generateLineageData = (kpi: UnifiedKPI): DataLineage => {
+  const domainSources: Record<string, DataSource[]> = {
+    'operations': [
+      { id: 's1', name: 'candidates', type: 'database', table: 'public.candidates', refreshRate: 'Real-time', lastUpdated: '2 min ago', status: 'active' },
+      { id: 's2', name: 'applications', type: 'database', table: 'public.applications', refreshRate: 'Real-time', lastUpdated: '5 min ago', status: 'active' },
+    ],
+    'sales': [
+      { id: 's3', name: 'invoices', type: 'database', table: 'public.invoices', refreshRate: 'Hourly', lastUpdated: '45 min ago', status: 'active' },
+      { id: 's4', name: 'Stripe API', type: 'api', refreshRate: 'Daily', lastUpdated: '6 hours ago', status: 'active' },
+    ],
+    'platform': [
+      { id: 's5', name: 'jobs', type: 'database', table: 'public.jobs', refreshRate: 'Real-time', lastUpdated: '1 min ago', status: 'active' },
+      { id: 's6', name: 'Greenhouse Sync', type: 'api', refreshRate: 'Every 15 min', lastUpdated: '10 min ago', status: 'active' },
+    ],
+    'growth': [
+      { id: 's7', name: 'placements', type: 'database', table: 'public.placements', refreshRate: 'Real-time', lastUpdated: '30 min ago', status: 'active' },
+      { id: 's8', name: 'contracts', type: 'database', table: 'public.contracts', refreshRate: 'Daily', lastUpdated: '2 hours ago', status: 'stale' },
+    ],
+    'website': [
+      { id: 's9', name: 'analytics', type: 'api', refreshRate: 'Hourly', lastUpdated: '20 min ago', status: 'active' },
+    ],
+    'intelligence': [
+      { id: 's10', name: 'ai_sessions', type: 'database', table: 'public.ai_session_scores', refreshRate: 'Real-time', lastUpdated: '5 min ago', status: 'active' },
+    ],
+    'costs': [
+      { id: 's11', name: 'expenses', type: 'database', table: 'public.invoices', refreshRate: 'Daily', lastUpdated: '1 hour ago', status: 'active' },
+    ],
+  };
+
+  const transformations = [
+    'Aggregate by time period',
+    'Apply status filters',
+    'Calculate percentage/ratio',
+    'Join with related tables',
+    'Apply business rules',
+  ];
+
+  return {
+    kpiId: kpi.id,
+    sources: domainSources[kpi.domain] || [
+      { id: 's0', name: 'Manual Entry', type: 'manual', refreshRate: 'On demand', lastUpdated: '1 day ago', status: 'stale' },
+    ],
+    transformations: transformations.slice(0, Math.floor(Math.random() * 3) + 2),
+    dependencies: kpi.domain === 'sales' || kpi.domain === 'costs' ? ['Exchange Rates', 'Tax Rules'] : ['User Permissions'],
+    consumers: ['Executive Dashboard', 'Weekly Report', 'Slack Alerts'],
+  };
+};
+
+export function DataLineageViewer({ kpis, selectedKPI, onSelectKPI }: DataLineageViewerProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('lineage');
+  const [internalSelectedKPI, setInternalSelectedKPI] = useState<UnifiedKPI | null>(null);
+
+  const currentKPI = selectedKPI || internalSelectedKPI;
+  const lineageData = useMemo(() => 
+    currentKPI ? generateLineageData(currentKPI) : null, 
+    [currentKPI]
+  );
+
+  const filteredKPIs = useMemo(() => 
+    kpis.filter(kpi => 
+      kpi.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      kpi.domain.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [kpis, searchQuery]
+  );
+
+  const handleSelectKPI = (kpi: UnifiedKPI) => {
+    if (onSelectKPI) {
+      onSelectKPI(kpi);
+    } else {
+      setInternalSelectedKPI(kpi);
+    }
+  };
+
+  const getSourceIcon = (type: DataSource['type']) => {
+    switch (type) {
+      case 'database': return <Database className="h-4 w-4" />;
+      case 'api': return <Server className="h-4 w-4" />;
+      case 'calculation': return <Zap className="h-4 w-4" />;
+      case 'manual': return <FileCode className="h-4 w-4" />;
+    }
+  };
+
+  const getStatusColor = (status: DataSource['status']) => {
+    switch (status) {
+      case 'active': return 'text-emerald-400';
+      case 'stale': return 'text-amber-400';
+      case 'error': return 'text-red-400';
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+            <GitBranch className="h-5 w-5 text-primary" />
+            Data Lineage
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Trace data sources, transformations, and dependencies for each KPI
+          </p>
+        </div>
+        <Button variant="outline" size="sm" className="gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Refresh All
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-12 gap-6">
+        {/* KPI Selector */}
+        <div className="col-span-4">
+          <Card className="bg-card/50 backdrop-blur border-border/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">Select KPI</CardTitle>
+              <div className="relative mt-2">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search KPIs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[400px]">
+                <div className="px-4 pb-4 space-y-1">
+                  {filteredKPIs.map((kpi) => (
+                    <button
+                      key={kpi.id}
+                      className={`w-full p-3 rounded-lg text-left transition-all ${
+                        currentKPI?.id === kpi.id
+                          ? 'bg-primary/10 border border-primary/30'
+                          : 'hover:bg-muted/50 border border-transparent'
+                      }`}
+                      onClick={() => handleSelectKPI(kpi)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{kpi.displayName}</p>
+                          <p className="text-xs text-muted-foreground">{kpi.domain}</p>
+                        </div>
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            kpi.status === 'success' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                            kpi.status === 'warning' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' :
+                            'bg-red-500/10 text-red-400 border-red-500/30'
+                          }
+                        >
+                          {kpi.status}
+                        </Badge>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Lineage Visualization */}
+        <div className="col-span-8">
+          {lineageData && currentKPI ? (
+            <Card className="bg-card/50 backdrop-blur border-border/50">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-medium">
+                    {currentKPI.displayName}
+                  </CardTitle>
+                  <Badge variant="secondary" className="text-xs">
+                    {currentKPI.domain}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList className="grid w-full grid-cols-3 mb-4">
+                    <TabsTrigger value="lineage" className="text-xs">
+                      <GitBranch className="h-3.5 w-3.5 mr-1.5" />
+                      Lineage
+                    </TabsTrigger>
+                    <TabsTrigger value="sources" className="text-xs">
+                      <Database className="h-3.5 w-3.5 mr-1.5" />
+                      Sources
+                    </TabsTrigger>
+                    <TabsTrigger value="consumers" className="text-xs">
+                      <Layers className="h-3.5 w-3.5 mr-1.5" />
+                      Consumers
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="lineage" className="mt-0">
+                    {/* Visual Flow Diagram */}
+                    <div className="relative">
+                      {/* Sources */}
+                      <div className="flex flex-col gap-2 mb-4">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Data Sources
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {lineageData.sources.map((source) => (
+                            <TooltipProvider key={source.id}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border/50">
+                                    <span className={getStatusColor(source.status)}>
+                                      {getSourceIcon(source.type)}
+                                    </span>
+                                    <span className="text-sm font-medium">{source.name}</span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <div className="text-xs">
+                                    <p>Table: {source.table || 'N/A'}</p>
+                                    <p>Refresh: {source.refreshRate}</p>
+                                    <p>Updated: {source.lastUpdated}</p>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Arrow */}
+                      <div className="flex justify-center my-3">
+                        <ArrowRight className="h-5 w-5 text-muted-foreground rotate-90" />
+                      </div>
+
+                      {/* Transformations */}
+                      <div className="flex flex-col gap-2 mb-4">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Transformations
+                        </span>
+                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                          <div className="flex flex-wrap gap-2">
+                            {lineageData.transformations.map((transform, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs bg-background">
+                                {transform}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Arrow */}
+                      <div className="flex justify-center my-3">
+                        <ArrowRight className="h-5 w-5 text-muted-foreground rotate-90" />
+                      </div>
+
+                      {/* KPI Output */}
+                      <div className="flex flex-col gap-2 mb-4">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          KPI Output
+                        </span>
+                        <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-center">
+                          <p className="text-lg font-bold text-foreground">{currentKPI.displayName}</p>
+                          <p className="text-2xl font-bold text-emerald-400 mt-1">
+                            {typeof currentKPI.value === 'number' ? currentKPI.value.toLocaleString() : currentKPI.value}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Arrow */}
+                      <div className="flex justify-center my-3">
+                        <ArrowRight className="h-5 w-5 text-muted-foreground rotate-90" />
+                      </div>
+
+                      {/* Consumers */}
+                      <div className="flex flex-col gap-2">
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Consumers
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {lineageData.consumers.map((consumer, idx) => (
+                            <Badge key={idx} variant="secondary" className="text-xs">
+                              {consumer}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="sources" className="mt-0">
+                    <div className="space-y-3">
+                      {lineageData.sources.map((source) => (
+                        <div 
+                          key={source.id}
+                          className="p-4 rounded-lg bg-muted/30 border border-border/50"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-lg bg-background ${getStatusColor(source.status)}`}>
+                                {getSourceIcon(source.type)}
+                              </div>
+                              <div>
+                                <p className="font-medium text-foreground">{source.name}</p>
+                                <p className="text-xs text-muted-foreground">{source.table || source.type}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {source.status === 'active' ? (
+                                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                              ) : source.status === 'stale' ? (
+                                <Clock className="h-4 w-4 text-amber-400" />
+                              ) : (
+                                <AlertTriangle className="h-4 w-4 text-red-400" />
+                              )}
+                              <span className="text-xs text-muted-foreground">{source.lastUpdated}</span>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                            <span>Refresh: {source.refreshRate}</span>
+                            <span>Type: {source.type}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="consumers" className="mt-0">
+                    <div className="space-y-3">
+                      {lineageData.consumers.map((consumer, idx) => (
+                        <div 
+                          key={idx}
+                          className="p-4 rounded-lg bg-muted/30 border border-border/50 flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-background text-primary">
+                              <Layers className="h-4 w-4" />
+                            </div>
+                            <span className="font-medium text-foreground">{consumer}</span>
+                          </div>
+                          <Badge variant="outline" className="text-xs">Active</Badge>
+                        </div>
+                      ))}
+
+                      <div className="mt-4 p-4 rounded-lg border border-dashed border-border/50 text-center">
+                        <p className="text-sm text-muted-foreground">
+                          Dependencies: {lineageData.dependencies.join(', ')}
+                        </p>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-card/50 backdrop-blur border-border/50 h-full flex items-center justify-center">
+              <CardContent className="text-center py-12">
+                <GitBranch className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <p className="text-muted-foreground">Select a KPI to view its data lineage</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
