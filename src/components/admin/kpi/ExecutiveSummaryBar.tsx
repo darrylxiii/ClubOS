@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertTriangle, AlertCircle, CheckCircle2, TrendingUp, Calendar, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { SLAStatusBadge } from './SLAStatusPanel';
 
 interface ExecutiveSummaryBarProps {
   overallHealth: number;
@@ -138,6 +139,9 @@ export function ExecutiveSummaryBar({
                 ({onTargetPercentage}%)
               </span>
             </div>
+
+            {/* SLA Status Badge */}
+            <SLAStatusBadge />
 
             {/* Last Updated */}
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

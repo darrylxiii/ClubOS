@@ -7432,6 +7432,57 @@ export type Database = {
           },
         ]
       }
+      circuit_breaker_state: {
+        Row: {
+          created_at: string | null
+          failure_count: number | null
+          failure_threshold: number | null
+          function_name: string
+          id: string
+          last_failure_at: string | null
+          last_success_at: string | null
+          metadata: Json | null
+          next_retry_at: string | null
+          opened_at: string | null
+          recovery_timeout_seconds: number | null
+          state: string
+          success_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          failure_count?: number | null
+          failure_threshold?: number | null
+          function_name: string
+          id?: string
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          metadata?: Json | null
+          next_retry_at?: string | null
+          opened_at?: string | null
+          recovery_timeout_seconds?: number | null
+          state?: string
+          success_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          failure_count?: number | null
+          failure_threshold?: number | null
+          function_name?: string
+          id?: string
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          metadata?: Json | null
+          next_retry_at?: string | null
+          opened_at?: string | null
+          recovery_timeout_seconds?: number | null
+          state?: string
+          success_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           country: string
@@ -22107,6 +22158,51 @@ export type Database = {
           },
         ]
       }
+      kpi_execution_events: {
+        Row: {
+          created_at: string | null
+          domain: string | null
+          duration_ms: number | null
+          error_message: string | null
+          event_type: string
+          function_name: string
+          id: string
+          message: string | null
+          metadata: Json | null
+          metrics_count: number | null
+          severity: string | null
+          trace_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          event_type: string
+          function_name: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          metrics_count?: number | null
+          severity?: string | null
+          trace_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domain?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          event_type?: string
+          function_name?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          metrics_count?: number | null
+          severity?: string | null
+          trace_id?: string | null
+        }
+        Relationships: []
+      }
       kpi_history: {
         Row: {
           category: string | null
@@ -22313,6 +22409,39 @@ export type Database = {
           owner_role?: string | null
           owner_user_id?: string | null
           review_frequency?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      kpi_sla_config: {
+        Row: {
+          alert_on_breach: boolean | null
+          created_at: string | null
+          domain: string
+          id: string
+          max_stale_minutes: number | null
+          min_success_rate: number | null
+          target_calculation_time_ms: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          alert_on_breach?: boolean | null
+          created_at?: string | null
+          domain: string
+          id?: string
+          max_stale_minutes?: number | null
+          min_success_rate?: number | null
+          target_calculation_time_ms?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          alert_on_breach?: boolean | null
+          created_at?: string | null
+          domain?: string
+          id?: string
+          max_stale_minutes?: number | null
+          min_success_rate?: number | null
+          target_calculation_time_ms?: number | null
           updated_at?: string | null
         }
         Relationships: []
@@ -49158,6 +49287,7 @@ export type Database = {
           warning_count: number
         }[]
       }
+      get_kpi_sla_dashboard: { Args: never; Returns: Json }
       get_kpi_sla_status: {
         Args: never
         Returns: {
@@ -49452,6 +49582,21 @@ export type Database = {
         }
         Returns: string
       }
+      log_kpi_execution_event: {
+        Args: {
+          p_domain?: string
+          p_duration_ms?: number
+          p_error_message?: string
+          p_event_type: string
+          p_function_name: string
+          p_message?: string
+          p_metadata?: Json
+          p_metrics_count?: number
+          p_severity?: string
+          p_trace_id?: string
+        }
+        Returns: string
+      }
       mark_channel_as_read: {
         Args: { p_channel_id: string; p_user_id: string }
         Returns: undefined
@@ -49661,6 +49806,10 @@ export type Database = {
       update_candidate_tier: {
         Args: { p_candidate_id: string; p_reason?: string }
         Returns: undefined
+      }
+      update_circuit_breaker: {
+        Args: { p_function_name: string; p_success: boolean }
+        Returns: string
       }
       update_company_intelligence_score: {
         Args: { p_company_id: string }
