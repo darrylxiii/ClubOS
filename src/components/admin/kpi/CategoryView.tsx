@@ -131,10 +131,13 @@ export function CategoryView({
   const description = categoryDescriptions[category] || 'Category metrics and performance indicators';
   const actions = categoryActions[category];
 
-  // Sort KPIs: critical first, then warning, then success, then neutral
-  const sortedKPIs = [...kpis].sort((a, b) => {
-    const order = { critical: 0, warning: 1, success: 2, neutral: 3 };
-    return order[a.status] - order[b.status];
+  // Safe array guard and sort KPIs: critical first, then warning, then success, then neutral
+  const safeKpis = Array.isArray(kpis) ? kpis : [];
+  const sortedKPIs = [...safeKpis].sort((a, b) => {
+    const order: Record<string, number> = { critical: 0, warning: 1, success: 2, neutral: 3 };
+    const aOrder = a?.status ? (order[a.status] ?? 3) : 3;
+    const bOrder = b?.status ? (order[b.status] ?? 3) : 3;
+    return aOrder - bOrder;
   });
 
   const handleExportCSV = () => {

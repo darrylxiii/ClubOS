@@ -11,17 +11,25 @@ interface KPISparklineProps {
 }
 
 export function KPISparkline({ kpi, height = 32, className, useHistory = true }: KPISparklineProps) {
+  // Guard against undefined/null kpi
+  const safeKpiName = kpi?.name || '';
+  const safeKpiDomain = kpi?.domain || 'operations';
+  const safeKpiValue = typeof kpi?.value === 'number' && isFinite(kpi.value) ? kpi.value : 0;
+  const safeKpiStatus = kpi?.status || 'neutral';
+  const safeKpiTrendDirection = kpi?.trendDirection;
+  const safeKpiTrendPercentage = kpi?.trendPercentage || 0;
+  
   // Fetch real history data if enabled
-  const { data: historyData } = useKPIHistory(kpi.name, kpi.domain, 7);
+  const { data: historyData } = useKPIHistory(safeKpiName, safeKpiDomain, 7);
 
   // Generate data points - use real history if available, otherwise generate based on trend
   const data = useMemo(() => {
     // Use real history if we have enough points
-    if (useHistory && historyData && historyData.length >= 3) {
-      const values = historyData.map(h => h.value);
+    if (useHistory && historyData && Array.isArray(historyData) && historyData.length >= 3) {
+      const values = historyData.map(h => (typeof h?.value === 'number' ? h.value : 0));
       // Ensure we include the current value at the end
-      if (values[values.length - 1] !== kpi.value) {
-        values.push(kpi.value);
+      if (values[values.length - 1] !== safeKpiValue) {
+        values.push(safeKpiValue);
       }
       return values;
     }
@@ -29,13 +37,13 @@ export function KPISparkline({ kpi, height = 32, className, useHistory = true }:
     // Fallback: Generate mock historical data based on current value and trend
     const points = 7;
     const values: number[] = [];
-    const currentValue = kpi.value;
-    const trendPercent = kpi.trendPercentage || 0;
+    const currentValue = safeKpiValue;
+    const trendPercent = safeKpiTrendPercentage;
     
     // Calculate starting value based on trend
-    const startValue = kpi.trendDirection === 'up' 
+    const startValue = safeKpiTrendDirection === 'up' 
       ? currentValue / (1 + trendPercent / 100)
-      : kpi.trendDirection === 'down'
+      : safeKpiTrendDirection === 'down'
       ? currentValue / (1 - trendPercent / 100)
       : currentValue;
     
@@ -51,22 +59,22 @@ export function KPISparkline({ kpi, height = 32, className, useHistory = true }:
     values[points - 1] = currentValue;
     
     return values;
-  }, [kpi.value, kpi.trendDirection, kpi.trendPercentage, historyData, useHistory, kpi.name]);
+  }, [safeKpiValue, safeKpiTrendDirection, safeKpiTrendPercentage, historyData, useHistory, safeKpiName]);
 
-  // Determine line color based on status
+  // Determine line color based on status (using safe status)
   const lineColor = useMemo(() => {
-    if (kpi.status === 'critical') return 'stroke-rose-500';
-    if (kpi.status === 'warning') return 'stroke-amber-500';
-    if (kpi.status === 'success') return 'stroke-emerald-500';
+    if (safeKpiStatus === 'critical') return 'stroke-rose-500';
+    if (safeKpiStatus === 'warning') return 'stroke-amber-500';
+    if (safeKpiStatus === 'success') return 'stroke-emerald-500';
     return 'stroke-muted-foreground';
-  }, [kpi.status]);
+  }, [safeKpiStatus]);
 
   const fillColor = useMemo(() => {
-    if (kpi.status === 'critical') return 'fill-rose-500/10';
-    if (kpi.status === 'warning') return 'fill-amber-500/10';
-    if (kpi.status === 'success') return 'fill-emerald-500/10';
+    if (safeKpiStatus === 'critical') return 'fill-rose-500/10';
+    if (safeKpiStatus === 'warning') return 'fill-amber-500/10';
+    if (safeKpiStatus === 'success') return 'fill-emerald-500/10';
     return 'fill-muted/30';
-  }, [kpi.status]);
+  }, [safeKpiStatus]);
 
   // Calculate SVG path
   const path = useMemo(() => {

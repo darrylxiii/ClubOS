@@ -20,21 +20,35 @@ const statusColors = {
   neutral: 'bg-muted text-muted-foreground border-border',
 };
 
-export function PinnedKPIsSection({ pinnedKPIs, onUnpin, onKPIClick }: PinnedKPIsSectionProps) {
-  if (pinnedKPIs.length === 0) return null;
+// Safe status colors lookup with fallback
+const getStatusColor = (status: string | undefined) => {
+  if (!status || !statusColors[status as keyof typeof statusColors]) {
+    return statusColors.neutral;
+  }
+  return statusColors[status as keyof typeof statusColors];
+};
 
-  const formatValue = (kpi: UnifiedKPI) => {
+export function PinnedKPIsSection({ pinnedKPIs, onUnpin, onKPIClick }: PinnedKPIsSectionProps) {
+  if (!pinnedKPIs || pinnedKPIs.length === 0) return null;
+
+  const formatValue = (kpi: UnifiedKPI | null | undefined) => {
+    if (!kpi) return '—';
+    const value = typeof kpi.value === 'number' && isFinite(kpi.value) ? kpi.value : 0;
     switch (kpi.format) {
       case 'percent':
-        return `${kpi.value.toFixed(1)}%`;
+        return `${value.toFixed(1)}%`;
       case 'currency':
-        return `€${kpi.value.toFixed(0)}`;
+        return `€${value.toFixed(0)}`;
       case 'hours':
-        return `${kpi.value.toFixed(1)}h`;
+        return `${value.toFixed(1)}h`;
       case 'days':
-        return `${kpi.value.toFixed(1)}d`;
+        return `${value.toFixed(1)}d`;
+      case 'ms':
+        return `${value.toFixed(0)}ms`;
+      case 'minutes':
+        return `${value.toFixed(0)}min`;
       default:
-        return kpi.value.toFixed(1);
+        return value.toFixed(1);
     }
   };
 
@@ -78,9 +92,9 @@ export function PinnedKPIsSection({ pinnedKPIs, onUnpin, onKPIClick }: PinnedKPI
                   </span>
                   <Badge 
                     variant="outline" 
-                    className={cn("text-[10px] px-1 py-0", statusColors[kpi.status])}
+                    className={cn("text-[10px] px-1 py-0", getStatusColor(kpi.status))}
                   >
-                    {kpi.status}
+                    {kpi.status || 'neutral'}
                   </Badge>
                 </div>
 

@@ -81,28 +81,33 @@ export function KPIDetailModal({
 }: KPIDetailModalProps) {
   if (!kpi) return null;
 
-  const config = statusConfig[kpi.status];
+  // Safe status lookup with fallback to neutral
+  const safeStatus = kpi.status && statusConfig[kpi.status] ? kpi.status : 'neutral';
+  const config = statusConfig[safeStatus];
   const StatusIcon = config.icon;
-  const tip = actionTips[kpi.name];
+  const tip = actionTips[kpi.name || ''];
 
-  const formatValue = (value: number) => {
+  const formatValue = (value: number | undefined | null) => {
+    const safeValue = typeof value === 'number' && isFinite(value) ? value : 0;
     switch (kpi.format) {
       case 'percent':
-        return `${value.toFixed(1)}%`;
+        return `${safeValue.toFixed(1)}%`;
       case 'currency':
         return new Intl.NumberFormat('nl-NL', { 
           style: 'currency', 
           currency: 'EUR',
           maximumFractionDigits: 0 
-        }).format(value);
+        }).format(safeValue);
       case 'hours':
-        return `${value.toFixed(1)}h`;
+        return `${safeValue.toFixed(1)}h`;
       case 'days':
-        return `${value.toFixed(1)}d`;
+        return `${safeValue.toFixed(1)}d`;
       case 'minutes':
-        return `${value.toFixed(0)}min`;
+        return `${safeValue.toFixed(0)}min`;
+      case 'ms':
+        return `${safeValue.toFixed(0)}ms`;
       default:
-        return value.toLocaleString('nl-NL', { maximumFractionDigits: 1 });
+        return safeValue.toLocaleString('nl-NL', { maximumFractionDigits: 1 });
     }
   };
 
