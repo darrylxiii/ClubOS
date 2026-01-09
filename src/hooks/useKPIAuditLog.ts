@@ -34,7 +34,7 @@ export function useKPIAuditLog() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await (supabase as any).rpc('log_kpi_access', {
+      await supabase.rpc('log_kpi_access', {
         p_user_id: user.id,
         p_action_type: action,
         p_kpi_name: kpiName || null,
@@ -53,7 +53,7 @@ export function useKPIAuditSummary(days: number = 30) {
   return useQuery({
     queryKey: ['kpi-audit-summary', days],
     queryFn: async (): Promise<AuditSummary> => {
-      const { data, error } = await (supabase as any).rpc('get_kpi_audit_summary', {
+      const { data, error } = await supabase.rpc('get_kpi_audit_summary', {
         p_days: days
       });
       
@@ -68,7 +68,7 @@ export function useKPIAuditHistory(limit: number = 100) {
   return useQuery({
     queryKey: ['kpi-audit-history', limit],
     queryFn: async (): Promise<AuditLogEntry[]> => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('kpi_access_log')
         .select('*')
         .order('created_at', { ascending: false })

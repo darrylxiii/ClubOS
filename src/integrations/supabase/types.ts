@@ -22470,6 +22470,73 @@ export type Database = {
         }
         Relationships: []
       }
+      kpi_lineage_metadata: {
+        Row: {
+          consumers: string[] | null
+          created_at: string
+          dependencies: string[] | null
+          id: string
+          kpi_name: string
+          last_calculated_at: string | null
+          owner_id: string | null
+          refresh_rate: string | null
+          source_apis: string[] | null
+          source_tables: string[] | null
+          transformations: Json | null
+          updated_at: string
+        }
+        Insert: {
+          consumers?: string[] | null
+          created_at?: string
+          dependencies?: string[] | null
+          id?: string
+          kpi_name: string
+          last_calculated_at?: string | null
+          owner_id?: string | null
+          refresh_rate?: string | null
+          source_apis?: string[] | null
+          source_tables?: string[] | null
+          transformations?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          consumers?: string[] | null
+          created_at?: string
+          dependencies?: string[] | null
+          id?: string
+          kpi_name?: string
+          last_calculated_at?: string | null
+          owner_id?: string | null
+          refresh_rate?: string | null
+          source_apis?: string[] | null
+          source_tables?: string[] | null
+          transformations?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpi_lineage_metadata_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "kpi_lineage_metadata_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpi_lineage_metadata_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kpi_metrics: {
         Row: {
           category: string
@@ -22535,6 +22602,41 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kpi_okr_links: {
+        Row: {
+          contribution_weight: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          key_result_id: string
+          kpi_name: string
+        }
+        Insert: {
+          contribution_weight?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key_result_id: string
+          kpi_name: string
+        }
+        Update: {
+          contribution_weight?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key_result_id?: string
+          kpi_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpi_okr_links_key_result_id_fkey"
+            columns: ["key_result_id"]
+            isOneToOne: false
+            referencedRelation: "okr_key_results"
             referencedColumns: ["id"]
           },
         ]
@@ -28968,6 +29070,123 @@ export type Database = {
           },
         ]
       }
+      okr_key_results: {
+        Row: {
+          contribution_weight: number | null
+          created_at: string
+          current_value: number | null
+          description: string | null
+          id: string
+          objective_id: string
+          status: string
+          target_value: number
+          title: string
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          contribution_weight?: number | null
+          created_at?: string
+          current_value?: number | null
+          description?: string | null
+          id?: string
+          objective_id: string
+          status?: string
+          target_value: number
+          title: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contribution_weight?: number | null
+          created_at?: string
+          current_value?: number | null
+          description?: string | null
+          id?: string
+          objective_id?: string
+          status?: string
+          target_value?: number
+          title?: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "okr_key_results_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "okr_objectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      okr_objectives: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          owner_id: string | null
+          progress: number | null
+          quarter: string
+          start_date: string | null
+          status: string
+          title: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          owner_id?: string | null
+          progress?: number | null
+          quarter: string
+          start_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          year?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          owner_id?: string | null
+          progress?: number | null
+          quarter?: string
+          start_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "okr_objectives_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "okr_objectives_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "okr_objectives_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_checklists: {
         Row: {
           category: string
@@ -31063,6 +31282,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      personal_kpi_goals: {
+        Row: {
+          best_streak: number | null
+          created_at: string
+          current_value: number | null
+          id: string
+          is_active: boolean | null
+          kpi_name: string
+          notes: string | null
+          official_target: number | null
+          personal_target: number
+          streak_days: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          best_streak?: number | null
+          created_at?: string
+          current_value?: number | null
+          id?: string
+          is_active?: boolean | null
+          kpi_name: string
+          notes?: string | null
+          official_target?: number | null
+          personal_target: number
+          streak_days?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          best_streak?: number | null
+          created_at?: string
+          current_value?: number | null
+          id?: string
+          is_active?: boolean | null
+          kpi_name?: string
+          notes?: string | null
+          official_target?: number | null
+          personal_target?: number
+          streak_days?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       personal_meeting_rooms: {
         Row: {
@@ -49908,7 +50172,7 @@ export type Database = {
           p_metadata?: Json
           p_user_id: string
         }
-        Returns: string
+        Returns: undefined
       }
       log_kpi_execution_event: {
         Args: {
