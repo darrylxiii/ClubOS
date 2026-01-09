@@ -22012,6 +22012,45 @@ export type Database = {
           },
         ]
       }
+      kpi_access_log: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          domain: string | null
+          id: string
+          ip_address: string | null
+          kpi_name: string | null
+          metadata: Json | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          domain?: string | null
+          id?: string
+          ip_address?: string | null
+          kpi_name?: string | null
+          metadata?: Json | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          domain?: string | null
+          id?: string
+          ip_address?: string | null
+          kpi_name?: string | null
+          metadata?: Json | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       kpi_alert_configs: {
         Row: {
           alert_on_critical: boolean | null
@@ -22200,6 +22239,141 @@ export type Database = {
           metrics_count?: number | null
           severity?: string | null
           trace_id?: string | null
+        }
+        Relationships: []
+      }
+      kpi_executive_preferences: {
+        Row: {
+          auto_refresh_interval: number | null
+          comparison_period: string | null
+          created_at: string | null
+          dashboard_layout: Json | null
+          id: string
+          notification_preferences: Json | null
+          preferred_domains: string[] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          auto_refresh_interval?: number | null
+          comparison_period?: string | null
+          created_at?: string | null
+          dashboard_layout?: Json | null
+          id?: string
+          notification_preferences?: Json | null
+          preferred_domains?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          auto_refresh_interval?: number | null
+          comparison_period?: string | null
+          created_at?: string | null
+          dashboard_layout?: Json | null
+          id?: string
+          notification_preferences?: Json | null
+          preferred_domains?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      kpi_executive_reports: {
+        Row: {
+          ai_summary: string | null
+          charts_data: Json | null
+          created_at: string | null
+          generated_by: string | null
+          id: string
+          key_highlights: Json | null
+          kpi_snapshots: Json
+          opportunity_flags: Json | null
+          pdf_url: string | null
+          period_end: string
+          period_start: string
+          report_type: string
+          risk_flags: Json | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          ai_summary?: string | null
+          charts_data?: Json | null
+          created_at?: string | null
+          generated_by?: string | null
+          id?: string
+          key_highlights?: Json | null
+          kpi_snapshots?: Json
+          opportunity_flags?: Json | null
+          pdf_url?: string | null
+          period_end: string
+          period_start: string
+          report_type?: string
+          risk_flags?: Json | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          ai_summary?: string | null
+          charts_data?: Json | null
+          created_at?: string | null
+          generated_by?: string | null
+          id?: string
+          key_highlights?: Json | null
+          kpi_snapshots?: Json
+          opportunity_flags?: Json | null
+          pdf_url?: string | null
+          period_end?: string
+          period_start?: string
+          report_type?: string
+          risk_flags?: Json | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      kpi_export_approvals: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          export_format: string
+          id: string
+          kpi_names: string[]
+          reason: string | null
+          requested_by: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          export_format: string
+          id?: string
+          kpi_names: string[]
+          reason?: string | null
+          requested_by?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          export_format?: string
+          id?: string
+          kpi_names?: string[]
+          reason?: string | null
+          requested_by?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -22413,6 +22587,113 @@ export type Database = {
         }
         Relationships: []
       }
+      kpi_report_subscriptions: {
+        Row: {
+          created_at: string | null
+          delivery_config: Json | null
+          delivery_method: string
+          format: string
+          id: string
+          is_active: boolean | null
+          last_sent_at: string | null
+          next_scheduled_at: string | null
+          schedule_config: Json | null
+          schedule_type: string
+          template_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_config?: Json | null
+          delivery_method?: string
+          format?: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          next_scheduled_at?: string | null
+          schedule_config?: Json | null
+          schedule_type: string
+          template_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_config?: Json | null
+          delivery_method?: string
+          format?: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          next_scheduled_at?: string | null
+          schedule_config?: Json | null
+          schedule_type?: string
+          template_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpi_report_subscriptions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "kpi_report_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kpi_report_templates: {
+        Row: {
+          chart_configs: Json | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          include_anomalies: boolean | null
+          include_forecasts: boolean | null
+          include_recommendations: boolean | null
+          is_system_template: boolean | null
+          kpi_selection: Json
+          layout_config: Json | null
+          name: string
+          template_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          chart_configs?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          include_anomalies?: boolean | null
+          include_forecasts?: boolean | null
+          include_recommendations?: boolean | null
+          is_system_template?: boolean | null
+          kpi_selection?: Json
+          layout_config?: Json | null
+          name: string
+          template_type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          chart_configs?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          include_anomalies?: boolean | null
+          include_forecasts?: boolean | null
+          include_recommendations?: boolean | null
+          is_system_template?: boolean | null
+          kpi_selection?: Json
+          layout_config?: Json | null
+          name?: string
+          template_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       kpi_sla_config: {
         Row: {
           alert_on_breach: boolean | null
@@ -22494,6 +22775,42 @@ export type Database = {
           target_value?: number
           updated_at?: string | null
           warning_threshold?: number | null
+        }
+        Relationships: []
+      }
+      kpi_visibility_rules: {
+        Row: {
+          created_at: string | null
+          domain: string | null
+          id: string
+          kpi_name: string
+          mask_value_for_unauthorized: boolean | null
+          requires_export_approval: boolean | null
+          sensitive_fields: string[] | null
+          updated_at: string | null
+          visible_to_roles: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain?: string | null
+          id?: string
+          kpi_name: string
+          mask_value_for_unauthorized?: boolean | null
+          requires_export_approval?: boolean | null
+          sensitive_fields?: string[] | null
+          updated_at?: string | null
+          visible_to_roles?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          domain?: string | null
+          id?: string
+          kpi_name?: string
+          mask_value_for_unauthorized?: boolean | null
+          requires_export_approval?: boolean | null
+          sensitive_fields?: string[] | null
+          updated_at?: string | null
+          visible_to_roles?: string[] | null
         }
         Relationships: []
       }
@@ -49276,6 +49593,7 @@ export type Database = {
         }
         Returns: number
       }
+      get_kpi_audit_summary: { Args: { p_days?: number }; Returns: Json }
       get_kpi_dashboard_summary: {
         Args: never
         Returns: {
@@ -49579,6 +49897,16 @@ export type Database = {
           p_resource_type: string
           p_result?: string
           p_user_agent?: string
+        }
+        Returns: string
+      }
+      log_kpi_access: {
+        Args: {
+          p_action_type: string
+          p_domain?: string
+          p_kpi_name?: string
+          p_metadata?: Json
+          p_user_id: string
         }
         Returns: string
       }
