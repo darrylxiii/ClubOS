@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUnifiedKPIs, type KPIDomain, type UnifiedKPI, type DomainHealth } from '@/hooks/useUnifiedKPIs';
+import { useKPIRefresh } from '@/hooks/useKPIRefresh';
 import { ExecutiveSummaryBar } from './ExecutiveSummaryBar';
 import { DomainSidebar } from './DomainSidebar';
 import { KPIOverview } from './KPIOverview';
@@ -20,17 +21,17 @@ import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Download, FileText, RefreshCw } from 'lucide-react';
+import { Menu, Download, FileText, RefreshCw, Zap } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
 export function UnifiedKPICommandCenter() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly');
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,6 +44,15 @@ export function UnifiedKPICommandCenter() {
 
   // Use persistent pinned KPIs hook
   const { pinnedKPIIds, isPinned, togglePin: persistentTogglePin, isLoading: isPinsLoading } = usePinnedKPIs();
+
+  // KPI Refresh hook for backend recalculation
+  const { 
+    isRefreshing: isRecalculating, 
+    refreshAll: recalculateAll, 
+    refreshSingleDomain,
+    lastRefresh,
+    lastResult 
+  } = useKPIRefresh();
 
   const {
     isLoading,
@@ -59,8 +69,11 @@ export function UnifiedKPICommandCenter() {
     categoryDisplayNames,
   } = useUnifiedKPIs(period);
 
+  // Combined refreshing state
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   // Last updated timestamp
-  const lastUpdated = useMemo(() => new Date(), [isLoading]);
+  const lastUpdated = useMemo(() => lastRefresh || new Date(), [lastRefresh, isLoading]);
 
   // Filter KPIs based on search and status
   const filteredKPIs = useMemo(() => {
@@ -112,8 +125,9 @@ export function UnifiedKPICommandCenter() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
+      // First recalculate via edge functions, then refresh UI data
+      await recalculateAll();
       await refreshAll();
-      toast.success('All KPIs refreshed');
     } catch (error) {
       toast.error('Failed to refresh KPIs');
     } finally {
