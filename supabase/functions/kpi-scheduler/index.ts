@@ -117,6 +117,13 @@ serve(async (req) => {
       results.push(result);
     }
 
+    // 6. Run KPI alerts check after calculations
+    if (full_recalc) {
+      logStep('Checking KPI alerts...');
+      const alertResult = await callEdgeFunction('kpi-alerts', { check_stale: true, notify: true });
+      results.push(alertResult);
+    }
+
     // Log execution summary
     const successCount = results.filter(r => r.success).length;
     const failCount = results.filter(r => !r.success).length;
