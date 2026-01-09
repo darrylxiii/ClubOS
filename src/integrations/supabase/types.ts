@@ -49147,6 +49147,26 @@ export type Database = {
         }
         Returns: number
       }
+      get_kpi_dashboard_summary: {
+        Args: never
+        Returns: {
+          critical_count: number
+          domain: string
+          healthy_count: number
+          last_updated: string
+          total_metrics: number
+          warning_count: number
+        }[]
+      }
+      get_kpi_sla_status: {
+        Args: never
+        Returns: {
+          domain: string
+          freshness_minutes: number
+          is_stale: boolean
+          sla_status: string
+        }[]
+      }
       get_maintenance_mode: { Args: never; Returns: Json }
       get_ml_training_data: {
         Args: { limit_count?: number; offset_count?: number }
@@ -49214,7 +49234,15 @@ export type Database = {
               total_enrollments: number
             }[]
           }
-      get_realtime_system_health: { Args: never; Returns: Json }
+      get_realtime_system_health: {
+        Args: never
+        Returns: {
+          last_updated: string
+          metric_name: string
+          status: string
+          value: number
+        }[]
+      }
       get_recruiter_stats: {
         Args: { p_days?: number; p_user_id: string }
         Returns: Json
