@@ -221,6 +221,7 @@ export function UnifiedKPICommandCenter() {
     );
   }
 
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Executive Summary Bar */}
@@ -274,14 +275,43 @@ export function UnifiedKPICommandCenter() {
             ) : (
               <>
                 <div className="mb-6 space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
                       <h1 className="text-2xl font-bold tracking-tight">KPI Command Center</h1>
                       <p className="text-muted-foreground">
                         Unified view across Operations, Website, Sales, Platform, Intelligence, Growth, and Costs
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* View Mode Tabs */}
+                      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                        <TabsList className="h-9">
+                          <TabsTrigger value="overview" className="gap-1.5 text-xs px-3">
+                            <BarChart3 className="h-3.5 w-3.5" />
+                            Overview
+                          </TabsTrigger>
+                          <TabsTrigger value="executive" className="gap-1.5 text-xs px-3">
+                            <Crown className="h-3.5 w-3.5" />
+                            Executive
+                          </TabsTrigger>
+                          <TabsTrigger value="audit" className="gap-1.5 text-xs px-3">
+                            <ClipboardList className="h-3.5 w-3.5" />
+                            Audit
+                          </TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+
+                      {/* Command Palette Trigger */}
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setCommandPaletteOpen(true)}
+                        className="hidden md:flex"
+                      >
+                        <Command className="h-4 w-4 mr-2" />
+                        <span className="text-muted-foreground text-xs">⌘⇧K</span>
+                      </Button>
+
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -304,67 +334,100 @@ export function UnifiedKPICommandCenter() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => { exportToCSV(allKPIs, 'all-kpis'); toast.success('Exported to CSV'); }}>
+                          <DropdownMenuItem onClick={() => { 
+                            exportToCSV(allKPIs, 'all-kpis'); 
+                            logAction('export', undefined, undefined, { format: 'csv' });
+                            toast.success('Exported to CSV'); 
+                          }}>
                             <FileText className="h-4 w-4 mr-2" />
                             Export CSV
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => { exportToPDF(allKPIs, 'all-kpis'); toast.success('Opening PDF...'); }}>
+                          <DropdownMenuItem onClick={() => { 
+                            exportToPDF(allKPIs, 'all-kpis'); 
+                            logAction('export', undefined, undefined, { format: 'pdf' });
+                            toast.success('Opening PDF...'); 
+                          }}>
                             <FileText className="h-4 w-4 mr-2" />
                             Export PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => setBoardReportOpen(true)}>
+                            <Crown className="h-4 w-4 mr-2" />
+                            Board Report (AI)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setReportBuilderOpen(true)}>
+                            <Zap className="h-4 w-4 mr-2" />
+                            Schedule Reports
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
                   </div>
                   
-                  {/* Search and Filter Bar */}
-                  <KPISearchFilter
-                    searchTerm={searchTerm}
-                    onSearchChange={setSearchTerm}
-                    statusFilter={statusFilter}
-                    onStatusFilterChange={setStatusFilter}
-                    counts={filterCounts}
-                  />
-                </div>
-
-                {/* Pinned KPIs */}
-                {pinnedKPIs.length > 0 && (
-                  <div className="mb-6">
-                    <PinnedKPIsSection
-                      pinnedKPIs={pinnedKPIs}
-                      onUnpin={(id) => togglePin(id)}
-                      onKPIClick={setSelectedKPI}
+                  {/* Search and Filter Bar - Only in Overview mode */}
+                  {viewMode === 'overview' && (
+                    <KPISearchFilter
+                      searchTerm={searchTerm}
+                      onSearchChange={setSearchTerm}
+                      statusFilter={statusFilter}
+                      onStatusFilterChange={setStatusFilter}
+                      counts={filterCounts}
                     />
-                  </div>
-                )}
+                  )}
+                </div>
 
-                {/* AI Executive Summary */}
-                <div className="mb-6">
-                  <AIExecutiveSummary
+                {/* View Mode Content */}
+                {viewMode === 'executive' ? (
+                  <ExecutiveKPIDashboard
                     allKPIs={allKPIs}
-                    domainHealth={domainHealth.reduce((acc, domain) => {
-                      acc[domain.domain] = domain;
-                      return acc;
-                    }, {} as Record<string, DomainHealth>)}
+                    domainHealth={domainHealth}
                     overallHealth={overallHealth}
-                    onRefresh={handleRefresh}
-                    isRefreshing={isRefreshing}
+                    onGenerateReport={() => setBoardReportOpen(true)}
                   />
-                </div>
+                ) : viewMode === 'audit' ? (
+                  <KPIAuditLogViewer />
+                ) : (
+                  <>
+                    {/* Pinned KPIs */}
+                    {pinnedKPIs.length > 0 && (
+                      <div className="mb-6">
+                        <PinnedKPIsSection
+                          pinnedKPIs={pinnedKPIs}
+                          onUnpin={(id) => togglePin(id)}
+                          onKPIClick={setSelectedKPI}
+                        />
+                      </div>
+                    )}
 
-                {/* Moneybird Financial KPIs Section */}
-                <div className="mb-6">
-                  <FinancialKPISection />
-                </div>
+                    {/* AI Executive Summary */}
+                    <div className="mb-6">
+                      <AIExecutiveSummary
+                        allKPIs={allKPIs}
+                        domainHealth={domainHealth.reduce((acc, domain) => {
+                          acc[domain.domain] = domain;
+                          return acc;
+                        }, {} as Record<string, DomainHealth>)}
+                        overallHealth={overallHealth}
+                        onRefresh={handleRefresh}
+                        isRefreshing={isRefreshing}
+                      />
+                    </div>
 
-                <KPIOverview
-                  domainHealth={domainHealth}
-                  criticalAlerts={criticalAlerts}
-                  allKPIs={filteredKPIs}
-                  onSelectCategory={handleSelectCategory}
-                  searchTerm={searchTerm}
-                  statusFilter={statusFilter}
-                />
+                    {/* Moneybird Financial KPIs Section */}
+                    <div className="mb-6">
+                      <FinancialKPISection />
+                    </div>
+
+                    <KPIOverview
+                      domainHealth={domainHealth}
+                      criticalAlerts={criticalAlerts}
+                      allKPIs={filteredKPIs}
+                      onSelectCategory={handleSelectCategory}
+                      searchTerm={searchTerm}
+                      statusFilter={statusFilter}
+                    />
+                  </>
+                )}
               </>
             )}
           </div>
@@ -391,6 +454,35 @@ export function UnifiedKPICommandCenter() {
         kpi={alertKPI}
         currentThreshold={alertKPI ? alertThresholds[alertKPI.id] : undefined}
         onSave={handleSaveAlert}
+      />
+
+      {/* Command Palette */}
+      <KPICommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        kpis={allKPIs}
+        pinnedKPIIds={pinnedSet}
+        onSelectKPI={(kpi) => { setSelectedKPI(kpi); setCommandPaletteOpen(false); }}
+        onTogglePin={(id) => togglePin(id)}
+        onConfigureAlert={(kpi) => { setAlertKPI(kpi); setCommandPaletteOpen(false); }}
+        onExport={() => { exportToCSV(allKPIs, 'all-kpis'); toast.success('Exported to CSV'); }}
+        onRefresh={handleRefresh}
+      />
+
+      {/* Board Report Generator */}
+      <BoardReportGenerator
+        open={boardReportOpen}
+        onOpenChange={setBoardReportOpen}
+        allKPIs={allKPIs}
+        domainHealth={domainHealth}
+        overallHealth={overallHealth}
+      />
+
+      {/* Report Builder */}
+      <KPIReportBuilder
+        open={reportBuilderOpen}
+        onOpenChange={setReportBuilderOpen}
+        allKPIs={allKPIs}
       />
     </div>
   );
