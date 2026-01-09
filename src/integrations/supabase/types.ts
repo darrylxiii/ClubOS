@@ -21966,40 +21966,100 @@ export type Database = {
           alert_on_critical: boolean | null
           alert_on_improvement: boolean | null
           alert_on_warning: boolean | null
+          cooldown_minutes: number | null
           created_at: string | null
+          critical_threshold: number | null
           domain: string
           email_enabled: boolean | null
           id: string
           in_app_enabled: boolean | null
+          is_active: boolean | null
+          is_lower_better: boolean | null
           kpi_name: string
+          notification_channels: string[] | null
           updated_at: string | null
           user_id: string | null
+          warning_threshold: number | null
         }
         Insert: {
           alert_on_critical?: boolean | null
           alert_on_improvement?: boolean | null
           alert_on_warning?: boolean | null
+          cooldown_minutes?: number | null
           created_at?: string | null
+          critical_threshold?: number | null
           domain: string
           email_enabled?: boolean | null
           id?: string
           in_app_enabled?: boolean | null
+          is_active?: boolean | null
+          is_lower_better?: boolean | null
           kpi_name: string
+          notification_channels?: string[] | null
           updated_at?: string | null
           user_id?: string | null
+          warning_threshold?: number | null
         }
         Update: {
           alert_on_critical?: boolean | null
           alert_on_improvement?: boolean | null
           alert_on_warning?: boolean | null
+          cooldown_minutes?: number | null
           created_at?: string | null
+          critical_threshold?: number | null
           domain?: string
           email_enabled?: boolean | null
           id?: string
           in_app_enabled?: boolean | null
+          is_active?: boolean | null
+          is_lower_better?: boolean | null
           kpi_name?: string
+          notification_channels?: string[] | null
           updated_at?: string | null
           user_id?: string | null
+          warning_threshold?: number | null
+        }
+        Relationships: []
+      }
+      kpi_calculation_log: {
+        Row: {
+          created_at: string | null
+          domains_calculated: string[] | null
+          duration_ms: number | null
+          error_message: string | null
+          execution_type: string
+          fail_count: number | null
+          id: string
+          results: Json | null
+          success_count: number | null
+          total_metrics: number | null
+          triggered_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domains_calculated?: string[] | null
+          duration_ms?: number | null
+          error_message?: string | null
+          execution_type: string
+          fail_count?: number | null
+          id?: string
+          results?: Json | null
+          success_count?: number | null
+          total_metrics?: number | null
+          triggered_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domains_calculated?: string[] | null
+          duration_ms?: number | null
+          error_message?: string | null
+          execution_type?: string
+          fail_count?: number | null
+          id?: string
+          results?: Json | null
+          success_count?: number | null
+          total_metrics?: number | null
+          triggered_by?: string | null
         }
         Relationships: []
       }
