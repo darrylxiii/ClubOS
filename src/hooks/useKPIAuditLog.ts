@@ -7,10 +7,10 @@ type AuditAction = 'view' | 'export' | 'configure' | 'refresh' | 'pin' | 'unpin'
 interface AuditLogEntry {
   id: string;
   user_id: string | null;
-  action_type: AuditAction;
+  action_type: string;
   kpi_name: string | null;
   domain: string | null;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   created_at: string;
 }
 
@@ -58,7 +58,7 @@ export function useKPIAuditSummary(days: number = 30) {
       });
       
       if (error) throw error;
-      return data as AuditSummary;
+      return data as unknown as AuditSummary;
     },
     staleTime: 60000,
   });
@@ -75,7 +75,7 @@ export function useKPIAuditHistory(limit: number = 100) {
         .limit(limit);
       
       if (error) throw error;
-      return data || [];
+      return (data || []) as unknown as AuditLogEntry[];
     },
     staleTime: 30000,
   });
