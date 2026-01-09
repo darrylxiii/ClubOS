@@ -23,7 +23,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Menu, Download, FileText, RefreshCw, Zap, Crown, BarChart3, ClipboardList, Command } from 'lucide-react';
+import { Menu, Download, FileText, RefreshCw, Zap, Crown, BarChart3, ClipboardList, Command, Users } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,8 +38,11 @@ import { ExecutiveKPIDashboard } from './ExecutiveKPIDashboard';
 import { BoardReportGenerator } from './BoardReportGenerator';
 import { KPIReportBuilder } from './KPIReportBuilder';
 import { KPIAuditLogViewer } from './KPIAuditLogViewer';
+import { DepartmentHeadView } from './DepartmentHeadView';
+import { KPIRadarChart } from './KPIRadarChart';
+import { KPIHeatMap } from './KPIHeatMap';
 
-type ViewMode = 'overview' | 'executive' | 'audit';
+type ViewMode = 'overview' | 'executive' | 'audit' | 'department';
 
 export function UnifiedKPICommandCenter() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -293,6 +296,10 @@ export function UnifiedKPICommandCenter() {
                           <TabsTrigger value="executive" className="gap-1.5 text-xs px-3">
                             <Crown className="h-3.5 w-3.5" />
                             Executive
+                          </TabsTrigger>
+                          <TabsTrigger value="department" className="gap-1.5 text-xs px-3">
+                            <Users className="h-3.5 w-3.5" />
+                            Department
                           </TabsTrigger>
                           <TabsTrigger value="audit" className="gap-1.5 text-xs px-3">
                             <ClipboardList className="h-3.5 w-3.5" />
