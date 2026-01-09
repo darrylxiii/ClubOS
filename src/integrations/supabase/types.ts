@@ -49167,6 +49167,16 @@ export type Database = {
           user_count: number
         }[]
       }
+      get_stale_kpis: {
+        Args: { hours_threshold?: number }
+        Returns: {
+          category: string
+          domain: string
+          hours_since_update: number
+          kpi_name: string
+          last_updated: string
+        }[]
+      }
       get_storage_bucket_stats: { Args: never; Returns: Json }
       get_system_health_metrics: { Args: never; Returns: Json }
       get_system_health_stats: { Args: never; Returns: Json }
