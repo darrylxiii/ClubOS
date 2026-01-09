@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUnifiedKPIs, type KPIDomain, type UnifiedKPI, type DomainHealth } from '@/hooks/useUnifiedKPIs';
@@ -17,11 +17,13 @@ import { CostOverview } from './costs/CostOverview';
 import { FinancialKPISection } from './FinancialKPISection';
 import { exportToCSV, exportToPDF } from './KPIExport';
 import { usePinnedKPIs } from '@/hooks/usePinnedKPIs';
+import { useKPIAuditLog } from '@/hooks/useKPIAuditLog';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Download, FileText, RefreshCw, Zap } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Menu, Download, FileText, RefreshCw, Zap, Crown, BarChart3, ClipboardList, Command } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +31,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
+// Lazy load heavy components
+import { KPICommandPalette } from './KPICommandPalette';
+import { ExecutiveKPIDashboard } from './ExecutiveKPIDashboard';
+import { BoardReportGenerator } from './BoardReportGenerator';
+import { KPIReportBuilder } from './KPIReportBuilder';
+import { KPIAuditLogViewer } from './KPIAuditLogViewer';
+
+type ViewMode = 'overview' | 'executive' | 'audit';
 
 export function UnifiedKPICommandCenter() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -40,7 +51,14 @@ export function UnifiedKPICommandCenter() {
   const [selectedKPI, setSelectedKPI] = useState<UnifiedKPI | null>(null);
   const [alertKPI, setAlertKPI] = useState<UnifiedKPI | null>(null);
   const [alertThresholds, setAlertThresholds] = useState<Record<string, AlertThreshold>>({});
+  const [viewMode, setViewMode] = useState<ViewMode>('overview');
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [boardReportOpen, setBoardReportOpen] = useState(false);
+  const [reportBuilderOpen, setReportBuilderOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  // Audit logging
+  const { logAction } = useKPIAuditLog();
 
   // Use persistent pinned KPIs hook
   const { pinnedKPIIds, isPinned, togglePin: persistentTogglePin, isLoading: isPinsLoading } = usePinnedKPIs();
@@ -68,6 +86,18 @@ export function UnifiedKPICommandCenter() {
     refreshAll,
     categoryDisplayNames,
   } = useUnifiedKPIs(period);
+
+  // Command palette keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Combined refreshing state
   const [isRefreshing, setIsRefreshing] = useState(false);
