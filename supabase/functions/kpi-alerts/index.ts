@@ -49,11 +49,11 @@ Deno.serve(async (req) => {
     const anomalies: DetectedAnomaly[] = [];
     const now = new Date();
 
-    // Get active alert configurations
+    // Get active alert configurations (handle both new and legacy schema)
     const { data: alertConfigs } = await supabase
       .from('kpi_alert_configs')
       .select('*')
-      .eq('is_active', true);
+      .or('is_active.eq.true,is_active.is.null');
 
     if (!alertConfigs || alertConfigs.length === 0) {
       console.log('[KPI Alerts] No active alert configurations found');
