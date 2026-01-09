@@ -145,17 +145,17 @@ serve(async (req) => {
       logStep('Could not log to kpi_calculation_log', { error: logError });
     }
 
-    // Update last calculation timestamp
+    // Update last calculation timestamp (use setting_key/setting_value columns)
     try {
       await supabase.from('system_settings').upsert({
-        key: 'last_kpi_calculation',
-        value: { 
+        setting_key: 'last_kpi_calculation',
+        setting_value: JSON.stringify({ 
           timestamp: new Date().toISOString(),
           success_count: successCount,
           fail_count: failCount,
           total_metrics: totalMetrics
-        },
-      }, { onConflict: 'key' });
+        }),
+      }, { onConflict: 'setting_key' });
     } catch (settingsError) {
       logStep('Could not update system_settings', { error: settingsError });
     }
