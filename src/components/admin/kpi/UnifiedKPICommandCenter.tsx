@@ -23,7 +23,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Menu, Download, FileText, RefreshCw, Zap, Crown, BarChart3, ClipboardList, Command, Users } from 'lucide-react';
+import { Menu, Download, FileText, RefreshCw, Zap, Crown, BarChart3, ClipboardList, Command, Users, Target, GitBranch } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,8 +41,10 @@ import { KPIAuditLogViewer } from './KPIAuditLogViewer';
 import { DepartmentHeadView } from './DepartmentHeadView';
 import { KPIRadarChart } from './KPIRadarChart';
 import { KPIHeatMap } from './KPIHeatMap';
+import { OKRIntegration } from './OKRIntegration';
+import { DataLineageViewer } from './DataLineageViewer';
 
-type ViewMode = 'overview' | 'executive' | 'audit' | 'department';
+type ViewMode = 'overview' | 'executive' | 'audit' | 'department' | 'okr' | 'lineage';
 
 export function UnifiedKPICommandCenter() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -299,7 +301,15 @@ export function UnifiedKPICommandCenter() {
                           </TabsTrigger>
                           <TabsTrigger value="department" className="gap-1.5 text-xs px-3">
                             <Users className="h-3.5 w-3.5" />
-                            Department
+                            Team
+                          </TabsTrigger>
+                          <TabsTrigger value="okr" className="gap-1.5 text-xs px-3">
+                            <Target className="h-3.5 w-3.5" />
+                            OKRs
+                          </TabsTrigger>
+                          <TabsTrigger value="lineage" className="gap-1.5 text-xs px-3">
+                            <GitBranch className="h-3.5 w-3.5" />
+                            Lineage
                           </TabsTrigger>
                           <TabsTrigger value="audit" className="gap-1.5 text-xs px-3">
                             <ClipboardList className="h-3.5 w-3.5" />
@@ -393,6 +403,19 @@ export function UnifiedKPICommandCenter() {
                   />
                 ) : viewMode === 'audit' ? (
                   <KPIAuditLogViewer />
+                ) : viewMode === 'department' ? (
+                  <DepartmentHeadView
+                    allKPIs={allKPIs}
+                    domainHealth={domainHealth}
+                  />
+                ) : viewMode === 'okr' ? (
+                  <OKRIntegration
+                    kpis={allKPIs}
+                  />
+                ) : viewMode === 'lineage' ? (
+                  <DataLineageViewer
+                    kpis={allKPIs}
+                  />
                 ) : (
                   <>
                     {/* Pinned KPIs */}
