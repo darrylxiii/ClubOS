@@ -5,14 +5,17 @@ import { toast } from 'sonner';
 export interface ContractDocument {
   id: string;
   contract_id: string;
+  contract_type: string | null;
   file_name: string;
   file_url: string;
   mime_type: string | null;
   file_size_kb: number | null;
   document_type: string;
-  uploaded_by: string | null;
+  uploaded_by: string;
   created_at: string;
-  is_active: boolean;
+  is_active: boolean | null;
+  version: number | null;
+  notes: string | null;
 }
 
 export function useContractDocuments(contractId: string) {
@@ -35,7 +38,7 @@ export function useContractDocuments(contractId: string) {
   });
 
   const uploadDocument = useMutation({
-    mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
+    mutationFn: async ({ file, documentType, notes }: { file: File; documentType: string; notes?: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -56,7 +59,8 @@ export function useContractDocuments(contractId: string) {
           mime_type: file.type,
           file_size_kb: Math.round(file.size / 1024),
           document_type: documentType,
-          uploaded_by: user.id
+          uploaded_by: user.id,
+          notes: notes || null
         });
 
       if (insertError) throw insertError;

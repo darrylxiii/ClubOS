@@ -5,6 +5,9 @@ import { TrendingUp, TrendingDown, Minus, History, ArrowRight, Loader2 } from 'l
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
+
+type ProspectScoreHistoryRow = Tables<'prospect_score_history'>;
 
 interface ScoreChange {
   id: string;
@@ -33,7 +36,7 @@ export function LeadScoreHistory({ prospectId, prospectName }: LeadScoreHistoryP
       
       if (error) throw error;
       
-      return (data || []).map((row: any) => ({
+      return (data || []).map((row: ProspectScoreHistoryRow) => ({
         id: row.id,
         timestamp: row.created_at,
         previousScore: row.previous_score,
