@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { Pin, Eye, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { KPIMetric } from '@/hooks/useKPIMetrics';
+import type { KPIMetric } from '@/hooks/useQuantumKPIs';
 
 interface KPISwipeableCardProps {
   kpi: KPIMetric;
@@ -44,22 +44,23 @@ export function KPISwipeableCard({
   };
 
   const getTrendIcon = () => {
-    if (!kpi.trend) return <Minus className="h-3.5 w-3.5 text-muted-foreground" />;
-    if (kpi.trend > 0) return <TrendingUp className="h-3.5 w-3.5 text-green-500" />;
+    if (!kpi.trend_percent) return <Minus className="h-3.5 w-3.5 text-muted-foreground" />;
+    if (kpi.trend_percent > 0) return <TrendingUp className="h-3.5 w-3.5 text-green-500" />;
     return <TrendingDown className="h-3.5 w-3.5 text-red-500" />;
   };
 
+  const getStatusFromTrend = () => {
+    if (!kpi.trend_direction) return 'neutral';
+    if (kpi.trend_direction === 'up') return 'success';
+    if (kpi.trend_direction === 'down') return 'warning';
+    return 'neutral';
+  };
+
   const getStatusColor = () => {
-    switch (kpi.status) {
-      case 'success':
-        return 'bg-green-500/20 border-green-500/30';
-      case 'warning':
-        return 'bg-yellow-500/20 border-yellow-500/30';
-      case 'critical':
-        return 'bg-red-500/20 border-red-500/30';
-      default:
-        return 'bg-muted border-border';
-    }
+    const status = getStatusFromTrend();
+    if (status === 'success') return 'bg-green-500/20 border-green-500/30';
+    if (status === 'warning') return 'bg-yellow-500/20 border-yellow-500/30';
+    return 'bg-muted border-border';
   };
 
   const formatValue = (value: number | undefined) => {
@@ -68,6 +69,8 @@ export function KPISwipeableCard({
     if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
     return value.toLocaleString();
   };
+
+  const isCritical = kpi.trend_direction === 'down' && (kpi.trend_percent ?? 0) < -20;
 
   return (
     <div ref={constraintsRef} className="relative overflow-hidden rounded-xl">
@@ -110,17 +113,17 @@ export function KPISwipeableCard({
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-sm line-clamp-1">{kpi.name}</h3>
+              <h3 className="font-medium text-sm line-clamp-1">{kpi.kpi_name}</h3>
               {isPinned && (
                 <Pin className="h-3.5 w-3.5 text-accent fill-accent flex-shrink-0" />
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5 capitalize">
-              {kpi.domain?.replace(/_/g, ' ')}
+              {kpi.category?.replace(/_/g, ' ')}
             </p>
           </div>
           
-          {kpi.status === 'critical' && (
+          {isCritical && (
             <AlertTriangle className="h-4 w-4 text-red-500 animate-pulse flex-shrink-0" />
           )}
         </div>
@@ -129,23 +132,22 @@ export function KPISwipeableCard({
           <div>
             <p className="text-2xl font-bold tabular-nums">
               {formatValue(kpi.value)}
-              {kpi.unit && <span className="text-sm font-normal ml-0.5">{kpi.unit}</span>}
             </p>
-            {kpi.target && (
+            {kpi.previous_value && (
               <p className="text-xs text-muted-foreground mt-0.5">
-                Target: {formatValue(kpi.target)}
+                Previous: {formatValue(kpi.previous_value)}
               </p>
             )}
           </div>
           
           <div className="flex items-center gap-1.5">
             {getTrendIcon()}
-            {kpi.trend !== undefined && (
+            {kpi.trend_percent !== undefined && (
               <span className={cn(
                 "text-xs font-medium",
-                kpi.trend > 0 ? "text-green-500" : kpi.trend < 0 ? "text-red-500" : "text-muted-foreground"
+                kpi.trend_percent > 0 ? "text-green-500" : kpi.trend_percent < 0 ? "text-red-500" : "text-muted-foreground"
               )}>
-                {kpi.trend > 0 ? '+' : ''}{kpi.trend}%
+                {kpi.trend_percent > 0 ? '+' : ''}{kpi.trend_percent}%
               </span>
             )}
           </div>
