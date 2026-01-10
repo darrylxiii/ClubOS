@@ -18,9 +18,9 @@ interface KPIMobileNavigationProps {
 const navItems: Array<{ view: ViewMode; icon: React.ReactNode; label: string }> = [
   { view: 'overview', icon: <LayoutGrid className="h-5 w-5" />, label: 'Overview' },
   { view: 'executive', icon: <BarChart3 className="h-5 w-5" />, label: 'Executive' },
-  { view: 'department', icon: <Users className="h-5 w-5" />, label: 'Team' },
-  { view: 'okr', icon: <Target className="h-5 w-5" />, label: 'OKRs' },
-  { view: 'audit', icon: <ClipboardList className="h-5 w-5" />, label: 'Audit' },
+  { view: 'goals', icon: <Target className="h-5 w-5" />, label: 'Goals' },
+  { view: 'okr', icon: <GitBranch className="h-5 w-5" />, label: 'OKRs' },
+  { view: 'governance', icon: <Settings className="h-5 w-5" />, label: 'Access' },
 ];
 
 export function KPIMobileNavigation({ 
