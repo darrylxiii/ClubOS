@@ -27415,6 +27415,88 @@ export type Database = {
           },
         ]
       }
+      milestone_celebrations: {
+        Row: {
+          celebrated_at: string | null
+          celebration_data: Json | null
+          celebration_type: string
+          id: string
+          milestone_id: string
+          participants: string[] | null
+        }
+        Insert: {
+          celebrated_at?: string | null
+          celebration_data?: Json | null
+          celebration_type?: string
+          id?: string
+          milestone_id: string
+          participants?: string[] | null
+        }
+        Update: {
+          celebrated_at?: string | null
+          celebration_data?: Json | null
+          celebration_type?: string
+          id?: string
+          milestone_id?: string
+          participants?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestone_celebrations_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      milestone_contributions: {
+        Row: {
+          attributed_at: string | null
+          contribution_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          milestone_id: string
+          revenue_attributed: number
+          source_entity_id: string | null
+          source_entity_type: string | null
+          user_id: string
+        }
+        Insert: {
+          attributed_at?: string | null
+          contribution_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          milestone_id: string
+          revenue_attributed?: number
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          user_id: string
+        }
+        Update: {
+          attributed_at?: string | null
+          contribution_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          milestone_id?: string
+          revenue_attributed?: number
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestone_contributions_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ml_ab_tests: {
         Row: {
           ended_at: string | null
@@ -35603,6 +35685,44 @@ export type Database = {
           },
         ]
       }
+      proposal_votes: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          proposal_id: string
+          updated_at: string | null
+          user_id: string
+          vote_type: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          proposal_id: string
+          updated_at?: string | null
+          user_id: string
+          vote_type: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          proposal_id?: string
+          updated_at?: string | null
+          user_id?: string
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_votes_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "reward_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -37312,6 +37432,48 @@ export type Database = {
           },
         ]
       }
+      revenue_ladders: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          fiscal_year_start: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          revenue_definition: string
+          safety_config: Json | null
+          track_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          fiscal_year_start?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          revenue_definition?: string
+          safety_config?: Json | null
+          track_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          fiscal_year_start?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          revenue_definition?: string
+          safety_config?: Json | null
+          track_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       revenue_metrics: {
         Row: {
           active_subscriptions: number | null
@@ -37378,6 +37540,244 @@ export type Database = {
           total_revenue?: number | null
           trialing_subscriptions?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      revenue_milestones: {
+        Row: {
+          achieved_revenue: number | null
+          created_at: string | null
+          default_category: string | null
+          description: string | null
+          display_name: string
+          display_order: number | null
+          fiscal_year: number | null
+          id: string
+          ladder_id: string
+          progress_percentage: number | null
+          rewarded_at: string | null
+          status: string
+          suggested_reward_range: Json | null
+          threshold_amount: number
+          unlocked_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          achieved_revenue?: number | null
+          created_at?: string | null
+          default_category?: string | null
+          description?: string | null
+          display_name: string
+          display_order?: number | null
+          fiscal_year?: number | null
+          id?: string
+          ladder_id: string
+          progress_percentage?: number | null
+          rewarded_at?: string | null
+          status?: string
+          suggested_reward_range?: Json | null
+          threshold_amount: number
+          unlocked_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          achieved_revenue?: number | null
+          created_at?: string | null
+          default_category?: string | null
+          description?: string | null
+          display_name?: string
+          display_order?: number | null
+          fiscal_year?: number | null
+          id?: string
+          ladder_id?: string
+          progress_percentage?: number | null
+          rewarded_at?: string | null
+          status?: string
+          suggested_reward_range?: Json | null
+          threshold_amount?: number
+          unlocked_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_milestones_ladder_id_fkey"
+            columns: ["ladder_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_ladders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reward_decisions: {
+        Row: {
+          approved_amount: number | null
+          cash_position_at_decision: number | null
+          created_at: string | null
+          decided_by: string
+          decision: string
+          id: string
+          milestone_id: string
+          modified_details: string | null
+          proposal_id: string | null
+          rationale: string
+          runway_impact: Json | null
+          runway_months_at_decision: number | null
+        }
+        Insert: {
+          approved_amount?: number | null
+          cash_position_at_decision?: number | null
+          created_at?: string | null
+          decided_by: string
+          decision: string
+          id?: string
+          milestone_id: string
+          modified_details?: string | null
+          proposal_id?: string | null
+          rationale: string
+          runway_impact?: Json | null
+          runway_months_at_decision?: number | null
+        }
+        Update: {
+          approved_amount?: number | null
+          cash_position_at_decision?: number | null
+          created_at?: string | null
+          decided_by?: string
+          decision?: string
+          id?: string
+          milestone_id?: string
+          modified_details?: string | null
+          proposal_id?: string | null
+          rationale?: string
+          runway_impact?: Json | null
+          runway_months_at_decision?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_decisions_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_milestones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_decisions_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "reward_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reward_proposals: {
+        Row: {
+          category: string
+          created_at: string | null
+          decision_deadline: string | null
+          description: string
+          estimated_cost: number
+          id: string
+          impact_type: string[] | null
+          milestone_id: string
+          proposed_by: string
+          rationale: string | null
+          status: string
+          submitted_at: string | null
+          title: string
+          updated_at: string | null
+          vote_count_concern: number | null
+          vote_count_neutral: number | null
+          vote_count_support: number | null
+          voting_deadline: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          decision_deadline?: string | null
+          description: string
+          estimated_cost: number
+          id?: string
+          impact_type?: string[] | null
+          milestone_id: string
+          proposed_by: string
+          rationale?: string | null
+          status?: string
+          submitted_at?: string | null
+          title: string
+          updated_at?: string | null
+          vote_count_concern?: number | null
+          vote_count_neutral?: number | null
+          vote_count_support?: number | null
+          voting_deadline?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          decision_deadline?: string | null
+          description?: string
+          estimated_cost?: number
+          id?: string
+          impact_type?: string[] | null
+          milestone_id?: string
+          proposed_by?: string
+          rationale?: string | null
+          status?: string
+          submitted_at?: string | null
+          title?: string
+          updated_at?: string | null
+          vote_count_concern?: number | null
+          vote_count_neutral?: number | null
+          vote_count_support?: number | null
+          voting_deadline?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_proposals_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reward_safety_rules: {
+        Row: {
+          auto_reject_if_runway_below: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          max_reward_percentage_of_cash: number
+          min_runway_months: number
+          notify_finance_on_proposal: boolean | null
+          notify_roles: string[] | null
+          require_finance_approval_above: number | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          auto_reject_if_runway_below?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_reward_percentage_of_cash?: number
+          min_runway_months?: number
+          notify_finance_on_proposal?: boolean | null
+          notify_roles?: string[] | null
+          require_finance_approval_above?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          auto_reject_if_runway_below?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_reward_percentage_of_cash?: number
+          min_runway_months?: number
+          notify_finance_on_proposal?: boolean | null
+          notify_roles?: string[] | null
+          require_finance_approval_above?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
