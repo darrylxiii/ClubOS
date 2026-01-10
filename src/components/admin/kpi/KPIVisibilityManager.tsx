@@ -28,13 +28,17 @@ import {
 import { toast } from 'sonner';
 import type { KPIMetric } from '@/hooks/useQuantumKPIs';
 
+// Updated interface to match actual database schema
 interface VisibilityRule {
   id: string;
   kpi_name: string;
+  domain: string | null;
   visible_to_roles: string[];
-  is_sensitive: boolean;
-  requires_approval: boolean;
+  sensitive_fields: string[];
+  requires_export_approval: boolean;
+  mask_value_for_unauthorized: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 interface KPIVisibilityManagerProps {
@@ -42,6 +46,7 @@ interface KPIVisibilityManagerProps {
 }
 
 const ROLES = ['admin', 'strategist', 'partner', 'candidate'];
+const SENSITIVE_FIELD_OPTIONS = ['value', 'target', 'trend', 'historical_data', 'source_data'];
 
 export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManagerProps) {
   const queryClient = useQueryClient();
@@ -50,8 +55,9 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedKPI, setSelectedKPI] = useState<string>('');
   const [selectedRoles, setSelectedRoles] = useState<string[]>(['admin']);
-  const [isSensitive, setIsSensitive] = useState(false);
-  const [requiresApproval, setRequiresApproval] = useState(false);
+  const [sensitiveFields, setSensitiveFields] = useState<string[]>([]);
+  const [requiresExportApproval, setRequiresExportApproval] = useState(false);
+  const [maskForUnauthorized, setMaskForUnauthorized] = useState(false);
 
   const { data: rules = [], isLoading } = useQuery({
     queryKey: ['kpi-visibility-rules'],
@@ -62,19 +68,27 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
         .order('kpi_name');
 
       if (error) throw error;
-      return (data || []) as unknown as VisibilityRule[];
+      return (data || []) as VisibilityRule[];
     }
   });
 
   const upsertRuleMutation = useMutation({
-    mutationFn: async (rule: Omit<VisibilityRule, 'id' | 'created_at'>) => {
+    mutationFn: async (rule: {
+      kpi_name: string;
+      visible_to_roles: string[];
+      sensitive_fields: string[];
+      requires_export_approval: boolean;
+      mask_value_for_unauthorized: boolean;
+    }) => {
       const { error } = await supabase
         .from('kpi_visibility_rules')
         .upsert({
           kpi_name: rule.kpi_name,
           visible_to_roles: rule.visible_to_roles,
-          is_sensitive: rule.is_sensitive,
-          requires_approval: rule.requires_approval
+          sensitive_fields: rule.sensitive_fields,
+          requires_export_approval: rule.requires_export_approval,
+          mask_value_for_unauthorized: rule.mask_value_for_unauthorized,
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'kpi_name'
         });
@@ -110,8 +124,9 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
   const resetForm = () => {
     setSelectedKPI('');
     setSelectedRoles(['admin']);
-    setIsSensitive(false);
-    setRequiresApproval(false);
+    setSensitiveFields([]);
+    setRequiresExportApproval(false);
+    setMaskForUnauthorized(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -121,8 +136,9 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
     upsertRuleMutation.mutate({
       kpi_name: selectedKPI,
       visible_to_roles: selectedRoles,
-      is_sensitive: isSensitive,
-      requires_approval: requiresApproval
+      sensitive_fields: sensitiveFields,
+      requires_export_approval: requiresExportApproval,
+      mask_value_for_unauthorized: maskForUnauthorized
     });
   };
 
@@ -134,15 +150,27 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
     );
   };
 
+  const toggleSensitiveField = (field: string) => {
+    setSensitiveFields(prev => 
+      prev.includes(field) 
+        ? prev.filter(f => f !== field)
+        : [...prev, field]
+    );
+  };
+
   const filteredRules = rules.filter(rule => {
     const matchesSearch = rule.kpi_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === 'all' || rule.visible_to_roles.includes(filterRole);
+    const matchesRole = filterRole === 'all' || (rule.visible_to_roles || []).includes(filterRole);
     return matchesSearch && matchesRole;
   });
 
   const kpisWithoutRules = availableKPIs.filter(
     kpi => !rules.some(r => r.kpi_name === kpi.kpi_name)
   );
+
+  const hasSensitiveFields = (rule: VisibilityRule) => {
+    return rule.sensitive_fields && rule.sensitive_fields.length > 0;
+  };
 
   return (
     <Card className="border-border/50">
@@ -199,20 +227,28 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
                   </div>
                 </div>
 
-                <div className="space-y-4 pt-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Mark as Sensitive</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Sensitive KPIs are highlighted in the UI
-                      </p>
-                    </div>
-                    <Switch 
-                      checked={isSensitive} 
-                      onCheckedChange={setIsSensitive}
-                    />
+                <div className="space-y-2">
+                  <Label>Sensitive Fields</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Select which fields contain sensitive data
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {SENSITIVE_FIELD_OPTIONS.map(field => (
+                      <Button
+                        key={field}
+                        type="button"
+                        size="sm"
+                        variant={sensitiveFields.includes(field) ? "secondary" : "outline"}
+                        onClick={() => toggleSensitiveField(field)}
+                        className="capitalize text-xs"
+                      >
+                        {field.replace('_', ' ')}
+                      </Button>
+                    ))}
                   </div>
+                </div>
 
+                <div className="space-y-4 pt-2">
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Require Export Approval</Label>
@@ -221,8 +257,21 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
                       </p>
                     </div>
                     <Switch 
-                      checked={requiresApproval} 
-                      onCheckedChange={setRequiresApproval}
+                      checked={requiresExportApproval} 
+                      onCheckedChange={setRequiresExportApproval}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Mask for Unauthorized</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Show masked values to unauthorized users
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={maskForUnauthorized} 
+                      onCheckedChange={setMaskForUnauthorized}
                     />
                   </div>
                 </div>
@@ -301,23 +350,29 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium text-sm">{rule.kpi_name}</span>
-                    {rule.is_sensitive && (
+                    {hasSensitiveFields(rule) && (
                       <Badge variant="outline" className="text-xs bg-yellow-500/10 text-yellow-600 border-yellow-500/30">
                         <Lock className="h-3 w-3 mr-1" />
-                        Sensitive
+                        {rule.sensitive_fields.length} sensitive
                       </Badge>
                     )}
-                    {rule.requires_approval && (
+                    {rule.requires_export_approval && (
                       <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/30">
                         <Shield className="h-3 w-3 mr-1" />
                         Approval Required
+                      </Badge>
+                    )}
+                    {rule.mask_value_for_unauthorized && (
+                      <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-600 border-purple-500/30">
+                        <EyeOff className="h-3 w-3 mr-1" />
+                        Masked
                       </Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Users className="h-3.5 w-3.5 text-muted-foreground" />
                     <div className="flex gap-1">
-                      {rule.visible_to_roles.map(role => (
+                      {(rule.visible_to_roles || []).map(role => (
                         <Badge key={role} variant="secondary" className="text-xs capitalize">
                           {role}
                         </Badge>
