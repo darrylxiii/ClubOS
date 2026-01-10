@@ -74,7 +74,7 @@ export const useMyContributions = (year?: number) => {
           .lt('hired_date', yearEnd)
           .or(`sourced_by.eq.${user.id},closed_by.eq.${user.id}`),
 
-        // Milestone contributions
+        // Milestone contributions (filtered by year for performance)
         supabase
           .from('milestone_contributions')
           .select(`
@@ -90,7 +90,9 @@ export const useMyContributions = (year?: number) => {
               status
             )
           `)
-          .eq('user_id', user.id),
+          .eq('user_id', user.id)
+          .gte('attributed_at', yearStart)
+          .lt('attributed_at', yearEnd),
 
         // Commission earnings
         supabase
