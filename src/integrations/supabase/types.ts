@@ -35738,6 +35738,47 @@ export type Database = {
           },
         ]
       }
+      prospect_score_history: {
+        Row: {
+          change_reason: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          new_score: number
+          previous_score: number
+          prospect_id: string
+          triggered_by: string
+        }
+        Insert: {
+          change_reason: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_score: number
+          previous_score?: number
+          prospect_id: string
+          triggered_by: string
+        }
+        Update: {
+          change_reason?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_score?: number
+          previous_score?: number
+          prospect_id?: string
+          triggered_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospect_score_history_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "crm_prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth: string
