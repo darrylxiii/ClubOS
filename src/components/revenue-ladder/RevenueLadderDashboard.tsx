@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { 
-  TrendingUp, RefreshCw, Plus, LayoutGrid, List, 
+  RefreshCw, Plus, LayoutGrid, List, 
   Sparkles, Gavel, Trophy, History, User, Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,6 +14,7 @@ import {
   RevenueMilestone
 } from '@/hooks/useRevenueLadder';
 import { useRewardProposals } from '@/hooks/useRewardProposals';
+import { RevenueLadderHero } from './RevenueLadderHero';
 import { DualTrackVisualizer } from './DualTrackVisualizer';
 import { MilestoneCard } from './MilestoneCard';
 import { ProposalForm } from './ProposalForm';
@@ -47,6 +47,10 @@ export function RevenueLadderDashboard() {
   const cumulativeLadder = ladders?.find(l => l.track_type === 'cumulative');
   const pendingProposals = proposals?.filter(p => p.status === 'pending') || [];
 
+  // Use stats from the hook which aggregates milestone data
+  const totalCurrentRevenue = stats.annualRevenue + stats.lifetimeRevenue;
+  const nextMilestoneAmount = stats.nextMilestone?.threshold_amount;
+
   const handleMilestoneClick = (milestone: RevenueMilestone) => {
     setSelectedMilestone(milestone);
     setShowDrawer(true);
@@ -69,54 +73,29 @@ export function RevenueLadderDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <TrendingUp className="h-6 w-6 text-primary" />
-            </div>
-            <h1 className="text-heading-xl font-bold">Revenue Ladder</h1>
-          </div>
-          <p className="text-body-md text-muted-foreground">
-            Track milestones, propose rewards, and celebrate wins together.
-          </p>
+      {/* Premium Hero Section */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => calculateMilestones.mutate()}
+            disabled={calculateMilestones.isPending}
+          >
+            <RefreshCw className={cn("h-4 w-4 mr-2", calculateMilestones.isPending && "animate-spin")} />
+            Sync Revenue
+          </Button>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => calculateMilestones.mutate()}
-          disabled={calculateMilestones.isPending}
-        >
-          <RefreshCw className={cn("h-4 w-4 mr-2", calculateMilestones.isPending && "animate-spin")} />
-          Sync Revenue
-        </Button>
+        <RevenueLadderHero
+          currentRevenue={totalCurrentRevenue}
+          nextMilestoneAmount={nextMilestoneAmount}
+          totalMilestones={stats.totalMilestones}
+          unlockedMilestones={stats.unlockedMilestones}
+          approachingMilestones={stats.approachingMilestones}
+          rewardedMilestones={stats.rewardedMilestones}
+        />
       </div>
-
-      {/* Stats Bar */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-      >
-        <div className="p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/30 space-y-1">
-          <p className="text-label-sm text-muted-foreground">Total Milestones</p>
-          <p className="text-heading-md font-bold">{stats.totalMilestones}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-success/10 border border-success/30 space-y-1">
-          <p className="text-label-sm text-success">Unlocked</p>
-          <p className="text-heading-md font-bold text-success">{stats.unlockedMilestones}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-warning/10 border border-warning/30 space-y-1">
-          <p className="text-label-sm text-warning">Approaching</p>
-          <p className="text-heading-md font-bold text-warning">{stats.approachingMilestones}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-premium/10 border border-premium/30 space-y-1">
-          <p className="text-label-sm text-premium">Rewarded</p>
-          <p className="text-heading-md font-bold text-premium">{stats.rewardedMilestones}</p>
-        </div>
-      </motion.div>
 
       {/* Dual Track Visualizer */}
       <DualTrackVisualizer annualLadder={annualLadder} cumulativeLadder={cumulativeLadder} />
