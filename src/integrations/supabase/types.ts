@@ -41492,14 +41492,18 @@ export type Database = {
       success_patterns: {
         Row: {
           company_size: string | null
+          confidence_score: number | null
           context: Json | null
+          context_entity_type: string | null
           contributed_by: string | null
           created_at: string | null
           example_content: string | null
           id: string
           industry: string | null
+          is_active: boolean | null
           is_verified: boolean | null
           learned_from: Json | null
+          pattern_data: Json | null
           pattern_description: string
           pattern_type: string
           sample_size: number | null
@@ -41510,14 +41514,18 @@ export type Database = {
         }
         Insert: {
           company_size?: string | null
+          confidence_score?: number | null
           context?: Json | null
+          context_entity_type?: string | null
           contributed_by?: string | null
           created_at?: string | null
           example_content?: string | null
           id?: string
           industry?: string | null
+          is_active?: boolean | null
           is_verified?: boolean | null
           learned_from?: Json | null
+          pattern_data?: Json | null
           pattern_description: string
           pattern_type: string
           sample_size?: number | null
@@ -41528,14 +41536,18 @@ export type Database = {
         }
         Update: {
           company_size?: string | null
+          confidence_score?: number | null
           context?: Json | null
+          context_entity_type?: string | null
           contributed_by?: string | null
           created_at?: string | null
           example_content?: string | null
           id?: string
           industry?: string | null
+          is_active?: boolean | null
           is_verified?: boolean | null
           learned_from?: Json | null
+          pattern_data?: Json | null
           pattern_description?: string
           pattern_type?: string
           sample_size?: number | null
