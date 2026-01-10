@@ -207,111 +207,68 @@ export default defineConfig(({ mode, command }) => ({
     sourcemap: false,
 
     // Reduce chunk size warnings threshold
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 2000,
 
     // CRITICAL: Limit concurrent operations to reduce memory pressure
     rollupOptions: {
       // Limit the number of concurrent module transforms
-      maxParallelFileOps: 20,
+      maxParallelFileOps: 10,
+      
+      // CRITICAL: Externalize heavy optional dependencies in dev builds
+      external: mode === 'development' ? [
+        // These are lazy-loaded anyway, externalize in dev to save memory
+        'mermaid',
+        '@mediapipe/camera_utils',
+        '@mediapipe/selfie_segmentation',
+      ] : [],
+      
       output: {
-        // Smaller chunks = less memory during render
-        experimentalMinChunkSize: 1000,
+        // Disable experimentalMinChunkSize to avoid extra memory during merging
+        // experimentalMinChunkSize: 1000, // REMOVED - causes extra memory
+        
+        // Simpler chunking strategy to reduce memory
         manualChunks: (id) => {
+          // Node modules only - skip src files for auto-chunking
+          if (!id.includes('node_modules')) {
+            return undefined;
+          }
+          
           // Heavy libraries - isolate into their own chunks
-          if (id.includes('mermaid')) {
-            return 'mermaid';
-          }
-          if (id.includes('katex')) {
-            return 'katex';
-          }
-          if (id.includes('recharts') || id.includes('d3-')) {
-            return 'charts';
-          }
-          if (id.includes('@blocknote')) {
-            return 'blocknote';
-          }
-          if (id.includes('@tiptap') || id.includes('prosemirror')) {
-            return 'editor';
-          }
+          if (id.includes('mermaid')) return 'mermaid';
+          if (id.includes('katex')) return 'katex';
+          if (id.includes('recharts') || id.includes('d3-')) return 'charts';
+          if (id.includes('@blocknote')) return 'blocknote';
+          if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
+          if (id.includes('@radix-ui')) return 'radix';
+          if (id.includes('@supabase')) return 'supabase';
+          if (id.includes('framer-motion')) return 'motion';
+          if (id.includes('@mantine')) return 'mantine';
+          if (id.includes('@opentelemetry')) return 'telemetry';
+          if (id.includes('@sentry')) return 'sentry';
+          if (id.includes('livekit') || id.includes('@livekit')) return 'livekit';
+          if (id.includes('@elevenlabs')) return 'elevenlabs';
+          if (id.includes('fabric')) return 'fabric';
+          if (id.includes('jspdf')) return 'pdf';
+          if (id.includes('date-fns')) return 'date-fns';
+          if (id.includes('i18next')) return 'i18n';
+          if (id.includes('posthog')) return 'posthog';
+          if (id.includes('@tanstack')) return 'tanstack';
+          if (id.includes('@dnd-kit') || id.includes('@hello-pangea')) return 'dnd';
+          if (id.includes('@capacitor')) return 'capacitor';
 
-          // Core React libraries
+          // Core React - single vendor chunk
           if (
             id.includes('node_modules/react/') ||
             id.includes('node_modules/react-dom/') ||
-            id.includes('node_modules/react-router-dom/')
+            id.includes('node_modules/react-router')
           ) {
             return 'react-vendor';
-          }
-
-          // Radix UI components
-          if (id.includes('@radix-ui')) {
-            return 'ui-vendor';
-          }
-
-          // Form libraries
-          if (id.includes('react-hook-form') || id.includes('zod')) {
-            return 'forms';
-          }
-
-          // Supabase
-          if (id.includes('@supabase')) {
-            return 'supabase';
-          }
-
-          // Framer Motion
-          if (id.includes('framer-motion')) {
-            return 'motion';
-          }
-
-          // Mantine
-          if (id.includes('@mantine')) {
-            return 'mantine';
-          }
-
-          // date-fns
-          if (id.includes('date-fns')) {
-            return 'date-fns';
-          }
-
-          // i18n
-          if (id.includes('i18next')) {
-            return 'i18n';
-          }
-
-          // OpenTelemetry - heavy and optional
-          if (id.includes('@opentelemetry')) {
-            return 'telemetry';
-          }
-
-          // Sentry
-          if (id.includes('@sentry')) {
-            return 'sentry';
-          }
-
-          // LiveKit
-          if (id.includes('livekit') || id.includes('@livekit')) {
-            return 'livekit';
-          }
-
-          // ElevenLabs
-          if (id.includes('elevenlabs') || id.includes('@elevenlabs')) {
-            return 'elevenlabs';
-          }
-
-          // fabric.js
-          if (id.includes('fabric')) {
-            return 'fabric';
-          }
-
-          // jspdf
-          if (id.includes('jspdf')) {
-            return 'pdf';
           }
         },
       },
     },
     // Target modern browsers for smaller bundles
-    target: 'es2020',
+    target: 'esnext',
     // Enable CSS code splitting
     cssCodeSplit: true,
   },
