@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   TrendingUp, RefreshCw, Plus, LayoutGrid, List, 
-  Sparkles, Gavel, Trophy, History, Users
+  Sparkles, Gavel, Trophy, History, User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ import { MilestoneDetailDrawer } from './MilestoneDetailDrawer';
 import { AdminDecisionsTab } from './AdminDecisionsTab';
 import { TeamLeaderboard } from './TeamLeaderboard';
 import { HistoricalTimeline } from './HistoricalTimeline';
+import { MyContributionView } from './MyContributionView';
 
 type ViewMode = 'grid' | 'list';
 
@@ -145,6 +146,10 @@ export function RevenueLadderDashboard() {
               <Trophy className="h-4 w-4" />
               Leaderboard
             </TabsTrigger>
+            <TabsTrigger value="my-contribution" className="gap-2">
+              <User className="h-4 w-4" />
+              My Stats
+            </TabsTrigger>
             <TabsTrigger value="history" className="gap-2">
               <History className="h-4 w-4" />
               History
@@ -224,6 +229,11 @@ export function RevenueLadderDashboard() {
         {/* Leaderboard Tab */}
         <TabsContent value="leaderboard">
           <TeamLeaderboard />
+        </TabsContent>
+
+        {/* My Contribution Tab */}
+        <TabsContent value="my-contribution">
+          <MyContributionView />
         </TabsContent>
 
         {/* History Tab */}
