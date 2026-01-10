@@ -92,7 +92,7 @@ export function ProposalForm({ milestoneId, milestoneName, open, onOpenChange }:
       description,
       estimated_cost: estimatedCost,
       rationale,
-      impact_types: selectedImpacts.length > 0 ? selectedImpacts : ['speed'],
+      impact_type: selectedImpacts.length > 0 ? selectedImpacts : ['speed'],
     });
     onOpenChange(false);
     resetForm();
