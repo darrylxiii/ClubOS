@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  TrendingUp, RefreshCw, Plus, Filter, 
-  LayoutGrid, List, Loader2, Sparkles 
+  TrendingUp, RefreshCw, Plus, LayoutGrid, List, 
+  Sparkles, Gavel, Trophy, History, Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,12 @@ import { MilestoneCard } from './MilestoneCard';
 import { ProposalForm } from './ProposalForm';
 import { ProposalVoting } from './ProposalVoting';
 import { MilestoneUnlockCelebration } from './MilestoneUnlockCelebration';
+import { RevenueLadderSkeleton } from './RevenueLadderSkeleton';
+import { EmptyState } from './EmptyState';
+import { MilestoneDetailDrawer } from './MilestoneDetailDrawer';
+import { AdminDecisionsTab } from './AdminDecisionsTab';
+import { TeamLeaderboard } from './TeamLeaderboard';
+import { HistoricalTimeline } from './HistoricalTimeline';
 
 type ViewMode = 'grid' | 'list';
 
@@ -27,6 +33,7 @@ export function RevenueLadderDashboard() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selectedMilestone, setSelectedMilestone] = useState<RevenueMilestone | null>(null);
   const [showProposalForm, setShowProposalForm] = useState(false);
+  const [showDrawer, setShowDrawer] = useState(false);
   const [celebratingMilestone, setCelebratingMilestone] = useState<RevenueMilestone | null>(null);
 
   const { data: ladders, isLoading } = useRevenueLadders();
@@ -36,14 +43,27 @@ export function RevenueLadderDashboard() {
 
   const annualLadder = ladders?.find(l => l.track_type === 'annual');
   const cumulativeLadder = ladders?.find(l => l.track_type === 'cumulative');
-  const allMilestones = ladders?.flatMap(l => l.revenue_milestones || []) || [];
+  const pendingProposals = proposals?.filter(p => p.status === 'pending') || [];
 
   const handleMilestoneClick = (milestone: RevenueMilestone) => {
     setSelectedMilestone(milestone);
-    if (milestone.status === 'unlocked') {
-      setShowProposalForm(true);
-    }
+    setShowDrawer(true);
   };
+
+  // Show skeleton during loading
+  if (isLoading) {
+    return <RevenueLadderSkeleton />;
+  }
+
+  // Show empty state if no data
+  if (!ladders || ladders.length === 0 || stats.totalMilestones === 0) {
+    return (
+      <EmptyState 
+        onSyncRevenue={() => calculateMilestones.mutate()} 
+        isSyncing={calculateMilestones.isPending}
+      />
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -61,21 +81,15 @@ export function RevenueLadderDashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => calculateMilestones.mutate()}
-            disabled={calculateMilestones.isPending}
-          >
-            {calculateMilestones.isPending ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4 mr-2" />
-            )}
-            Sync Revenue
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => calculateMilestones.mutate()}
+          disabled={calculateMilestones.isPending}
+        >
+          <RefreshCw className={cn("h-4 w-4 mr-2", calculateMilestones.isPending && "animate-spin")} />
+          Sync Revenue
+        </Button>
       </div>
 
       {/* Stats Bar */}
@@ -103,14 +117,11 @@ export function RevenueLadderDashboard() {
       </motion.div>
 
       {/* Dual Track Visualizer */}
-      <DualTrackVisualizer 
-        annualLadder={annualLadder} 
-        cumulativeLadder={cumulativeLadder} 
-      />
+      <DualTrackVisualizer annualLadder={annualLadder} cumulativeLadder={cumulativeLadder} />
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="milestones" className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between overflow-x-auto pb-2">
           <TabsList>
             <TabsTrigger value="milestones" className="gap-2">
               <Sparkles className="h-4 w-4" />
@@ -120,28 +131,31 @@ export function RevenueLadderDashboard() {
               <Plus className="h-4 w-4" />
               Proposals
               {proposals && proposals.length > 0 && (
-                <Badge variant="secondary" className="ml-1">
-                  {proposals.length}
-                </Badge>
+                <Badge variant="secondary" className="ml-1">{proposals.length}</Badge>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="decisions" className="gap-2">
+              <Gavel className="h-4 w-4" />
+              Decisions
+              {pendingProposals.length > 0 && (
+                <Badge className="ml-1 bg-warning text-warning-foreground">{pendingProposals.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="leaderboard" className="gap-2">
+              <Trophy className="h-4 w-4" />
+              Leaderboard
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-2">
+              <History className="h-4 w-4" />
+              History
             </TabsTrigger>
           </TabsList>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setViewMode('grid')}
-              className={cn(viewMode === 'grid' && "bg-muted")}
-            >
+            <Button variant="ghost" size="icon" onClick={() => setViewMode('grid')} className={cn(viewMode === 'grid' && "bg-muted")}>
               <LayoutGrid className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setViewMode('list')}
-              className={cn(viewMode === 'list' && "bg-muted")}
-            >
+            <Button variant="ghost" size="icon" onClick={() => setViewMode('list')} className={cn(viewMode === 'list' && "bg-muted")}>
               <List className="h-4 w-4" />
             </Button>
           </div>
@@ -149,88 +163,82 @@ export function RevenueLadderDashboard() {
 
         {/* Milestones Tab */}
         <TabsContent value="milestones" className="space-y-6">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          {annualLadder && (
+            <div className="space-y-4">
+              <h2 className="text-heading-sm font-semibold flex items-center gap-2">
+                Annual Track
+                <Badge variant="outline" className="font-normal">Execution Focus</Badge>
+              </h2>
+              <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-4")}>
+                {annualLadder.revenue_milestones?.map((milestone) => (
+                  <MilestoneCard
+                    key={milestone.id}
+                    milestone={milestone}
+                    onClick={() => handleMilestoneClick(milestone)}
+                    isNext={stats.nextMilestone?.id === milestone.id}
+                  />
+                ))}
+              </div>
             </div>
-          ) : (
-            <>
-              {/* Annual Track */}
-              {annualLadder && (
-                <div className="space-y-4">
-                  <h2 className="text-heading-sm font-semibold flex items-center gap-2">
-                    Annual Track
-                    <Badge variant="outline" className="font-normal">
-                      Execution Focus
-                    </Badge>
-                  </h2>
-                  <div className={cn(
-                    viewMode === 'grid' 
-                      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-                      : "space-y-4"
-                  )}>
-                    {annualLadder.revenue_milestones?.map((milestone) => (
-                      <MilestoneCard
-                        key={milestone.id}
-                        milestone={milestone}
-                        onClick={() => handleMilestoneClick(milestone)}
-                        isNext={stats.nextMilestone?.id === milestone.id}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Cumulative Track */}
-              {cumulativeLadder && (
-                <div className="space-y-4">
-                  <h2 className="text-heading-sm font-semibold flex items-center gap-2">
-                    Lifetime Track
-                    <Badge variant="outline" className="font-normal">
-                      Vision Focus
-                    </Badge>
-                  </h2>
-                  <div className={cn(
-                    viewMode === 'grid' 
-                      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-                      : "space-y-4"
-                  )}>
-                    {cumulativeLadder.revenue_milestones?.map((milestone) => (
-                      <MilestoneCard
-                        key={milestone.id}
-                        milestone={milestone}
-                        onClick={() => handleMilestoneClick(milestone)}
-                        isNext={stats.nextMilestone?.id === milestone.id}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
+          )}
+          {cumulativeLadder && (
+            <div className="space-y-4">
+              <h2 className="text-heading-sm font-semibold flex items-center gap-2">
+                Lifetime Track
+                <Badge variant="outline" className="font-normal">Vision Focus</Badge>
+              </h2>
+              <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-4")}>
+                {cumulativeLadder.revenue_milestones?.map((milestone) => (
+                  <MilestoneCard
+                    key={milestone.id}
+                    milestone={milestone}
+                    onClick={() => handleMilestoneClick(milestone)}
+                    isNext={stats.nextMilestone?.id === milestone.id}
+                  />
+                ))}
+              </div>
+            </div>
           )}
         </TabsContent>
 
         {/* Proposals Tab */}
         <TabsContent value="proposals" className="space-y-4">
           {proposals && proposals.length > 0 ? (
-            proposals.map((proposal) => (
-              <ProposalVoting key={proposal.id} proposal={proposal} />
-            ))
+            proposals.map((proposal) => <ProposalVoting key={proposal.id} proposal={proposal} />)
           ) : (
             <div className="text-center py-12 space-y-4">
               <div className="mx-auto w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
                 <Plus className="h-8 w-8 text-muted-foreground" />
               </div>
-              <div className="space-y-2">
-                <p className="text-heading-sm font-medium">No proposals yet</p>
-                <p className="text-body-sm text-muted-foreground">
-                  Unlock a milestone to start proposing rewards
-                </p>
-              </div>
+              <p className="text-heading-sm font-medium">No proposals yet</p>
+              <p className="text-body-sm text-muted-foreground">Unlock a milestone to start proposing rewards</p>
             </div>
           )}
         </TabsContent>
+
+        {/* Decisions Tab */}
+        <TabsContent value="decisions">
+          <AdminDecisionsTab />
+        </TabsContent>
+
+        {/* Leaderboard Tab */}
+        <TabsContent value="leaderboard">
+          <TeamLeaderboard members={[]} />
+        </TabsContent>
+
+        {/* History Tab */}
+        <TabsContent value="history">
+          <HistoricalTimeline />
+        </TabsContent>
       </Tabs>
+
+      {/* Milestone Detail Drawer */}
+      <MilestoneDetailDrawer
+        milestone={selectedMilestone}
+        open={showDrawer}
+        onClose={() => setShowDrawer(false)}
+        isAdmin={true}
+      />
 
       {/* Proposal Form Modal */}
       {selectedMilestone && (
@@ -243,10 +251,7 @@ export function RevenueLadderDashboard() {
       )}
 
       {/* Celebration Modal */}
-      <MilestoneUnlockCelebration
-        milestone={celebratingMilestone}
-        onClose={() => setCelebratingMilestone(null)}
-      />
+      <MilestoneUnlockCelebration milestone={celebratingMilestone} onClose={() => setCelebratingMilestone(null)} />
     </div>
   );
 }
