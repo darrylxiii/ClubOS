@@ -1,11 +1,19 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Medal, Award, TrendingUp, Users } from 'lucide-react';
+import { Trophy, Medal, Award, TrendingUp, Users, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useTeamRevenue, TeamMemberRevenue } from '@/hooks/useTeamRevenue';
 
 interface TeamLeaderboardProps {
@@ -34,8 +42,21 @@ const rankConfig = {
   },
 };
 
+const currentYear = new Date().getFullYear();
+const yearOptions = [
+  { value: 'all', label: 'All Time' },
+  { value: String(currentYear), label: String(currentYear) },
+  { value: String(currentYear - 1), label: String(currentYear - 1) },
+  { value: String(currentYear - 2), label: String(currentYear - 2) },
+];
+
 export function TeamLeaderboard({ className, year }: TeamLeaderboardProps) {
-  const { data: members = [], isLoading } = useTeamRevenue(year);
+  const [selectedYear, setSelectedYear] = useState<string>(
+    year ? String(year) : String(currentYear - 1) // Default to last year since current year may have less data
+  );
+  
+  const yearParam = selectedYear === 'all' ? 'all' : Number(selectedYear);
+  const { data: members = [], isLoading } = useTeamRevenue(yearParam);
   const formatCurrency = (amount: number) => {
     if (amount >= 1000000) {
       return `€${(amount / 1000000).toFixed(1)}M`;
@@ -102,10 +123,22 @@ export function TeamLeaderboard({ className, year }: TeamLeaderboardProps) {
             Team Leaderboard
           </h3>
           <p className="text-label-sm text-muted-foreground">
-            Revenue contribution YTD
+            Revenue contribution {selectedYear === 'all' ? 'all time' : selectedYear}
           </p>
         </div>
-        <Badge variant="outline">{year || new Date().getFullYear()}</Badge>
+        <Select value={selectedYear} onValueChange={setSelectedYear}>
+          <SelectTrigger className="w-[120px] h-8">
+            <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {yearOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Leaderboard */}
