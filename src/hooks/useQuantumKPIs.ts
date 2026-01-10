@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { untypedTable } from "@/lib/supabaseRpc";
 
 export interface KPIMetric {
   id: string;
@@ -12,7 +13,7 @@ export interface KPIMetric {
   period_type: string;
   period_start: string;
   period_end: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CategoryKPIs {
@@ -29,8 +30,7 @@ export function useKPIMetrics(period: 'weekly' | 'monthly' = 'weekly') {
   return useQuery({
     queryKey: ['kpi-metrics', period],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('kpi_metrics')
+      const { data, error } = await untypedTable('kpi_metrics')
         .select('*')
         .eq('period_type', period)
         .order('created_at', { ascending: false });
@@ -65,8 +65,7 @@ export function useKPI(kpiName: string, period: 'weekly' | 'monthly' = 'weekly')
   return useQuery({
     queryKey: ['kpi', kpiName, period],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('kpi_metrics')
+      const { data, error } = await untypedTable('kpi_metrics')
         .select('*')
         .eq('kpi_name', kpiName)
         .eq('period_type', period)
@@ -106,8 +105,7 @@ export function useTimeEntries(userId?: string, startDate?: string, endDate?: st
   return useQuery({
     queryKey: ['time-entries', userId, startDate, endDate],
     queryFn: async () => {
-      let query = (supabase as any)
-        .from('time_entries')
+      let query = untypedTable('time_entries')
         .select('*')
         .order('date', { ascending: false });
 
@@ -138,8 +136,7 @@ export function useCreateTimeEntry() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await (supabase as any)
-        .from('time_entries')
+      const { data, error } = await untypedTable('time_entries')
         .insert({ ...entry, user_id: user.id })
         .select()
         .single();
@@ -158,8 +155,7 @@ export function useNPSSurveys(type?: 'candidate' | 'client') {
   return useQuery({
     queryKey: ['nps-surveys', type],
     queryFn: async () => {
-      let query = (supabase as any)
-        .from('nps_surveys')
+      let query = untypedTable('nps_surveys')
         .select('*')
         .order('response_date', { ascending: false });
 
@@ -186,8 +182,7 @@ export function useSubmitNPS() {
       stage_name?: string;
       feedback_text?: string;
     }) => {
-      const { data, error } = await (supabase as any)
-        .from('nps_surveys')
+      const { data, error } = await untypedTable('nps_surveys')
         .insert(survey)
         .select()
         .single();
@@ -207,8 +202,7 @@ export function useCSATSurveys(milestone?: string) {
   return useQuery({
     queryKey: ['csat-surveys', milestone],
     queryFn: async () => {
-      let query = (supabase as any)
-        .from('csat_surveys')
+      let query = untypedTable('csat_surveys')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -234,8 +228,7 @@ export function useSubmitCSAT() {
       job_id?: string;
       feedback?: string;
     }) => {
-      const { data, error } = await (supabase as any)
-        .from('csat_surveys')
+      const { data, error } = await untypedTable('csat_surveys')
         .insert(survey)
         .select()
         .single();
@@ -255,8 +248,7 @@ export function useCapacityPlanning(userId?: string) {
   return useQuery({
     queryKey: ['capacity-planning', userId],
     queryFn: async () => {
-      let query = (supabase as any)
-        .from('capacity_planning')
+      let query = untypedTable('capacity_planning')
         .select('*')
         .order('week_start', { ascending: false });
 
@@ -274,8 +266,7 @@ export function useRecruiterBonuses(recruiterId?: string) {
   return useQuery({
     queryKey: ['recruiter-bonuses', recruiterId],
     queryFn: async () => {
-      let query = (supabase as any)
-        .from('recruiter_bonuses')
+      let query = untypedTable('recruiter_bonuses')
         .select('*')
         .order('period_start', { ascending: false });
 

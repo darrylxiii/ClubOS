@@ -144,3 +144,15 @@ export async function typedRpc<TResult>(
     };
   }
 }
+
+// ============= Helper for untyped table queries =============
+
+/**
+ * Query builder for tables not in generated types
+ * Centralizes the type bypass pattern for better maintainability
+ * Usage: untypedTable('my_table').select('*').eq('id', 1)
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function untypedTable(tableName: string): any {
+  return (supabase as any).from(tableName);
+}
