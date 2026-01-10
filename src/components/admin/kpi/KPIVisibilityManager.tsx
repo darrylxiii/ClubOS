@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import type { KPIMetric } from '@/hooks/useKPIMetrics';
+import type { KPIMetric } from '@/hooks/useQuantumKPIs';
 
 interface VisibilityRule {
   id: string;
@@ -141,7 +141,7 @@ export function KPIVisibilityManager({ availableKPIs }: KPIVisibilityManagerProp
   });
 
   const kpisWithoutRules = availableKPIs.filter(
-    kpi => !rules.some(r => r.kpi_name === kpi.name)
+    kpi => !rules.some(r => r.kpi_name === kpi.kpi_name)
   );
 
   return (
@@ -173,8 +173,8 @@ export function KPIVisibilityManager({ availableKPIs }: KPIVisibilityManagerProp
                     </SelectTrigger>
                     <SelectContent>
                       {kpisWithoutRules.map(kpi => (
-                        <SelectItem key={kpi.name} value={kpi.name}>
-                          {kpi.name}
+                        <SelectItem key={kpi.kpi_name} value={kpi.kpi_name}>
+                          {kpi.kpi_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
