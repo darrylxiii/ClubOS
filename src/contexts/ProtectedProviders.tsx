@@ -10,6 +10,7 @@ import { ActivityTracker } from "@/components/ActivityTracker";
 import { TrackingProvider } from "@/components/tracking/TrackingProvider";
 import { NavigationTracer } from "@/components/tracing/NavigationTracer";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface ProtectedProvidersProps {
   children: ReactNode;
@@ -19,28 +20,33 @@ interface ProtectedProvidersProps {
  * Heavy providers for protected routes loaded AFTER authentication
  * Includes role management, subscriptions, video player, and activity tracking
  * Lazy loaded to reduce initial bundle size and improve FCP
+ * 
+ * Optimization: TooltipProvider moved here from App.tsx to reduce
+ * provider nesting for public routes
  */
 export const ProtectedProviders = ({ children }: ProtectedProvidersProps) => {
   return (
-    <AppearanceProvider>
-      <RoleProvider>
-        <SubscriptionProvider>
-          <VideoPlayerProvider>
-            <NavigationHistoryProvider>
-              <MotionProvider>
-                <ActivityTracker>
-                  <TrackingProvider>
-                    <NavigationTracer />
-                    <FloatingVideoPlayer />
-                    {children}
-                  </TrackingProvider>
-                </ActivityTracker>
-              </MotionProvider>
-            </NavigationHistoryProvider>
-          </VideoPlayerProvider>
-        </SubscriptionProvider>
-      </RoleProvider>
-    </AppearanceProvider>
+    <TooltipProvider>
+      <AppearanceProvider>
+        <RoleProvider>
+          <SubscriptionProvider>
+            <VideoPlayerProvider>
+              <NavigationHistoryProvider>
+                <MotionProvider>
+                  <ActivityTracker>
+                    <TrackingProvider>
+                      <NavigationTracer />
+                      <FloatingVideoPlayer />
+                      {children}
+                    </TrackingProvider>
+                  </ActivityTracker>
+                </MotionProvider>
+              </NavigationHistoryProvider>
+            </VideoPlayerProvider>
+          </SubscriptionProvider>
+        </RoleProvider>
+      </AppearanceProvider>
+    </TooltipProvider>
   );
 };
 
