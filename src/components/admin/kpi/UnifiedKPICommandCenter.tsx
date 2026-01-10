@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUnifiedKPIs, type KPIDomain, type UnifiedKPI, type DomainHealth } from '@/hooks/useUnifiedKPIs';
@@ -9,12 +9,9 @@ import { KPIOverview } from './KPIOverview';
 import { CategoryView } from './CategoryView';
 import { KPISearchFilter, type StatusFilter } from './KPISearchFilter';
 import { PinnedKPIsSection } from './PinnedKPIsSection';
-import { AIExecutiveSummary } from './AIExecutiveSummary';
 import { ComparisonToggle } from './ComparisonToggle';
 import { KPIDetailModal } from './KPIDetailModal';
 import { AlertConfigDialog, type AlertThreshold } from './AlertConfigDialog';
-import { CostOverview } from './costs/CostOverview';
-import { FinancialKPISection } from './FinancialKPISection';
 import { exportToCSV, exportToPDF } from './KPIExport';
 import { usePinnedKPIs } from '@/hooks/usePinnedKPIs';
 import { useKPIAuditLog } from '@/hooks/useKPIAuditLog';
@@ -32,22 +29,28 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-// Lazy load heavy components
-import { KPICommandPalette } from './KPICommandPalette';
-import { ExecutiveKPIDashboard } from './ExecutiveKPIDashboard';
-import { BoardReportGenerator } from './BoardReportGenerator';
-import { KPIReportBuilder } from './KPIReportBuilder';
-import { KPIAuditLogViewer } from './KPIAuditLogViewer';
-import { DepartmentHeadView } from './DepartmentHeadView';
-import { KPIRadarChart } from './KPIRadarChart';
-import { KPIHeatMap } from './KPIHeatMap';
-import { OKRIntegration } from './OKRIntegration';
-import { DataLineageViewer } from './DataLineageViewer';
-import { PersonalKPIGoals } from './PersonalKPIGoals';
-import { KPIAchievementCelebration } from './KPIAchievementCelebration';
-import { KPIVisibilityManager } from './KPIVisibilityManager';
-import { KPIKeyboardShortcutsHelp } from './KPIKeyboardShortcutsHelp';
-import { KPIMobileNavigation } from './KPIMobileNavigation';
+// Lazy load heavy components to reduce bundle size and memory usage
+const CostOverview = lazy(() => import('./costs/CostOverview').then(m => ({ default: m.CostOverview })));
+const AIExecutiveSummary = lazy(() => import('./AIExecutiveSummary').then(m => ({ default: m.AIExecutiveSummary })));
+const FinancialKPISection = lazy(() => import('./FinancialKPISection').then(m => ({ default: m.FinancialKPISection })));
+const KPICommandPalette = lazy(() => import('./KPICommandPalette').then(m => ({ default: m.KPICommandPalette })));
+const ExecutiveKPIDashboard = lazy(() => import('./ExecutiveKPIDashboard').then(m => ({ default: m.ExecutiveKPIDashboard })));
+const BoardReportGenerator = lazy(() => import('./BoardReportGenerator').then(m => ({ default: m.BoardReportGenerator })));
+const KPIReportBuilder = lazy(() => import('./KPIReportBuilder').then(m => ({ default: m.KPIReportBuilder })));
+const KPIAuditLogViewer = lazy(() => import('./KPIAuditLogViewer').then(m => ({ default: m.KPIAuditLogViewer })));
+const DepartmentHeadView = lazy(() => import('./DepartmentHeadView').then(m => ({ default: m.DepartmentHeadView })));
+const KPIRadarChart = lazy(() => import('./KPIRadarChart').then(m => ({ default: m.KPIRadarChart })));
+const KPIHeatMap = lazy(() => import('./KPIHeatMap').then(m => ({ default: m.KPIHeatMap })));
+const OKRIntegration = lazy(() => import('./OKRIntegration').then(m => ({ default: m.OKRIntegration })));
+const DataLineageViewer = lazy(() => import('./DataLineageViewer').then(m => ({ default: m.DataLineageViewer })));
+const PersonalKPIGoals = lazy(() => import('./PersonalKPIGoals').then(m => ({ default: m.PersonalKPIGoals })));
+const KPIAchievementCelebration = lazy(() => import('./KPIAchievementCelebration').then(m => ({ default: m.KPIAchievementCelebration })));
+const KPIVisibilityManager = lazy(() => import('./KPIVisibilityManager').then(m => ({ default: m.KPIVisibilityManager })));
+const KPIKeyboardShortcutsHelp = lazy(() => import('./KPIKeyboardShortcutsHelp').then(m => ({ default: m.KPIKeyboardShortcutsHelp })));
+const KPIMobileNavigation = lazy(() => import('./KPIMobileNavigation').then(m => ({ default: m.KPIMobileNavigation })));
+
+// Loading fallback for lazy components
+const LazyFallback = () => <Skeleton className="h-64 w-full" />;
 
 type ViewMode = 'overview' | 'executive' | 'audit' | 'department' | 'okr' | 'lineage' | 'goals' | 'governance';
 
@@ -284,8 +287,10 @@ export function UnifiedKPICommandCenter() {
         {/* Main Content */}
         <div className="flex-1 overflow-auto">
           <div className="container mx-auto px-4 py-6 max-w-7xl">
-            {selectedDomain === 'costs' ? (
-              <CostOverview />
+{selectedDomain === 'costs' ? (
+              <Suspense fallback={<LazyFallback />}>
+                <CostOverview />
+              </Suspense>
             ) : selectedCategory && selectedDomain && selectedCat ? (
               <CategoryView
                 domain={selectedDomain as KPIDomain}
@@ -428,78 +433,80 @@ export function UnifiedKPICommandCenter() {
                   )}
                 </div>
 
-                {/* View Mode Content */}
-                {viewMode === 'executive' ? (
-                  <ExecutiveKPIDashboard
-                    allKPIs={allKPIs}
-                    domainHealth={domainHealth}
-                    overallHealth={overallHealth}
-                    onGenerateReport={() => setBoardReportOpen(true)}
-                  />
-                ) : viewMode === 'audit' ? (
-                  <KPIAuditLogViewer />
-                ) : viewMode === 'department' ? (
-                  <DepartmentHeadView
-                    allKPIs={allKPIs}
-                    domainHealth={domainHealth}
-                  />
-                ) : viewMode === 'okr' ? (
-                  <OKRIntegration
-                    kpis={allKPIs}
-                  />
-                ) : viewMode === 'lineage' ? (
-                  <DataLineageViewer
-                    kpis={allKPIs}
-                  />
-                ) : viewMode === 'goals' ? (
-                  <div className="space-y-6">
-                    <PersonalKPIGoals />
-                    <KPIAchievementCelebration />
-                  </div>
-                ) : viewMode === 'governance' ? (
-                  <KPIVisibilityManager />
-                ) : (
-                  <>
-                    {/* Pinned KPIs */}
-                    {pinnedKPIs.length > 0 && (
+{/* View Mode Content */}
+                <Suspense fallback={<LazyFallback />}>
+                  {viewMode === 'executive' ? (
+                    <ExecutiveKPIDashboard
+                      allKPIs={allKPIs}
+                      domainHealth={domainHealth}
+                      overallHealth={overallHealth}
+                      onGenerateReport={() => setBoardReportOpen(true)}
+                    />
+                  ) : viewMode === 'audit' ? (
+                    <KPIAuditLogViewer />
+                  ) : viewMode === 'department' ? (
+                    <DepartmentHeadView
+                      allKPIs={allKPIs}
+                      domainHealth={domainHealth}
+                    />
+                  ) : viewMode === 'okr' ? (
+                    <OKRIntegration
+                      kpis={allKPIs}
+                    />
+                  ) : viewMode === 'lineage' ? (
+                    <DataLineageViewer
+                      kpis={allKPIs}
+                    />
+                  ) : viewMode === 'goals' ? (
+                    <div className="space-y-6">
+                      <PersonalKPIGoals />
+                      <KPIAchievementCelebration />
+                    </div>
+                  ) : viewMode === 'governance' ? (
+                    <KPIVisibilityManager />
+                  ) : (
+                    <>
+                      {/* Pinned KPIs */}
+                      {pinnedKPIs.length > 0 && (
+                        <div className="mb-6">
+                          <PinnedKPIsSection
+                            pinnedKPIs={pinnedKPIs}
+                            onUnpin={(id) => togglePin(id)}
+                            onKPIClick={setSelectedKPI}
+                          />
+                        </div>
+                      )}
+
+                      {/* AI Executive Summary */}
                       <div className="mb-6">
-                        <PinnedKPIsSection
-                          pinnedKPIs={pinnedKPIs}
-                          onUnpin={(id) => togglePin(id)}
-                          onKPIClick={setSelectedKPI}
+                        <AIExecutiveSummary
+                          allKPIs={allKPIs}
+                          domainHealth={domainHealth.reduce((acc, domain) => {
+                            acc[domain.domain] = domain;
+                            return acc;
+                          }, {} as Record<string, DomainHealth>)}
+                          overallHealth={overallHealth}
+                          onRefresh={handleRefresh}
+                          isRefreshing={isRefreshing}
                         />
                       </div>
-                    )}
 
-                    {/* AI Executive Summary */}
-                    <div className="mb-6">
-                      <AIExecutiveSummary
-                        allKPIs={allKPIs}
-                        domainHealth={domainHealth.reduce((acc, domain) => {
-                          acc[domain.domain] = domain;
-                          return acc;
-                        }, {} as Record<string, DomainHealth>)}
-                        overallHealth={overallHealth}
-                        onRefresh={handleRefresh}
-                        isRefreshing={isRefreshing}
+                      {/* Moneybird Financial KPIs Section */}
+                      <div className="mb-6">
+                        <FinancialKPISection />
+                      </div>
+
+                      <KPIOverview
+                        domainHealth={domainHealth}
+                        criticalAlerts={criticalAlerts}
+                        allKPIs={filteredKPIs}
+                        onSelectCategory={handleSelectCategory}
+                        searchTerm={searchTerm}
+                        statusFilter={statusFilter}
                       />
-                    </div>
-
-                    {/* Moneybird Financial KPIs Section */}
-                    <div className="mb-6">
-                      <FinancialKPISection />
-                    </div>
-
-                    <KPIOverview
-                      domainHealth={domainHealth}
-                      criticalAlerts={criticalAlerts}
-                      allKPIs={filteredKPIs}
-                      onSelectCategory={handleSelectCategory}
-                      searchTerm={searchTerm}
-                      statusFilter={statusFilter}
-                    />
-                  </>
-                )}
+                    </>
+                  )}
+                </Suspense>
               </>
             )}
           </div>
@@ -528,50 +535,52 @@ export function UnifiedKPICommandCenter() {
         onSave={handleSaveAlert}
       />
 
-      {/* Command Palette */}
-      <KPICommandPalette
-        open={commandPaletteOpen}
-        onOpenChange={setCommandPaletteOpen}
-        kpis={allKPIs}
-        pinnedKPIIds={pinnedSet}
-        onSelectKPI={(kpi) => { setSelectedKPI(kpi); setCommandPaletteOpen(false); }}
-        onTogglePin={(id) => togglePin(id)}
-        onConfigureAlert={(kpi) => { setAlertKPI(kpi); setCommandPaletteOpen(false); }}
-        onExport={() => { exportToCSV(allKPIs, 'all-kpis'); toast.success('Exported to CSV'); }}
-        onRefresh={handleRefresh}
-      />
-
-      {/* Board Report Generator */}
-      <BoardReportGenerator
-        open={boardReportOpen}
-        onOpenChange={setBoardReportOpen}
-        allKPIs={allKPIs}
-        domainHealth={domainHealth}
-        overallHealth={overallHealth}
-      />
-
-      {/* Report Builder */}
-      <KPIReportBuilder
-        open={reportBuilderOpen}
-        onOpenChange={setReportBuilderOpen}
-        allKPIs={allKPIs}
-      />
-
-      {/* Keyboard Shortcuts Help */}
-      <KPIKeyboardShortcutsHelp
-        open={shortcutsHelpOpen}
-        onOpenChange={setShortcutsHelpOpen}
-      />
-
-      {/* Mobile Navigation */}
-      {isMobile && (
-        <KPIMobileNavigation
-          currentView={viewMode}
-          onViewChange={(v) => setViewMode(v as ViewMode)}
-          onOpenCommand={() => setCommandPaletteOpen(true)}
-          criticalCount={totalCritical}
+{/* Command Palette */}
+      <Suspense fallback={null}>
+        <KPICommandPalette
+          open={commandPaletteOpen}
+          onOpenChange={setCommandPaletteOpen}
+          kpis={allKPIs}
+          pinnedKPIIds={pinnedSet}
+          onSelectKPI={(kpi) => { setSelectedKPI(kpi); setCommandPaletteOpen(false); }}
+          onTogglePin={(id) => togglePin(id)}
+          onConfigureAlert={(kpi) => { setAlertKPI(kpi); setCommandPaletteOpen(false); }}
+          onExport={() => { exportToCSV(allKPIs, 'all-kpis'); toast.success('Exported to CSV'); }}
+          onRefresh={handleRefresh}
         />
-      )}
+
+        {/* Board Report Generator */}
+        <BoardReportGenerator
+          open={boardReportOpen}
+          onOpenChange={setBoardReportOpen}
+          allKPIs={allKPIs}
+          domainHealth={domainHealth}
+          overallHealth={overallHealth}
+        />
+
+        {/* Report Builder */}
+        <KPIReportBuilder
+          open={reportBuilderOpen}
+          onOpenChange={setReportBuilderOpen}
+          allKPIs={allKPIs}
+        />
+
+        {/* Keyboard Shortcuts Help */}
+        <KPIKeyboardShortcutsHelp
+          open={shortcutsHelpOpen}
+          onOpenChange={setShortcutsHelpOpen}
+        />
+
+        {/* Mobile Navigation */}
+        {isMobile && (
+          <KPIMobileNavigation
+            currentView={viewMode}
+            onViewChange={(v) => setViewMode(v as ViewMode)}
+            onOpenCommand={() => setCommandPaletteOpen(true)}
+            criticalCount={totalCritical}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
