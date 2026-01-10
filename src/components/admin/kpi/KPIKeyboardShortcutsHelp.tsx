@@ -29,8 +29,10 @@ const shortcuts: ShortcutItem[] = [
   { keys: ['2'], description: 'Switch to Executive view', category: 'views' },
   { keys: ['3'], description: 'Switch to Department view', category: 'views' },
   { keys: ['4'], description: 'Switch to OKRs view', category: 'views' },
-  { keys: ['5'], description: 'Switch to Lineage view', category: 'views' },
-  { keys: ['6'], description: 'Switch to Audit view', category: 'views' },
+  { keys: ['5'], description: 'Switch to Data Lineage view', category: 'views' },
+  { keys: ['6'], description: 'Switch to Personal Goals view', category: 'views' },
+  { keys: ['7'], description: 'Switch to Governance view', category: 'views' },
+  { keys: ['8'], description: 'Switch to Audit Log view', category: 'views' },
 ];
 
 interface KPIKeyboardShortcutsHelpProps {
