@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
-import { TrendingUp, Trophy, Calendar, Infinity } from 'lucide-react';
+import { TrendingUp, Trophy, Calendar, Infinity, Banknote, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { RevenueLadder } from '@/hooks/useRevenueLadder';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { RevenueLadder, useRevenueStats } from '@/hooks/useRevenueLadder';
 
 interface DualTrackVisualizerProps {
   annualLadder?: RevenueLadder;
@@ -12,16 +13,22 @@ interface DualTrackVisualizerProps {
 
 function TrackCard({ 
   ladder, 
-  type 
+  type,
+  revenueData,
 }: { 
   ladder?: RevenueLadder; 
   type: 'annual' | 'cumulative';
+  revenueData?: {
+    booked: number;
+    collected: number;
+    year?: number;
+  };
 }) {
   const config = type === 'annual' 
     ? {
         icon: Calendar,
         title: 'Annual Revenue',
-        subtitle: 'Execution Focus',
+        subtitle: `${revenueData?.year || new Date().getFullYear()} YTD`,
         gradient: 'from-primary/20 via-primary/10 to-transparent',
         color: 'text-primary',
         bgColor: 'bg-primary/10',
@@ -29,7 +36,7 @@ function TrackCard({
     : {
         icon: Infinity,
         title: 'Lifetime Revenue',
-        subtitle: 'Vision Focus',
+        subtitle: 'Since founding',
         gradient: 'from-premium/20 via-premium/10 to-transparent',
         color: 'text-premium',
         bgColor: 'bg-premium/10',
@@ -38,8 +45,17 @@ function TrackCard({
   const Icon = config.icon;
   const milestones = ladder?.revenue_milestones || [];
   const unlockedCount = milestones.filter(m => m.status === 'unlocked' || m.status === 'rewarded').length;
-  const currentRevenue = milestones.reduce((max, m) => Math.max(max, m.achieved_revenue || 0), 0);
+  
+  // Use real Moneybird revenue data (net, excluding VAT)
+  const currentRevenue = revenueData?.booked || milestones.reduce((max, m) => Math.max(max, m.achieved_revenue || 0), 0);
+  const collectedRevenue = revenueData?.collected || 0;
+  
   const nextMilestone = milestones.find(m => m.status === 'locked' || m.status === 'approaching');
+  
+  // Calculate progress based on real revenue
+  const progressPercentage = nextMilestone 
+    ? Math.min(100, (currentRevenue / nextMilestone.threshold_amount) * 100)
+    : 100;
   
   const formatCurrency = (amount: number) => {
     if (amount >= 1000000) {
@@ -48,7 +64,7 @@ function TrackCard({
     if (amount >= 1000) {
       return `€${(amount / 1000).toFixed(0)}K`;
     }
-    return `€${amount}`;
+    return `€${amount.toFixed(0)}`;
   };
 
   return (
@@ -87,17 +103,38 @@ function TrackCard({
             </div>
           </div>
 
-          {/* Current Revenue Counter */}
-          <div className="space-y-2">
-            <p className="text-label-sm text-muted-foreground">Current Revenue</p>
-            <motion.p 
-              className="text-display-md font-bold tracking-tight"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              {formatCurrency(currentRevenue)}
-            </motion.p>
+          {/* Current Revenue Counter - Dual Display */}
+          <div className="space-y-3">
+            {/* Booked Revenue (Primary) */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Banknote className="h-4 w-4 text-muted-foreground" />
+                <p className="text-label-sm text-muted-foreground">Revenue (excl. VAT)</p>
+              </div>
+              <motion.p 
+                className="text-display-md font-bold tracking-tight"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                {formatCurrency(currentRevenue)}
+              </motion.p>
+            </div>
+            
+            {/* Collected Revenue (Secondary) */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2 text-success cursor-help">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className="text-label-sm">
+                    {formatCurrency(collectedRevenue)} collected
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Cash received (paid invoices only)</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Next Milestone Progress */}
@@ -113,15 +150,15 @@ function TrackCard({
                 </span>
               </div>
               <Progress 
-                value={nextMilestone.progress_percentage || 0} 
+                value={progressPercentage} 
                 className="h-2"
               />
               <div className="flex items-center justify-between text-label-sm text-muted-foreground">
                 <span>
-                  {formatCurrency(nextMilestone.threshold_amount - (nextMilestone.achieved_revenue || 0))} to go
+                  {formatCurrency(Math.max(0, nextMilestone.threshold_amount - currentRevenue))} to go
                 </span>
                 <span className={cn("font-medium", config.color)}>
-                  {Math.round(nextMilestone.progress_percentage || 0)}%
+                  {Math.round(progressPercentage)}%
                 </span>
               </div>
             </div>
@@ -157,10 +194,20 @@ function TrackCard({
 }
 
 export function DualTrackVisualizer({ annualLadder, cumulativeLadder }: DualTrackVisualizerProps) {
+  const { data: revenueStats } = useRevenueStats();
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <TrackCard ladder={annualLadder} type="annual" />
-      <TrackCard ladder={cumulativeLadder} type="cumulative" />
+      <TrackCard 
+        ladder={annualLadder} 
+        type="annual" 
+        revenueData={revenueStats?.annual}
+      />
+      <TrackCard 
+        ladder={cumulativeLadder} 
+        type="cumulative" 
+        revenueData={revenueStats?.lifetime}
+      />
     </div>
   );
 }
