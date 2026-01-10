@@ -1,22 +1,22 @@
 /**
  * Full Engineering Framework - Master Index
- * Unified exports for all infrastructure modules
+ * 
+ * IMPORTANT: To reduce build memory usage, import directly from specific modules:
+ * - import { ... } from '@/lib/tracing'
+ * - import { ... } from '@/lib/resilience'
+ * - import { ... } from '@/lib/performance'
+ * - import { ... } from '@/lib/featureFlags'
+ * - import { ... } from '@/lib/debug'
+ * - import { ... } from '@/lib/security'
+ * 
+ * This barrel export is intentionally minimal to prevent OOM during builds.
  */
 
-// Phase 1: Observability
-export * from '../tracing';
-export * from '../errorGrouping';
+// Only export the most commonly used utilities
+// Other modules should be imported directly from their source files
 
-// Phase 2: Resilience
-export * from '../resilience';
+// Core resilience utilities
+export { CircuitBreaker } from '../resilience';
 
-// Phase 3: Performance
-export * from '../performance';
-
-// Phase 4: Developer Experience
-export * from '../featureFlags';
-export * from '../debug';
-export * from '../testing';
-
-// Phase 5: Security
-export * from '../security';
+// Core observability
+export { logger } from '../logger';
