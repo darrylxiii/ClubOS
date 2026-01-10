@@ -294,7 +294,10 @@ serve(async (req) => {
     console.log(`[Moneybird Financials] Total filtered: ${allInvoices.length} invoices for ${year}`);
 
     // Calculate metrics with proper state handling
-    let totalRevenue = 0;
+    // All amounts are NET (excluding 21% Dutch VAT) to reflect actual revenue
+    let totalRevenue = 0;       // Net revenue (excl. VAT)
+    let totalRevenueGross = 0;  // Gross revenue (incl. VAT) for reference
+    let totalVAT = 0;           // Total VAT amount
     let totalPaid = 0;
     let totalOutstanding = 0;
     let invoiceCountPaid = 0;
@@ -420,10 +423,11 @@ serve(async (req) => {
       
       diagnostics.processed_count = (diagnostics.processed_count as number) + 1;
 
-      // Include in revenue calculations
-      totalRevenue += amount;
-      totalPaid += paidAmount;
-      totalOutstanding += unpaidAmount;
+      // Include in revenue calculations - USE NET AMOUNTS (excluding 21% VAT)
+      // This ensures revenue reflects actual earnings, not VAT collected for the government
+      totalRevenue += netAmount;  // Net amount (excl. VAT)
+      totalPaid += paidAmount > 0 ? netAmount * (paidAmount / amount) : 0;  // Proportional net paid
+      totalOutstanding += unpaidAmount > 0 ? netAmount * (unpaidAmount / amount) : 0;  // Proportional net outstanding
 
       // Count by status
       if (normalizedState === 'paid') {
@@ -435,12 +439,16 @@ serve(async (req) => {
         invoiceCountOpen++;
       }
 
-      // Revenue by month
+      // Track gross and VAT for transparency
+      totalRevenueGross += amount;
+      totalVAT += amount - netAmount;
+
+      // Revenue by month - use NET amounts
       if (invoiceDate) {
         const monthKey = `${invoiceDate.getFullYear()}-${(invoiceDate.getMonth() + 1).toString().padStart(2, '0')}`;
         if (revenueByMonth[monthKey]) {
-          revenueByMonth[monthKey].revenue += amount;
-          revenueByMonth[monthKey].paid += paidAmount;
+          revenueByMonth[monthKey].revenue += netAmount;  // Net revenue
+          revenueByMonth[monthKey].paid += paidAmount > 0 ? netAmount * (paidAmount / amount) : 0;  // Net paid
           revenueByMonth[monthKey].count++;
         }
       }
@@ -450,8 +458,8 @@ serve(async (req) => {
       if (!clientRevenue[contactId]) {
         clientRevenue[contactId] = { name: contactName, revenue: 0, paid: 0 };
       }
-      clientRevenue[contactId].revenue += amount;
-      clientRevenue[contactId].paid += paidAmount;
+      clientRevenue[contactId].revenue += netAmount;  // Net revenue
+      clientRevenue[contactId].paid += paidAmount > 0 ? netAmount * (paidAmount / amount) : 0;  // Net paid
 
       // Payment aging for unpaid invoices
       if (unpaidAmount > 0 && invoice.due_date) {
@@ -512,14 +520,16 @@ serve(async (req) => {
 
     const grossProfit = totalPaid;
 
-    // Store the metrics
+    // Store the metrics - all amounts are NET (excluding VAT)
     const { error: upsertError } = await supabase
       .from('moneybird_financial_metrics')
       .upsert({
         sync_date: new Date().toISOString().split('T')[0],
         period_start: periodStart,
         period_end: periodEnd,
-        total_revenue: totalRevenue,
+        total_revenue: totalRevenue,           // Net revenue (excl. VAT)
+        total_revenue_gross: totalRevenueGross, // Gross revenue (incl. VAT)
+        vat_amount: totalVAT,                  // VAT amount (21%)
         total_paid: totalPaid,
         total_outstanding: totalOutstanding,
         gross_profit: grossProfit,

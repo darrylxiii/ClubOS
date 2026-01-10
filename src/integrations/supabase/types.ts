@@ -28350,7 +28350,9 @@ export type Database = {
           total_outstanding: number | null
           total_paid: number | null
           total_revenue: number | null
+          total_revenue_gross: number | null
           updated_at: string | null
+          vat_amount: number | null
           vat_collected: number | null
           vat_outstanding: number | null
         }
@@ -28373,7 +28375,9 @@ export type Database = {
           total_outstanding?: number | null
           total_paid?: number | null
           total_revenue?: number | null
+          total_revenue_gross?: number | null
           updated_at?: string | null
+          vat_amount?: number | null
           vat_collected?: number | null
           vat_outstanding?: number | null
         }
@@ -28396,7 +28400,9 @@ export type Database = {
           total_outstanding?: number | null
           total_paid?: number | null
           total_revenue?: number | null
+          total_revenue_gross?: number | null
           updated_at?: string | null
+          vat_amount?: number | null
           vat_collected?: number | null
           vat_outstanding?: number | null
         }

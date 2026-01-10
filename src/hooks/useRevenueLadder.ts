@@ -33,6 +33,21 @@ export interface RevenueMilestone {
   created_at: string;
 }
 
+export interface RevenueStats {
+  annual: {
+    booked: number;
+    collected: number;
+    year: number;
+  };
+  lifetime: {
+    booked: number;
+    collected: number;
+    yearsTracked: number;
+  };
+  source: string;
+  lastSync: string | null;
+}
+
 export function useRevenueLadders() {
   return useQuery({
     queryKey: ['revenue-ladders'],
@@ -68,6 +83,61 @@ export function useRevenueMilestones(ladderId?: string) {
   });
 }
 
+/**
+ * Fetches real revenue stats directly from Moneybird financial metrics
+ * Returns annual (current year) and lifetime revenue with both booked and collected amounts
+ * All amounts are NET (excluding 21% Dutch VAT)
+ */
+export function useRevenueStats() {
+  return useQuery({
+    queryKey: ['revenue-stats'],
+    queryFn: async (): Promise<RevenueStats> => {
+      // Fetch all Moneybird metrics (all years)
+      const { data: moneybirdMetrics, error } = await supabase
+        .from('moneybird_financial_metrics')
+        .select('period_start, total_revenue, total_paid, last_synced_at')
+        .order('period_start', { ascending: true });
+
+      if (error) throw error;
+
+      const currentYear = new Date().getFullYear();
+      
+      // Calculate lifetime totals from all Moneybird years
+      let lifetimeBooked = 0;
+      let lifetimeCollected = 0;
+      
+      moneybirdMetrics?.forEach(m => {
+        lifetimeBooked += Number(m.total_revenue) || 0;
+        lifetimeCollected += Number(m.total_paid) || 0;
+      });
+
+      // Get current year data
+      const currentYearData = moneybirdMetrics?.find(m => 
+        m.period_start?.startsWith(String(currentYear))
+      );
+
+      // Get last sync date
+      const lastSync = moneybirdMetrics?.[moneybirdMetrics.length - 1]?.last_synced_at || null;
+
+      return {
+        annual: {
+          booked: Number(currentYearData?.total_revenue) || 0,
+          collected: Number(currentYearData?.total_paid) || 0,
+          year: currentYear,
+        },
+        lifetime: {
+          booked: lifetimeBooked,
+          collected: lifetimeCollected,
+          yearsTracked: moneybirdMetrics?.length || 0,
+        },
+        source: 'moneybird',
+        lastSync,
+      };
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+}
+
 export function useCalculateRevenueMilestones() {
   const queryClient = useQueryClient();
 
@@ -80,6 +150,7 @@ export function useCalculateRevenueMilestones() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['revenue-ladders'] });
       queryClient.invalidateQueries({ queryKey: ['revenue-milestones'] });
+      queryClient.invalidateQueries({ queryKey: ['revenue-stats'] });
       if (data?.unlocks > 0) {
         toast.success(`🎉 ${data.unlocks} milestone(s) unlocked!`);
       }
