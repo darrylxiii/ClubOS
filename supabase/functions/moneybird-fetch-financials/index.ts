@@ -549,7 +549,7 @@ serve(async (req) => {
         },
         last_synced_at: new Date().toISOString(),
       }, {
-        onConflict: 'sync_date,period_start,period_end',
+        onConflict: 'period_start',
       });
 
     if (upsertError) {
