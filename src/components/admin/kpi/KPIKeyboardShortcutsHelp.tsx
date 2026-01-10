@@ -34,11 +34,11 @@ const shortcuts: ShortcutItem[] = [
 ];
 
 interface KPIKeyboardShortcutsHelpProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function KPIKeyboardShortcutsHelp({ isOpen, onClose }: KPIKeyboardShortcutsHelpProps) {
+export function KPIKeyboardShortcutsHelp({ open, onOpenChange }: KPIKeyboardShortcutsHelpProps) {
   // Listen for ? key to toggle
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -50,14 +50,14 @@ export function KPIKeyboardShortcutsHelp({ isOpen, onClose }: KPIKeyboardShortcu
         e.preventDefault();
       }
       
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
+      if (e.key === 'Escape' && open) {
+        onOpenChange(false);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [open, onOpenChange]);
 
   const categoryTitles = {
     navigation: 'Navigation',
@@ -75,13 +75,13 @@ export function KPIKeyboardShortcutsHelp({ isOpen, onClose }: KPIKeyboardShortcu
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {open && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
-          onClick={onClose}
+          onClick={() => onOpenChange(false)}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
@@ -106,7 +106,7 @@ export function KPIKeyboardShortcutsHelp({ isOpen, onClose }: KPIKeyboardShortcu
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-full"
-                onClick={onClose}
+                onClick={() => onOpenChange(false)}
               >
                 <X className="h-4 w-4" />
               </Button>

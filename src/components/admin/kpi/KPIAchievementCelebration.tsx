@@ -14,13 +14,13 @@ interface Achievement {
 }
 
 interface KPIAchievementCelebrationProps {
-  achievement: Achievement | null;
-  onDismiss: () => void;
+  achievement?: Achievement | null;
+  onDismiss?: () => void;
 }
 
 export function KPIAchievementCelebration({ 
-  achievement, 
-  onDismiss 
+  achievement = null, 
+  onDismiss = () => {}
 }: KPIAchievementCelebrationProps) {
   const [isVisible, setIsVisible] = useState(false);
 

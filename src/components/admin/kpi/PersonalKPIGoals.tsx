@@ -38,10 +38,10 @@ interface PersonalGoal {
 }
 
 interface PersonalKPIGoalsProps {
-  availableKPIs: KPIMetric[];
+  availableKPIs?: KPIMetric[];
 }
 
-export function PersonalKPIGoals({ availableKPIs }: PersonalKPIGoalsProps) {
+export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<PersonalGoal | null>(null);
