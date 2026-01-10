@@ -12,6 +12,8 @@ import { PaymentSchedule } from "@/components/contracts/PaymentSchedule";
 import { MilestoneRevisionModal } from "@/components/contracts/MilestoneRevisionModal";
 import { MilestoneFileUploadModal } from "@/components/contracts/MilestoneFileUploadModal";
 import { MilestoneCommentsDrawer } from "@/components/contracts/MilestoneCommentsDrawer";
+import { ContractDocumentUpload } from "@/components/contracts/ContractDocumentUpload";
+import { ContractDocumentsList } from "@/components/contracts/ContractDocumentsList";
 import { ProjectContract, ProjectMilestone } from "@/types/projects";
 import { 
   ArrowLeft, 
@@ -418,7 +420,11 @@ export default function ContractDetailPage() {
 
           <TabsContent value="documents">
             <Card className="p-6 border border-border/50">
-              <p className="text-muted-foreground">Document management coming soon...</p>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold">Contract Documents</h3>
+                <ContractDocumentUpload contractId={contractId!} />
+              </div>
+              <ContractDocumentsList contractId={contractId!} />
             </Card>
           </TabsContent>
         </Tabs>

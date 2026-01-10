@@ -1,9 +1,10 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Minus, History, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, History, ArrowRight, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ScoreChange {
   id: string;
@@ -20,41 +21,29 @@ interface LeadScoreHistoryProps {
 }
 
 export function LeadScoreHistory({ prospectId, prospectName }: LeadScoreHistoryProps) {
-  // Mock data - in production, fetch from database
-  const [scoreHistory] = useState<ScoreChange[]>([
-    {
-      id: '1',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-      previousScore: 45,
-      newScore: 60,
-      reason: 'Email opened 3 times',
-      triggeredBy: 'engagement_rule'
+  const { data: scoreHistory = [], isLoading } = useQuery({
+    queryKey: ['prospect-score-history', prospectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('prospect_score_history')
+        .select('*')
+        .eq('prospect_id', prospectId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      if (error) throw error;
+      
+      return (data || []).map((row: any) => ({
+        id: row.id,
+        timestamp: row.created_at,
+        previousScore: row.previous_score,
+        newScore: row.new_score,
+        reason: row.change_reason,
+        triggeredBy: row.triggered_by
+      })) as ScoreChange[];
     },
-    {
-      id: '2',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-      previousScore: 30,
-      newScore: 45,
-      reason: 'Replied to outreach email',
-      triggeredBy: 'reply_rule'
-    },
-    {
-      id: '3',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-      previousScore: 20,
-      newScore: 30,
-      reason: 'Company size matched (1000+)',
-      triggeredBy: 'company_fit_rule'
-    },
-    {
-      id: '4',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-      previousScore: 0,
-      newScore: 20,
-      reason: 'Initial score - VP title detected',
-      triggeredBy: 'role_seniority_rule'
-    },
-  ]);
+    enabled: !!prospectId
+  });
 
   const getScoreChangeIcon = (prev: number, next: number) => {
     if (next > prev) return <TrendingUp className="h-4 w-4 text-green-500" />;
@@ -90,6 +79,16 @@ export function LeadScoreHistory({ prospectId, prospectName }: LeadScoreHistoryP
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : scoreHistory.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>No score changes recorded yet</p>
+          </div>
+        ) : (
         <div className="relative">
           {/* Timeline line */}
           <div className="absolute left-4 top-0 bottom-0 w-px bg-border" />
@@ -133,6 +132,7 @@ export function LeadScoreHistory({ prospectId, prospectName }: LeadScoreHistoryP
             ))}
           </div>
         </div>
+        )}
       </CardContent>
     </Card>
   );
