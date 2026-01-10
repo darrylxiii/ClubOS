@@ -35964,6 +35964,128 @@ export type Database = {
           },
         ]
       }
+      rag_evaluation_metrics: {
+        Row: {
+          answer_relevancy: number | null
+          candidates_after_rerank: number | null
+          chunk_ids: string[] | null
+          chunk_scores: number[] | null
+          context_tokens_used: number | null
+          context_utilization: number | null
+          contextual_relevancy: number | null
+          conversation_id: string | null
+          created_at: string
+          f1_at_5: number | null
+          faithfulness: number | null
+          final_ranks: number[] | null
+          generation_time_ms: number | null
+          groundedness: number | null
+          id: string
+          max_context_tokens: number | null
+          mean_reciprocal_rank: number | null
+          original_query: string
+          original_ranks: number[] | null
+          precision_at_5: number | null
+          query_coverage: number | null
+          query_id: string
+          query_variations: string[] | null
+          recall_at_5: number | null
+          rerank_model: string | null
+          rerank_time_ms: number | null
+          retrieval_time_ms: number | null
+          rrf_scores: number[] | null
+          total_candidates_retrieved: number | null
+          total_time_ms: number | null
+          updated_at: string
+          user_feedback: string | null
+          user_id: string | null
+          user_rating: number | null
+          was_helpful: boolean | null
+        }
+        Insert: {
+          answer_relevancy?: number | null
+          candidates_after_rerank?: number | null
+          chunk_ids?: string[] | null
+          chunk_scores?: number[] | null
+          context_tokens_used?: number | null
+          context_utilization?: number | null
+          contextual_relevancy?: number | null
+          conversation_id?: string | null
+          created_at?: string
+          f1_at_5?: number | null
+          faithfulness?: number | null
+          final_ranks?: number[] | null
+          generation_time_ms?: number | null
+          groundedness?: number | null
+          id?: string
+          max_context_tokens?: number | null
+          mean_reciprocal_rank?: number | null
+          original_query: string
+          original_ranks?: number[] | null
+          precision_at_5?: number | null
+          query_coverage?: number | null
+          query_id: string
+          query_variations?: string[] | null
+          recall_at_5?: number | null
+          rerank_model?: string | null
+          rerank_time_ms?: number | null
+          retrieval_time_ms?: number | null
+          rrf_scores?: number[] | null
+          total_candidates_retrieved?: number | null
+          total_time_ms?: number | null
+          updated_at?: string
+          user_feedback?: string | null
+          user_id?: string | null
+          user_rating?: number | null
+          was_helpful?: boolean | null
+        }
+        Update: {
+          answer_relevancy?: number | null
+          candidates_after_rerank?: number | null
+          chunk_ids?: string[] | null
+          chunk_scores?: number[] | null
+          context_tokens_used?: number | null
+          context_utilization?: number | null
+          contextual_relevancy?: number | null
+          conversation_id?: string | null
+          created_at?: string
+          f1_at_5?: number | null
+          faithfulness?: number | null
+          final_ranks?: number[] | null
+          generation_time_ms?: number | null
+          groundedness?: number | null
+          id?: string
+          max_context_tokens?: number | null
+          mean_reciprocal_rank?: number | null
+          original_query?: string
+          original_ranks?: number[] | null
+          precision_at_5?: number | null
+          query_coverage?: number | null
+          query_id?: string
+          query_variations?: string[] | null
+          recall_at_5?: number | null
+          rerank_model?: string | null
+          rerank_time_ms?: number | null
+          retrieval_time_ms?: number | null
+          rrf_scores?: number[] | null
+          total_candidates_retrieved?: number | null
+          total_time_ms?: number | null
+          updated_at?: string
+          user_feedback?: string | null
+          user_id?: string | null
+          user_rating?: number | null
+          was_helpful?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rag_evaluation_metrics_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limit_analytics: {
         Row: {
           avg_response_time_ms: number | null
@@ -49736,6 +49858,23 @@ export type Database = {
           specialties?: string[] | null
           title?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      rag_metrics_summary: {
+        Row: {
+          avg_answer_relevancy: number | null
+          avg_context_utilization: number | null
+          avg_contextual_relevancy: number | null
+          avg_f1: number | null
+          avg_faithfulness: number | null
+          avg_latency_ms: number | null
+          avg_precision: number | null
+          avg_recall: number | null
+          day: string | null
+          helpful_count: number | null
+          not_helpful_count: number | null
+          total_queries: number | null
         }
         Relationships: []
       }
