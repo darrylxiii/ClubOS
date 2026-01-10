@@ -66,6 +66,7 @@ const SecurityEventDashboard = lazy(() => import("@/pages/admin/SecurityEventDas
 const UserEngagementDashboard = lazy(() => import("@/pages/admin/UserEngagementDashboard"));
 // Phase 6: Agent Brain
 const AgentBrain = lazy(() => import("@/pages/admin/AgentBrain"));
+const RAGAnalyticsDashboard = lazy(() => import("@/pages/admin/RAGAnalyticsDashboard"));
 
 // Missing Operations Pages
 const GodMode = lazy(() => import("@/pages/admin/GodMode"));
@@ -781,6 +782,9 @@ export const adminRoutes = (
 
     {/* Agent Brain */}
     <Route path="/admin/agent-brain" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AgentBrain /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* RAG Analytics Dashboard */}
+    <Route path="/admin/rag-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RAGAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
 
     {/* Archived Candidates */}
     <Route path="/archived-candidates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ArchivedCandidates /></Suspense></RouteErrorBoundary></ProtectedRoute>} />

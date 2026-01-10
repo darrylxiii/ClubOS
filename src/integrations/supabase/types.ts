@@ -42250,6 +42250,42 @@ export type Database = {
           },
         ]
       }
+      system_alerts: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          severity: string
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          severity: string
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          severity?: string
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           created_at: string | null
@@ -50580,6 +50616,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      check_queue_health: { Args: never; Returns: undefined }
       check_rate_limit: {
         Args: { p_api_key_id: string; p_limit: number }
         Returns: boolean
@@ -50671,6 +50708,8 @@ export type Database = {
           unlocked: boolean
         }[]
       }
+      evict_stale_embedding_cache: { Args: never; Returns: number }
+      expire_old_predictive_signals: { Args: never; Returns: number }
       extract_email_domain: { Args: { email: string }; Returns: string }
       extract_mentions_from_note: {
         Args: { p_content: string }
