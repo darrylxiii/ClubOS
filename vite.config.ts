@@ -11,6 +11,13 @@ export default defineConfig(({ mode, command }) => ({
     port: 8080,
     strictPort: false, // Allow Vite to use next available port if 8080 is busy
   },
+  // Optimize dependency pre-bundling to reduce memory
+  optimizeDeps: {
+    // Limit entries to reduce initial scan
+    entries: ['src/main.tsx'],
+    // Exclude heavy libraries from pre-bundling
+    exclude: ['mermaid', 'katex', '@blocknote/core', '@blocknote/react'],
+  },
   plugins: [
     react(),
     // Only used for the editor/devtools while running the dev server
@@ -201,8 +208,14 @@ export default defineConfig(({ mode, command }) => ({
 
     // Reduce chunk size warnings threshold
     chunkSizeWarningLimit: 1000,
+
+    // CRITICAL: Limit concurrent operations to reduce memory pressure
     rollupOptions: {
+      // Limit the number of concurrent module transforms
+      maxParallelFileOps: 20,
       output: {
+        // Smaller chunks = less memory during render
+        experimentalMinChunkSize: 1000,
         manualChunks: (id) => {
           // Heavy libraries - isolate into their own chunks
           if (id.includes('mermaid')) {
@@ -263,6 +276,36 @@ export default defineConfig(({ mode, command }) => ({
           // i18n
           if (id.includes('i18next')) {
             return 'i18n';
+          }
+
+          // OpenTelemetry - heavy and optional
+          if (id.includes('@opentelemetry')) {
+            return 'telemetry';
+          }
+
+          // Sentry
+          if (id.includes('@sentry')) {
+            return 'sentry';
+          }
+
+          // LiveKit
+          if (id.includes('livekit') || id.includes('@livekit')) {
+            return 'livekit';
+          }
+
+          // ElevenLabs
+          if (id.includes('elevenlabs') || id.includes('@elevenlabs')) {
+            return 'elevenlabs';
+          }
+
+          // fabric.js
+          if (id.includes('fabric')) {
+            return 'fabric';
+          }
+
+          // jspdf
+          if (id.includes('jspdf')) {
+            return 'pdf';
           }
         },
       },
