@@ -74,13 +74,37 @@ export function TeamLeaderboard({ className, year }: TeamLeaderboardProps) {
     return change;
   };
 
+  const renderHeader = () => (
+    <div className="flex items-center justify-between">
+      <div className="space-y-1">
+        <h3 className="text-heading-sm font-semibold flex items-center gap-2">
+          <Trophy className="h-5 w-5 text-premium" />
+          Team Leaderboard
+        </h3>
+        <p className="text-label-sm text-muted-foreground">
+          Revenue contribution {selectedYear === 'all' ? 'all time' : selectedYear}
+        </p>
+      </div>
+      <Select value={selectedYear} onValueChange={setSelectedYear}>
+        <SelectTrigger className="w-[120px] h-8">
+          <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {yearOptions.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   if (isLoading) {
     return (
       <Card variant="elevated" className={cn('p-6 space-y-4', className)}>
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-6 w-40" />
-          <Skeleton className="h-5 w-20" />
-        </div>
+        {renderHeader()}
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="flex items-center gap-4">
@@ -99,14 +123,15 @@ export function TeamLeaderboard({ className, year }: TeamLeaderboardProps) {
 
   if (members.length === 0) {
     return (
-      <Card variant="elevated" className={cn('p-6 text-center', className)}>
-        <div className="space-y-3 py-8">
+      <Card variant="elevated" className={cn('p-6 space-y-4', className)}>
+        {renderHeader()}
+        <div className="space-y-3 py-8 text-center">
           <div className="mx-auto w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center">
             <Users className="h-6 w-6 text-muted-foreground" />
           </div>
-          <p className="text-heading-sm font-medium">No revenue data yet</p>
+          <p className="text-heading-sm font-medium">No revenue data for {selectedYear === 'all' ? 'all time' : selectedYear}</p>
           <p className="text-body-sm text-muted-foreground">
-            Team contributions will appear here once placements are recorded.
+            Try selecting a different year above.
           </p>
         </div>
       </Card>
@@ -115,31 +140,7 @@ export function TeamLeaderboard({ className, year }: TeamLeaderboardProps) {
 
   return (
     <Card variant="elevated" className={cn('p-6 space-y-4', className)}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h3 className="text-heading-sm font-semibold flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-premium" />
-            Team Leaderboard
-          </h3>
-          <p className="text-label-sm text-muted-foreground">
-            Revenue contribution {selectedYear === 'all' ? 'all time' : selectedYear}
-          </p>
-        </div>
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="w-[120px] h-8">
-            <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {yearOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {renderHeader()}
 
       {/* Leaderboard */}
       <ScrollArea className="h-[320px] pr-4">
