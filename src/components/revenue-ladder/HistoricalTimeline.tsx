@@ -7,23 +7,12 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-interface TimelineEvent {
-  id: string;
-  type: 'unlock' | 'proposal' | 'decision' | 'reward';
-  title: string;
-  description?: string;
-  timestamp: string;
-  metadata?: {
-    status?: string;
-    amount?: number;
-    milestoneName?: string;
-  };
-}
+import { Skeleton } from '@/components/ui/skeleton';
+import { useMilestoneHistory, TimelineEvent } from '@/hooks/useMilestoneHistory';
 
 interface HistoricalTimelineProps {
-  events?: TimelineEvent[];
   className?: string;
+  limit?: number;
 }
 
 const eventConfig = {
@@ -64,43 +53,8 @@ const decisionStatusConfig = {
   modified: { icon: AlertTriangle, color: 'text-primary', label: 'Modified' },
 };
 
-// Mock data for demonstration
-const mockEvents: TimelineEvent[] = [
-  {
-    id: '1',
-    type: 'reward',
-    title: 'Team Celebration Dinner',
-    description: 'Reward distributed for hitting €100K milestone',
-    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { amount: 2500, milestoneName: '€100K Milestone' },
-  },
-  {
-    id: '2',
-    type: 'decision',
-    title: 'Team Celebration Proposal',
-    description: 'Leadership approved the team dinner proposal',
-    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { status: 'approved', amount: 2500 },
-  },
-  {
-    id: '3',
-    type: 'proposal',
-    title: 'Team Celebration Dinner',
-    description: 'Proposal submitted for a team dinner to celebrate',
-    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { amount: 2500 },
-  },
-  {
-    id: '4',
-    type: 'unlock',
-    title: '€100K Annual Milestone',
-    description: 'First major milestone unlocked for this fiscal year',
-    timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { milestoneName: '€100K Milestone' },
-  },
-];
-
-export function HistoricalTimeline({ events = mockEvents, className }: HistoricalTimelineProps) {
+export function HistoricalTimeline({ className, limit = 50 }: HistoricalTimelineProps) {
+  const { data: events = [], isLoading } = useMilestoneHistory(limit);
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -125,15 +79,41 @@ export function HistoricalTimeline({ events = mockEvents, className }: Historica
     }).format(amount);
   };
 
+  if (isLoading) {
+    return (
+      <Card variant="elevated" className={cn('p-6', className)}>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-6 w-36" />
+            <Skeleton className="h-5 w-20" />
+          </div>
+          <div className="space-y-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex gap-4">
+                <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="h-3 w-64" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
   if (events.length === 0) {
     return (
       <Card variant="static" className={cn('p-6 text-center', className)}>
-        <div className="space-y-3">
+        <div className="space-y-3 py-8">
           <div className="mx-auto w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center">
             <CalendarDays className="h-6 w-6 text-muted-foreground" />
           </div>
+          <p className="text-heading-sm font-medium">No events yet</p>
           <p className="text-body-sm text-muted-foreground">
-            No events yet. Your milestone history will appear here.
+            Your milestone history will appear here once milestones are unlocked.
           </p>
         </div>
       </Card>

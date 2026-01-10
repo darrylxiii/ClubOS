@@ -1,25 +1,16 @@
 import { motion } from 'framer-motion';
-import { Trophy, Medal, Award, TrendingUp, User } from 'lucide-react';
+import { Trophy, Medal, Award, TrendingUp, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-interface TeamMember {
-  id: string;
-  name: string;
-  avatarUrl?: string;
-  revenue: number;
-  deals: number;
-  rank: number;
-  previousRank?: number;
-  isCurrentUser?: boolean;
-}
+import { Skeleton } from '@/components/ui/skeleton';
+import { useTeamRevenue, TeamMemberRevenue } from '@/hooks/useTeamRevenue';
 
 interface TeamLeaderboardProps {
-  members: TeamMember[];
   className?: string;
+  year?: number;
 }
 
 const rankConfig = {
@@ -43,17 +34,8 @@ const rankConfig = {
   },
 };
 
-// Mock data for demonstration
-const mockMembers: TeamMember[] = [
-  { id: '1', name: 'Alex van der Berg', revenue: 245000, deals: 12, rank: 1, previousRank: 2 },
-  { id: '2', name: 'Maria Santos', revenue: 198000, deals: 9, rank: 2, previousRank: 1 },
-  { id: '3', name: 'Jan de Vries', revenue: 167000, deals: 11, rank: 3, previousRank: 4 },
-  { id: '4', name: 'Sophie Mueller', revenue: 145000, deals: 8, rank: 4, previousRank: 3, isCurrentUser: true },
-  { id: '5', name: 'Thomas Johnson', revenue: 132000, deals: 7, rank: 5, previousRank: 6 },
-  { id: '6', name: 'Emma Brown', revenue: 98000, deals: 5, rank: 6, previousRank: 5 },
-];
-
-export function TeamLeaderboard({ members = mockMembers, className }: TeamLeaderboardProps) {
+export function TeamLeaderboard({ className, year }: TeamLeaderboardProps) {
+  const { data: members = [], isLoading } = useTeamRevenue(year);
   const formatCurrency = (amount: number) => {
     if (amount >= 1000000) {
       return `€${(amount / 1000000).toFixed(1)}M`;
@@ -71,6 +53,45 @@ export function TeamLeaderboard({ members = mockMembers, className }: TeamLeader
     return change;
   };
 
+  if (isLoading) {
+    return (
+      <Card variant="elevated" className={cn('p-6 space-y-4', className)}>
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-5 w-20" />
+        </div>
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex items-center gap-4">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+              <Skeleton className="h-6 w-16" />
+            </div>
+          ))}
+        </div>
+      </Card>
+    );
+  }
+
+  if (members.length === 0) {
+    return (
+      <Card variant="elevated" className={cn('p-6 text-center', className)}>
+        <div className="space-y-3 py-8">
+          <div className="mx-auto w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center">
+            <Users className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <p className="text-heading-sm font-medium">No revenue data yet</p>
+          <p className="text-body-sm text-muted-foreground">
+            Team contributions will appear here once placements are recorded.
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card variant="elevated" className={cn('p-6 space-y-4', className)}>
       {/* Header */}
@@ -81,10 +102,10 @@ export function TeamLeaderboard({ members = mockMembers, className }: TeamLeader
             Team Leaderboard
           </h3>
           <p className="text-label-sm text-muted-foreground">
-            Revenue contribution this period
+            Revenue contribution YTD
           </p>
         </div>
-        <Badge variant="outline">This Month</Badge>
+        <Badge variant="outline">{year || new Date().getFullYear()}</Badge>
       </div>
 
       {/* Leaderboard */}
@@ -182,7 +203,7 @@ export function TeamLeaderboard({ members = mockMembers, className }: TeamLeader
       {/* Footer */}
       <div className="pt-4 border-t border-border/50 text-center">
         <p className="text-label-sm text-muted-foreground">
-          Updated daily based on closed deals
+          Based on sourced/closed placements • 50/50 split attribution
         </p>
       </div>
     </Card>

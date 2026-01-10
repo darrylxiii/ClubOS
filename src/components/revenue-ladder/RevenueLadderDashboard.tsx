@@ -223,12 +223,12 @@ export function RevenueLadderDashboard() {
 
         {/* Leaderboard Tab */}
         <TabsContent value="leaderboard">
-          <TeamLeaderboard members={[]} />
+          <TeamLeaderboard />
         </TabsContent>
 
         {/* History Tab */}
         <TabsContent value="history">
-          <HistoricalTimeline />
+          <HistoricalTimeline limit={30} />
         </TabsContent>
       </Tabs>
 
