@@ -20,7 +20,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import type { KPIMetric } from '@/hooks/useQuantumKPIs';
+import type { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
 
 interface PersonalGoal {
   id: string;
@@ -38,7 +38,7 @@ interface PersonalGoal {
 }
 
 interface PersonalKPIGoalsProps {
-  availableKPIs?: KPIMetric[];
+  availableKPIs?: UnifiedKPI[];
 }
 
 export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) {
@@ -74,7 +74,7 @@ export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const kpi = availableKPIs.find(k => k.kpi_name === goalData.kpi_name);
+      const kpi = availableKPIs.find(k => k.name === goalData.kpi_name);
       
       const { error } = await supabase
         .from('personal_kpi_goals')
@@ -82,7 +82,7 @@ export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) 
           user_id: user.id,
           kpi_name: goalData.kpi_name,
           personal_target: goalData.personal_target,
-          official_target: kpi?.previous_value || null,
+          official_target: kpi?.targetValue || null,
           current_value: kpi?.value || 0,
           notes: goalData.notes || null
         });
@@ -152,12 +152,12 @@ export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) 
   };
 
   const getKPIValue = (kpiName: string) => {
-    const kpi = availableKPIs.find(k => k.kpi_name === kpiName);
+    const kpi = availableKPIs.find(k => k.name === kpiName);
     return kpi?.value || 0;
   };
 
   const availableForGoals = availableKPIs.filter(
-    kpi => !goals.some(g => g.kpi_name === kpi.kpi_name)
+    kpi => !goals.some(g => g.kpi_name === kpi.name)
   );
 
   if (isLoading) {
@@ -203,8 +203,8 @@ export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) 
                   >
                     <option value="">Choose a KPI...</option>
                     {availableForGoals.map(kpi => (
-                      <option key={kpi.kpi_name} value={kpi.kpi_name}>
-                        {kpi.kpi_name} (Current: {kpi.value?.toLocaleString()})
+                      <option key={kpi.id} value={kpi.name}>
+                        {kpi.displayName} (Current: {kpi.value?.toLocaleString()})
                       </option>
                     ))}
                   </select>
@@ -222,7 +222,7 @@ export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) 
                   />
                   {formData.kpi_name && (
                     <p className="text-xs text-muted-foreground">
-                      Official target: {availableKPIs.find(k => k.kpi_name === formData.kpi_name)?.previous_value?.toLocaleString() || 'N/A'}
+                      Official target: {availableKPIs.find(k => k.name === formData.kpi_name)?.targetValue?.toLocaleString() || 'N/A'}
                     </p>
                   )}
                 </div>

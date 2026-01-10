@@ -26,6 +26,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
+import { useKPILineageMetadata, generateDefaultLineage, type KPILineageMetadata } from '@/hooks/useKPILineage';
 
 interface DataSource {
   id: string;
@@ -51,52 +52,83 @@ interface DataLineageViewerProps {
   onSelectKPI?: (kpi: UnifiedKPI) => void;
 }
 
-// Mock lineage data - would come from metadata in production
-const generateLineageData = (kpi: UnifiedKPI): DataLineage => {
-  const domainSources: Record<string, DataSource[]> = {
-    'operations': [
-      { id: 's1', name: 'candidates', type: 'database', table: 'public.candidates', refreshRate: 'Real-time', lastUpdated: '2 min ago', status: 'active' },
-      { id: 's2', name: 'applications', type: 'database', table: 'public.applications', refreshRate: 'Real-time', lastUpdated: '5 min ago', status: 'active' },
-    ],
-    'sales': [
-      { id: 's3', name: 'invoices', type: 'database', table: 'public.invoices', refreshRate: 'Hourly', lastUpdated: '45 min ago', status: 'active' },
-      { id: 's4', name: 'Stripe API', type: 'api', refreshRate: 'Daily', lastUpdated: '6 hours ago', status: 'active' },
-    ],
-    'platform': [
-      { id: 's5', name: 'jobs', type: 'database', table: 'public.jobs', refreshRate: 'Real-time', lastUpdated: '1 min ago', status: 'active' },
-      { id: 's6', name: 'Greenhouse Sync', type: 'api', refreshRate: 'Every 15 min', lastUpdated: '10 min ago', status: 'active' },
-    ],
-    'growth': [
-      { id: 's7', name: 'placements', type: 'database', table: 'public.placements', refreshRate: 'Real-time', lastUpdated: '30 min ago', status: 'active' },
-      { id: 's8', name: 'contracts', type: 'database', table: 'public.contracts', refreshRate: 'Daily', lastUpdated: '2 hours ago', status: 'stale' },
-    ],
-    'website': [
-      { id: 's9', name: 'analytics', type: 'api', refreshRate: 'Hourly', lastUpdated: '20 min ago', status: 'active' },
-    ],
-    'intelligence': [
-      { id: 's10', name: 'ai_sessions', type: 'database', table: 'public.ai_session_scores', refreshRate: 'Real-time', lastUpdated: '5 min ago', status: 'active' },
-    ],
-    'costs': [
-      { id: 's11', name: 'expenses', type: 'database', table: 'public.invoices', refreshRate: 'Daily', lastUpdated: '1 hour ago', status: 'active' },
-    ],
-  };
+// Convert database lineage or generate default lineage for a KPI
+const getLineageData = (
+  kpi: UnifiedKPI, 
+  dbLineage: KPILineageMetadata | null | undefined,
+  lastCalculatedAt?: string | null
+): DataLineage => {
+  // If we have database lineage, use it
+  if (dbLineage) {
+    const sources: DataSource[] = [
+      ...(dbLineage.source_tables || []).map((table, idx) => ({
+        id: `db-${idx}`,
+        name: table.split('.').pop() || table,
+        type: 'database' as const,
+        table: table.includes('.') ? table : `public.${table}`,
+        refreshRate: dbLineage.refresh_rate || 'Unknown',
+        lastUpdated: dbLineage.last_calculated_at 
+          ? new Date(dbLineage.last_calculated_at).toLocaleString() 
+          : 'Unknown',
+        status: 'active' as const
+      })),
+      ...(dbLineage.source_apis || []).map((api, idx) => ({
+        id: `api-${idx}`,
+        name: api,
+        type: 'api' as const,
+        refreshRate: dbLineage.refresh_rate || 'Unknown',
+        lastUpdated: dbLineage.last_calculated_at 
+          ? new Date(dbLineage.last_calculated_at).toLocaleString() 
+          : 'Unknown',
+        status: 'active' as const
+      }))
+    ];
 
-  const transformations = [
-    'Aggregate by time period',
-    'Apply status filters',
-    'Calculate percentage/ratio',
-    'Join with related tables',
-    'Apply business rules',
+    return {
+      kpiId: kpi.id,
+      sources: sources.length > 0 ? sources : [
+        { id: 's0', name: 'Manual Entry', type: 'manual', refreshRate: 'On demand', lastUpdated: 'Unknown', status: 'stale' }
+      ],
+      transformations: (dbLineage.transformations || []).map(t => 
+        typeof t === 'string' ? t : t.name
+      ),
+      dependencies: dbLineage.dependencies || ['User Permissions'],
+      consumers: dbLineage.consumers || ['Executive Dashboard']
+    };
+  }
+
+  // Generate default lineage based on domain
+  const defaults = generateDefaultLineage(kpi.name, kpi.domain);
+  const sources: DataSource[] = [
+    ...(defaults.source_tables || []).map((table, idx) => ({
+      id: `db-${idx}`,
+      name: table,
+      type: 'database' as const,
+      table: `public.${table}`,
+      refreshRate: defaults.refresh_rate || 'Real-time',
+      lastUpdated: 'Live',
+      status: 'active' as const
+    })),
+    ...(defaults.source_apis || []).map((api, idx) => ({
+      id: `api-${idx}`,
+      name: api,
+      type: 'api' as const,
+      refreshRate: defaults.refresh_rate || 'Hourly',
+      lastUpdated: 'Recently',
+      status: 'active' as const
+    }))
   ];
 
   return {
     kpiId: kpi.id,
-    sources: domainSources[kpi.domain] || [
-      { id: 's0', name: 'Manual Entry', type: 'manual', refreshRate: 'On demand', lastUpdated: '1 day ago', status: 'stale' },
+    sources: sources.length > 0 ? sources : [
+      { id: 's0', name: 'Calculated', type: 'calculation', refreshRate: 'On demand', lastUpdated: 'Unknown', status: 'active' }
     ],
-    transformations: transformations.slice(0, Math.floor(Math.random() * 3) + 2),
-    dependencies: kpi.domain === 'sales' || kpi.domain === 'costs' ? ['Exchange Rates', 'Tax Rules'] : ['User Permissions'],
-    consumers: ['Executive Dashboard', 'Weekly Report', 'Slack Alerts'],
+    transformations: (defaults.transformations || []).map(t => 
+      typeof t === 'string' ? t : t.name
+    ),
+    dependencies: defaults.dependencies || ['User Permissions'],
+    consumers: defaults.consumers || ['Executive Dashboard', 'Weekly Report']
   };
 };
 
@@ -106,10 +138,16 @@ export function DataLineageViewer({ kpis, selectedKPI, onSelectKPI }: DataLineag
   const [internalSelectedKPI, setInternalSelectedKPI] = useState<UnifiedKPI | null>(null);
 
   const currentKPI = selectedKPI || internalSelectedKPI;
-  const lineageData = useMemo(() => 
-    currentKPI ? generateLineageData(currentKPI) : null, 
-    [currentKPI]
-  );
+  
+  // Fetch all lineage metadata from database
+  const { data: allLineageData = [], isLoading: isLoadingLineage } = useKPILineageMetadata();
+  
+  // Get lineage for current KPI (from DB or generated default)
+  const lineageData = useMemo(() => {
+    if (!currentKPI) return null;
+    const dbLineage = allLineageData.find(l => l.kpi_name === currentKPI.name);
+    return getLineageData(currentKPI, dbLineage);
+  }, [currentKPI, allLineageData]);
 
   const filteredKPIs = useMemo(() => 
     kpis.filter(kpi => 

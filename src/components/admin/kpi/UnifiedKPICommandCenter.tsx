@@ -15,6 +15,7 @@ import { AlertConfigDialog, type AlertThreshold } from './AlertConfigDialog';
 import { exportToCSV, exportToPDF } from './KPIExport';
 import { usePinnedKPIs } from '@/hooks/usePinnedKPIs';
 import { useKPIAuditLog } from '@/hooks/useKPIAuditLog';
+import { useKPIAchievements } from '@/hooks/useKPIAchievements';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -101,23 +102,49 @@ export function UnifiedKPICommandCenter() {
     categoryDisplayNames,
   } = useUnifiedKPIs(period);
 
+  // KPI Achievement detection - must be after allKPIs is defined
+  const { latestAchievement, showCelebration, dismissCelebration } = useKPIAchievements(allKPIs);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const isInputFocused = document.activeElement?.tagName === 'INPUT' || 
+                             document.activeElement?.tagName === 'TEXTAREA';
+      
       // Command palette: Cmd/Ctrl + Shift + K
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'k') {
         e.preventDefault();
         setCommandPaletteOpen(true);
+        return;
       }
+      
+      // Skip other shortcuts when focused on input
+      if (isInputFocused) return;
+      
       // Help: ?
       if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         setShortcutsHelpOpen(true);
       }
       // Quick refresh: R
-      if (e.key === 'r' && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== 'INPUT') {
+      if (e.key === 'r' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         handleRefresh();
+      }
+      // View switching with number keys 1-8
+      const viewKeys: Record<string, ViewMode> = {
+        '1': 'overview',
+        '2': 'executive',
+        '3': 'department',
+        '4': 'okr',
+        '5': 'lineage',
+        '6': 'goals',
+        '7': 'governance',
+        '8': 'audit'
+      };
+      if (viewKeys[e.key] && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setViewMode(viewKeys[e.key]);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -459,8 +486,7 @@ export function UnifiedKPICommandCenter() {
                     />
                   ) : viewMode === 'goals' ? (
                     <div className="space-y-6">
-                      <PersonalKPIGoals />
-                      <KPIAchievementCelebration />
+                      <PersonalKPIGoals availableKPIs={allKPIs} />
                     </div>
                   ) : viewMode === 'governance' ? (
                     <KPIVisibilityManager />
@@ -578,6 +604,20 @@ export function UnifiedKPICommandCenter() {
             onViewChange={(v) => setViewMode(v as ViewMode)}
             onOpenCommand={() => setCommandPaletteOpen(true)}
             criticalCount={totalCritical}
+          />
+        )}
+
+        {/* KPI Achievement Celebration */}
+        {showCelebration && latestAchievement && (
+          <KPIAchievementCelebration
+            achievement={{
+              id: latestAchievement.kpiId,
+              kpiName: latestAchievement.displayName,
+              previousStatus: latestAchievement.previousStatus as 'warning' | 'critical',
+              newStatus: 'success',
+              improvementPercent: typeof latestAchievement.value === 'number' ? latestAchievement.value : 0
+            }}
+            onDismiss={dismissCelebration}
           />
         )}
       </Suspense>
