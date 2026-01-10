@@ -34,6 +34,7 @@ const Radio = lazy(() => import("@/pages/Radio"));
 const RadioListen = lazy(() => import("@/pages/RadioListen"));
 const DocumentManagement = lazy(() => import("@/pages/DocumentManagement"));
 const EmailSettings = lazy(() => import("@/pages/EmailSettings"));
+const CompanySettings = lazy(() => import("@/pages/CompanySettings"));
 // WhatsApp now consolidated into WhatsAppHub at /admin/whatsapp
 
 // Workspace / Quantum OS Pages
@@ -107,6 +108,9 @@ export const sharedRoutes = (
     {/* Documents & Email */}
     <Route path="/documents" element={<ProtectedRoute><DocumentManagement /></ProtectedRoute>} />
     <Route path="/email-settings" element={<ProtectedRoute><EmailSettings /></ProtectedRoute>} />
+    
+    {/* Company Settings */}
+    <Route path="/company-settings" element={<ProtectedRoute><CompanySettings /></ProtectedRoute>} />
     
     {/* WhatsApp Business - Redirect to unified hub */}
     <Route path="/whatsapp" element={<Navigate to="/admin/whatsapp" replace />} />
