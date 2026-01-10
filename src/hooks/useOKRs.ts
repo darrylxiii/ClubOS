@@ -8,7 +8,7 @@ export interface OKRObjective {
   quarter: string;
   year: number;
   owner_id: string | null;
-  status: 'on-track' | 'at-risk' | 'off-track' | 'completed';
+  status: 'on-track' | 'at-risk' | 'behind' | 'completed';
   progress: number;
   start_date: string | null;
   end_date: string | null;
@@ -25,7 +25,7 @@ export interface OKRKeyResult {
   target_value: number;
   current_value: number;
   unit: string;
-  status: 'on-track' | 'at-risk' | 'off-track' | 'completed';
+  status: 'on-track' | 'at-risk' | 'behind' | 'completed';
   contribution_weight: number;
   created_at: string;
   updated_at: string;
