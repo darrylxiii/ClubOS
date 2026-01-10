@@ -171,20 +171,21 @@ function preFilter(
  * Log re-ranking metrics to database
  */
 async function logRerankMetrics(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // Deno edge function client typing workaround
   queryId: string,
   originalRanks: number[],
   finalRanks: number[],
   rerankTimeMs: number
 ): Promise<void> {
   try {
-    await supabase.from('rag_evaluation_metrics').insert({
-      query_id: queryId,
-      original_ranks: originalRanks,
-      final_ranks: finalRanks,
-      rerank_time_ms: rerankTimeMs,
-      rerank_model: 'gemini-3-flash-crossencoder',
-    });
+  await supabase.from('rag_evaluation_metrics').insert({
+    query_id: queryId,
+    original_query: 'rerank-operation',
+    original_ranks: originalRanks,
+    final_ranks: finalRanks,
+    rerank_time_ms: rerankTimeMs,
+    rerank_model: 'gemini-3-flash-crossencoder',
+  });
   } catch (error) {
     console.error('Failed to log rerank metrics:', error);
   }
