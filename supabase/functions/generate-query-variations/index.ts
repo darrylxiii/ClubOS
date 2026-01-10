@@ -170,7 +170,7 @@ async function generateEmbedding(
  * Search unified communications using semantic similarity
  */
 async function searchWithQuery(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // Deno edge function client typing workaround
   query: string,
   _embedding: number[],
   limit: number = 50

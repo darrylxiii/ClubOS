@@ -16425,6 +16425,45 @@ export type Database = {
           },
         ]
       }
+      embedding_cache: {
+        Row: {
+          created_at: string | null
+          embedding: string | null
+          expires_at: string | null
+          hit_count: number | null
+          id: string
+          last_hit_at: string | null
+          query_hash: string
+          query_text: string
+          results_json: Json | null
+          search_params: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          embedding?: string | null
+          expires_at?: string | null
+          hit_count?: number | null
+          id?: string
+          last_hit_at?: string | null
+          query_hash: string
+          query_text: string
+          results_json?: Json | null
+          search_params?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          embedding?: string | null
+          expires_at?: string | null
+          hit_count?: number | null
+          id?: string
+          last_hit_at?: string | null
+          query_hash?: string
+          query_text?: string
+          results_json?: Json | null
+          search_params?: Json | null
+        }
+        Relationships: []
+      }
       employee_commissions: {
         Row: {
           approved_at: string | null
@@ -16998,6 +17037,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      entity_graph_links: {
+        Row: {
+          bidirectional: boolean | null
+          created_at: string | null
+          id: string
+          interaction_count: number | null
+          last_interaction_at: string | null
+          metadata: Json | null
+          relationship_strength: number | null
+          relationship_type: string
+          source_entity_id: string
+          source_entity_type: string
+          target_entity_id: string
+          target_entity_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          bidirectional?: boolean | null
+          created_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction_at?: string | null
+          metadata?: Json | null
+          relationship_strength?: number | null
+          relationship_type: string
+          source_entity_id: string
+          source_entity_type: string
+          target_entity_id: string
+          target_entity_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          bidirectional?: boolean | null
+          created_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction_at?: string | null
+          metadata?: Json | null
+          relationship_strength?: number | null
+          relationship_type?: string
+          source_entity_id?: string
+          source_entity_type?: string
+          target_entity_id?: string
+          target_entity_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       entity_relationships: {
         Row: {
@@ -18738,6 +18825,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      hallucination_detection_log: {
+        Row: {
+          claims_extracted: Json
+          conversation_id: string | null
+          created_at: string | null
+          flagged_segments: Json | null
+          hallucination_score: number | null
+          id: string
+          query_id: string
+          response_text: string
+          review_outcome: string | null
+          reviewed_by: string | null
+          source_chunks: Json
+          unverified_claims: number | null
+          user_id: string | null
+          verified_claims: number | null
+          was_reviewed: boolean | null
+        }
+        Insert: {
+          claims_extracted: Json
+          conversation_id?: string | null
+          created_at?: string | null
+          flagged_segments?: Json | null
+          hallucination_score?: number | null
+          id?: string
+          query_id: string
+          response_text: string
+          review_outcome?: string | null
+          reviewed_by?: string | null
+          source_chunks: Json
+          unverified_claims?: number | null
+          user_id?: string | null
+          verified_claims?: number | null
+          was_reviewed?: boolean | null
+        }
+        Update: {
+          claims_extracted?: Json
+          conversation_id?: string | null
+          created_at?: string | null
+          flagged_segments?: Json | null
+          hallucination_score?: number | null
+          id?: string
+          query_id?: string
+          response_text?: string
+          review_outcome?: string | null
+          reviewed_by?: string | null
+          source_chunks?: Json
+          unverified_claims?: number | null
+          user_id?: string | null
+          verified_claims?: number | null
+          was_reviewed?: boolean | null
+        }
+        Relationships: []
       }
       hashtags: {
         Row: {
@@ -35742,6 +35883,60 @@ export type Database = {
           },
         ]
       }
+      prompt_experiments: {
+        Row: {
+          avg_latency_ms: number | null
+          avg_response_quality: number | null
+          created_at: string | null
+          experiment_name: string
+          id: string
+          is_active: boolean | null
+          is_control: boolean | null
+          negative_feedback: number | null
+          positive_feedback: number | null
+          prompt_variant: string
+          statistical_significance: number | null
+          system_prompt: string
+          total_impressions: number | null
+          traffic_percentage: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_latency_ms?: number | null
+          avg_response_quality?: number | null
+          created_at?: string | null
+          experiment_name: string
+          id?: string
+          is_active?: boolean | null
+          is_control?: boolean | null
+          negative_feedback?: number | null
+          positive_feedback?: number | null
+          prompt_variant: string
+          statistical_significance?: number | null
+          system_prompt: string
+          total_impressions?: number | null
+          traffic_percentage?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_latency_ms?: number | null
+          avg_response_quality?: number | null
+          created_at?: string | null
+          experiment_name?: string
+          id?: string
+          is_active?: boolean | null
+          is_control?: boolean | null
+          negative_feedback?: number | null
+          positive_feedback?: number | null
+          prompt_variant?: string
+          statistical_significance?: number | null
+          system_prompt?: string
+          total_impressions?: number | null
+          traffic_percentage?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       proposal_votes: {
         Row: {
           comment: string | null
@@ -35917,6 +36112,48 @@ export type Database = {
         }
         Relationships: []
       }
+      query_intent_cache: {
+        Row: {
+          cache_hits: number | null
+          confidence: number
+          created_at: string | null
+          entities_detected: Json | null
+          expires_at: string | null
+          id: string
+          intent_type: string
+          query_hash: string
+          query_text: string
+          specialized_retriever: string | null
+          sub_intents: Json | null
+        }
+        Insert: {
+          cache_hits?: number | null
+          confidence: number
+          created_at?: string | null
+          entities_detected?: Json | null
+          expires_at?: string | null
+          id?: string
+          intent_type: string
+          query_hash: string
+          query_text: string
+          specialized_retriever?: string | null
+          sub_intents?: Json | null
+        }
+        Update: {
+          cache_hits?: number | null
+          confidence?: number
+          created_at?: string | null
+          entities_detected?: Json | null
+          expires_at?: string | null
+          id?: string
+          intent_type?: string
+          query_hash?: string
+          query_text?: string
+          specialized_retriever?: string | null
+          sub_intents?: Json | null
+        }
+        Relationships: []
+      }
       question_answers: {
         Row: {
           answer_text: string
@@ -36085,6 +36322,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rag_feedback: {
+        Row: {
+          comment: string | null
+          context_used: Json | null
+          created_at: string | null
+          dwell_time_ms: number | null
+          feedback_type: string
+          id: string
+          original_score: number | null
+          query_id: string
+          rating: number | null
+          rerank_score: number | null
+          result_id: string | null
+          result_rank: number | null
+          user_id: string | null
+          was_clicked: boolean | null
+        }
+        Insert: {
+          comment?: string | null
+          context_used?: Json | null
+          created_at?: string | null
+          dwell_time_ms?: number | null
+          feedback_type: string
+          id?: string
+          original_score?: number | null
+          query_id: string
+          rating?: number | null
+          rerank_score?: number | null
+          result_id?: string | null
+          result_rank?: number | null
+          user_id?: string | null
+          was_clicked?: boolean | null
+        }
+        Update: {
+          comment?: string | null
+          context_used?: Json | null
+          created_at?: string | null
+          dwell_time_ms?: number | null
+          feedback_type?: string
+          id?: string
+          original_score?: number | null
+          query_id?: string
+          rating?: number | null
+          rerank_score?: number | null
+          result_id?: string | null
+          result_rank?: number | null
+          user_id?: string | null
+          was_clicked?: boolean | null
+        }
+        Relationships: []
       }
       rate_limit_analytics: {
         Row: {
@@ -45888,6 +46176,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_search_preferences: {
+        Row: {
+          context_window_preference: number | null
+          created_at: string | null
+          id: string
+          keyword_weight: number | null
+          last_calibrated_at: string | null
+          preferred_chunk_size: number | null
+          recency_weight: number | null
+          semantic_weight: number | null
+          successful_searches: number | null
+          total_searches: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          context_window_preference?: number | null
+          created_at?: string | null
+          id?: string
+          keyword_weight?: number | null
+          last_calibrated_at?: string | null
+          preferred_chunk_size?: number | null
+          recency_weight?: number | null
+          semantic_weight?: number | null
+          successful_searches?: number | null
+          total_searches?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          context_window_preference?: number | null
+          created_at?: string | null
+          id?: string
+          keyword_weight?: number | null
+          last_calibrated_at?: string | null
+          preferred_chunk_size?: number | null
+          recency_weight?: number | null
+          semantic_weight?: number | null
+          successful_searches?: number | null
+          total_searches?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_session_events: {
         Row: {
           created_at: string | null
@@ -50282,6 +50615,7 @@ export type Database = {
             }
             Returns: Json
           }
+      clean_expired_caches: { Args: never; Returns: undefined }
       cleanup_expired_password_resets: { Args: never; Returns: undefined }
       cleanup_expired_push_subscriptions: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
