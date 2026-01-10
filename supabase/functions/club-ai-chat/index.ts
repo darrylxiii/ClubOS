@@ -56,8 +56,46 @@ Based on this history, provide contextually aware responses that reference previ
     let upcomingInterviews: any[] = [];
     let activeApplicationsWithStages: any[] = [];
     let urgentTasks: any[] = [];
+    let predictiveSignalsContext = "";
+    let successPatternsContext = "";
     
     if (userId) {
+      // === PREDICTIVE SIGNALS (NEW RAG ENHANCEMENT) ===
+      const { data: activeSignals } = await supabase
+        .from("predictive_signals")
+        .select("*")
+        .eq("is_active", true)
+        .gt("signal_strength", 0.6)
+        .order("detected_at", { ascending: false })
+        .limit(10);
+
+      if (activeSignals && activeSignals.length > 0) {
+        predictiveSignalsContext = `
+⚠️ PREDICTIVE SIGNALS DETECTED (High Confidence):
+${activeSignals.map(s => `• [${s.signal_type?.toUpperCase()}] ${s.entity_type} - Strength: ${Math.round((s.signal_strength || 0) * 100)}%
+  Evidence: ${JSON.stringify(s.evidence)?.substring(0, 150)}...
+  Recommended: ${Array.isArray(s.recommended_actions) ? s.recommended_actions[0] : 'Take action'}`).join('\n')}
+`;
+      }
+
+      // === SUCCESS PATTERNS (LEARNED INTELLIGENCE) ===
+      const { data: successPatterns } = await supabase
+        .from("success_patterns")
+        .select("*")
+        .eq("is_active", true)
+        .gt("confidence_score", 0.6)
+        .order("success_rate", { ascending: false })
+        .limit(5);
+
+      if (successPatterns && successPatterns.length > 0) {
+        successPatternsContext = `
+📊 PROVEN SUCCESS PATTERNS (Data-Driven):
+${successPatterns.map(p => `• [${p.pattern_type?.toUpperCase()}] ${p.pattern_description?.substring(0, 100)}...
+  Success Rate: ${Math.round((p.success_rate || 0) * 100)}% (n=${p.sample_size || 1})
+  Confidence: ${Math.round((p.confidence_score || 0) * 100)}%`).join('\n')}
+`;
+      }
+
       // === CAREER BRAIN: AI MEMORY ===
       const { data: aiMemory } = await supabase
         .from("ai_memory")
@@ -552,6 +590,10 @@ ${userTrends.map(ut => {
 ` : ""}
 
 === END CAREER BRAIN ===
+
+${predictiveSignalsContext}
+
+${successPatternsContext}
 
 ⚠️ PROACTIVE BEHAVIOR RULES:
 1. When you see upcoming interviews, PROACTIVELY offer prep help even if not asked
