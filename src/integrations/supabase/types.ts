@@ -27453,6 +27453,7 @@ export type Database = {
       milestone_contributions: {
         Row: {
           attributed_at: string | null
+          contribution_role: string | null
           contribution_type: string
           created_at: string | null
           description: string | null
@@ -27465,6 +27466,7 @@ export type Database = {
         }
         Insert: {
           attributed_at?: string | null
+          contribution_role?: string | null
           contribution_type: string
           created_at?: string | null
           description?: string | null
@@ -27477,6 +27479,7 @@ export type Database = {
         }
         Update: {
           attributed_at?: string | null
+          contribution_role?: string | null
           contribution_type?: string
           created_at?: string | null
           description?: string | null
@@ -28785,6 +28788,8 @@ export type Database = {
           inapp_messages: boolean | null
           inapp_system: boolean | null
           meeting_sound_type: string | null
+          milestone_approaching: boolean | null
+          milestone_unlocked: boolean | null
           quiet_hours_enabled: boolean | null
           quiet_hours_end: string | null
           quiet_hours_start: string | null
@@ -28813,6 +28818,8 @@ export type Database = {
           inapp_messages?: boolean | null
           inapp_system?: boolean | null
           meeting_sound_type?: string | null
+          milestone_approaching?: boolean | null
+          milestone_unlocked?: boolean | null
           quiet_hours_enabled?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
@@ -28841,6 +28848,8 @@ export type Database = {
           inapp_messages?: boolean | null
           inapp_system?: boolean | null
           meeting_sound_type?: string | null
+          milestone_approaching?: boolean | null
+          milestone_unlocked?: boolean | null
           quiet_hours_enabled?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
@@ -37560,7 +37569,10 @@ export type Database = {
           fiscal_year: number | null
           id: string
           ladder_id: string
+          last_notification_sent_at: string | null
+          pipeline_boost: number | null
           progress_percentage: number | null
+          projected_unlock_date: string | null
           rewarded_at: string | null
           status: string
           suggested_reward_range: Json | null
@@ -37578,7 +37590,10 @@ export type Database = {
           fiscal_year?: number | null
           id?: string
           ladder_id: string
+          last_notification_sent_at?: string | null
+          pipeline_boost?: number | null
           progress_percentage?: number | null
+          projected_unlock_date?: string | null
           rewarded_at?: string | null
           status?: string
           suggested_reward_range?: Json | null
@@ -37596,7 +37611,10 @@ export type Database = {
           fiscal_year?: number | null
           id?: string
           ladder_id?: string
+          last_notification_sent_at?: string | null
+          pipeline_boost?: number | null
           progress_percentage?: number | null
+          projected_unlock_date?: string | null
           rewarded_at?: string | null
           status?: string
           suggested_reward_range?: Json | null
