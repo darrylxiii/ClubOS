@@ -1678,6 +1678,48 @@ export type Database = {
           },
         ]
       }
+      ai_action_audit: {
+        Row: {
+          action_details: Json | null
+          action_type: string
+          actor_id: string | null
+          actor_type: string
+          context_used: Json | null
+          created_at: string | null
+          duration_ms: number | null
+          id: string
+          outcome: string | null
+          target_entity_id: string | null
+          target_entity_type: string | null
+        }
+        Insert: {
+          action_details?: Json | null
+          action_type: string
+          actor_id?: string | null
+          actor_type?: string
+          context_used?: Json | null
+          created_at?: string | null
+          duration_ms?: number | null
+          id?: string
+          outcome?: string | null
+          target_entity_id?: string | null
+          target_entity_type?: string | null
+        }
+        Update: {
+          action_details?: Json | null
+          action_type?: string
+          actor_id?: string | null
+          actor_type?: string
+          context_used?: Json | null
+          created_at?: string | null
+          duration_ms?: number | null
+          id?: string
+          outcome?: string | null
+          target_entity_id?: string | null
+          target_entity_type?: string | null
+        }
+        Relationships: []
+      }
       ai_action_log: {
         Row: {
           action_data: Json | null

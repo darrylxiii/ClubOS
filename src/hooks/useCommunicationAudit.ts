@@ -166,9 +166,10 @@ export function useCommunicationAudit() {
 
   // Process queue mutation
   const processQueue = useMutation({
-    mutationFn: async (batchSize = 25) => {
+    mutationFn: async (batchSize?: number) => {
+      const size = batchSize ?? 25;
       const { data, error } = await supabase.functions.invoke('process-intelligence-queue', {
-        body: { batch_size: batchSize },
+        body: { batch_size: size },
       });
 
       if (error) throw error;
