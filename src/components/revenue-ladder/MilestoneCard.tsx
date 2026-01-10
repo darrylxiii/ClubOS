@@ -1,15 +1,18 @@
 import { motion } from 'framer-motion';
-import { Lock, Unlock, Trophy, TrendingUp, Sparkles, Target, Clock } from 'lucide-react';
+import { Lock, Unlock, Trophy, TrendingUp, Sparkles, Target, Clock, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { RevenueMilestone } from '@/hooks/useRevenueLadder';
 import { PremiumProgressBar } from './PremiumProgressBar';
 
 interface MilestoneCardProps {
   milestone: RevenueMilestone;
   onClick?: () => void;
+  onEdit?: (milestone: RevenueMilestone, e: React.MouseEvent) => void;
   isNext?: boolean;
+  isAdmin?: boolean;
 }
 
 const statusConfig = {
@@ -55,7 +58,7 @@ const statusConfig = {
   },
 };
 
-export function MilestoneCard({ milestone, onClick, isNext }: MilestoneCardProps) {
+export function MilestoneCard({ milestone, onClick, onEdit, isNext, isAdmin }: MilestoneCardProps) {
   const status = milestone.status as keyof typeof statusConfig;
   const config = statusConfig[status] || statusConfig.locked;
   const StatusIcon = config.icon;
@@ -180,21 +183,33 @@ export function MilestoneCard({ milestone, onClick, isNext }: MilestoneCardProps
                 {milestone.display_name}
               </h3>
             </div>
-            <motion.div 
-              className={cn(
-                "p-3 rounded-xl shrink-0",
-                config.bg,
-                "border",
-                config.border
+            <div className="flex items-center gap-2">
+              {isAdmin && onEdit && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 opacity-60 hover:opacity-100"
+                  onClick={(e) => onEdit(milestone, e)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
               )}
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-            >
-              <StatusIcon className={cn(
-                isNext ? "h-6 w-6" : "h-5 w-5",
-                config.color
-              )} />
-            </motion.div>
+              <motion.div 
+                className={cn(
+                  "p-3 rounded-xl shrink-0",
+                  config.bg,
+                  "border",
+                  config.border
+                )}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              >
+                <StatusIcon className={cn(
+                  isNext ? "h-6 w-6" : "h-5 w-5",
+                  config.color
+                )} />
+              </motion.div>
+            </div>
           </div>
 
           {/* Amount Display */}

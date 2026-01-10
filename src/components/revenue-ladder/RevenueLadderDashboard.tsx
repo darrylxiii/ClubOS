@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   RefreshCw, Plus, LayoutGrid, List, 
-  Sparkles, Gavel, Trophy, History, User, Target
+  Sparkles, Gavel, Trophy, History, User, Target, Settings, Pencil
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
   RevenueMilestone
 } from '@/hooks/useRevenueLadder';
 import { useRewardProposals } from '@/hooks/useRewardProposals';
+import { useRole } from '@/contexts/RoleContext';
 import { RevenueLadderHero } from './RevenueLadderHero';
 import { DualTrackVisualizer } from './DualTrackVisualizer';
 import { MilestoneCard } from './MilestoneCard';
@@ -28,6 +29,7 @@ import { TeamLeaderboard } from './TeamLeaderboard';
 import { HistoricalTimeline } from './HistoricalTimeline';
 import { MyContributionView } from './MyContributionView';
 import { PipelineForecast } from './PipelineForecast';
+import { MilestoneManagementModal } from './MilestoneManagementModal';
 
 type ViewMode = 'grid' | 'list';
 
@@ -37,10 +39,15 @@ export function RevenueLadderDashboard() {
   const [showProposalForm, setShowProposalForm] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
   const [celebratingMilestone, setCelebratingMilestone] = useState<RevenueMilestone | null>(null);
+  const [showManagementModal, setShowManagementModal] = useState(false);
+  const [managementModalMode, setManagementModalMode] = useState<'create' | 'edit'>('create');
+  const [editingMilestone, setEditingMilestone] = useState<RevenueMilestone | null>(null);
 
   const { data: ladders, isLoading } = useRevenueLadders();
   const { data: proposals } = useRewardProposals();
   const calculateMilestones = useCalculateRevenueMilestones();
+  const { currentRole } = useRole();
+  const isAdmin = currentRole === 'admin' || currentRole === 'strategist';
   const stats = useMilestoneStats();
 
   const annualLadder = ladders?.find(l => l.track_type === 'annual');
@@ -54,6 +61,19 @@ export function RevenueLadderDashboard() {
   const handleMilestoneClick = (milestone: RevenueMilestone) => {
     setSelectedMilestone(milestone);
     setShowDrawer(true);
+  };
+
+  const handleCreateMilestone = () => {
+    setManagementModalMode('create');
+    setEditingMilestone(null);
+    setShowManagementModal(true);
+  };
+
+  const handleEditMilestone = (milestone: RevenueMilestone, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setManagementModalMode('edit');
+    setEditingMilestone(milestone);
+    setShowManagementModal(true);
   };
 
   // Show skeleton during loading
@@ -75,7 +95,17 @@ export function RevenueLadderDashboard() {
     <div className="space-y-8">
       {/* Premium Hero Section */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-2">
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCreateMilestone}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Milestone
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -251,6 +281,14 @@ export function RevenueLadderDashboard() {
 
       {/* Celebration Modal */}
       <MilestoneUnlockCelebration milestone={celebratingMilestone} onClose={() => setCelebratingMilestone(null)} />
+
+      {/* Milestone Management Modal */}
+      <MilestoneManagementModal
+        open={showManagementModal}
+        onOpenChange={setShowManagementModal}
+        mode={managementModalMode}
+        milestone={editingMilestone}
+      />
     </div>
   );
 }
