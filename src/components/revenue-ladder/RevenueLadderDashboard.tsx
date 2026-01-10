@@ -23,7 +23,7 @@ import { ProposalVoting } from './ProposalVoting';
 import { MilestoneUnlockCelebration } from './MilestoneUnlockCelebration';
 import { RevenueLadderSkeleton } from './RevenueLadderSkeleton';
 import { EmptyState } from './EmptyState';
-import { MilestoneDetailDrawer } from './MilestoneDetailDrawer';
+import { MilestoneDetailModal } from './MilestoneDetailModal';
 import { AdminDecisionsTab } from './AdminDecisionsTab';
 import { TeamLeaderboard } from './TeamLeaderboard';
 import { HistoricalTimeline } from './HistoricalTimeline';
@@ -265,12 +265,12 @@ export function RevenueLadderDashboard() {
         </TabsContent>
       </Tabs>
 
-      {/* Milestone Detail Drawer */}
-      <MilestoneDetailDrawer
+      {/* Milestone Detail Modal */}
+      <MilestoneDetailModal
         milestone={selectedMilestone}
         open={showDrawer}
         onClose={() => setShowDrawer(false)}
-        isAdmin={true}
+        isAdmin={isAdmin}
       />
 
       {/* Proposal Form Modal */}
