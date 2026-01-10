@@ -5,11 +5,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type ViewMode = 'overview' | 'executive' | 'team' | 'department' | 'okr' | 'lineage' | 'audit';
+type ViewMode = 'overview' | 'executive' | 'team' | 'department' | 'okr' | 'lineage' | 'audit' | 'goals' | 'governance';
 
 interface KPIMobileNavigationProps {
-  currentView: ViewMode;
-  onViewChange: (view: ViewMode) => void;
+  currentView: string;
+  onViewChange: (view: string) => void;
+  onOpenCommand?: () => void;
+  criticalCount?: number;
   className?: string;
 }
 

@@ -38,12 +38,12 @@ interface VisibilityRule {
 }
 
 interface KPIVisibilityManagerProps {
-  availableKPIs: KPIMetric[];
+  availableKPIs?: KPIMetric[];
 }
 
 const ROLES = ['admin', 'strategist', 'partner', 'candidate'];
 
-export function KPIVisibilityManager({ availableKPIs }: KPIVisibilityManagerProps) {
+export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManagerProps) {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');

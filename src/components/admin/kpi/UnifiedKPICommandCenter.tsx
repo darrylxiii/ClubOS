@@ -23,7 +23,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Menu, Download, FileText, RefreshCw, Zap, Crown, BarChart3, ClipboardList, Command, Users, Target, GitBranch } from 'lucide-react';
+import { Menu, Download, FileText, RefreshCw, Zap, Crown, BarChart3, ClipboardList, Command, Users, Target, GitBranch, Shield, Keyboard } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,8 +43,13 @@ import { KPIRadarChart } from './KPIRadarChart';
 import { KPIHeatMap } from './KPIHeatMap';
 import { OKRIntegration } from './OKRIntegration';
 import { DataLineageViewer } from './DataLineageViewer';
+import { PersonalKPIGoals } from './PersonalKPIGoals';
+import { KPIAchievementCelebration } from './KPIAchievementCelebration';
+import { KPIVisibilityManager } from './KPIVisibilityManager';
+import { KPIKeyboardShortcutsHelp } from './KPIKeyboardShortcutsHelp';
+import { KPIMobileNavigation } from './KPIMobileNavigation';
 
-type ViewMode = 'overview' | 'executive' | 'audit' | 'department' | 'okr' | 'lineage';
+type ViewMode = 'overview' | 'executive' | 'audit' | 'department' | 'okr' | 'lineage' | 'goals' | 'governance';
 
 export function UnifiedKPICommandCenter() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -60,6 +65,7 @@ export function UnifiedKPICommandCenter() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [boardReportOpen, setBoardReportOpen] = useState(false);
   const [reportBuilderOpen, setReportBuilderOpen] = useState(false);
+  const [shortcutsHelpOpen, setShortcutsHelpOpen] = useState(false);
   const isMobile = useIsMobile();
 
   // Audit logging
@@ -92,12 +98,23 @@ export function UnifiedKPICommandCenter() {
     categoryDisplayNames,
   } = useUnifiedKPIs(period);
 
-  // Command palette keyboard shortcut
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Command palette: Cmd/Ctrl + Shift + K
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'k') {
         e.preventDefault();
         setCommandPaletteOpen(true);
+      }
+      // Help: ?
+      if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setShortcutsHelpOpen(true);
+      }
+      // Quick refresh: R
+      if (e.key === 'r' && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== 'INPUT') {
+        e.preventDefault();
+        handleRefresh();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -290,7 +307,7 @@ export function UnifiedKPICommandCenter() {
                     <div className="flex items-center gap-2 flex-wrap">
                       {/* View Mode Tabs */}
                       <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-                        <TabsList className="h-9">
+                        <TabsList className="h-9 flex-wrap">
                           <TabsTrigger value="overview" className="gap-1.5 text-xs px-3">
                             <BarChart3 className="h-3.5 w-3.5" />
                             Overview
@@ -299,6 +316,10 @@ export function UnifiedKPICommandCenter() {
                             <Crown className="h-3.5 w-3.5" />
                             Executive
                           </TabsTrigger>
+                          <TabsTrigger value="goals" className="gap-1.5 text-xs px-3">
+                            <Target className="h-3.5 w-3.5" />
+                            Goals
+                          </TabsTrigger>
                           <TabsTrigger value="department" className="gap-1.5 text-xs px-3">
                             <Users className="h-3.5 w-3.5" />
                             Team
@@ -306,6 +327,10 @@ export function UnifiedKPICommandCenter() {
                           <TabsTrigger value="okr" className="gap-1.5 text-xs px-3">
                             <Target className="h-3.5 w-3.5" />
                             OKRs
+                          </TabsTrigger>
+                          <TabsTrigger value="governance" className="gap-1.5 text-xs px-3">
+                            <Shield className="h-3.5 w-3.5" />
+                            Access
                           </TabsTrigger>
                           <TabsTrigger value="lineage" className="gap-1.5 text-xs px-3">
                             <GitBranch className="h-3.5 w-3.5" />
@@ -327,6 +352,16 @@ export function UnifiedKPICommandCenter() {
                       >
                         <Command className="h-4 w-4 mr-2" />
                         <span className="text-muted-foreground text-xs">⌘⇧K</span>
+                      </Button>
+
+                      {/* Keyboard Shortcuts Help */}
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setShortcutsHelpOpen(true)}
+                        className="hidden md:flex"
+                      >
+                        <Keyboard className="h-4 w-4" />
                       </Button>
 
                       <Button 
@@ -416,6 +451,13 @@ export function UnifiedKPICommandCenter() {
                   <DataLineageViewer
                     kpis={allKPIs}
                   />
+                ) : viewMode === 'goals' ? (
+                  <div className="space-y-6">
+                    <PersonalKPIGoals />
+                    <KPIAchievementCelebration />
+                  </div>
+                ) : viewMode === 'governance' ? (
+                  <KPIVisibilityManager />
                 ) : (
                   <>
                     {/* Pinned KPIs */}
@@ -514,6 +556,22 @@ export function UnifiedKPICommandCenter() {
         onOpenChange={setReportBuilderOpen}
         allKPIs={allKPIs}
       />
+
+      {/* Keyboard Shortcuts Help */}
+      <KPIKeyboardShortcutsHelp
+        open={shortcutsHelpOpen}
+        onOpenChange={setShortcutsHelpOpen}
+      />
+
+      {/* Mobile Navigation */}
+      {isMobile && (
+        <KPIMobileNavigation
+          currentView={viewMode}
+          onViewChange={(v) => setViewMode(v as ViewMode)}
+          onOpenCommand={() => setCommandPaletteOpen(true)}
+          criticalCount={totalCritical}
+        />
+      )}
     </div>
   );
 }
