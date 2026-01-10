@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   TrendingUp, RefreshCw, Plus, LayoutGrid, List, 
-  Sparkles, Gavel, Trophy, History, User
+  Sparkles, Gavel, Trophy, History, User, Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ import { AdminDecisionsTab } from './AdminDecisionsTab';
 import { TeamLeaderboard } from './TeamLeaderboard';
 import { HistoricalTimeline } from './HistoricalTimeline';
 import { MyContributionView } from './MyContributionView';
+import { PipelineForecast } from './PipelineForecast';
 
 type ViewMode = 'grid' | 'list';
 
@@ -150,6 +151,10 @@ export function RevenueLadderDashboard() {
               <User className="h-4 w-4" />
               My Stats
             </TabsTrigger>
+            <TabsTrigger value="pipeline" className="gap-2">
+              <Target className="h-4 w-4" />
+              Pipeline
+            </TabsTrigger>
             <TabsTrigger value="history" className="gap-2">
               <History className="h-4 w-4" />
               History
@@ -234,6 +239,11 @@ export function RevenueLadderDashboard() {
         {/* My Contribution Tab */}
         <TabsContent value="my-contribution">
           <MyContributionView />
+        </TabsContent>
+
+        {/* Pipeline Forecast Tab */}
+        <TabsContent value="pipeline">
+          <PipelineForecast />
         </TabsContent>
 
         {/* History Tab */}
