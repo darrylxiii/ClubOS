@@ -52,6 +52,7 @@ const StrategistProjectsDashboard = lazy(() => import("@/pages/admin/StrategistP
 const MarketplaceAnalytics = lazy(() => import("@/pages/admin/MarketplaceAnalytics"));
 const ExpenseTrackingPage = lazy(() => import("@/pages/admin/ExpenseTracking"));
 const ClosedJobs = lazy(() => import("@/pages/admin/ClosedJobs"));
+const RevenueLadderPage = lazy(() => import("@/pages/admin/RevenueLadderPage"));
 
 // Enterprise Management
 const EnterpriseDashboard = lazy(() => import("@/pages/admin/EnterpriseDashboard"));
@@ -396,6 +397,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <UnifiedKPICommandCenterPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/revenue-ladder"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <RevenueLadderPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>

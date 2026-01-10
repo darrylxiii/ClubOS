@@ -389,6 +389,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "Finance",
       icon: DollarSign,
       items: [
+        { name: "Revenue Ladder", icon: Trophy, path: "/admin/revenue-ladder", badge: "New" },
         { name: "Financial Dashboard", icon: CreditCard, path: "/admin/financial" },
         { name: "Deal Pipeline", icon: Target, path: "/admin/deals-pipeline" },
         { name: "Company Fees", icon: DollarSign, path: "/admin/company-fees" },
