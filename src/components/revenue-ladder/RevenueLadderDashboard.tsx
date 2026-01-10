@@ -14,7 +14,7 @@ import {
   useMilestoneStats,
   RevenueMilestone
 } from '@/hooks/useRevenueLadder';
-import { useProposalsByMilestone } from '@/hooks/useRewardProposals';
+import { useRewardProposals } from '@/hooks/useRewardProposals';
 import { DualTrackVisualizer } from './DualTrackVisualizer';
 import { MilestoneCard } from './MilestoneCard';
 import { ProposalForm } from './ProposalForm';
@@ -30,7 +30,7 @@ export function RevenueLadderDashboard() {
   const [celebratingMilestone, setCelebratingMilestone] = useState<RevenueMilestone | null>(null);
 
   const { data: ladders, isLoading } = useRevenueLadders();
-  const { data: proposals } = useProposalsByMilestone();
+  const { data: proposals } = useRewardProposals();
   const calculateMilestones = useCalculateRevenueMilestones();
   const stats = useMilestoneStats();
 

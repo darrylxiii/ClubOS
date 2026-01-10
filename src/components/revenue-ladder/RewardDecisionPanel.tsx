@@ -82,7 +82,7 @@ export function RewardDecisionPanel({ proposal, open, onOpenChange }: RewardDeci
       proposal_id: proposal.id,
       decision,
       rationale,
-      modified_amount: decision === 'modified' ? modifiedAmount : undefined,
+      approved_amount: decision === 'modified' ? modifiedAmount : undefined,
     });
 
     onOpenChange(false);
