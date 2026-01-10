@@ -13,63 +13,78 @@ export interface TeamMemberRevenue {
   isCurrentUser?: boolean;
 }
 
-export const useTeamRevenue = (year?: number) => {
+export const useTeamRevenue = (year?: number | 'all') => {
   const { user } = useAuth();
-  const targetYear = year || new Date().getFullYear();
+  const targetYear = year === 'all' ? null : (year || new Date().getFullYear());
 
   return useQuery({
     queryKey: ['team-revenue', targetYear],
     queryFn: async () => {
-      const yearStart = `${targetYear}-01-01`;
-      const yearEnd = `${targetYear + 1}-01-01`;
-
-      // Fetch placements for the year with attribution
-      // Using hired_date instead of placement_date, and added_by as fallback instead of owner_id
-      const { data: placements, error: placementsError } = await supabase
+      // Build the query based on year filter
+      let query = supabase
         .from('placement_fees')
-        .select('id, fee_amount, sourced_by, closed_by, added_by, hired_date')
-        .gte('hired_date', yearStart)
-        .lt('hired_date', yearEnd);
+        .select('id, fee_amount, sourced_by, closed_by, added_by, hired_date');
+
+      if (targetYear) {
+        const yearStart = `${targetYear}-01-01`;
+        const yearEnd = `${targetYear + 1}-01-01`;
+        query = query.gte('hired_date', yearStart).lt('hired_date', yearEnd);
+      }
+
+      const { data: placements, error: placementsError } = await query;
 
       if (placementsError) throw placementsError;
 
       // Get unique user IDs from placements
-      const userIds = new Set<string>();
+      const potentialUserIds = new Set<string>();
       (placements || []).forEach(p => {
-        if (p.sourced_by) userIds.add(p.sourced_by);
-        if (p.closed_by) userIds.add(p.closed_by);
-        if (p.added_by) userIds.add(p.added_by);
+        if (p.sourced_by) potentialUserIds.add(p.sourced_by);
+        if (p.closed_by) potentialUserIds.add(p.closed_by);
+        if (p.added_by) potentialUserIds.add(p.added_by);
       });
 
-      if (userIds.size === 0) {
+      if (potentialUserIds.size === 0) {
         return [];
       }
 
-      // Fetch profiles for these users (using full_name instead of first_name/last_name)
+      // Fetch profiles for these users FIRST to identify valid users
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url')
-        .in('id', Array.from(userIds));
+        .in('id', Array.from(potentialUserIds));
 
       if (profilesError) throw profilesError;
 
+      // Build a map of VALID profiles only (filter out orphaned user IDs)
       const profileMap = new Map<string, { id: string; full_name: string | null; avatar_url: string | null }>();
-      (profiles || []).forEach(p => profileMap.set(p.id, p));
+      (profiles || []).forEach(p => {
+        // Only include profiles with a valid name
+        if (p.full_name) {
+          profileMap.set(p.id, p);
+        }
+      });
 
-      // Calculate revenue attribution per user
-      // Attribution: 50% closer, 50% sourcer (or 100% added_by if no sourcer/closer)
+      // Calculate revenue attribution per user - ONLY for users with valid profiles
       const userRevenue = new Map<string, { revenue: number; deals: Set<string> }>();
+
+      const initUser = (userId: string) => {
+        // Only initialize if user has a valid profile
+        if (!profileMap.has(userId)) return false;
+        if (!userRevenue.has(userId)) {
+          userRevenue.set(userId, { revenue: 0, deals: new Set() });
+        }
+        return true;
+      };
 
       (placements || []).forEach(p => {
         const feeAmount = Number(p.fee_amount) || 0;
-        
-        const initUser = (userId: string) => {
-          if (!userRevenue.has(userId)) {
-            userRevenue.set(userId, { revenue: 0, deals: new Set() });
-          }
-        };
 
-        if (p.sourced_by && p.closed_by) {
+        // Check for valid sourcer and closer
+        const hasValidSourcer = p.sourced_by && profileMap.has(p.sourced_by);
+        const hasValidCloser = p.closed_by && profileMap.has(p.closed_by);
+        const hasValidAdder = p.added_by && profileMap.has(p.added_by);
+
+        if (hasValidSourcer && hasValidCloser) {
           // Split credit: 50% each
           initUser(p.sourced_by);
           initUser(p.closed_by);
@@ -81,22 +96,23 @@ export const useTeamRevenue = (year?: number) => {
           const closerData = userRevenue.get(p.closed_by)!;
           closerData.revenue += feeAmount * 0.5;
           closerData.deals.add(p.id);
-        } else if (p.sourced_by) {
+        } else if (hasValidSourcer) {
           initUser(p.sourced_by);
           const data = userRevenue.get(p.sourced_by)!;
           data.revenue += feeAmount;
           data.deals.add(p.id);
-        } else if (p.closed_by) {
+        } else if (hasValidCloser) {
           initUser(p.closed_by);
           const data = userRevenue.get(p.closed_by)!;
           data.revenue += feeAmount;
           data.deals.add(p.id);
-        } else if (p.added_by) {
+        } else if (hasValidAdder) {
           initUser(p.added_by);
           const data = userRevenue.get(p.added_by)!;
           data.revenue += feeAmount;
           data.deals.add(p.id);
         }
+        // If no valid user found, skip this placement (orphaned data)
       });
 
       // Convert to array and sort by revenue
@@ -104,12 +120,13 @@ export const useTeamRevenue = (year?: number) => {
       
       userRevenue.forEach((data, odlUserId) => {
         const profile = profileMap.get(odlUserId);
-        const name = profile?.full_name || 'Unknown';
+        // Double-check profile exists with valid name
+        if (!profile?.full_name) return;
         
         members.push({
           id: odlUserId,
-          name,
-          avatarUrl: profile?.avatar_url || undefined,
+          name: profile.full_name,
+          avatarUrl: profile.avatar_url || undefined,
           revenue: Math.round(data.revenue),
           deals: data.deals.size,
           rank: 0, // Will be set after sorting
