@@ -195,6 +195,8 @@ export function RevenueLadderDashboard() {
                     milestone={milestone}
                     onClick={() => handleMilestoneClick(milestone)}
                     isNext={stats.nextMilestone?.id === milestone.id}
+                    isAdmin={isAdmin}
+                    onEdit={(m, e) => handleEditMilestone(m, e)}
                   />
                 ))}
               </div>
@@ -213,6 +215,8 @@ export function RevenueLadderDashboard() {
                     milestone={milestone}
                     onClick={() => handleMilestoneClick(milestone)}
                     isNext={stats.nextMilestone?.id === milestone.id}
+                    isAdmin={isAdmin}
+                    onEdit={(m, e) => handleEditMilestone(m, e)}
                   />
                 ))}
               </div>
