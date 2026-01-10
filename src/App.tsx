@@ -131,16 +131,18 @@ const queryClient = new QueryClient({
   },
 });
 
+// Only enable tracing in development for debugging - reduces production overhead
+const isTracingEnabled = import.meta.env.DEV;
+
 const App = () => {
   return (
     <SentryErrorBoundary>
-      <TracingProvider>
+      <TracingProvider enabled={isTracingEnabled}>
         <QueryClientProvider client={queryClient}>
           <TranslationProvider>
           <BrowserRouter>
             <AuthProvider>
               <PostHogProvider>
-              <TooltipProvider>
                 <Toaster />
                 <Sonner />
                 <LanguageSync />
@@ -305,7 +307,6 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
-              </TooltipProvider>
               </PostHogProvider>
             </AuthProvider>
           </BrowserRouter>

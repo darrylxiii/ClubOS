@@ -50404,6 +50404,16 @@ export type Database = {
       get_storage_bucket_stats: { Args: never; Returns: Json }
       get_system_health_metrics: { Args: never; Returns: Json }
       get_system_health_stats: { Args: never; Returns: Json }
+      get_team_revenue_leaderboard: {
+        Args: { target_year?: number }
+        Returns: {
+          avatar_url: string
+          deal_count: number
+          full_name: string
+          revenue: number
+          user_id: string
+        }[]
+      }
       get_threat_summary: { Args: never; Returns: Json }
       get_tier_from_score: { Args: { p_score: number }; Returns: string }
       get_time_entry_hourly_rate: {
