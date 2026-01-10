@@ -51537,12 +51537,19 @@ export type Database = {
         | "linkedin"
         | "in_person"
         | "other"
+        | "chat"
+        | "internal_message"
+        | "sms"
+        | "dm"
       communication_entity_type:
         | "candidate"
         | "prospect"
         | "partner"
         | "company"
         | "stakeholder"
+        | "internal"
+        | "team"
+        | "system"
       communication_pattern_type:
         | "going_cold"
         | "highly_engaged"
@@ -51858,6 +51865,10 @@ export const Constants = {
         "linkedin",
         "in_person",
         "other",
+        "chat",
+        "internal_message",
+        "sms",
+        "dm",
       ],
       communication_entity_type: [
         "candidate",
@@ -51865,6 +51876,9 @@ export const Constants = {
         "partner",
         "company",
         "stakeholder",
+        "internal",
+        "team",
+        "system",
       ],
       communication_pattern_type: [
         "going_cold",
