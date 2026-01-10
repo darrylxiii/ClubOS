@@ -102,22 +102,36 @@ export function useRevenueStats() {
 
       const currentYear = new Date().getFullYear();
       
-      // Calculate lifetime totals from all Moneybird years
+      // Deduplicate by year (keep latest synced record per year) - safety net
+      const uniqueByYear = (moneybirdMetrics || []).reduce((acc, m) => {
+        const year = m.period_start?.substring(0, 4);
+        if (year && (!acc[year] || (m.last_synced_at || '') > (acc[year].last_synced_at || ''))) {
+          acc[year] = m;
+        }
+        return acc;
+      }, {} as Record<string, typeof moneybirdMetrics[0]>);
+      
+      const dedupedMetrics = Object.values(uniqueByYear);
+      
+      // Calculate lifetime totals from deduplicated Moneybird years
       let lifetimeBooked = 0;
       let lifetimeCollected = 0;
       
-      moneybirdMetrics?.forEach(m => {
+      dedupedMetrics.forEach(m => {
         lifetimeBooked += Number(m.total_revenue) || 0;
         lifetimeCollected += Number(m.total_paid) || 0;
       });
 
       // Get current year data
-      const currentYearData = moneybirdMetrics?.find(m => 
-        m.period_start?.startsWith(String(currentYear))
-      );
+      const currentYearData = uniqueByYear[String(currentYear)];
 
       // Get last sync date
-      const lastSync = moneybirdMetrics?.[moneybirdMetrics.length - 1]?.last_synced_at || null;
+      const lastSync = dedupedMetrics.length > 0 
+        ? dedupedMetrics.reduce((latest, m) => 
+            (m.last_synced_at || '') > (latest || '') ? m.last_synced_at : latest, 
+            null as string | null
+          )
+        : null;
 
       return {
         annual: {
@@ -128,7 +142,7 @@ export function useRevenueStats() {
         lifetime: {
           booked: lifetimeBooked,
           collected: lifetimeCollected,
-          yearsTracked: moneybirdMetrics?.length || 0,
+          yearsTracked: dedupedMetrics.length,
         },
         source: 'moneybird',
         lastSync,
