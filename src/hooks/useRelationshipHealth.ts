@@ -67,6 +67,19 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
     (conversationsRes.data || []).forEach(conv => { nameMap[conv.id] = { name: conv.title }; });
     (profilesRes.data || []).forEach(p => { nameMap[p.id] = { name: p.full_name, avatar: p.avatar_url, email: p.email }; });
 
+    // Fallback: Check profiles table for unresolved candidates (entity_id might be user_id, not candidate_profile id)
+    const unresolvedCandidateIds = candidateIds.filter(id => !nameMap[id]);
+    if (unresolvedCandidateIds.length > 0) {
+      const { data: profileFallbacks } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, email')
+        .in('id', unresolvedCandidateIds);
+      
+      (profileFallbacks || []).forEach(p => {
+        nameMap[p.id] = { name: p.full_name, avatar: p.avatar_url, email: p.email };
+      });
+    }
+
     return data.map(r => {
       const details = nameMap[r.entity_id] || {};
       let fallbackName = 'Unknown Entity';
@@ -128,8 +141,20 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
       if (rawError) throw rawError;
 
       const enrichedData = await resolveEntityNames(rawData || []);
-      setRelationships(enrichedData);
-      updateStats(enrichedData);
+      
+      // Deduplicate by entity_type + entity_id, keeping highest total_communications
+      const deduped = Object.values(
+        enrichedData.reduce((acc, item) => {
+          const key = `${item.entity_type}:${item.entity_id}`;
+          if (!acc[key] || item.total_communications > acc[key].total_communications) {
+            acc[key] = item;
+          }
+          return acc;
+        }, {} as Record<string, RelationshipHealthItem>)
+      );
+      
+      setRelationships(deduped);
+      updateStats(deduped);
 
     } catch (err: any) {
       console.error('Error fetching relationship health:', err);
