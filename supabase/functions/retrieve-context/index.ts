@@ -28,8 +28,47 @@ serve(async (req) => {
             throw new Error('Query is required');
         }
 
-        // 1. Generate Embedding for the Query
-        // We use the same model as ingestion: text-embedding-3-small
+        // 0. Query Expansion (New Step)
+        // Reword the query to be more specific/contextual for better vector matching
+        // AND extract "Key Entities" for Graph Walking
+        let optimizedQuery = query;
+        let graphEntities: string[] = []; // Entities to traverse graph with
+
+        try {
+            const expansionResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${lovableApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `You are a Search query optimizer and Entity Extractor. 
+1. Rewrite the user query for vector search. 
+2. Extract key entities (Skills, Companies, Locations, Roles) as a JSON array. Normalize to lowercase/underscores.
+Output JSON: { "rewritten": "string", "entities": ["react", "google"] }`
+                        },
+                        { role: 'user', content: query }
+                    ],
+                    response_format: { type: "json_object" }
+                })
+            });
+
+            if (expansionResp.ok) {
+                const expansionData = await expansionResp.json();
+                const content = JSON.parse(expansionData.choices[0].message.content);
+                optimizedQuery = content.rewritten || query;
+                graphEntities = content.entities || [];
+                console.log(`[Brain] Expanded: "${optimizedQuery}", Entities:`, graphEntities);
+            }
+        } catch (e) {
+            console.warn('Query expansion failed, falling back to original query', e);
+        }
+
+        // 1. Generate Embedding for the Otimized Query
         const embeddingResp = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
             method: 'POST',
             headers: {
@@ -38,7 +77,7 @@ serve(async (req) => {
             },
             body: JSON.stringify({
                 model: 'text-embedding-3-small',
-                input: query,
+                input: optimizedQuery,
                 encoding_format: 'float'
             })
         });
@@ -50,46 +89,103 @@ serve(async (req) => {
         const embeddingData = await embeddingResp.json();
         const queryEmbedding = embeddingData.data[0].embedding;
 
-        // 2. Perform Hybrid Search
-        // We call the RPC function we defined in the migration.
-        // Ensure you have run the migration: supabase/migrations/20250106_create_hybrid_search.sql
-        const { data: context, error: searchError } = await supabase
+        // 2a. Perform Hybrid Search (Vector + Keyword)
+        const { data: vectorContext, error: searchError } = await supabase
             .rpc('search_universal_context', {
-                query_text: query,
+                query_text: optimizedQuery, // Use optimized query for keyword match too
                 query_embedding: queryEmbedding,
-                match_threshold: 0.5, // Minimum similarity for vector match
-                match_count: 5,       // Top 5 chunks
+                match_threshold: 0.3, // Lower threshold to get more candidates
+                match_count: 10,       // Get top 10 for reranking
                 full_text_weight: 1.0,
                 semantic_weight: 1.0
             });
 
-        if (searchError) {
-            console.error('Search RPC error:', searchError);
-            throw new Error(`Hybrid search failed: ${searchError.message}`);
+        if (searchError) throw new Error(`Hybrid search failed: ${searchError.message}`);
+
+        // 2b. Perform Graph Search (GraphRAG)
+        let graphContext: any[] = [];
+        if (graphEntities.length > 0) {
+            const { data: graphData, error: graphError } = await supabase
+                .rpc('match_entity_relationships', {
+                    entities: graphEntities,
+                    match_threshold: 0.5
+                });
+
+            if (!graphError && graphData) {
+                // Format graph results to look like context chunks
+                graphContext = graphData.map((g: any) => ({
+                    content: `[Graph Fact] ${g.content}`,
+                    similarity: g.similarity, // Use strength score as similarity
+                    metadata: { type: 'graph_fact', source: 'knowledge_graph', ...g }
+                }));
+                console.log(`[Brain] Graph Walk found ${graphContext.length} facts`);
+            }
         }
 
-        // 3. Filter by Company (Post-filtering)
-        // Ideally, we'd pass company_id to the RPC to pre-filter, 
-        // but for now we'll do it here if the RPC doesn't support it yet.
-        // NOTE: For production, add company_id to RPC for efficiency.
-        let filteredContext = context || [];
-        if (company_id) {
-            // Assuming metadata contains company_info or we rely on intelligence_embeddings.entity_id = company_id
-            // Note: intelligence_embeddings schema says 'entity_id' is the company_id for 'company_dna' type.
-            // However, the RPC returns 'id', 'content', 'metadata'.
-            // We might need to fetch entity_id in the RPC return to filter efficiently here, 
-            // OR just update the RPC to accept company_id.
-            // For this MVP, let's assume valid results.
-            // Optimization: Update RPC later.
+        // Merge Vector + Graph candidates
+        let candidates = [...(vectorContext || []), ...graphContext];
+
+        // 3. Reranking (New Step)
+        // Use LLM to pick the top 5 most relevant chunks
+        // This acts as a Cross-Encoder replacement
+        let finalResults = candidates;
+
+        if (candidates.length > 0) {
+            try {
+                const rerankPrompt = `You are a Relevance Ranker.
+Query: "${query}"
+Candidates:
+${candidates.map((c: any, i: number) => `[${i}] ${c.content.substring(0, 300)}...`).join('\n')}
+
+Task: Return the indices of the top 5 most relevant chunks as a JSON array of integers. Example: [0, 3, 1].
+Response:`;
+
+                const rerankResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${lovableApiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [{ role: 'user', content: rerankPrompt }],
+                        response_format: { type: "json_object" }
+                    })
+                });
+
+                if (rerankResp.ok) {
+                    const rerankData = await rerankResp.json();
+                    const indices = JSON.parse(rerankData.choices[0].message.content).indices || [];
+                    if (Array.isArray(indices) && indices.length > 0) {
+                        // Filter and preserve order returned by LLM (most relevant first)
+                        finalResults = indices
+                            .map((idx: number) => candidates[idx])
+                            .filter((c: any) => c !== undefined);
+                    }
+                }
+            } catch (e) {
+                console.warn('Reranking failed, falling back to vector order', e);
+                finalResults = candidates.slice(0, 5);
+            }
         }
+
+        // Ensure we don't return too many if reranking failed or returned all
+        finalResults = finalResults.slice(0, 5);
 
         // Log for debugging "Brain" thought process
-        console.log(`[Brain] Query: "${query}" -> Found ${filteredContext.length} matches`);
+        console.log(`[Brain] Query: "${query}" -> Found ${finalResults.length} matches (Vector: ${vectorContext?.length || 0}, Graph: ${graphContext.length})`);
 
         return new Response(
             JSON.stringify({
-                matches: filteredContext,
-                thought_process: `Executed Hybrid Search (Vector + Keyword) for "${query}". Found ${filteredContext.length} relevant context chunks.`
+                matches: finalResults,
+                thought_process: {
+                    original_query: query,
+                    optimized_query: optimizedQuery,
+                    extracted_entities: graphEntities,
+                    candidate_count: candidates.length,
+                    final_count: finalResults.length,
+                    strategy: "Query Expansion -> Hybrid Search + Graph Walk -> LLM Reranking"
+                }
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
