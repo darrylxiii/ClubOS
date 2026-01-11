@@ -14,15 +14,34 @@ import { MessageSquare, Sparkles, Settings, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { notify } from "@/lib/notify";
 
+/* import useRelationshipHealth */
+// It seems I need to add the import at the top first, but replace_file_content works on a block.
+// I will just update the body of component.
+// Wait, I need to know line numbers for imports.
+// I'll do this in 2 steps: 1. Add import. 2. Update logic.
+// Actually, I can use replace_file_content for the whole file or large chunks.
+
+// CHUNK 1: Import
+import { useRelationshipHealth } from "@/hooks/useRelationshipHealth";
+import { type ConversationInsight } from "@/components/whatsapp/WhatsAppAIInsights";
+
+// CHUNK 2: Component implementation
 export default function WhatsAppInbox() {
   const navigate = useNavigate();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
+  const [aiInsights, setAiInsights] = useState<ConversationInsight | null>(null);
 
   const { conversations, loading: conversationsLoading, markAsRead } = useWhatsAppConversations();
-  const { messages, loading: messagesLoading, sending, sendMessage } = useWhatsAppMessages(selectedConversationId);
+  const { messages, loading: messagesLoading, sending, sendMessage, loadMore, hasMore, loadingMore } = useWhatsAppMessages(selectedConversationId);
   const { templates, loading: templatesLoading, syncing, syncTemplates } = useWhatsAppTemplates();
+
+  const {
+    getRelationshipScore,
+    generateInsights,
+    loading: healthLoading
+  } = useRelationshipHealth();
 
   const selectedConversation = conversations.find(c => c.id === selectedConversationId) || null;
 
@@ -32,6 +51,39 @@ export default function WhatsAppInbox() {
       markAsRead(selectedConversationId);
     }
   }, [selectedConversationId]);
+
+  // Fetch insights/score when conversation changes
+  useEffect(() => {
+    const fetchInsights = async () => {
+      if (!selectedConversation?.candidate_id) {
+        setAiInsights(null);
+        return;
+      }
+
+      console.log('Fetching relationship score for:', selectedConversation.candidate_id);
+      const score = await getRelationshipScore('candidate', selectedConversation.candidate_id);
+
+      if (score) {
+        // Map basic score data to insights format
+        setAiInsights({
+          summary: score.relationship_summary || "No summary available yet.",
+          keyTopics: score.key_topics || [],
+          sentiment: (score.avg_sentiment || 0) > 0.2 ? 'positive' : (score.avg_sentiment || 0) < -0.2 ? 'negative' : 'neutral',
+          sentimentScore: score.avg_sentiment || 0,
+          buyingSignals: [], // Not stored in basic table
+          objections: score.risk_factors || [],
+          actionItems: score.recommended_action ? [{ text: score.recommended_action, priority: 'medium' }] : [],
+          nextBestAction: score.recommended_action || "Review recent messages",
+          relationshipScore: score.health_score || 0,
+          engagementLevel: (score.engagement_score || 0) > 70 ? 'high' : (score.engagement_score || 0) > 40 ? 'medium' : 'low'
+        });
+      } else {
+        setAiInsights(null);
+      }
+    };
+
+    fetchInsights();
+  }, [selectedConversation?.candidate_id, getRelationshipScore]);
 
   const handleSendMessage = async (content: string) => {
     await sendMessage(content, 'text');
@@ -44,22 +96,23 @@ export default function WhatsAppInbox() {
     notify.success("Template sent", { description: `Sent: ${template.template_name}` });
   };
 
-  // Mock insights for now
-  const mockInsights = selectedConversation ? {
-    summary: "Candidate shows strong interest in the Senior Developer role. Has asked detailed questions about tech stack and team culture.",
-    keyTopics: ["Tech Stack", "Remote Work", "Salary", "Team Size"],
-    sentiment: "positive" as const,
-    sentimentScore: 0.75,
-    buyingSignals: ["Asked about start date", "Mentioned availability", "Requested job details"],
-    objections: ["Concerned about commute time"],
-    actionItems: [
-      { text: "Schedule technical interview", priority: "high" as const },
-      { text: "Send company culture deck", priority: "medium" as const }
-    ],
-    nextBestAction: "Schedule a follow-up call to discuss the role in detail and address the commute concern.",
-    relationshipScore: 82,
-    engagementLevel: "high" as const
-  } : null;
+  const handleRefreshInsights = async () => {
+    if (!selectedConversation?.candidate_id) return;
+
+    notify.loading("Generating AI insights...");
+    try {
+      const data = await generateInsights('candidate', selectedConversation.candidate_id);
+      if (data) {
+        // Assuming data is the ConversationInsight object
+        setAiInsights(data);
+        notify.dismiss();
+        notify.success("Insights updated");
+      }
+    } catch (error) {
+      notify.dismiss();
+      notify.error("Failed to generate insights");
+    }
+  };
 
   return (
     <AppLayout>
@@ -117,6 +170,9 @@ export default function WhatsAppInbox() {
                     navigate(`/candidate/${selectedConversation.candidate_id}`);
                   }
                 }}
+                hasMore={hasMore}
+                onLoadMore={loadMore}
+                loadingMore={loadingMore}
               />
             </div>
 
@@ -126,7 +182,9 @@ export default function WhatsAppInbox() {
                 <WhatsAppAIInsights
                   conversationId={selectedConversation.id}
                   candidateName={selectedConversation.candidate_name || 'Candidate'}
-                  insights={mockInsights}
+                  insights={aiInsights}
+                  loading={healthLoading && !aiInsights}
+                  onRefresh={handleRefreshInsights}
                   onClose={() => setShowInsights(false)}
                 />
               </div>
@@ -152,7 +210,9 @@ export default function WhatsAppInbox() {
               <WhatsAppAIInsights
                 conversationId={selectedConversation.id}
                 candidateName={selectedConversation.candidate_name || 'Candidate'}
-                insights={mockInsights}
+                insights={aiInsights}
+                loading={healthLoading && !aiInsights}
+                onRefresh={handleRefreshInsights}
                 onClose={() => setShowInsights(false)}
               />
             )}

@@ -1,0 +1,107 @@
+-- Create a function to get relationship health dashboard data with resolved names
+CREATE OR REPLACE FUNCTION get_relationship_health_dashboard(
+  p_entity_type text DEFAULT NULL,
+  p_risk_filter text DEFAULT NULL,
+  p_limit integer DEFAULT 50,
+  p_offset integer DEFAULT 0
+)
+RETURNS TABLE (
+  id uuid,
+  entity_type communication_entity_type,
+  entity_id uuid,
+  owner_id uuid,
+  entity_name text,
+  entity_email text,
+  entity_avatar text,
+  total_communications integer,
+  inbound_count integer,
+  outbound_count integer,
+  engagement_score numeric,
+  response_rate numeric,
+  avg_sentiment numeric,
+  sentiment_trend text,
+  last_inbound_at timestamptz,
+  last_outbound_at timestamptz,
+  days_since_contact integer,
+  risk_level relationship_risk_level,
+  health_score numeric,
+  recommended_action text,
+  updated_at timestamptz
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    r.id,
+    r.entity_type,
+    r.entity_id,
+    r.owner_id,
+    -- Resolve Entity Name
+    COALESCE(
+      CASE 
+        WHEN r.entity_type = 'candidate' THEN cp.full_name
+        WHEN r.entity_type = 'company' THEN c.name
+        WHEN r.entity_type = 'prospect' THEN pr.full_name
+        WHEN r.entity_type IN ('internal', 'partner', 'stakeholder') THEN p.full_name
+        ELSE 'Unknown Entity'
+      END,
+      'Unknown ' || INITCAP(r.entity_type::text)
+    ) as entity_name,
+    
+    -- Resolve Entity Email/Contact info (Optional, useful for UI)
+    COALESCE(
+      CASE 
+        WHEN r.entity_type = 'candidate' THEN cp.email
+        WHEN r.entity_type = 'company' THEN NULL -- Companies don't have direct email usually
+        WHEN r.entity_type = 'prospect' THEN pr.email
+        WHEN r.entity_type IN ('internal', 'partner', 'stakeholder') THEN p.email
+        ELSE NULL
+      END
+    ) as entity_email,
+
+    -- Resolve Avatar (Optional)
+    COALESCE(
+      CASE 
+        WHEN r.entity_type IN ('internal', 'partner', 'stakeholder') THEN p.avatar_url
+        WHEN r.entity_type = 'candidate' THEN cp.avatar_url
+        WHEN r.entity_type = 'company' THEN c.logo_url
+        ELSE NULL
+      END
+    ) as entity_avatar,
+
+    r.total_communications,
+    r.inbound_count,
+    r.outbound_count,
+    r.engagement_score,
+    r.response_rate,
+    r.avg_sentiment,
+    r.sentiment_trend,
+    r.last_inbound_at,
+    r.last_outbound_at,
+    r.days_since_contact,
+    r.risk_level,
+    r.health_score,
+    r.recommended_action,
+    r.updated_at
+  FROM
+    communication_relationship_scores r
+    -- Joins
+    LEFT JOIN candidate_profiles cp ON r.entity_type = 'candidate' AND r.entity_id = cp.id
+    LEFT JOIN companies c ON r.entity_type = 'company' AND r.entity_id = c.id
+    LEFT JOIN crm_prospects pr ON r.entity_type = 'prospect' AND r.entity_id = pr.id
+    LEFT JOIN profiles p ON r.entity_type IN ('internal', 'partner', 'stakeholder') AND r.entity_id = p.id
+  WHERE
+    (p_entity_type IS NULL OR r.entity_type::text = p_entity_type)
+    AND
+    (p_risk_filter IS NULL OR p_risk_filter = 'all' OR r.risk_level::text = p_risk_filter)
+  ORDER BY
+    r.risk_level::text = 'critical' DESC,
+    r.risk_level::text = 'high' DESC,
+    r.health_score ASC
+  LIMIT p_limit
+  OFFSET p_offset;
+END;
+$$;

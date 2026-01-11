@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { 
-  User, 
-  Phone, 
-  MoreVertical, 
+import {
+  User,
+  Phone,
+  MoreVertical,
   ExternalLink,
   Pin,
   Tag,
@@ -42,6 +42,9 @@ interface WhatsAppChatThreadProps {
   onOpenEmailBridge?: () => void;
   onPin?: () => void;
   onViewProfile?: () => void;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
 }
 
 export function WhatsAppChatThread({
@@ -55,7 +58,10 @@ export function WhatsAppChatThread({
   onOpenInsights,
   onOpenEmailBridge,
   onPin,
-  onViewProfile
+  onViewProfile,
+  hasMore,
+  onLoadMore,
+  loadingMore
 }: WhatsAppChatThreadProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -65,7 +71,7 @@ export function WhatsAppChatThread({
   const groupedMessages = messages.reduce((groups, message) => {
     const date = new Date(message.created_at);
     let dateKey: string;
-    
+
     if (isToday(date)) {
       dateKey = 'Today';
     } else if (isYesterday(date)) {
@@ -73,7 +79,7 @@ export function WhatsAppChatThread({
     } else {
       dateKey = format(date, 'MMMM d, yyyy');
     }
-    
+
     if (!groups[dateKey]) {
       groups[dateKey] = [];
     }
@@ -83,10 +89,12 @@ export function WhatsAppChatThread({
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
-    if (autoScroll && scrollRef.current) {
+    // Only auto-scroll if we are already at the bottom OR if it's the initial load (no messages yet or just loaded)
+    // But if we just loaded MORE messages (history), we do NOT want to auto scroll to bottom.
+    if (!loadingMore && autoScroll && scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, autoScroll]);
+  }, [messages, autoScroll, loadingMore]);
 
   // Handle scroll to detect if user scrolled up
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -102,6 +110,7 @@ export function WhatsAppChatThread({
   };
 
   if (!conversation) {
+    // ... (unchanged)
     return (
       <div className="min-h-[600px] h-full flex flex-col items-center justify-center bg-gradient-to-br from-background to-muted/30 p-8">
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#25d366]/20 to-[#128c7e]/20 flex items-center justify-center mb-6 ring-1 ring-[#25d366]/20">
@@ -130,6 +139,7 @@ export function WhatsAppChatThread({
   }
 
   if (loading) {
+    // ... (unchanged)
     return (
       <div className="h-full flex flex-col">
         {/* Header Skeleton */}
@@ -162,7 +172,7 @@ export function WhatsAppChatThread({
             {conversation.candidate_name?.[0] || <User className="w-5 h-5" />}
           </AvatarFallback>
         </Avatar>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-foreground truncate">
@@ -187,7 +197,7 @@ export function WhatsAppChatThread({
           >
             <Sparkles className="w-4 h-4 text-primary" />
           </Button>
-          
+
           {/* Call */}
           <Button
             variant="ghost"
@@ -199,7 +209,7 @@ export function WhatsAppChatThread({
               <Phone className="w-4 h-4" />
             </a>
           </Button>
-          
+
           {/* More Options */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -233,6 +243,30 @@ export function WhatsAppChatThread({
       {/* Messages */}
       <ScrollArea className="flex-1 relative" onScrollCapture={handleScroll}>
         <div className="p-4 space-y-4">
+          {hasMore && (
+            <div className="flex justify-center pb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onLoadMore}
+                disabled={loadingMore}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                {loadingMore ? (
+                  <>
+                    <span className="w-4 h-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <ArrowDown className="w-4 h-4 mr-2 rotate-180" />
+                    Load Previous Messages
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
           {Object.entries(groupedMessages).map(([date, dateMessages]) => (
             <div key={date}>
               {/* Date Separator */}
@@ -241,7 +275,7 @@ export function WhatsAppChatThread({
                   {date}
                 </Badge>
               </div>
-              
+
               {/* Messages */}
               <div className="space-y-2">
                 {dateMessages.map((message) => (
@@ -250,7 +284,7 @@ export function WhatsAppChatThread({
               </div>
             </div>
           ))}
-          
+
           {/* Empty state */}
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -259,7 +293,7 @@ export function WhatsAppChatThread({
               <p className="text-sm">Start the conversation!</p>
             </div>
           )}
-          
+
           <div ref={scrollRef} />
         </div>
 

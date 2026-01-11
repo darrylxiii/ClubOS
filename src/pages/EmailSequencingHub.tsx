@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Zap, Users, ArrowRight, TrendingUp } from 'lucide-react';
+import { Mail, Zap, Users, ArrowRight, TrendingUp, AlertTriangle } from 'lucide-react';
 import { useInstantlyData } from '@/hooks/useInstantlyData';
 import { InstantlyConnectionStatus } from '@/components/instantly/InstantlyConnectionStatus';
 import { InstantlyStatsOverview } from '@/components/instantly/InstantlyStatsOverview';
@@ -15,6 +15,9 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { AppLayout } from '@/components/AppLayout';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { UnifiedLoader } from '@/components/loaders/UnifiedLoader';
+
 export default function EmailSequencingHub() {
   const navigate = useNavigate();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
@@ -25,10 +28,12 @@ export default function EmailSequencingHub() {
     syncLogs,
     loading,
     syncing,
+    error,
     lastSyncedAt,
     syncCampaigns,
     syncLeads,
     syncAll,
+    refetch
   } = useInstantlyData();
 
   const handleViewLeads = (campaignId: string) => {
@@ -40,7 +45,30 @@ export default function EmailSequencingHub() {
     navigate('/crm/pipeline');
   };
 
-  const filteredLeads = selectedCampaignId 
+  if (loading) {
+    return <UnifiedLoader variant="page" text="Loading campaigns..." />;
+  }
+
+  if (error) {
+    return (
+      <AppLayout>
+        <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[60vh]">
+          <Alert variant="destructive" className="max-w-md">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error loading data</AlertTitle>
+            <AlertDescription>
+              {error.message || "Failed to load Instantly data. Please try again."}
+            </AlertDescription>
+            <Button onClick={refetch} variant="outline" className="mt-4 w-full bg-background/50">
+              Retry
+            </Button>
+          </Alert>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const filteredLeads = selectedCampaignId
     ? leads.filter(l => l.campaign_id === selectedCampaignId)
     : leads;
 
@@ -94,7 +122,7 @@ export default function EmailSequencingHub() {
             <div className="flex-1">
               <h3 className="font-medium">Cold Outreach → Hot Leads Flow</h3>
               <p className="text-sm text-muted-foreground">
-                Leads that reply or show interest are automatically promoted to the CRM Pipeline. 
+                Leads that reply or show interest are automatically promoted to the CRM Pipeline.
                 Only qualified leads appear in your CRM for focused follow-up.
               </p>
             </div>
@@ -151,7 +179,7 @@ export default function EmailSequencingHub() {
           <TabsContent value="sequences" className="space-y-6">
             {/* All Campaigns Sequence Performance */}
             <SequencePerformanceChart />
-            
+
             {/* Per-Campaign Sequence Charts */}
             {campaigns.length > 0 && (
               <div className="space-y-4">

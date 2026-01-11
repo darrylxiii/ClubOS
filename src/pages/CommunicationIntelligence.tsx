@@ -14,6 +14,7 @@ import { CrossChannelPatternAlert } from '@/components/communication/CrossChanne
 import { QUINAdvisorWidget } from '@/components/communication/QUINAdvisorWidget';
 import { useUnifiedCommunications } from '@/hooks/useUnifiedCommunications';
 import { useRelationshipHealth } from '@/hooks/useRelationshipHealth';
+import { UnifiedImportDialog } from '@/components/communication/UnifiedImportDialog';
 import { useCrossChannelPatterns } from '@/hooks/useCrossChannelPatterns';
 
 export default function CommunicationIntelligence() {
@@ -64,6 +65,7 @@ export default function CommunicationIntelligence() {
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
               </Button>
+              <UnifiedImportDialog />
             </div>
           </div>
 
@@ -225,6 +227,6 @@ export default function CommunicationIntelligence() {
           <QUINAdvisorWidget context="general" />
         </div>
       </RoleGate>
-    </AppLayout>
+    </AppLayout >
   );
 }

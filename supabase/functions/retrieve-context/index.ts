@@ -22,10 +22,42 @@ serve(async (req) => {
         }
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        const { query, company_id } = await req.json();
+        const { query, company_id, user_id, job_id } = await req.json();
 
         if (!query) {
             throw new Error('Query is required');
+        }
+
+        // Fetch Hierarchical Knowledge Profiles (Voice & Insturctions)
+        let knowledgeContext = {
+            user: null,
+            job: null,
+            company: null
+        };
+
+        try {
+            const entitiesToCheck = [];
+            if (user_id) entitiesToCheck.push({ id: user_id, type: 'user' });
+            if (job_id) entitiesToCheck.push({ id: job_id, type: 'job' });
+            if (company_id) entitiesToCheck.push({ id: company_id, type: 'company' });
+
+            if (entitiesToCheck.length > 0) {
+                const { data: profiles } = await supabase
+                    .from('knowledge_profiles')
+                    .select('*')
+                    .in('entity_id', entitiesToCheck.map(e => e.id));
+
+                if (profiles) {
+                    profiles.forEach((p: any) => {
+                        // Simple mapping since we requested by IDs. strict types would check entity_type too.
+                        if (p.entity_type === 'user' && p.entity_id === user_id) knowledgeContext.user = p;
+                        if (p.entity_type === 'job' && p.entity_id === job_id) knowledgeContext.job = p;
+                        if (p.entity_type === 'company' && p.entity_id === company_id) knowledgeContext.company = p;
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to fetch knowledge profiles', e);
         }
 
         // 0. Query Expansion (New Step)
@@ -178,6 +210,7 @@ Response:`;
         return new Response(
             JSON.stringify({
                 matches: finalResults,
+                knowledge_context: knowledgeContext,
                 thought_process: {
                     original_query: query,
                     optimized_query: optimizedQuery,

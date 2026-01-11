@@ -27,6 +27,7 @@ import { MotionToggle } from "@/components/MotionToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
+import { QuantumPulse } from "@/components/admin/QuantumPulse";
 import { getNavigationForRole } from "@/config/navigation.config";
 import {
   Sidebar,
@@ -55,10 +56,10 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         setMobileMenuOpen(isOpen);
       }
     };
-    
+
     // Poll sidebar state every 100ms when document has focus
     const interval = setInterval(syncSidebarState, 100);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -66,18 +67,18 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user?.id) return;
-      
+
       const { data, error } = await supabase
         .from('profiles')
         .select('full_name, avatar_url')
         .eq('id', user.id)
         .single();
-      
+
       if (!error && data) {
         setUserProfile(data);
       }
     };
-    
+
     fetchUserProfile();
   }, [user?.id]);
 
@@ -104,10 +105,10 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <div className="min-h-screen flex w-full bg-background">
       <DynamicBackground />
-      
+
       {/* Skip to main content link for accessibility */}
-      <a 
-        href="#main-content" 
+      <a
+        href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[110] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] flex items-center"
       >
         Skip to main content
@@ -135,14 +136,14 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
         {/* Center: Logo (Mobile Only) */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center md:hidden">
-          <img 
-            src={quantumClubLogoLightShort} 
-            alt="Quantum Club" 
+          <img
+            src={quantumClubLogoLightShort}
+            alt="Quantum Club"
             className="h-[77px] w-auto dark:block hidden"
           />
-          <img 
-            src={quantumClubLogoDarkShort} 
-            alt="Quantum Club" 
+          <img
+            src={quantumClubLogoDarkShort}
+            alt="Quantum Club"
             className="h-[77px] w-auto dark:hidden block"
           />
         </div>
@@ -184,33 +185,34 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Main Content - Adjusted for sidebar - Mobile Optimized */}
       {/* Workspace routes (/messages, /admin/whatsapp) manage their own scrolling */}
-      <main 
+      <main
         id="main-content"
         tabIndex={-1}
         className={cn(
           "flex-1 w-full md:ml-20",
-          (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp')) 
-            ? 'overflow-hidden' 
+          (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp'))
+            ? 'overflow-hidden'
             : 'overflow-y-auto'
         )}
       >
         <div className={cn(
           "pt-14 sm:pt-16",
-          (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp')) 
-            ? 'h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] flex flex-col' 
+          (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp'))
+            ? 'h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] flex flex-col'
             : 'min-h-screen pb-4'
         )}
-        style={{ 
-          paddingBottom: (location.pathname !== '/messages' && !location.pathname.startsWith('/admin/whatsapp')) 
-            ? 'max(env(safe-area-inset-bottom), 1rem)' 
-            : undefined 
-        }}
+          style={{
+            paddingBottom: (location.pathname !== '/messages' && !location.pathname.startsWith('/admin/whatsapp'))
+              ? 'max(env(safe-area-inset-bottom), 1rem)'
+              : undefined
+          }}
         >
           {children}
         </div>
       </main>
 
       {/* Global Navigation Tools */}
+      <QuantumPulse />
       <CommandPalette />
       <ClubAIVoice />
       <GlobalCallNotificationProvider />

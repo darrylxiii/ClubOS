@@ -128,6 +128,90 @@ export function useExternalImports(options: UseExternalImportsOptions = {}) {
     isReprocessing: reprocessMutation.isPending,
     deleteImport: deleteMutation.mutate,
     isDeleting: deleteMutation.isPending,
+    uploadImport: async (
+      file: File | null,
+      metadata: {
+        title: string;
+        contentType: string;
+        entityType: string;
+        entityId: string;
+        sourcePlatform: string;
+        rawContent?: string;
+        secondaryEntityType?: string;
+        secondaryEntityId?: string;
+        metadata?: any;
+      }
+    ) => {
+      try {
+        let fileUrl = null;
+        let fileSizeKb = null;
+        let fileName = null;
+        let mimeType = null;
+
+        if (file) {
+          const fileExt = file.name.split('.').pop();
+          const filePath = `${metadata.entityId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('meeting-recordings') // Using existing bucket
+            .upload(filePath, file);
+
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('meeting-recordings')
+            .getPublicUrl(filePath);
+
+          fileUrl = publicUrl;
+          fileSizeKb = Math.round(file.size / 1024);
+          fileName = file.name;
+          mimeType = file.type;
+        }
+
+        const { data: importRecord, error: insertError } = await supabase
+          .from('external_context_imports')
+          .insert({
+            title: metadata.title,
+            content_type: metadata.contentType,
+            entity_type: metadata.entityType,
+            entity_id: metadata.entityId,
+            source_platform: metadata.sourcePlatform,
+            raw_content: metadata.rawContent,
+            secondary_entity_type: metadata.secondaryEntityType,
+            secondary_entity_id: metadata.secondaryEntityId,
+            file_url: fileUrl,
+            file_name: fileName,
+            file_size_kb: fileSizeKb,
+            mime_type: mimeType,
+            processing_status: 'pending',
+            metadata: metadata.metadata,
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+
+        // Trigger processing
+        const { error: processError } = await supabase.functions.invoke('process-external-import', {
+          body: { import_id: importRecord.id },
+        });
+
+        if (processError) {
+          console.error('Processing trigger error:', processError);
+          toast.warning('Import uploaded but processing failed to start automatically.');
+        } else {
+          toast.success('Import uploaded and processing started');
+        }
+
+        queryClient.invalidateQueries({ queryKey: ['external-imports'] });
+        return importRecord;
+
+      } catch (error: any) {
+        console.error('Upload import error:', error);
+        toast.error('Failed to upload import', { description: error.message });
+        throw error;
+      }
+    }
   };
 }
 
