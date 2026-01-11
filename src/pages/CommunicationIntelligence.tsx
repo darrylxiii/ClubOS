@@ -227,6 +227,6 @@ export default function CommunicationIntelligence() {
           <QUINAdvisorWidget context="general" />
         </div>
       </RoleGate>
-    </AppLayout >
+    </AppLayout>
   );
 }

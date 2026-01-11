@@ -58,8 +58,7 @@ const PartnerBilling = lazy(() => import("@/pages/partner/PartnerBilling"));
  */
 export const sharedRoutes = (
   <>
-    {/* Home & Dashboard */}
-    <Route path="/home" element={<ProtectedRoute><ClubHome /></ProtectedRoute>} />
+    {/* Home route defined in App.tsx to avoid duplicate */}
     <Route path="/club-pilot" element={<ProtectedRoute><ClubPilot /></ProtectedRoute>} />
     
     {/* Feed & Social */}
