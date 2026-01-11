@@ -18,9 +18,22 @@ const AuditLog = lazy(() => import("@/pages/partner/AuditLog"));
 const BillingDashboard = lazy(() => import("@/pages/partner/BillingDashboard"));
 const SLADashboard = lazy(() => import("@/pages/partner/SLADashboard"));
 const IntegrationsManagement = lazy(() => import("@/pages/partner/IntegrationsManagement"));
+const LiveInterview = lazy(() => import("@/pages/partner/LiveInterview"));
 
 export const partnerRoutes = (
   <>
+    <Route
+      path="/partner/live-interview"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <LiveInterview />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
     <Route
       path="/company-applications"
       element={
