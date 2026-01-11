@@ -44,14 +44,18 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
     const candidateIds = data.filter(r => r.entity_type === 'candidate').map(r => r.entity_id);
     const prospectIds = data.filter(r => r.entity_type === 'prospect').map(r => r.entity_id);
     const companyIds = data.filter(r => r.entity_type === 'company').map(r => r.entity_id);
+    // Internal entity_ids are actually conversation_ids - look them up in conversations table
+    const internalConversationIds = data.filter(r => r.entity_type === 'internal').map(r => r.entity_id);
+    // Partner/stakeholder still use profiles table
     const profileIds = data.filter(r =>
-      ['internal', 'partner', 'stakeholder'].includes(r.entity_type)
+      ['partner', 'stakeholder'].includes(r.entity_type)
     ).map(r => r.entity_id);
 
-    const [candidatesRes, prospectsRes, companiesRes, profilesRes] = await Promise.all([
+    const [candidatesRes, prospectsRes, companiesRes, conversationsRes, profilesRes] = await Promise.all([
       candidateIds.length > 0 ? supabase.from('candidate_profiles').select('id, full_name, avatar_url').in('id', candidateIds) : { data: [] },
       prospectIds.length > 0 ? supabase.from('crm_prospects').select('id, full_name, email').in('id', prospectIds) : { data: [] },
       companyIds.length > 0 ? supabase.from('companies').select('id, name, logo_url').in('id', companyIds) : { data: [] },
+      internalConversationIds.length > 0 ? supabase.from('conversations').select('id, title').in('id', internalConversationIds) : { data: [] },
       profileIds.length > 0 ? supabase.from('profiles').select('id, full_name, avatar_url, email').in('id', profileIds) : { data: [] }
     ]);
 
@@ -59,6 +63,8 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
     (candidatesRes.data || []).forEach(c => { nameMap[c.id] = { name: c.full_name, avatar: c.avatar_url }; });
     (prospectsRes.data || []).forEach(p => { nameMap[p.id] = { name: p.full_name, email: p.email }; });
     (companiesRes.data || []).forEach(c => { nameMap[c.id] = { name: c.name, avatar: c.logo_url }; });
+    // Map conversation titles for internal entities
+    (conversationsRes.data || []).forEach(conv => { nameMap[conv.id] = { name: conv.title }; });
     (profilesRes.data || []).forEach(p => { nameMap[p.id] = { name: p.full_name, avatar: p.avatar_url, email: p.email }; });
 
     return data.map(r => {
