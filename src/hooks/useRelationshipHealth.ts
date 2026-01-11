@@ -25,6 +25,7 @@ export interface RelationshipHealthItem {
   risk_level: string;
   health_score: number;
   recommended_action?: string;
+  preferred_channel?: string;
 }
 
 export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilter) {
@@ -101,22 +102,7 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
     try {
       setLoading(true);
 
-      // Try RPC first
-      const { data, error } = await supabase.rpc('get_relationship_health_dashboard', {
-        p_entity_type: entityType === 'all' ? null : entityType,
-        p_risk_filter: riskFilter === 'all' ? null : riskFilter,
-        p_limit: 100
-      });
-
-      if (!error) {
-        setRelationships((data as any[]) || []);
-        updateStats((data as any[]) || []);
-        return;
-      }
-
-      console.warn('RPC failed, falling back to client-side fetch:', error.message);
-
-      // Fallback: Client-side fetch
+      // Fallback: Client-side fetch (RPC may not exist)
       let query = supabase
         .from('communication_relationship_scores')
         .select('*')
@@ -124,7 +110,7 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
         .order('days_since_contact', { ascending: false, nullsFirst: false });
 
       if (entityType && entityType !== 'all') {
-        query = query.eq('entity_type', entityType);
+        query = query.eq('entity_type', entityType as any);
       }
 
       if (riskFilter && riskFilter !== 'all') {

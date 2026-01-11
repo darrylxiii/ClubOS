@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MinimalHeader } from '@/components/MinimalHeader';
+import { SectionLoader } from '@/components/ui/unified-loader';
 import { Award, CheckCircle, Download, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 

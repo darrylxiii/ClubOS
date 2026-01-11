@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SectionLoader } from "@/components/ui/unified-loader";
+import { toast } from "sonner";
 
 interface EnhancedProfileProps {
   viewingUserId?: string;

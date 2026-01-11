@@ -43,6 +43,7 @@ import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 import { CRMKeyboardShortcutsDialog } from '@/components/crm/CRMKeyboardShortcutsDialog';
 import { BulkActionsBar } from '@/components/crm/BulkActionsBar';
 import { SyncStatusBadge } from '@/components/crm/SyncStatusBadge';
+import { InlineLoader } from '@/components/ui/unified-loader';
 import {
   Select,
   SelectContent,
