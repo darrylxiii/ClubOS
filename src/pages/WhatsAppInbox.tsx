@@ -13,19 +13,8 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MessageSquare, Sparkles, Settings, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { notify } from "@/lib/notify";
-
-/* import useRelationshipHealth */
-// It seems I need to add the import at the top first, but replace_file_content works on a block.
-// I will just update the body of component.
-// Wait, I need to know line numbers for imports.
-// I'll do this in 2 steps: 1. Add import. 2. Update logic.
-// Actually, I can use replace_file_content for the whole file or large chunks.
-
-// CHUNK 1: Import
 import { useRelationshipHealth } from "@/hooks/useRelationshipHealth";
 import { type ConversationInsight } from "@/components/whatsapp/WhatsAppAIInsights";
-
-// CHUNK 2: Component implementation
 export default function WhatsAppInbox() {
   const navigate = useNavigate();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
