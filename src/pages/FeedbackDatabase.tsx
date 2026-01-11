@@ -33,6 +33,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/lib/notify';
 import { useRole } from '@/contexts/RoleContext';
 import { formatDistanceToNow, subDays, startOfDay, format } from 'date-fns';
+import { SectionLoader } from '@/components/ui/unified-loader';
 import { 
   Search, 
   Filter, 

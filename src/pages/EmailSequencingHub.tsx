@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { AppLayout } from '@/components/AppLayout';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { UnifiedLoader } from '@/components/loaders/UnifiedLoader';
+import { UnifiedLoader } from '@/components/ui/unified-loader';
 
 export default function EmailSequencingHub() {
   const navigate = useNavigate();

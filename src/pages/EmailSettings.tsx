@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
+import { SectionLoader } from "@/components/ui/unified-loader";
 
 interface EmailConnection {
   id: string;

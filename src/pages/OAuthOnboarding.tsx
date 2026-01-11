@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Briefcase, Target, DollarSign, MapPin, Upload, X, CheckCircle, Phone, LogOut } from "lucide-react";
+import { Briefcase, Target, DollarSign, MapPin, Upload, X, CheckCircle, Phone, LogOut, Loader2 } from "lucide-react";
 import { UnifiedLoader, InlineLoader } from "@/components/ui/unified-loader";
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";

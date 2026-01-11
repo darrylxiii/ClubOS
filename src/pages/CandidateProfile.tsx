@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SectionLoader } from "@/components/ui/unified-loader";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/contexts/RoleContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";

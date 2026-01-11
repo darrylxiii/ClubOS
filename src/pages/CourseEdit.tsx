@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { notify } from "@/lib/notify";
+import { SectionLoader } from "@/components/ui/unified-loader";
 import {
   Loader2,
   ChevronLeft,

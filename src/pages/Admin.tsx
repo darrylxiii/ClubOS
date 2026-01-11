@@ -1,7 +1,7 @@
 
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield } from "lucide-react";
+import { Shield, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";

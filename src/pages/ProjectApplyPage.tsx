@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from '@/lib/notify';
+import { SectionLoader } from "@/components/ui/unified-loader";
 import {
   ArrowLeft,
   Sparkles,

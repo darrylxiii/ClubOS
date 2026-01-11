@@ -56,7 +56,7 @@ export const EntityKnowledgeProfile = ({
     const loadProfile = async () => {
         try {
             const { data, error } = await supabase
-                .from('knowledge_profiles')
+                .from('knowledge_profiles' as any)
                 .select('*')
                 .eq('entity_id', entityId)
                 .eq('entity_type', entityType)
@@ -65,11 +65,12 @@ export const EntityKnowledgeProfile = ({
             if (error) throw error;
 
             if (data) {
-                setProfile(data as any);
-                setVoiceTone(data.voice_tone || "");
-                setInstructions(data.custom_instructions || "");
-                setKeywords(data.keywords_to_include || []);
-                setExamples(data.voice_examples as string[] || []);
+                const profileData = data as any;
+                setProfile(profileData);
+                setVoiceTone(profileData.voice_tone || "");
+                setInstructions(profileData.custom_instructions || "");
+                setKeywords(profileData.keywords_to_include || []);
+                setExamples(profileData.voice_examples as string[] || []);
             }
         } catch (error) {
             console.error("Error loading knowledge profile:", error);
@@ -97,8 +98,8 @@ export const EntityKnowledgeProfile = ({
             };
 
             const { error } = await supabase
-                .from('knowledge_profiles')
-                .upsert(payload, { onConflict: 'entity_type,entity_id' });
+                .from('knowledge_profiles' as any)
+                .upsert(payload as any, { onConflict: 'entity_type,entity_id' });
 
             if (error) throw error;
 

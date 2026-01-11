@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { UnifiedLoader } from "@/components/ui/unified-loader";
+import { Loader2 } from "lucide-react";
 
 /**
  * Revenue Analytics page - redirects to Financial Dashboard
