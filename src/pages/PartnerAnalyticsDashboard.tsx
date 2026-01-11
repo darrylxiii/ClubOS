@@ -11,6 +11,7 @@ import { RefreshCw } from "lucide-react";
 import { useGenerateInsights } from "@/hooks/usePartnerAnalytics";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/PageLoader";
+import { InlineLoader } from "@/components/ui/unified-loader";
 
 export default function PartnerAnalyticsDashboard() {
   const { user } = useAuth();
@@ -21,23 +22,23 @@ export default function PartnerAnalyticsDashboard() {
   useEffect(() => {
     async function fetchCompany() {
       if (!user) return;
-      
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('company_id')
         .eq('id', user.id)
         .single();
-      
+
       setCompanyId(profile?.company_id || null);
       setLoading(false);
     }
-    
+
     fetchCompany();
   }, [user]);
 
   const handleRefresh = async () => {
     if (!companyId) return;
-    
+
     try {
       await generateInsights.mutateAsync(undefined);
       await (supabase as any).rpc('generate_daily_analytics_snapshot', {
@@ -68,13 +69,20 @@ export default function PartnerAnalyticsDashboard() {
           <h1 className="text-3xl font-bold">Enterprise Analytics</h1>
           <p className="text-muted-foreground">Comprehensive insights into your hiring performance</p>
         </div>
-        <Button 
-          onClick={handleRefresh} 
+        <Button
+          onClick={handleRefresh}
           variant="outline"
           disabled={generateInsights.isPending}
+          className="gap-2"
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${generateInsights.isPending ? 'animate-spin' : ''}`} />
-          Refresh Insights
+          {generateInsights.isPending ? (
+            <InlineLoader text="Refreshing..." />
+          ) : (
+            <>
+              <RefreshCw className="h-4 w-4" />
+              Refresh Insights
+            </>
+          )}
         </Button>
       </div>
 

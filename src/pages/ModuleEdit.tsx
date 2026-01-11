@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/lib/notify";
-import { Loader2, ChevronLeft, Save, BookOpen, Upload, X, Link2, Sparkles, Bot } from "lucide-react";
+import { ChevronLeft, Save, BookOpen, Upload, X, Link2, Sparkles, Bot } from "lucide-react";
+import { InlineLoader, SectionLoader } from "@/components/ui/unified-loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ModuleEdit() {
@@ -260,7 +261,7 @@ export default function ModuleEdit() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <SectionLoader />
         </div>
       </AppLayout>
     );
@@ -304,7 +305,7 @@ export default function ModuleEdit() {
             <Button onClick={() => handleSubmit()} disabled={saving}>
               {saving ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <InlineLoader />
                   Saving...
                 </>
               ) : (
@@ -579,7 +580,7 @@ export default function ModuleEdit() {
 
                 {uploading && (
                   <div className="p-4 bg-muted rounded-lg text-center">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    <SectionLoader />
                     <p className="text-sm text-muted-foreground">{uploadProgress}</p>
                   </div>
                 )}

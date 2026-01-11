@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, Share2, Bookmark, Play, Plus, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
+import { SectionLoader } from "@/components/ui/unified-loader";
 import { formatDistanceToNow } from "date-fns";
 import { CreatePostDialog } from "@/components/social/CreatePostDialog";
 import { StoryViewer } from "@/components/social/StoryViewer";
@@ -172,7 +172,7 @@ const SocialFeed = () => {
 
       if (error) throw error;
 
-      setPosts(posts.map(p => 
+      setPosts(posts.map(p =>
         p.id === postId ? { ...p, likes_count: p.likes_count + 1 } : p
       ));
     } catch (error) {
@@ -256,24 +256,24 @@ const SocialFeed = () => {
               </div>
             )}
 
-          {/* Platform Filter Tabs */}
-          <Tabs defaultValue="all" value={filter} onValueChange={setFilter}>
-            <TabsList className="w-full justify-start overflow-x-auto">
-              <TabsTrigger value="all">All Posts</TabsTrigger>
-              <TabsTrigger value="internal">🏠 Club</TabsTrigger>
-              <TabsTrigger value="instagram">📷 Instagram</TabsTrigger>
-              <TabsTrigger value="twitter">🐦 Twitter</TabsTrigger>
-              <TabsTrigger value="tiktok">🎵 TikTok</TabsTrigger>
-              <TabsTrigger value="youtube">▶️ YouTube</TabsTrigger>
-              <TabsTrigger value="linkedin">💼 LinkedIn</TabsTrigger>
-            </TabsList>
-          </Tabs>
+            {/* Platform Filter Tabs */}
+            <Tabs defaultValue="all" value={filter} onValueChange={setFilter}>
+              <TabsList className="w-full justify-start overflow-x-auto">
+                <TabsTrigger value="all">All Posts</TabsTrigger>
+                <TabsTrigger value="internal">🏠 Club</TabsTrigger>
+                <TabsTrigger value="instagram">📷 Instagram</TabsTrigger>
+                <TabsTrigger value="twitter">🐦 Twitter</TabsTrigger>
+                <TabsTrigger value="tiktok">🎵 TikTok</TabsTrigger>
+                <TabsTrigger value="youtube">▶️ YouTube</TabsTrigger>
+                <TabsTrigger value="linkedin">💼 LinkedIn</TabsTrigger>
+              </TabsList>
+            </Tabs>
 
             {/* Posts Feed */}
             <div className="space-y-4">
               {loading ? (
                 <div className="text-center py-12">
-                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+                  <SectionLoader />
                   <p className="text-muted-foreground mt-4">Loading posts...</p>
                 </div>
               ) : posts.length === 0 ? (
@@ -346,135 +346,135 @@ const SocialFeed = () => {
 
                   // Standard post rendering
                   return (
-                <Card key={post.id} className="overflow-hidden bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card/90 transition-all">
-                  {/* Post Header */}
-                  <div className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={post.profile?.avatar_url || post.social_account?.username} />
-                        <AvatarFallback>
-                          {(post.profile?.full_name || post.social_account?.display_name || "U")[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">
-                            {post.profile?.full_name || post.social_account?.display_name}
-                          </span>
-                          <Badge variant="secondary" className={`${getPlatformColor(post.platform)} text-white text-xs`}>
-                            {getPlatformIcon(post.platform)} {post.platform}
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          @{post.social_account?.username} · {formatDistanceToNow(new Date(post.published_at), { addSuffix: true })}
-                        </div>
-                      </div>
-                    </div>
-                    {post.post_type === "video" && (
-                      <Badge variant="outline" className="gap-1">
-                        <Play className="h-3 w-3" />
-                        {post.post_type}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Post Content */}
-                  <div className="px-4 pb-3">
-                    <p className="text-foreground whitespace-pre-wrap">{post.content}</p>
-                    {post.hashtags && post.hashtags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {post.hashtags.map((tag, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
-                            #{tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Post Media */}
-                  {post.media_urls && post.media_urls.length > 0 && (
-                    <div className="relative">
-                      {post.post_type === "video" ? (
-                        <div className="relative bg-black aspect-video">
-                          {post.thumbnail_url ? (
-                            <img 
-                              src={post.thumbnail_url} 
-                              alt="Video thumbnail"
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Play className="h-16 w-16 text-white/50" />
+                    <Card key={post.id} className="overflow-hidden bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card/90 transition-all">
+                      {/* Post Header */}
+                      <div className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={post.profile?.avatar_url || post.social_account?.username} />
+                            <AvatarFallback>
+                              {(post.profile?.full_name || post.social_account?.display_name || "U")[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">
+                                {post.profile?.full_name || post.social_account?.display_name}
+                              </span>
+                              <Badge variant="secondary" className={`${getPlatformColor(post.platform)} text-white text-xs`}>
+                                {getPlatformIcon(post.platform)} {post.platform}
+                              </Badge>
                             </div>
-                          )}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="bg-black/50 backdrop-blur-sm rounded-full p-4">
-                              <Play className="h-8 w-8 text-white" />
+                            <div className="text-sm text-muted-foreground">
+                              @{post.social_account?.username} · {formatDistanceToNow(new Date(post.published_at), { addSuffix: true })}
                             </div>
                           </div>
                         </div>
-                      ) : (
-                        <div className={`grid ${post.media_urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-1`}>
-                          {post.media_urls.slice(0, 4).map((url, idx) => (
-                            <img 
-                              key={idx}
-                              src={url} 
-                              alt={`Post media ${idx + 1}`}
-                              className="w-full aspect-square object-cover"
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Post Stats & Actions */}
-                  <div className="px-4 py-3 border-t border-border/50">
-                    <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
-                      <div className="flex gap-4">
-                        {post.likes_count > 0 && (
-                          <span>{post.likes_count.toLocaleString()} likes</span>
-                        )}
-                        {post.comments_count > 0 && (
-                          <span>{post.comments_count.toLocaleString()} comments</span>
-                        )}
-                        {post.views_count > 0 && (
-                          <span>{post.views_count.toLocaleString()} views</span>
+                        {post.post_type === "video" && (
+                          <Badge variant="outline" className="gap-1">
+                            <Play className="h-3 w-3" />
+                            {post.post_type}
+                          </Badge>
                         )}
                       </div>
-                      {post.shares_count > 0 && (
-                        <span>{post.shares_count.toLocaleString()} shares</span>
+
+                      {/* Post Content */}
+                      <div className="px-4 pb-3">
+                        <p className="text-foreground whitespace-pre-wrap">{post.content}</p>
+                        {post.hashtags && post.hashtags.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {post.hashtags.map((tag, idx) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                #{tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Post Media */}
+                      {post.media_urls && post.media_urls.length > 0 && (
+                        <div className="relative">
+                          {post.post_type === "video" ? (
+                            <div className="relative bg-black aspect-video">
+                              {post.thumbnail_url ? (
+                                <img
+                                  src={post.thumbnail_url}
+                                  alt="Video thumbnail"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Play className="h-16 w-16 text-white/50" />
+                                </div>
+                              )}
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="bg-black/50 backdrop-blur-sm rounded-full p-4">
+                                  <Play className="h-8 w-8 text-white" />
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className={`grid ${post.media_urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-1`}>
+                              {post.media_urls.slice(0, 4).map((url, idx) => (
+                                <img
+                                  key={idx}
+                                  src={url}
+                                  alt={`Post media ${idx + 1}`}
+                                  className="w-full aspect-square object-cover"
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       )}
-                    </div>
-                    
-                    <div className="flex items-center justify-around border-t border-border/50 pt-3">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="gap-2"
-                        onClick={() => handleLike(post.id)}
-                      >
-                        <Heart className="h-4 w-4" />
-                        Like
-                      </Button>
-                      <Button variant="ghost" size="sm" className="gap-2">
-                        <MessageCircle className="h-4 w-4" />
-                        Comment
-                      </Button>
-                      <Button variant="ghost" size="sm" className="gap-2">
-                        <Share2 className="h-4 w-4" />
-                        Share
-                      </Button>
-                      <Button variant="ghost" size="sm" className="gap-2">
-                        <Bookmark className="h-4 w-4" />
-                        Save
-                      </Button>
-                      <PostAnalyticsButton postId={post.id} variant="ghost" size="sm" showLabel={false} />
-                    </div>
-                  </div>
-                </Card>
-                );
+
+                      {/* Post Stats & Actions */}
+                      <div className="px-4 py-3 border-t border-border/50">
+                        <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
+                          <div className="flex gap-4">
+                            {post.likes_count > 0 && (
+                              <span>{post.likes_count.toLocaleString()} likes</span>
+                            )}
+                            {post.comments_count > 0 && (
+                              <span>{post.comments_count.toLocaleString()} comments</span>
+                            )}
+                            {post.views_count > 0 && (
+                              <span>{post.views_count.toLocaleString()} views</span>
+                            )}
+                          </div>
+                          {post.shares_count > 0 && (
+                            <span>{post.shares_count.toLocaleString()} shares</span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-around border-t border-border/50 pt-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => handleLike(post.id)}
+                          >
+                            <Heart className="h-4 w-4" />
+                            Like
+                          </Button>
+                          <Button variant="ghost" size="sm" className="gap-2">
+                            <MessageCircle className="h-4 w-4" />
+                            Comment
+                          </Button>
+                          <Button variant="ghost" size="sm" className="gap-2">
+                            <Share2 className="h-4 w-4" />
+                            Share
+                          </Button>
+                          <Button variant="ghost" size="sm" className="gap-2">
+                            <Bookmark className="h-4 w-4" />
+                            Save
+                          </Button>
+                          <PostAnalyticsButton postId={post.id} variant="ghost" size="sm" showLabel={false} />
+                        </div>
+                      </div>
+                    </Card>
+                  );
                 })
               )}
             </div>

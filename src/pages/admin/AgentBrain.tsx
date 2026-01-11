@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Brain, Database, RefreshCw, Eye } from "lucide-react";
+import { Brain, Database, RefreshCw, Eye } from "lucide-react";
+import { SectionLoader, InlineLoader } from "@/components/ui/unified-loader";
 import { toast } from 'sonner';
 import {
     Table,
@@ -88,7 +89,7 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     />
                     <Button onClick={handleSearch} disabled={isSearching || !query}>
-                        {isSearching ? <Loader2 className="animate-spin" /> : <Send className="h-4 w-4" />}
+                        {isSearching ? <InlineLoader /> : <Send className="h-4 w-4" />}
                     </Button>
                 </div>
 
@@ -242,7 +243,7 @@ export default function AgentBrain() {
                     </CardHeader>
                     <CardContent className="flex-1 overflow-auto">
                         {isLoading ? (
-                            <div className="flex justify-center p-4"><Loader2 className="animate-spin text-purple-500" /></div>
+                            <SectionLoader text="Loading Companies..." className="min-h-[100px]" />
                         ) : (
                             <div className="space-y-2">
                                 {companies.map((c) => (
@@ -278,7 +279,7 @@ export default function AgentBrain() {
                                     size="sm"
                                 >
                                     {isIngesting ? (
-                                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Ingesting DNA...</>
+                                        <InlineLoader text="Ingesting DNA..." />
                                     ) : (
                                         <><RefreshCw className="mr-2 h-4 w-4" /> Re-Ingest Context</>
                                     )}

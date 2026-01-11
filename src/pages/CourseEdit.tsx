@@ -218,7 +218,7 @@ export default function CourseEdit() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <SectionLoader />
         </div>
       </AppLayout>
     );

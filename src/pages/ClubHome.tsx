@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
+import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { CandidateHome } from "@/components/clubhome/CandidateHome";
 import { PartnerHome } from "@/components/clubhome/PartnerHome";
 import { AdminHome } from "@/components/clubhome/AdminHome";
@@ -29,9 +29,7 @@ const ClubHome = () => {
   // Show simple loading state while checking auth and role
   if (!isReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <UnifiedLoader variant="page" showBranding />
     );
   }
 

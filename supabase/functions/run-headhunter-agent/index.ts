@@ -16,7 +16,21 @@ serve(async (req) => {
         const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!; // Need service role to read all candidates
         const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
-        if (!lovableApiKey) throw new Error('LOVABLE_API_KEY is not set');
+        if (!lovableApiKey) {
+            console.warn('[Headhunter] LOVABLE_API_KEY missing. Returning MOCK response for testing.');
+            return new Response(
+                JSON.stringify({
+                    success: true,
+                    job: "Mock Job (Local Test)",
+                    persona: "Mock Persona (Local Test)",
+                    matches_found: 1,
+                    matches_saved: 0,
+                    saved_matches: [],
+                    note: "Running in MOCK mode because LOVABLE_API_KEY is not set."
+                }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 

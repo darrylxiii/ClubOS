@@ -15,7 +15,7 @@ import {
   PlayCircle,
   ChevronRight,
 } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { SectionLoader } from "@/components/ui/unified-loader";
 
 interface Module {
   id: string;
@@ -64,7 +64,7 @@ export default function ModuleDetail() {
 
     try {
       setLoading(true);
-      
+
       const { data: moduleData, error: moduleError } = await supabase
         .from('modules')
         .select(`
@@ -250,7 +250,7 @@ export default function ModuleDetail() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <SectionLoader />
         </div>
       </AppLayout>
     );
@@ -282,7 +282,7 @@ export default function ModuleDetail() {
             Academy
           </Link>
           <ChevronRight className="h-4 w-4" />
-          <Link 
+          <Link
             to={`/courses/${module.course.slug}`}
             className="hover:text-foreground"
           >
@@ -303,8 +303,8 @@ export default function ModuleDetail() {
           {!module.video_url && module.image_url && (
             <Card className="overflow-hidden">
               <div className="aspect-video relative">
-                <img 
-                  src={module.image_url} 
+                <img
+                  src={module.image_url}
                   alt={module.title}
                   className="w-full h-full object-cover"
                 />
@@ -325,10 +325,10 @@ export default function ModuleDetail() {
                     title={module.title}
                   />
                 ) : (
-                  <video 
+                  <video
                     ref={setVideoRef}
-                    src={module.video_url} 
-                    controls 
+                    src={module.video_url}
+                    controls
                     className="w-full h-full"
                     poster={module.image_url}
                   />
@@ -356,7 +356,7 @@ export default function ModuleDetail() {
               <p className="text-muted-foreground leading-relaxed mb-6">
                 {module.description}
               </p>
-              
+
               {/* Placeholder for content blocks */}
               <div className="space-y-4 text-muted-foreground">
                 <p>Module content will appear here. This can include:</p>
@@ -380,7 +380,7 @@ export default function ModuleDetail() {
                   <span className="text-sm font-semibold">{Math.round(progress)}%</span>
                 </div>
                 <Progress value={progress} className="h-2" />
-                
+
                 {module?.video_url && !module.video_url.includes('youtube.com') && !module.video_url.includes('youtu.be') && (
                   <div className="pt-2 border-t">
                     <div className="flex items-center justify-between text-sm">
@@ -390,7 +390,7 @@ export default function ModuleDetail() {
                     <Progress value={videoWatchedPercentage} className="h-1 mt-2" />
                   </div>
                 )}
-                
+
                 <div className="flex gap-3 pt-2">
                   <Button
                     variant="outline"
@@ -401,9 +401,9 @@ export default function ModuleDetail() {
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Previous
                   </Button>
-                  
-                  <Button 
-                    onClick={markComplete} 
+
+                  <Button
+                    onClick={markComplete}
                     disabled={progress === 100}
                     variant={progress === 100 ? "outline" : "default"}
                   >

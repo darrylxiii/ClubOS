@@ -53,7 +53,7 @@ export default function ProjectApplyPage() {
         .select("*")
         .eq("id", user.id)
         .maybeSingle();
-      
+
       if (error) throw error;
       return data;
     },
@@ -153,7 +153,7 @@ export default function ProjectApplyPage() {
   if (!project) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <SectionLoader />
       </div>
     );
   }

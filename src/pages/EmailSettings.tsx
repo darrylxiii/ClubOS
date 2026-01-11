@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { 
-  Mail, Plus, Trash2, CheckCircle, XCircle, 
-  RefreshCw, Settings, Loader2, AlertCircle 
+import {
+  Mail, Plus, Trash2, CheckCircle, XCircle,
+  RefreshCw, Settings, Loader2, AlertCircle
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -127,7 +127,7 @@ const EmailSettings = () => {
 
   const handleSyncNow = async (connectionId: string) => {
     toast.info('Starting email sync...');
-    
+
     try {
       // Update last_sync_at timestamp
       const { error } = await supabase
@@ -180,7 +180,7 @@ const EmailSettings = () => {
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-8 space-y-6">
-        <Breadcrumb 
+        <Breadcrumb
           items={[
             { label: 'Home', path: '/home' },
             { label: 'Settings', path: '/settings' },
@@ -195,7 +195,7 @@ const EmailSettings = () => {
               Connect your email accounts to sync communications with your inbox
             </p>
           </div>
-          
+
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -242,7 +242,7 @@ const EmailSettings = () => {
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    In production, this would initiate OAuth authentication. 
+                    In production, this would initiate OAuth authentication.
                     For now, we'll create a connection placeholder.
                   </AlertDescription>
                 </Alert>
@@ -270,14 +270,14 @@ const EmailSettings = () => {
         <Alert>
           <Mail className="h-4 w-4" />
           <AlertDescription>
-            Connected email accounts will automatically sync to your inbox. 
+            Connected email accounts will automatically sync to your inbox.
             You can enable/disable sync for each account at any time.
           </AlertDescription>
         </Alert>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <SectionLoader />
           </div>
         ) : connections.length === 0 ? (
           <Card>

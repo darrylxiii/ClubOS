@@ -2,7 +2,8 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGate } from "@/components/RoleGate";
-import { Loader2, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
+import { SectionLoader, InlineLoader } from "@/components/ui/unified-loader";
 import { useFinancialStats, usePlacementFees, usePartnerInvoices, useReferralPayouts } from "@/hooks/useFinancialData";
 import { PlacementFeesTable } from "@/components/financial/PlacementFeesTable";
 import { InvoicesTable } from "@/components/financial/InvoicesTable";
@@ -48,10 +49,7 @@ export default function FinancialDashboard() {
               <p className="text-muted-foreground flex items-center gap-2">
                 Real-time revenue tracking powered by Moneybird
                 {isSyncing && (
-                  <span className="inline-flex items-center text-sm text-primary">
-                    <RefreshCw className="h-3 w-3 animate-spin mr-1" />
-                    Syncing...
-                  </span>
+                  <InlineLoader text="Syncing..." className="text-primary" />
                 )}
               </p>
             </div>
@@ -161,9 +159,7 @@ export default function FinancialDashboard() {
                 </CardHeader>
                 <CardContent>
                   {feesLoading ? (
-                    <div className="flex items-center justify-center p-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    </div>
+                    <SectionLoader text="Loading Fees..." className="min-h-[200px]" />
                   ) : (
                     <PlacementFeesTable fees={fees || []} />
                   )}
@@ -185,9 +181,7 @@ export default function FinancialDashboard() {
                 </CardHeader>
                 <CardContent>
                   {invoicesLoading ? (
-                    <div className="flex items-center justify-center p-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    </div>
+                    <SectionLoader text="Loading Invoices..." className="min-h-[200px]" />
                   ) : (
                     <InvoicesTable invoices={invoices || []} />
                   )}
@@ -205,9 +199,7 @@ export default function FinancialDashboard() {
                 </CardHeader>
                 <CardContent>
                   {payoutsLoading ? (
-                    <div className="flex items-center justify-center p-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    </div>
+                    <SectionLoader text="Loading Payouts..." className="min-h-[200px]" />
                   ) : (
                     <PayoutApprovalQueue payouts={payouts || []} />
                   )}

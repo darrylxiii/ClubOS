@@ -12,7 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Briefcase, Target, DollarSign, MapPin, Upload, X, Loader2, CheckCircle, Phone, LogOut } from "lucide-react";
+import { Briefcase, Target, DollarSign, MapPin, Upload, X, CheckCircle, Phone, LogOut } from "lucide-react";
+import { UnifiedLoader, InlineLoader } from "@/components/ui/unified-loader";
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import { useCountryDetection } from "@/hooks/useCountryDetection";
@@ -479,7 +480,7 @@ export default function OAuthOnboarding() {
   if (loading || !user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <UnifiedLoader variant="page" showBranding />
       </div>
     );
   }

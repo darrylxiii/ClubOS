@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban, Loader2, MapPin, Globe, Eye, Download, Lock, Link as LinkIcon } from "lucide-react";
+import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban, MapPin, Globe, Eye, Download, Lock, Link as LinkIcon } from "lucide-react";
+import { InlineLoader } from "@/components/ui/unified-loader";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -135,7 +136,7 @@ const Profile = () => {
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewResumeUrl, setPreviewResumeUrl] = useState<string | null>(null);
   const [previewResumeName, setPreviewResumeName] = useState('');
-  
+
   interface CalendarConnection {
     id: string;
     provider: 'google' | 'microsoft';
@@ -144,11 +145,11 @@ const Profile = () => {
     token: string;
     connectedAt: string;
   }
-  
+
   const [connectedCalendars, setConnectedCalendars] = useState<CalendarConnection[]>([]);
   const [calendarLoading, setCalendarLoading] = useState(false);
   const [pendingCalendarLabel, setPendingCalendarLabel] = useState('');
-  
+
   // New state for phone verification and location
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [phoneVerified, setPhoneVerified] = useState(false);
@@ -170,7 +171,7 @@ const Profile = () => {
     setIsSaving(true);
     try {
       const fullName = `${profileData.firstName} ${profileData.lastName}`.trim();
-      
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -228,7 +229,7 @@ const Profile = () => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
-    
+
     saveTimeoutRef.current = setTimeout(() => {
       saveProfile();
     }, 1000); // Save 1 second after user stops typing
@@ -319,17 +320,17 @@ const Profile = () => {
 
   const handleCurrencyChange = async (currency: 'EUR' | 'USD' | 'GBP' | 'AED') => {
     setPreferredCurrency(currency);
-    
+
     if (!user) return;
-    
+
     try {
       const { error } = await supabase
         .from('profiles')
         .update({ preferred_currency: currency })
         .eq('id', user.id);
-      
+
       if (error) throw error;
-      
+
       toast.success(`Currency preference updated to ${currency}`);
     } catch (error) {
       console.error('Error updating currency:', error);
@@ -406,18 +407,18 @@ const Profile = () => {
   const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram' | 'github') => {
     try {
       const redirectTo = `${window.location.origin}/profile`;
-      
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as any,
         options: {
           redirectTo,
-          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : 
-                  provider === 'github' ? 'read:user user:email' : undefined,
+          scopes: provider === 'linkedin_oidc' ? 'openid profile email' :
+            provider === 'github' ? 'read:user user:email' : undefined,
         }
       });
 
       if (error) throw error;
-      
+
       toast.success(`Redirecting to ${provider} login...`);
     } catch (error) {
       console.error(`${provider} connection error:`, error);
@@ -428,7 +429,7 @@ const Profile = () => {
   const handleDisconnectSocial = async (platform: 'linkedin' | 'instagram' | 'twitter' | 'github') => {
     try {
       const updates: any = {};
-      
+
       if (platform === 'linkedin') {
         updates.linkedin_connected = false;
         updates.linkedin_profile_data = null;
@@ -475,18 +476,18 @@ const Profile = () => {
 
   const loadUserResumes = async () => {
     if (!user) return;
-    
+
     const { data, error } = await supabase
       .from('user_resumes')
       .select('*')
       .eq('user_id', user.id)
       .order('uploaded_at', { ascending: false });
-    
+
     if (error) {
       console.error('Error loading resumes:', error);
       return;
     }
-    
+
     setUserResumes(data || []);
   };
 
@@ -501,7 +502,7 @@ const Profile = () => {
       // Upload to storage
       const fileExt = resumeFile.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('resumes')
         .upload(fileName, resumeFile, {
@@ -696,7 +697,7 @@ const Profile = () => {
         if (data.privacy_settings) {
           setPrivacySettings(data.privacy_settings as any);
         }
-        
+
         // Set preferred currency
         if (data.preferred_currency) {
           setPreferredCurrency(data.preferred_currency as any);
@@ -734,24 +735,24 @@ const Profile = () => {
           setSocialConnections(prev => ({ ...prev, linkedin: true }));
         }
         if (data.instagram_connected && data.instagram_username) {
-          setSocialConnections(prev => ({ 
-            ...prev, 
+          setSocialConnections(prev => ({
+            ...prev,
             instagram: true,
-            instagramUsername: data.instagram_username 
+            instagramUsername: data.instagram_username
           }));
         }
         if (data.twitter_connected && data.twitter_username) {
-          setSocialConnections(prev => ({ 
-            ...prev, 
+          setSocialConnections(prev => ({
+            ...prev,
             twitter: true,
-            twitterUsername: data.twitter_username 
+            twitterUsername: data.twitter_username
           }));
         }
         if (data.github_connected && data.github_username) {
-          setSocialConnections(prev => ({ 
-            ...prev, 
+          setSocialConnections(prev => ({
+            ...prev,
             github: true,
-            githubUsername: data.github_username 
+            githubUsername: data.github_username
           }));
         }
 
@@ -820,7 +821,7 @@ const Profile = () => {
         if (error) throw error;
 
         setLastSaved(new Date());
-        
+
         // Update completion tracking
         if (currentSalaryRange || desiredSalaryRange) {
           localStorage.setItem('salary_set', 'true');
@@ -958,13 +959,13 @@ const Profile = () => {
         return;
       }
     }
-    
+
     // Use a custom input dialog instead of system prompt
     const labelInput = document.createElement('input');
     labelInput.type = 'text';
     labelInput.placeholder = `e.g., "Personal Calendar", "Work Calendar"`;
     labelInput.className = 'w-full px-3 py-2 border rounded-md';
-    
+
     const label = await new Promise<string | null>((resolve) => {
       const dialog = document.createElement('div');
       dialog.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
@@ -984,27 +985,27 @@ const Profile = () => {
           </div>
         </div>
       `;
-      
+
       document.body.appendChild(dialog);
       const input = dialog.querySelector('#calendar-label-input') as HTMLInputElement;
       const cancelBtn = dialog.querySelector('#cancel-btn') as HTMLButtonElement;
       const connectBtn = dialog.querySelector('#connect-btn') as HTMLButtonElement;
-      
+
       input.focus();
-      
+
       const cleanup = () => document.body.removeChild(dialog);
-      
+
       cancelBtn.onclick = () => {
         cleanup();
         resolve(null);
       };
-      
+
       connectBtn.onclick = () => {
         const value = input.value.trim();
         cleanup();
         resolve(value || null);
       };
-      
+
       input.onkeydown = (e) => {
         if (e.key === 'Enter') {
           const value = input.value.trim();
@@ -1016,7 +1017,7 @@ const Profile = () => {
         }
       };
     });
-    
+
     if (!label) {
       toast.error('Calendar connection cancelled');
       return;
@@ -1024,18 +1025,18 @@ const Profile = () => {
 
     try {
       setCalendarLoading(true);
-      
+
       const redirectUri = `${window.location.origin}/user-settings`;
       console.log(`[Calendar] Connecting ${provider} with redirect URI:`, redirectUri);
-      
+
       const functionName = provider === 'google' ? 'google-calendar-auth' : 'microsoft-calendar-auth';
-      
+
       // Store the label and provider for after OAuth redirect
-      localStorage.setItem('pending_calendar_connection', JSON.stringify({ 
-        provider, 
-        label: label.trim() 
+      localStorage.setItem('pending_calendar_connection', JSON.stringify({
+        provider,
+        label: label.trim()
       }));
-      
+
       const { data, error } = await supabase.functions.invoke(functionName, {
         body: { action: 'getAuthUrl', redirectUri }
       });
@@ -1044,7 +1045,7 @@ const Profile = () => {
         console.error(`[Calendar] ${provider} auth error:`, error);
         throw error;
       }
-      
+
       if (!data || !data.authUrl) {
         console.error(`[Calendar] No auth URL returned from ${provider}`);
         throw new Error('No authentication URL received');
@@ -1056,7 +1057,7 @@ const Profile = () => {
     } catch (error) {
       console.error(`[Calendar] ${provider} Calendar connection error:`, error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       // Show detailed error with better formatting
       const isRedirectError = errorMessage.includes('redirect URI');
       toast.error(
@@ -1085,28 +1086,28 @@ const Profile = () => {
     const code = urlParams.get('code');
     const error = urlParams.get('error');
     const errorDescription = urlParams.get('error_description');
-    
+
     // Handle OAuth errors
     if (error) {
       const pendingConnection = localStorage.getItem('pending_calendar_connection');
       if (pendingConnection) {
         const { provider } = JSON.parse(pendingConnection);
         const providerName = provider === 'google' ? 'Google' : 'Microsoft';
-        
+
         let errorMessage = `${providerName} Calendar connection failed`;
         if (error === 'access_denied') {
           errorMessage = `You denied access to ${providerName} Calendar`;
         } else if (errorDescription) {
           errorMessage = `${providerName} Calendar: ${errorDescription}`;
         }
-        
+
         toast.error(errorMessage);
         localStorage.removeItem('pending_calendar_connection');
         window.history.replaceState({}, document.title, '/user-settings');
       }
       return;
     }
-    
+
     if (code) {
       (async () => {
         try {
@@ -1114,14 +1115,14 @@ const Profile = () => {
           if (pendingConnection) {
             const { provider, label } = JSON.parse(pendingConnection);
             const redirectUri = `${window.location.origin}/user-settings`;
-            
+
             let token: string;
             let email: string = 'Calendar Account';
 
             if (provider === 'google') {
               // Get current session token
               const { data: { session } } = await supabase.auth.getSession();
-              
+
               const { data, error: invocationError } = await supabase.functions.invoke('google-calendar-auth', {
                 body: { action: 'exchangeCode', code, redirectUri },
                 headers: {
@@ -1133,21 +1134,21 @@ const Profile = () => {
                 console.error('Google Calendar auth error:', invocationError);
                 throw new Error(invocationError.message || 'Failed to authenticate with Google Calendar');
               }
-              
+
               if (data?.error) {
                 console.error('Google Calendar response error:', data);
-                
+
                 // Show detailed error with instructions
                 let errorMsg = data.error;
                 if (data.redirectUri && errorMsg.includes('redirect URI')) {
                   errorMsg += `\n\nPlease ensure this URL is added to your Google Cloud Console:\n${data.redirectUri}\n\nGo to: APIs & Services → Credentials → Your OAuth 2.0 Client → Authorized redirect URIs`;
                 }
-                
+
                 throw new Error(errorMsg);
               }
-              
+
               token = data.tokens.access_token;
-              
+
               // Try to get user email from Google
               try {
                 const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -1161,7 +1162,7 @@ const Profile = () => {
             } else {
               // Get current session token
               const { data: { session } } = await supabase.auth.getSession();
-              
+
               const { data, error: invocationError } = await supabase.functions.invoke('microsoft-calendar-auth', {
                 body: { action: 'exchangeCode', code, redirectUri },
                 headers: {
@@ -1173,13 +1174,13 @@ const Profile = () => {
                 console.error('Microsoft Calendar auth error:', invocationError);
                 throw new Error(invocationError.message || 'Failed to authenticate with Microsoft Calendar');
               }
-              
+
               if (data.error) {
                 throw new Error(data.error);
               }
-              
+
               token = data.access_token;
-              
+
               // Try to get user email from Microsoft
               try {
                 const userInfoResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
@@ -1206,17 +1207,17 @@ const Profile = () => {
             setConnectedCalendars(updatedCalendars);
             localStorage.setItem('connected_calendars', JSON.stringify(updatedCalendars));
             localStorage.removeItem('pending_calendar_connection');
-            
+
             // Clean up URL
             window.history.replaceState({}, document.title, '/user-settings');
-            
+
             toast.success(`${provider === 'google' ? 'Google' : 'Microsoft'} Calendar "${label}" connected successfully!`);
           } else {
             // Check if it's a social media OAuth callback
             const { data: session } = await supabase.auth.getSession();
             if (session?.session?.user) {
               const provider = session.session.user.app_metadata.provider;
-              
+
               if (provider === 'linkedin_oidc' || provider === 'linkedin') {
                 const { error } = await supabase
                   .from('profiles')
@@ -1241,8 +1242,8 @@ const Profile = () => {
                   .eq('id', session.session.user.id);
 
                 if (!error) {
-                  setSocialConnections(prev => ({ 
-                    ...prev, 
+                  setSocialConnections(prev => ({
+                    ...prev,
                     instagram: true,
                     instagramUsername: username,
                   }));
@@ -1259,8 +1260,8 @@ const Profile = () => {
                   .eq('id', session.session.user.id);
 
                 if (!error) {
-                  setSocialConnections(prev => ({ 
-                    ...prev, 
+                  setSocialConnections(prev => ({
+                    ...prev,
                     twitter: true,
                     twitterUsername: username,
                   }));
@@ -1278,15 +1279,15 @@ const Profile = () => {
                   .eq('id', session.session.user.id);
 
                 if (!error) {
-                  setSocialConnections(prev => ({ 
-                    ...prev, 
+                  setSocialConnections(prev => ({
+                    ...prev,
                     github: true,
                     githubUsername: username,
                   }));
                   toast.success('GitHub connected successfully!');
                 }
               }
-              
+
               // Clean up URL
               window.history.replaceState({}, document.title, '/profile');
             }
@@ -1338,7 +1339,7 @@ const Profile = () => {
           </div>
           {isSaving && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <InlineLoader />
               Saving changes...
             </div>
           )}
@@ -1402,7 +1403,7 @@ const Profile = () => {
                       required={true}
                     />
                   )}
-                  
+
                   <Separator />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1427,7 +1428,7 @@ const Profile = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <EmailVerification
                       email={profileData.email}
@@ -1521,1011 +1522,1011 @@ const Profile = () => {
                     Specify where you'd like to work - add multiple cities or toggle remote
                   </CardDescription>
                 </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Remote Toggle */}
-              <div className="flex items-center justify-between p-4 border-2 border-accent/20 rounded-lg bg-accent/5">
-                <div className="flex items-center gap-3">
-                  <Globe className="w-5 h-5 text-accent" />
-                  <div>
-                    <Label htmlFor="remoteWork" className="text-base font-semibold cursor-pointer">
-                      Open to Remote Work
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Work from anywhere in the world
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  id="remoteWork"
-                  checked={remoteWorkPreference}
-                  onCheckedChange={handleRemoteToggle}
-                />
-              </div>
-
-              {/* City Selection */}
-              <div className="space-y-3">
-                <Label>Add Preferred Cities</Label>
-                <div className="flex gap-2">
-                  <Select value={selectedCity} onValueChange={setSelectedCity}>
-                    <SelectTrigger className="bg-background/50">
-                      <SelectValue placeholder="Select a city" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                      {cities
-                        .filter(city => !preferredWorkLocations.includes(`${city.name}, ${city.country}`))
-                        .map((city) => (
-                          <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
-                            {city.name}, {city.country}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    onClick={handleAddPreferredLocation}
-                    disabled={!selectedCity}
-                    className="bg-accent text-background hover:bg-accent/90"
-                  >
-                    Add
-                  </Button>
-                </div>
-              </div>
-
-              {/* Selected Locations */}
-              {preferredWorkLocations.length > 0 ? (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Selected Locations:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {preferredWorkLocations.map((location) => (
-                      <div
-                        key={location}
-                        className="flex items-center gap-2 px-3 py-2 bg-accent/10 border border-accent/20 rounded-lg group hover:bg-accent/20 transition-colors"
-                      >
-                        <MapPin className="w-4 h-4 text-accent" />
-                        <span className="text-sm font-medium">{location}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePreferredLocation(location)}
-                          className="text-accent hover:text-accent/80 transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                <CardContent className="space-y-4">
+                  {/* Remote Toggle */}
+                  <div className="flex items-center justify-between p-4 border-2 border-accent/20 rounded-lg bg-accent/5">
+                    <div className="flex items-center gap-3">
+                      <Globe className="w-5 h-5 text-accent" />
+                      <div>
+                        <Label htmlFor="remoteWork" className="text-base font-semibold cursor-pointer">
+                          Open to Remote Work
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Work from anywhere in the world
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
-                  <MapPin className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    No preferred locations added yet. {remoteWorkPreference ? 'Remote work is enabled.' : 'Add cities or enable remote work.'}
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
-                <p className="text-xs text-muted-foreground">
-                  <strong>Note:</strong> Adding preferred locations helps us match you with opportunities in areas where you'd like to work. 
-                  Enable remote work to see opportunities from anywhere.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Work Availability & Timezone Preferences */}
-          <WorkAvailabilitySettings
-            workTimezone={workTimezone}
-            workHoursStart={workHoursStart}
-            workHoursEnd={workHoursEnd}
-            workDays={workDays}
-            timezoneFlexibilityHours={workTimezoneFlexibilityHours}
-            referenceTimezone={referenceTimezone}
-            weekendAvailability={workWeekendAvailability}
-            overtimeWillingness={workOvertimeWillingness}
-            onSettingsChange={(settings) => {
-              setWorkTimezone(settings.work_timezone);
-              setWorkHoursStart(settings.work_hours_start);
-              setWorkHoursEnd(settings.work_hours_end);
-              setWorkDays(settings.work_days);
-              setWorkTimezoneFlexibilityHours(settings.work_timezone_flexibility_hours);
-              setReferenceTimezone(settings.reference_timezone);
-              setWorkWeekendAvailability(settings.weekend_availability);
-              setWorkOvertimeWillingness(settings.overtime_willingness);
-            }}
-          />
-
-          {/* Stealth Mode */}
-          <StealthModeToggle
-            stealthModeEnabled={stealthModeEnabled}
-            stealthModeLevel={stealthModeLevel}
-            allowStealthColdOutreach={allowStealthColdOutreach}
-            onStealthModeChange={handleStealthModeChange}
-            onStealthLevelChange={handleStealthLevelChange}
-            onColdOutreachChange={handleColdOutreachChange}
-          />
-
-          {/* AI Task Scheduling */}
-          <TaskSchedulingPreferences />
-        </TabsContent>
-
-        {/* Career Tab - containing salary, employment, contract, blocklist */}
-        <TabsContent value="career" className="space-y-6">
-          {/* Professional Details */}
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Briefcase className="w-5 h-5 text-accent" />
-                Professional Details
-              </CardTitle>
-              <CardDescription>Your career information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="currentTitle">Current Title</Label>
-                <Input
-                  id="currentTitle"
-                  name="currentTitle"
-                  value={profileData.currentTitle}
-                  onChange={handleInputChange}
-                  className="bg-background/50"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="linkedin">LinkedIn Profile</Label>
-                <Input
-                  id="linkedin"
-                  name="linkedin"
-                  type="url"
-                  value={profileData.linkedin}
-                  onChange={handleInputChange}
-                  placeholder="https://linkedin.com/in/yourprofile"
-                  className="bg-background/50"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="preferences">Career Preferences</Label>
-                <Textarea
-                  id="preferences"
-                  name="preferences"
-                  value={profileData.preferences}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Remote work, specific industries, company size..."
-                  rows={4}
-                  className="bg-background/50 resize-none"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Resume/CV - moved to Resume tab */}
-          {/* Social Connections - moved to Connections tab */}
-          
-          {/* Compensation Bands */}
-          <Card id="salary" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-accent" />
-                Compensation & Salary Bands
-              </CardTitle>
-              <CardDescription>Help us match you with appropriate opportunities</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              {/* Employment Type Preference */}
-              <div className="space-y-4">
-                <Label className="text-base font-semibold">Employment Type Preference</Label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <Button
-                    type="button"
-                    variant={employmentType === 'fulltime' ? 'default' : 'outline'}
-                    onClick={() => {
-                      setEmploymentType('fulltime');
-                      debouncedSave();
-                    }}
-                    className="w-full"
-                  >
-                    <Briefcase className="w-4 h-4 mr-2" />
-                    Full-Time
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={employmentType === 'freelance' ? 'default' : 'outline'}
-                    onClick={() => {
-                      setEmploymentType('freelance');
-                      debouncedSave();
-                    }}
-                    className="w-full"
-                  >
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    Freelance
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={employmentType === 'both' ? 'default' : 'outline'}
-                    onClick={() => {
-                      setEmploymentType('both');
-                      debouncedSave();
-                    }}
-                    className="w-full"
-                  >
-                    Both
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Select your preferred employment type to see relevant opportunities
-                </p>
-              </div>
-
-              <Separator />
-
-              {/* Full-Time Compensation */}
-              {(employmentType === 'fulltime' || employmentType === 'both') && (
-                <div className="space-y-6">
-                  <h4 className="text-base font-semibold flex items-center gap-2">
-                    <Briefcase className="w-4 h-4 text-accent" />
-                    Full-Time Compensation
-                  </h4>
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <Label className="text-base font-semibold">Current Salary Range (Optional)</Label>
-                      <span className="text-sm font-bold">
-                        {formatSalary(currentSalaryRange[0])} - {formatSalary(currentSalaryRange[1])}
-                      </span>
                     </div>
-                    <Slider
-                      value={currentSalaryRange}
-                      onValueChange={(value) => setCurrentSalaryRange(value as [number, number])}
-                      min={50000}
-                      max={500000}
-                      step={5000}
-                      className="py-4"
+                    <Switch
+                      id="remoteWork"
+                      checked={remoteWorkPreference}
+                      onCheckedChange={handleRemoteToggle}
                     />
-                    <div className="flex justify-between items-center mt-2">
-                      <p className="text-xs text-muted-foreground">
-                        Confidential - helps us better match opportunities
-                      </p>
-                      <p className="text-xs font-medium text-accent">
-                        {getPercentileMessage(calculateSalaryPercentile(currentSalaryRange[1]))}
-                      </p>
+                  </div>
+
+                  {/* City Selection */}
+                  <div className="space-y-3">
+                    <Label>Add Preferred Cities</Label>
+                    <div className="flex gap-2">
+                      <Select value={selectedCity} onValueChange={setSelectedCity}>
+                        <SelectTrigger className="bg-background/50">
+                          <SelectValue placeholder="Select a city" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {cities
+                            .filter(city => !preferredWorkLocations.includes(`${city.name}, ${city.country}`))
+                            .map((city) => (
+                              <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
+                                {city.name}, {city.country}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        onClick={handleAddPreferredLocation}
+                        disabled={!selectedCity}
+                        className="bg-accent text-background hover:bg-accent/90"
+                      >
+                        Add
+                      </Button>
                     </div>
                   </div>
 
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <Label className="text-base font-semibold">Desired Salary Range</Label>
-                      <span className="text-sm font-bold">
-                        {formatSalary(desiredSalaryRange[0])} - {formatSalary(desiredSalaryRange[1])}
-                      </span>
+                  {/* Selected Locations */}
+                  {preferredWorkLocations.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Selected Locations:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {preferredWorkLocations.map((location) => (
+                          <div
+                            key={location}
+                            className="flex items-center gap-2 px-3 py-2 bg-accent/10 border border-accent/20 rounded-lg group hover:bg-accent/20 transition-colors"
+                          >
+                            <MapPin className="w-4 h-4 text-accent" />
+                            <span className="text-sm font-medium">{location}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePreferredLocation(location)}
+                              className="text-accent hover:text-accent/80 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <Slider
-                      value={desiredSalaryRange}
-                      onValueChange={(value) => setDesiredSalaryRange(value as [number, number])}
-                      min={50000}
-                      max={500000}
-                      step={5000}
-                      className="py-4"
-                    />
-                    <div className="flex justify-end mt-2">
-                      <p className="text-xs font-medium text-accent">
-                        Target: {getPercentileMessage(calculateSalaryPercentile(desiredSalaryRange[1]))}
+                  ) : (
+                    <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
+                      <MapPin className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        No preferred locations added yet. {remoteWorkPreference ? 'Remote work is enabled.' : 'Add cities or enable remote work.'}
                       </p>
                     </div>
+                  )}
+
+                  <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Note:</strong> Adding preferred locations helps us match you with opportunities in areas where you'd like to work.
+                      Enable remote work to see opportunities from anywhere.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Work Availability & Timezone Preferences */}
+              <WorkAvailabilitySettings
+                workTimezone={workTimezone}
+                workHoursStart={workHoursStart}
+                workHoursEnd={workHoursEnd}
+                workDays={workDays}
+                timezoneFlexibilityHours={workTimezoneFlexibilityHours}
+                referenceTimezone={referenceTimezone}
+                weekendAvailability={workWeekendAvailability}
+                overtimeWillingness={workOvertimeWillingness}
+                onSettingsChange={(settings) => {
+                  setWorkTimezone(settings.work_timezone);
+                  setWorkHoursStart(settings.work_hours_start);
+                  setWorkHoursEnd(settings.work_hours_end);
+                  setWorkDays(settings.work_days);
+                  setWorkTimezoneFlexibilityHours(settings.work_timezone_flexibility_hours);
+                  setReferenceTimezone(settings.reference_timezone);
+                  setWorkWeekendAvailability(settings.weekend_availability);
+                  setWorkOvertimeWillingness(settings.overtime_willingness);
+                }}
+              />
+
+              {/* Stealth Mode */}
+              <StealthModeToggle
+                stealthModeEnabled={stealthModeEnabled}
+                stealthModeLevel={stealthModeLevel}
+                allowStealthColdOutreach={allowStealthColdOutreach}
+                onStealthModeChange={handleStealthModeChange}
+                onStealthLevelChange={handleStealthLevelChange}
+                onColdOutreachChange={handleColdOutreachChange}
+              />
+
+              {/* AI Task Scheduling */}
+              <TaskSchedulingPreferences />
+            </TabsContent>
+
+            {/* Career Tab - containing salary, employment, contract, blocklist */}
+            <TabsContent value="career" className="space-y-6">
+              {/* Professional Details */}
+              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="w-5 h-5 text-accent" />
+                    Professional Details
+                  </CardTitle>
+                  <CardDescription>Your career information</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="currentTitle">Current Title</Label>
+                    <Input
+                      id="currentTitle"
+                      name="currentTitle"
+                      value={profileData.currentTitle}
+                      onChange={handleInputChange}
+                      className="bg-background/50"
+                    />
                   </div>
 
                   <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <Label className="text-base font-semibold">Desired Hours Per Week</Label>
-                      <span className="text-sm font-bold">
-                        {fulltimeHoursPerWeek[0]} - {fulltimeHoursPerWeek[1]} hours/week
-                      </span>
-                    </div>
-                    <Slider
-                      value={fulltimeHoursPerWeek}
-                      onValueChange={(value) => setFulltimeHoursPerWeek(value as [number, number])}
-                      min={20}
-                      max={60}
-                      step={1}
-                      className="py-4"
+                    <Label htmlFor="linkedin">LinkedIn Profile</Label>
+                    <Input
+                      id="linkedin"
+                      name="linkedin"
+                      type="url"
+                      value={profileData.linkedin}
+                      onChange={handleInputChange}
+                      placeholder="https://linkedin.com/in/yourprofile"
+                      className="bg-background/50"
                     />
-                    <div className="flex justify-between items-center mt-2">
-                      <p className="text-xs text-muted-foreground">
-                        Standard full-time is typically 35-45 hours/week
-                      </p>
-                      <p className="text-xs font-medium text-accent">
-                        {fulltimeHoursPerWeek[0] * 52} - {fulltimeHoursPerWeek[1] * 52} hours/year
-                      </p>
-                    </div>
                   </div>
-                </div>
-              )}
 
-              {employmentType === 'both' && <Separator />}
-
-              {/* Freelance Hourly Rate */}
-              {(employmentType === 'freelance' || employmentType === 'both') && (
-                <div className="space-y-6">
-                  <h4 className="text-base font-semibold flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-accent" />
-                    Freelance Hourly Rate
-                  </h4>
                   <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <Label className="text-base font-semibold">Hourly Rate Range</Label>
-                      <span className="text-sm font-bold">
-                        ${freelanceHourlyRate[0]}/hr - ${freelanceHourlyRate[1]}/hr
-                      </span>
-                    </div>
-                    <Slider
-                      value={freelanceHourlyRate}
-                      onValueChange={(value) => setFreelanceHourlyRate(value as [number, number])}
-                      min={50}
-                      max={500}
-                      step={5}
-                      className="py-4"
+                    <Label htmlFor="preferences">Career Preferences</Label>
+                    <Textarea
+                      id="preferences"
+                      name="preferences"
+                      value={profileData.preferences}
+                      onChange={handleInputChange}
+                      placeholder="e.g., Remote work, specific industries, company size..."
+                      rows={4}
+                      className="bg-background/50 resize-none"
                     />
-                    <div className="flex justify-between items-center mt-2">
-                      <p className="text-xs text-muted-foreground">
-                        Your hourly rate for freelance projects
-                      </p>
-                      <p className="text-xs font-medium text-accent">
-                        Annual estimate: {formatSalary(freelanceHourlyRate[1] * freelanceHoursPerWeek[1] * 52)}
-                      </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Resume/CV - moved to Resume tab */}
+              {/* Social Connections - moved to Connections tab */}
+
+              {/* Compensation Bands */}
+              <Card id="salary" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-accent" />
+                    Compensation & Salary Bands
+                  </CardTitle>
+                  <CardDescription>Help us match you with appropriate opportunities</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  {/* Employment Type Preference */}
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Employment Type Preference</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <Button
+                        type="button"
+                        variant={employmentType === 'fulltime' ? 'default' : 'outline'}
+                        onClick={() => {
+                          setEmploymentType('fulltime');
+                          debouncedSave();
+                        }}
+                        className="w-full"
+                      >
+                        <Briefcase className="w-4 h-4 mr-2" />
+                        Full-Time
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={employmentType === 'freelance' ? 'default' : 'outline'}
+                        onClick={() => {
+                          setEmploymentType('freelance');
+                          debouncedSave();
+                        }}
+                        className="w-full"
+                      >
+                        <DollarSign className="w-4 h-4 mr-2" />
+                        Freelance
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={employmentType === 'both' ? 'default' : 'outline'}
+                        onClick={() => {
+                          setEmploymentType('both');
+                          debouncedSave();
+                        }}
+                        className="w-full"
+                      >
+                        Both
+                      </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Based on {freelanceHoursPerWeek[0]}-{freelanceHoursPerWeek[1]} hours/week × 52 weeks
+                    <p className="text-xs text-muted-foreground">
+                      Select your preferred employment type to see relevant opportunities
                     </p>
                   </div>
 
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <Label className="text-base font-semibold">Desired Hours Per Week</Label>
-                      <span className="text-sm font-bold">
-                        {freelanceHoursPerWeek[0]} - {freelanceHoursPerWeek[1]} hours/week
-                      </span>
-                    </div>
-                    <Slider
-                      value={freelanceHoursPerWeek}
-                      onValueChange={(value) => setFreelanceHoursPerWeek(value as [number, number])}
-                      min={5}
-                      max={60}
-                      step={1}
-                      className="py-4"
-                    />
-                    <div className="flex justify-between items-center mt-2">
-                      <p className="text-xs text-muted-foreground">
-                        Adjust based on your availability for freelance work
-                      </p>
-                      <p className="text-xs font-medium text-accent">
-                        {freelanceHoursPerWeek[0] * 52} - {freelanceHoursPerWeek[1] * 52} hours/year
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+                  <Separator />
 
-              <Separator />
-
-              <div className="space-y-3">
-                <Label htmlFor="noticePeriod">Notice Period</Label>
-                <Select value={profileData.noticePeriod} onValueChange={handleNoticePeriodChange}>
-                  <SelectTrigger className="bg-background/50">
-                    <SelectValue placeholder="Select notice period" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="immediate">Available Immediately</SelectItem>
-                    <SelectItem value="2_weeks">2 Weeks</SelectItem>
-                    <SelectItem value="1_month">1 Month</SelectItem>
-                    <SelectItem value="2_months">2 Months</SelectItem>
-                    <SelectItem value="3_months">3 Months</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label>Current Contract End Date</Label>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="indefinite-contract"
-                      checked={hasIndefiniteContract}
-                      onCheckedChange={(checked) => {
-                        setHasIndefiniteContract(checked);
-                        if (checked) setContractEndDate(null);
-                        debouncedSave();
-                      }}
-                    />
-                    <Label htmlFor="indefinite-contract" className="text-sm font-normal cursor-pointer">
-                      Indefinite Contract
-                    </Label>
-                  </div>
-                </div>
-
-                {hasIndefiniteContract ? (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
-                    <Calendar className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-foreground">
-                      Indefinite Contract - No fixed end date
-                    </span>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Input
-                      type="date"
-                      value={contractEndDate ? contractEndDate.toISOString().split('T')[0] : ''}
-                      onChange={(e) => {
-                        const date = e.target.value ? new Date(e.target.value) : null;
-                        setContractEndDate(date);
-                        debouncedSave();
-                      }}
-                      className="bg-background/50"
-                      placeholder="Select contract end date"
-                    />
-                    {contractEndDate && (
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
-                        <Calendar className="w-4 h-4 text-primary" />
-                        <div className="text-sm">
-                          <span className="text-muted-foreground">Contract ends: </span>
-                          <span className="font-medium text-foreground">
-                            {contractEndDate.toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
+                  {/* Full-Time Compensation */}
+                  {(employmentType === 'fulltime' || employmentType === 'both') && (
+                    <div className="space-y-6">
+                      <h4 className="text-base font-semibold flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-accent" />
+                        Full-Time Compensation
+                      </h4>
+                      <div>
+                        <div className="flex justify-between items-center mb-4">
+                          <Label className="text-base font-semibold">Current Salary Range (Optional)</Label>
+                          <span className="text-sm font-bold">
+                            {formatSalary(currentSalaryRange[0])} - {formatSalary(currentSalaryRange[1])}
                           </span>
                         </div>
+                        <Slider
+                          value={currentSalaryRange}
+                          onValueChange={(value) => setCurrentSalaryRange(value as [number, number])}
+                          min={50000}
+                          max={500000}
+                          step={5000}
+                          className="py-4"
+                        />
+                        <div className="flex justify-between items-center mt-2">
+                          <p className="text-xs text-muted-foreground">
+                            Confidential - helps us better match opportunities
+                          </p>
+                          <p className="text-xs font-medium text-accent">
+                            {getPercentileMessage(calculateSalaryPercentile(currentSalaryRange[1]))}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-4">
+                          <Label className="text-base font-semibold">Desired Salary Range</Label>
+                          <span className="text-sm font-bold">
+                            {formatSalary(desiredSalaryRange[0])} - {formatSalary(desiredSalaryRange[1])}
+                          </span>
+                        </div>
+                        <Slider
+                          value={desiredSalaryRange}
+                          onValueChange={(value) => setDesiredSalaryRange(value as [number, number])}
+                          min={50000}
+                          max={500000}
+                          step={5000}
+                          className="py-4"
+                        />
+                        <div className="flex justify-end mt-2">
+                          <p className="text-xs font-medium text-accent">
+                            Target: {getPercentileMessage(calculateSalaryPercentile(desiredSalaryRange[1]))}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-4">
+                          <Label className="text-base font-semibold">Desired Hours Per Week</Label>
+                          <span className="text-sm font-bold">
+                            {fulltimeHoursPerWeek[0]} - {fulltimeHoursPerWeek[1]} hours/week
+                          </span>
+                        </div>
+                        <Slider
+                          value={fulltimeHoursPerWeek}
+                          onValueChange={(value) => setFulltimeHoursPerWeek(value as [number, number])}
+                          min={20}
+                          max={60}
+                          step={1}
+                          className="py-4"
+                        />
+                        <div className="flex justify-between items-center mt-2">
+                          <p className="text-xs text-muted-foreground">
+                            Standard full-time is typically 35-45 hours/week
+                          </p>
+                          <p className="text-xs font-medium text-accent">
+                            {fulltimeHoursPerWeek[0] * 52} - {fulltimeHoursPerWeek[1] * 52} hours/year
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {employmentType === 'both' && <Separator />}
+
+                  {/* Freelance Hourly Rate */}
+                  {(employmentType === 'freelance' || employmentType === 'both') && (
+                    <div className="space-y-6">
+                      <h4 className="text-base font-semibold flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-accent" />
+                        Freelance Hourly Rate
+                      </h4>
+                      <div>
+                        <div className="flex justify-between items-center mb-4">
+                          <Label className="text-base font-semibold">Hourly Rate Range</Label>
+                          <span className="text-sm font-bold">
+                            ${freelanceHourlyRate[0]}/hr - ${freelanceHourlyRate[1]}/hr
+                          </span>
+                        </div>
+                        <Slider
+                          value={freelanceHourlyRate}
+                          onValueChange={(value) => setFreelanceHourlyRate(value as [number, number])}
+                          min={50}
+                          max={500}
+                          step={5}
+                          className="py-4"
+                        />
+                        <div className="flex justify-between items-center mt-2">
+                          <p className="text-xs text-muted-foreground">
+                            Your hourly rate for freelance projects
+                          </p>
+                          <p className="text-xs font-medium text-accent">
+                            Annual estimate: {formatSalary(freelanceHourlyRate[1] * freelanceHoursPerWeek[1] * 52)}
+                          </p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Based on {freelanceHoursPerWeek[0]}-{freelanceHoursPerWeek[1]} hours/week × 52 weeks
+                        </p>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-4">
+                          <Label className="text-base font-semibold">Desired Hours Per Week</Label>
+                          <span className="text-sm font-bold">
+                            {freelanceHoursPerWeek[0]} - {freelanceHoursPerWeek[1]} hours/week
+                          </span>
+                        </div>
+                        <Slider
+                          value={freelanceHoursPerWeek}
+                          onValueChange={(value) => setFreelanceHoursPerWeek(value as [number, number])}
+                          min={5}
+                          max={60}
+                          step={1}
+                          className="py-4"
+                        />
+                        <div className="flex justify-between items-center mt-2">
+                          <p className="text-xs text-muted-foreground">
+                            Adjust based on your availability for freelance work
+                          </p>
+                          <p className="text-xs font-medium text-accent">
+                            {freelanceHoursPerWeek[0] * 52} - {freelanceHoursPerWeek[1] * 52} hours/year
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <Label htmlFor="noticePeriod">Notice Period</Label>
+                    <Select value={profileData.noticePeriod} onValueChange={handleNoticePeriodChange}>
+                      <SelectTrigger className="bg-background/50">
+                        <SelectValue placeholder="Select notice period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="immediate">Available Immediately</SelectItem>
+                        <SelectItem value="2_weeks">2 Weeks</SelectItem>
+                        <SelectItem value="1_month">1 Month</SelectItem>
+                        <SelectItem value="2_months">2 Months</SelectItem>
+                        <SelectItem value="3_months">3 Months</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>Current Contract End Date</Label>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="indefinite-contract"
+                          checked={hasIndefiniteContract}
+                          onCheckedChange={(checked) => {
+                            setHasIndefiniteContract(checked);
+                            if (checked) setContractEndDate(null);
+                            debouncedSave();
+                          }}
+                        />
+                        <Label htmlFor="indefinite-contract" className="text-sm font-normal cursor-pointer">
+                          Indefinite Contract
+                        </Label>
+                      </div>
+                    </div>
+
+                    {hasIndefiniteContract ? (
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                        <Calendar className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium text-foreground">
+                          Indefinite Contract - No fixed end date
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Input
+                          type="date"
+                          value={contractEndDate ? contractEndDate.toISOString().split('T')[0] : ''}
+                          onChange={(e) => {
+                            const date = e.target.value ? new Date(e.target.value) : null;
+                            setContractEndDate(date);
+                            debouncedSave();
+                          }}
+                          className="bg-background/50"
+                          placeholder="Select contract end date"
+                        />
+                        {contractEndDate && (
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                            <Calendar className="w-4 h-4 text-primary" />
+                            <div className="text-sm">
+                              <span className="text-muted-foreground">Contract ends: </span>
+                              <span className="font-medium text-foreground">
+                                {contractEndDate.toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          {/* Company Blocklist */}
-          <Card id="blocklist" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Ban className="w-5 h-5 text-accent" />
-                Company Blocklist
-              </CardTitle>
-              <CardDescription>
-                Ensure complete discretion - these companies won't see your profile or opportunities
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <CompanySearch
-                value={companySearchQuery}
-                onChange={setCompanySearchQuery}
-                onSelect={handleAddBlockedCompany}
-              />
+              {/* Company Blocklist */}
+              <Card id="blocklist" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Ban className="w-5 h-5 text-accent" />
+                    Company Blocklist
+                  </CardTitle>
+                  <CardDescription>
+                    Ensure complete discretion - these companies won't see your profile or opportunities
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <CompanySearch
+                    value={companySearchQuery}
+                    onChange={setCompanySearchQuery}
+                    onSelect={handleAddBlockedCompany}
+                  />
 
-              {blockedCompanies.length > 0 ? (
-                <div className="space-y-2 mt-4">
-                  <p className="text-sm font-medium mb-3">Blocked Companies:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {blockedCompanies.map((company) => (
-                      <div
-                        key={company}
-                        className="flex items-center gap-2 px-3 py-2 bg-destructive/10 border border-destructive/20 rounded-lg group hover:bg-destructive/20 transition-colors"
-                      >
-                        <span className="text-sm font-medium">{company}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveBlockedCompany(company)}
-                          className="text-destructive hover:text-destructive/80 transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
-                  <Ban className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    No companies blocked yet. Add companies to maintain your privacy.
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
-                <p className="text-xs text-muted-foreground">
-                  <strong>Note:</strong> Blocked companies will not be able to view your profile, contact you, 
-                  or see that you've applied to their opportunities. Your information remains completely confidential.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Calendar Integration */}
-          <Card id="calendar" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-accent" />
-                Connect Your Calendars
-              </CardTitle>
-              <CardDescription>
-                Link multiple calendars (personal + work accounts) to sync your availability and prevent scheduling conflicts. 
-                We'll automatically coordinate with recruiters and clients across all your calendars.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Connected Calendars List */}
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm mb-3">Currently Connected Calendars</h4>
-                {connectedCalendars.length > 0 ? (
-                  <div className="space-y-2">
-                    {connectedCalendars.map((calendar) => (
-                      <div
-                        key={calendar.id}
-                        className="flex items-center justify-between p-4 border border-border rounded-lg bg-background/50"
-                      >
-                        <div className="flex items-center gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-green-500" />
-                          <div>
-                            <p className="font-medium">
-                              {calendar.provider === 'google' ? 'Google' : 'Microsoft'} - {calendar.label}
-                            </p>
-                            <p className="text-sm text-muted-foreground">{calendar.email}</p>
+                  {blockedCompanies.length > 0 ? (
+                    <div className="space-y-2 mt-4">
+                      <p className="text-sm font-medium mb-3">Blocked Companies:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {blockedCompanies.map((company) => (
+                          <div
+                            key={company}
+                            className="flex items-center gap-2 px-3 py-2 bg-destructive/10 border border-destructive/20 rounded-lg group hover:bg-destructive/20 transition-colors"
+                          >
+                            <span className="text-sm font-medium">{company}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveBlockedCompany(company)}
+                              className="text-destructive hover:text-destructive/80 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
                           </div>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDisconnectCalendar(calendar.id)}
-                          className="text-destructive hover:text-destructive/80"
-                        >
-                          Remove
-                        </Button>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
-                    <Calendar className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                    <p className="text-sm font-medium mb-1">No calendars connected yet</p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
+                      <Ban className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        No companies blocked yet. Add companies to maintain your privacy.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
                     <p className="text-xs text-muted-foreground">
-                      Connect your calendars to enable automatic scheduling and prevent conflicts
+                      <strong>Note:</strong> Blocked companies will not be able to view your profile, contact you,
+                      or see that you've applied to their opportunities. Your information remains completely confidential.
                     </p>
                   </div>
-                )}
-              </div>
+                </CardContent>
+              </Card>
 
-              {/* Add Calendar Buttons */}
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm mb-3">
-                  {connectedCalendars.length > 0 ? 'Add Another Calendar' : 'Connect a Calendar'}
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <Button
-                    type="button"
-                    onClick={() => handleConnectCalendar('google')}
-                    disabled={calendarLoading}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {calendarLoading ? 'Connecting...' : 'Add Google Calendar'}
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => handleConnectCalendar('microsoft')}
-                    disabled={calendarLoading}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {calendarLoading ? 'Connecting...' : 'Add Microsoft Calendar'}
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => handleConnectCalendar('apple')}
-                    disabled={calendarLoading}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {calendarLoading ? 'Connecting...' : 'Add Apple Calendar'}
-                  </Button>
-                </div>
-              </div>
+              {/* Calendar Integration */}
+              <Card id="calendar" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-accent" />
+                    Connect Your Calendars
+                  </CardTitle>
+                  <CardDescription>
+                    Link multiple calendars (personal + work accounts) to sync your availability and prevent scheduling conflicts.
+                    We'll automatically coordinate with recruiters and clients across all your calendars.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Connected Calendars List */}
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm mb-3">Currently Connected Calendars</h4>
+                    {connectedCalendars.length > 0 ? (
+                      <div className="space-y-2">
+                        {connectedCalendars.map((calendar) => (
+                          <div
+                            key={calendar.id}
+                            className="flex items-center justify-between p-4 border border-border rounded-lg bg-background/50"
+                          >
+                            <div className="flex items-center gap-3">
+                              <CheckCircle2 className="w-5 h-5 text-green-500" />
+                              <div>
+                                <p className="font-medium">
+                                  {calendar.provider === 'google' ? 'Google' : 'Microsoft'} - {calendar.label}
+                                </p>
+                                <p className="text-sm text-muted-foreground">{calendar.email}</p>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDisconnectCalendar(calendar.id)}
+                              className="text-destructive hover:text-destructive/80"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
+                        <Calendar className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                        <p className="text-sm font-medium mb-1">No calendars connected yet</p>
+                        <p className="text-xs text-muted-foreground">
+                          Connect your calendars to enable automatic scheduling and prevent conflicts
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
-              {connectedCalendars.length > 0 && (
-                <div className="space-y-2 p-4 border border-accent/20 rounded-lg bg-accent/5">
-                  <h4 className="font-medium text-sm flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    Calendar Features Active
-                  </h4>
-                  <ul className="text-sm text-muted-foreground space-y-1 ml-6">
-                    <li>✓ Sync availability across all {connectedCalendars.length} calendar{connectedCalendars.length > 1 ? 's' : ''}</li>
-                    <li>✓ Automatic meeting creation for interviews</li>
-                    <li>✓ Find open time slots with recruiters and clients</li>
-                    <li>✓ Prevent double-booking conflicts</li>
-                    <li>✓ Smart scheduling respecting all work and personal commitments</li>
-                  </ul>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  {/* Add Calendar Buttons */}
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm mb-3">
+                      {connectedCalendars.length > 0 ? 'Add Another Calendar' : 'Connect a Calendar'}
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <Button
+                        type="button"
+                        onClick={() => handleConnectCalendar('google')}
+                        disabled={calendarLoading}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Calendar className="w-4 h-4 mr-2" />
+                        {calendarLoading ? 'Connecting...' : 'Add Google Calendar'}
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => handleConnectCalendar('microsoft')}
+                        disabled={calendarLoading}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Calendar className="w-4 h-4 mr-2" />
+                        {calendarLoading ? 'Connecting...' : 'Add Microsoft Calendar'}
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => handleConnectCalendar('apple')}
+                        disabled={calendarLoading}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Calendar className="w-4 h-4 mr-2" />
+                        {calendarLoading ? 'Connecting...' : 'Add Apple Calendar'}
+                      </Button>
+                    </div>
+                  </div>
 
-          {/* Notifications & Privacy Settings */}
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5 text-accent" />
-                Notifications & Privacy
-              </CardTitle>
-              <CardDescription>Manage how you receive updates and who can see your profile</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Notifications */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Bell className="w-4 h-4 text-accent" />
-                  <h4 className="font-semibold">Notifications</h4>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="emailNotifications" className="font-normal cursor-pointer">
-                      Email Notifications
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive email updates about your applications
+                  {connectedCalendars.length > 0 && (
+                    <div className="space-y-2 p-4 border border-accent/20 rounded-lg bg-accent/5">
+                      <h4 className="font-medium text-sm flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        Calendar Features Active
+                      </h4>
+                      <ul className="text-sm text-muted-foreground space-y-1 ml-6">
+                        <li>✓ Sync availability across all {connectedCalendars.length} calendar{connectedCalendars.length > 1 ? 's' : ''}</li>
+                        <li>✓ Automatic meeting creation for interviews</li>
+                        <li>✓ Find open time slots with recruiters and clients</li>
+                        <li>✓ Prevent double-booking conflicts</li>
+                        <li>✓ Smart scheduling respecting all work and personal commitments</li>
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Notifications & Privacy Settings */}
+              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-accent" />
+                    Notifications & Privacy
+                  </CardTitle>
+                  <CardDescription>Manage how you receive updates and who can see your profile</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Notifications */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Bell className="w-4 h-4 text-accent" />
+                      <h4 className="font-semibold">Notifications</h4>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="emailNotifications" className="font-normal cursor-pointer">
+                          Email Notifications
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Receive email updates about your applications
+                        </p>
+                      </div>
+                      <Switch
+                        id="emailNotifications"
+                        checked={settings.emailNotifications}
+                        onCheckedChange={() => handleSettingChange('emailNotifications')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="applicationUpdates" className="font-normal cursor-pointer">
+                          Application Updates
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Get notified when your application status changes
+                        </p>
+                      </div>
+                      <Switch
+                        id="applicationUpdates"
+                        checked={settings.applicationUpdates}
+                        onCheckedChange={() => handleSettingChange('applicationUpdates')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="weeklyDigest" className="font-normal cursor-pointer">
+                          Weekly Digest
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Receive a weekly summary of new opportunities
+                        </p>
+                      </div>
+                      <Switch
+                        id="weeklyDigest"
+                        checked={settings.weeklyDigest}
+                        onCheckedChange={() => handleSettingChange('weeklyDigest')}
+                      />
+                    </div>
+                  </div>
+
+                  <Separator className="my-6" />
+
+                  {/* Privacy */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Shield className="w-4 h-4 text-accent" />
+                      <h4 className="font-semibold">Privacy</h4>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="profileVisibility" className="font-normal cursor-pointer">
+                          Profile Visibility
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Make your profile visible to partner companies
+                        </p>
+                      </div>
+                      <Switch
+                        id="profileVisibility"
+                        checked={settings.profileVisibility}
+                        onCheckedChange={() => handleSettingChange('profileVisibility')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="shareWithPartners" className="font-normal cursor-pointer">
+                          Share with Elite Partners
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Allow us to share your profile with our elite network
+                        </p>
+                      </div>
+                      <Switch
+                        id="shareWithPartners"
+                        checked={settings.shareWithPartners}
+                        onCheckedChange={() => handleSettingChange('shareWithPartners')}
+                      />
+                    </div>
+                  </div>
+
+                  <Separator className="my-6" />
+
+                  {/* Currency Preference */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Globe className="w-4 h-4 text-accent" />
+                      <h4 className="font-semibold">Currency Preference</h4>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="currency">Display Currency</Label>
+                      <Select
+                        value={preferredCurrency}
+                        onValueChange={handleCurrencyChange}
+                      >
+                        <SelectTrigger id="currency">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="EUR">EUR (€) - Euro</SelectItem>
+                          <SelectItem value="USD">USD ($) - US Dollar</SelectItem>
+                          <SelectItem value="GBP">GBP (£) - British Pound</SelectItem>
+                          <SelectItem value="AED">AED (د.إ) - UAE Dirham</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Job salaries will be automatically converted to your preferred currency
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Account Linking */}
+              <AccountLinking />
+
+              {/* Auth Diagnostics - for debugging */}
+              {role === 'admin' && <AuthDiagnostics />}
+
+              {/* Profile Sharing Settings */}
+              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-accent" />
+                    Profile Information Sharing
+                  </CardTitle>
+                  <CardDescription>
+                    Choose what information you'd like to share with potential employers
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Warning Banner */}
+                  <div className="p-4 border-2 border-amber-500/20 rounded-lg bg-amber-500/5">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5">
+                        <Shield className="w-5 h-5 text-amber-500" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-amber-500 mb-1">Matching Impact</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Sharing less information reduces the likelihood of finding the perfect match.
+                          Our AI uses your complete profile to find opportunities that align with your goals and expertise.
+                          Currently sharing <strong>{countSharedFields()} of 10</strong> fields.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Privacy Toggles */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="share_full_name" className="font-normal cursor-pointer">
+                          Full Name
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Share your name with employers
+                        </p>
+                      </div>
+                      <Switch
+                        id="share_full_name"
+                        checked={privacySettings.share_full_name}
+                        onCheckedChange={() => handlePrivacyToggle('share_full_name')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="share_email" className="font-normal cursor-pointer">
+                          Email Address
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Allow employers to contact you via email
+                        </p>
+                      </div>
+                      <Switch
+                        id="share_email"
+                        checked={privacySettings.share_email}
+                        onCheckedChange={() => handlePrivacyToggle('share_email')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="share_phone" className="font-normal cursor-pointer">
+                          Phone Number
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Share your contact number with employers
+                        </p>
+                      </div>
+                      <Switch
+                        id="share_phone"
+                        checked={privacySettings.share_phone}
+                        onCheckedChange={() => handlePrivacyToggle('share_phone')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="share_location" className="font-normal cursor-pointer">
+                          Location
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Share your city/country for local opportunities
+                        </p>
+                      </div>
+                      <Switch
+                        id="share_location"
+                        checked={privacySettings.share_location}
+                        onCheckedChange={() => handlePrivacyToggle('share_location')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="share_current_title" className="font-normal cursor-pointer">
+                          Current Job Title
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Show your current position to employers
+                        </p>
+                      </div>
+                      <Switch
+                        id="share_current_title"
+                        checked={privacySettings.share_current_title}
+                        onCheckedChange={() => handlePrivacyToggle('share_current_title')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="share_linkedin_url" className="font-normal cursor-pointer">
+                          LinkedIn Profile
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Share your LinkedIn for verification
+                        </p>
+                      </div>
+                      <Switch
+                        id="share_linkedin_url"
+                        checked={privacySettings.share_linkedin_url}
+                        onCheckedChange={() => handlePrivacyToggle('share_linkedin_url')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="share_career_preferences" className="font-normal cursor-pointer">
+                          Career Preferences
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Share your work style and industry preferences
+                        </p>
+                      </div>
+                      <Switch
+                        id="share_career_preferences"
+                        checked={privacySettings.share_career_preferences}
+                        onCheckedChange={() => handlePrivacyToggle('share_career_preferences')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="share_resume" className="font-normal cursor-pointer">
+                          Resume/CV
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Allow employers to view your resume
+                        </p>
+                      </div>
+                      <Switch
+                        id="share_resume"
+                        checked={privacySettings.share_resume}
+                        onCheckedChange={() => handlePrivacyToggle('share_resume')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="share_salary_expectations" className="font-normal cursor-pointer">
+                          Salary Expectations
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Share your desired salary range for better matches
+                        </p>
+                      </div>
+                      <Switch
+                        id="share_salary_expectations"
+                        checked={privacySettings.share_salary_expectations}
+                        onCheckedChange={() => handlePrivacyToggle('share_salary_expectations')}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="share_notice_period" className="font-normal cursor-pointer">
+                          Notice Period
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Share your availability timeline with employers
+                        </p>
+                      </div>
+                      <Switch
+                        id="share_notice_period"
+                        checked={privacySettings.share_notice_period}
+                        onCheckedChange={() => handlePrivacyToggle('share_notice_period')}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Additional Privacy Note */}
+                  <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Your Privacy Matters:</strong> You have complete control over your information.
+                      Disabled fields will not be visible to employers or recruiters. However, providing more
+                      information helps our AI find opportunities that truly match your skills and preferences.
                     </p>
                   </div>
-                  <Switch
-                    id="emailNotifications"
-                    checked={settings.emailNotifications}
-                    onCheckedChange={() => handleSettingChange('emailNotifications')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="applicationUpdates" className="font-normal cursor-pointer">
-                      Application Updates
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Get notified when your application status changes
-                    </p>
-                  </div>
-                  <Switch
-                    id="applicationUpdates"
-                    checked={settings.applicationUpdates}
-                    onCheckedChange={() => handleSettingChange('applicationUpdates')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="weeklyDigest" className="font-normal cursor-pointer">
-                      Weekly Digest
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive a weekly summary of new opportunities
-                    </p>
-                  </div>
-                  <Switch
-                    id="weeklyDigest"
-                    checked={settings.weeklyDigest}
-                    onCheckedChange={() => handleSettingChange('weeklyDigest')}
-                  />
-                </div>
-              </div>
-
-              <Separator className="my-6" />
-
-              {/* Privacy */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Shield className="w-4 h-4 text-accent" />
-                  <h4 className="font-semibold">Privacy</h4>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="profileVisibility" className="font-normal cursor-pointer">
-                      Profile Visibility
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Make your profile visible to partner companies
-                    </p>
-                  </div>
-                  <Switch
-                    id="profileVisibility"
-                    checked={settings.profileVisibility}
-                    onCheckedChange={() => handleSettingChange('profileVisibility')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="shareWithPartners" className="font-normal cursor-pointer">
-                      Share with Elite Partners
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Allow us to share your profile with our elite network
-                    </p>
-                  </div>
-                  <Switch
-                    id="shareWithPartners"
-                    checked={settings.shareWithPartners}
-                    onCheckedChange={() => handleSettingChange('shareWithPartners')}
-                  />
-                </div>
-              </div>
-
-              <Separator className="my-6" />
-
-              {/* Currency Preference */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Globe className="w-4 h-4 text-accent" />
-                  <h4 className="font-semibold">Currency Preference</h4>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Display Currency</Label>
-                  <Select
-                    value={preferredCurrency}
-                    onValueChange={handleCurrencyChange}
-                  >
-                    <SelectTrigger id="currency">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="EUR">EUR (€) - Euro</SelectItem>
-                      <SelectItem value="USD">USD ($) - US Dollar</SelectItem>
-                      <SelectItem value="GBP">GBP (£) - British Pound</SelectItem>
-                      <SelectItem value="AED">AED (د.إ) - UAE Dirham</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Job salaries will be automatically converted to your preferred currency
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Account Linking */}
-          <AccountLinking />
-
-          {/* Auth Diagnostics - for debugging */}
-          {role === 'admin' && <AuthDiagnostics />}
-
-          {/* Profile Sharing Settings */}
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-accent" />
-                Profile Information Sharing
-              </CardTitle>
-              <CardDescription>
-                Choose what information you'd like to share with potential employers
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Warning Banner */}
-              <div className="p-4 border-2 border-amber-500/20 rounded-lg bg-amber-500/5">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">
-                    <Shield className="w-5 h-5 text-amber-500" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-amber-500 mb-1">Matching Impact</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Sharing less information reduces the likelihood of finding the perfect match. 
-                      Our AI uses your complete profile to find opportunities that align with your goals and expertise.
-                      Currently sharing <strong>{countSharedFields()} of 10</strong> fields.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Privacy Toggles */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="share_full_name" className="font-normal cursor-pointer">
-                      Full Name
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Share your name with employers
-                    </p>
-                  </div>
-                  <Switch
-                    id="share_full_name"
-                    checked={privacySettings.share_full_name}
-                    onCheckedChange={() => handlePrivacyToggle('share_full_name')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="share_email" className="font-normal cursor-pointer">
-                      Email Address
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Allow employers to contact you via email
-                    </p>
-                  </div>
-                  <Switch
-                    id="share_email"
-                    checked={privacySettings.share_email}
-                    onCheckedChange={() => handlePrivacyToggle('share_email')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="share_phone" className="font-normal cursor-pointer">
-                      Phone Number
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Share your contact number with employers
-                    </p>
-                  </div>
-                  <Switch
-                    id="share_phone"
-                    checked={privacySettings.share_phone}
-                    onCheckedChange={() => handlePrivacyToggle('share_phone')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="share_location" className="font-normal cursor-pointer">
-                      Location
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Share your city/country for local opportunities
-                    </p>
-                  </div>
-                  <Switch
-                    id="share_location"
-                    checked={privacySettings.share_location}
-                    onCheckedChange={() => handlePrivacyToggle('share_location')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="share_current_title" className="font-normal cursor-pointer">
-                      Current Job Title
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Show your current position to employers
-                    </p>
-                  </div>
-                  <Switch
-                    id="share_current_title"
-                    checked={privacySettings.share_current_title}
-                    onCheckedChange={() => handlePrivacyToggle('share_current_title')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="share_linkedin_url" className="font-normal cursor-pointer">
-                      LinkedIn Profile
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Share your LinkedIn for verification
-                    </p>
-                  </div>
-                  <Switch
-                    id="share_linkedin_url"
-                    checked={privacySettings.share_linkedin_url}
-                    onCheckedChange={() => handlePrivacyToggle('share_linkedin_url')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="share_career_preferences" className="font-normal cursor-pointer">
-                      Career Preferences
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Share your work style and industry preferences
-                    </p>
-                  </div>
-                  <Switch
-                    id="share_career_preferences"
-                    checked={privacySettings.share_career_preferences}
-                    onCheckedChange={() => handlePrivacyToggle('share_career_preferences')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="share_resume" className="font-normal cursor-pointer">
-                      Resume/CV
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Allow employers to view your resume
-                    </p>
-                  </div>
-                  <Switch
-                    id="share_resume"
-                    checked={privacySettings.share_resume}
-                    onCheckedChange={() => handlePrivacyToggle('share_resume')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="share_salary_expectations" className="font-normal cursor-pointer">
-                      Salary Expectations
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Share your desired salary range for better matches
-                    </p>
-                  </div>
-                  <Switch
-                    id="share_salary_expectations"
-                    checked={privacySettings.share_salary_expectations}
-                    onCheckedChange={() => handlePrivacyToggle('share_salary_expectations')}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="share_notice_period" className="font-normal cursor-pointer">
-                      Notice Period
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Share your availability timeline with employers
-                    </p>
-                  </div>
-                  <Switch
-                    id="share_notice_period"
-                    checked={privacySettings.share_notice_period}
-                    onCheckedChange={() => handlePrivacyToggle('share_notice_period')}
-                  />
-                </div>
-              </div>
-
-              {/* Additional Privacy Note */}
-              <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
-                <p className="text-xs text-muted-foreground">
-                  <strong>Your Privacy Matters:</strong> You have complete control over your information. 
-                  Disabled fields will not be visible to employers or recruiters. However, providing more 
-                  information helps our AI find opportunities that truly match your skills and preferences.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Privacy Tab - placeholder for now */}
@@ -2581,7 +2582,7 @@ const Profile = () => {
                             <div className="flex-1">
                               <p className="text-sm font-medium">{resume.display_name}</p>
                               <p className="text-xs text-muted-foreground">
-                                {(resume.file_size / 1024 / 1024).toFixed(2)} MB • 
+                                {(resume.file_size / 1024 / 1024).toFixed(2)} MB •
                                 {new Date(resume.uploaded_at).toLocaleDateString()}
                                 {resume.is_primary && <span className="ml-2 text-accent">• Primary</span>}
                               </p>
@@ -2659,7 +2660,7 @@ const Profile = () => {
                             <li>✓ Highlights leadership and strategic impact</li>
                             <li>✓ Multiple versions for different roles</li>
                           </ul>
-                          <Button 
+                          <Button
                             type="button"
                             disabled
                             className="bg-gradient-accent text-background"
@@ -2689,7 +2690,7 @@ const Profile = () => {
                     .select('*')
                     .eq('id', user?.id)
                     .single();
-                  
+
                   if (data) {
                     setMusicConnections({
                       spotifyConnected: (data as any).spotify_connected || false,
@@ -2697,30 +2698,30 @@ const Profile = () => {
                       spotifyPlaylists: (data as any).spotify_playlists || [],
                       appleMusicPlaylists: (data as any).apple_music_playlists || [],
                     });
-                    
+
                     // Update social connections
                     if (data.linkedin_connected) {
                       setSocialConnections(prev => ({ ...prev, linkedin: true }));
                     }
                     if (data.instagram_connected && data.instagram_username) {
-                      setSocialConnections(prev => ({ 
-                        ...prev, 
-                        instagram: true, 
-                        instagramUsername: data.instagram_username 
+                      setSocialConnections(prev => ({
+                        ...prev,
+                        instagram: true,
+                        instagramUsername: data.instagram_username
                       }));
                     }
                     if (data.twitter_connected && data.twitter_username) {
-                      setSocialConnections(prev => ({ 
-                        ...prev, 
-                        twitter: true, 
-                        twitterUsername: data.twitter_username 
+                      setSocialConnections(prev => ({
+                        ...prev,
+                        twitter: true,
+                        twitterUsername: data.twitter_username
                       }));
                     }
                     if (data.github_connected && data.github_username) {
-                      setSocialConnections(prev => ({ 
-                        ...prev, 
-                        github: true, 
-                        githubUsername: data.github_username 
+                      setSocialConnections(prev => ({
+                        ...prev,
+                        github: true,
+                        githubUsername: data.github_username
                       }));
                     }
                   }
@@ -2782,7 +2783,7 @@ const Profile = () => {
             >
               {isUploadingResume ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <InlineLoader />
                   Uploading...
                 </>
               ) : (
