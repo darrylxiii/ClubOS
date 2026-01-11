@@ -254,6 +254,12 @@ function ProspectPipelineContent() {
     setSyncingInstantly(true);
     toast.info('Starting sync from Instantly…');
 
+    // Debug: Log connection details
+    console.log('[Sync] Starting sync...', {
+      supabaseUrl: (supabase as any).supabaseUrl,
+      function: 'sync-instantly-leads'
+    });
+
     // Create abort controller for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
@@ -267,7 +273,10 @@ function ProspectPipelineContent() {
 
       clearTimeout(timeoutId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[Sync] Invocation Error:', error);
+        throw error;
+      };
 
       // Parse response correctly - edge function returns data.stats.instantly_imported
       const stats = data?.stats || {};
@@ -300,7 +309,10 @@ function ProspectPipelineContent() {
         }, 5000);
       } else {
         console.error('Error syncing from Instantly:', error);
-        toast.error(error.message || 'Failed to sync from Instantly');
+        // Enhanced error message
+        const msg = error.message || 'Failed to sync from Instantly';
+        const context = error.context ? ` (${JSON.stringify(error.context)})` : '';
+        toast.error(`${msg}${context}. Check console for details.`);
       }
     } finally {
       setSyncingInstantly(false);
@@ -520,7 +532,7 @@ function ProspectPipelineContent() {
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             >
-              <div className="flex gap-4 p-6 min-w-max">
+              <div className="flex gap-4 p-2 md:p-6 min-w-max">
                 {visibleStages.map((stage) => (
                   <EnhancedKanbanColumn
                     key={stage.value}

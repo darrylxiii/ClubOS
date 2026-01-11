@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 export const ClubAIVoice = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  
+
   const {
     status,
     isSpeaking,
@@ -33,8 +33,17 @@ export const ClubAIVoice = () => {
       }
     };
 
+    const handleCustomEvent = (e: Event) => {
+      handleToggle();
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('open-voice-assistant', handleCustomEvent);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-voice-assistant', handleCustomEvent);
+    };
   }, [status]);
 
   const handleToggle = useCallback(async () => {
@@ -120,12 +129,12 @@ export const ClubAIVoice = () => {
                   {isConnecting ? (
                     <Loader2 className="w-6 h-6 text-accent-gold animate-spin" />
                   ) : (
-                    <Sparkles 
+                    <Sparkles
                       className={cn(
                         'w-6 h-6 transition-colors duration-300',
                         isActive ? 'text-accent-gold' : 'text-foreground/70',
                         isSpeaking && 'animate-pulse'
-                      )} 
+                      )}
                     />
                   )}
                 </div>

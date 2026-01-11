@@ -51,21 +51,21 @@ function getStageRank(stage: string): number {
 function computeFinalStage(existingStage: string | null, newStage: string): string {
   // If no existing stage, use new
   if (!existingStage) return newStage;
-  
+
   // Terminal stages from Instantly always apply (bounced, unsubscribed, not interested)
   if (isTerminalStage(newStage)) {
     return newStage;
   }
-  
+
   // If existing is terminal, DON'T override with non-terminal (lead might have been rescued)
   if (isTerminalStage(existingStage)) {
     return existingStage;
   }
-  
+
   // Non-terminal: keep the higher-ranked stage (no downgrades)
   const existingRank = getStageRank(existingStage);
   const newRank = getStageRank(newStage);
-  
+
   return newRank > existingRank ? newStage : existingStage;
 }
 
@@ -76,7 +76,7 @@ function computeFinalStage(existingStage: string | null, newStage: string): stri
 // Score a lead for deduplication (higher = better/more important)
 function scoreInstantlyLead(lead: InstantlyLead): number {
   let score = 0;
-  
+
   // Primary: Interest status (meeting > interested > replied > opened > contacted)
   const interestStatus = lead.lt_interest_status || 0;
   switch (interestStatus) {
@@ -97,20 +97,20 @@ function scoreInstantlyLead(lead: InstantlyLead): number {
       score += 50;
       break;
   }
-  
+
   // Secondary: Reply count (capped contribution)
   score += Math.min(lead.email_reply_count || 0, 10) * 20;
-  
+
   // Tertiary: Open count
   score += Math.min(lead.email_open_count || 0, 20) * 2;
-  
+
   // Quaternary: Recent activity (newer is better)
   if (lead.timestamp_last_interest_change) {
     const lastInterest = new Date(lead.timestamp_last_interest_change).getTime();
     const ageHours = (Date.now() - lastInterest) / (1000 * 60 * 60);
     score += Math.max(0, 100 - ageHours); // Up to 100 points for very recent
   }
-  
+
   return score;
 }
 
@@ -178,8 +178,9 @@ interface ProspectData {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   const startTime = Date.now();
@@ -284,7 +285,7 @@ serve(async (req) => {
               const email = lead.email.toLowerCase().trim();
               const newScore = scoreInstantlyLead(lead);
               const existing = allLeads.get(email);
-              
+
               // Keep the lead with HIGHER score (more engagement/interest)
               if (!existing || newScore > existing.score) {
                 allLeads.set(email, { lead, crmCampaignId, score: newScore });
@@ -324,10 +325,10 @@ serve(async (req) => {
           const fullName = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || email.split('@')[0];
 
           const existing = existingMap.get(email);
-          
+
           // COMPUTE FINAL STAGE with monotonic protection
           const finalStage = computeFinalStage(existing?.stage || null, instantlyStage);
-          
+
           // Track what happened to the stage
           let stageChange: 'upgraded' | 'protected' | 'terminal' | 'same' = 'same';
           if (existing) {
@@ -398,7 +399,7 @@ serve(async (req) => {
               errors.push({ email: item.data.full_name, error: updateError.message });
             } else {
               instantlyUpdated++;
-              
+
               // Track stage change stats
               switch (item.stageChange) {
                 case 'upgraded':

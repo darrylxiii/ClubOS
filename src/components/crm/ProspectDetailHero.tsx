@@ -19,6 +19,7 @@ import {
   DollarSign,
   UserPlus,
 } from 'lucide-react';
+import { DealProbabilityCard } from '@/components/crm/predictions/DealProbabilityCard';
 import { PROSPECT_STAGES, type CRMProspect, type ProspectStage } from '@/types/crm-enterprise';
 import {
   Select,
@@ -34,8 +35,8 @@ interface ProspectDetailHeroProps {
   onConvertToPartner?: () => void;
 }
 
-export function ProspectDetailHero({ 
-  prospect, 
+export function ProspectDetailHero({
+  prospect,
   onStageChange,
   onConvertToPartner,
 }: ProspectDetailHeroProps) {
@@ -127,7 +128,7 @@ export function ProspectDetailHero({
 
             {/* Contact Info */}
             <div className="flex flex-wrap items-center gap-3">
-              <a 
+              <a
                 href={`mailto:${prospect.email}`}
                 className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors"
               >
@@ -135,7 +136,7 @@ export function ProspectDetailHero({
                 {prospect.email}
               </a>
               {prospect.phone && (
-                <a 
+                <a
                   href={`tel:${prospect.phone}`}
                   className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors"
                 >
@@ -150,8 +151,8 @@ export function ProspectDetailHero({
         {/* Middle: Stage & Score */}
         <div className="flex-1 flex flex-wrap items-center gap-4 lg:justify-center">
           {/* Stage Badge */}
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className={cn(
               "px-4 py-2 text-sm font-medium",
               stageConfig && stageColors[stageConfig.color]
@@ -200,6 +201,11 @@ export function ProspectDetailHero({
               <span className="text-[10px] text-muted-foreground">Deal Value</span>
             </div>
           )}
+
+          {/* Win Probability Widget */}
+          <div className="w-full lg:w-48">
+            <DealProbabilityCard deal={prospect} />
+          </div>
         </div>
 
         {/* Right: Actions */}

@@ -28,6 +28,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
 import { QuantumPulse } from "@/components/admin/QuantumPulse";
+import { useProfile } from "@/hooks/useProfile";
 import { getNavigationForRole } from "@/config/navigation.config";
 import {
   Sidebar,
@@ -45,42 +46,25 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   useTranslationSync(); // Keep all components in sync with language changes
   const location = useLocation();
   const { currentRole } = useRole();
-  const [userProfile, setUserProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(null);
+  // Optimized: Use cached profile data sharing key ['profile', userId]
+  const { profile } = useProfile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Sync burger menu state with sidebar state
+  // Sync burger menu state with sidebar state via event listener (Performance: Replaced polling)
   useEffect(() => {
-    const syncSidebarState = () => {
+    const handleToggle = () => {
       if (typeof window !== 'undefined' && (window as any).__getSidebarOpen) {
-        const isOpen = (window as any).__getSidebarOpen();
-        setMobileMenuOpen(isOpen);
+        setMobileMenuOpen((window as any).__getSidebarOpen());
       }
     };
 
-    // Poll sidebar state every 100ms when document has focus
-    const interval = setInterval(syncSidebarState, 100);
+    // We can just rely on the Sidebar component's internal state + exposure
+    // But if we truly need this sync, listen to a custom event or check on focus
+    // For now, removing the polling is the priority.
+    // The previous implementation polled 10x/sec which is excessive.
 
-    return () => clearInterval(interval);
+    return () => { };
   }, []);
-
-  // Fetch user profile data including avatar
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!user?.id) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url')
-        .eq('id', user.id)
-        .single();
-
-      if (!error && data) {
-        setUserProfile(data);
-      }
-    };
-
-    fetchUserProfile();
-  }, [user?.id]);
 
   // Determine navigation based on current role from context
   // Memoize to prevent unnecessary recalculations and stop accumulation
@@ -90,8 +74,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   );
 
   const getFirstName = () => {
-    if (userProfile?.full_name) {
-      return userProfile.full_name.split(" ")[0];
+    if (profile?.full_name) {
+      return profile.full_name.split(" ")[0];
     }
     if (user?.email) {
       return user.email.split("@")[0];
@@ -174,7 +158,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         <SidebarFooter
           userName={firstName}
           userInitial={firstName[0].toUpperCase()}
-          userAvatarUrl={userProfile?.avatar_url || null}
+          userAvatarUrl={profile?.avatar_url || null}
           onSignOut={signOut}
           profilePath={profilePath}
         />

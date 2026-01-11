@@ -68,10 +68,10 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
     },
     // Phase 6: New Voice Client Tools
     schedule_meeting: async ({ title, attendees, duration = 30 }: { title: string; attendees?: string[]; duration?: number }) => {
-      navigate('/calendar/new', { 
-        state: { 
-          prefill: { title, attendees, duration } 
-        } 
+      navigate('/calendar/new', {
+        state: {
+          prefill: { title, attendees, duration }
+        }
       });
       return `Opening scheduler for: ${title} (${duration} minutes)`;
     },
@@ -106,23 +106,23 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
       try {
         const { data: user } = await supabase.auth.getUser();
         if (!user.user) return 'Please log in to see your pipeline';
-        
+
         const { data: applications } = await supabase
           .from('applications')
           .select('status')
           .eq('user_id', user.user.id);
-        
+
         if (!applications?.length) return 'You have no active applications';
-        
+
         const statusCounts = applications.reduce((acc: Record<string, number>, app) => {
           acc[app.status] = (acc[app.status] || 0) + 1;
           return acc;
         }, {});
-        
+
         const summary = Object.entries(statusCounts)
           .map(([status, count]) => `${count} ${status}`)
           .join(', ');
-        
+
         return `You have ${applications.length} applications: ${summary}`;
       } catch (e) {
         return 'Unable to fetch pipeline data';
@@ -132,7 +132,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
       try {
         const { data: user } = await supabase.auth.getUser();
         if (!user.user) return 'Please log in to save notes';
-        
+
         const { error } = await supabase
           .from('ai_memory')
           .insert({
@@ -141,7 +141,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
             memory_type: 'voice_note',
             context: { source: 'voice', context, capturedAt: new Date().toISOString() },
           });
-        
+
         if (error) throw error;
         toast.success('Note Captured');
         return `Note saved: ${content.substring(0, 50)}...`;
@@ -153,7 +153,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
       try {
         const { data: user } = await supabase.auth.getUser();
         if (!user.user) return 'Please log in';
-        
+
         // Use applications table for interview stage info
         const { data: interviews } = await supabase
           .from('applications')
@@ -161,27 +161,27 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
           .eq('user_id', user.user.id)
           .eq('status', 'interview')
           .limit(5);
-        
+
         if (!interviews?.length) return 'No upcoming interviews in your pipeline';
-        
+
         return `You have ${interviews.length} applications in interview stage`;
       } catch (e) {
         return 'Unable to fetch interview data';
       }
     },
     quick_follow_up: async ({ candidateName, message }: { candidateName: string; message?: string }) => {
-      navigate('/communications', { 
-        state: { 
-          compose: true, 
+      navigate('/communications', {
+        state: {
+          compose: true,
           recipient: candidateName,
           prefillMessage: message || `Hi, just following up on our conversation...`
-        } 
+        }
       });
       return `Opening follow-up composer for ${candidateName}`;
     },
     set_reminder: async ({ text, minutes = 30 }: { text: string; minutes?: number }) => {
       const reminderTime = new Date(Date.now() + minutes * 60 * 1000);
-      toast.info('Reminder Set', { 
+      toast.info('Reminder Set', {
         description: `"${text}" in ${minutes} minutes`,
         duration: 5000,
       });
@@ -197,6 +197,42 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
         });
       }
       return `Reminder set for ${minutes} minutes from now: ${text}`;
+    },
+    add_prospect_note: async ({ note, prospectId }: { note: string; prospectId?: string }) => {
+      try {
+        let targetId = prospectId;
+
+        // Try to infer prospect ID from URL if not provided
+        if (!targetId) {
+          const match = window.location.pathname.match(/\/crm\/prospects\/([a-zA-Z0-9-]+)/);
+          if (match && match[1]) {
+            targetId = match[1];
+          }
+        }
+
+        if (!targetId) return 'Could not determine which prospect to add the note to.';
+
+        const { data: existing } = await supabase
+          .from('crm_prospects')
+          .select('notes')
+          .eq('id', targetId)
+          .single();
+
+        const currentNotes = existing?.notes || '';
+        const newNotes = currentNotes ? `${currentNotes}\n\n[Voice Note]: ${note}` : `[Voice Note]: ${note}`;
+
+        const { error } = await supabase
+          .from('crm_prospects')
+          .update({ notes: newNotes, updated_at: new Date().toISOString() })
+          .eq('id', targetId);
+
+        if (error) throw error;
+
+        toast.success('Note Added', { description: 'Added voice note to prospect.' });
+        return `Added note to prospect.`;
+      } catch (e) {
+        return 'Failed to add note to prospect.';
+      }
     },
   };
 
@@ -216,7 +252,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
     },
     onMessage: (message: any) => {
       console.log('ClubAI message:', message);
-      
+
       if (message?.type === 'user_transcript') {
         const userText = message?.user_transcription_event?.user_transcript;
         if (userText) {
@@ -227,7 +263,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
           }]);
         }
       }
-      
+
       if (message?.type === 'agent_response') {
         const agentText = message?.agent_response_event?.agent_response;
         if (agentText) {
@@ -277,10 +313,10 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
 
       // Get signed URL from our edge function
       const { data, error: fnError } = await supabase.functions.invoke('elevenlabs-clubai-token', {
-        body: { 
-          context: { 
+        body: {
+          context: {
             page: location.pathname,
-          } 
+          }
         },
       });
 
@@ -289,12 +325,12 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
       }
 
       console.log('Starting ClubAI session with signed URL');
-      
+
       // Start the conversation with the signed URL
       const sessionId = await conversation.startSession({
         signedUrl: data.signedUrl,
       });
-      
+
       sessionIdRef.current = sessionId;
 
     } catch (err) {

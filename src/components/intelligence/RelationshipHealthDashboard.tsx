@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { NetworkGraph } from '@/components/intelligence/NetworkGraph';
 import {
   Select,
   SelectContent,
@@ -26,9 +27,10 @@ import {
   User,
   Building2,
   Users,
+  Share2,
+  Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-// Database import removed as we use the interface from hook now
 
 const riskColors: Record<string, string> = {
   low: 'bg-green-500/10 text-green-600 border-green-200',
@@ -63,13 +65,12 @@ export function RelationshipHealthDashboard() {
   const [riskFilter, setRiskFilter] = useState<RiskFilter>('all');
 
   const entityTypeFilter = entityFilter === 'all' ? undefined : entityFilter;
-  const { relationships, loading, stats, refetch, recalculateScore } = useRelationshipHealth(entityTypeFilter, riskFilter);
+  const { relationships, loading, stats, refetch } = useRelationshipHealth(entityTypeFilter, riskFilter);
 
   const criticalRelationships = relationships.filter(r =>
     r.risk_level === 'critical' || r.risk_level === 'high'
   );
 
-  // Calculate derived stats
   const avgHealthScore = relationships.length > 0
     ? Math.round(relationships.reduce((sum, r) => sum + (r.health_score || 0), 0) / relationships.length)
     : 0;
@@ -141,134 +142,151 @@ export function RelationshipHealthDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Heart className="h-6 w-6 mx-auto text-primary mb-2" />
-            <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">Total Relationships</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="h-6 w-6 mx-auto mb-2 rounded-full bg-green-500/20 flex items-center justify-center">
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            </div>
-            <p className="text-2xl font-bold text-green-600">{stats.healthy}</p>
-            <p className="text-xs text-muted-foreground">Healthy</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <AlertTriangle className="h-6 w-6 mx-auto text-orange-500 mb-2" />
-            <p className="text-2xl font-bold text-orange-600">{stats.atRisk}</p>
-            <p className="text-xs text-muted-foreground">At Risk</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <TrendingDown className="h-6 w-6 mx-auto text-red-500 mb-2" />
-            <p className="text-2xl font-bold text-red-600">{decliningCount}</p>
-            <p className="text-xs text-muted-foreground">Declining</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="h-6 w-6 mx-auto mb-2 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-xs font-bold text-primary">{avgHealthScore}</span>
-            </div>
-            <p className="text-2xl font-bold">{avgHealthScore}%</p>
-            <p className="text-xs text-muted-foreground">Avg Health</p>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="bg-muted/50">
+          <TabsTrigger value="overview" className="gap-2">
+            <Activity className="h-4 w-4" /> Overview
+          </TabsTrigger>
+          <TabsTrigger value="graph" className="gap-2">
+            <Share2 className="h-4 w-4" /> Network Graph
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Critical Alerts */}
-      {criticalRelationships.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-500" />
-              Relationships Needing Attention ({criticalRelationships.length})
-            </CardTitle>
-            <CardDescription>
-              These relationships are at high or critical risk and need immediate outreach
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {criticalRelationships.slice(0, 6).map(r => (
-                <RelationshipCard key={r.id} relationship={r} />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Main List */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>All Relationships</CardTitle>
-              <CardDescription>
-                Track and manage relationship health across all entities
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Select value={entityFilter} onValueChange={setEntityFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Entity Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="candidate">Candidates</SelectItem>
-                  <SelectItem value="company">Companies</SelectItem>
-                  <SelectItem value="prospect">Prospects</SelectItem>
-                  <SelectItem value="internal">Internal</SelectItem>
-                  <SelectItem value="partner">Partners</SelectItem>
-                  <SelectItem value="stakeholder">Stakeholders</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={riskFilter} onValueChange={(v) => setRiskFilter(v as RiskFilter)}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Risk Level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" size="icon" onClick={() => refetch()}>
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-            </div>
+        <TabsContent value="overview" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+          {/* Stats Overview */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <Heart className="h-6 w-6 mx-auto text-primary mb-2" />
+                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-xs text-muted-foreground">Total Relationships</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="h-6 w-6 mx-auto mb-2 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                </div>
+                <p className="text-2xl font-bold text-green-600">{stats.healthy}</p>
+                <p className="text-xs text-muted-foreground">Healthy</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <AlertTriangle className="h-6 w-6 mx-auto text-orange-500 mb-2" />
+                <p className="text-2xl font-bold text-orange-600">{stats.atRisk}</p>
+                <p className="text-xs text-muted-foreground">At Risk</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <TrendingDown className="h-6 w-6 mx-auto text-red-500 mb-2" />
+                <p className="text-2xl font-bold text-red-600">{decliningCount}</p>
+                <p className="text-xs text-muted-foreground">Declining</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="h-6 w-6 mx-auto mb-2 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-xs font-bold text-primary">{avgHealthScore}</span>
+                </div>
+                <p className="text-2xl font-bold">{avgHealthScore}%</p>
+                <p className="text-xs text-muted-foreground">Avg Health</p>
+              </CardContent>
+            </Card>
           </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : relationships.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No relationships found matching your filters
-            </div>
-          ) : (
-            <ScrollArea className="h-[500px]">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {relationships.map(r => (
-                  <RelationshipCard key={r.id} relationship={r} />
-                ))}
-              </div>
-            </ScrollArea>
+
+          {/* Critical Alerts */}
+          {criticalRelationships.length > 0 && (
+            <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/10">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-orange-500" />
+                  Relationships Needing Attention ({criticalRelationships.length})
+                </CardTitle>
+                <CardDescription>
+                  These relationships are at high or critical risk and need immediate outreach
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {criticalRelationships.slice(0, 6).map(r => (
+                    <RelationshipCard key={r.id} relationship={r} />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+
+          {/* Main List */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>All Relationships</CardTitle>
+                  <CardDescription>
+                    Track and manage relationship health across all entities
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select value={entityFilter} onValueChange={setEntityFilter}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Entity Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="candidate">Candidates</SelectItem>
+                      <SelectItem value="company">Companies</SelectItem>
+                      <SelectItem value="prospect">Prospects</SelectItem>
+                      <SelectItem value="internal">Internal</SelectItem>
+                      <SelectItem value="partner">Partners</SelectItem>
+                      <SelectItem value="stakeholder">Stakeholders</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={riskFilter} onValueChange={(v) => setRiskFilter(v as RiskFilter)}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="Risk Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="icon" onClick={() => refetch()}>
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : relationships.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No relationships found matching your filters
+                </div>
+              ) : (
+                <ScrollArea className="h-[500px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {relationships.map(r => (
+                      <RelationshipCard key={r.id} relationship={r} />
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="graph" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+          <NetworkGraph />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

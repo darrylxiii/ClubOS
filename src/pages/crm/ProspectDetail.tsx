@@ -8,12 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  Mail, 
-  Phone, 
-  Linkedin, 
-  Building, 
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
+  Linkedin,
+  Building,
   MapPin,
   Calendar,
   Zap,
@@ -53,6 +53,7 @@ import { AIReplySuggestion } from '@/components/crm/AIReplySuggestion';
 import { ActivityList } from '@/components/crm/ActivityList';
 import { ActivityQuickAdd } from '@/components/crm/ActivityQuickAdd';
 import { RottingIndicator } from '@/components/crm/RottingIndicator';
+import { MobileProspectActionBar } from '@/components/crm/MobileProspectActionBar';
 import { differenceInDays } from 'date-fns';
 
 export default function ProspectDetail() {
@@ -117,7 +118,7 @@ export default function ProspectDetail() {
 
   const handleStageChange = async (newStage: string) => {
     if (!prospect) return;
-    
+
     try {
       const { error } = await supabase
         .from('crm_prospects')
@@ -136,7 +137,7 @@ export default function ProspectDetail() {
 
   const handleSaveNotes = async () => {
     if (!prospect) return;
-    
+
     setSavingNotes(true);
     try {
       const { error } = await supabase
@@ -156,7 +157,7 @@ export default function ProspectDetail() {
 
   const handleDelete = async () => {
     if (!prospect) return;
-    
+
     try {
       const { error } = await supabase
         .from('crm_prospects')
@@ -208,7 +209,7 @@ export default function ProspectDetail() {
   return (
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="container mx-auto px-4 py-6 max-w-6xl space-y-6">
+        <div className="container mx-auto px-4 py-6 max-w-6xl space-y-6 pb-24 md:pb-6">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -314,9 +315,9 @@ export default function ProspectDetail() {
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">LinkedIn</p>
-                          <a 
-                            href={prospect.linkedin_url} 
-                            target="_blank" 
+                          <a
+                            href={prospect.linkedin_url}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm hover:text-primary"
                           >
@@ -360,8 +361,8 @@ export default function ProspectDetail() {
                 <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-lg">Notes</CardTitle>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={handleSaveNotes}
                       disabled={savingNotes}
                     >
@@ -391,9 +392,9 @@ export default function ProspectDetail() {
                       <Calendar className="w-5 h-5" />
                       Activities
                     </CardTitle>
-                    <ActivityQuickAdd 
+                    <ActivityQuickAdd
                       prospectId={prospect.id}
-                      onSuccess={() => {}}
+                      onSuccess={() => { }}
                     />
                   </CardHeader>
                   <CardContent>
@@ -419,18 +420,17 @@ export default function ProspectDetail() {
                     {touchpoints.length > 0 ? (
                       <div className="space-y-4">
                         {touchpoints.map((touchpoint, index) => (
-                          <div 
+                          <div
                             key={touchpoint.id}
                             className="flex gap-4 relative"
                           >
                             {index < touchpoints.length - 1 && (
                               <div className="absolute left-4 top-8 bottom-0 w-px bg-border/50" />
                             )}
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                              touchpoint.direction === 'outbound' 
-                                ? 'bg-blue-500/20 text-blue-500' 
-                                : 'bg-green-500/20 text-green-500'
-                            }`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${touchpoint.direction === 'outbound'
+                              ? 'bg-blue-500/20 text-blue-500'
+                              : 'bg-green-500/20 text-green-500'
+                              }`}>
                               {touchpoint.direction === 'outbound' ? (
                                 <Send className="w-4 h-4" />
                               ) : (
@@ -491,7 +491,7 @@ export default function ProspectDetail() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.25 }}
               >
-                <AIReplySuggestion 
+                <AIReplySuggestion
                   prospectName={prospect.full_name}
                   prospectCompany={prospect.company_name || ''}
                   originalEmail=""
@@ -511,7 +511,7 @@ export default function ProspectDetail() {
                       <CardTitle className="text-lg">Campaign</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <Link 
+                      <Link
                         to="/crm/campaigns"
                         className="text-sm hover:text-primary transition-colors"
                       >
@@ -566,6 +566,16 @@ export default function ProspectDetail() {
           </div>
         </div>
       </RoleGate>
+      {prospect && (
+        <MobileProspectActionBar
+          prospect={prospect}
+          onVoiceNote={() => {
+            // Trigger voice capability (simulated for now, or via event)
+            toast.info("Voice Note: Listening...");
+            // In future: setVoiceDialogueOpen(true)
+          }}
+        />
+      )}
     </AppLayout>
   );
 }
