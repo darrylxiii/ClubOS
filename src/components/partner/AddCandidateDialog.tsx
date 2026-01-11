@@ -153,7 +153,7 @@ export const AddCandidateDialog = ({
 
     try {
       let duplicates: any[] = [];
-      
+
       // Check by EMAIL (if provided) - query through applications to ignore orphaned profiles
       if (formData.email) {
         const { data: emailMatches } = await supabase
@@ -175,7 +175,7 @@ export const AddCandidateDialog = ({
           .ilike('candidate_profiles.email', formData.email.trim())
           .neq('status', 'rejected')
           .limit(3);
-        
+
         if (emailMatches && emailMatches.length > 0) {
           duplicates = emailMatches.filter(d => d.candidate_profiles);
           if (duplicates.length > 0) {
@@ -184,7 +184,7 @@ export const AddCandidateDialog = ({
           }
         }
       }
-      
+
       // Check by LinkedIn URL (if no email match)
       if (formData.linkedinUrl) {
         const normalizedUrl = formData.linkedinUrl.trim().split('?')[0].replace(/\/$/, '');
@@ -206,7 +206,7 @@ export const AddCandidateDialog = ({
           .eq('job_id', jobId)
           .ilike('candidate_profiles.linkedin_url', `%${normalizedUrl}%`)
           .limit(3);
-        
+
         if (linkedinMatches && linkedinMatches.length > 0) {
           duplicates = linkedinMatches.filter(d => d.candidate_profiles);
           if (duplicates.length > 0) {
@@ -215,7 +215,7 @@ export const AddCandidateDialog = ({
           }
         }
       }
-      
+
       // Check by name (least reliable, only if no email/LinkedIn matches)
       if (formData.fullName) {
         const { data: nameMatches } = await supabase
@@ -236,7 +236,7 @@ export const AddCandidateDialog = ({
           .eq('job_id', jobId)
           .ilike('candidate_profiles.full_name', `%${formData.fullName.trim()}%`)
           .limit(3);
-        
+
         if (nameMatches && nameMatches.length > 0) {
           duplicates = nameMatches.filter(d => d.candidate_profiles);
           if (duplicates.length > 0) {
@@ -245,7 +245,7 @@ export const AddCandidateDialog = ({
           }
         }
       }
-      
+
       return [];
     } catch (error) {
       console.error('Duplicate check error:', error);
@@ -271,121 +271,46 @@ export const AddCandidateDialog = ({
       const { data: { user: adminUser } } = await supabase.auth.getUser();
       if (!adminUser) throw new Error("Not authenticated");
 
-      // STEP 1: Create STANDALONE candidate profile (NO USER LINKING)
-      const { data: candidateProfile, error: profileError } = await supabase
-        .from("candidate_profiles")
-        .insert({
-          user_id: null, // ALWAYS null for manual additions
-          full_name: formData.fullName,
-          email: formData.email || null,
-          phone: formData.phone || null,
-          linkedin_url: formData.linkedinUrl || null,
-          current_company: formData.currentCompany || null,
-          current_title: formData.currentTitle || null,
-          avatar_url: null, // No avatar for manual entries
-          source_channel: 'manual_admin',
-          created_by: adminUser.id,
-          tags: ['manually_added', 'standalone_profile']
-        })
-        .select()
-        .single();
+      // STEP 1 & 2: Use Secure RPC to Create Candidate & Application (Bypasses RLS issues)
+      console.log('🚀 [Add Candidate] Calling admin_add_candidate RPC...');
 
-      if (profileError) {
-        console.error('❌ [Add Candidate] Profile creation failed:', {
-          code: profileError.code,
-          message: profileError.message,
-          details: profileError.details,
-          hint: profileError.hint
-        });
-        
-        // Specific error messages
-        if (profileError.code === '23505') {
-          const identifier = formData.email || formData.linkedinUrl || formData.fullName;
-          throw new Error(`A candidate matching "${identifier}" already exists. Please check for duplicates or update the existing candidate.`);
-        }
-        if (profileError.message?.includes('RLS') || profileError.code === '42501') {
-          throw new Error('You do not have permission to add candidates. Please contact an admin.');
-        }
-        
-        throw new Error(profileError.message || 'Failed to create candidate profile');
-      }
-
-      console.log('✅ [Add Candidate] Standalone profile created:', {
-        candidateId: candidateProfile.id,
-        fullName: candidateProfile.full_name
+      const { data: rpcData, error: rpcError } = await supabase.rpc('admin_add_candidate', {
+        p_job_id: jobId,
+        p_job_title: jobTitle,
+        p_email: formData.email || null,
+        p_full_name: formData.fullName,
+        p_linkedin_url: formData.linkedinUrl || null,
+        p_current_company: formData.currentCompany || null,
+        p_current_title: formData.currentTitle || null,
+        p_phone: formData.phone || null,
+        p_notes: `Candidate: ${formData.fullName}\nEmail: ${formData.email || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\nLinkedIn: ${formData.linkedinUrl || 'N/A'}\nCurrent: ${formData.currentTitle || 'N/A'} at ${formData.currentCompany || 'N/A'}\n\n${formData.notes}`,
+        p_start_stage_index: parseInt(formData.startStageIndex),
+        p_sourced_by: creditTo.length > 0 ? creditTo[0] : adminUser.id
       });
 
-      const candidateId = candidateProfile.id;
-
-      // STEP 2: Create application (also with null user_id for standalone candidates)
-      // Set sourced_by to first credited team member (primary sourcer)
-      const primarySourcer = creditTo.length > 0 ? creditTo[0] : adminUser.id;
-      
-      const { data: newApplication, error: appError } = await supabase
-        .from("applications")
-        .insert({
-          user_id: null, // ALWAYS null for manually-added candidates
-          candidate_id: candidateId,
-          job_id: jobId,
-          position: jobTitle,
-          sourced_by: primarySourcer, // Track who sourced this candidate
-          company_name: formData.currentCompany || "External Candidate",
-          current_stage_index: parseInt(formData.startStageIndex),
-          status: "active",
-          stages: [
-            {
-              name: "Admin Added",
-              status: "in_progress",
-              started_at: new Date().toISOString(),
-              notes: `Candidate: ${formData.fullName}\nEmail: ${formData.email || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\nLinkedIn: ${formData.linkedinUrl || 'N/A'}\nCurrent: ${formData.currentTitle || 'N/A'} at ${formData.currentCompany || 'N/A'}\n\n${formData.notes}`,
-            },
-          ],
-        })
-        .select('id, job_id, candidate_id, current_stage_index, created_at, sourced_by')
-        .single();
-
-      if (appError) {
-        console.error('❌ [Add Candidate] Application INSERT failed:', {
-          code: appError.code,
-          message: appError.message,
-          details: appError.details,
-          hint: appError.hint,
-          postgresError: appError
-        });
-
-        // Delete orphaned candidate profile
-        console.log('🧹 [Add Candidate] Cleaning up orphaned candidate profile:', candidateId);
-        await supabase
-          .from('candidate_profiles')
-          .delete()
-          .eq('id', candidateId);
-
-        // Throw specific error based on type
-        if (appError.code === '23505' && appError.message?.includes('idx_unique_active_application_per_job')) {
-          throw new Error(`DUPLICATE_IN_JOB: This candidate is already in the "${jobTitle}" pipeline. To add them again, first reject or withdraw their existing application.`);
-        } else if (appError.code === '42501' || appError.message?.toLowerCase().includes('rls') || appError.message?.toLowerCase().includes('permission')) {
-          throw new Error('PERMISSION_ERROR: You do not have permission to add applications. Your user role may not be properly configured. Please contact an administrator.');
-        } else if (appError.code === '23503') {
-          throw new Error('FK_ERROR: Invalid job or candidate reference. Please refresh the page and try again.');
-        } else {
-          throw new Error(`DB_ERROR: Failed to create application - ${appError.message} (code: ${appError.code || 'unknown'})`);
+      if (rpcError) {
+        console.error('❌ [Add Candidate] RPC Failed:', rpcError);
+        // Map specific RPC errors if needed
+        if (rpcError.message?.includes('duplicate key')) {
+          throw new Error("DUPLICATE_IN_JOB: A candidate with this email or LinkedIn URL already exists.");
         }
+        throw new Error(`RPC_ERROR: ${rpcError.message}`);
       }
 
-      if (!newApplication) {
-        console.error('❌ [Add Candidate] Application was not created (no data returned)');
-        // Clean up orphaned candidate profile
-        await supabase.from('candidate_profiles').delete().eq('id', candidateId);
-        throw new Error('Application was not created. Please try again or contact support.');
-      }
+      console.log('✅ [Add Candidate] RPC Success:', rpcData);
 
-      console.log('✅ [Add Candidate] Application created successfully:', {
-        applicationId: newApplication.id,
-        candidateId: newApplication.candidate_id,
-        jobId: newApplication.job_id
-      });
+      // The RPC returns { candidate_id, application_id }
+      // We need to type cast or validate it
+      const result = rpcData as { candidate_id: string; application_id: string };
+      const candidateId = result.candidate_id;
+      const applicationId = result.application_id;
 
-      const application = newApplication;
+      // Mock the application object for downstream logic
+      const application = {
+        id: applicationId,
+        candidate_id: candidateId,
+        job_id: jobId
+      };
 
       // STEP 3: Store sourcing credits for potential splits/commission tracking
       if (creditTo.length > 0 && application) {
@@ -396,7 +321,7 @@ export const AddCandidateDialog = ({
           credit_percentage: 100 / creditTo.length,
           created_by: adminUser.id
         }));
-        
+
         await supabase.from('sourcing_credits').insert(sourcingCredits);
       }
 
@@ -497,10 +422,10 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       setShowDuplicateDialog(false);
     } catch (error: any) {
       console.error("Error adding candidate:", error);
-      
+
       // Set visible error message
       let errorMsg = "An unexpected error occurred. Please try again.";
-      
+
       if (error.message?.startsWith('DUPLICATE_IN_JOB:')) {
         errorMsg = error.message.replace('DUPLICATE_IN_JOB: ', '');
       } else if (error.message?.startsWith('PERMISSION_ERROR:')) {
@@ -518,9 +443,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       } else {
         errorMsg = error.message || "Failed to add candidate. Please try again.";
       }
-      
+
       setSubmitError(errorMsg);
-      
+
       // Also show toast
       toast.error("Failed to Add Candidate", {
         description: errorMsg,
@@ -536,7 +461,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       toast.error("Full name is required");
       return false;
     }
-    
+
     // At least ONE contact method required (LinkedIn preferred)
     if (!formData.linkedinUrl && !formData.email && !formData.phone) {
       toast.error("Please provide at least one contact method", {
@@ -544,14 +469,14 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       });
       return false;
     }
-    
+
     // Warning if no LinkedIn
     if (!formData.linkedinUrl) {
       toast.warning("LinkedIn URL recommended", {
         description: "Adding a LinkedIn profile helps with candidate enrichment"
       });
     }
-    
+
     // Email validation (optional but must be valid if provided)
     if (formData.email.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -560,29 +485,29 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         return false;
       }
     }
-    
+
     if (formData.linkedinUrl && !formData.linkedinUrl.startsWith('http')) {
       toast.warning("LinkedIn URL should start with http:// or https://");
     }
-    
+
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate form
     if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
 
     try {
       // Check for duplicates first (unless already proceeding with duplicate)
       if (!proceedWithDuplicate) {
         const duplicates = await checkForDuplicates();
-        
+
         if (duplicates && duplicates.length > 0) {
           setDuplicateCandidates(duplicates);
           setShowDuplicateDialog(true);
@@ -593,7 +518,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
 
       // Show loading toast
       const addingToast = toast.loading("Adding candidate to pipeline...");
-      
+
       try {
         await proceedWithSubmission();
         toast.dismiss(addingToast);
@@ -603,7 +528,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       }
     } catch (error: any) {
       console.error("Error in submission flow:", error);
-      
+
       // Provide specific, actionable error messages
       if (error.message?.includes('email already exists') || error.message?.includes('duplicate') || error.code === '23505') {
         toast.error("Duplicate Email Detected", {
@@ -631,7 +556,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           duration: 5000
         });
       }
-      
+
       setLoading(false);
     }
   };
@@ -669,375 +594,375 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
 
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-card">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 rounded-full bg-gradient-to-br from-accent to-purple-500">
-              <UserPlus className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <DialogTitle className="text-2xl font-black uppercase">
-                Add Candidate
-              </DialogTitle>
-              <DialogDescription className="text-base">
-                Add a candidate to <strong>{jobTitle}</strong>. Provide at least a LinkedIn URL or email to get started. You can merge with their user account later if they sign up.
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        {/* Info banner explaining workflow */}
-        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
-          <div className="flex items-start gap-2">
-            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-900 dark:text-blue-100">
-              <strong>Step 1: Add candidate manually</strong>
-              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                Add candidates to track them in your pipeline. If they sign up later, 
-                you can merge their profile with their account.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {submitError && (
-          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-4">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-destructive" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-                </svg>
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 rounded-full bg-gradient-to-br from-accent to-purple-500">
+                <UserPlus className="w-6 h-6 text-white" />
               </div>
-              <div className="flex-1">
-                <h4 className="text-sm font-semibold text-destructive mb-1">
-                  Failed to Add Candidate
-                </h4>
-                <p className="text-sm text-destructive/90">
-                  {submitError}
+              <div>
+                <DialogTitle className="text-2xl font-black uppercase">
+                  Add Candidate
+                </DialogTitle>
+                <DialogDescription className="text-base">
+                  Add a candidate to <strong>{jobTitle}</strong>. Provide at least a LinkedIn URL or email to get started. You can merge with their user account later if they sign up.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {/* Info banner explaining workflow */}
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-900 dark:text-blue-100">
+                <strong>Step 1: Add candidate manually</strong>
+                <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                  Add candidates to track them in your pipeline. If they sign up later,
+                  you can merge their profile with their account.
                 </p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setSubmitError(null)}
-                className="flex-shrink-0 h-6 w-6 p-0"
-              >
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
-                </svg>
-              </Button>
             </div>
           </div>
-        )}
 
-        <Tabs value={addMode} onValueChange={(v) => setAddMode(v as "manual" | "linkedin")} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="manual">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Manual Entry
-            </TabsTrigger>
-            <TabsTrigger value="linkedin">
-              <Zap className="w-4 h-4 mr-2" />
-              LinkedIn Quick Add
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="linkedin" className="space-y-4 mt-4">
-            <div className="p-6 bg-gradient-to-br from-accent/5 to-purple-500/5 rounded-lg border border-accent/20">
-              <div className="flex items-start gap-3 mb-4">
-                <div className="p-2 rounded-full bg-accent/10">
-                  <Linkedin className="w-5 h-5 text-accent" />
+          {submitError && (
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-destructive" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold mb-1">LinkedIn Profile Importer</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Paste a LinkedIn profile URL and we'll automatically extract all relevant candidate information.
+                  <h4 className="text-sm font-semibold text-destructive mb-1">
+                    Failed to Add Candidate
+                  </h4>
+                  <p className="text-sm text-destructive/90">
+                    {submitError}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSubmitError(null)}
+                  className="flex-shrink-0 h-6 w-6 p-0"
+                >
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <Tabs value={addMode} onValueChange={(v) => setAddMode(v as "manual" | "linkedin")} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="manual">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Manual Entry
+              </TabsTrigger>
+              <TabsTrigger value="linkedin">
+                <Zap className="w-4 h-4 mr-2" />
+                LinkedIn Quick Add
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="linkedin" className="space-y-4 mt-4">
+              <div className="p-6 bg-gradient-to-br from-accent/5 to-purple-500/5 rounded-lg border border-accent/20">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 rounded-full bg-accent/10">
+                    <Linkedin className="w-5 h-5 text-accent" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold mb-1">LinkedIn Profile Importer</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Paste a LinkedIn profile URL and we'll automatically extract all relevant candidate information.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="linkedinImport">LinkedIn Profile URL</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="linkedinImport"
+                      placeholder="https://www.linkedin.com/in/username"
+                      value={linkedinUrlForScrape}
+                      onChange={(e) => setLinkedinUrlForScrape(e.target.value)}
+                      disabled={scrapingLinkedIn}
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleLinkedInScrape}
+                      disabled={scrapingLinkedIn || !linkedinUrlForScrape}
+                      className="gap-2 bg-gradient-to-r from-accent to-purple-500"
+                    >
+                      {scrapingLinkedIn ? (
+                        <>
+                          <Sparkles className="w-4 h-4 animate-spin" />
+                          Importing...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-4 h-4" />
+                          Import Profile
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    AI will automatically fill in candidate details from their LinkedIn profile
                   </p>
                 </div>
               </div>
+            </TabsContent>
 
-              <div className="space-y-3">
-                <Label htmlFor="linkedinImport">LinkedIn Profile URL</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="linkedinImport"
-                    placeholder="https://www.linkedin.com/in/username"
-                    value={linkedinUrlForScrape}
-                    onChange={(e) => setLinkedinUrlForScrape(e.target.value)}
-                    disabled={scrapingLinkedIn}
+            <TabsContent value="manual">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-accent" />
+                      Full Name *
+                    </Label>
+                    <Input
+                      id="fullName"
+                      value={formData.fullName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, fullName: e.target.value })
+                      }
+                      required
+                      placeholder="John Doe"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="linkedinUrl" className="flex items-center gap-2">
+                      <Linkedin className="w-4 h-4 text-accent" />
+                      LinkedIn Profile (Recommended)
+                    </Label>
+                    <Input
+                      id="linkedinUrl"
+                      value={formData.linkedinUrl}
+                      onChange={(e) =>
+                        setFormData({ ...formData, linkedinUrl: e.target.value })
+                      }
+                      placeholder="https://linkedin.com/in/johndoe"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-accent" />
+                      Email Address (Optional)
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      placeholder="john@example.com"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-accent" />
+                      Phone Number (Optional)
+                    </Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
+                      placeholder="+1 234 567 8900"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currentCompany">Current Company</Label>
+                    <Input
+                      id="currentCompany"
+                      value={formData.currentCompany}
+                      onChange={(e) =>
+                        setFormData({ ...formData, currentCompany: e.target.value })
+                      }
+                      placeholder="Tech Corp"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="currentTitle">Current Title</Label>
+                    <Input
+                      id="currentTitle"
+                      value={formData.currentTitle}
+                      onChange={(e) =>
+                        setFormData({ ...formData, currentTitle: e.target.value })
+                      }
+                      placeholder="Senior Developer"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="startStageIndex">Starting Pipeline Stage</Label>
+                  <Select
+                    value={formData.startStageIndex}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, startStageIndex: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Applied</SelectItem>
+                      <SelectItem value="1">Screening</SelectItem>
+                      <SelectItem value="2">Interview</SelectItem>
+                      <SelectItem value="3">Final Round</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes" className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-accent" />
+                    Admin Notes
+                  </Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) =>
+                      setFormData({ ...formData, notes: e.target.value })
+                    }
+                    rows={4}
+                    placeholder="Why this candidate? Source? Special considerations?"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="resume" className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-accent" />
+                    Resume / CV
+                  </Label>
+                  <Input
+                    id="resume"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                    className="cursor-pointer"
+                  />
+                  {resumeFile && (
+                    <p className="text-xs text-muted-foreground">
+                      Selected: {resumeFile.name}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="linkedinImported"
+                    checked={linkedinImported}
+                    onCheckedChange={(checked) => setLinkedinImported(checked as boolean)}
+                  />
+                  <Label
+                    htmlFor="linkedinImported"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                  >
+                    <Linkedin className="w-4 h-4 text-accent" />
+                    LinkedIn profile imported
+                  </Label>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-accent" />
+                    Credit Assignment
+                  </Label>
+                  <Popover open={creditPopoverOpen} onOpenChange={setCreditPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between"
+                      >
+                        {creditTo.length === 0
+                          ? "Select team members..."
+                          : `${creditTo.length} selected`}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput placeholder="Search team members..." />
+                        <CommandEmpty>No team member found.</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {teamMembers.map((member) => (
+                            <CommandItem
+                              key={member.id}
+                              onSelect={() => {
+                                setCreditTo(
+                                  creditTo.includes(member.id)
+                                    ? creditTo.filter((id) => id !== member.id)
+                                    : [...creditTo, member.id]
+                                );
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  creditTo.includes(member.id) ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div className="flex flex-col">
+                                <span>{member.name}</span>
+                                <span className="text-xs text-muted-foreground">{member.email}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-xs text-muted-foreground">
+                    Select team members who should receive credit for this candidate
+                  </p>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4 border-t">
                   <Button
                     type="button"
-                    onClick={handleLinkedInScrape}
-                    disabled={scrapingLinkedIn || !linkedinUrlForScrape}
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={loading}
                     className="gap-2 bg-gradient-to-r from-accent to-purple-500"
                   >
-                    {scrapingLinkedIn ? (
-                      <>
-                        <Sparkles className="w-4 h-4 animate-spin" />
-                        Importing...
-                      </>
+                    {loading ? (
+                      "Adding..."
                     ) : (
                       <>
-                        <Zap className="w-4 h-4" />
-                        Import Profile
+                        <UserPlus className="w-4 h-4" />
+                        Add Candidate
                       </>
                     )}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  AI will automatically fill in candidate details from their LinkedIn profile
-                </p>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="manual">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName" className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-accent" />
-                Full Name *
-              </Label>
-              <Input
-                id="fullName"
-                value={formData.fullName}
-                onChange={(e) =>
-                  setFormData({ ...formData, fullName: e.target.value })
-                }
-                required
-                placeholder="John Doe"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="linkedinUrl" className="flex items-center gap-2">
-                <Linkedin className="w-4 h-4 text-accent" />
-                LinkedIn Profile (Recommended)
-              </Label>
-              <Input
-                id="linkedinUrl"
-                value={formData.linkedinUrl}
-                onChange={(e) =>
-                  setFormData({ ...formData, linkedinUrl: e.target.value })
-                }
-                placeholder="https://linkedin.com/in/johndoe"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-accent" />
-                Email Address (Optional)
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                placeholder="john@example.com"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-accent" />
-                Phone Number (Optional)
-              </Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                placeholder="+1 234 567 8900"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentCompany">Current Company</Label>
-              <Input
-                id="currentCompany"
-                value={formData.currentCompany}
-                onChange={(e) =>
-                  setFormData({ ...formData, currentCompany: e.target.value })
-                }
-                placeholder="Tech Corp"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="currentTitle">Current Title</Label>
-              <Input
-                id="currentTitle"
-                value={formData.currentTitle}
-                onChange={(e) =>
-                  setFormData({ ...formData, currentTitle: e.target.value })
-                }
-                placeholder="Senior Developer"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="startStageIndex">Starting Pipeline Stage</Label>
-            <Select
-              value={formData.startStageIndex}
-              onValueChange={(value) =>
-                setFormData({ ...formData, startStageIndex: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">Applied</SelectItem>
-                <SelectItem value="1">Screening</SelectItem>
-                <SelectItem value="2">Interview</SelectItem>
-                <SelectItem value="3">Final Round</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes" className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-accent" />
-              Admin Notes
-            </Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) =>
-                setFormData({ ...formData, notes: e.target.value })
-              }
-              rows={4}
-              placeholder="Why this candidate? Source? Special considerations?"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="resume" className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-accent" />
-              Resume / CV
-            </Label>
-            <Input
-              id="resume"
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-              className="cursor-pointer"
-            />
-            {resumeFile && (
-              <p className="text-xs text-muted-foreground">
-                Selected: {resumeFile.name}
-              </p>
-            )}
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="linkedinImported"
-              checked={linkedinImported}
-              onCheckedChange={(checked) => setLinkedinImported(checked as boolean)}
-            />
-            <Label
-              htmlFor="linkedinImported"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
-            >
-              <Linkedin className="w-4 h-4 text-accent" />
-              LinkedIn profile imported
-            </Label>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Award className="w-4 h-4 text-accent" />
-              Credit Assignment
-            </Label>
-            <Popover open={creditPopoverOpen} onOpenChange={setCreditPopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  className="w-full justify-between"
-                >
-                  {creditTo.length === 0
-                    ? "Select team members..."
-                    : `${creditTo.length} selected`}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search team members..." />
-                  <CommandEmpty>No team member found.</CommandEmpty>
-                  <CommandGroup className="max-h-64 overflow-auto">
-                    {teamMembers.map((member) => (
-                      <CommandItem
-                        key={member.id}
-                        onSelect={() => {
-                          setCreditTo(
-                            creditTo.includes(member.id)
-                              ? creditTo.filter((id) => id !== member.id)
-                              : [...creditTo, member.id]
-                          );
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            creditTo.includes(member.id) ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        <div className="flex flex-col">
-                          <span>{member.name}</span>
-                          <span className="text-xs text-muted-foreground">{member.email}</span>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            <p className="text-xs text-muted-foreground">
-              Select team members who should receive credit for this candidate
-            </p>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="gap-2 bg-gradient-to-r from-accent to-purple-500"
-            >
-              {loading ? (
-                "Adding..."
-              ) : (
-                <>
-                  <UserPlus className="w-4 h-4" />
-                  Add Candidate
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+              </form>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
