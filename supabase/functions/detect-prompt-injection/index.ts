@@ -85,7 +85,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Prompt injection detection error:', error);
-    return new Response(JSON.stringify({ error: error.message, safe: true }), {
+    return new Response(JSON.stringify({ error: (error as Error).message, safe: true }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

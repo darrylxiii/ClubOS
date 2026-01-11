@@ -636,22 +636,25 @@ export default function CompanyPage() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold">Brand Voice & Knowledge</h2>
-                  <p className="text-muted-foreground">Configure how the AI represents this company.</p>
-                </div>
-              </div>
-
-              <EntityKnowledgeProfile 
-                entityId={company.id} 
-                entityType="company"
-                title="Brand Brain Configuration"
-                description="Instructions and knowledge sources for the RAG engine."
-              />
-            </div>
+            {/* Brand Voice & Knowledge */}
+            {(isAdmin || isCompanyMember) && (
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-bold">Brand Voice & Knowledge</h2>
+                      <p className="text-muted-foreground text-sm">Configure how the AI represents this company.</p>
+                    </div>
+                  </div>
+                  <EntityKnowledgeProfile 
+                    entityId={company.id} 
+                    entityType="company"
+                    title="Brand Brain Configuration"
+                    description="Instructions and knowledge sources for the RAG engine."
+                  />
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="jobs" className="space-y-6 mt-6">
@@ -843,81 +846,71 @@ export default function CompanyPage() {
             )}
           </TabsContent>
 
-          {
-    canAccessTargets && (
-      <TabsContent value="targets" className="space-y-6 mt-6">
-        <TargetCompanies companyId={company.id} />
-      </TabsContent>
-    )
-  }
+          {canAccessTargets && (
+            <TabsContent value="targets" className="space-y-6 mt-6">
+              <TargetCompanies companyId={company.id} />
+            </TabsContent>
+          )}
 
-  {/* Intelligence Tab */ }
-  {
-    (isAdmin || isCompanyMember) && (
-      <TabsContent value="intelligence" className="space-y-6 mt-6">
-        <CompanyIntelligenceSummary companyId={company.id} />
-      </TabsContent>
-    )
-  }
+          {/* Intelligence Tab */}
+          {(isAdmin || isCompanyMember) && (
+            <TabsContent value="intelligence" className="space-y-6 mt-6">
+              <CompanyIntelligenceSummary companyId={company.id} />
+            </TabsContent>
+          )}
 
-  {/* ML Insights Tab */ }
-  {
-    isAdmin && (
-      <TabsContent value="ml-insights" className="space-y-6 mt-6">
-        <CompanyMLInsights companyId={company.id} />
-      </TabsContent>
-    )
-  }
+          {/* ML Insights Tab */}
+          {isAdmin && (
+            <TabsContent value="ml-insights" className="space-y-6 mt-6">
+              <CompanyMLInsights companyId={company.id} />
+            </TabsContent>
+          )}
 
-  {/* Financials Tab - Admin Only */ }
-  {
-    isAdmin && (
-      <TabsContent value="financials" className="space-y-6 mt-6">
-        <CompanyFinancialsTab companyId={company.id} />
-      </TabsContent>
-    )
-  }
-        </Tabs >
-      </div >
+          {/* Financials Tab - Admin Only */}
+          {isAdmin && (
+            <TabsContent value="financials" className="space-y-6 mt-6">
+              <CompanyFinancialsTab companyId={company.id} />
+            </TabsContent>
+          )}
+        </Tabs>
+      </div>
 
-    {/* Edit Company Dialog */ }
-  {
-    company && (
-      <>
-        <EditCompanyDialog
-          companyId={company.id}
-          open={editDialogOpen}
-          onClose={() => setEditDialogOpen(false)}
-          onSuccess={() => {
-            loadCompany();
-            setEditDialogOpen(false);
-          }}
-        />
+      {/* Edit Company Dialog */}
+      {company && (
+        <>
+          <EditCompanyDialog
+            companyId={company.id}
+            open={editDialogOpen}
+            onClose={() => setEditDialogOpen(false)}
+            onSuccess={() => {
+              loadCompany();
+              setEditDialogOpen(false);
+            }}
+          />
 
-        {/* Create Job Dialog */}
-        <CreateJobDialog
-          open={createJobDialogOpen}
-          onOpenChange={setCreateJobDialogOpen}
-          companyId={company.id}
-          onJobCreated={() => {
-            loadStats();
-            toast.success("Job created successfully!");
-          }}
-        />
+          {/* Create Job Dialog */}
+          <CreateJobDialog
+            open={createJobDialogOpen}
+            onOpenChange={setCreateJobDialogOpen}
+            companyId={company.id}
+            onJobCreated={() => {
+              loadStats();
+              toast.success("Job created successfully!");
+            }}
+          />
 
-        {/* Add News Article Dialog */}
-        <AddNewsArticleDialog
-          open={addNewsDialogOpen}
-          onOpenChange={setAddNewsDialogOpen}
-          companyId={company.id}
-          onSuccess={() => {
-            loadNewsArticles();
-            toast.success("News article added successfully!");
-          }}
-        />
-      </>
-    )
-  }
-    </AppLayout >
+          {/* Add News Article Dialog */}
+          <AddNewsArticleDialog
+            open={addNewsDialogOpen}
+            onOpenChange={setAddNewsDialogOpen}
+            companyId={company.id}
+            onSuccess={() => {
+              loadNewsArticles();
+              toast.success("News article added successfully!");
+            }}
+          />
+        </>
+      )}
+    </AppLayout>
   );
 }

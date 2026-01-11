@@ -65,10 +65,18 @@ serve(async (req) => {
       });
     }
 
+    interface ExtractedEntity {
+      id: string;
+      name: string;
+      type: string;
+    }
+    
     const extracted = JSON.parse(toolCall.function.arguments);
     
     // Store relationships in database
-    const entityMap = new Map(extracted.entities.map((e: any) => [e.name, { ...e, id: crypto.randomUUID() }]));
+    const entityMap = new Map<string, ExtractedEntity>(
+      extracted.entities.map((e: any) => [e.name, { ...e, id: crypto.randomUUID() }])
+    );
     
     for (const rel of extracted.relationships || []) {
       const source = entityMap.get(rel.source);
@@ -101,7 +109,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('NER extraction error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

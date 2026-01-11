@@ -139,7 +139,7 @@ serve(async (req) => {
             .eq('entity_id', company_id)
             .eq('entity_type', 'company_dna');
 
-        const results = [];
+        const results: Array<{ content: string; status: string; error?: string }> = [];
 
         // 4. Process in batches
         for (let i = 0; i < chunks.length; i += 5) {
