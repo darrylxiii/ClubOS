@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect, lazy, Suspense } from
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUnifiedKPIs, type KPIDomain, type UnifiedKPI, type DomainHealth } from '@/hooks/useUnifiedKPIs';
+import { KPIErrorBoundary } from './KPIErrorBoundary';
 import { useKPIRefresh } from '@/hooks/useKPIRefresh';
 import { ExecutiveSummaryBar } from './ExecutiveSummaryBar';
 import { DomainSidebar } from './DomainSidebar';
@@ -463,33 +464,47 @@ export function UnifiedKPICommandCenter() {
 {/* View Mode Content */}
                 <Suspense fallback={<LazyFallback />}>
                   {viewMode === 'executive' ? (
-                    <ExecutiveKPIDashboard
-                      allKPIs={allKPIs}
-                      domainHealth={domainHealth}
-                      overallHealth={overallHealth}
-                      onGenerateReport={() => setBoardReportOpen(true)}
-                    />
+                    <KPIErrorBoundary fallbackMessage="Unable to load Executive Dashboard">
+                      <ExecutiveKPIDashboard
+                        allKPIs={allKPIs}
+                        domainHealth={domainHealth}
+                        overallHealth={overallHealth}
+                        onGenerateReport={() => setBoardReportOpen(true)}
+                      />
+                    </KPIErrorBoundary>
                   ) : viewMode === 'audit' ? (
-                    <KPIAuditLogViewer />
+                    <KPIErrorBoundary fallbackMessage="Unable to load Audit Log">
+                      <KPIAuditLogViewer />
+                    </KPIErrorBoundary>
                   ) : viewMode === 'department' ? (
-                    <DepartmentHeadView
-                      allKPIs={allKPIs}
-                      domainHealth={domainHealth}
-                    />
+                    <KPIErrorBoundary fallbackMessage="Unable to load Department View">
+                      <DepartmentHeadView
+                        allKPIs={allKPIs}
+                        domainHealth={domainHealth}
+                      />
+                    </KPIErrorBoundary>
                   ) : viewMode === 'okr' ? (
-                    <OKRIntegration
-                      kpis={allKPIs}
-                    />
+                    <KPIErrorBoundary fallbackMessage="Unable to load OKR Integration">
+                      <OKRIntegration
+                        kpis={allKPIs}
+                      />
+                    </KPIErrorBoundary>
                   ) : viewMode === 'lineage' ? (
-                    <DataLineageViewer
-                      kpis={allKPIs}
-                    />
+                    <KPIErrorBoundary fallbackMessage="Unable to load Data Lineage">
+                      <DataLineageViewer
+                        kpis={allKPIs}
+                      />
+                    </KPIErrorBoundary>
                   ) : viewMode === 'goals' ? (
-                    <div className="space-y-6">
-                      <PersonalKPIGoals availableKPIs={allKPIs} />
-                    </div>
+                    <KPIErrorBoundary fallbackMessage="Unable to load Personal Goals">
+                      <div className="space-y-6">
+                        <PersonalKPIGoals availableKPIs={allKPIs} />
+                      </div>
+                    </KPIErrorBoundary>
                   ) : viewMode === 'governance' ? (
-                    <KPIVisibilityManager />
+                    <KPIErrorBoundary fallbackMessage="Unable to load Access Management">
+                      <KPIVisibilityManager />
+                    </KPIErrorBoundary>
                   ) : (
                     <>
                       {/* Pinned KPIs */}
@@ -505,21 +520,25 @@ export function UnifiedKPICommandCenter() {
 
                       {/* AI Executive Summary */}
                       <div className="mb-6">
-                        <AIExecutiveSummary
-                          allKPIs={allKPIs}
-                          domainHealth={domainHealth.reduce((acc, domain) => {
-                            acc[domain.domain] = domain;
-                            return acc;
-                          }, {} as Record<string, DomainHealth>)}
-                          overallHealth={overallHealth}
-                          onRefresh={handleRefresh}
-                          isRefreshing={isRefreshing}
-                        />
+                        <KPIErrorBoundary fallbackMessage="Unable to load AI Summary">
+                          <AIExecutiveSummary
+                            allKPIs={allKPIs}
+                            domainHealth={domainHealth.reduce((acc, domain) => {
+                              acc[domain.domain] = domain;
+                              return acc;
+                            }, {} as Record<string, DomainHealth>)}
+                            overallHealth={overallHealth}
+                            onRefresh={handleRefresh}
+                            isRefreshing={isRefreshing}
+                          />
+                        </KPIErrorBoundary>
                       </div>
 
                       {/* Moneybird Financial KPIs Section */}
                       <div className="mb-6">
-                        <FinancialKPISection />
+                        <KPIErrorBoundary fallbackMessage="Unable to load Financial KPIs">
+                          <FinancialKPISection />
+                        </KPIErrorBoundary>
                       </div>
 
                       <KPIOverview
