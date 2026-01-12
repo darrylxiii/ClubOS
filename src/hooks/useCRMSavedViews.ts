@@ -30,7 +30,7 @@ export function useCRMSavedViews(entityType: string) {
                 .order('name');
 
             if (error) throw error;
-            setViews(data || []);
+            setViews((data || []) as SavedView[]);
 
             // Default to first view if none active
             if (!activeView && data && data.length > 0) {
@@ -65,8 +65,8 @@ export function useCRMSavedViews(entityType: string) {
 
             if (error) throw error;
 
-            setViews(prev => [...prev, data]);
-            setActiveView(data);
+            setViews(prev => [...prev, data as SavedView]);
+            setActiveView(data as SavedView);
             notify.success('View saved');
             return data;
         } catch (err: any) {
