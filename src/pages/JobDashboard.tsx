@@ -344,12 +344,13 @@ export default function JobDashboard() {
 
       if (error) throw error;
 
-      // Enrich with candidate profile data through candidate_interactions
+      // Enrich with candidate profile data - 4-tier fallback strategy for enterprise reliability
       const enrichedApps = await Promise.all((data || []).map(async (app) => {
         let profileData = null;
         let linkedUserId = app.user_id;
+        let candidateId = app.candidate_id || null;
 
-        // First try to get candidate_profile through candidate_interactions
+        // Strategy 1: Try candidate_interactions join (works for most existing candidates)
         const { data: interaction } = await supabase
           .from('candidate_interactions')
           .select(`
@@ -370,6 +371,7 @@ export default function JobDashboard() {
 
         if (interaction?.candidate_profiles) {
           profileData = interaction.candidate_profiles;
+          candidateId = interaction.candidate_id;
           // Use linked user_id from candidate_profile if available
           if (profileData.user_id) {
             linkedUserId = profileData.user_id;
@@ -385,8 +387,36 @@ export default function JobDashboard() {
               profileData.avatar_url = userProfile.avatar_url;
             }
           }
-        } else if (app.user_id) {
-          // Fallback to user profile if no candidate_profile found
+        } 
+        // Strategy 2: Direct candidate_profiles lookup via app.candidate_id
+        else if (app.candidate_id) {
+          const { data: candidateProfile } = await supabase
+            .from('candidate_profiles')
+            .select('user_id, full_name, email, phone, avatar_url, current_title, current_company, linkedin_url')
+            .eq('id', app.candidate_id)
+            .maybeSingle();
+          
+          if (candidateProfile) {
+            profileData = candidateProfile;
+            candidateId = app.candidate_id;
+            if (candidateProfile.user_id) {
+              linkedUserId = candidateProfile.user_id;
+              
+              // Get user's latest avatar if linked
+              const { data: userProfile } = await supabase
+                .from('profiles')
+                .select('avatar_url')
+                .eq('id', candidateProfile.user_id)
+                .maybeSingle();
+
+              if (userProfile?.avatar_url) {
+                profileData.avatar_url = userProfile.avatar_url;
+              }
+            }
+          }
+        }
+        // Strategy 3: Fallback to user profile (for user-applied candidates)
+        else if (app.user_id) {
           const { data: userProfile } = await supabase
             .from('profiles')
             .select('full_name, email, phone, avatar_url')
@@ -395,19 +425,20 @@ export default function JobDashboard() {
           profileData = userProfile;
         }
 
+        // Strategy 4: Use embedded application fields as ultimate fallback
         return {
           ...app,
-          candidate_id: interaction?.candidate_id || null, // Add candidate_id from interactions
-          full_name: profileData?.full_name || 'Candidate',
-          email: profileData?.email,
-          phone: profileData?.phone,
+          candidate_id: candidateId,
+          full_name: profileData?.full_name || app.candidate_full_name || 'Candidate',
+          email: profileData?.email || app.candidate_email,
+          phone: profileData?.phone || app.candidate_phone,
           avatar_url: profileData?.avatar_url,
-          current_title: profileData?.current_title,
-          current_company: profileData?.current_company,
-          linkedin_url: profileData?.linkedin_url,
+          current_title: profileData?.current_title || app.candidate_title,
+          current_company: profileData?.current_company || app.candidate_company,
+          linkedin_url: profileData?.linkedin_url || app.candidate_linkedin_url,
           user_id: linkedUserId,
           stages: app.stages || [],
-          is_linked_user: !!profileData?.user_id, // Flag to show linked status
+          is_linked_user: !!profileData?.user_id,
         };
       }));
 
