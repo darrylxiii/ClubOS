@@ -36,6 +36,12 @@ interface AdminJobToolsProps {
 export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps) => {
   const [showAddCandidate, setShowAddCandidate] = useState(false);
 
+  // Defensive check: if no jobId is provided, don't render anything or render a safe placeholder
+  if (!jobId) {
+    console.warn("AdminJobTools: No jobId provided");
+    return null;
+  }
+
   const handleAIRecommendations = () => {
     toast.info("AI Matching Engine", {
       description: "Analyzing global talent pool for perfect matches...",
@@ -86,9 +92,9 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
           </Badge>
           <span className="text-xs text-muted-foreground">Job-level operations</span>
         </div>
-        
+
         <div className="flex-1" />
-        
+
         <Button
           onClick={() => setShowAddCandidate(true)}
           className="gap-2 bg-accent hover:bg-accent/90"
@@ -119,34 +125,34 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
               Advanced Operations
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            
+
             <DropdownMenuItem onClick={handleBulkImport} className="gap-2">
               <Database className="w-4 h-4" />
               Bulk Import Candidates
             </DropdownMenuItem>
-            
+
             <DropdownMenuItem onClick={handlePipelineHealth} className="gap-2">
               <Activity className="w-4 h-4" />
               Pipeline Health Check
             </DropdownMenuItem>
-            
+
             <DropdownMenuItem onClick={handleRecalculateMetrics} className="gap-2">
               <RefreshCw className="w-4 h-4" />
               Recalculate Metrics
             </DropdownMenuItem>
-            
+
             <DropdownMenuSeparator />
-            
+
             <DropdownMenuItem onClick={handleExportData} className="gap-2">
               <FileDown className="w-4 h-4" />
               Export Full Data
             </DropdownMenuItem>
-            
+
             <DropdownMenuItem className="gap-2 text-accent">
               <Target className="w-4 h-4" />
               Set Priority Override
             </DropdownMenuItem>
-            
+
             <DropdownMenuItem className="gap-2">
               <Award className="w-4 h-4" />
               Assign Strategist

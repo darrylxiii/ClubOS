@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,6 +84,34 @@ interface JobMetrics {
   lastActivity: string;
 }
 
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback: React.ReactNode;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, { hasError: boolean }> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("Component Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
+}
+
 export default function JobDashboard() {
   const { jobId } = useParams();
   const navigate = useNavigate();
@@ -123,6 +151,25 @@ export default function JobDashboard() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Defensive stage derivation - Moved up to avoid ReferenceError in handleDragEnd
+  const stages = useMemo(() => {
+    const rawStages = job?.pipeline_stages;
+    const defaultStages = [
+      { name: "Applied", order: 0 },
+      { name: "Screening", order: 1 },
+      { name: "Interview", order: 2 },
+      { name: "Offer", order: 3 },
+    ];
+
+    if (!Array.isArray(rawStages)) return defaultStages;
+
+    // Ensure each stage has an order property for sorting
+    return rawStages.map((s, i) => ({
+      ...s,
+      order: typeof s.order === 'number' ? s.order : i
+    }));
+  }, [job?.pipeline_stages]);
 
   // Load display settings from localStorage
   useEffect(() => {
@@ -452,23 +499,19 @@ export default function JobDashboard() {
     );
   }
 
-  const stages = job.pipeline_stages || [
-    { name: "Applied", order: 0 },
-    { name: "Screening", order: 1 },
-    { name: "Interview", order: 2 },
-    { name: "Offer", order: 3 },
-  ];
 
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6 animate-fade-in">
         {/* Admin Tools Bar - Only visible to admins */}
         {role === 'admin' && (
-          <AdminJobTools
-            jobId={jobId!}
-            jobTitle={job.title}
-            onRefresh={fetchJobDetails}
-          />
+          <ErrorBoundary fallback={<div className="p-4 border border-red-200 rounded text-red-500 text-sm">Failed to load Admin Tools</div>}>
+            <AdminJobTools
+              jobId={jobId!}
+              jobTitle={job.title}
+              onRefresh={fetchJobDetails}
+            />
+          </ErrorBoundary>
         )}
 
         <Dialog open={showBrainConfig} onOpenChange={setShowBrainConfig}>
@@ -728,7 +771,7 @@ export default function JobDashboard() {
                     strategy={verticalListSortingStrategy}
                   >
                     <div className="space-y-3 md:space-y-4">
-                      {stages.sort((a, b) => a.order - b.order).map((stage, index) => {
+                      {[...stages].sort((a, b) => a.order - b.order).map((stage, index) => {
                         const count = metrics?.stageBreakdown[stage.order] || 0;
                         const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
                         const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];

@@ -18,15 +18,18 @@ export const getDaysOpenStatus = (days: number): 'excellent' | 'good' | 'attenti
   return 'attention';
 };
 
-export const calculateDaysSince = (date: string): number => {
-  return Math.floor((new Date().getTime() - new Date(date).getTime()) / (1000 * 60 * 60 * 24));
+export const calculateDaysSince = (date: string | null | undefined): number => {
+  if (!date) return 0;
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return 0;
+  return Math.floor((new Date().getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
 };
 
 export const formatLastActivity = (date: string | null): string => {
   if (!date) return 'No activity';
-  
+
   const days = calculateDaysSince(date);
-  
+
   if (days === 0) return 'Today';
   if (days === 1) return 'Yesterday';
   if (days < 7) return `${days}d ago`;
@@ -44,14 +47,14 @@ export const getConversionColor = (rate: number | null): string => {
 export const calculateFillRate = (jobs: any[]): number => {
   const totalJobs = jobs.length;
   if (totalJobs === 0) return 0;
-  
+
   const filledJobs = jobs.filter(j => j.status === 'closed' || j.conversion_rate > 0).length;
   return Math.round((filledJobs / totalJobs) * 100);
 };
 
 export const calculateAvgDaysOpen = (jobs: any[]): number => {
   if (jobs.length === 0) return 0;
-  
+
   const totalDays = jobs.reduce((sum, job) => sum + job.days_since_opened, 0);
   return Math.round(totalDays / jobs.length);
 };
