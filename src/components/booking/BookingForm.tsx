@@ -184,7 +184,7 @@ export function BookingForm({
         userTimezone
       });
 
-      const parsedTime = parseUserTimeSelection(selectedDate, selectedTime, userTimezone);
+      const parsedTime = parseUserTimeSelection(selectedDate, selectedTime);
 
       if (!parsedTime) {
         console.error('[BookingForm] Failed to parse time:', {
