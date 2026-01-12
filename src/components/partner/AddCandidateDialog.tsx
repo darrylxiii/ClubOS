@@ -33,7 +33,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap, Check, ChevronsUpDown, Info } from "lucide-react";
+import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap, Check, ChevronsUpDown, Info, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DuplicateCandidateDialog } from "./DuplicateCandidateDialog";
 
