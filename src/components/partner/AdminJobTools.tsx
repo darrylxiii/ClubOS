@@ -161,13 +161,15 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
         </DropdownMenu>
       </div>
 
-      <AddCandidateDialog
-        open={showAddCandidate}
-        onOpenChange={setShowAddCandidate}
-        jobId={jobId}
-        jobTitle={jobTitle}
-        onCandidateAdded={onRefresh}
-      />
+      {showAddCandidate && (
+        <AddCandidateDialog
+          open={showAddCandidate}
+          onOpenChange={setShowAddCandidate}
+          jobId={jobId}
+          jobTitle={jobTitle}
+          onCandidateAdded={onRefresh}
+        />
+      )}
     </>
   );
 };
