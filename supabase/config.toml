@@ -98,15 +98,15 @@ verify_jwt = true
 # =============================================================================
 # Public API Endpoints (No JWT - use API key auth internally)
 # =============================================================================
-[functions.api-v1-jobs]
-verify_jwt = false
-
-[functions.api-v1-applications]
-verify_jwt = false
-
-[functions.api-v1-candidates]
-verify_jwt = false
-
+# [functions.api-v1-jobs]
+# verify_jwt = false
+# 
+# [functions.api-v1-applications]
+# verify_jwt = false
+# 
+# [functions.api-v1-candidates]
+# verify_jwt = false
+# 
 [functions.webhook-dispatcher]
 verify_jwt = false
 
