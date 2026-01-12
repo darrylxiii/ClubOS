@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfMonth, subMonths, format } from 'date-fns';
+import { format } from 'date-fns';
 
 export type ReportDataSource = 'deals' | 'prospects' | 'activities';
 export type ReportMetric = 'count' | 'sum_value' | 'avg_score';

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Download, PieChart as PieIcon, BarChart as BarIcon, LineChart as LineIcon } from 'lucide-react';
+import { PieChart as PieIcon, BarChart as BarIcon, LineChart as LineIcon } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { useCRMReportData, ReportDataSource, ReportGroupBy, ReportMetric } from './useCRMReportData';
 import { UnifiedLoader } from '@/components/ui/unified-loader';
