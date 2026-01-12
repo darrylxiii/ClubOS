@@ -18,7 +18,7 @@ const resetCache = async () => {
         }
         // Clear PWA storage
         ['pwa-update-dismissed', 'pwa-install-dismissed', 'sb-auth-token'].forEach(k => {
-            try { localStorage.removeItem(k); } catch { }
+            try { localStorage.removeItem(k); } catch (e) { console.error(e); }
         });
         console.log('[PageLoader] Cache cleared. Reloading...');
     } catch (e) {

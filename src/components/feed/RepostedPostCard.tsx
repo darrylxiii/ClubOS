@@ -36,7 +36,7 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
   const authorName = author?.full_name || author?.name || "Unknown";
   const authorImage = author?.avatar_url || author?.logo_url;
   const authorTitle = originalPost.profiles?.current_title || "Company";
-  
+
   const mediaUrls = Array.isArray(originalPost.media_urls) ? originalPost.media_urls : [];
   const firstMedia = mediaUrls[0];
   const additionalMediaCount = mediaUrls.length - 1;
@@ -46,7 +46,7 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
       .from('post_reactions')
       .select('reaction_type')
       .eq('post_id', originalPost.id);
-    
+
     if (data) {
       const counts: Record<string, number> = {};
       data.forEach(r => {
@@ -60,7 +60,7 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
   useEffect(() => {
     // Initial fetch of reaction breakdown
     fetchReactionBreakdown();
-    
+
     // Subscribe to reactions changes
     const reactionsChannel = supabase
       .channel(`reactions-${originalPost.id}`)
@@ -119,7 +119,7 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
   };
 
   return (
-    <Card 
+    <Card
       className={cn(
         "relative overflow-hidden cursor-pointer",
         "border-l-4 border-accent/50",
@@ -132,8 +132,8 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
       <div className="p-4 space-y-3">
         {/* Original Author */}
         <div className="flex items-center gap-3">
-          <Avatar 
-            className="w-10 h-10 cursor-pointer ring-2 ring-transparent hover:ring-accent/50 transition-all" 
+          <Avatar
+            className="w-10 h-10 cursor-pointer ring-2 ring-transparent hover:ring-accent/50 transition-all"
             onClick={handleAuthorClick}
           >
             <AvatarImage src={authorImage} />
@@ -141,7 +141,7 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h4 
+              <h4
                 className="font-semibold text-sm hover:text-accent transition-colors truncate"
                 onClick={handleAuthorClick}
               >
@@ -159,18 +159,18 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
         </div>
 
         {/* Content Preview (collapsed to 4 lines) */}
-          {originalPost.content && (
-            <div 
-              className="text-sm line-clamp-4 break-all overflow-hidden prose prose-sm max-w-none [&_a]:text-primary [&_a]:underline"
-              dangerouslySetInnerHTML={{ 
-                __html: DOMPurify.sanitize(originalPost.content, {
-                  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'b', 'i', 'div'],
-                  ALLOWED_ATTR: ['href', 'target', 'rel'],
-                  ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
-                })
-              }}
-            />
-          )}
+        {originalPost.content && (
+          <div
+            className="text-sm line-clamp-4 break-all overflow-hidden prose prose-sm max-w-none [&_a]:text-primary [&_a]:underline"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(originalPost.content, {
+                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'b', 'i', 'div'],
+                ALLOWED_ATTR: ['href', 'target', 'rel'],
+                ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i
+              })
+            }}
+          />
+        )}
 
         {/* AI Summary */}
         {originalPost.ai_summary && (
@@ -209,7 +209,7 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
                 />
               </div>
             ) : null}
-            
+
             {additionalMediaCount > 0 && (
               <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-md">
                 <span className="text-xs font-medium">+{additionalMediaCount} more</span>
@@ -253,9 +253,9 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
         </div>
 
         {/* View Original Link */}
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className="w-full gap-2 text-accent hover:text-accent hover:bg-accent/10"
           onClick={handleViewOriginal}
         >

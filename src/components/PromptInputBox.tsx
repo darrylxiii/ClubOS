@@ -295,7 +295,7 @@ interface PromptInputContextType {
 const PromptInputContext = React.createContext<PromptInputContextType>({
   isLoading: false,
   value: "",
-  setValue: () => {},
+  setValue: () => { },
   maxHeight: 240,
   onSubmit: undefined,
   disabled: false,
@@ -418,7 +418,7 @@ const PromptInputTextarea: React.FC<PromptInputTextareaProps & React.ComponentPr
   );
 };
 
-interface PromptInputActionsProps extends React.HTMLAttributes<HTMLDivElement> {}
+type PromptInputActionsProps = React.HTMLAttributes<HTMLDivElement>;
 const PromptInputActions: React.FC<PromptInputActionsProps> = ({ children, className, ...props }) => (
   <div className={cn("flex items-center gap-2", className)} {...props}>
     {children}
@@ -504,7 +504,7 @@ interface PromptInputBoxProps {
   className?: string;
 }
 export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxProps>((props, ref) => {
-  const { onSend = () => {}, isLoading = false, placeholder = "Type your message here...", className } = props;
+  const { onSend = () => { }, isLoading = false, placeholder = "Type your message here...", className } = props;
   const [input, setInput] = React.useState("");
   const [files, setFiles] = React.useState<File[]>([]);
   const [filePreviews, setFilePreviews] = React.useState<{ [key: string]: string }>({});
@@ -537,7 +537,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
   const handleCanvasToggle = () => setShowCanvas((prev) => !prev);
 
   const isImageFile = (file: File) => file.type.startsWith("image/");
-  
+
   const isDocumentFile = (file: File) => {
     const docTypes = [
       'application/pdf',
@@ -556,14 +556,14 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
       console.log("File type not supported. Please upload images or documents (PDF, DOCX, TXT, etc.)");
       return;
     }
-    
+
     if (file.size > 20 * 1024 * 1024) {
       console.log("File too large (max 20MB)");
       return;
     }
-    
+
     setFiles((prev) => [...prev, file]);
-    
+
     // Create preview for images only
     if (isImageFile(file)) {
       const reader = new FileReader();
@@ -653,26 +653,26 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
     const audioContext = new AudioContext();
     const analyser = audioContext.createAnalyser();
     const source = audioContext.createMediaStreamSource(stream);
-    
+
     analyser.fftSize = 64;
     source.connect(analyser);
-    
+
     audioContextRef.current = audioContext;
     analyserRef.current = analyser;
-    
+
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-    
+
     const updateLevels = () => {
       if (!analyserRef.current) return;
-      
+
       analyserRef.current.getByteFrequencyData(dataArray);
       const levels = Array.from(dataArray).map(val => val / 255);
       setAudioLevels(levels);
-      
+
       animationFrameRef.current = requestAnimationFrame(updateLevels);
     };
-    
+
     updateLevels();
   };
 
@@ -689,27 +689,27 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
   const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+
       startAudioVisualization(stream);
-      
+
       const recorder = new MediaRecorder(stream);
       const chunks: Blob[] = [];
-      
+
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunks.push(e.data);
         }
       };
-      
+
       recorder.onstop = async () => {
         const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-        
+
         // Convert to base64
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
           const base64Audio = reader.result?.toString().split(',')[1];
-          
+
           if (base64Audio) {
             try {
               // Call Supabase edge function for transcription
@@ -724,9 +724,9 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                   body: JSON.stringify({ audio: base64Audio }),
                 }
               );
-              
+
               const data = await response.json();
-              
+
               if (data.text) {
                 setInput(data.text);
               } else {
@@ -737,15 +737,15 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
             }
           }
         };
-        
+
         stream.getTracks().forEach(track => track.stop());
         stopAudioVisualization();
       };
-      
+
       recorder.start();
       setMediaRecorder(recorder);
       setAudioChunks([]);
-      
+
       console.log("Started recording");
     } catch (error) {
       console.error("Error starting recording:", error);
@@ -755,11 +755,11 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
 
   const handleStopRecording = (duration: number) => {
     console.log(`Stopped recording after ${duration} seconds`);
-    
+
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
     }
-    
+
     setIsRecording(false);
   };
 
@@ -838,10 +838,10 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
               showSearch
                 ? "Search the web..."
                 : showThink
-                ? "Think deeply..."
-                : showCanvas
-                ? "Create on canvas..."
-                : placeholder
+                  ? "Think deeply..."
+                  : showCanvas
+                    ? "Create on canvas..."
+                    : placeholder
             }
             className="text-base"
           />
@@ -1049,10 +1049,10 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
               isLoading
                 ? "Stop generation"
                 : isRecording
-                ? "Stop recording"
-                : hasContent
-                ? "Send message"
-                : "Voice message"
+                  ? "Stop recording"
+                  : hasContent
+                    ? "Send message"
+                    : "Voice message"
             }
           >
             <Button
@@ -1063,8 +1063,8 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                 isRecording
                   ? "bg-transparent hover:bg-muted text-red-500 hover:text-red-400"
                   : hasContent
-                  ? "bg-primary hover:bg-primary/80 text-primary-foreground"
-                  : "bg-transparent hover:bg-muted text-foreground"
+                    ? "bg-primary hover:bg-primary/80 text-primary-foreground"
+                    : "bg-transparent hover:bg-muted text-foreground"
               )}
               onClick={() => {
                 if (isRecording) setIsRecording(false);

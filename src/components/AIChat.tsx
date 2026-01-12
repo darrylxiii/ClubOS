@@ -52,9 +52,9 @@ export const AIChat = () => {
         content: data.response,
       };
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error:", error);
-      if (error.name === 'AbortError') {
+      if ((error as Error).name === 'AbortError') {
         notify.error("Timeout", { description: "AI request timed out after 30s" });
       } else {
         notify.error("Failed to get response from AI");

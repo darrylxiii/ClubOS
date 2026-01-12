@@ -5,11 +5,10 @@ initSentry();
 import { TracingProvider } from "@/lib/tracing/TracingProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { PublicProviders } from "@/contexts/PublicProviders";
-import { ProtectedProviders, ProtectedProvidersLoader } from "@/contexts/ProtectedProviders";
+import { ProtectedProvidersLoader } from "@/contexts/ProtectedProviders";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 import { ProtectedLayout } from "@/components/ProtectedLayout";
@@ -91,7 +90,6 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const ClubAI = lazy(() => import("./pages/ClubAI"));
 const SocialManagement = lazy(() => import("./pages/SocialManagement"));
 const PartnerOnboarding = lazy(() => import("./pages/PartnerOnboarding"));
-const WhatsAppImport = lazy(() => import("./pages/WhatsAppImport"));
 const SalaryInsights = lazy(() => import("./pages/SalaryInsights"));
 const CareerPath = lazy(() => import("./pages/CareerPath"));
 const Subscription = lazy(() => import("./pages/Subscription"));
@@ -140,178 +138,178 @@ const App = () => {
       <TracingProvider enabled={isTracingEnabled}>
         <QueryClientProvider client={queryClient}>
           <TranslationProvider>
-          <BrowserRouter>
-            <AuthProvider>
-              <PostHogProvider>
-                <Toaster />
-                <Sonner />
-                <LanguageSync />
-                <LanguageSelector />
-                {/* PWA Banners */}
-                <Suspense fallback={null}>
-                  <InstallPromptBanner />
-                  <UpdateAvailableBanner />
-                </Suspense>
+            <BrowserRouter>
+              <AuthProvider>
+                <PostHogProvider>
+                  <Toaster />
+                  <Sonner />
+                  <LanguageSync />
+                  <LanguageSelector />
+                  {/* PWA Banners */}
+                  <Suspense fallback={null}>
+                    <InstallPromptBanner />
+                    <UpdateAvailableBanner />
+                  </Suspense>
 
-                <Routes>
-                {/* Install Page */}
-                <Route path="/install" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary>
-                      <Suspense fallback={<PageLoader />}><Install /></Suspense>
-                    </RouteErrorBoundary>
-                  </PublicProviders>
-                } />
+                  <Routes>
+                    {/* Install Page */}
+                    <Route path="/install" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}><Install /></Suspense>
+                        </RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
 
-                {/* Public Routes */}
-                <Route path="/" element={<Navigate to="/auth" replace />} />
-                <Route path="/auth" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary><Auth /></RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/profile/:username" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary>
-                      <Suspense fallback={<PageLoader />}><SharedProfile /></Suspense>
-                    </RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/book/:slug" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary>
-                      <Suspense fallback={<PageLoader />}><BookingPage /></Suspense>
-                    </RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/bookings/:bookingId" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary>
-                      <Suspense fallback={<PageLoader />}><GuestBookingPage /></Suspense>
-                    </RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/partner" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary>
-                      <Suspense fallback={<PageLoader />}><PartnerFunnel /></Suspense>
-                    </RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/partner-funnel" element={<Navigate to="/partner" replace />} />
-                <Route path="/partnership-submitted/:companyName" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary>
-                      <Suspense fallback={<PageLoader />}><PartnershipSubmitted /></Suspense>
-                    </RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/partner/submitted" element={<Navigate to="/partnership-submitted/partner" replace />} />
-                <Route path="/onboarding" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary>
-                      <Suspense fallback={<PageLoader />}><CandidateOnboarding /></Suspense>
-                    </RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/pending-approval" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary>
-                      <Suspense fallback={<PageLoader />}><PendingApproval /></Suspense>
-                    </RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/oauth-onboarding" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary>
-                      <Suspense fallback={<PageLoader />}><OAuthOnboarding /></Suspense>
-                    </RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/privacy" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary>
-                      <Suspense fallback={<PageLoader />}><PrivacyPolicy /></Suspense>
-                    </RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/terms" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary>
-                      <Suspense fallback={<PageLoader />}><TermsOfService /></Suspense>
-                    </RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/forgot-password" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary><ForgotPassword /></RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/reset-password/verify" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary><ResetPasswordVerify /></RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/reset-password/verify-token" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary><ResetPasswordMagicLink /></RouteErrorBoundary>
-                  </PublicProviders>
-                } />
-                <Route path="/reset-password/new" element={
-                  <PublicProviders>
-                    <RouteErrorBoundary><ResetPasswordNew /></RouteErrorBoundary>
-                  </PublicProviders>
-                } />
+                    {/* Public Routes */}
+                    <Route path="/" element={<Navigate to="/auth" replace />} />
+                    <Route path="/auth" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary><Auth /></RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/profile/:username" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}><SharedProfile /></Suspense>
+                        </RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/book/:slug" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}><BookingPage /></Suspense>
+                        </RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/bookings/:bookingId" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}><GuestBookingPage /></Suspense>
+                        </RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/partner" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}><PartnerFunnel /></Suspense>
+                        </RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/partner-funnel" element={<Navigate to="/partner" replace />} />
+                    <Route path="/partnership-submitted/:companyName" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}><PartnershipSubmitted /></Suspense>
+                        </RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/partner/submitted" element={<Navigate to="/partnership-submitted/partner" replace />} />
+                    <Route path="/onboarding" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}><CandidateOnboarding /></Suspense>
+                        </RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/pending-approval" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}><PendingApproval /></Suspense>
+                        </RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/oauth-onboarding" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}><OAuthOnboarding /></Suspense>
+                        </RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/privacy" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}><PrivacyPolicy /></Suspense>
+                        </RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/terms" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}><TermsOfService /></Suspense>
+                        </RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/forgot-password" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary><ForgotPassword /></RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/reset-password/verify" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary><ResetPasswordVerify /></RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/reset-password/verify-token" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary><ResetPasswordMagicLink /></RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
+                    <Route path="/reset-password/new" element={
+                      <PublicProviders>
+                        <RouteErrorBoundary><ResetPasswordNew /></RouteErrorBoundary>
+                      </PublicProviders>
+                    } />
 
-                {/* Protected Routes */}
-                <Route element={
-                  <PublicProviders>
-                    <Suspense fallback={<ProtectedProvidersLoader />}>
-                      <ProtectedLayout />
-                    </Suspense>
-                  </PublicProviders>
-                }>
-                  <Route path="/home" element={<ClubHome />} />
-                  {sharedRoutes}
-                  {candidateRoutes}
-                  {adminRoutes}
-                  {AdminAssessmentsRoutes}
-                  {partnerRoutes}
-                  {analyticsRoutes}
-                  {meetingsRoutes}
-                  {jobsRoutes}
-                  {profilesRoutes}
-                  {projectsRoutes}
-                  {crmRoutes}
+                    {/* Protected Routes */}
+                    <Route element={
+                      <PublicProviders>
+                        <Suspense fallback={<ProtectedProvidersLoader />}>
+                          <ProtectedLayout />
+                        </Suspense>
+                      </PublicProviders>
+                    }>
+                      <Route path="/home" element={<ClubHome />} />
+                      {sharedRoutes}
+                      {candidateRoutes}
+                      {adminRoutes}
+                      {AdminAssessmentsRoutes}
+                      {partnerRoutes}
+                      {analyticsRoutes}
+                      {meetingsRoutes}
+                      {jobsRoutes}
+                      {profilesRoutes}
+                      {projectsRoutes}
+                      {crmRoutes}
 
-                  <Route path="/support/tickets" element={<SupportTicketList />} />
-                  <Route path="/support/tickets/new" element={<SupportTicketNew />} />
-                  <Route path="/help" element={<KnowledgeBase />} />
-                  <Route path="/partner/relationships" element={<PartnerRelationships />} />
-                  <Route path="/live-hub" element={<LiveHub />} />
-                  <Route path="/club-ai" element={<ClubAI />} />
-                  <Route path="/communication-intelligence" element={<CommunicationIntelligence />} />
-                  <Route path="/my-communications" element={<MyCommunications />} />
-                  <Route path="/communication-analytics" element={<CommunicationAnalyticsPage />} />
-                  <Route path="/social-management" element={<SocialManagement />} />
-                  <Route path="/partner-onboarding" element={<PartnerOnboarding />} />
-                  <Route path="/whatsapp-import" element={<Navigate to="/admin/whatsapp?tab=import" replace />} />
-                  <Route path="/salary-insights" element={<SalaryInsights />} />
-                  <Route path="/career-path" element={<CareerPath />} />
-                  <Route path="/subscription" element={<Subscription />} />
-                  <Route path="/subscription/success" element={<SubscriptionSuccess />} />
-                  <Route path="/pricing" element={<Pricing />} />
-                  <Route path="/expert-marketplace" element={<ExpertMarketplace />} />
-                  <Route path="/agent-dashboard" element={<AgentDashboard />} />
+                      <Route path="/support/tickets" element={<SupportTicketList />} />
+                      <Route path="/support/tickets/new" element={<SupportTicketNew />} />
+                      <Route path="/help" element={<KnowledgeBase />} />
+                      <Route path="/partner/relationships" element={<PartnerRelationships />} />
+                      <Route path="/live-hub" element={<LiveHub />} />
+                      <Route path="/club-ai" element={<ClubAI />} />
+                      <Route path="/communication-intelligence" element={<CommunicationIntelligence />} />
+                      <Route path="/my-communications" element={<MyCommunications />} />
+                      <Route path="/communication-analytics" element={<CommunicationAnalyticsPage />} />
+                      <Route path="/social-management" element={<SocialManagement />} />
+                      <Route path="/partner-onboarding" element={<PartnerOnboarding />} />
+                      <Route path="/whatsapp-import" element={<Navigate to="/admin/whatsapp?tab=import" replace />} />
+                      <Route path="/salary-insights" element={<SalaryInsights />} />
+                      <Route path="/career-path" element={<CareerPath />} />
+                      <Route path="/subscription" element={<Subscription />} />
+                      <Route path="/subscription/success" element={<SubscriptionSuccess />} />
+                      <Route path="/pricing" element={<Pricing />} />
+                      <Route path="/expert-marketplace" element={<ExpertMarketplace />} />
+                      <Route path="/agent-dashboard" element={<AgentDashboard />} />
 
-                  <Route path="*" element={<NotFound />} />
-                </Route>
-              </Routes>
-              </PostHogProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </TranslationProvider>
-      </QueryClientProvider>
+                      <Route path="*" element={<NotFound />} />
+                    </Route>
+                  </Routes>
+                </PostHogProvider>
+              </AuthProvider>
+            </BrowserRouter>
+          </TranslationProvider>
+        </QueryClientProvider>
       </TracingProvider>
     </SentryErrorBoundary>
   );

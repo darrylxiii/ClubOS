@@ -62,7 +62,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   const [isPinned, setIsPinned] = useState(false);
   const [repostCount, setRepostCount] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  
+
   // Engagement tracking
   const { trackLike, trackComment, trackShare, trackSave: trackSaveEngagement } = useEngagementTracking({
     postId: post.id,
@@ -163,7 +163,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
       .from('poll_votes')
       .select('option_id')
       .eq('poll_id', post.id);
-    
+
     if (data) {
       setPollTotalVotes(data.length);
     }
@@ -257,7 +257,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
         {/* Clickable Avatar with Hover Preview */}
         <HoverCard openDelay={200}>
           <HoverCardTrigger asChild>
-            <Avatar 
+            <Avatar
               className="w-12 h-12 cursor-pointer ring-2 ring-transparent hover:ring-accent transition-all"
               onClick={handleAuthorClick}
             >
@@ -267,8 +267,8 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           </HoverCardTrigger>
           <HoverCardContent side="left" className="w-auto p-0 border-0 bg-transparent shadow-none">
             {post.profiles ? (
-              <UserProfilePreview 
-                userId={post.user_id} 
+              <UserProfilePreview
+                userId={post.user_id}
                 onMessageClick={() => setMessageDialogOpen(true)}
               />
             ) : post.companies ? (
@@ -276,13 +276,13 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             ) : null}
           </HoverCardContent>
         </HoverCard>
-        
+
         <div className="flex-1">
           <div className="flex items-start justify-between">
             {/* Clickable Name with Hover Preview */}
             <HoverCard openDelay={200}>
               <HoverCardTrigger asChild>
-                <div 
+                <div
                   className="cursor-pointer group"
                   onClick={handleAuthorClick}
                 >
@@ -297,8 +297,8 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               </HoverCardTrigger>
               <HoverCardContent side="left" className="w-auto p-0 border-0 bg-transparent shadow-none">
                 {post.profiles ? (
-                  <UserProfilePreview 
-                    userId={post.user_id} 
+                  <UserProfilePreview
+                    userId={post.user_id}
                     onMessageClick={() => setMessageDialogOpen(true)}
                   />
                 ) : post.companies ? (
@@ -306,7 +306,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 ) : null}
               </HoverCardContent>
             </HoverCard>
-            
+
             <div className="flex items-center gap-2">
               {!isOwnPost && user && (
                 <FollowButton userId={post.user_id} variant="outline" size="sm" />
@@ -320,51 +320,51 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleSave}>
-                  <Bookmark className="w-4 h-4 mr-2" />
-                  {isSaved ? "Remove from saved" : "Save post"}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare(); }}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy link
-                </DropdownMenuItem>
-                {isOwnPost && (
-                  <DropdownMenuItem asChild>
-                    <PostPinning 
-                      postId={post.id} 
-                      isPinned={isPinned} 
-                      onToggle={() => setIsPinned(!isPinned)} 
-                    />
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleSave}>
+                    <Bookmark className="w-4 h-4 mr-2" />
+                    {isSaved ? "Remove from saved" : "Save post"}
                   </DropdownMenuItem>
-                )}
-                {isOwnPost && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit post
+                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare(); }}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy link
+                  </DropdownMenuItem>
+                  {isOwnPost && (
+                    <DropdownMenuItem asChild>
+                      <PostPinning
+                        postId={post.id}
+                        isPinned={isPinned}
+                        onToggle={() => setIsPinned(!isPinned)}
+                      />
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete post
-                    </DropdownMenuItem>
-                  </>
-                )}
-                {!isOwnPost && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleReport} className="text-destructive">
-                      <Flag className="w-4 h-4 mr-2" />
-                      Report post
-                    </DropdownMenuItem>
-                  </>
+                  )}
+                  {isOwnPost && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit post
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete post
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {!isOwnPost && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleReport} className="text-destructive">
+                        <Flag className="w-4 h-4 mr-2" />
+                        Report post
+                      </DropdownMenuItem>
+                    </>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 mb-2">
             {userStreak && userStreak >= 3 && (
               <Badge variant="secondary" className="gap-1">
@@ -375,7 +375,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           </div>
 
           <div className="relative">
-            <div 
+            <div
               className={cn(
                 "mt-3 whitespace-pre-wrap break-words prose prose-sm max-w-none",
                 "[&_ul]:list-disc [&_ul]:ml-6",
@@ -384,15 +384,15 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 isLongContent && isCollapsed && "line-clamp-4"
               )}
               style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
-              dangerouslySetInnerHTML={{ 
+              dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(post.content, {
                   ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'b', 'i'],
                   ALLOWED_ATTR: ['href', 'target', 'rel'],
-                  ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+                  ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i
                 })
               }}
             />
-            
+
             {isLongContent && (
               <Button
                 variant="ghost"
@@ -431,7 +431,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               </CollapsibleContent>
             </Collapsible>
           )}
-          
+
           {/* Media Carousel */}
           {mediaUrls.length > 0 && (
             <div className="mt-3 relative">
@@ -457,10 +457,10 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                   </Button>
                 </>
               )}
-              
+
               {mediaUrls.map((media: any, index: number) => {
                 if (index !== currentMediaIndex) return null;
-                
+
                 return (
                   <div key={index} className="relative">
                     {media.type === 'youtube' ? (
@@ -472,7 +472,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                         url={media.url}
                       />
                     ) : media.type === 'social_embed' ? (
-                      <SocialEmbed 
+                      <SocialEmbed
                         platform={media.platform}
                         postId={media.embedId}
                         url={media.url}
@@ -496,7 +496,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                         className="w-full max-h-[500px] rounded-lg"
                       />
                     ) : (
-                      <a 
+                      <a
                         href={media.url}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -509,17 +509,16 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                   </div>
                 );
               })}
-              
+
               {mediaUrls.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
                   {mediaUrls.map((_, index) => (
                     <div
                       key={index}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        index === currentMediaIndex 
-                          ? 'bg-primary w-4' 
+                      className={`w-2 h-2 rounded-full transition-all ${index === currentMediaIndex
+                          ? 'bg-primary w-4'
                           : 'bg-muted-foreground/30'
-                      }`}
+                        }`}
                     />
                   ))}
                 </div>
@@ -546,11 +545,11 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               />
             </div>
           )}
-          
+
           {/* Algorithm Transparency */}
           {post.feed_type === 'algorithmic' && (
             <div className="mt-3">
-              <AlgorithmTransparency 
+              <AlgorithmTransparency
                 postId={post.id}
                 reasons={{
                   engagement: (post.like_count || 0) > 10,
@@ -568,7 +567,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             <div className="flex items-center gap-2">
               {/* Interactive Reactions */}
               <InteractiveReactions postId={post.id} postAuthorId={post.user_id} />
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -578,7 +577,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 {post.post_comments?.length > 0 && <span className="text-sm">{post.post_comments.length}</span>}
               </Button>
 
-              <RepostButton 
+              <RepostButton
                 postId={post.id}
                 repostCount={repostCount}
                 post={post}
@@ -591,7 +590,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               {user?.id === post.user_id && (
                 <PostAnalyticsButton postId={post.id} variant="ghost" size="sm" showLabel={false} />
               )}
-              
+
               {!isOwnPost && user && (
                 <Button
                   variant="ghost"
@@ -602,7 +601,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                   <span className="text-sm">Message</span>
                 </Button>
               )}
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -612,7 +611,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 <span className="text-sm">Share</span>
               </Button>
             </div>
-            
+
             <div className="flex items-center gap-1">
               {isOwnPost && (
                 <PostAnalyticsButton postId={post.id} variant="ghost" size="sm" showLabel={false} />
@@ -627,9 +626,9 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               </Button>
             </div>
           </div>
-          
+
           {showComments && (
-            <PostComments 
+            <PostComments
               postId={post.id}
               postAuthorId={post.user_id}
               onCommentAdded={onUpdate}

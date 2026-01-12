@@ -77,10 +77,10 @@ export function EmailDetail({
 
   const sanitizedHtml = email.body_html
     ? DOMPurify.sanitize(email.body_html, {
-        ADD_TAGS: ['style'],
-        ADD_ATTR: ['target'],
-        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-      })
+      ADD_TAGS: ['style'],
+      ADD_ATTR: ['target'],
+      ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
+    })
     : null;
 
   return (
@@ -189,8 +189,8 @@ export function EmailDetail({
 
           {/* Smart Reply Suggestions */}
           {email.ai_processed_at && Object.keys(smartReplies).length > 0 && (
-            <SmartReplyButtons 
-              smartReplies={smartReplies} 
+            <SmartReplyButtons
+              smartReplies={smartReplies}
               onSelectReply={handleSmartReply}
             />
           )}
@@ -202,7 +202,7 @@ export function EmailDetail({
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <span className="text-primary">✨ AI Insights</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2 flex-wrap">
                   {email.ai_category && (
                     <Badge variant="secondary">
@@ -291,15 +291,15 @@ export function EmailDetail({
               }
             `}</style>
             {sanitizedHtml ? (
-              <div 
+              <div
                 className="email-body-wrapper break-words overflow-hidden bg-transparent dark:bg-transparent"
-                style={{ 
+                style={{
                   unicodeBidi: 'normal',
                   maxWidth: '100%',
                   overflowWrap: 'break-word',
                   wordBreak: 'break-word',
                 }}
-                dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
+                dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
               />
             ) : (
               <pre className="whitespace-pre-wrap font-sans break-words overflow-x-auto max-w-full">

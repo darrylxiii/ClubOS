@@ -32,7 +32,7 @@ export const AccountLinking = () => {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) throw error;
-      
+
       if (user?.identities) {
         setIdentities(user.identities);
       }
@@ -54,9 +54,9 @@ export const AccountLinking = () => {
       });
       if (error) throw error;
       toast.success("Redirecting to Google...");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error linking Google:", error);
-      toast.error(error.message || "Failed to link Google account");
+      toast.error((error as Error).message || "Failed to link Google account");
     }
   };
 
@@ -69,12 +69,12 @@ export const AccountLinking = () => {
     try {
       const { error } = await supabase.auth.unlinkIdentity(identity);
       if (error) throw error;
-      
+
       toast.success(`${provider} account disconnected`);
       await loadIdentities();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error unlinking identity:", error);
-      toast.error(error.message || "Failed to disconnect account");
+      toast.error((error as Error).message || "Failed to disconnect account");
     }
   };
 
@@ -94,17 +94,17 @@ export const AccountLinking = () => {
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
-      
+
       if (error) throw error;
-      
+
       toast.success("Password set successfully! You can now login with email and password.");
       setShowPasswordDialog(false);
       setNewPassword("");
       setConfirmPassword("");
       await loadIdentities();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error setting password:", error);
-      toast.error(error.message || "Failed to set password");
+      toast.error((error as Error).message || "Failed to set password");
     } finally {
       setIsSettingPassword(false);
     }

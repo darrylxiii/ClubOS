@@ -20,19 +20,7 @@ import { formatCurrency } from '@/lib/revenueCalculations';
 export function CRMRevenueForecast() {
   const { deals, metrics, loading } = useCRMDeals({});
 
-  if (loading) {
-    return (
-      <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-        <CardHeader>
-          <Skeleton className="h-6 w-40" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-32 w-full" />
-        </CardContent>
-      </Card>
-    );
-  }
+
 
   /* 
     Ideally, we would use a hook like useCRMSettings() here.
@@ -49,6 +37,20 @@ export function CRMRevenueForecast() {
     }
     fetchSettings();
   }, []);
+
+  if (loading) {
+    return (
+      <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
+        <CardHeader>
+          <Skeleton className="h-6 w-40" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   const progress = metrics ? (metrics.wonValue / monthlyTarget) * 100 : 0;
 
