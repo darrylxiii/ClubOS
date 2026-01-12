@@ -3,7 +3,7 @@
  * Ensures consistency across client and edge functions
  */
 
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { logger } from '@/lib/logger';
 
@@ -42,15 +42,15 @@ export function formatDateForTimezone(date: Date, timezone: string): string {
  */
 export function getDateRangeForTimezone(date: Date, timezone: string) {
   const zonedDate = toZonedTime(date, timezone);
-  
+
   // Start of day in target timezone
   const startOfDay = new Date(zonedDate);
   startOfDay.setHours(0, 0, 0, 0);
-  
+
   // End of day in target timezone
   const endOfDay = new Date(zonedDate);
   endOfDay.setHours(23, 59, 59, 999);
-  
+
   return {
     start: format(startOfDay, 'yyyy-MM-dd'),
     end: format(endOfDay, 'yyyy-MM-dd'),
@@ -86,31 +86,31 @@ export function detectTimeFormat(timeStr: string): 'am-pm' | '24-hour' | 'invali
  */
 export function normalizeTimeFormat(timeStr: string): string {
   const format = detectTimeFormat(timeStr);
-  
+
   // Already in correct format
   if (format === 'am-pm') {
     return timeStr;
   }
-  
+
   // Convert 24-hour to 12-hour format
   if (format === '24-hour') {
     const [hoursStr, minutesStr] = timeStr.split(':');
     let hours = parseInt(hoursStr, 10);
     const minutes = minutesStr;
-    
+
     // Determine AM/PM
     const period = hours >= 12 ? 'PM' : 'AM';
-    
+
     // Convert to 12-hour format
     if (hours === 0) {
       hours = 12; // Midnight
     } else if (hours > 12) {
       hours -= 12;
     }
-    
+
     return `${hours}:${minutes} ${period}`;
   }
-  
+
   console.error('[normalizeTimeFormat] Invalid time format:', timeStr);
   return timeStr;
 }
@@ -121,13 +121,12 @@ export function normalizeTimeFormat(timeStr: string): string {
  */
 export function parseUserTimeSelection(
   date: Date,
-  timeStr: string,
-  timezone: string
+  timeStr: string
 ): { start: string; end: string; hours: number; minutes: number } | null {
   // Normalize first to handle both formats
   const normalizedTime = normalizeTimeFormat(timeStr);
   const timeMatch = normalizedTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  
+
   if (!timeMatch) {
     console.error('[timezoneUtils] Invalid time format:', timeStr);
     console.error('[timezoneUtils] Expected format: "H:MM AM/PM", got:', typeof timeStr, timeStr);
@@ -138,7 +137,7 @@ export function parseUserTimeSelection(
   let hours = parseInt(timeMatch[1], 10);
   const minutes = parseInt(timeMatch[2], 10);
   const period = timeMatch[3].toUpperCase();
-  
+
   // Convert 12-hour to 24-hour format
   if (period === 'PM' && hours !== 12) {
     hours += 12;
@@ -162,10 +161,10 @@ export function createBookingTime(
   // Create time in user's timezone
   const zonedDate = toZonedTime(date, timezone);
   zonedDate.setHours(hours, minutes, 0, 0);
-  
+
   const startTime = zonedDate;
   const endTime = new Date(startTime.getTime() + durationMinutes * 60 * 1000);
-  
+
   return {
     scheduledStart: startTime.toISOString(),
     scheduledEnd: endTime.toISOString(),

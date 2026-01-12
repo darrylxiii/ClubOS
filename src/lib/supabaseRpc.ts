@@ -138,9 +138,9 @@ export async function typedRpc<TResult>(
     const { data, error } = await supabase.rpc(functionName as never, params as never);
     return { data: data as TResult, error };
   } catch (err) {
-    return { 
-      data: null, 
-      error: err instanceof Error ? err : new Error(String(err)) 
+    return {
+      data: null,
+      error: err instanceof Error ? err : new Error(String(err))
     };
   }
 }
@@ -154,5 +154,5 @@ export async function typedRpc<TResult>(
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function untypedTable(tableName: string): any {
-  return (supabase as any).from(tableName);
+  return (supabase as unknown as any).from(tableName);
 }
