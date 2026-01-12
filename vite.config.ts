@@ -214,7 +214,13 @@ export default defineConfig(({ mode, command }) => ({
     // CRITICAL: Limit concurrent operations to reduce memory pressure
     rollupOptions: {
       // Limit the number of concurrent module transforms
-      maxParallelFileOps: 10,
+      maxParallelFileOps: 5, // Reduced from 10 to 5
+      
+      // Use treeshake preset for lighter memory footprint
+      treeshake: {
+        preset: 'smallest',
+        moduleSideEffects: false,
+      },
       
       // CRITICAL: Externalize heavy optional dependencies in dev builds
       external: mode === 'development' ? [
@@ -225,10 +231,7 @@ export default defineConfig(({ mode, command }) => ({
       ] : [],
       
       output: {
-        // Disable experimentalMinChunkSize to avoid extra memory during merging
-        // experimentalMinChunkSize: 1000, // REMOVED - causes extra memory
-        
-        // Simpler chunking strategy to reduce memory
+        // CRITICAL: Aggressive code splitting by feature to reduce memory per chunk
         manualChunks: (id) => {
           // Node modules only - skip src files for auto-chunking
           if (!id.includes('node_modules')) {
@@ -236,27 +239,33 @@ export default defineConfig(({ mode, command }) => ({
           }
           
           // Heavy libraries - isolate into their own chunks
-          if (id.includes('mermaid')) return 'mermaid';
-          if (id.includes('katex')) return 'katex';
-          if (id.includes('recharts') || id.includes('d3-')) return 'charts';
-          if (id.includes('@blocknote')) return 'blocknote';
-          if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
-          if (id.includes('@radix-ui')) return 'radix';
-          if (id.includes('@supabase')) return 'supabase';
-          if (id.includes('framer-motion')) return 'motion';
-          if (id.includes('@mantine')) return 'mantine';
-          if (id.includes('@opentelemetry')) return 'telemetry';
-          if (id.includes('@sentry')) return 'sentry';
-          if (id.includes('livekit') || id.includes('@livekit')) return 'livekit';
-          if (id.includes('@elevenlabs')) return 'elevenlabs';
-          if (id.includes('fabric')) return 'fabric';
-          if (id.includes('jspdf')) return 'pdf';
-          if (id.includes('date-fns')) return 'date-fns';
-          if (id.includes('i18next')) return 'i18n';
-          if (id.includes('posthog')) return 'posthog';
-          if (id.includes('@tanstack')) return 'tanstack';
-          if (id.includes('@dnd-kit') || id.includes('@hello-pangea')) return 'dnd';
-          if (id.includes('@capacitor')) return 'capacitor';
+          if (id.includes('mermaid')) return 'vendor-mermaid';
+          if (id.includes('katex')) return 'vendor-katex';
+          if (id.includes('recharts')) return 'vendor-recharts';
+          if (id.includes('d3-')) return 'vendor-d3';
+          if (id.includes('@blocknote')) return 'vendor-blocknote';
+          if (id.includes('@tiptap')) return 'vendor-tiptap';
+          if (id.includes('prosemirror')) return 'vendor-prosemirror';
+          if (id.includes('@radix-ui')) return 'vendor-radix';
+          if (id.includes('@supabase')) return 'vendor-supabase';
+          if (id.includes('framer-motion')) return 'vendor-motion';
+          if (id.includes('@mantine')) return 'vendor-mantine';
+          if (id.includes('@opentelemetry')) return 'vendor-telemetry';
+          if (id.includes('@sentry')) return 'vendor-sentry';
+          if (id.includes('livekit') || id.includes('@livekit')) return 'vendor-livekit';
+          if (id.includes('@elevenlabs')) return 'vendor-elevenlabs';
+          if (id.includes('fabric')) return 'vendor-fabric';
+          if (id.includes('jspdf')) return 'vendor-pdf';
+          if (id.includes('date-fns')) return 'vendor-date-fns';
+          if (id.includes('i18next')) return 'vendor-i18n';
+          if (id.includes('posthog')) return 'vendor-posthog';
+          if (id.includes('@tanstack')) return 'vendor-tanstack';
+          if (id.includes('@dnd-kit') || id.includes('@hello-pangea')) return 'vendor-dnd';
+          if (id.includes('@capacitor')) return 'vendor-capacitor';
+          if (id.includes('lucide')) return 'vendor-lucide';
+          if (id.includes('@tabler')) return 'vendor-tabler';
+          if (id.includes('zod')) return 'vendor-zod';
+          if (id.includes('react-hook-form') || id.includes('@hookform')) return 'vendor-forms';
 
           // Core React - single vendor chunk
           if (
@@ -264,8 +273,11 @@ export default defineConfig(({ mode, command }) => ({
             id.includes('node_modules/react-dom/') ||
             id.includes('node_modules/react-router')
           ) {
-            return 'react-vendor';
+            return 'vendor-react';
           }
+          
+          // Everything else in a shared vendor chunk
+          return 'vendor-common';
         },
       },
     },
