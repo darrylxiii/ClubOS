@@ -45808,6 +45808,7 @@ export type Database = {
           activity_level: string
           activity_score: number | null
           created_at: string | null
+          id: string | null
           last_action_type: string | null
           last_activity_at: string
           last_login_at: string | null
@@ -45823,6 +45824,7 @@ export type Database = {
           activity_level?: string
           activity_score?: number | null
           created_at?: string | null
+          id?: string | null
           last_action_type?: string | null
           last_activity_at?: string
           last_login_at?: string | null
@@ -45838,6 +45840,7 @@ export type Database = {
           activity_level?: string
           activity_score?: number | null
           created_at?: string | null
+          id?: string | null
           last_action_type?: string | null
           last_activity_at?: string
           last_login_at?: string | null
