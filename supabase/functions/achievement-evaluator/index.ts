@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     // Evaluate each achievement
     for (const achievement of achievements || []) {
       const criteria = achievement.unlock_criteria;
-      
+
       // Check if already unlocked
       const { data: existing } = await supabase
         .from('user_quantum_achievements')
@@ -71,8 +71,8 @@ Deno.serve(async (req) => {
         case 'signup':
           shouldUnlock = true;
           break;
-        
-        case 'posts':
+
+        case 'posts': {
           const { count: postCount } = await supabase
             .from('posts')
             .select('*', { count: 'exact', head: true })
@@ -80,8 +80,9 @@ Deno.serve(async (req) => {
           progressValue = postCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'streak':
+        case 'streak': {
           const { data: engagement } = await supabase
             .from('user_engagement')
             .select('current_streak')
@@ -90,8 +91,9 @@ Deno.serve(async (req) => {
           progressValue = engagement?.current_streak || 0;
           shouldUnlock = progressValue >= (criteria.days || 0);
           break;
+        }
 
-        case 'level':
+        case 'level': {
           const { data: levelData } = await supabase
             .from('user_engagement')
             .select('level')
@@ -100,8 +102,9 @@ Deno.serve(async (req) => {
           progressValue = levelData?.level || 0;
           shouldUnlock = progressValue >= (criteria.level || 0);
           break;
+        }
 
-        case 'applications':
+        case 'applications': {
           const { count: appCount } = await supabase
             .from('applications')
             .select('*', { count: 'exact', head: true })
@@ -109,8 +112,9 @@ Deno.serve(async (req) => {
           progressValue = appCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'applications_advanced':
+        case 'applications_advanced': {
           const { count: advancedCount } = await supabase
             .from('applications')
             .select('*', { count: 'exact', head: true })
@@ -119,8 +123,9 @@ Deno.serve(async (req) => {
           progressValue = advancedCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'applications_hired':
+        case 'applications_hired': {
           const { count: hiredCount } = await supabase
             .from('applications')
             .select('*', { count: 'exact', head: true })
@@ -129,8 +134,9 @@ Deno.serve(async (req) => {
           progressValue = hiredCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'courses':
+        case 'courses': {
           const { count: courseCount } = await supabase
             .from('course_progress')
             .select('*', { count: 'exact', head: true })
@@ -139,8 +145,9 @@ Deno.serve(async (req) => {
           progressValue = courseCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'course_modules':
+        case 'course_modules': {
           const { count: moduleCount } = await supabase
             .from('module_progress')
             .select('*', { count: 'exact', head: true })
@@ -149,8 +156,9 @@ Deno.serve(async (req) => {
           progressValue = moduleCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'assessments':
+        case 'assessments': {
           const { count: assessmentCount } = await supabase
             .from('assessment_results')
             .select('*', { count: 'exact', head: true })
@@ -158,8 +166,9 @@ Deno.serve(async (req) => {
           progressValue = assessmentCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'assessment_perfect':
+        case 'assessment_perfect': {
           const { count: perfectCount } = await supabase
             .from('assessment_results')
             .select('*', { count: 'exact', head: true })
@@ -168,8 +177,9 @@ Deno.serve(async (req) => {
           progressValue = perfectCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'referrals':
+        case 'referrals': {
           const { count: referralCount } = await supabase
             .from('referral_network')
             .select('*', { count: 'exact', head: true })
@@ -178,8 +188,9 @@ Deno.serve(async (req) => {
           progressValue = referralCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'referrals_hired':
+        case 'referrals_hired': {
           const { count: referralHiredCount } = await supabase
             .from('referral_network')
             .select('*', { count: 'exact', head: true })
@@ -188,8 +199,9 @@ Deno.serve(async (req) => {
           progressValue = referralHiredCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'interviews':
+        case 'interviews': {
           const { count: interviewCount } = await supabase
             .from('meetings')
             .select('*', { count: 'exact', head: true })
@@ -199,8 +211,9 @@ Deno.serve(async (req) => {
           progressValue = interviewCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'connections':
+        case 'connections': {
           const { count: connectionCount } = await supabase
             .from('candidate_network')
             .select('*', { count: 'exact', head: true })
@@ -209,14 +222,15 @@ Deno.serve(async (req) => {
           progressValue = connectionCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'profile_completion':
+        case 'profile_completion': {
           const { data: profile } = await supabase
             .from('candidate_profiles')
             .select('*')
             .eq('user_id', userId)
             .single();
-          
+
           if (profile) {
             const fields = [
               profile.full_name, profile.bio, profile.current_title,
@@ -228,8 +242,9 @@ Deno.serve(async (req) => {
             shouldUnlock = progressValue >= (criteria.percentage || 0);
           }
           break;
+        }
 
-        case 'jobs_saved':
+        case 'jobs_saved': {
           const { count: savedJobsCount } = await supabase
             .from('saved_jobs')
             .select('*', { count: 'exact', head: true })
@@ -237,8 +252,9 @@ Deno.serve(async (req) => {
           progressValue = savedJobsCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'jobs_viewed':
+        case 'jobs_viewed': {
           const { count: viewedJobsCount } = await supabase
             .from('user_events')
             .select('*', { count: 'exact', head: true })
@@ -247,8 +263,9 @@ Deno.serve(async (req) => {
           progressValue = viewedJobsCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'messages_sent':
+        case 'messages_sent': {
           const { count: messagesCount } = await supabase
             .from('messages')
             .select('*', { count: 'exact', head: true })
@@ -256,34 +273,37 @@ Deno.serve(async (req) => {
           progressValue = messagesCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'login_streak':
+        case 'login_streak': {
           const { data: activity } = await supabase
             .from('user_activity_tracking')
             .select('*')
             .eq('user_id', userId)
             .single();
-          
+
           if (activity) {
             progressValue = activity.session_count || 0;
             shouldUnlock = progressValue >= (criteria.days || 0);
           }
           break;
+        }
 
-        case 'time_on_platform':
+        case 'time_on_platform': {
           const { data: timeActivity } = await supabase
             .from('user_activity_tracking')
             .select('total_session_duration_minutes')
             .eq('user_id', userId)
             .single();
-          
+
           if (timeActivity) {
             progressValue = timeActivity.total_session_duration_minutes || 0;
             shouldUnlock = progressValue >= (criteria.minutes || 0);
           }
           break;
+        }
 
-        case 'community_reactions':
+        case 'community_reactions': {
           const { count: reactionsCount } = await supabase
             .from('achievement_reactions')
             .select('*', { count: 'exact', head: true })
@@ -291,8 +311,9 @@ Deno.serve(async (req) => {
           progressValue = reactionsCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'mentor_sessions':
+        case 'mentor_sessions': {
           const { count: mentorCount } = await supabase
             .from('meetings')
             .select('*', { count: 'exact', head: true })
@@ -301,8 +322,9 @@ Deno.serve(async (req) => {
           progressValue = mentorCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'documents_uploaded':
+        case 'documents_uploaded': {
           const { count: docsCount } = await supabase
             .from('documents')
             .select('*', { count: 'exact', head: true })
@@ -310,8 +332,9 @@ Deno.serve(async (req) => {
           progressValue = docsCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'early_bird':
+        case 'early_bird': {
           // Check if user logged in before 7 AM multiple times
           const { count: earlyLoginCount } = await supabase
             .from('user_events')
@@ -323,8 +346,9 @@ Deno.serve(async (req) => {
           progressValue = earlyLoginCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'night_owl':
+        case 'night_owl': {
           // Check if user logged in after 11 PM multiple times
           const { count: lateLoginCount } = await supabase
             .from('user_events')
@@ -335,8 +359,9 @@ Deno.serve(async (req) => {
           progressValue = lateLoginCount || 0;
           shouldUnlock = progressValue >= (criteria.count || 0);
           break;
+        }
 
-        case 'xp_milestone':
+        case 'xp_milestone': {
           const { data: xpData } = await supabase
             .from('achievement_leaderboard')
             .select('total_xp')
@@ -345,14 +370,15 @@ Deno.serve(async (req) => {
           progressValue = xpData?.total_xp || 0;
           shouldUnlock = progressValue >= (criteria.xp || 0);
           break;
+        }
 
-        case 'anniversary':
+        case 'anniversary': {
           const { data: profileData } = await supabase
             .from('profiles')
             .select('created_at')
             .eq('id', userId)
             .single();
-          
+
           if (profileData) {
             const daysSinceJoined = Math.floor(
               (new Date().getTime() - new Date(profileData.created_at).getTime()) / (1000 * 60 * 60 * 24)
@@ -361,6 +387,7 @@ Deno.serve(async (req) => {
             shouldUnlock = daysSinceJoined >= (criteria.days || 365);
           }
           break;
+        }
       }
 
       // Update progress
