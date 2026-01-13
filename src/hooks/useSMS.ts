@@ -87,9 +87,6 @@ export function useSMS(options: UseSMSOptions = {}) {
 
       if (!response.success && !response.sms_id) throw new Error(response.error || 'Failed to send SMS');
       return response;
-
-      if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       toast.success('SMS sent successfully');

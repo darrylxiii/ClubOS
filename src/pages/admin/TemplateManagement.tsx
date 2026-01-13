@@ -17,6 +17,7 @@ import {
   Users,
   Building,
   User,
+  TrendingUp,
 } from 'lucide-react';
 import { useTemplates, Template } from '@/hooks/useTemplates';
 import { TemplateEditor } from '@/components/workspace/TemplateEditor';

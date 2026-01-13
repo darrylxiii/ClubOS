@@ -7,6 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { aiService } from '@/services/aiService';
 
 interface SalaryRecommendation {
   recommended_base_salary: number;

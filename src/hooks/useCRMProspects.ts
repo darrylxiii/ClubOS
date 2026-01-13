@@ -23,7 +23,7 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
       setLoading(true);
       setError(null);
 
-      let query = supabase
+      const { data: rawData, error: fetchError } = await (supabase as any)
         .from('crm_prospects')
         .select(`
           *,
@@ -31,104 +31,110 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
           campaign:crm_campaigns!crm_prospects_campaign_id_fkey(name)
         `)
         .eq('entity_type', 'prospect')
-        // Sort approach might need adjustment if sorting by JSON field, but 'last_activity_at' isn't in top level of schema 1.2?
-        // Checking schema: crm_prospects has 'updated_at', 'created_at'.
-        // engagement_metrics has 'last_contacted_at'.
-        // Schema 1.3 `crm_activities` has `performed_at`.
-        // Ideally we sort by updated_at or use a dedicated column if we added one. 
-        // For now, sorting by updated_at as proxy or removing sort if invalid column.
         .order('updated_at', { ascending: false });
-
-      if (options.campaignId) {
-        query = query.eq('campaign_id', options.campaignId);
-      }
-
-      if (options.stage) {
-        query = query.eq('status', options.stage); // 'status' maps to 'stage'
-      }
-
-      if (options.ownerId) {
-        query = query.eq('owner_id', options.ownerId);
-      }
-
-      if (options.search) {
-        query = query.or(`full_name.ilike.%${options.search}%,email.ilike.%${options.search}%,company_name.ilike.%${options.search}%`);
-      }
-
-      if (options.limit) {
-        query = query.limit(options.limit);
-      }
-
-      if (options.minScore !== undefined) {
-        query = query.gte('lead_score', options.minScore);
-      }
-
-      if (options.maxScore !== undefined) {
-        query = query.lte('lead_score', options.maxScore);
-      }
-
-      const { data, error: fetchError } = await query;
 
       if (fetchError) throw fetchError;
 
-      const mappedProspects: CRMProspect[] = (data || []).map((p: any) => ({
-        id: p.id,
-        full_name: p.full_name,
-        email: p.email,
-        phone: p.phone,
-        linkedin_url: p.linkedin_url,
-        company_name: p.company_name,
-        company_id: p.company_id,
-        stage: p.status as any, // Mapped status -> stage
-        lead_score: p.lead_score,
-        owner_id: p.owner_id,
-        campaign_id: p.campaign_id,
-        external_id: p.external_id,
-        created_at: p.created_at,
-        updated_at: p.updated_at,
+      // Apply client-side filters for complex conditions to avoid type issues
+      let filteredData: any[] = rawData || [];
 
-        // JSONB Unpacking
-        job_title: p.data?.job_title || null,
-        industry: p.data?.industry || null,
-        location: p.data?.location || null,
-        country: p.data?.country || null,
-        notes: p.data?.notes || null,
-        tags: p.data?.tags || [],
+      if (options.campaignId) {
+        filteredData = filteredData.filter((p: any) => p.campaign_id === options.campaignId);
+      }
 
-        // Metrics Unpacking
-        emails_sent: p.engagement_metrics?.emails_sent || 0,
-        emails_opened: p.engagement_metrics?.emails_opened || 0,
-        last_contacted_at: p.engagement_metrics?.last_contacted_at || null,
+      if (options.stage) {
+        filteredData = filteredData.filter((p: any) => p.status === options.stage);
+      }
 
-        // Joined
-        owner_name: p.owner?.full_name,
-        owner_avatar: p.owner?.avatar_url,
-        campaign_name: p.campaign?.name,
+      if (options.ownerId) {
+        filteredData = filteredData.filter((p: any) => p.owner_id === options.ownerId);
+      }
 
-        // Defaults for missing logic/fields in MVP schema
-        first_name: p.full_name.split(' ')[0],
-        last_name: p.full_name.split(' ').slice(1).join(' '),
-        email_status: 'unknown',
-        source: 'manual',
-        engagement_score: 0,
-        emails_clicked: 0,
-        emails_replied: 0,
-        last_opened_at: null,
-        last_replied_at: null,
-        last_activity_at: p.updated_at,
-        next_followup_at: null,
-        reply_sentiment: null,
-        qualified_reason: null,
-        disqualified_reason: null,
-        deal_value: null,
-        currency: 'USD',
-        close_probability: 0,
-        expected_close_date: null,
-        assigned_at: null,
-        custom_fields: {},
-        stakeholder_id: null,
-        contact_id: null,
-      }));
+      if (options.search) {
+        const searchLower = options.search.toLowerCase();
+        filteredData = filteredData.filter((p: any) =>
+          p.full_name?.toLowerCase().includes(searchLower) ||
+          p.email?.toLowerCase().includes(searchLower) ||
+          p.company_name?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      if (options.limit) {
+        filteredData = filteredData.slice(0, options.limit);
+      }
+
+      if (options.minScore !== undefined) {
+        filteredData = filteredData.filter((p: any) => (p.lead_score || 0) >= options.minScore!);
+      }
+
+      if (options.maxScore !== undefined) {
+        filteredData = filteredData.filter((p: any) => (p.lead_score || 0) <= options.maxScore!);
+      }
+
+      const mappedProspects: CRMProspect[] = (filteredData as any[]).map((p: any) => {
+        const pData = (p.data as Record<string, any>) || {};
+        const engagementMetrics = (p.engagement_metrics as Record<string, any>) || {};
+        return {
+          id: p.id,
+          full_name: p.full_name,
+          email: p.email,
+          phone: p.phone,
+          linkedin_url: p.linkedin_url,
+          company_name: p.company_name,
+          company_id: p.company_id,
+          company_domain: pData.company_domain || null,
+          company_size: pData.company_size || null,
+          stage: p.status as any,
+          lead_score: p.lead_score,
+          owner_id: p.owner_id,
+          campaign_id: p.campaign_id,
+          external_id: p.external_id,
+          created_at: p.created_at,
+          updated_at: p.updated_at,
+
+          // JSONB Unpacking
+          job_title: pData.job_title || null,
+          industry: pData.industry || null,
+          location: pData.location || null,
+          country: pData.country || null,
+          notes: pData.notes || null,
+          tags: pData.tags || [],
+
+          // Metrics Unpacking
+          emails_sent: engagementMetrics.emails_sent || 0,
+          emails_opened: engagementMetrics.emails_opened || 0,
+          last_contacted_at: engagementMetrics.last_contacted_at || null,
+
+          // Joined
+          owner_name: p.owner?.full_name,
+          owner_avatar: p.owner?.avatar_url,
+          campaign_name: p.campaign?.name,
+
+          // Defaults for missing logic/fields in MVP schema
+          first_name: p.full_name?.split(' ')[0] || '',
+          last_name: p.full_name?.split(' ').slice(1).join(' ') || '',
+          email_status: 'unknown',
+          source: 'manual',
+          engagement_score: 0,
+          emails_clicked: 0,
+          emails_replied: 0,
+          last_opened_at: null,
+          last_replied_at: null,
+          last_activity_at: p.updated_at,
+          next_followup_at: null,
+          reply_sentiment: null,
+          qualified_reason: null,
+          disqualified_reason: null,
+          deal_value: null,
+          currency: 'USD',
+          close_probability: 0,
+          expected_close_date: null,
+          assigned_at: null,
+          custom_fields: {},
+          stakeholder_id: null,
+          contact_id: null,
+        };
+      });
 
       setProspects(mappedProspects);
     } catch (err) {

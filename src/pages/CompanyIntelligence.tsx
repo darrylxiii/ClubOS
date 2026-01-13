@@ -10,6 +10,7 @@ import { InlineLoader, SectionLoader } from "@/components/ui/unified-loader";
 import type { CompanyInteraction, CompanyStakeholder } from '@/types/interaction';
 import { AppLayout } from '@/components/AppLayout';
 import { toast } from 'sonner';
+import { aiService } from '@/services/aiService';
 
 export default function CompanyIntelligence() {
   const { id } = useParams<{ id: string }>();
