@@ -51,7 +51,7 @@ Return JSON: { "status": "safe" | "alert" | "suggestion", "message": "short", "d
         method: 'POST',
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            model: 'gpt-4o-mini', // Kept gpt-4o-mini from original
+            model: 'openai/gpt-5-nano',
             messages: [{ role: 'system', content: systemPrompt }],
             response_format: { type: "json_object" }
         })
