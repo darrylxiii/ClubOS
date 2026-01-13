@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,13 +38,7 @@ export const CandidateHome = () => {
 
   const stats = roleStats as { applications: number; matches: number; interviews: number; messages: number };
 
-  useEffect(() => {
-    if (user) {
-      fetchProfileCompletion();
-    }
-  }, [user]);
-
-  const fetchProfileCompletion = async () => {
+  const fetchProfileCompletion = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -60,7 +54,13 @@ export const CandidateHome = () => {
     } catch (error) {
       console.error('Error fetching profile completion:', error);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfileCompletion();
+    }
+  }, [user, fetchProfileCompletion]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
