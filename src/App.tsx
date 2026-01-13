@@ -17,9 +17,11 @@ import { SentryErrorBoundary } from "@/components/SentryErrorBoundary";
 import { TranslationProvider } from "@/providers/TranslationProvider";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { lazy, Suspense, memo, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { PageLoader } from "@/components/PageLoader";
-import i18n from "@/i18n/config";
+import i18n, { preloadNamespacesForRoute } from "@/i18n/config";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslationContext } from "@/providers/TranslationProvider";
 import { sharedRoutes } from "@/routes/shared.routes";
 import { candidateRoutes } from "@/routes/candidate.routes";
 import { AdminAssessmentsRoutes } from "@/routes/admin-assessments.routes";
@@ -58,6 +60,20 @@ const LanguageSync = memo(() => {
       i18n.off('languageChanged', handleLanguageChange);
     };
   }, [queryClient]);
+
+  return null;
+});
+
+// Route-based namespace preloader - must be inside BrowserRouter
+const RouteNamespaceLoader = memo(() => {
+  const location = useLocation();
+  const { isReady } = useTranslationContext();
+
+  useEffect(() => {
+    if (isReady) {
+      preloadNamespacesForRoute(location.pathname);
+    }
+  }, [location.pathname, isReady]);
 
   return null;
 });
@@ -155,6 +171,7 @@ const App = () => {
                   <Toaster />
                   <Sonner />
                   <LanguageSync />
+                  <RouteNamespaceLoader />
                   <LanguageSelector />
                   {/* PWA Banners */}
                   <Suspense fallback={null}>
