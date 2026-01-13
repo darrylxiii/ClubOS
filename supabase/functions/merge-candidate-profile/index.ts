@@ -1,11 +1,7 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { logSecurityEvent } from "../_shared/security-logger.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { publicCorsHeaders } from "../_shared/cors-config.ts";
 
 const requestSchema = z.object({
   candidateId: z.string().uuid(),
@@ -17,7 +13,7 @@ const requestSchema = z.object({
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: publicCorsHeaders });
   }
 
   let body: any;
@@ -65,7 +61,7 @@ Deno.serve(async (req) => {
             userId,
             alreadyMerged: true,
           }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       // If merged to a different user, that's an error
@@ -283,7 +279,7 @@ Deno.serve(async (req) => {
         applicationsLinked: appsCount || 0,
         duration: `${duration}ms`
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
@@ -308,7 +304,7 @@ Deno.serve(async (req) => {
       }),
       { 
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
