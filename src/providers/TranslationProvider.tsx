@@ -1,5 +1,6 @@
 import { useState, useEffect, ReactNode, createContext, useContext } from 'react';
-import i18n, { ALL_NAMESPACES, forceReloadLanguage } from '@/i18n/config';
+import { useLocation } from 'react-router-dom';
+import i18n, { CORE_NAMESPACES, forceReloadLanguage, preloadNamespacesForRoute } from '@/i18n/config';
 
 interface TranslationContextType {
   isReady: boolean;
@@ -24,12 +25,14 @@ interface TranslationProviderProps {
 /**
  * TranslationProvider loads translations in the background.
  * Children are rendered immediately to avoid blocking app boot.
- * This prevents the boot timeout from triggering on slow connections.
+ * Only core namespaces are loaded initially; route-specific namespaces load on demand.
  */
 export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   const [isReady, setIsReady] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language || 'en');
+  const location = useLocation();
 
+  // Initialize core namespaces on mount
   useEffect(() => {
     const initTranslations = async () => {
       try {
@@ -42,18 +45,21 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
           });
         }
 
-        // Load all namespaces for current language in background
+        // Load only core namespaces for current language (faster initial load)
         const language = i18n.language || 'en';
-        console.log(`[TranslationProvider] Loading all namespaces for: ${language}`);
+        console.log(`[TranslationProvider] Loading core namespaces for: ${language}`);
         
-        // Load namespaces in parallel, don't block on failures
+        // Load only core namespaces, don't block on failures
         await Promise.allSettled(
-          ALL_NAMESPACES.map(ns => i18n.loadNamespaces(ns))
+          CORE_NAMESPACES.map(ns => i18n.loadNamespaces(ns))
         );
 
-        console.log('[TranslationProvider] All translations loaded');
+        console.log('[TranslationProvider] Core translations loaded');
         setCurrentLanguage(language);
         setIsReady(true);
+
+        // Preload route-specific namespaces in background
+        preloadNamespacesForRoute(window.location.pathname);
       } catch (error) {
         console.error('[TranslationProvider] Error loading translations:', error);
         // Still set ready to avoid blocking the app
@@ -75,6 +81,13 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
       i18n.off('languageChanged', handleLanguageChanged);
     };
   }, []);
+
+  // Preload namespaces when route changes
+  useEffect(() => {
+    if (isReady) {
+      preloadNamespacesForRoute(location.pathname);
+    }
+  }, [location.pathname, isReady]);
 
   const changeLanguage = async (lang: string) => {
     try {
