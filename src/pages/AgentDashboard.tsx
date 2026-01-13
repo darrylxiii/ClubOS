@@ -11,7 +11,7 @@ import { MemberAgentWidget } from "@/components/agent/MemberAgentWidget";
 import { PartnerAgentWidget } from "@/components/agent/PartnerAgentWidget";
 import { StrategistAgentWidget } from "@/components/agent/StrategistAgentWidget";
 import { TaskDispatcherDialog } from "@/components/agent/TaskDispatcherDialog";
-import { Target, Activity, Shield, Settings, Bot, Users, Brain, BrainCircuit, Button } from "lucide-react";
+import { Target, Activity, Shield, Settings, Bot, Users, Brain, BrainCircuit } from "lucide-react";
 import { Button as UIButton } from "@/components/ui/button";
 
 export default function AgentDashboard() {
@@ -109,6 +109,5 @@ export default function AgentDashboard() {
         onOpenChange={setDispatcherOpen}
       />
     </div>
-    </div >
   );
 }
