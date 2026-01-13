@@ -1,17 +1,10 @@
 /**
  * OpenTelemetry Tracing - World-Class Distributed Tracing
  * Provides end-to-end request tracing across frontend and edge functions
+ * 
+ * Phase 8: Dynamic imports - Only loads ~80KB of OpenTelemetry packages in development
  */
 
-import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
-import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { ZoneContextManager } from '@opentelemetry/context-zone';
-import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
-import { resourceFromAttributes } from '@opentelemetry/resources';
-import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { context, trace, SpanStatusCode, Span, SpanKind } from '@opentelemetry/api';
 
 // Configuration
@@ -78,19 +71,79 @@ class TraceStore {
 
 export const traceStore = new TraceStore();
 
-// Provider instance
-let provider: WebTracerProvider | null = null;
+// Provider instance - dynamically loaded
+let provider: unknown = null;
 let isInitialized = false;
+
+// Lazy load OpenTelemetry packages (~80KB deferred until development mode requires tracing)
+async function loadOpenTelemetryModules() {
+  const [
+    { WebTracerProvider },
+    { SimpleSpanProcessor },
+    { OTLPTraceExporter },
+    { ZoneContextManager },
+    { FetchInstrumentation },
+    { DocumentLoadInstrumentation },
+    { resourceFromAttributes },
+    { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION },
+    { registerInstrumentations }
+  ] = await Promise.all([
+    import('@opentelemetry/sdk-trace-web'),
+    import('@opentelemetry/sdk-trace-base'),
+    import('@opentelemetry/exporter-trace-otlp-http'),
+    import('@opentelemetry/context-zone'),
+    import('@opentelemetry/instrumentation-fetch'),
+    import('@opentelemetry/instrumentation-document-load'),
+    import('@opentelemetry/resources'),
+    import('@opentelemetry/semantic-conventions'),
+    import('@opentelemetry/instrumentation')
+  ]);
+
+  return {
+    WebTracerProvider,
+    SimpleSpanProcessor,
+    OTLPTraceExporter,
+    ZoneContextManager,
+    FetchInstrumentation,
+    DocumentLoadInstrumentation,
+    resourceFromAttributes,
+    ATTR_SERVICE_NAME,
+    ATTR_SERVICE_VERSION,
+    registerInstrumentations
+  };
+}
 
 /**
  * Initialize OpenTelemetry tracing
+ * Only loads packages in development mode
  */
-export function initializeTracing(): void {
+export async function initializeTracing(): Promise<void> {
   if (isInitialized || typeof window === 'undefined') {
     return;
   }
 
+  // Skip in production to save ~80KB
+  if (!import.meta.env.DEV) {
+    console.log('[Tracing] Disabled in production for bundle optimization');
+    isInitialized = true;
+    return;
+  }
+
   try {
+    // Dynamically load all OpenTelemetry packages
+    const {
+      WebTracerProvider,
+      SimpleSpanProcessor,
+      OTLPTraceExporter,
+      ZoneContextManager,
+      FetchInstrumentation,
+      DocumentLoadInstrumentation,
+      resourceFromAttributes,
+      ATTR_SERVICE_NAME,
+      ATTR_SERVICE_VERSION,
+      registerInstrumentations
+    } = await loadOpenTelemetryModules();
+
     // Create resource with service attributes
     const resource = resourceFromAttributes({
       [ATTR_SERVICE_NAME]: SERVICE_NAME,
@@ -111,7 +164,7 @@ export function initializeTracing(): void {
     });
 
     // Configure context manager and register
-    provider.register({
+    (provider as any).register({
       contextManager: new ZoneContextManager(),
     });
 
@@ -163,7 +216,8 @@ export function initializeTracing(): void {
  * Get the tracer instance
  */
 export function getTracer(name = SERVICE_NAME) {
-  if (!provider) {
+  if (!isInitialized) {
+    // Non-blocking initialization
     initializeTracing();
   }
   return trace.getTracer(name, SERVICE_VERSION);

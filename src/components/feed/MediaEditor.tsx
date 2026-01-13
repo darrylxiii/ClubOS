@@ -1,10 +1,19 @@
-import { useState, useEffect, useRef } from "react";
+/**
+ * MediaEditor - Phase 11: Fabric.js Lazy Loading
+ * Defers ~200KB of Fabric.js until media editing is actually used
+ */
+
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Canvas as FabricCanvas, FabricImage, filters } from "fabric";
-import { Crop, RotateCw, Sun, Contrast, Droplets, Sparkles } from "lucide-react";
+import { Crop, RotateCw, Sun, Contrast, Droplets, Sparkles, Loader2 } from "lucide-react";
+
+// Types for dynamically imported Fabric.js
+type FabricCanvasType = import('fabric').Canvas;
+type FabricImageType = import('fabric').FabricImage;
+type FabricFiltersType = typeof import('fabric').filters;
 
 interface MediaEditorProps {
   file: File;
@@ -13,86 +22,134 @@ interface MediaEditorProps {
   onSave: (editedFile: File) => void;
 }
 
+// Lazy load Fabric.js (~200KB deferred until media editing is used)
+let fabricPromise: Promise<{
+  Canvas: typeof import('fabric').Canvas;
+  FabricImage: typeof import('fabric').FabricImage;
+  filters: FabricFiltersType;
+}> | null = null;
+
+async function loadFabric() {
+  if (!fabricPromise) {
+    fabricPromise = import('fabric').then((module) => ({
+      Canvas: module.Canvas,
+      FabricImage: module.FabricImage,
+      filters: module.filters,
+    }));
+  }
+  return fabricPromise;
+}
+
 export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
-  const [image, setImage] = useState<FabricImage | null>(null);
+  const [fabricCanvas, setFabricCanvas] = useState<FabricCanvasType | null>(null);
+  const [image, setImage] = useState<FabricImageType | null>(null);
   const [brightness, setBrightness] = useState(0);
   const [contrast, setContrast] = useState(0);
   const [saturation, setSaturation] = useState(0);
   const [rotation, setRotation] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filtersModule, setFiltersModule] = useState<FabricFiltersType | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current || !open) return;
 
-    // Clean up previous canvas
-    if (fabricCanvas) {
-      fabricCanvas.dispose();
-    }
+    let mounted = true;
 
-    const canvas = new FabricCanvas(canvasRef.current, {
-      width: 800,
-      height: 600,
-      backgroundColor: "#ffffff",
-    });
+    const initCanvas = async () => {
+      setIsLoading(true);
+      
+      try {
+        // Dynamically load Fabric.js
+        const { Canvas, FabricImage, filters } = await loadFabric();
+        
+        if (!mounted || !canvasRef.current) return;
+        
+        setFiltersModule(filters);
 
-    setFabricCanvas(canvas);
+        // Clean up previous canvas
+        if (fabricCanvas) {
+          fabricCanvas.dispose();
+        }
 
-    // Load image
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imgElement = new Image();
-      imgElement.src = e.target?.result as string;
-      imgElement.onload = () => {
-        FabricImage.fromURL(e.target?.result as string).then((img) => {
-          // Calculate scale to fit canvas while maintaining aspect ratio
-          const scale = Math.min(
-            (canvas.width! - 40) / img.width!,
-            (canvas.height! - 40) / img.height!
-          );
-          
-          img.scale(scale);
-          img.set({
-            left: canvas.width! / 2,
-            top: canvas.height! / 2,
-            originX: 'center',
-            originY: 'center',
-            selectable: false, // Prevent accidental dragging
-          });
-          
-          canvas.add(img);
-          canvas.centerObject(img);
-          setImage(img);
-          canvas.renderAll();
+        const canvas = new Canvas(canvasRef.current, {
+          width: 800,
+          height: 600,
+          backgroundColor: "#ffffff",
         });
-      };
+
+        setFabricCanvas(canvas);
+
+        // Load image
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          if (!mounted) return;
+          
+          const imgElement = new Image();
+          imgElement.src = e.target?.result as string;
+          imgElement.onload = async () => {
+            if (!mounted) return;
+            
+            const img = await FabricImage.fromURL(e.target?.result as string);
+            
+            // Calculate scale to fit canvas while maintaining aspect ratio
+            const scale = Math.min(
+              (canvas.width! - 40) / img.width!,
+              (canvas.height! - 40) / img.height!
+            );
+            
+            img.scale(scale);
+            img.set({
+              left: canvas.width! / 2,
+              top: canvas.height! / 2,
+              originX: 'center',
+              originY: 'center',
+              selectable: false, // Prevent accidental dragging
+            });
+            
+            canvas.add(img);
+            canvas.centerObject(img);
+            setImage(img);
+            canvas.renderAll();
+            setIsLoading(false);
+          };
+        };
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('Failed to load Fabric.js:', error);
+        setIsLoading(false);
+      }
     };
-    reader.readAsDataURL(file);
+
+    initCanvas();
 
     return () => {
-      canvas.dispose();
+      mounted = false;
+      if (fabricCanvas) {
+        fabricCanvas.dispose();
+      }
     };
   }, [file, open]);
 
-  const applyFilters = () => {
-    if (!image || !fabricCanvas) return;
+  const applyFilters = useCallback(() => {
+    if (!image || !fabricCanvas || !filtersModule) return;
 
     const filterList: any[] = [];
 
     if (brightness !== 0) {
-      filterList.push(new filters.Brightness({
+      filterList.push(new filtersModule.Brightness({
         brightness: brightness / 100,
       }));
     }
 
     if (contrast !== 0) {
-      filterList.push(new filters.Contrast({
+      filterList.push(new filtersModule.Contrast({
         contrast: contrast / 100,
       }));
     }
 
     if (saturation !== 0) {
-      filterList.push(new filters.Saturation({
+      filterList.push(new filtersModule.Saturation({
         saturation: saturation / 100,
       }));
     }
@@ -100,11 +157,11 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
     image.filters = filterList;
     image.applyFilters();
     fabricCanvas.renderAll();
-  };
+  }, [image, fabricCanvas, filtersModule, brightness, contrast, saturation]);
 
   useEffect(() => {
     applyFilters();
-  }, [brightness, contrast, saturation]);
+  }, [applyFilters]);
 
   const handleRotate = () => {
     if (!image || !fabricCanvas) return;
@@ -139,11 +196,11 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
     setContrast(0);
     setSaturation(0);
     setRotation(0);
-    if (image) {
+    if (image && fabricCanvas) {
       image.filters = [];
       image.rotate(0);
       image.applyFilters();
-      fabricCanvas?.renderAll();
+      fabricCanvas.renderAll();
     }
   };
 
@@ -155,8 +212,17 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex justify-center bg-muted rounded-lg border p-4">
-            <canvas ref={canvasRef} className="max-w-full" />
+          <div className="flex justify-center bg-muted rounded-lg border p-4 min-h-[600px] items-center">
+            {isLoading ? (
+              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="text-sm">Loading editor...</span>
+              </div>
+            ) : null}
+            <canvas 
+              ref={canvasRef} 
+              className={`max-w-full ${isLoading ? 'hidden' : ''}`} 
+            />
           </div>
 
           <Tabs defaultValue="adjust" className="w-full">
@@ -177,6 +243,7 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
                     max={100}
                     step={1}
                     className="flex-1"
+                    disabled={isLoading}
                   />
                   <span className="text-sm w-12 text-right">{brightness}</span>
                 </div>
@@ -191,6 +258,7 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
                     max={100}
                     step={1}
                     className="flex-1"
+                    disabled={isLoading}
                   />
                   <span className="text-sm w-12 text-right">{contrast}</span>
                 </div>
@@ -205,6 +273,7 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
                     max={100}
                     step={1}
                     className="flex-1"
+                    disabled={isLoading}
                   />
                   <span className="text-sm w-12 text-right">{saturation}</span>
                 </div>
@@ -217,6 +286,7 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
                   variant="outline"
                   onClick={handleRotate}
                   className="flex-1"
+                  disabled={isLoading}
                 >
                   <RotateCw className="w-4 h-4 mr-2" />
                   Rotate 90°
@@ -226,13 +296,13 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
           </Tabs>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleReset}>
+            <Button variant="outline" onClick={handleReset} disabled={isLoading}>
               Reset
             </Button>
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={isLoading}>
               Save Changes
             </Button>
           </div>
