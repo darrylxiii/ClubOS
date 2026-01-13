@@ -15,10 +15,10 @@ import { handleAnalyzeInterviewRealtime } from "./actions/analyze-interview-real
 import { handleVoiceToText } from "./actions/voice-to-text.ts";
 import { handleGenerateInterviewPrep } from "./actions/generate-interview-prep.ts";
 import { handleGenerateInterviewCoach } from "./actions/generate-interview-coach.ts";
-import { analyzeInterviewStreamHandler } from "./actions/analyze-interview-stream.ts";
-import { interviewVoiceSessionHandler } from "./actions/interview-voice-session.ts";
-import { quinMeetingVoiceHandler } from "./actions/quin-meeting-voice.ts";
-import { interviewPrepChatHandler } from "./actions/interview-prep-chat.ts";
+import { handleAnalyzeInterviewStream } from "./actions/analyze-interview-stream.ts";
+import { handleInterviewVoiceSession } from "./actions/interview-voice-session.ts";
+import { handleQuinMeetingVoice } from "./actions/quin-meeting-voice.ts";
+import { handleInterviewPrepChat } from "./actions/interview-prep-chat.ts";
 import { compileTranscriptHandler } from "./actions/compile-transcript.ts";
 import { analyzeTranscriptHandler } from "./actions/analyze-transcript.ts";
 import { analyzeRecordingHandler } from "./actions/analyze-recording.ts";
@@ -90,10 +90,10 @@ const ACTION_HANDLERS = {
     'voice-to-text': handleVoiceToText,
     'generate-interview-prep': handleGenerateInterviewPrep,
     'generate-interview-coach': handleGenerateInterviewCoach,
-    'analyze-interview-stream': analyzeInterviewStreamHandler,
-    'interview-voice-session': interviewVoiceSessionHandler,
-    'quin-meeting-voice': quinMeetingVoiceHandler,
-    'interview-prep-chat': interviewPrepChatHandler,
+    'analyze-interview-stream': handleAnalyzeInterviewStream,
+    'interview-voice-session': handleInterviewVoiceSession,
+    'quin-meeting-voice': handleQuinMeetingVoice,
+    'interview-prep-chat': handleInterviewPrepChat,
     'compile-transcript': compileTranscriptHandler,
     'analyze-transcript': analyzeTranscriptHandler,
     'analyze-recording': analyzeRecordingHandler,
