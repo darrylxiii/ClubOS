@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Lock, CheckCircle2, AlertTriangle } from "lucide-react";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
-import { FaGoogle } from "react-icons/fa";
+import { GoogleIcon } from "@/components/ui/brand-icons";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
@@ -614,7 +614,7 @@ const Auth = () => {
                   variant="outline"
                   className="w-full h-14 rounded-2xl font-semibold"
                 >
-                  <FaGoogle className="mr-3 h-5 w-5" />
+                  <GoogleIcon className="mr-3 h-5 w-5" />
                   {t('signInWith', { provider: t('oauth.google') })}
                 </Button>
 

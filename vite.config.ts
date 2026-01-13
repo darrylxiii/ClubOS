@@ -263,7 +263,6 @@ export default defineConfig(({ mode, command }) => ({
           if (id.includes('@dnd-kit') || id.includes('@hello-pangea')) return 'vendor-dnd';
           if (id.includes('@capacitor')) return 'vendor-capacitor';
           if (id.includes('lucide')) return 'vendor-lucide';
-          if (id.includes('@tabler')) return 'vendor-tabler';
           if (id.includes('zod')) return 'vendor-zod';
           if (id.includes('react-hook-form') || id.includes('@hookform')) return 'vendor-forms';
 
