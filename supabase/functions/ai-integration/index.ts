@@ -48,7 +48,7 @@ import { handleGenerateRoleAnalytics } from './actions/generate-role-analytics.t
 import { handleGenerateAnalyticsInsights } from './actions/generate-analytics-insights.ts';
 
 // Import shared CORS config
-import { publicCorsHeaders, handleCorsPreFlight, jsonResponse } from 'shared/cors-config.ts';
+import { publicCorsHeaders, handleCorsPreFlight, jsonResponse } from '../_shared/cors-config.ts';
 
 // Batch 3: Documents & Dossiers
 import { handleGenerateCandidateDossier } from './actions/generate-candidate-dossier.ts';
