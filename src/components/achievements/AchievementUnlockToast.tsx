@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
 import { X, Sparkles, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +47,7 @@ export const AchievementUnlockToast = () => {
     }
   }, [current, queue]);
 
-  const triggerCelebration = (rarity: string, animationType?: string) => {
+  const triggerCelebration = useCallback(async (rarity: string, animationType?: string) => {
     // Play sound (optional)
     try {
       const audio = new Audio('/achievement-unlock.mp3');
@@ -60,6 +59,9 @@ export const AchievementUnlockToast = () => {
       // Ignore
     }
 
+    // Dynamic import confetti
+    const confetti = (await import('canvas-confetti')).default;
+    
     // Confetti based on rarity
     const confettiConfig = getConfettiConfig(rarity);
     confetti(confettiConfig);
@@ -69,7 +71,7 @@ export const AchievementUnlockToast = () => {
       setTimeout(() => confetti(confettiConfig), 200);
       setTimeout(() => confetti(confettiConfig), 400);
     }
-  };
+  }, []);
 
   const getConfettiConfig = (rarity: string) => {
     const configs: Record<string, any> = {
