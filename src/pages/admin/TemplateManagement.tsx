@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card } from '@/components/ui/card';
@@ -18,12 +18,27 @@ import {
   Building,
   User,
   TrendingUp,
+  Loader2,
 } from 'lucide-react';
 import { useTemplates, Template } from '@/hooks/useTemplates';
-import { TemplateEditor } from '@/components/workspace/TemplateEditor';
 import { NotionImporter } from '@/components/workspace/NotionImporter';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+
+// Lazy load heavy BlockNote-based editor (~200KB deferred)
+const TemplateEditor = lazy(() => 
+  import('@/components/workspace/TemplateEditor').then(m => ({ default: m.TemplateEditor }))
+);
+
+// Loading skeleton for editor
+function EditorLoadingSkeleton() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[400px] bg-card border rounded-lg">
+      <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+      <p className="text-muted-foreground">Loading template editor...</p>
+    </div>
+  );
+}
 
 export default function TemplateManagement() {
   const { templates, isLoading, deleteTemplate } = useTemplates();
@@ -64,17 +79,19 @@ export default function TemplateManagement() {
       <AppLayout>
         <RoleGate allowedRoles={['admin', 'strategist']}>
           <div className="container mx-auto px-4 py-6 max-w-7xl">
-            <TemplateEditor
-              template={editingTemplate || undefined}
-              onSave={() => {
-                setIsCreating(false);
-                setEditingTemplate(null);
-              }}
-              onCancel={() => {
-                setIsCreating(false);
-                setEditingTemplate(null);
-              }}
-            />
+            <Suspense fallback={<EditorLoadingSkeleton />}>
+              <TemplateEditor
+                template={editingTemplate || undefined}
+                onSave={() => {
+                  setIsCreating(false);
+                  setEditingTemplate(null);
+                }}
+                onCancel={() => {
+                  setIsCreating(false);
+                  setEditingTemplate(null);
+                }}
+              />
+            </Suspense>
           </div>
         </RoleGate>
       </AppLayout>
