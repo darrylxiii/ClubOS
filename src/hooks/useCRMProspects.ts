@@ -30,7 +30,6 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
           owner:profiles!crm_prospects_owner_id_fkey(full_name, avatar_url),
           campaign:crm_campaigns!crm_prospects_campaign_id_fkey(name)
         `)
-        .eq('entity_type', 'prospect')
         .order('updated_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -43,7 +42,7 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
       }
 
       if (options.stage) {
-        filteredData = filteredData.filter((p: any) => p.status === options.stage);
+        filteredData = filteredData.filter((p: any) => p.stage === options.stage);
       }
 
       if (options.ownerId) {
@@ -84,7 +83,7 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
           company_id: p.company_id,
           company_domain: pData.company_domain || null,
           company_size: pData.company_size || null,
-          stage: p.status as any,
+          stage: p.stage as any,
           lead_score: p.lead_score,
           owner_id: p.owner_id,
           campaign_id: p.campaign_id,
@@ -154,7 +153,7 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
       const { error: updateError } = await supabase
         .from('crm_prospects')
         .update({
-          status: newStage, // Mapping stage -> status
+          stage: newStage,
           updated_at: new Date().toISOString(),
         })
         .eq('id', prospectId);
@@ -181,8 +180,6 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
       // Simplified: We only support top-level updates (map stage->status) for now in this MVP hook.
 
       const mappedUpdates: any = { ...updates };
-      if (updates.stage) mappedUpdates.status = updates.stage;
-      delete mappedUpdates.stage; // Remove mapped key
 
       const { error: updateError } = await supabase
         .from('crm_prospects')
