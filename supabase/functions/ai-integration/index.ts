@@ -1,7 +1,7 @@
 
-import { serve } from "std/http/server.ts";
-import { createClient } from "@supabase/supabase-js";
-import { z } from "zod";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 import { handleAssistEmailWriting } from "./actions/assist-email.ts";
 import { handleAiWriting } from "./actions/generate-text.ts";
