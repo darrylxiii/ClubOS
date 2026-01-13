@@ -22,6 +22,7 @@ import { PageLoader } from "@/components/PageLoader";
 import i18n, { preloadNamespacesForRoute } from "@/i18n/config";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslationContext } from "@/providers/TranslationProvider";
+import { HelmetProvider } from "react-helmet-async";
 import { sharedRoutes } from "@/routes/shared.routes";
 import { candidateRoutes } from "@/routes/candidate.routes";
 import { AdminAssessmentsRoutes } from "@/routes/admin-assessments.routes";
@@ -159,20 +160,21 @@ const isTracingEnabled = import.meta.env.DEV;
 const App = () => {
   return (
     <SentryErrorBoundary>
-      <TracingProvider enabled={isTracingEnabled}>
-        <PersistQueryClientProvider
-          client={queryClient}
-          persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 }} // 24 hours
-        >
-          <TranslationProvider>
-            <BrowserRouter>
-              <AuthProvider>
-                <PostHogProvider>
-                  <Toaster />
-                  <Sonner />
-                  <LanguageSync />
-                  <RouteNamespaceLoader />
-                  <LanguageSelector />
+      <HelmetProvider>
+        <TracingProvider enabled={isTracingEnabled}>
+          <PersistQueryClientProvider
+            client={queryClient}
+            persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 }} // 24 hours
+          >
+            <TranslationProvider>
+              <BrowserRouter>
+                <AuthProvider>
+                  <PostHogProvider>
+                    <Toaster />
+                    <Sonner />
+                    <LanguageSync />
+                    <RouteNamespaceLoader />
+                    <LanguageSelector />
                   {/* PWA Banners */}
                   <Suspense fallback={null}>
                     <InstallPromptBanner />
@@ -339,7 +341,8 @@ const App = () => {
           </TranslationProvider>
         </PersistQueryClientProvider>
       </TracingProvider>
-    </SentryErrorBoundary>
+    </HelmetProvider>
+  </SentryErrorBoundary>
   );
 };
 
