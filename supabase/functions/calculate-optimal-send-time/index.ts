@@ -1,9 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { publicCorsHeaders } from "../_shared/cors-config.ts";
 
 interface TimeSlot {
   day: number;
@@ -15,7 +11,7 @@ interface TimeSlot {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: publicCorsHeaders });
   }
 
   try {
@@ -43,7 +39,7 @@ Deno.serve(async (req) => {
         message: 'No reply data available for analysis',
         heatmap: generateDefaultHeatmap(),
       }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -109,14 +105,14 @@ Deno.serve(async (req) => {
       recommendations,
       totalRepliesAnalyzed: replies.length,
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Send time optimization error:', error);
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
