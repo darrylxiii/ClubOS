@@ -1,12 +1,13 @@
 /**
  * LiveKit SFU Meeting Hook
  * Handles large meetings (10+ participants) via LiveKit's SFU infrastructure
+ * 
+ * Note: livekit-client types are defined inline to avoid eager import of the ~150KB library
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Room, RoomEvent, Participant, RemoteParticipant, LocalParticipant, Track, RemoteTrack, RemoteTrackPublication } from 'livekit-client';
 
 export interface LiveKitParticipant {
   id: string;
@@ -67,8 +68,8 @@ export function useLiveKitMeeting({
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
 
-  // We keep a ref to the room instance
-  const roomRef = useRef<Room | null>(null);
+  // Room instance ref - type is generic to avoid importing livekit-client
+  const roomRef = useRef<unknown>(null);
 
   /**
    * Get LiveKit token from edge function
