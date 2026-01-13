@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { aiService } from '@/services/aiService';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";

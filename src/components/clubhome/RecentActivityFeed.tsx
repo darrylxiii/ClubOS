@@ -66,14 +66,20 @@ export function RecentActivityFeed() {
       <CardContent>
         <div className="space-y-3">
           {activities.map((activity) => {
-            const IconComponent = activity.icon;
+            const IconComponent = activity.icon || Activity;
+
+            // Safety check for invalid icon type (prevents "Element type is invalid" crash)
+            const ValidIcon = (typeof IconComponent === 'function' || typeof IconComponent === 'object')
+              ? IconComponent
+              : Activity;
+
             return (
-              <div 
-                key={activity.id} 
+              <div
+                key={activity.id}
                 className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <div className={`p-2 rounded-lg ${activity.iconBgColor}`}>
-                  <IconComponent className="h-4 w-4" />
+                  <ValidIcon className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">{activity.title}</p>

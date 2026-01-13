@@ -5,21 +5,18 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Plus, 
-  Search, 
-  Upload, 
-  Layout, 
-  FileText, 
-  Edit2, 
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Plus,
+  Search,
+  Upload,
+  Layout,
+  FileText,
+  Edit2,
   Trash2,
-  Eye,
-  TrendingUp,
   Users,
   Building,
   User,
-  Filter,
 } from 'lucide-react';
 import { useTemplates, Template } from '@/hooks/useTemplates';
 import { TemplateEditor } from '@/components/workspace/TemplateEditor';
@@ -36,11 +33,11 @@ export default function TemplateManagement() {
   const [isCreating, setIsCreating] = useState(false);
 
   const filteredTemplates = templates.filter((template) => {
-    const matchesSearch = 
+    const matchesSearch =
       template.name.toLowerCase().includes(search.toLowerCase()) ||
       template.description?.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesVisibility = 
+
+    const matchesVisibility =
       visibilityFilter === 'all' || template.visibility === visibilityFilter;
 
     return matchesSearch && matchesVisibility;
@@ -205,7 +202,7 @@ export default function TemplateManagement() {
                 >
                   {/* Cover */}
                   {template.cover_url ? (
-                    <div 
+                    <div
                       className="h-20 bg-cover bg-center"
                       style={{ backgroundImage: `url(${template.cover_url})` }}
                     />
@@ -220,8 +217,8 @@ export default function TemplateManagement() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold truncate">{template.name}</h3>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge 
-                            variant="secondary" 
+                          <Badge
+                            variant="secondary"
                             className={cn(
                               "text-xs",
                               template.visibility === 'system' && "bg-blue-500/20 text-blue-500",

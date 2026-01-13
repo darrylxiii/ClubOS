@@ -7,15 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
+// import { formatDistanceToNow } from "date-fns";
 import {
   Briefcase, Users, DollarSign, Clock, Search,
-  Plus, CheckCircle2, XCircle, Send, Sparkles, Eye,
+  CheckCircle2, Send, Sparkles, Eye,
   UserPlus, Loader2, Target
 } from "lucide-react";
 
@@ -146,7 +146,7 @@ export default function StrategistProjectsDashboard() {
   };
 
   const getSkillMatch = (projectSkills: string[], freelancerSkills: string[]) => {
-    const matches = projectSkills.filter(s => 
+    const matches = projectSkills.filter(s =>
       freelancerSkills.some(fs => fs.toLowerCase().includes(s.toLowerCase()))
     );
     return Math.round((matches.length / projectSkills.length) * 100);
@@ -270,7 +270,7 @@ export default function StrategistProjectsDashboard() {
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {project.description}
                   </p>
-                  
+
                   <div className="flex flex-wrap gap-1">
                     {project.required_skills?.slice(0, 4).map((skill, i) => (
                       <Badge key={i} variant="outline" className="text-xs">{skill}</Badge>
@@ -279,7 +279,7 @@ export default function StrategistProjectsDashboard() {
                       <Badge variant="outline" className="text-xs">+{project.required_skills.length - 4}</Badge>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-1">
                       <DollarSign className="h-4 w-4" />
@@ -290,7 +290,7 @@ export default function StrategistProjectsDashboard() {
                       {project.timeline_weeks}w
                     </span>
                   </div>
-                  
+
                   <div className="flex gap-2 pt-2 border-t">
                     <Button
                       variant="outline"
@@ -330,7 +330,7 @@ export default function StrategistProjectsDashboard() {
             <DialogHeader>
               <DialogTitle>Match Freelancers to Project</DialogTitle>
             </DialogHeader>
-            
+
             {selectedProject && (
               <div className="space-y-4">
                 <Card className="bg-muted/50">
@@ -341,7 +341,7 @@ export default function StrategistProjectsDashboard() {
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <div className="space-y-2">
                   <h4 className="font-medium">Select Freelancers ({selectedFreelancers.length} selected)</h4>
                   <div className="grid gap-2 max-h-[300px] overflow-y-auto">
@@ -351,13 +351,12 @@ export default function StrategistProjectsDashboard() {
                         freelancer.skills || []
                       );
                       const isSelected = selectedFreelancers.includes(freelancer.user_id);
-                      
+
                       return (
                         <div
                           key={freelancer.user_id}
-                          className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                            isSelected ? "border-primary bg-primary/5" : "hover:bg-muted/50"
-                          }`}
+                          className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${isSelected ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+                            }`}
                           onClick={() => toggleFreelancerSelection(freelancer.user_id)}
                         >
                           <div className="flex items-center gap-3">
@@ -382,7 +381,7 @@ export default function StrategistProjectsDashboard() {
                     })}
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <h4 className="font-medium">Notes for Shortlist</h4>
                   <Textarea
@@ -394,7 +393,7 @@ export default function StrategistProjectsDashboard() {
                 </div>
               </div>
             )}
-            
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setMatchDialogOpen(false)}>
                 Cancel

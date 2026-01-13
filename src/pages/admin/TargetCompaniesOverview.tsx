@@ -28,7 +28,8 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const TargetCompaniesOverview = () => {
-  const { user } = useAuth();
+  // const { user } = useAuth(); // Unused
+
   const [companies, setCompanies] = useState<Record<string, any>[]>([]);
   const [filteredCompanies, setFilteredCompanies] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,9 +38,9 @@ const TargetCompaniesOverview = () => {
   const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [partnerCompanies, setPartnerCompanies] = useState<Record<string, any>[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<Record<string, any> | null>(null);
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  // const [dialogOpen, setDialogOpen] = useState(false); // Unused
+  // const [selectedCompany, setSelectedCompany] = useState<Record<string, any> | null>(null); // Unused
+  // const [selectedCompanyId, setSelectedCompanyId] = useState<string>(""); // Unused
 
   const loadTargetCompanies = () => {
     loadData();
@@ -51,6 +52,8 @@ const TargetCompaniesOverview = () => {
 
   useEffect(() => {
     applyFilters();
+    applyFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companies, searchQuery, statusFilter, companyFilter]);
 
   const loadData = async () => {
@@ -223,179 +226,179 @@ const TargetCompaniesOverview = () => {
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Target Companies Overview</h1>
-        <p className="text-muted-foreground mt-1">
-          All target companies across all partners
-        </p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {stats.map((stat) => (
-          <Card key={stat.label} className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-                <p className="text-3xl font-bold mt-2">{stat.value}</p>
-              </div>
-              <stat.icon className={`h-8 w-8 ${stat.color}`} />
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Filters */}
-      <Card className="p-4 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search target companies..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={companyFilter} onValueChange={setCompanyFilter}>
-            <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder="All Companies" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Companies</SelectItem>
-              {partnerCompanies.map((company) => (
-                <SelectItem key={company.id} value={company.id}>
-                  {company.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full md:w-40">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="new">New</SelectItem>
-              <SelectItem value="targeting">Targeting</SelectItem>
-              <SelectItem value="hunting">Hunting</SelectItem>
-              <SelectItem value="paused">Paused</SelectItem>
-              <SelectItem value="done">Done</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={handleExportCSV} variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Export CSV
-          </Button>
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Target Companies Overview</h1>
+          <p className="text-muted-foreground mt-1">
+            All target companies across all partners
+          </p>
         </div>
-      </Card>
 
-      {/* Table */}
-      <Card className="overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={selectedIds.length === filteredCompanies.length && filteredCompanies.length > 0}
-                  onCheckedChange={toggleSelectAll}
-                />
-              </TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Target Name</TableHead>
-              <TableHead>Industry</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Votes</TableHead>
-              <TableHead>Contacts</TableHead>
-              <TableHead>Created By</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <AdminTableSkeleton columns={9} />
-            ) : filteredCompanies.length === 0 ? (
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {stats.map((stat) => (
+            <Card key={stat.label} className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <p className="text-3xl font-bold mt-2">{stat.value}</p>
+                </div>
+                <stat.icon className={`h-8 w-8 ${stat.color}`} />
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Filters */}
+        <Card className="p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search target companies..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={companyFilter} onValueChange={setCompanyFilter}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder="All Companies" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Companies</SelectItem>
+                {partnerCompanies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="targeting">Targeting</SelectItem>
+                <SelectItem value="hunting">Hunting</SelectItem>
+                <SelectItem value="paused">Paused</SelectItem>
+                <SelectItem value="done">Done</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleExportCSV} variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
+        </Card>
+
+        {/* Table */}
+        <Card className="overflow-hidden">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                  No target companies found
-                </TableCell>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selectedIds.length === filteredCompanies.length && filteredCompanies.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Target Name</TableHead>
+                <TableHead>Industry</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Priority</TableHead>
+                <TableHead>Votes</TableHead>
+                <TableHead>Contacts</TableHead>
+                <TableHead>Created By</TableHead>
               </TableRow>
-            ) : (
-              filteredCompanies.map((tc) => (
-                <TableRow key={tc.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedIds.includes(tc.id)}
-                      onCheckedChange={() => toggleSelection(tc.id)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {(tc.companies as any)?.logo_url && (
-                        <img
-                          src={(tc.companies as any).logo_url}
-                          alt=""
-                          className="h-6 w-6 rounded"
-                        />
-                      )}
-                      <span className="font-medium">{(tc.companies as any)?.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {tc.logo_url && (
-                        <img src={tc.logo_url} alt="" className="h-6 w-6 rounded" />
-                      )}
-                      {tc.name}
-                    </div>
-                  </TableCell>
-                  <TableCell>{tc.industry || '-'}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={getStatusColor(tc.status)}>
-                      {tc.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-20 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary"
-                          style={{ width: `${(tc.priority / 10) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-sm">{tc.priority}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{tc.vote_count}</TableCell>
-                  <TableCell>{tc.contact_count}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {(tc.profiles as any)?.avatar_url && (
-                        <img
-                          src={(tc.profiles as any).avatar_url}
-                          alt=""
-                          className="h-6 w-6 rounded-full"
-                        />
-                      )}
-                      <span className="text-sm">{(tc.profiles as any)?.full_name}</span>
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <AdminTableSkeleton columns={9} />
+              ) : filteredCompanies.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    No target companies found
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
-      
-      {/* Dialog */}
-      <TargetCompanyDialog
+              ) : (
+                filteredCompanies.map((tc) => (
+                  <TableRow key={tc.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.includes(tc.id)}
+                        onCheckedChange={() => toggleSelection(tc.id)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {(tc.companies as any)?.logo_url && (
+                          <img
+                            src={(tc.companies as any).logo_url}
+                            alt=""
+                            className="h-6 w-6 rounded"
+                          />
+                        )}
+                        <span className="font-medium">{(tc.companies as any)?.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {tc.logo_url && (
+                          <img src={tc.logo_url} alt="" className="h-6 w-6 rounded" />
+                        )}
+                        {tc.name}
+                      </div>
+                    </TableCell>
+                    <TableCell>{tc.industry || '-'}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={getStatusColor(tc.status)}>
+                        {tc.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-20 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary"
+                            style={{ width: `${(tc.priority / 10) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm">{tc.priority}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{tc.vote_count}</TableCell>
+                    <TableCell>{tc.contact_count}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {(tc.profiles as any)?.avatar_url && (
+                          <img
+                            src={(tc.profiles as any).avatar_url}
+                            alt=""
+                            className="h-6 w-6 rounded-full"
+                          />
+                        )}
+                        <span className="text-sm">{(tc.profiles as any)?.full_name}</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
+
+        {/* Dialog (Currently unused but kept for future) */}
+        {/* <TargetCompanyDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         targetCompany={selectedCompany}
         companyId={selectedCompanyId || ''}
         onSuccess={loadTargetCompanies}
-      />
+      /> */}
       </div>
     </AppLayout>
   );

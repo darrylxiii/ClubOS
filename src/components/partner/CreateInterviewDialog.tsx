@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { aiService } from '@/services/aiService';
 import {
   Dialog,
   DialogContent,

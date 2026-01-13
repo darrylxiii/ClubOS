@@ -63,7 +63,7 @@ export function AIHighlightClips({ recordingId, onSeek, onShare }: AIHighlightCl
     try {
       const data = await aiService.generateHighlightClips(recordingId);
 
-      if (error) throw error;
+      if (!data) throw new Error("No highlights generated");
 
       toast.success(`Generated ${data?.clips?.length || 0} highlight clips`);
       loadClips();

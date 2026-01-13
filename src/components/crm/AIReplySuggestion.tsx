@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { aiService } from '@/services/aiService';
 import { motion } from 'framer-motion';
 import { Sparkles, Copy, Send, RefreshCw, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,16 +27,16 @@ export function AIReplySuggestion({
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [tone, setTone] = useState('professional');
 
   const generateSuggestion = async () => {
     setLoading(true);
     try {
       // Using the provided instruction's structure for aiService.generateCrmReply
-      // Note: The instruction implies `lastEmail` is available and used for content/classification.
       // If `lastEmail` is not provided, `originalEmail` prop will be used as a fallback for content,
       // and `classification` prop for classification.
-      const emailContent = lastEmail?.content || originalEmail;
-      const emailClassification = lastEmail?.classification || classification || 'neutral';
+      const emailContent = originalEmail;
+      const emailClassification = classification || 'neutral';
 
       const data = await aiService.generateCrmReply({
         prospectName,

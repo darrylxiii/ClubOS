@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { aiService } from '@/services/aiService';
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";

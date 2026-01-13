@@ -67,7 +67,7 @@ export function AddProspectDialog({
       const { data: { user } } = await supabase.auth.getUser();
 
       const { error } = await supabase
-        .from('crm_entities')
+        .from('crm_prospects')
         .insert({
           entity_type: 'prospect',
           full_name: formData.full_name,

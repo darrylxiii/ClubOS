@@ -84,7 +84,7 @@ export function CreateCampaignDialog({
       const { data: { user } } = await supabase.auth.getUser();
 
       const { error } = await supabase
-        .from('crm_campaigns_unified')
+        .from('crm_campaigns')
         .insert({
           name: formData.name,
           description: formData.description || null,
@@ -154,10 +154,10 @@ export function CreateCampaignDialog({
               <button
                 onClick={() => index <= currentStepIndex && setStep(s.key)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${step === s.key
-                    ? 'bg-primary text-primary-foreground'
-                    : index < currentStepIndex
-                      ? 'bg-primary/20 text-primary cursor-pointer'
-                      : 'bg-muted/20 text-muted-foreground'
+                  ? 'bg-primary text-primary-foreground'
+                  : index < currentStepIndex
+                    ? 'bg-primary/20 text-primary cursor-pointer'
+                    : 'bg-muted/20 text-muted-foreground'
                   }`}
               >
                 {s.icon}

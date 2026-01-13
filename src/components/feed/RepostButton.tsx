@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { aiService } from '@/services/aiService';
 import { Button } from "@/components/ui/button";
 import { Repeat2, MessageSquare, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";

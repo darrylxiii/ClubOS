@@ -32,7 +32,7 @@ const MergeDashboard = () => {
       .from('system_settings')
       .select('setting_value')
       .eq('setting_key', 'auto_merge_enabled')
-      .single();
+      .maybeSingle();
 
     if (data) {
       setAutoMergeEnabled(data.setting_value === true);

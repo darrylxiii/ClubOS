@@ -7,13 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Brain, 
-  Activity, 
-  Clock, 
-  Target, 
-  AlertTriangle, 
-  Zap, 
+import {
+  Brain,
+  Activity,
+  Clock,
+  Target,
+  AlertTriangle,
+  Zap,
   Database,
   RefreshCw,
   Download,
@@ -27,23 +27,26 @@ import { TrendChart } from '@/components/admin/shared/TrendChart';
 import { format, subDays } from 'date-fns';
 
 export default function RAGAnalyticsDashboard() {
-  const { t } = useTranslation(['admin']);
+  // const { t } = useTranslation(['admin']); // Unused, keeping import if needed later but removing variable
+  const { t } = { t: (s: string) => s }; // Mock for now or remove if completely unused. Better to just remove the line if unused.
+  // Actually, t is unused in the file.
+
   const [dateRangeKey, setDateRangeKey] = useState<'7d' | '30d' | '90d'>('7d');
-  
+
   const dateRange = useMemo(() => {
     const end = new Date();
     const daysMap = { '7d': 7, '30d': 30, '90d': 90 };
     const start = subDays(end, daysMap[dateRangeKey]);
     return { start, end };
   }, [dateRangeKey]);
-  
-  const { 
-    metrics, 
-    trends, 
+
+  const {
+    metrics,
+    trends,
     intentDistribution,
     experimentResults,
-    loading, 
-    refresh 
+    loading,
+    refresh
   } = useRAGAnalytics(dateRange);
 
   const formatPercent = (value: number | null | undefined) => {
@@ -62,8 +65,8 @@ export default function RAGAnalyticsDashboard() {
     return 'text-red-500';
   };
 
-  const overallHealth = metrics ? 
-    ((metrics.precision_at_5 || 0) + (metrics.recall_at_5 || 0) + (1 - (metrics.hallucination_rate || 0))) / 3 
+  const overallHealth = metrics ?
+    ((metrics.precision_at_5 || 0) + (metrics.recall_at_5 || 0) + (1 - (metrics.hallucination_rate || 0))) / 3
     : 0;
 
   return (
@@ -332,8 +335,8 @@ export default function RAGAnalyticsDashboard() {
                           {intent.percentage}%
                         </span>
                       </div>
-                      <Progress 
-                        value={intent.percentage} 
+                      <Progress
+                        value={intent.percentage}
                         className="h-2"
                       />
                     </div>

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { aiService } from '@/services/aiService';
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Flame, Sun, ThumbsUp, HelpCircle, ThumbsDown, Plane,
@@ -43,6 +44,8 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
   const [selectedReply, setSelectedReply] = useState<CRMEmailReply | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [tone, setTone] = useState('professional');
+  const [generatedReply, setGeneratedReply] = useState<any>(null);
   const [smartReplies, setSmartReplies] = useState<{ professional?: string; friendly?: string; decline?: string } | null>(null);
   const [snoozeDialogOpen, setSnoozeDialogOpen] = useState(false);
   const [replyToSnooze, setReplyToSnooze] = useState<CRMEmailReply | null>(null);
@@ -206,7 +209,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
       });
 
       setGeneratedReply(data.followUp || null);
-      if (error) throw error;
+      if (!data) throw new Error("No data returned");
       return data;
     },
     onSuccess: (data: any) => {

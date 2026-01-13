@@ -20,10 +20,10 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
       setError(null);
 
       let query = supabase
-        .from('crm_campaigns_unified')
+        .from('crm_campaigns')
         .select(`
           *,
-          owner:profiles!crm_campaigns_unified_owner_id_fkey(full_name, avatar_url)
+          owner:profiles!crm_campaigns_owner_id_fkey(full_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
 
@@ -91,7 +91,7 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
       if (!user) throw new Error('Not authenticated');
 
       const { data, error: createError } = await supabase
-        .from('crm_campaigns_unified')
+        .from('crm_campaigns')
         .insert({
           name: campaign.name || 'New Campaign',
           description: campaign.description,
@@ -174,7 +174,7 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
       }
 
       const { error: updateError } = await supabase
-        .from('crm_campaigns_unified')
+        .from('crm_campaigns')
         .update(unifiedUpdates)
         .eq('id', campaignId);
 
@@ -195,7 +195,7 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
   const deleteCampaign = async (campaignId: string) => {
     try {
       const { error: deleteError } = await supabase
-        .from('crm_campaigns_unified')
+        .from('crm_campaigns')
         .delete()
         .eq('id', campaignId);
 

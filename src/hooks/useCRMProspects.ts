@@ -24,15 +24,15 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
       setError(null);
 
       let query = supabase
-        .from('crm_entities')
+        .from('crm_prospects')
         .select(`
           *,
-          owner:profiles!crm_entities_owner_id_fkey(full_name, avatar_url),
-          campaign:crm_campaigns_unified!crm_entities_campaign_id_fkey(name)
+          owner:profiles!crm_prospects_owner_id_fkey(full_name, avatar_url),
+          campaign:crm_campaigns!crm_prospects_campaign_id_fkey(name)
         `)
         .eq('entity_type', 'prospect')
         // Sort approach might need adjustment if sorting by JSON field, but 'last_activity_at' isn't in top level of schema 1.2?
-        // Checking schema: crm_entities has 'updated_at', 'created_at'.
+        // Checking schema: crm_prospects has 'updated_at', 'created_at'.
         // engagement_metrics has 'last_contacted_at'.
         // Schema 1.3 `crm_activities` has `performed_at`.
         // Ideally we sort by updated_at or use a dedicated column if we added one. 
@@ -146,7 +146,7 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
   const updateProspectStage = async (prospectId: string, newStage: ProspectStage) => {
     try {
       const { error: updateError } = await supabase
-        .from('crm_entities')
+        .from('crm_prospects')
         .update({
           status: newStage, // Mapping stage -> status
           updated_at: new Date().toISOString(),
@@ -179,7 +179,7 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
       delete mappedUpdates.stage; // Remove mapped key
 
       const { error: updateError } = await supabase
-        .from('crm_entities')
+        .from('crm_prospects')
         .update({
           ...mappedUpdates,
           updated_at: new Date().toISOString(),
@@ -203,7 +203,7 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
   const deleteProspect = async (prospectId: string) => {
     try {
       const { error: deleteError } = await supabase
-        .from('crm_entities')
+        .from('crm_prospects')
         .delete()
         .eq('id', prospectId);
 

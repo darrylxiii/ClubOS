@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Globe, Check, X, Loader2, Languages, RefreshCw, Star, AlertTriangle, Bot, Sparkles } from "lucide-react";
+import { Plus, Globe, Check, Loader2, Languages, RefreshCw, Star, AlertTriangle, Bot, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import {
   Dialog,

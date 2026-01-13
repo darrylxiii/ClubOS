@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { aiService } from '@/services/aiService';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -143,8 +144,8 @@ export function InterviewReportView({
     <div className="space-y-6">
       {/* Recommendation Banner */}
       <Card className={`p-6 border-2 ${report.recommendation === 'advance' ? 'bg-green-500/5 border-green-500/20' :
-          report.recommendation === 'reject' ? 'bg-red-500/5 border-red-500/20' :
-            'bg-yellow-500/5 border-yellow-500/20'
+        report.recommendation === 'reject' ? 'bg-red-500/5 border-red-500/20' :
+          'bg-yellow-500/5 border-yellow-500/20'
         }`}>
         <div className="flex items-start gap-4">
           {getRecommendationIcon(report.recommendation)}

@@ -64,7 +64,7 @@ export function CampaignAutopilotDialog({
             const { data: { user } } = await supabase.auth.getUser();
 
             const { data: newCampaign, error: dbError } = await supabase
-                .from('crm_campaigns_unified')
+                .from('crm_campaigns')
                 .insert({
                     name: campaignData.name,
                     description: campaignData.description,
