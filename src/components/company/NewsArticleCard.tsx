@@ -93,11 +93,13 @@ export function NewsArticleCard({ article, companyLogoUrl, onRead, className }: 
         className
       )}
     >
-      {/* Image */}
+      {/* Image - OPTIMIZED: Added explicit dimensions to prevent CLS */}
       <div className="relative aspect-video overflow-hidden bg-muted">
         <img
           src={displayImage}
           alt={article.title}
+          width={400}
+          height={225}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           loading="lazy"
         />

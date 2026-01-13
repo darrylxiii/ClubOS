@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { LazyCharts } from "@/components/charts/LazyCharts";
 
 interface CandidateData {
@@ -24,23 +25,29 @@ const COLORS = [
   "hsl(var(--chart-4))",
 ];
 
-export function ComparisonRadarChart({ candidates }: ComparisonRadarChartProps) {
-  const categories = [
-    { key: "technical", label: "Technical" },
-    { key: "communication", label: "Communication" },
-    { key: "problemSolving", label: "Problem Solving" },
-    { key: "cultureFit", label: "Culture Fit" },
-    { key: "leadership", label: "Leadership" },
-    { key: "experience", label: "Experience" },
-  ];
+const CATEGORIES = [
+  { key: "technical", label: "Technical" },
+  { key: "communication", label: "Communication" },
+  { key: "problemSolving", label: "Problem Solving" },
+  { key: "cultureFit", label: "Culture Fit" },
+  { key: "leadership", label: "Leadership" },
+  { key: "experience", label: "Experience" },
+] as const;
 
-  const data = categories.map((cat) => {
-    const point: Record<string, any> = { category: cat.label };
-    candidates.forEach((candidate) => {
-      point[candidate.name] = candidate.scores[cat.key as keyof typeof candidate.scores];
+/**
+ * OPTIMIZED: Memoized radar chart component to prevent unnecessary re-renders
+ */
+export const ComparisonRadarChart = memo(function ComparisonRadarChart({ candidates }: ComparisonRadarChartProps) {
+  // OPTIMIZED: Memoize data transformation
+  const data = useMemo(() => {
+    return CATEGORIES.map((cat) => {
+      const point: Record<string, any> = { category: cat.label };
+      candidates.forEach((candidate) => {
+        point[candidate.name] = candidate.scores[cat.key as keyof typeof candidate.scores];
+      });
+      return point;
     });
-    return point;
-  });
+  }, [candidates]);
 
   return (
     <div className="h-[400px] w-full">
@@ -83,4 +90,4 @@ export function ComparisonRadarChart({ candidates }: ComparisonRadarChartProps) 
       </LazyCharts>
     </div>
   );
-}
+});

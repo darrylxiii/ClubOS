@@ -6,6 +6,8 @@ interface LazyImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   alt: string;
   aspectRatio?: string;
   placeholderClassName?: string;
+  width?: number;
+  height?: number;
 }
 
 export function LazyImage({
@@ -14,6 +16,8 @@ export function LazyImage({
   className,
   aspectRatio = "16/9",
   placeholderClassName,
+  width,
+  height,
   ...props
 }: LazyImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -56,6 +60,8 @@ export function LazyImage({
           ref={imgRef}
           src={src}
           alt={alt}
+          width={width}
+          height={height}
           loading="lazy"
           className={cn(
             "h-full w-full object-cover transition-opacity duration-300",
