@@ -19,12 +19,13 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
   const loadDossier = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.functions.invoke('generate-candidate-dossier', {
-        body: { candidateId, jobId }
+      const { dossier, rawData } = await aiService.generateCandidateDossier({
+        candidateId,
+        jobId
       });
 
-      if (error) throw error;
-      setDossier(data.dossier);
+      if (!dossier) throw new Error('No data returned');
+      setDossier(dossier);
       toast.success("Intelligence dossier generated");
     } catch (error: any) {
       console.error('Error loading dossier:', error);
@@ -246,7 +247,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
             <div>
               <span className="text-xs text-muted-foreground">Offer Acceptance</span>
               <div className="flex items-center gap-2 mt-1">
-              <Progress value={(dossier.predictedOfferAcceptance || 0) * 100} className="flex-1 h-2" />
+                <Progress value={(dossier.predictedOfferAcceptance || 0) * 100} className="flex-1 h-2" />
                 <span className="text-sm font-semibold">
                   {Math.round((dossier.predictedOfferAcceptance || 0) * 100)}%
                 </span>

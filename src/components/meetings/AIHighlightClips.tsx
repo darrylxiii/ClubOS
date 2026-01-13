@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { aiService } from '@/services/aiService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Sparkles, Play, Share2, RefreshCw, AlertTriangle, 
-  CheckCircle2, Lightbulb, Users, Code, Loader2 
+import {
+  Sparkles, Play, Share2, RefreshCw, AlertTriangle,
+  CheckCircle2, Lightbulb, Users, Code, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -60,9 +61,7 @@ export function AIHighlightClips({ recordingId, onSeek, onShare }: AIHighlightCl
   const generateHighlights = async () => {
     setGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-highlight-clips', {
-        body: { recordingId }
-      });
+      const data = await aiService.generateHighlightClips(recordingId);
 
       if (error) throw error;
 
@@ -199,7 +198,7 @@ export function AIHighlightClips({ recordingId, onSeek, onShare }: AIHighlightCl
                       <span className="font-medium text-sm">{clip.title}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs">
                         {formatTime(clip.start_ms)} - {formatTime(clip.end_ms)}
                       </Badge>
                       <Button

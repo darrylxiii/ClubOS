@@ -26,7 +26,7 @@ export default defineConfig(({ mode, command }) => ({
     command === 'serve' && mode === 'development' && componentTagger(),
     // PWA is only needed for production builds; it is memory-heavy during build
     command === 'build' && mode === 'production' &&
-      VitePWA({
+    VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'quantum-logo.svg', 'apple-touch-icon.png'],
       manifest: {
@@ -82,18 +82,18 @@ export default defineConfig(({ mode, command }) => ({
         // CRITICAL: Do NOT precache HTML - use NetworkFirst at runtime
         // This prevents stale index.html from bricking the app after deploy
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
-        
+
         // CRITICAL: Auto-activate new service worker immediately
         // Prevents users from being stuck on old cached version
         skipWaiting: true,
         clientsClaim: true,
-        
+
         // Clean up old caches
         cleanupOutdatedCaches: true,
-        
+
         // Increase limit to 5MB for og-image.png etc
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        
+
         // Runtime caching strategies
         runtimeCaching: [
           // CRITICAL: Document navigations use NetworkFirst
@@ -215,13 +215,13 @@ export default defineConfig(({ mode, command }) => ({
     rollupOptions: {
       // Limit the number of concurrent module transforms
       maxParallelFileOps: 5, // Reduced from 10 to 5
-      
+
       // Use treeshake preset for lighter memory footprint
       treeshake: {
         preset: 'smallest',
         moduleSideEffects: false,
       },
-      
+
       // CRITICAL: Externalize heavy optional dependencies in dev builds
       external: mode === 'development' ? [
         // These are lazy-loaded anyway, externalize in dev to save memory
@@ -229,7 +229,7 @@ export default defineConfig(({ mode, command }) => ({
         '@mediapipe/camera_utils',
         '@mediapipe/selfie_segmentation',
       ] : [],
-      
+
       output: {
         // CRITICAL: Aggressive code splitting by feature to reduce memory per chunk
         manualChunks: (id) => {
@@ -237,7 +237,7 @@ export default defineConfig(({ mode, command }) => ({
           if (!id.includes('node_modules')) {
             return undefined;
           }
-          
+
           // Heavy libraries - isolate into their own chunks
           if (id.includes('mermaid')) return 'vendor-mermaid';
           if (id.includes('katex')) return 'vendor-katex';
@@ -275,7 +275,7 @@ export default defineConfig(({ mode, command }) => ({
           ) {
             return 'vendor-react';
           }
-          
+
           // Everything else in a shared vendor chunk
           return 'vendor-common';
         },

@@ -65,15 +65,11 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
   const handleAISuggestion = async () => {
     setLoadingSuggestions(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-post-suggestions', {
-        body: { 
-          postType,
-          platform: selectedPlatforms[0] || 'linkedin',
-          currentContent: content
-        }
+      const data = await aiService.generatePostSuggestions({
+        context: content,
+        postType: postType,
+        platform: selectedPlatforms[0] || 'linkedin'
       });
-
-      if (error) throw error;
 
       if (data?.suggestions && data.suggestions.length > 0) {
         setAiSuggestions(data.suggestions);
@@ -350,8 +346,8 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
               <Label>AI Suggestions (click to use)</Label>
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {aiSuggestions.map((suggestion, idx) => (
-                  <Card 
-                    key={idx} 
+                  <Card
+                    key={idx}
                     className="p-3 cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => applySuggestion(suggestion)}
                   >

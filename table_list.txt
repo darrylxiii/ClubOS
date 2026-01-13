@@ -1,0 +1,860 @@
+"public"."crm_automation_logs" (
+"public"."crm_settings" (
+"public"."kpi_metrics" (
+"public"."ml_feature_weights" (
+"public"."platform_metrics" (
+"public"."sales_kpi_metrics" (
+"public"."sales_proposals" (
+"public"."task_comments" (
+"public"."web_kpi_metrics" (
+'admin'::app_role));-- Create table for company email domains
+Create table for user activity tracking if not exists
+Create table to track failed calendar checks (for analytics)
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();-- Create table for storing Moneybird financial metrics snapshots
+IF NOT EXISTS "public"."task_activity_log" (
+IF NOT EXISTS achievement_challenges (
+IF NOT EXISTS achievement_leaderboard (
+IF NOT EXISTS achievement_prerequisites (
+IF NOT EXISTS achievement_tiers (
+IF NOT EXISTS ad_campaigns (
+IF NOT EXISTS admin_alert_preferences (
+IF NOT EXISTS admin_analytics_queries (
+IF NOT EXISTS admin_member_approval_actions (
+IF NOT EXISTS agent_action_outcomes (
+IF NOT EXISTS agent_autonomy_settings (
+IF NOT EXISTS agent_behavior_rules (
+IF NOT EXISTS agent_decision_log (
+IF NOT EXISTS agent_delegations (
+IF NOT EXISTS agent_events (
+IF NOT EXISTS agent_experiments (
+IF NOT EXISTS agent_goal_progress (
+IF NOT EXISTS agent_goals (
+IF NOT EXISTS agent_registry (
+IF NOT EXISTS agent_user_preferences (
+IF NOT EXISTS agent_working_memory (
+IF NOT EXISTS ai_action_audit (
+IF NOT EXISTS ai_action_log (
+IF NOT EXISTS ai_generated_content (
+IF NOT EXISTS ai_meeting_suggestions (
+IF NOT EXISTS ai_suggestions (
+IF NOT EXISTS analytics_ai_insights (
+IF NOT EXISTS approval_notification_logs (
+IF NOT EXISTS audit_events (
+IF NOT EXISTS booking_reminders (
+IF NOT EXISTS calendar_sync_log (
+IF NOT EXISTS call_quality_feedback (
+IF NOT EXISTS candidate_application_logs (
+IF NOT EXISTS candidate_interview_performance (
+IF NOT EXISTS candidate_interview_recordings (
+IF NOT EXISTS candidate_merge_log (
+IF NOT EXISTS candidate_profile_audit (
+IF NOT EXISTS candidate_relationships (
+IF NOT EXISTS club_sync_requests (
+IF NOT EXISTS company_candidate_feedback (
+IF NOT EXISTS company_departments (
+IF NOT EXISTS company_intelligence (
+IF NOT EXISTS company_referrer_splits (
+IF NOT EXISTS company_strategist_assignments (
+IF NOT EXISTS compliance_reviews (
+IF NOT EXISTS content_ai_scores (
+IF NOT EXISTS content_attributions (
+IF NOT EXISTS content_licenses (
+IF NOT EXISTS content_recommendations (
+IF NOT EXISTS continuous_pipeline_hires (
+IF NOT EXISTS contract_templates (
+IF NOT EXISTS crm_ab_test_insights (
+IF NOT EXISTS crm_ab_test_variants (
+IF NOT EXISTS crm_activities (
+IF NOT EXISTS crm_analytics_snapshots (
+IF NOT EXISTS crm_campaign_benchmarks (
+IF NOT EXISTS crm_campaign_roi (
+IF NOT EXISTS crm_email_threads (
+IF NOT EXISTS crm_integration_settings (
+IF NOT EXISTS crm_lead_predictions (
+IF NOT EXISTS crm_outreach_insights (
+IF NOT EXISTS crm_reply_intelligence (
+IF NOT EXISTS crm_sync_logs (
+IF NOT EXISTS custom_funnels (
+IF NOT EXISTS data_export_requests (
+IF NOT EXISTS deal_stage_conversions (
+IF NOT EXISTS deletion_requests (
+IF NOT EXISTS detected_anomalies (
+IF NOT EXISTS detected_interviews (
+IF NOT EXISTS discussion_replies (
+IF NOT EXISTS email_attachments (
+IF NOT EXISTS email_drafts (
+IF NOT EXISTS email_label_mappings (
+IF NOT EXISTS email_labels (
+IF NOT EXISTS email_sync_log (
+IF NOT EXISTS email_templates (
+IF NOT EXISTS email_threads (
+IF NOT EXISTS email_verified BOOLEAN DEFAULT false;-- Create table for storing custom pipeline configurations per job
+IF NOT EXISTS emails (
+IF NOT EXISTS enrichment_logs (
+IF NOT EXISTS entity_relationships (
+IF NOT EXISTS expert_availability (
+IF NOT EXISTS expert_sessions (
+IF NOT EXISTS external_context_imports (
+IF NOT EXISTS funnel_analytics_cache (
+IF NOT EXISTS hiring_manager_profiles (
+IF NOT EXISTS idx_posts_repost_of ON public.posts(repost_of);-- Create table for temporary profile share links
+IF NOT EXISTS instantly_account_health (
+IF NOT EXISTS instantly_send_time_analytics (
+IF NOT EXISTS instantly_sequence_steps (
+IF NOT EXISTS instantly_webhook_logs (
+IF NOT EXISTS intelligence_processing_errors (
+IF NOT EXISTS intelligence_queue (
+IF NOT EXISTS interview_question_patterns (
+IF NOT EXISTS job_interview_recordings (
+IF NOT EXISTS job_stealth_viewers (
+IF NOT EXISTS language_config (
+IF NOT EXISTS lead_scores (
+IF NOT EXISTS learner_preferences (
+IF NOT EXISTS learning_analytics (
+IF NOT EXISTS learning_badges (
+IF NOT EXISTS live_channel_message_reactions (
+IF NOT EXISTS live_channel_read_states (
+IF NOT EXISTS live_channel_user_settings (
+IF NOT EXISTS live_session_listeners (
+IF NOT EXISTS livehub_audit_logs (
+IF NOT EXISTS livehub_channel_participants (
+IF NOT EXISTS market_intelligence (
+IF NOT EXISTS match_scores (
+IF NOT EXISTS meeting_audit_logs (
+IF NOT EXISTS meeting_data_audit (
+IF NOT EXISTS meeting_dossiers (
+IF NOT EXISTS meeting_encryption_keys (
+IF NOT EXISTS meeting_engagement_metrics (
+IF NOT EXISTS meeting_intelligence_processing (
+IF NOT EXISTS meeting_invitations (
+IF NOT EXISTS meeting_notification_analytics (
+IF NOT EXISTS meeting_notification_queue (
+IF NOT EXISTS message_rate_limits (
+IF NOT EXISTS message_read_receipts (
+IF NOT EXISTS ml_ab_tests (
+IF NOT EXISTS ml_feedback (
+IF NOT EXISTS ml_models (
+IF NOT EXISTS ml_predictions (
+IF NOT EXISTS ml_training_data (
+IF NOT EXISTS ml_training_runs (
+IF NOT EXISTS module_chat_messages (
+IF NOT EXISTS module_discussions (
+IF NOT EXISTS org_chart_candidate_placements (
+IF NOT EXISTS partner_analytics_snapshots (
+IF NOT EXISTS payment_references (
+IF NOT EXISTS payout_batches (
+IF NOT EXISTS pilot_metrics (
+IF NOT EXISTS pilot_preferences (
+IF NOT EXISTS pilot_tasks (
+IF NOT EXISTS poll_votes (
+IF NOT EXISTS polls (
+IF NOT EXISTS predictive_signals (
+IF NOT EXISTS projected_earnings (
+IF NOT EXISTS public.activation_events (
+IF NOT EXISTS public.activity_feed (
+IF NOT EXISTS public.activity_timeline (
+IF NOT EXISTS public.admin_account_actions (
+IF NOT EXISTS public.admin_audit_activity (
+IF NOT EXISTS public.adversarial_query_log (
+IF NOT EXISTS public.ai_content_suggestions (
+IF NOT EXISTS public.ai_conversations (
+IF NOT EXISTS public.ai_copilot_tips (
+IF NOT EXISTS public.ai_memory (
+IF NOT EXISTS public.ai_persona_profiles (
+IF NOT EXISTS public.ai_rate_limits (
+IF NOT EXISTS public.ai_session_feedback (
+IF NOT EXISTS public.ai_session_scores (
+IF NOT EXISTS public.ai_usage_logs (
+IF NOT EXISTS public.analytics_export_log (
+IF NOT EXISTS public.analytics_insights (
+IF NOT EXISTS public.api_keys (
+IF NOT EXISTS public.api_rate_limits (
+IF NOT EXISTS public.api_usage_logs (
+IF NOT EXISTS public.appearance_presets (
+IF NOT EXISTS public.auth_security_events (
+IF NOT EXISTS public.backup_policies (
+IF NOT EXISTS public.backup_verification_logs (
+IF NOT EXISTS public.biometric_settings (
+IF NOT EXISTS public.blocked_domains (
+IF NOT EXISTS public.blocked_ips (
+IF NOT EXISTS public.booking_analytics (
+IF NOT EXISTS public.booking_approval_requests (
+IF NOT EXISTS public.booking_availability_settings (
+IF NOT EXISTS public.booking_calendar_check_failures (
+IF NOT EXISTS public.booking_calendar_syncs (
+IF NOT EXISTS public.booking_deletion_logs (
+IF NOT EXISTS public.booking_funnel_analytics (
+IF NOT EXISTS public.booking_funnel_events (
+IF NOT EXISTS public.booking_reminder_logs (
+IF NOT EXISTS public.booking_reminders (
+IF NOT EXISTS public.booking_slot_analytics (
+IF NOT EXISTS public.booking_waitlist (
+IF NOT EXISTS public.booking_workflows (
+IF NOT EXISTS public.brand_assets_cache (
+IF NOT EXISTS public.brand_terms (
+IF NOT EXISTS public.breakout_room_participants (
+IF NOT EXISTS public.bulk_operation_logs (
+IF NOT EXISTS public.calendar_health_checks (
+IF NOT EXISTS public.candidate_activity_metrics (
+IF NOT EXISTS public.candidate_comments (
+IF NOT EXISTS public.candidate_company_history (
+IF NOT EXISTS public.candidate_interactions (
+IF NOT EXISTS public.candidate_offers (
+IF NOT EXISTS public.candidate_profile_views (
+IF NOT EXISTS public.candidate_profiles (
+IF NOT EXISTS public.candidate_scorecards (
+IF NOT EXISTS public.capacity_metrics (
+IF NOT EXISTS public.capacity_planning (
+IF NOT EXISTS public.career_context_snapshots (
+IF NOT EXISTS public.career_insights_cache (
+IF NOT EXISTS public.career_paths (
+IF NOT EXISTS public.career_trend_insights (
+IF NOT EXISTS public.churn_analysis (
+IF NOT EXISTS public.circuit_breaker_state (
+IF NOT EXISTS public.collaborative_posts (
+IF NOT EXISTS public.commission_tiers (
+IF NOT EXISTS public.communication_task_queue (
+IF NOT EXISTS public.company_analytics (
+IF NOT EXISTS public.company_branding (
+IF NOT EXISTS public.company_contacts (
+IF NOT EXISTS public.company_domains (
+IF NOT EXISTS public.company_email_sentiment (
+IF NOT EXISTS public.company_enrichment_cache (
+IF NOT EXISTS public.company_followers (
+IF NOT EXISTS public.company_intelligence_scores (
+IF NOT EXISTS public.company_members (
+IF NOT EXISTS public.company_post_comments (
+IF NOT EXISTS public.company_post_likes (
+IF NOT EXISTS public.company_post_reactions (
+IF NOT EXISTS public.company_posts (
+IF NOT EXISTS public.company_role_permissions (
+IF NOT EXISTS public.company_settings (
+IF NOT EXISTS public.company_sso_config (
+IF NOT EXISTS public.company_stories (
+IF NOT EXISTS public.company_story_likes (
+IF NOT EXISTS public.company_story_views (
+IF NOT EXISTS public.competitor_comparison_log (
+IF NOT EXISTS public.compression_experiments (
+IF NOT EXISTS public.connects_subscriptions (
+IF NOT EXISTS public.connects_transactions (
+IF NOT EXISTS public.consent_receipts (
+IF NOT EXISTS public.contact_email_sentiment (
+IF NOT EXISTS public.contract_documents (
+IF NOT EXISTS public.contract_renewals (
+IF NOT EXISTS public.contract_templates (
+IF NOT EXISTS public.conversation_analytics (
+IF NOT EXISTS public.conversation_analytics_daily (
+IF NOT EXISTS public.crm_audit_logs (
+IF NOT EXISTS public.crm_saved_views (
+IF NOT EXISTS public.crm_stage_probabilities (
+IF NOT EXISTS public.csat_surveys (
+IF NOT EXISTS public.customer_acquisition (
+IF NOT EXISTS public.data_consistency_logs (
+IF NOT EXISTS public.data_integrity_checks (
+IF NOT EXISTS public.data_room_documents (
+IF NOT EXISTS public.deal_loss_reasons (
+IF NOT EXISTS public.deal_stage_history (
+IF NOT EXISTS public.deal_stages (
+IF NOT EXISTS public.device_tokens (
+IF NOT EXISTS public.dismissed_jobs (
+IF NOT EXISTS public.dm_conversations (
+IF NOT EXISTS public.dm_messages (
+IF NOT EXISTS public.document_embeddings (
+IF NOT EXISTS public.dossier_shares (
+IF NOT EXISTS public.dossier_views (
+IF NOT EXISTS public.dr_compliance_audit (
+IF NOT EXISTS public.dr_contacts (
+IF NOT EXISTS public.dr_drill_results (
+IF NOT EXISTS public.dr_drill_schedule (
+IF NOT EXISTS public.edge_function_registry (
+IF NOT EXISTS public.email_connections (
+IF NOT EXISTS public.email_contact_matches (
+IF NOT EXISTS public.email_follow_ups (
+IF NOT EXISTS public.email_meetings (
+IF NOT EXISTS public.email_relationships (
+IF NOT EXISTS public.email_verifications (
+IF NOT EXISTS public.embedding_cache (
+IF NOT EXISTS public.employee_commissions (
+IF NOT EXISTS public.employee_gamification (
+IF NOT EXISTS public.employee_milestones (
+IF NOT EXISTS public.employee_profiles (
+IF NOT EXISTS public.employee_targets (
+IF NOT EXISTS public.employee_xp_events (
+IF NOT EXISTS public.enterprise_contracts (
+IF NOT EXISTS public.entity_graph_links (
+IF NOT EXISTS public.entity_relationships (
+IF NOT EXISTS public.error_logs (
+IF NOT EXISTS public.expense_categories (
+IF NOT EXISTS public.external_health_checks (
+IF NOT EXISTS public.financial_events (
+IF NOT EXISTS public.financial_forecasts (
+IF NOT EXISTS public.financial_settings (
+IF NOT EXISTS public.freelance_contracts (
+IF NOT EXISTS public.freelance_profiles (
+IF NOT EXISTS public.freelancer_badges (
+IF NOT EXISTS public.freelancer_gigs (
+IF NOT EXISTS public.freelancer_team_members (
+IF NOT EXISTS public.freelancer_teams (
+IF NOT EXISTS public.gig_orders (
+IF NOT EXISTS public.hallucination_detection_log (
+IF NOT EXISTS public.hiring_metrics_weekly (
+IF NOT EXISTS public.incident_logs (
+IF NOT EXISTS public.incident_response_actions (
+IF NOT EXISTS public.incubator_actions (
+IF NOT EXISTS public.incubator_scoring_evidence (
+IF NOT EXISTS public.incubator_sessions (
+IF NOT EXISTS public.intelligence_embeddings (
+IF NOT EXISTS public.intelligence_queries (
+IF NOT EXISTS public.intelligence_timeline (
+IF NOT EXISTS public.interview_analytics (
+IF NOT EXISTS public.interview_intelligence (
+IF NOT EXISTS public.interview_prep_briefs (
+IF NOT EXISTS public.interview_prep_materials (
+IF NOT EXISTS public.interview_reports (
+IF NOT EXISTS public.interviews (
+IF NOT EXISTS public.inventory_asset_events (
+IF NOT EXISTS public.inventory_depreciation_runs (
+IF NOT EXISTS public.investor_metrics_snapshots (
+IF NOT EXISTS public.invoice_line_items (
+IF NOT EXISTS public.invoices (
+IF NOT EXISTS public.ip_geo_cache (
+IF NOT EXISTS public.job_analytics (
+IF NOT EXISTS public.job_tools (
+IF NOT EXISTS public.jobs (
+IF NOT EXISTS public.kpi_access_log (
+IF NOT EXISTS public.kpi_calculation_log (
+IF NOT EXISTS public.kpi_execution_events (
+IF NOT EXISTS public.kpi_executive_preferences (
+IF NOT EXISTS public.kpi_executive_reports (
+IF NOT EXISTS public.kpi_export_approvals (
+IF NOT EXISTS public.kpi_lineage_metadata (
+IF NOT EXISTS public.kpi_metrics (
+IF NOT EXISTS public.kpi_okr_links (
+IF NOT EXISTS public.kpi_report_subscriptions (
+IF NOT EXISTS public.kpi_report_templates (
+IF NOT EXISTS public.kpi_sla_config (
+IF NOT EXISTS public.kpi_visibility_rules (
+IF NOT EXISTS public.leaderboard_entries (
+IF NOT EXISTS public.linkedin_imports (
+IF NOT EXISTS public.live_channel_permissions (
+IF NOT EXISTS public.live_sessions (
+IF NOT EXISTS public.livehub_conversation_patterns (
+IF NOT EXISTS public.livehub_intelligence_bridge_log (
+IF NOT EXISTS public.livehub_session_summaries (
+IF NOT EXISTS public.livehub_transcripts (
+IF NOT EXISTS public.login_attempts (
+IF NOT EXISTS public.marketplace_fraud_signals (
+IF NOT EXISTS public.marketplace_projects (
+IF NOT EXISTS public.meeting_analytics (
+IF NOT EXISTS public.meeting_bot_sessions (
+IF NOT EXISTS public.meeting_bots (
+IF NOT EXISTS public.meeting_breakout_rooms (
+IF NOT EXISTS public.meeting_clips (
+IF NOT EXISTS public.meeting_connection_stats (
+IF NOT EXISTS public.meeting_insights (
+IF NOT EXISTS public.meeting_intelligence (
+IF NOT EXISTS public.meeting_join_logs (
+IF NOT EXISTS public.meeting_join_requests (
+IF NOT EXISTS public.meeting_participants (
+IF NOT EXISTS public.meeting_polls (
+IF NOT EXISTS public.meeting_recordings_extended (
+IF NOT EXISTS public.meeting_reminders (
+IF NOT EXISTS public.meeting_summaries (
+IF NOT EXISTS public.meeting_templates (
+IF NOT EXISTS public.meeting_transcripts (
+IF NOT EXISTS public.meetings (
+IF NOT EXISTS public.message_reactions (
+IF NOT EXISTS public.message_read_receipts (
+IF NOT EXISTS public.message_retention_policies (
+IF NOT EXISTS public.ml_ab_tests (
+IF NOT EXISTS public.ml_feedback (
+IF NOT EXISTS public.ml_model_metrics (
+IF NOT EXISTS public.ml_models (
+IF NOT EXISTS public.ml_predictions (
+IF NOT EXISTS public.ner_entity_relationships (
+IF NOT EXISTS public.note_mentions (
+IF NOT EXISTS public.notification_preferences (
+IF NOT EXISTS public.notification_retry_queue (
+IF NOT EXISTS public.notifications (
+IF NOT EXISTS public.nps_surveys (
+IF NOT EXISTS public.objective_activities (
+IF NOT EXISTS public.objective_comments (
+IF NOT EXISTS public.offer_letter_templates (
+IF NOT EXISTS public.okr_key_results (
+IF NOT EXISTS public.okr_objectives (
+IF NOT EXISTS public.onboarding_checklists (
+IF NOT EXISTS public.one_on_one_notes (
+IF NOT EXISTS public.operating_expenses (
+IF NOT EXISTS public.page_activity (
+IF NOT EXISTS public.page_analytics (
+IF NOT EXISTS public.page_attachments (
+IF NOT EXISTS public.page_backlinks (
+IF NOT EXISTS public.page_comments (
+IF NOT EXISTS public.page_mentions (
+IF NOT EXISTS public.page_presence (
+IF NOT EXISTS public.partner_ai_insights (
+IF NOT EXISTS public.partner_analytics_snapshots (
+IF NOT EXISTS public.partner_audit_log (
+IF NOT EXISTS public.partner_benchmarks (
+IF NOT EXISTS public.partner_billing_details (
+IF NOT EXISTS public.partner_engagement_metrics (
+IF NOT EXISTS public.partner_health_scores (
+IF NOT EXISTS public.partner_integrations (
+IF NOT EXISTS public.partner_invoices (
+IF NOT EXISTS public.partner_permissions (
+IF NOT EXISTS public.partner_sla_config (
+IF NOT EXISTS public.partner_sla_tracking (
+IF NOT EXISTS public.partner_smart_alerts (
+IF NOT EXISTS public.password_history (
+IF NOT EXISTS public.password_reset_attempts (
+IF NOT EXISTS public.password_reset_tokens (
+IF NOT EXISTS public.payment_transactions (
+IF NOT EXISTS public.performance_metrics (
+IF NOT EXISTS public.performance_reviews (
+IF NOT EXISTS public.personal_kpi_goals (
+IF NOT EXISTS public.personal_meeting_rooms (
+IF NOT EXISTS public.phone_verifications (
+IF NOT EXISTS public.pinned_posts (
+IF NOT EXISTS public.pipeline_audit_logs (
+IF NOT EXISTS public.pipeline_events (
+IF NOT EXISTS public.pipeline_stage_mappings (
+IF NOT EXISTS public.pitr_test_logs (
+IF NOT EXISTS public.pitr_test_markers (
+IF NOT EXISTS public.placement_fees (
+IF NOT EXISTS public.platform_alerts (
+IF NOT EXISTS public.poll_votes (
+IF NOT EXISTS public.post_engagement_signals (
+IF NOT EXISTS public.post_incident_reviews (
+IF NOT EXISTS public.post_interactions (
+IF NOT EXISTS public.post_reactions (
+IF NOT EXISTS public.post_reposts (
+IF NOT EXISTS public.post_shares (
+IF NOT EXISTS public.post_views (
+IF NOT EXISTS public.predictive_signals (
+IF NOT EXISTS public.probation_alerts (
+IF NOT EXISTS public.profile_achievements (
+IF NOT EXISTS public.profile_activity (
+IF NOT EXISTS public.profile_analytics (
+IF NOT EXISTS public.profile_custom_fields (
+IF NOT EXISTS public.profile_data_exports (
+IF NOT EXISTS public.profile_education (
+IF NOT EXISTS public.profile_experience (
+IF NOT EXISTS public.profile_media (
+IF NOT EXISTS public.profile_portfolio (
+IF NOT EXISTS public.profile_recommendations (
+IF NOT EXISTS public.profile_skills (
+IF NOT EXISTS public.profile_strength_stats (
+IF NOT EXISTS public.profile_strength_tasks (
+IF NOT EXISTS public.profile_views (
+IF NOT EXISTS public.profile_visibility_rules (
+IF NOT EXISTS public.profiles (
+IF NOT EXISTS public.project_activity_log (
+IF NOT EXISTS public.project_contracts (
+IF NOT EXISTS public.project_disputes (
+IF NOT EXISTS public.project_invitations (
+IF NOT EXISTS public.project_messages (
+IF NOT EXISTS public.project_milestones (
+IF NOT EXISTS public.project_proposals (
+IF NOT EXISTS public.project_reviews (
+IF NOT EXISTS public.prompt_experiments (
+IF NOT EXISTS public.query_intent_cache (
+IF NOT EXISTS public.query_success_patterns (
+IF NOT EXISTS public.rag_api_keys (
+IF NOT EXISTS public.rag_api_usage (
+IF NOT EXISTS public.rag_evaluation_metrics (
+IF NOT EXISTS public.rag_feedback (
+IF NOT EXISTS public.rag_quality_benchmarks (
+IF NOT EXISTS public.recovery_metrics (
+IF NOT EXISTS public.recovery_playbooks (
+IF NOT EXISTS public.recruiter_bonuses (
+IF NOT EXISTS public.reengagement_campaigns (
+IF NOT EXISTS public.reengagement_history (
+IF NOT EXISTS public.referral_activity_feed (
+IF NOT EXISTS public.referral_bonuses (
+IF NOT EXISTS public.referral_challenge_participants (
+IF NOT EXISTS public.referral_challenges (
+IF NOT EXISTS public.referral_config (
+IF NOT EXISTS public.referral_leaderboard_cache (
+IF NOT EXISTS public.referral_payouts (
+IF NOT EXISTS public.referral_share_tracking (
+IF NOT EXISTS public.referral_tiers (
+IF NOT EXISTS public.region_health_checks (
+IF NOT EXISTS public.retrieval_attribution (
+IF NOT EXISTS public.revenue_cohorts (
+IF NOT EXISTS public.revenue_metrics (
+IF NOT EXISTS public.risk_registry (
+IF NOT EXISTS public.role_change_audit (
+IF NOT EXISTS public.role_verification_logs (
+IF NOT EXISTS public.salary_benchmarks (
+IF NOT EXISTS public.saved_freelancers (
+IF NOT EXISTS public.saved_jobs (
+IF NOT EXISTS public.saved_posts (
+IF NOT EXISTS public.scaling_readiness_checklist (
+IF NOT EXISTS public.scaling_triggers (
+IF NOT EXISTS public.secure_enclave_queries (
+IF NOT EXISTS public.security_config (
+IF NOT EXISTS public.security_events (
+IF NOT EXISTS public.security_incidents (
+IF NOT EXISTS public.service_dependencies (
+IF NOT EXISTS public.signed_documents (
+IF NOT EXISTS public.skill_endorsements (
+IF NOT EXISTS public.sla_commitments (
+IF NOT EXISTS public.sla_violations (
+IF NOT EXISTS public.sms_messages (
+IF NOT EXISTS public.stakeholder_memory (
+IF NOT EXISTS public.stories (
+IF NOT EXISTS public.story_comments (
+IF NOT EXISTS public.story_reactions (
+IF NOT EXISTS public.story_saves (
+IF NOT EXISTS public.story_shares (
+IF NOT EXISTS public.story_views (
+IF NOT EXISTS public.strategist_assignments (
+IF NOT EXISTS public.strategist_performance_snapshots (
+IF NOT EXISTS public.stripe_webhook_events (
+IF NOT EXISTS public.subscription_plans (
+IF NOT EXISTS public.subscription_tier_limits (
+IF NOT EXISTS public.subscription_usage (
+IF NOT EXISTS public.subscriptions (
+IF NOT EXISTS public.success_patterns (
+IF NOT EXISTS public.synthetic_test_queries (
+IF NOT EXISTS public.system_alerts (
+IF NOT EXISTS public.system_settings (
+IF NOT EXISTS public.task_activity_log (
+IF NOT EXISTS public.task_attachments (
+IF NOT EXISTS public.task_dependencies (
+IF NOT EXISTS public.task_label_assignments (
+IF NOT EXISTS public.task_labels (
+IF NOT EXISTS public.task_migration_log (
+IF NOT EXISTS public.task_reminders (
+IF NOT EXISTS public.task_system_preferences (
+IF NOT EXISTS public.team_booking_assignments (
+IF NOT EXISTS public.test_partner_table (
+IF NOT EXISTS public.threat_events (
+IF NOT EXISTS public.time_entries (
+IF NOT EXISTS public.tools_and_skills (
+IF NOT EXISTS public.tracking_projects (
+IF NOT EXISTS public.tracking_tasks (
+IF NOT EXISTS public.training_records (
+IF NOT EXISTS public.translation_audit_log (
+IF NOT EXISTS public.trending_topics (
+IF NOT EXISTS public.unified_task_assignees (
+IF NOT EXISTS public.unified_task_blockers (
+IF NOT EXISTS public.unified_tasks (
+IF NOT EXISTS public.user_achievements (
+IF NOT EXISTS public.user_activity (
+IF NOT EXISTS public.user_activity_tracking (
+IF NOT EXISTS public.user_behavior_embeddings (
+IF NOT EXISTS public.user_device_info (
+IF NOT EXISTS public.user_engagement (
+IF NOT EXISTS public.user_engagement_daily (
+IF NOT EXISTS public.user_events (
+IF NOT EXISTS public.user_feature_usage (
+IF NOT EXISTS public.user_follows (
+IF NOT EXISTS public.user_frustration_signals (
+IF NOT EXISTS public.user_journey_tracking (
+IF NOT EXISTS public.user_network (
+IF NOT EXISTS public.user_page_analytics (
+IF NOT EXISTS public.user_performance_metrics (
+IF NOT EXISTS public.user_preferences (
+IF NOT EXISTS public.user_presence (
+IF NOT EXISTS public.user_profiles_extended (
+IF NOT EXISTS public.user_recovery_codes (
+IF NOT EXISTS public.user_referral_stats (
+IF NOT EXISTS public.user_relationships (
+IF NOT EXISTS public.user_resumes (
+IF NOT EXISTS public.user_roles (
+IF NOT EXISTS public.user_search_analytics (
+IF NOT EXISTS public.user_search_preferences (
+IF NOT EXISTS public.user_session_events (
+IF NOT EXISTS public.user_sessions_security (
+IF NOT EXISTS public.user_similarity_matrix (
+IF NOT EXISTS public.user_timer_settings (
+IF NOT EXISTS public.user_trend_subscriptions (
+IF NOT EXISTS public.vat_register (
+IF NOT EXISTS public.verification_attempts (
+IF NOT EXISTS public.voice_connection_stats (
+IF NOT EXISTS public.voice_reconnection_log (
+IF NOT EXISTS public.waitlist (
+IF NOT EXISTS public.waitlist_analytics (
+IF NOT EXISTS public.waitlist_engagement (
+IF NOT EXISTS public.waitlist_referrals (
+IF NOT EXISTS public.webhook_deliveries (
+IF NOT EXISTS public.webhook_endpoints (
+IF NOT EXISTS public.webrtc_signals (
+IF NOT EXISTS public.workspace_api_keys (
+IF NOT EXISTS public.workspace_webhook_logs (
+IF NOT EXISTS public.workspace_webhooks (
+IF NOT EXISTS report_executions (
+IF NOT EXISTS retainer_contracts (
+IF NOT EXISTS retainer_hours_log (
+IF NOT EXISTS role_candidate_feedback (
+IF NOT EXISTS saved_searches (
+IF NOT EXISTS scheduled_reports (
+IF NOT EXISTS security_logs (
+IF NOT EXISTS signal_patterns (
+IF NOT EXISTS skills_demand_metrics (
+IF NOT EXISTS skills_taxonomy (
+IF NOT EXISTS sla_tracking (
+IF NOT EXISTS sourcing_credits (
+IF NOT EXISTS sso_connections (
+IF NOT EXISTS strategist_placements (
+IF NOT EXISTS talent_matches (
+IF NOT EXISTS talent_pool_list_members (
+IF NOT EXISTS talent_pool_lists (
+IF NOT EXISTS template_assignments (
+IF NOT EXISTS translation_feedback (
+IF NOT EXISTS translation_generation_jobs (
+IF NOT EXISTS translation_namespace_registry (
+IF NOT EXISTS translation_sync_queue (
+IF NOT EXISTS translations (
+IF NOT EXISTS unified_tasks (
+IF NOT EXISTS user_badges (
+IF NOT EXISTS user_challenge_progress (
+IF NOT EXISTS user_presence_extended (
+IF NOT EXISTS user_sessions (
+IF NOT EXISTS video_call_participants (
+IF NOT EXISTS video_call_reactions (
+IF NOT EXISTS video_call_recordings (
+IF NOT EXISTS video_call_sessions (
+IF NOT EXISTS video_call_signals (
+IF NOT EXISTS video_call_transcripts (
+IF NOT EXISTS virtual_backgrounds (
+IF NOT EXISTS voice_quality_alerts (
+IF NOT EXISTS web_kpi_metrics (
+IF NOT EXISTS web_performance_metrics (
+IF NOT EXISTS whiteboard_history (
+IF NOT EXISTS whiteboard_states (
+ON FUNCTION public.get_maintenance_mode() TO authenticated;create table "public"."crm_automations" (
+achievement_analytics (
+achievement_events (
+achievement_progress (
+achievement_reactions (
+blind_spot_sessions (
+candidate_assessment_profiles (
+candidate_documents (
+candidate_invitations (
+candidate_notes (
+communication_entity_type ADD VALUE IF NOT EXISTS 'system';-- Drop conflicting index if exists and recreate tables properly
+communication_intelligence_queue (
+communication_relationship_scores (
+communication_workflows (
+company_email_domains (
+company_interactions (
+company_news_articles (
+company_stakeholders (
+cookie_consent_records (
+cross_channel_patterns (
+csm_activities (
+csm_assignments (
+email_learning_queue (
+email_templates (
+idx_moneybird_metrics_period ON public.moneybird_financial_metrics(period_start, period_end);-- Create table for individual Moneybird invoices (for debugging and accurate metrics)
+if not exists "public"."agent_matches" (
+if not exists "public"."entity_relationships" (
+if not exists "public"."interview_sessions" (
+if not exists "public"."translations" (
+if not exists intelligence_embeddings (
+if not exists knowledge_profiles (
+interaction_insights (
+interaction_messages (
+interaction_ml_features (
+interaction_participants (
+interview_feedback (
+interview_stage_templates (
+job_team_assignments (
+kb_article_feedback (
+knowledge_base_articles (
+live_channel_messages (
+live_channel_participants (
+live_channel_recordings (
+live_channels (
+live_server_members (
+live_servers (
+pressure_cooker_actions (
+pressure_cooker_sessions (
+public.academies (
+public.activity_samples (
+public.admin_impersonation_sessions (
+public.ai_outreach_logs (
+public.app_categories (
+public.app_usage_tracking (
+public.applications (
+public.approval_workflows (
+public.assessment_analytics (
+public.assessment_assignments (
+public.assessment_results (
+public.assessment_templates (
+public.automation_logs (
+public.booking_links (
+public.bookings (
+public.calendar_connections (
+public.call_invitations (
+public.cities (
+public.closed_pipelines (
+public.club_objectives (
+public.club_tasks (
+public.clubai_voice_sessions (
+public.companies (
+public.company_achievement_earners (
+public.company_achievements (
+public.company_assets (
+public.contact_roles (
+public.content_calendar (
+public.content_licensing (
+public.conversation_participants (
+public.conversation_stats (
+public.conversations (
+public.course_progress (
+public.courses (
+public.crm_assignment_rules (
+public.crm_campaigns (
+public.crm_email_replies (
+public.crm_import_logs (
+public.crm_prospects (
+public.crm_suppression_list (
+public.crm_touchpoints (
+public.dj_queue (
+public.expert_profiles (
+public.feature_flags (
+public.funnel_analytics (
+public.funnel_config (
+public.hashtags (
+public.invite_codes (
+public.job_pipelines (
+public.learner_progress (
+public.learning_paths (
+public.linkedin_job_imports (
+public.match_scores (
+public.meeting_recordings (
+public.message_attachments (
+public.message_audit_log (
+public.message_edits (
+public.message_mentions (
+public.message_notifications (
+public.message_reactions (
+public.message_templates (
+public.message_translations (
+public.messages (
+public.milestone_celebrations (
+public.milestone_contributions (
+public.module_content (
+public.module_experts (
+public.module_questions (
+public.module_resources (
+public.modules (
+public.moneybird_contact_sync (
+public.moneybird_financial_metrics (
+public.moneybird_invoice_sync (
+public.moneybird_sales_invoices (
+public.moneybird_settings (
+public.moneybird_sync_logs (
+public.notifications (
+public.page_permissions (
+public.page_templates (
+public.page_versions (
+public.page_visits (
+public.partner_requests (
+public.path_enrollments (
+public.pipeline_feedback (
+public.platform_settings (
+public.playlist_tracks (
+public.playlists (
+public.post_analytics (
+public.post_comments (
+public.post_likes (
+public.posts (
+public.productivity_privacy_settings (
+public.profile_share_links (
+public.profiles (
+public.proposal_votes (
+public.prospect_score_history (
+public.question_answers (
+public.rate_limit_analytics (
+public.recruiter_activity_metrics (
+public.referral_earnings (
+public.referral_metadata (
+public.referral_network (
+public.referral_policies (
+public.referral_revenue_shares (
+public.revenue_ladders (
+public.revenue_milestones (
+public.reward_decisions (
+public.reward_proposals (
+public.reward_safety_rules (
+public.sales_conversations (
+public.sales_forecasts (
+public.sales_kpi_metrics (
+public.sales_proposals (
+public.scheduled_messages (
+public.scim_groups (
+public.scim_provisioning_logs (
+public.scim_tokens (
+public.scim_user_group_memberships (
+public.social_campaigns (
+public.social_comments (
+public.social_media_accounts (
+public.stealth_viewer_audit_logs (
+public.talent_strategists (
+public.target_companies (
+public.target_company_comments (
+public.target_company_contacts (
+public.target_company_votes (
+public.task_assignees (
+public.task_blockers (
+public.task_board_invitations (
+public.task_board_members (
+public.task_boards (
+public.task_comments (
+public.task_scheduling_preferences (
+public.tasks (
+public.time_entries (
+public.time_entry_audit_logs (
+public.time_tracking_screenshots (
+public.timesheet_approvals (
+public.timesheet_periods (
+public.tracks (
+public.unified_posts (
+public.user_feedback (
+public.user_roles (
+public.vendor_renewal_reminders (
+public.vendor_subscription_history (
+public.vendor_subscriptions (
+public.webhook_dead_letter_queue (
+public.webhook_delivery_stats (
+public.whatsapp_broadcast_consent (
+public.whatsapp_conversation_events (
+public.whatsapp_template_analytics (
+public.workspace_automations (
+public.workspace_database_columns (
+public.workspace_database_rows (
+public.workspace_database_views (
+public.workspace_databases (
+public.workspace_pages (
+quantum_achievements (
+rss_feeds (
+security_alerts (
+security_metrics_history (
+stakeholder_relationships (
+support_sla_policies (
+support_ticket_messages (
+support_tickets (
+table for forwarded email learning
+table for skills demand metrics
+table for user applications with pipeline tracking
+table for user events if not exists
+unified_communications (
+user_quantum_achievements (
+values_poker_sessions (
+whatsapp_analytics (
+whatsapp_automation_rules (
+whatsapp_broadcast_campaigns (
+whatsapp_broadcast_recipients (
+whatsapp_business_accounts (
+whatsapp_conversations (
+whatsapp_imports (
+whatsapp_messages (
+whatsapp_templates (
+workflow_executions (
+workspace_invitations (
+workspace_members (
+workspaces (

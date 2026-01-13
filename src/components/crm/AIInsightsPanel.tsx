@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Brain, 
-  Sparkles, 
-  AlertTriangle, 
-  CheckCircle2, 
+import {
+  Brain,
+  Sparkles,
+  AlertTriangle,
+  CheckCircle2,
   TrendingUp,
   TrendingDown,
   Lightbulb,
@@ -54,8 +54,9 @@ export function AIInsightsPanel() {
   const generateMutation = useMutation({
     mutationFn: async () => {
       setGenerating(true);
-      const { data, error } = await supabase.functions.invoke('generate-daily-outreach-insights');
-      if (error) throw error;
+      const data = await aiService.generateOutreachInsights();
+
+      if (data.error) throw new Error(data.error);
       return data;
     },
     onSuccess: () => {
@@ -114,8 +115,8 @@ export function AIInsightsPanel() {
               Live
             </Badge>
           </CardTitle>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => generateMutation.mutate()}
             disabled={generating}
@@ -138,7 +139,7 @@ export function AIInsightsPanel() {
               {insights.map((insight, index) => {
                 const InsightIcon = getInsightIcon(insight.insight_type);
                 const recommendations = Array.isArray(insight.recommendations) ? insight.recommendations : [];
-                
+
                 return (
                   <motion.div
                     key={insight.id}
@@ -160,7 +161,7 @@ export function AIInsightsPanel() {
                         <p className="text-sm text-muted-foreground mb-2">
                           {insight.insight_content}
                         </p>
-                        
+
                         {/* Recommendations */}
                         {recommendations.length > 0 && (
                           <div className="space-y-1">
@@ -184,8 +185,8 @@ export function AIInsightsPanel() {
           <div className="text-center py-8">
             <Brain className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
             <p className="text-muted-foreground mb-3">No insights available</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => generateMutation.mutate()}
             >

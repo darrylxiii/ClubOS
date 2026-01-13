@@ -13,7 +13,7 @@ const MySkillsPage = lazy(() => import("@/pages/MySkillsPage"));
 const Achievements = lazy(() => import("@/pages/Achievements"));
 const Referrals = lazy(() => import("@/pages/Referrals"));
 const ReferralProgram = lazy(() => import("@/pages/ReferralProgram"));
-const InviteDashboard = lazy(() => import("@/pages/InviteDashboard"));
+const InviteDashboard = lazy(() => import("@/components/invites/InviteDashboardLayout").then(m => ({ default: m.InviteDashboardLayout })));
 
 export const profilesRoutes = (
   <>

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Sparkles, Loader2, Briefcase, TrendingUp, MessageSquare, Target, Plus, Clock, Trash2, Globe, Brain, Palette } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { aiService } from "@/services/aiService";
 import { useAuth } from "@/contexts/AuthContext";
 import { migrateToast as toast } from "@/lib/notify";
 import ReactMarkdown from "react-markdown";
@@ -52,7 +53,7 @@ const ClubAI = () => {
   const [pendingNavigation, setPendingNavigation] = useState<{ path: string; reason: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   // Conversation management
   const [conversations, setConversations] = useState<Array<{
     id: string;
@@ -62,10 +63,10 @@ const ClubAI = () => {
   }>>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [showConversations, setShowConversations] = useState(false);
-  
+
   // AI suggestions
   const { suggestions: aiSuggestions, unreadCount } = useAISuggestions();
-  
+
   // Model and mode selection
   const [selectedModel, setSelectedModel] = useState<string>("club-ai-0.1");
   const [selectedMode, setSelectedMode] = useState<"normal" | "search" | "think" | "canvas">("normal");
@@ -92,8 +93,8 @@ const ClubAI = () => {
       if (messages.length === 0) return;
 
       try {
-        const { data, error } = await supabase.functions.invoke("generate-placeholders", {
-          body: { messages }
+        const { data, error } = await aiService.generatePlaceholders({
+          messages
         });
 
         if (!error && data?.placeholders) {
@@ -108,7 +109,7 @@ const ClubAI = () => {
     const timer = setTimeout(generatePlaceholders, 2000);
     return () => clearTimeout(timer);
   }, [messages]);
-  
+
   useEffect(() => {
     if (currentConversationId) {
       loadConversation(currentConversationId);
@@ -131,10 +132,10 @@ const ClubAI = () => {
       console.error("Error loading profile:", error);
     }
   };
-  
+
   const loadConversations = async () => {
     if (!user) return;
-    
+
     try {
       const { data, error } = await supabase
         .from("ai_conversations")
@@ -142,18 +143,18 @@ const ClubAI = () => {
         .eq("user_id", user.id)
         .eq("conversation_type", "club_ai")
         .order("updated_at", { ascending: false });
-      
+
       if (error) throw error;
       setConversations((data || []).map((conv: any) => ({
         ...conv,
-        messages: Array.isArray(conv.messages) ? conv.messages : 
-                  typeof conv.messages === 'string' ? JSON.parse(conv.messages) : []
+        messages: Array.isArray(conv.messages) ? conv.messages :
+          typeof conv.messages === 'string' ? JSON.parse(conv.messages) : []
       })));
     } catch (error) {
       console.error("Error loading conversations:", error);
     }
   };
-  
+
   const loadConversation = async (conversationId: string) => {
     try {
       const { data, error } = await supabase
@@ -161,9 +162,9 @@ const ClubAI = () => {
         .select("*")
         .eq("id", conversationId)
         .single();
-      
+
       if (error) throw error;
-      
+
       if (data && Array.isArray(data.messages)) {
         setMessages(data.messages as unknown as Message[]);
       }
@@ -171,10 +172,10 @@ const ClubAI = () => {
       console.error("Error loading conversation:", error);
     }
   };
-  
+
   const createNewConversation = async (): Promise<string | null> => {
     if (!user) return null;
-    
+
     try {
       const { data, error } = await supabase
         .from("ai_conversations")
@@ -186,18 +187,18 @@ const ClubAI = () => {
         })
         .select()
         .single();
-      
+
       if (error) throw error;
-      
+
       setCurrentConversationId(data.id);
       setMessages([]);
       await loadConversations();
-      
+
       toast({
         title: "New conversation started",
         description: "You can now chat with Club AI"
       });
-      
+
       return data.id;
     } catch (error) {
       console.error("Error creating conversation:", error);
@@ -209,23 +210,23 @@ const ClubAI = () => {
       return null;
     }
   };
-  
+
   const deleteConversation = async (conversationId: string) => {
     try {
       const { error } = await supabase
         .from("ai_conversations")
         .delete()
         .eq("id", conversationId);
-      
+
       if (error) throw error;
-      
+
       if (currentConversationId === conversationId) {
         setCurrentConversationId(null);
         setMessages([]);
       }
-      
+
       await loadConversations();
-      
+
       toast({
         title: "Conversation deleted",
         description: "The conversation has been removed"
@@ -239,10 +240,10 @@ const ClubAI = () => {
       });
     }
   };
-  
+
   const saveConversation = async (updatedMessages: Message[]) => {
     if (!user || !currentConversationId) return;
-    
+
     try {
       const { error } = await supabase
         .from("ai_conversations")
@@ -251,7 +252,7 @@ const ClubAI = () => {
           updated_at: new Date().toISOString()
         })
         .eq("id", currentConversationId);
-      
+
       if (error) throw error;
     } catch (error) {
       console.error("Error saving conversation:", error);
@@ -291,7 +292,7 @@ const ClubAI = () => {
 
   const sendMessage = async (messageText: string, uploadedFiles?: File[], selectedModel?: string) => {
     if (!messageText.trim() && (!uploadedFiles || uploadedFiles.length === 0)) return;
-    
+
     // Create conversation if none exists and wait for it to be created
     let conversationId = currentConversationId;
     if (!conversationId) {
@@ -315,11 +316,11 @@ const ClubAI = () => {
     // Process uploaded files
     let imageDataUrls: string[] = [];
     let documentData: Array<{ name: string; type: string; content: string }> = [];
-    
+
     if (uploadedFiles && uploadedFiles.length > 0) {
       const imageFiles = uploadedFiles.filter(f => f.type.startsWith('image/'));
       const docFiles = uploadedFiles.filter(f => !f.type.startsWith('image/'));
-      
+
       // Convert images to base64
       if (imageFiles.length > 0) {
         const imagePromises = imageFiles.map(file => {
@@ -330,7 +331,7 @@ const ClubAI = () => {
             reader.readAsDataURL(file);
           });
         });
-        
+
         try {
           imageDataUrls = await Promise.all(imagePromises);
         } catch (error) {
@@ -343,7 +344,7 @@ const ClubAI = () => {
           return;
         }
       }
-      
+
       // Process documents
       if (docFiles.length > 0) {
         const docPromises = docFiles.map(async (file) => {
@@ -361,7 +362,7 @@ const ClubAI = () => {
             reader.readAsDataURL(file);
           });
         });
-        
+
         try {
           documentData = await Promise.all(docPromises);
         } catch (error) {
@@ -377,7 +378,7 @@ const ClubAI = () => {
     }
 
     const userMessage: Message = { role: "user", content: messageText, mode };
-    
+
     // Initialize variables for streaming
     let assistantContent = "";
     let needsConfirmation = false;
@@ -386,7 +387,7 @@ const ClubAI = () => {
 
     const updateAssistant = (chunk: string, toolCalls?: any) => {
       assistantContent += chunk;
-      
+
       // Handle tool calls
       if (toolCalls && Array.isArray(toolCalls)) {
         toolCalls.forEach((tc: any) => {
@@ -404,11 +405,11 @@ const ClubAI = () => {
           }
         });
       }
-      
+
       // Check if the message contains confirmation markers
-      if (assistantContent.toLowerCase().includes("<button>confirm</button>") || 
-          assistantContent.toLowerCase().includes("confirm button") ||
-          assistantContent.toLowerCase().includes("click to confirm")) {
+      if (assistantContent.toLowerCase().includes("<button>confirm</button>") ||
+        assistantContent.toLowerCase().includes("confirm button") ||
+        assistantContent.toLowerCase().includes("click to confirm")) {
         needsConfirmation = true;
         // Extract confirmation message (text before the button marker)
         const match = assistantContent.match(/(.*?)(?:<button>confirm<\/button>|confirm button|click to confirm)/is);
@@ -416,32 +417,32 @@ const ClubAI = () => {
           confirmationMessage = match[1].trim();
         }
       }
-      
+
       // Clean up button tags from the content
       const cleanContent = assistantContent
         .replace(/<button>confirm<\/button>/gi, "")
         .replace(/\*\*Confirm\*\*/gi, "")
         .trim();
-      
+
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         const action = pendingToolCalls.length > 0 ? pendingToolCalls[0] : undefined;
-        
+
         if (last?.role === "assistant") {
           return prev.map((m, i) =>
-            i === prev.length - 1 
-              ? { 
-                  ...m, 
-                  content: cleanContent,
-                  needsConfirmation,
-                  confirmationMessage: confirmationMessage || cleanContent,
-                  action
-                } 
+            i === prev.length - 1
+              ? {
+                ...m,
+                content: cleanContent,
+                needsConfirmation,
+                confirmationMessage: confirmationMessage || cleanContent,
+                action
+              }
               : m
           );
         }
-        return [...prev, { 
-          role: "assistant", 
+        return [...prev, {
+          role: "assistant",
           content: cleanContent,
           needsConfirmation,
           confirmationMessage: confirmationMessage || cleanContent,
@@ -449,14 +450,14 @@ const ClubAI = () => {
         }];
       });
     };
-    
+
     // Add user message immediately to show in UI and start streaming
     setMessages(prev => {
       const updated = [...prev, userMessage];
-      
+
       // Start streaming with the updated messages
       setIsLoading(true);
-      
+
       streamChat({
         messages: updated,
         userId: user?.id,
@@ -472,7 +473,7 @@ const ClubAI = () => {
           setMessages((prev) => {
             saveConversation(prev).catch(console.error);
             loadConversations().catch(console.error);
-            
+
             // Check if last message has navigation action
             const lastMsg = prev[prev.length - 1];
             if (lastMsg?.action?.type === "navigate") {
@@ -480,7 +481,7 @@ const ClubAI = () => {
                 navigate(lastMsg.action!.path);
               }, 1500);
             }
-            
+
             return prev;
           });
         },
@@ -493,7 +494,7 @@ const ClubAI = () => {
         });
         setIsLoading(false);
       });
-      
+
       return updated;
     });
   };
@@ -579,7 +580,7 @@ const ClubAI = () => {
           const parsed = JSON.parse(jsonStr);
           const content = parsed.choices?.[0]?.delta?.content;
           const toolCalls = parsed.choices?.[0]?.delta?.tool_calls;
-          
+
           if (content) onDelta(content);
           if (toolCalls) onDelta("", toolCalls);
         } catch {
@@ -626,7 +627,7 @@ const ClubAI = () => {
               Your personal AI career strategist, available 24/7
             </p>
           </div>
-          
+
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -636,7 +637,7 @@ const ClubAI = () => {
               <Plus className="w-4 h-4 mr-2" />
               New Chat
             </Button>
-            
+
             <Sheet open={showConversations} onOpenChange={setShowConversations}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -660,13 +661,12 @@ const ClubAI = () => {
                           ? conv.messages[0]?.content?.substring(0, 60) + "..."
                           : "New conversation";
                         const isActive = conv.id === currentConversationId;
-                        
+
                         return (
                           <Card
                             key={conv.id}
-                            className={`p-3 cursor-pointer transition-colors ${
-                              isActive ? "border-primary bg-primary/5" : "hover:bg-muted"
-                            }`}
+                            className={`p-3 cursor-pointer transition-colors ${isActive ? "border-primary bg-primary/5" : "hover:bg-muted"
+                              }`}
                             onClick={() => {
                               setCurrentConversationId(conv.id);
                               setShowConversations(false);
@@ -720,7 +720,7 @@ const ClubAI = () => {
                     salary negotiation, and more. Choose a suggested prompt or ask
                     me anything!
                   </p>
-                  
+
                   {/* Suggested Prompts */}
                   <div className="w-full max-w-2xl">
                     <h3 className="font-bold mb-4 text-left flex items-center gap-2">
@@ -751,9 +751,8 @@ const ClubAI = () => {
                   {messages.map((message, index) => (
                     <div
                       key={index}
-                      className={`flex gap-4 ${
-                        message.role === "user" ? "justify-end" : "justify-start"
-                      }`}
+                      className={`flex gap-4 ${message.role === "user" ? "justify-end" : "justify-start"
+                        }`}
                     >
                       {message.role === "assistant" && (
                         <Avatar className="h-10 w-10 border-2 border-primary flex-shrink-0">
@@ -763,11 +762,10 @@ const ClubAI = () => {
                         </Avatar>
                       )}
                       <div
-                        className={`rounded-lg p-4 max-w-[80%] ${
-                          message.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
-                        }`}
+                        className={`rounded-lg p-4 max-w-[80%] ${message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                          }`}
                       >
                         {message.mode && message.mode !== "normal" && message.role === "user" && (
                           <div className="mb-2 flex gap-1">
@@ -788,7 +786,7 @@ const ClubAI = () => {
                             )}
                           </div>
                         )}
-                         {message.role === "assistant" ? (
+                        {message.role === "assistant" ? (
                           <div className="space-y-3">
                             <div className="prose prose-sm max-w-none dark:prose-invert text-sm">
                               <ReactMarkdown
@@ -872,7 +870,7 @@ const ClubAI = () => {
                     className="w-full max-w-xs"
                   />
                 </div>
-                
+
                 <PromptInputBox
                   placeholders={dynamicPlaceholders}
                   showSearch={selectedMode === "search"}
@@ -886,12 +884,12 @@ const ClubAI = () => {
                     if (messageText) {
                       // Remove any existing prefix to prevent double-prefixing
                       messageText = messageText.replace(/^\[(Search|Think|Canvas): /, '');
-                      
+
                       // Add mode prefix if not normal
                       if (selectedMode === "search") messageText = `[Search: ${messageText}]`;
                       else if (selectedMode === "think") messageText = `[Think: ${messageText}]`;
                       else if (selectedMode === "canvas") messageText = `[Canvas: ${messageText}]`;
-                      
+
                       // Map UI model names to actual API model names
                       const modelMap: Record<string, string> = {
                         "club-ai-0.1": "google/gemini-2.5-flash",
@@ -899,7 +897,7 @@ const ClubAI = () => {
                         "google/gemini-3": "google/gemini-2.5-pro",
                         "openai/gpt-5.1-pro": "openai/gpt-5"
                       };
-                      
+
                       const actualModel = modelMap[selectedModel] || selectedModel;
                       sendMessage(messageText, undefined, actualModel);
                     }
@@ -929,26 +927,26 @@ const ClubAI = () => {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction 
+              <AlertDialogAction
                 onClick={async () => {
                   setShowConfirmDialog(false);
-                  
+
                   // Send confirmation to AI
                   const confirmMessage: Message = {
                     role: "user",
                     content: "Yes, confirmed. Please proceed."
                   };
-                  
+
                   setMessages((prevMessages) => {
                     const updatedMessages = [...prevMessages, confirmMessage];
                     setIsLoading(true);
-                    
+
                     let assistantContent = "";
                     const pendingToolCalls: any[] = [];
-                    
+
                     const updateAssistant = (chunk: string, toolCalls?: any) => {
                       assistantContent += chunk;
-                      
+
                       // Handle tool calls
                       if (toolCalls && Array.isArray(toolCalls)) {
                         toolCalls.forEach((tc: any) => {
@@ -966,16 +964,16 @@ const ClubAI = () => {
                           }
                         });
                       }
-                      
+
                       const cleanContent = assistantContent
                         .replace(/<button>confirm<\/button>/gi, "")
                         .replace(/\*\*Confirm\*\*/gi, "")
                         .trim();
-                      
+
                       setMessages((prev) => {
                         const last = prev[prev.length - 1];
                         const action = pendingToolCalls.length > 0 ? pendingToolCalls[0] : undefined;
-                        
+
                         if (last?.role === "assistant") {
                           return prev.map((m, i) =>
                             i === prev.length - 1 ? { ...m, content: cleanContent, action } : m
@@ -984,14 +982,14 @@ const ClubAI = () => {
                         return [...prev, { role: "assistant", content: cleanContent, action }];
                       });
                     };
-                    
+
                     streamChat({
                       messages: updatedMessages,
                       userId: user?.id,
                       onDelta: updateAssistant,
                       onDone: () => {
                         setIsLoading(false);
-                        
+
                         // Check if last message has navigation action
                         setMessages((prev) => {
                           const lastMsg = prev[prev.length - 1];
@@ -1012,7 +1010,7 @@ const ClubAI = () => {
                       });
                       setIsLoading(false);
                     });
-                    
+
                     return updatedMessages;
                   });
                 }}

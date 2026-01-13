@@ -8,11 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { motion } from 'framer-motion';
-import { 
-  Search, 
-  Plus, 
-  RefreshCw, 
-  Mail, 
+import {
+  Search,
+  Plus,
+  RefreshCw,
+  Mail,
   Users,
   TrendingUp,
   Eye,
@@ -24,13 +24,15 @@ import {
   MoreHorizontal,
   Upload,
   BarChart3,
-  Calendar
+  Calendar,
+  Sparkles
 } from 'lucide-react';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
 import type { CRMCampaign } from '@/types/crm-enterprise';
 import { formatDistanceToNow, format } from 'date-fns';
 import { CSVImportDialog } from '@/components/crm/CSVImportDialog';
 import { CreateCampaignDialog } from '@/components/crm/CreateCampaignDialog';
+import { CampaignAutopilotDialog } from '@/components/crm/CampaignAutopilotDialog';
 import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 import {
   DropdownMenu,
@@ -45,6 +47,7 @@ export default function CampaignDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [autopilotDialogOpen, setAutopilotDialogOpen] = useState(false);
 
   const { campaigns, loading, refetch, updateCampaign } = useCRMCampaigns({});
 
@@ -107,6 +110,13 @@ export default function CampaignDashboard() {
                 <Upload className="w-4 h-4 mr-2" />
                 Import
               </Button>
+              <Button
+                onClick={() => setAutopilotDialogOpen(true)}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.3)] animate-pulse"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Auto-Pilot
+              </Button>
               <Button onClick={() => setCreateDialogOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Create Campaign
@@ -167,8 +177,8 @@ export default function CampaignDashboard() {
                 ) : filteredCampaigns.length > 0 ? (
                   <div className="space-y-4">
                     {filteredCampaigns.map((campaign) => (
-                      <CampaignCard 
-                        key={campaign.id} 
+                      <CampaignCard
+                        key={campaign.id}
                         campaign={campaign}
                         onStatusChange={handleStatusChange}
                       />
@@ -203,6 +213,12 @@ export default function CampaignDashboard() {
           onOpenChange={setCreateDialogOpen}
           onSuccess={refetch}
         />
+
+        <CampaignAutopilotDialog
+          open={autopilotDialogOpen}
+          onOpenChange={setAutopilotDialogOpen}
+          onSuccess={refetch}
+        />
       </RoleGate>
     </AppLayout>
   );
@@ -214,11 +230,11 @@ interface CampaignCardProps {
 }
 
 function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
-  const replyRate = campaign.total_sent > 0 
-    ? ((campaign.total_replies / campaign.total_sent) * 100).toFixed(1) 
+  const replyRate = campaign.total_sent > 0
+    ? ((campaign.total_replies / campaign.total_sent) * 100).toFixed(1)
     : '0';
-  const openRate = campaign.total_sent > 0 
-    ? ((campaign.total_opens / campaign.total_sent) * 100).toFixed(1) 
+  const openRate = campaign.total_sent > 0
+    ? ((campaign.total_opens / campaign.total_sent) * 100).toFixed(1)
     : '0';
 
   const statusColors: Record<string, string> = {
@@ -262,7 +278,7 @@ function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
             </span>
             <span className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              {campaign.start_date 
+              {campaign.start_date
                 ? format(new Date(campaign.start_date), 'MMM d, yyyy')
                 : 'Not started'}
             </span>
@@ -321,7 +337,7 @@ function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
               View Analytics
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => onStatusChange(campaign, 'archived')}
               className="text-muted-foreground"
             >
@@ -340,11 +356,11 @@ function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
             {campaign.total_sent} / {campaign.total_prospects} sent
           </span>
         </div>
-        <Progress 
-          value={campaign.total_prospects > 0 
-            ? (campaign.total_sent / campaign.total_prospects) * 100 
+        <Progress
+          value={campaign.total_prospects > 0
+            ? (campaign.total_sent / campaign.total_prospects) * 100
             : 0
-          } 
+          }
           className="h-1.5"
         />
       </div>

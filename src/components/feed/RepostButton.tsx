@@ -105,17 +105,20 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
       // Generate combined AI summary for repost with commentary
       if (comment.trim() && post?.content) {
         const combinedContent = `Original post: ${post.content}\n\nRepost commentary: ${comment}`;
-        supabase.functions.invoke('generate-ai-summary', {
-          body: { 
-            postId: newPost.id,
+        try {
+          // Use aiService.generatePostSummary instead of direct invocation
+          await aiService.generatePostSummary({
+            postId: newPost.id, // Use newPost.id for the reposted post
             content: combinedContent,
             type: 'repost_with_commentary'
-          }
-        }).catch(err => {
+          });
+          // No success toast here, as the main repost success is below.
+          // AI summary generation is a background task.
+        } catch (err) {
           console.error('Failed to generate AI summary:', err);
           // Non-critical: AI summary generation failure shouldn't block repost
           toast.error('Repost successful, but AI summary generation failed');
-        });
+        }
       }
 
       toast.success("Reposted with your thoughts");
@@ -140,9 +143,9 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
       }
     }}>
       <DialogTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className="gap-2"
           disabled={post?.repost_of !== null}
         >
@@ -206,8 +209,8 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
                 />
               </div>
               <div className="flex gap-2 justify-end">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setShowCommentBox(false);
                     setComment("");
@@ -216,8 +219,8 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
                 >
                   Back
                 </Button>
-                <Button 
-                  onClick={handleRepostWithComment} 
+                <Button
+                  onClick={handleRepostWithComment}
                   disabled={loading || !comment.trim()}
                 >
                   {loading ? (

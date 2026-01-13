@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { aiService } from '@/services/aiService';
 import { toast } from 'sonner';
 import { Languages, Download, Loader2, CheckCircle, AlertCircle, Sparkles, TrendingUp, BarChart3, RefreshCw, Trash2, ArrowRight, Settings2, Globe } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -266,8 +267,8 @@ export default function TranslationManager() {
     addLog('info', `Starting translation for "${namespace}"...`, undefined, 'generate');
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-all-translations', {
-        body: { namespace }
+      const { data, error } = await aiService.generateAllTranslations({
+        namespace
       });
 
       if (error) {
@@ -335,8 +336,8 @@ export default function TranslationManager() {
     addLog('info', `Starting full generation (${namespaceCount} namespaces × ${TARGET_LANGUAGES.length} languages)...`, undefined, 'generate');
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-all-translations', {
-        body: { generateAll: true }
+      const { data, error } = await aiService.generateAllTranslations({
+        generateAll: true
       });
 
       if (error) {
@@ -416,8 +417,8 @@ export default function TranslationManager() {
         // Now trigger generation for missing keys
         addLog('info', 'Triggering translation for missing keys...', undefined, 'sync');
 
-        const { error: genError } = await supabase.functions.invoke('generate-all-translations', {
-          body: { generateAll: true }
+        const { error: genError } = await aiService.generateAllTranslations({
+          generateAll: true
         });
 
         if (genError) {
@@ -654,7 +655,7 @@ export default function TranslationManager() {
 
             <TabsContent value="debug" className="space-y-4">
               <TranslationDebugPanel logs={logs} onClear={() => setLogs([])} />
-              
+
               <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
                 <CollapsibleTrigger asChild>
                   <Button variant="outline" className="w-full">

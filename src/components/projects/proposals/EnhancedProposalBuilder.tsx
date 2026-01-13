@@ -10,9 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Coins, Zap, Sparkles, Send, Loader2, AlertCircle, 
-  Clock, DollarSign, Video, FileText, CheckCircle 
+import {
+  Coins, Zap, Sparkles, Send, Loader2, AlertCircle,
+  Clock, DollarSign, Video, FileText, CheckCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,7 +44,7 @@ export function EnhancedProposalBuilder({
   let baseConnectsCost = 2;
   if (avgBudget >= 5000) baseConnectsCost = 6;
   else if (avgBudget >= 500) baseConnectsCost = 4;
-  
+
   const connectsCost = isBoosted ? Math.ceil(baseConnectsCost * 1.5) : baseConnectsCost;
 
   // Get freelancer profile with connects balance
@@ -57,7 +57,7 @@ export function EnhancedProposalBuilder({
         .select("id, connects_balance, professional_summary, categories, hourly_rate_min")
         .eq("id", user.id)
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -71,7 +71,7 @@ export function EnhancedProposalBuilder({
     mutationFn: async () => {
       // First deduct connects
       const { data: deductResult, error: deductError } = await supabase.functions.invoke("deduct-connects", {
-        body: { 
+        body: {
           projectId,
           proposalType: isBoosted ? "boosted" : "standard"
         },
@@ -114,19 +114,15 @@ export function EnhancedProposalBuilder({
   const generateAICoverLetter = async () => {
     setIsGeneratingAI(true);
     try {
-      const { data, error } = await supabase.functions.invoke("generate-project-proposal", {
-        body: {
-          projectTitle,
-          projectDescription: "",
-          freelancerSkills: profile?.categories || [],
-          freelancerBio: profile?.professional_summary || "",
-        },
+      const response = await aiService.generateProjectProposal({
+        projectId,
+        freelancerId: profile?.id
       });
 
-      if (error) throw error;
-      
-      if (data?.coverLetter) {
-        setCoverLetter(data.coverLetter);
+      if (!response.success) throw new Error(response.error || "Failed to generate");
+
+      if (response.proposal?.coverLetter) {
+        setCoverLetter(response.proposal.coverLetter);
         toast.success("AI cover letter generated!");
       }
     } catch (error) {
@@ -175,7 +171,7 @@ export function EnhancedProposalBuilder({
               </p>
             </div>
           </div>
-          
+
           {!hasEnoughConnects && (
             <div className="mt-3 flex items-center gap-2 text-destructive text-sm">
               <AlertCircle className="h-4 w-4" />
@@ -197,8 +193,8 @@ export function EnhancedProposalBuilder({
               </p>
             </div>
           </div>
-          <Switch 
-            checked={isBoosted} 
+          <Switch
+            checked={isBoosted}
             onCheckedChange={setIsBoosted}
           />
         </div>

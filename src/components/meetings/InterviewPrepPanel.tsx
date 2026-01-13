@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { aiService } from "@/services/aiService";
 import { FileText, Target, AlertCircle, MessageCircle, Sparkles, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -75,12 +76,13 @@ export function InterviewPrepPanel({
 
     setGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-interview-prep', {
-        body: { meetingId, candidateId, roleTitle, companyName }
+      const data = await aiService.generateInterviewPrep({
+        meetingId,
+        candidateId,
+        roleTitle,
+        companyName: companyName || 'Company'
       });
 
-      if (error) throw error;
-      
       setBrief(data.brief as any);
       toast.success("Interview prep brief generated!");
     } catch (error) {

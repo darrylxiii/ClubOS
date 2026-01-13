@@ -44,23 +44,21 @@ export function GenerateDossierButton({
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-meeting-dossier', {
-        body: {
-          recordingId,
-          meetingId,
-          candidateId,
-          options: {
-            expiryHours,
-            includeScorecard,
-            includeTranscript
-          }
+      const { dossier, success } = await aiService.generateMeetingDossier({
+        recordingId,
+        meetingId,
+        candidateId,
+        options: {
+          expiryHours,
+          includeScorecard,
+          includeTranscript
         }
       });
 
-      if (error) throw error;
+      if (!success) throw new Error('Failed to generate');
 
-      if (data?.dossier) {
-        setDossier(data.dossier);
+      if (dossier) {
+        setDossier(dossier);
         toast.success('Dossier generated successfully');
       }
     } catch (error) {
@@ -148,8 +146,8 @@ export function GenerateDossierButton({
               />
             </div>
 
-            <Button 
-              onClick={handleGenerate} 
+            <Button
+              onClick={handleGenerate}
               disabled={generating}
               className="w-full"
             >
@@ -197,8 +195,8 @@ export function GenerateDossierButton({
             </div>
 
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-1"
                 onClick={() => {
                   setDossier(null);
@@ -206,7 +204,7 @@ export function GenerateDossierButton({
               >
                 Generate Another
               </Button>
-              <Button 
+              <Button
                 className="flex-1"
                 onClick={() => setOpen(false)}
               >

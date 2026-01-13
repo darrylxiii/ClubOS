@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { communicationsService } from '@/services/communicationsService';
 
 export interface SMSMessage {
   id: string;
@@ -76,15 +77,16 @@ export function useSMS(options: UseSMSOptions = {}) {
       prospectId?: string;
       companyId?: string;
     }) => {
-      const { data, error } = await supabase.functions.invoke('send-sms', {
-        body: {
-          to,
-          message,
-          candidate_id: candidateId,
-          prospect_id: prospectId,
-          company_id: companyId,
-        },
+      const response = await communicationsService.sendSms({
+        to,
+        message,
+        candidate_id: candidateId,
+        prospect_id: prospectId,
+        company_id: companyId,
       });
+
+      if (!response.success && !response.sms_id) throw new Error(response.error || 'Failed to send SMS');
+      return response;
 
       if (error) throw error;
       return data;

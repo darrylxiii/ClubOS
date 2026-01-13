@@ -8,7 +8,7 @@ import { useFinancialStats, usePlacementFees, usePartnerInvoices, useReferralPay
 import { PlacementFeesTable } from "@/components/financial/PlacementFeesTable";
 import { InvoicesTable } from "@/components/financial/InvoicesTable";
 import { PayoutApprovalQueue } from "@/components/financial/PayoutApprovalQueue";
-import { FinancialOverviewChart } from "@/components/financial/FinancialOverviewChart";
+import { RevenueOverviewChart } from "@/components/financial/RevenueOverviewChart";
 import { RevenueSummaryCards } from "@/components/financial/RevenueSummaryCards";
 import { TopClientsTable } from "@/components/financial/TopClientsTable";
 import { PaymentAgingChart } from "@/components/financial/PaymentAgingChart";
@@ -82,7 +82,7 @@ export default function FinancialDashboard() {
               <CardDescription>Monthly invoiced vs collected revenue</CardDescription>
             </CardHeader>
             <CardContent>
-              <FinancialOverviewChart year={selectedYear} />
+              <RevenueOverviewChart year={selectedYear} />
             </CardContent>
           </Card>
 

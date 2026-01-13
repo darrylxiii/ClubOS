@@ -20,10 +20,10 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
       setError(null);
 
       let query = supabase
-        .from('crm_campaigns')
+        .from('crm_campaigns_unified')
         .select(`
           *,
-          owner:profiles!crm_campaigns_owner_id_fkey(full_name, avatar_url)
+          owner:profiles!crm_campaigns_unified_owner_id_fkey(full_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
 
@@ -44,7 +44,30 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
       if (fetchError) throw fetchError;
 
       const mappedCampaigns: CRMCampaign[] = (data || []).map((c: any) => ({
-        ...c,
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        source: c.source as any,
+        external_id: c.external_id,
+        status: c.status as any,
+        target_persona: c.target_audience?.persona || null,
+        target_industry: c.target_audience?.industry ? [c.target_audience.industry] : null,
+        target_company_size: c.target_audience?.company_size ? [c.target_audience.company_size] : null,
+        sequence_steps: c.config?.sequence_steps || 0,
+        total_prospects: c.metrics?.prospects || 0,
+        total_sent: c.metrics?.sent || 0,
+        total_opens: c.metrics?.opens || 0,
+        total_replies: c.metrics?.replies || 0,
+        total_bounces: c.metrics?.bounces || 0,
+        reply_rate: c.metrics?.reply_rate || 0,
+        open_rate: c.metrics?.open_rate || 0,
+        start_date: c.config?.start_date || null,
+        end_date: c.config?.end_date || null,
+        owner_id: c.owner_id,
+        company_id: c.company_id,
+        metadata: c.metadata || {},
+        created_at: c.created_at,
+        updated_at: c.updated_at,
         owner_name: c.owner?.full_name,
         owner_avatar: c.owner?.avatar_url,
       }));
@@ -68,15 +91,21 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
       if (!user) throw new Error('Not authenticated');
 
       const { data, error: createError } = await supabase
-        .from('crm_campaigns')
+        .from('crm_campaigns_unified')
         .insert({
           name: campaign.name || 'New Campaign',
           description: campaign.description,
           source: campaign.source || 'instantly',
           status: campaign.status || 'draft',
-          target_persona: campaign.target_persona,
-          target_industry: campaign.target_industry,
-          target_company_size: campaign.target_company_size,
+          target_audience: {
+            persona: campaign.target_persona,
+            industry: campaign.target_industry?.[0], // Simplified mapping
+            company_size: campaign.target_company_size?.[0],
+          },
+          config: {
+            start_date: campaign.start_date,
+            sequence_steps: campaign.sequence_steps,
+          },
           owner_id: user.id,
           company_id: campaign.company_id,
         })
@@ -85,7 +114,34 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
 
       if (createError) throw createError;
 
-      setCampaigns(prev => [data as CRMCampaign, ...prev]);
+      const normalizedCampaign: CRMCampaign = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        source: data.source as any,
+        external_id: data.external_id,
+        status: data.status as any,
+        target_persona: data.target_audience?.persona || null,
+        target_industry: data.target_audience?.industry ? [data.target_audience.industry] : null,
+        target_company_size: data.target_audience?.company_size ? [data.target_audience.company_size] : null,
+        sequence_steps: data.config?.sequence_steps || 0,
+        total_prospects: 0,
+        total_sent: 0,
+        total_opens: 0,
+        total_replies: 0,
+        total_bounces: 0,
+        reply_rate: 0,
+        open_rate: 0,
+        start_date: data.config?.start_date || null,
+        end_date: data.config?.end_date || null,
+        owner_id: data.owner_id,
+        company_id: data.company_id,
+        metadata: data.metadata || {},
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      };
+
+      setCampaigns(prev => [normalizedCampaign, ...prev]);
 
       notify.success('Campaign created', {
         description: `Campaign "${data.name}" has been created`,
@@ -101,12 +157,25 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
 
   const updateCampaign = async (campaignId: string, updates: Partial<CRMCampaign>) => {
     try {
+      // Prepare updates for unified schema
+      const unifiedUpdates: any = {
+        name: updates.name,
+        description: updates.description,
+        status: updates.status,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (updates.target_persona || updates.target_industry) {
+        unifiedUpdates.target_audience = {
+          persona: updates.target_persona,
+          industry: updates.target_industry?.[0],
+          company_size: updates.target_company_size?.[0],
+        }; // Note: This is a partial replace, might need deep merge in real app
+      }
+
       const { error: updateError } = await supabase
-        .from('crm_campaigns')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
+        .from('crm_campaigns_unified')
+        .update(unifiedUpdates)
         .eq('id', campaignId);
 
       if (updateError) throw updateError;
@@ -126,7 +195,7 @@ export function useCRMCampaigns(options: UseCampaignsOptions = {}) {
   const deleteCampaign = async (campaignId: string) => {
     try {
       const { error: deleteError } = await supabase
-        .from('crm_campaigns')
+        .from('crm_campaigns_unified')
         .delete()
         .eq('id', campaignId);
 

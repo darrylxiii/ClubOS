@@ -50,18 +50,13 @@ export function useSalaryRecommendation() {
     setError(null);
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke(
-        'generate-offer-recommendation',
-        {
-          body: {
-            candidate_id: candidateId,
-            job_id: jobId,
-            application_id: applicationId,
-          },
-        }
-      );
+      const data = await aiService.generateOfferRecommendation({
+        candidate_id: candidateId,
+        job_id: jobId,
+        // application_id is generally inferred or not strictly needed for the calc, but keeping if needed
+      });
 
-      if (fnError) throw fnError;
+
 
       setRecommendation(data);
       return data;

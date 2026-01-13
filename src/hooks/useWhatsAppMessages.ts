@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
+import { communicationsService } from '@/services/communicationsService';
 
 export interface WhatsAppMessage {
   id: string;
@@ -90,17 +91,15 @@ export function useWhatsAppMessages(conversationId: string | null) {
 
     try {
       setSending(true);
-      const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
-        body: {
-          conversationId,
-          messageType,
-          content,
-          templateName,
-          templateParams,
-        },
+      const data = await communicationsService.sendWhatsapp({
+        conversationId,
+        messageType,
+        content,
+        templateName,
+        templateParams,
       });
 
-      if (error) throw error;
+      if (!data.success) throw new Error(data.error || 'Failed to send message');
 
       // We rely on the realtime subscription to add the message to the list
       // But we can also optimistic add if needed, skipping for now to rely on single source of truth (UseEffect below)
