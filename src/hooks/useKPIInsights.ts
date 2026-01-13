@@ -1,6 +1,5 @@
-
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { aiService } from '@/services/aiService';
 import { UnifiedKPI, DomainHealth } from './useUnifiedKPIs';
 
 export interface KPIInsights {
@@ -14,20 +13,18 @@ export interface KPIInsights {
 
 export function useKPIInsights(kpis: UnifiedKPI[], domainHealth: DomainHealth[]) {
     return useQuery({
-        queryKey: ['kpi-insights', kpis.length], // Simple dependency tracking
+        queryKey: ['kpi-insights', kpis.length],
         queryFn: async () => {
-            // Only fetch if we have data
             if (kpis.length === 0) return null;
 
             const data = await aiService.generateKPIInsights({
                 kpis,
-                domainHealth: 85 // Mock or derived health score
+                domainHealth: 85
             });
-            if (error) throw error;
             return data as KPIInsights;
         },
         enabled: kpis.length > 0,
-        staleTime: 1000 * 60 * 60, // Cache for 1 hour to save costs
+        staleTime: 1000 * 60 * 60,
         retry: false
     });
 }

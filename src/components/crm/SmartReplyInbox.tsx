@@ -201,7 +201,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
   const generateSmartRepliesMutation = useMutation({
     mutationFn: async (reply: CRMEmailReply) => {
       const data = await aiService.generatePersonalizedFollowUp({
-        reply_content: reply.content,
+        reply_content: reply.body_text || '',
         reply_id: reply.id,
         prospect_id: reply.prospect_id,
         classification: reply.classification,

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
+import { aiService } from '@/services/aiService';
 
 interface EmailBridgeResult {
   candidateEmail: string | null;
@@ -49,14 +50,20 @@ export function useWhatsAppEmailBridge() {
         .join('\n');
 
       // Generate AI draft using existing edge function
-      const aiDraft = await aiService.generatePersonalizedFollowUp({
-        candidateId,
-        context: {
-          source: 'whatsapp_bridge',
-          conversationSummary: conversationContext,
-          purpose: 'Continue WhatsApp conversation via email (24h window expired)',
-        },
-      });
+      let aiDraft: any = null;
+      let aiError: Error | null = null;
+      try {
+        aiDraft = await aiService.generatePersonalizedFollowUp({
+          candidateId,
+          context: {
+            source: 'whatsapp_bridge',
+            conversationSummary: conversationContext,
+            purpose: 'Continue WhatsApp conversation via email (24h window expired)',
+          },
+        });
+      } catch (err) {
+        aiError = err instanceof Error ? err : new Error('AI generation failed');
+      }
 
       // Fallback if AI fails
       const draftSubject = aiDraft?.subject || `Following up on our WhatsApp conversation`;

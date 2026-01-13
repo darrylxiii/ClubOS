@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useState } from 'react';
 import { aiService } from '@/services/aiService';
 
 export type SemanticEntityType = 'candidate' | 'job' | 'knowledge' | 'interaction';

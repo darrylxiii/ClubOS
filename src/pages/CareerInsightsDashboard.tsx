@@ -10,6 +10,7 @@ import { TrendingUp, Target, Lightbulb, ArrowRight, RefreshCw, Brain } from 'luc
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
+import { aiService } from '@/services/aiService';
 
 interface CareerInsights {
   skillGapAnalysis: Array<{ skill: string; current: number; required: number }>;

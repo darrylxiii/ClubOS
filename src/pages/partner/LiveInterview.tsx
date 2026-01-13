@@ -67,10 +67,7 @@ const LiveInterview = () => {
                 // Call our Sentinel Brain
                 const data = await aiService.analyzeInterviewStream({
                     transcript_chunk: chunk,
-                    // session_id: '...' // We could create a session on mount
                 });
-
-                if (error) throw error;
 
                 if (data && data.status !== 'safe') {
                     setAnalysisLog(prev => [{

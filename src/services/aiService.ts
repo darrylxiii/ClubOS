@@ -47,6 +47,18 @@ interface BatchEmbeddingParams {
     offset?: number;
 }
 
+interface TranscriptParams {
+    meetingId: string;
+    segments?: any[];
+}
+
+interface AnalyzeRecordingParams {
+    recordingId: string;
+    meetingId?: string;
+    options?: any;
+    reanalyze?: boolean;
+}
+
 
 interface RealtimeAnalysisParams {
     meetingId: string;
