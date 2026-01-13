@@ -1,5 +1,4 @@
 import { useState, useEffect, ReactNode, createContext, useContext } from 'react';
-import { useLocation } from 'react-router-dom';
 import i18n, { CORE_NAMESPACES, forceReloadLanguage, preloadNamespacesForRoute } from '@/i18n/config';
 
 interface TranslationContextType {
@@ -26,11 +25,13 @@ interface TranslationProviderProps {
  * TranslationProvider loads translations in the background.
  * Children are rendered immediately to avoid blocking app boot.
  * Only core namespaces are loaded initially; route-specific namespaces load on demand.
+ * 
+ * NOTE: This provider must wrap BrowserRouter, so it cannot use useLocation().
+ * Route-based namespace preloading is handled by RouteNamespaceLoader inside the Router.
  */
 export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   const [isReady, setIsReady] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language || 'en');
-  const location = useLocation();
 
   // Initialize core namespaces on mount
   useEffect(() => {
@@ -58,7 +59,7 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
         setCurrentLanguage(language);
         setIsReady(true);
 
-        // Preload route-specific namespaces in background
+        // Preload route-specific namespaces in background (using window.location for initial load)
         preloadNamespacesForRoute(window.location.pathname);
       } catch (error) {
         console.error('[TranslationProvider] Error loading translations:', error);
@@ -81,13 +82,6 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
       i18n.off('languageChanged', handleLanguageChanged);
     };
   }, []);
-
-  // Preload namespaces when route changes
-  useEffect(() => {
-    if (isReady) {
-      preloadNamespacesForRoute(location.pathname);
-    }
-  }, [location.pathname, isReady]);
 
   const changeLanguage = async (lang: string) => {
     try {
