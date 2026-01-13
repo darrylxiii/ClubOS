@@ -1,7 +1,7 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { serve } from "std/http/server.ts";
+import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 
 import { handleAssistEmailWriting } from "./actions/assist-email.ts";
 import { handleAiWriting } from "./actions/generate-text.ts";
@@ -47,6 +47,9 @@ import { handleGenerateRelationshipInsights } from './actions/generate-relations
 import { handleGenerateRoleAnalytics } from './actions/generate-role-analytics.ts';
 import { handleGenerateAnalyticsInsights } from './actions/generate-analytics-insights.ts';
 
+// Import shared CORS config
+import { publicCorsHeaders, handleCorsPreFlight, jsonResponse } from 'shared/cors-config.ts';
+
 // Batch 3: Documents & Dossiers
 import { handleGenerateCandidateDossier } from './actions/generate-candidate-dossier.ts';
 import { handleGenerateMeetingDossier } from './actions/generate-meeting-dossier.ts';
@@ -72,10 +75,6 @@ import { handleAnalyzeEmailSentiment } from './actions/analyze-email-sentiment.t
 import { handleAnalyzeEmailReply } from './actions/analyze-email-reply.ts';
 import { handleGenerateOutreachStrategy } from './actions/generate-outreach-strategy.ts';
 import { handleAnalyzeWhatsAppConversation } from './actions/analyze-whatsapp-conversation.ts';
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 const ACTION_HANDLERS = {
     'assist-email': handleAssistEmailWriting,
@@ -108,6 +107,19 @@ const ACTION_HANDLERS = {
     'generate-post-summary': handleGeneratePostSummary,
     'extract-communication-tasks': handleExtractCommunicationTasks,
 
+    // Batch 2: Business Intelligence
+    'generate-executive-briefing': handleGenerateExecutiveBriefing,
+    'generate-company-insights': handleGenerateCompanyInsights,
+    'generate-company-report': handleGenerateCompanyReport,
+    'generate-activity-insights': handleGenerateActivityInsights,
+    'generate-outreach-insights': handleGenerateOutreachInsights,
+    'generate-career-insights': handleGenerateCareerInsights,
+    'generate-kpi-insights': handleGenerateKPIInsights,
+    'generate-partner-insights': handleGeneratePartnerInsights,
+    'generate-relationship-insights': handleGenerateRelationshipInsights,
+    'generate-role-analytics': handleGenerateRoleAnalytics,
+    'generate-analytics-insights': handleGenerateAnalyticsInsights,
+
     // Batch 3: Documents & Dossiers
     'generate-candidate-dossier': handleGenerateCandidateDossier,
     'generate-meeting-dossier': handleGenerateMeetingDossier,
@@ -137,6 +149,7 @@ const ACTION_HANDLERS = {
 
 const RouterSchema = z.object({
     action: z.enum([
+        // Core AI Actions
         'assist-email',
         'generate-text',
         'analyze-sentiment',
@@ -144,15 +157,27 @@ const RouterSchema = z.object({
         'generate-embedding',
         'batch-generate-embedding',
         'semantic-search',
+        
+        // Interview & Voice
         'analyze-interview',
         'analyze-interview-realtime',
+        'analyze-interview-stream',
         'voice-to-text',
         'generate-interview-prep',
         'generate-interview-coach',
-        'analyze-interview-stream',
         'interview-voice-session',
         'quin-meeting-voice',
         'interview-prep-chat',
+        
+        // Recording & Transcript (Missing actions added)
+        'compile-transcript',
+        'analyze-transcript',
+        'analyze-recording',
+        'highlight-clips',
+        'speaking-metrics',
+        'download-youtube',
+        
+        // Communication & Social
         'generate-crm-reply',
         'generate-whatsapp-reply',
         'generate-post-suggestions',
@@ -161,7 +186,20 @@ const RouterSchema = z.object({
         'generate-post-summary',
         'extract-communication-tasks',
 
-        // Batch 3
+        // Business Intelligence (Missing actions added)
+        'generate-executive-briefing',
+        'generate-company-insights',
+        'generate-company-report',
+        'generate-activity-insights',
+        'generate-outreach-insights',
+        'generate-career-insights',
+        'generate-kpi-insights',
+        'generate-partner-insights',
+        'generate-relationship-insights',
+        'generate-role-analytics',
+        'generate-analytics-insights',
+
+        // Documents & Dossiers
         'generate-candidate-dossier',
         'generate-meeting-dossier',
         'generate-interview-report',
@@ -171,7 +209,7 @@ const RouterSchema = z.object({
         'generate-interview-description',
         'generate-daily-challenges',
 
-        // Batch 4
+        // Utilities & ML
         'generate-ab-test-variants',
         'generate-query-variations',
         'generate-user-embeddings',
@@ -181,7 +219,7 @@ const RouterSchema = z.object({
         'generate-campaign-autopilot',
         'assign-agent-task',
 
-        // Batch 5
+        // Email Analysis
         'analyze-email-sentiment',
         'analyze-email-reply',
         'generate-outreach-strategy',
@@ -191,7 +229,7 @@ const RouterSchema = z.object({
 });
 
 serve(async (req) => {
-    if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+    if (req.method === 'OPTIONS') return handleCorsPreFlight(req);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -231,16 +269,14 @@ serve(async (req) => {
             return response;
         }
 
-        return new Response(
-            JSON.stringify(response),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return jsonResponse(response as Record<string, unknown>, 200, req);
 
     } catch (error) {
         console.error(`[AI Service] Error:`, error);
-        return new Response(
-            JSON.stringify({ error: error instanceof Error ? error.message : 'Internal Server Error' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        return jsonResponse(
+            { error: error instanceof Error ? error.message : 'Internal Server Error' },
+            500,
+            req
         );
     }
 });
