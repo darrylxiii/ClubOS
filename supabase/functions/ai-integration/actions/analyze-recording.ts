@@ -64,8 +64,6 @@ async function updateRecordingStatus(supabase: any, recordingId: string, updates
         .eq('id', recordingId);
 }
 
-// ... (Helper functions for AI calling - simplified for brevity but functional) ...
-
 async function callAI(apiKey: string, prompt: string, model: string, maxTokens: number = 2000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
@@ -89,115 +87,115 @@ async function callAI(apiKey: string, prompt: string, model: string, maxTokens: 
             signal: controller.signal
         });
 
-        if (!res.ok) throw new Error(\`AI Error \${res.status}: \${await res.text()}\`);
-    return await res.json();
-  } finally {
-    clearTimeout(timeoutId);
-  }
+        if (!res.ok) throw new Error(`AI Error ${res.status}: ${await res.text()}`);
+        return await res.json();
+    } finally {
+        clearTimeout(timeoutId);
+    }
 }
 
 export const analyzeRecordingHandler = async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+    if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  let recordingId: string | null = null;
-  const startTime = Date.now();
+    let recordingId: string | null = null;
+    const startTime = Date.now();
 
-  try {
-    const body = await req.json();
-    recordingId = body.recordingId;
-    const isReanalysis = body.reanalyze === true;
-    
-    if (!recordingId) throw new Error('recordingId is required');
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
-
-    // 1. Compile Transcript (Direct Call)
-    console.log('[Analysis] Compiling transcript...');
-    await compileTranscript({ recordingId }, supabase);
-
-    // 2. Fetch Recording
-    const { data: recording, error: recError } = await supabase
-      .from('meeting_recordings_extended')
-      .select(`*, meetings(*)`)
-      .eq('id', recordingId)
-      .single();
-    
-    if (recError || !recording) throw new Error('Recording not found');
-
-    const currentRetryCount = isReanalysis ? 0 : ((recording.analysis_retry_count || 0) + 1);
-    await updateRecordingStatus(supabase, recordingId, {
-      analysis_status: 'processing',
-      processing_status: 'processing',
-      analysis_retry_count: currentRetryCount
-    });
-
-    const transcript = recording.transcript || '';
-    const durationMinutes = Math.round((recording.duration_seconds || 1800) / 60);
-
-    // 3. AI Analysis
-    const analysisPrompt = \`
-      Analyze this interview meeting.
-      Duration: \${durationMinutes} mins.
-      Transcript:
-      \${transcript.substring(0, 50000)} ... (truncated if long)
-      
-      Return JSON:
-      {
-        "executiveSummary": "...",
-        "candidateEvaluation": { "overallFit": "poor|fair|good|excellent", ... },
-        "actionItems": [],
-        "keyMoments": []
-      }
-    \`;
-
-    console.log('[Analysis] Calling AI...');
-    let aiResponse;
     try {
-        if (checkCircuit('primary-ai')) {
-             const res = await callAI(lovableApiKey, analysisPrompt, 'google/gemini-2.5-flash', 4000);
-             aiResponse = res;
-             recordSuccess('primary-ai');
-        } else {
-             throw new Error('Circuit Open');
+        const body = await req.json();
+        recordingId = body.recordingId;
+        const isReanalysis = body.reanalyze === true;
+        
+        if (!recordingId) throw new Error('recordingId is required');
+
+        const supabase = createClient(
+            Deno.env.get('SUPABASE_URL')!,
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        );
+        const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+
+        // 1. Compile Transcript (Direct Call)
+        console.log('[Analysis] Compiling transcript...');
+        await compileTranscript({ recordingId }, supabase);
+
+        // 2. Fetch Recording
+        const { data: recording, error: recError } = await supabase
+            .from('meeting_recordings_extended')
+            .select(`*, meetings(*)`)
+            .eq('id', recordingId)
+            .single();
+        
+        if (recError || !recording) throw new Error('Recording not found');
+
+        const currentRetryCount = isReanalysis ? 0 : ((recording.analysis_retry_count || 0) + 1);
+        await updateRecordingStatus(supabase, recordingId, {
+            analysis_status: 'processing',
+            processing_status: 'processing',
+            analysis_retry_count: currentRetryCount
+        });
+
+        const transcript = recording.transcript || '';
+        const durationMinutes = Math.round((recording.duration_seconds || 1800) / 60);
+
+        // 3. AI Analysis
+        const analysisPrompt = `
+            Analyze this interview meeting.
+            Duration: ${durationMinutes} mins.
+            Transcript:
+            ${transcript.substring(0, 50000)} ... (truncated if long)
+            
+            Return JSON:
+            {
+                "executiveSummary": "...",
+                "candidateEvaluation": { "overallFit": "poor|fair|good|excellent", ... },
+                "actionItems": [],
+                "keyMoments": []
+            }
+        `;
+
+        console.log('[Analysis] Calling AI...');
+        let aiResponse;
+        try {
+            if (checkCircuit('primary-ai')) {
+                const res = await callAI(lovableApiKey, analysisPrompt, 'google/gemini-2.5-flash', 4000);
+                aiResponse = res;
+                recordSuccess('primary-ai');
+            } else {
+                throw new Error('Circuit Open');
+            }
+        } catch (e) {
+            recordFailure('primary-ai');
+            console.log('[Analysis] Primary failed, using fallback');
+            aiResponse = await callAI(lovableApiKey, analysisPrompt, 'google/gemini-2.5-flash-lite', 2000);
         }
-    } catch (e) {
-        recordFailure('primary-ai');
-        console.log('[Analysis] Primary failed, using fallback');
-        aiResponse = await callAI(lovableApiKey, analysisPrompt, 'google/gemini-2.5-flash-lite', 2000);
+
+        const aiContent = aiResponse.choices?.[0]?.message?.content || '{}';
+        const cleanedContent = aiContent.replace(/```json\n?/g, '').replace(/\n?```/g, '').trim();
+        const aiAnalysis = JSON.parse(cleanedContent);
+
+        // 4. Save Results
+        await updateRecordingStatus(supabase, recordingId, {
+            ai_summary: aiAnalysis,
+            ai_analysis: aiAnalysis,
+            executive_summary: aiAnalysis.executiveSummary,
+            action_items: aiAnalysis.actionItems || [],
+            key_moments: aiAnalysis.keyMoments || [],
+            analysis_status: 'completed',
+            processing_status: 'completed',
+            analyzed_at: new Date().toISOString()
+        });
+        
+        return new Response(JSON.stringify({ success: true, analysis: aiAnalysis }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+    } catch (error: any) {
+        console.error('[Analysis] Error:', error);
+        if (recordingId) {
+            const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+            await updateRecordingStatus(supabase, recordingId as string, {
+                analysis_status: 'failed',
+                processing_status: 'failed',
+                processing_error: error.message
+            });
+        }
+        return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
-
-    const aiContent = aiResponse.choices?.[0]?.message?.content || '{}';
-    const cleanedContent = aiContent.replace(/\`\`\`json\n?/g, '').replace(/\n?\`\`\`/g, '').trim();
-    const aiAnalysis = JSON.parse(cleanedContent);
-
-    // 4. Save Results
-    await updateRecordingStatus(supabase, recordingId, {
-      ai_summary: aiAnalysis,
-      ai_analysis: aiAnalysis,
-      executive_summary: aiAnalysis.executiveSummary,
-      action_items: aiAnalysis.actionItems || [],
-      key_moments: aiAnalysis.keyMoments || [],
-      analysis_status: 'completed',
-      processing_status: 'completed',
-      analyzed_at: new Date().toISOString()
-    });
-    
-    return new Response(JSON.stringify({ success: true, analysis: aiAnalysis }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-
-  } catch (error: any) {
-    console.error('[Analysis] Error:', error);
-    if (recordingId) {
-       const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-       await updateRecordingStatus(supabase, recordingId as string, {
-          analysis_status: 'failed',
-          processing_status: 'failed',
-          processing_error: error.message
-       });
-    }
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-  }
 };
