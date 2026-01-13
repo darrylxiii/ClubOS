@@ -1,8 +1,7 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LazyCharts } from "@/components/charts/LazyCharts";
 import { RecruiterPerformance } from "@/hooks/useAnalytics";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { format } from "date-fns";
 
 interface RecruiterPerformanceChartProps {
   data: RecruiterPerformance[];
@@ -47,34 +46,38 @@ export function RecruiterPerformanceChart({ data, isLoading }: RecruiterPerforma
       {/* Performance Chart */}
       <div>
         <h4 className="text-sm font-medium mb-4">Recruiter Activity Overview</h4>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={recruiterData}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
-              dataKey="name" 
-              className="text-xs"
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
-              angle={-45}
-              textAnchor="end"
-              height={80}
-            />
-            <YAxis 
-              className="text-xs"
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
-            />
-            <Tooltip 
-              contentStyle={{
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-            />
-            <Legend />
-            <Bar dataKey="reviews" fill="hsl(var(--chart-1))" name="Reviews" />
-            <Bar dataKey="interviews" fill="hsl(var(--chart-2))" name="Interviews" />
-            <Bar dataKey="hires" fill="hsl(var(--chart-3))" name="Hires" />
-          </BarChart>
-        </ResponsiveContainer>
+        <LazyCharts height={300}>
+          {({ ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar }) => (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={recruiterData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis 
+                  dataKey="name" 
+                  className="text-xs"
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis 
+                  className="text-xs"
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--background))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="reviews" fill="hsl(var(--chart-1))" name="Reviews" />
+                <Bar dataKey="interviews" fill="hsl(var(--chart-2))" name="Interviews" />
+                <Bar dataKey="hires" fill="hsl(var(--chart-3))" name="Hires" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </LazyCharts>
       </div>
 
       {/* Detailed Table */}
