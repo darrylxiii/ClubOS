@@ -56,7 +56,7 @@ export function AddProspectDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.full_name || !formData.email) {
       toast.error('Name and email are required');
       return;
@@ -65,25 +65,36 @@ export function AddProspectDialog({
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       const { error } = await supabase
-        .from('crm_prospects')
+      const { error } = await supabase
+        .from('crm_entities')
         .insert({
+          entity_type: 'prospect',
           full_name: formData.full_name,
           email: formData.email,
           phone: formData.phone || null,
-          job_title: formData.job_title || null,
-          company_name: formData.company_name || null,
-          company_size: formData.company_size || null,
           linkedin_url: formData.linkedin_url || null,
-          location: formData.location || null,
-          deal_value: formData.deal_value ? parseFloat(formData.deal_value) : null,
-          campaign_id: formData.campaign_id && formData.campaign_id !== 'none' ? formData.campaign_id : null,
-          source: formData.source,
-          notes: formData.notes || null,
-          stage: defaultStage,
+          company_name: formData.company_name || null,
+          company_id: null, // Could link if company exists
+          status: defaultStage, // stage -> status
           lead_score: 50,
           owner_id: user?.id,
+          campaign_id: formData.campaign_id && formData.campaign_id !== 'none' ? formData.campaign_id : null,
+          external_id: null,
+          data: {
+            job_title: formData.job_title || null,
+            company_size: formData.company_size || null,
+            location: formData.location || null,
+            notes: formData.notes || null,
+            deal_value: formData.deal_value ? parseFloat(formData.deal_value) : null,
+            source: formData.source,
+          },
+          engagement_metrics: {
+            emails_sent: 0,
+            emails_opened: 0,
+            last_contacted_at: null
+          }
         });
 
       if (error) throw error;

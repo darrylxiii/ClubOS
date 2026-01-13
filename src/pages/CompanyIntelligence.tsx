@@ -65,14 +65,14 @@ export default function CompanyIntelligence() {
     if (!id) return;
     setLoadingInsights(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-company-insights', {
-        body: { companyId: id }
+      const { insights, error } = await aiService.generateCompanyInsights({
+        companyId: id!
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
-      if (data?.insights) {
-        setInsights(data.insights);
+      if (insights) {
+        setInsights(insights);
         toast.success("Insights generated successfully");
       }
     } catch (error) {

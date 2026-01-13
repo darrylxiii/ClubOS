@@ -49,20 +49,18 @@ export function useWhatsAppEmailBridge() {
         .join('\n');
 
       // Generate AI draft using existing edge function
-      const { data: aiDraft, error: aiError } = await supabase.functions.invoke('generate-personalized-follow-up', {
-        body: {
-          candidateId,
-          context: {
-            source: 'whatsapp_bridge',
-            conversationSummary: conversationContext,
-            purpose: 'Continue WhatsApp conversation via email (24h window expired)',
-          },
+      const aiDraft = await aiService.generatePersonalizedFollowUp({
+        candidateId,
+        context: {
+          source: 'whatsapp_bridge',
+          conversationSummary: conversationContext,
+          purpose: 'Continue WhatsApp conversation via email (24h window expired)',
         },
       });
 
       // Fallback if AI fails
       const draftSubject = aiDraft?.subject || `Following up on our WhatsApp conversation`;
-      const draftBody = aiDraft?.body || 
+      const draftBody = aiDraft?.body ||
         `Hi ${firstName},\n\nI wanted to follow up on our WhatsApp conversation. I'd love to continue our discussion.\n\nLooking forward to hearing from you.\n\nBest regards`;
 
       // Log the email bridge event

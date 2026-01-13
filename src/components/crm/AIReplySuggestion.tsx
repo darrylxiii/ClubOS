@@ -30,17 +30,22 @@ export function AIReplySuggestion({
   const generateSuggestion = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-crm-reply', {
-        body: {
-          prospectName,
-          prospectCompany,
-          originalEmail,
-          classification,
-          tone: 'professional'
-        }
-      });
+      // Using the provided instruction's structure for aiService.generateCrmReply
+      // Note: The instruction implies `lastEmail` is available and used for content/classification.
+      // If `lastEmail` is not provided, `originalEmail` prop will be used as a fallback for content,
+      // and `classification` prop for classification.
+      const emailContent = lastEmail?.content || originalEmail;
+      const emailClassification = lastEmail?.classification || classification || 'neutral';
 
-      if (error) throw error;
+      const data = await aiService.generateCrmReply({
+        prospectName,
+        prospectCompany,
+        originalEmail: emailContent,
+        classification: emailClassification,
+        tone
+      });
+      // The new service returns { reply, classification } directly
+      // Corrected syntax for `data.reply || ''`
       setSuggestion(data.reply || '');
     } catch (error) {
       console.error('Error generating reply:', error);

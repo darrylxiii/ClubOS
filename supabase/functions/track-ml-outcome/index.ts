@@ -9,23 +9,23 @@ const corsHeaders = {
 
 serve(async (req) => {
   const logger = createFunctionLogger('track-ml-outcome');
-  
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     logger.logRequest(req.method);
-    
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { 
-      prediction_id, 
-      candidate_id, 
-      job_id, 
-      outcome 
+    const {
+      prediction_id,
+      candidate_id,
+      job_id,
+      outcome
     } = await req.json();
 
     if (!outcome || !['hired', 'interviewed', 'rejected'].includes(outcome)) {
@@ -48,7 +48,7 @@ serve(async (req) => {
       if (updateError) throw updateError;
 
       logger.info(`Updated prediction with outcome`, { prediction_id, outcome });
-    } 
+    }
     // Otherwise, find the prediction by candidate and job
     else if (candidate_id && job_id) {
       const { data: predictions, error: findError } = await supabase
@@ -104,12 +104,15 @@ serve(async (req) => {
       // Generate features for new training data
       try {
         const { data: featureData } = await supabase.functions.invoke(
-          'generate-ml-features',
+          'ai-integration',
           {
             body: {
-              candidate_id,
-              job_id,
-              use_cache: false
+              action: 'generate-ml-features',
+              payload: {
+                candidate_id,
+                job_id,
+                use_cache: false
+              }
             }
           }
         );
@@ -151,7 +154,7 @@ serve(async (req) => {
         const hiredPredictions = recentPredictions
           .filter(p => p.actual_outcome === 'hired')
           .map(p => p.prediction_score);
-        
+
         const rejectedPredictions = recentPredictions
           .filter(p => p.actual_outcome === 'rejected')
           .map(p => p.prediction_score);
@@ -171,8 +174,8 @@ serve(async (req) => {
         const estimatedCurrentAuc = 0.5 + (separation / 2);
 
         if (estimatedCurrentAuc < originalAuc - 0.1) {
-          logger.warn('Model performance degraded', { 
-            originalAuc: originalAuc.toFixed(3), 
+          logger.warn('Model performance degraded', {
+            originalAuc: originalAuc.toFixed(3),
             estimatedCurrentAuc: estimatedCurrentAuc.toFixed(3),
             recommendation: 'Consider retraining the model'
           });
@@ -194,7 +197,7 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.logError(500, errorMessage);
-    
+
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

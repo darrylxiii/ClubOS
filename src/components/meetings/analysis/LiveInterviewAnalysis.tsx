@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Sparkles, AlertTriangle, CheckCircle, Activity, ChevronRight, ChevronLeft } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { aiService } from '@/services/aiService';
 import { toast } from 'sonner';
 
 interface LiveInterviewAnalysisProps {
@@ -44,14 +44,10 @@ export function LiveInterviewAnalysis({ meetingId, transcript }: LiveInterviewAn
 
         setIsAnalyzing(true);
         try {
-            const { data, error } = await supabase.functions.invoke('analyze-interview-realtime', {
-                body: {
-                    meetingId,
-                    transcript: transcript.slice(-8000) // Send last 8000 chars context
-                }
+            const data = await aiService.analyzeInterviewRealtime({
+                meetingId,
+                transcript: transcript.slice(-8000)
             });
-
-            if (error) throw error;
 
             if (data?.scores) {
                 setResult(data.scores);

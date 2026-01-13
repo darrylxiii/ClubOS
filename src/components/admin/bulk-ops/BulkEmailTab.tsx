@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Send, Loader2, AlertCircle } from "lucide-react";
 import { CandidateSelectorTable } from "./CandidateSelectorTable";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { communicationsService } from "@/services/communicationsService";
 
 interface EmailTemplate {
   id: string;
@@ -98,14 +99,12 @@ export const BulkEmailTab = () => {
       // Send emails
       for (const candidate of candidates || []) {
         try {
-          const { error } = await supabase.functions.invoke("send-email", {
-            body: {
-              to: candidate.email,
-              subject,
-              html: message.replace(/{{name}}/g, candidate.full_name || "Candidate"),
-            },
+          const result = await communicationsService.sendEmail({
+            to: candidate.email,
+            subject,
+            body: message.replace(/{{name}}/g, candidate.full_name || "Candidate"),
           });
-          if (error) throw error;
+          if (!result.success) throw new Error(result.error);
           successCount++;
         } catch (err: any) {
           failureCount++;
@@ -197,7 +196,7 @@ export const BulkEmailTab = () => {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            This will send {selectedCandidates.length} email{selectedCandidates.length !== 1 ? "s" : ""}. 
+            This will send {selectedCandidates.length} email{selectedCandidates.length !== 1 ? "s" : ""}.
             Please review carefully before sending.
           </AlertDescription>
         </Alert>

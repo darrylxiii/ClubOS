@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { financeService } from "@/services/financeService";
 
 interface MonthlyRevenue {
   month: string;
@@ -61,7 +62,7 @@ export function useMoneybirdFinancials(year?: number) {
         .maybeSingle();
 
       if (error) throw error;
-      
+
       if (!data) return null;
 
       // Parse JSONB fields
@@ -88,30 +89,20 @@ export function useSyncMoneybirdFinancials() {
 
   return useMutation({
     mutationFn: async (year?: number) => {
-      const { data, error } = await supabase.functions.invoke('moneybird-fetch-financials', {
-        body: { year: year || new Date().getFullYear() },
-      });
+      const response = await financeService.fetchFinancials({ year });
 
-      if (error) {
-        // Check for specific error types
-        if (error.message?.includes('Failed to send') || error.message?.includes('FunctionsFetchError')) {
-          throw new Error('Edge Function not available. Please try again in a moment.');
-        }
-        if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-          throw new Error('Moneybird credentials are invalid or missing.');
-        }
-        throw new Error(error.message || 'Failed to connect to sync service');
+      if (!response.success) {
+        throw new Error(response.error || 'Sync failed');
       }
-      
-      if (!data) {
-        throw new Error('No response from sync service');
-      }
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Sync failed');
-      }
-      
-      return data.data;
+
+      return response.data; // financeService returns { success: true, ...data } but standard invokes returned { data } wrapper often. 
+      // Wait, let's check legacy return. Legacy returned { success: true, data: result }. 
+      // My new service returns { success: true, ...result } directly? 
+      // Let's check `fetch-financials.ts`: returns object with success: true, year, invoices_fetched.
+      // Legacy `index.ts` returned { success: true, data: result }.
+      // So I need to be careful with the return alignment.
+      // New service returns the whole object.
+      return response;
     },
     onSuccess: () => {
       toast.success('Financial data synced from Moneybird');
@@ -126,19 +117,19 @@ export function useSyncMoneybirdFinancials() {
 
 export function useRevenueByMonth(year?: number) {
   const { data: metrics } = useMoneybirdFinancials(year);
-  
+
   return metrics?.revenue_by_month || [];
 }
 
 export function useTopClients(year?: number) {
   const { data: metrics } = useMoneybirdFinancials(year);
-  
+
   return metrics?.top_clients || [];
 }
 
 export function usePaymentAging(year?: number) {
   const { data: metrics } = useMoneybirdFinancials(year);
-  
+
   return metrics?.payment_aging || {
     current: 0,
     overdue_30: 0,

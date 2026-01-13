@@ -72,13 +72,16 @@ export function InterviewReportView({
 
     setGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-interview-report', {
-        body: { meetingId, candidateId, roleTitle, companyName }
+      const { report } = await aiService.generateInterviewReport({
+        meetingId,
+        candidateId,
+        roleTitle,
+        companyName
       });
 
-      if (error) throw error;
-      
-      setReport(data.report as any);
+      if (!report) throw new Error("No report returned");
+
+      setReport(report);
       toast.success("Interview report generated!");
     } catch (error) {
       console.error('Error generating report:', error);
@@ -139,11 +142,10 @@ export function InterviewReportView({
   return (
     <div className="space-y-6">
       {/* Recommendation Banner */}
-      <Card className={`p-6 border-2 ${
-        report.recommendation === 'advance' ? 'bg-green-500/5 border-green-500/20' :
-        report.recommendation === 'reject' ? 'bg-red-500/5 border-red-500/20' :
-        'bg-yellow-500/5 border-yellow-500/20'
-      }`}>
+      <Card className={`p-6 border-2 ${report.recommendation === 'advance' ? 'bg-green-500/5 border-green-500/20' :
+          report.recommendation === 'reject' ? 'bg-red-500/5 border-red-500/20' :
+            'bg-yellow-500/5 border-yellow-500/20'
+        }`}>
         <div className="flex items-start gap-4">
           {getRecommendationIcon(report.recommendation)}
           <div className="flex-1">
@@ -244,8 +246,8 @@ export function InterviewReportView({
                     </Badge>
                     <Badge variant={
                       highlight.type === 'strength' ? 'default' :
-                      highlight.type === 'weakness' ? 'destructive' :
-                      'secondary'
+                        highlight.type === 'weakness' ? 'destructive' :
+                          'secondary'
                     }>
                       {highlight.type}
                     </Badge>

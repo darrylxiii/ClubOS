@@ -8,6 +8,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
+    "gravity:check": "python3 scripts/gravity_check.py",
+    "analyze:modules": "python3 analyze_modules.py",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -74,7 +76,9 @@
     "@sentry/react": "^10.32.1",
     "@supabase/supabase-js": "^2.58.0",
     "@tabler/icons-react": "^3.35.0",
+    "@tanstack/query-sync-storage-persister": "^5.90.18",
     "@tanstack/react-query": "^5.83.0",
+    "@tanstack/react-query-persist-client": "^5.90.18",
     "@tanstack/react-virtual": "^3.13.12",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

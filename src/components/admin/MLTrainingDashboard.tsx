@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { aiService } from '@/services/aiService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { notify } from '@/lib/notify';
@@ -13,17 +14,15 @@ export function MLTrainingDashboard() {
   const generateEmbeddings = async () => {
     setGeneratingEmbeddings(true);
     try {
-      const { data: candidateData, error: candidateError } = await supabase.functions.invoke(
-        'batch-generate-embeddings',
-        { body: { entity_type: 'candidate', limit: 100 } }
-      );
-      if (candidateError) throw candidateError;
+      const candidateData = await aiService.batchGenerateEmbedding({
+        entity_type: 'candidate',
+        limit: 100
+      });
 
-      const { data: jobData, error: jobError } = await supabase.functions.invoke(
-        'batch-generate-embeddings',
-        { body: { entity_type: 'job', limit: 100 } }
-      );
-      if (jobError) throw jobError;
+      const jobData = await aiService.batchGenerateEmbedding({
+        entity_type: 'job',
+        limit: 100
+      });
 
       notify.success("Embeddings Generated", {
         description: `${candidateData.processed} candidates, ${jobData.processed} jobs`

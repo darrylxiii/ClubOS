@@ -19,12 +19,13 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
   const loadBriefing = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.functions.invoke('generate-executive-briefing', {
-        body: { candidateId, jobId }
+      const { briefing, error } = await aiService.generateExecutiveBriefing({
+        candidateId,
+        jobId
       });
 
-      if (error) throw error;
-      setBriefing(data.briefing);
+      if (error) throw new Error(error);
+      setBriefing(briefing);
       toast.success("Executive briefing generated");
     } catch (error: any) {
       console.error('Error loading briefing:', error);
@@ -141,9 +142,9 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
             <p className="text-xs text-muted-foreground mb-1">AI Recommendation</p>
             <p className="text-sm">{briefing.aiRecommendationReasoning}</p>
           </div>
-              <Badge className={getRecommendationColor(briefing.aiRecommendation) + " ml-3"}>
-                {briefing.aiRecommendation.replace('_', ' ').toUpperCase()}
-              </Badge>
+          <Badge className={getRecommendationColor(briefing.aiRecommendation) + " ml-3"}>
+            {briefing.aiRecommendation.replace('_', ' ').toUpperCase()}
+          </Badge>
         </div>
 
         {/* Team Consensus */}

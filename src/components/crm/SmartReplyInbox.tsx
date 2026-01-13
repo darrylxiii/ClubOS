@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Flame, Sun, ThumbsUp, HelpCircle, ThumbsDown, Plane, 
+import {
+  Flame, Sun, ThumbsUp, HelpCircle, ThumbsDown, Plane,
   Archive, RefreshCw, Sparkles, Mail, Filter, Search,
   CheckCircle, Clock, Zap, AlarmClock
 } from "lucide-react";
@@ -60,7 +60,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
         .eq('is_archived', false)
         .order('received_at', { ascending: false })
         .limit(200);
-      
+
       if (error) throw error;
       return (data || []).map(r => ({
         ...r,
@@ -103,7 +103,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(r => 
+      filtered = filtered.filter(r =>
         r.from_name?.toLowerCase().includes(query) ||
         r.from_email?.toLowerCase().includes(query) ||
         r.subject?.toLowerCase().includes(query) ||
@@ -170,7 +170,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
     mutationFn: async ({ replyId, snoozeUntil }: { replyId: string; snoozeUntil: Date }) => {
       const { error } = await supabase
         .from('crm_email_replies')
-        .update({ 
+        .update({
           snoozed_until: snoozeUntil.toISOString(),
           is_archived: true // Temporarily hide from inbox
         })
@@ -197,22 +197,19 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
   // Generate smart replies
   const generateSmartRepliesMutation = useMutation({
     mutationFn: async (reply: CRMEmailReply) => {
-      const { data, error } = await supabase.functions.invoke('generate-personalized-follow-up', {
-        body: {
-          reply_id: reply.id,
-          prospect_id: reply.prospect_id,
-          original_email: 'Initial outreach about The Quantum Club services',
-          reply_content: reply.body_text || reply.body_preview || '',
-          prospect_name: reply.prospect_name || reply.from_name,
-          prospect_company: reply.prospect_company,
-          classification: reply.classification,
-          tone: 'professional'
-        }
+      const data = await aiService.generatePersonalizedFollowUp({
+        reply_content: reply.content,
+        reply_id: reply.id,
+        prospect_id: reply.prospect_id,
+        classification: reply.classification,
+        tone
       });
+
+      setGeneratedReply(data.followUp || null);
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       if (data?.followUp) {
         setSmartReplies({
           professional: data.followUp.professional,
@@ -231,15 +228,15 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
     setSelectedReply(reply);
     setIsDrawerOpen(true);
     setSmartReplies(null);
-    
+
     // Mark as read
     if (!reply.is_read) {
       markReadMutation.mutate(reply.id);
     }
-    
+
     // Generate smart replies
     generateSmartRepliesMutation.mutate(reply);
-    
+
     onReplySelect?.(reply);
   };
 
@@ -282,9 +279,9 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => refetch()}
               disabled={isLoading}
             >
@@ -311,7 +308,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
               const count = categoryCounts[cat.id] || 0;
               const isActive = activeCategory === cat.id;
               const Icon = cat.icon;
-              
+
               return (
                 <Button
                   key={cat.id}
@@ -323,8 +320,8 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
                   <Icon className={`h-3.5 w-3.5 ${!isActive ? cat.color : ''}`} />
                   <span>{cat.label}</span>
                   {count > 0 && (
-                    <Badge 
-                      variant={isActive ? "secondary" : "outline"} 
+                    <Badge
+                      variant={isActive ? "secondary" : "outline"}
                       className="ml-1 h-5 px-1.5 text-[10px]"
                     >
                       {count}
@@ -347,7 +344,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
             <Mail className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="font-medium text-lg mb-2">No replies yet</h3>
             <p className="text-sm text-muted-foreground">
-              {activeCategory !== 'all' 
+              {activeCategory !== 'all'
                 ? `No ${activeCategory} replies found. Try a different category.`
                 : 'Replies from your email campaigns will appear here.'}
             </p>
@@ -395,7 +392,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
       {isDrawerOpen && selectedReply && (
         <AnimatePresence>
           {generateSmartRepliesMutation.isPending ? (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="fixed bottom-24 left-4 right-4 z-50"
@@ -408,7 +405,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
               </Card>
             </motion.div>
           ) : smartReplies ? (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="fixed bottom-24 left-4 right-4 z-50 max-w-lg mx-auto"
@@ -423,9 +420,9 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
       )}
 
       {/* Bulk Actions Bar */}
-      <BulkReplyActions 
-        selectedIds={selectedIds} 
-        onClearSelection={() => setSelectedIds(new Set())} 
+      <BulkReplyActions
+        selectedIds={selectedIds}
+        onClearSelection={() => setSelectedIds(new Set())}
       />
 
       {/* Snooze Dialog */}

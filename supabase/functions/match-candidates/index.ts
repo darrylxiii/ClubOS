@@ -164,13 +164,16 @@ serve(async (req) => {
       try {
         // Generate features
         const { data: featureData, error: featureError } = await supabase.functions.invoke(
-          'generate-ml-features',
+          'ai-integration',
           {
             body: {
-              candidate_id: match.profile_id,
-              job_id: job_id,
-              use_cache: true,
-            },
+              action: 'generate-ml-features',
+              payload: {
+                candidate_id: match.profile_id,
+                job_id: job_id,
+                use_cache: true,
+              }
+            }
           }
         );
 
@@ -330,8 +333,13 @@ async function fallbackRuleBasedMatching(
   for (const candidate of candidates) {
     try {
       const { data: featureData } = await supabase.functions.invoke(
-        'generate-ml-features',
-        { body: { candidate_id: candidate.id, job_id: job_id, use_cache: true } }
+        'ai-integration',
+        {
+          body: {
+            action: 'generate-ml-features',
+            payload: { candidate_id: candidate.id, job_id: job_id, use_cache: true }
+          }
+        }
       );
 
       if (!featureData) continue;

@@ -119,14 +119,21 @@ serve(async (req) => {
 
     console.log("SMS message inserted:", smsMessage.id);
 
-    // Queue for sentiment analysis
-    await supabase.functions.invoke("analyze-sentiment", {
+    // Queue for sentiment analysis (and save it)
+    await supabase.functions.invoke("ai-integration", {
       body: {
-        text: Body,
-        entity_type: "sms",
-        entity_id: smsMessage.id,
+        action: 'analyze-sentiment',
+        payload: { text: Body }
       }
-    }).catch(err => console.error("Sentiment analysis failed:", err));
+    })
+      .then(async ({ data }) => {
+        if (data && data.score !== undefined) {
+          await supabase.from("sms_messages")
+            .update({ sentiment_score: data.score })
+            .eq("id", smsMessage.id);
+        }
+      })
+      .catch(err => console.error("Sentiment analysis failed:", err));
 
     // Create notification for owner
     if (ownerId) {
@@ -152,19 +159,19 @@ serve(async (req) => {
 </Response>`;
 
     return new Response(twimlResponse, {
-      headers: { 
-        ...corsHeaders, 
-        "Content-Type": "application/xml" 
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/xml"
       },
     });
   } catch (error) {
     console.error("twilio-sms-webhook error:", error);
-    
+
     // Return valid TwiML even on error
     const errorTwiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
 </Response>`;
-    
+
     return new Response(errorTwiml, {
       status: 200, // Twilio expects 200 even on our errors
       headers: { ...corsHeaders, "Content-Type": "application/xml" },

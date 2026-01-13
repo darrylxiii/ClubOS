@@ -55,20 +55,17 @@ export default function CareerInsightsDashboard() {
     setGenerating(true);
     try {
       // Call the edge function for AI-powered insights
-      const { data, error } = await supabase.functions.invoke('generate-career-insights', {
-        body: { userId: user?.id }
+      const { insights, error } = await aiService.generateCareerInsights({
+        userId: user.id
       });
 
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
+      if (error) throw new Error(error);
+      if (insights) {
         setInsights({
-          skillGapAnalysis: data.skill_gap_analysis || [],
-          marketPosition: data.market_position || { percentile: 0, salaryRange: { min: 0, max: 0 }, demandLevel: 'unknown' },
-          careerTrends: data.career_trends || [],
-          nextActions: data.next_actions || [],
+          skillGapAnalysis: insights.skill_gap_analysis || [],
+          marketPosition: insights.market_position || { percentile: 0, salaryRange: { min: 0, max: 0 }, demandLevel: 'unknown' },
+          careerTrends: insights.career_trends || [],
+          nextActions: insights.next_actions || [],
         });
         toast.success('Career insights generated successfully');
       }

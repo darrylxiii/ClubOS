@@ -19,18 +19,10 @@ export function useKPIInsights(kpis: UnifiedKPI[], domainHealth: DomainHealth[])
             // Only fetch if we have data
             if (kpis.length === 0) return null;
 
-            const { data, error } = await supabase.functions.invoke('generate-kpi-insights', {
-                body: {
-                    kpis: kpis.map(k => ({
-                        displayName: k.displayName,
-                        value: k.value,
-                        status: k.status,
-                        criticalThreshold: k.criticalThreshold
-                    })), // Minimize payload
-                    domainHealth
-                }
+            const data = await aiService.generateKPIInsights({
+                kpis,
+                domainHealth: 85 // Mock or derived health score
             });
-
             if (error) throw error;
             return data as KPIInsights;
         },

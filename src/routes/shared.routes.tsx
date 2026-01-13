@@ -4,13 +4,13 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 // Lazy load shared pages accessible to all authenticated users
 const ClubHome = lazy(() => import("@/pages/ClubHome"));
-const ClubPilot = lazy(() => import("@/pages/ClubPilot"));
+const ClubPilot = lazy(() => import("@/components/clubpilot/PilotDashboard").then(m => ({ default: () => <div className="container mx-auto py-8 px-4"><m.PilotDashboard /></div> })));
 const Feed = lazy(() => import("@/pages/Feed"));
 const Post = lazy(() => import("@/pages/Post"));
 const SocialFeed = lazy(() => import("@/pages/SocialFeed"));
 const Analytics = lazy(() => import("@/pages/Analytics"));
 const Achievements = lazy(() => import("@/pages/Achievements"));
-const Inbox = lazy(() => import("@/pages/Inbox"));
+const Inbox = lazy(() => import("@/components/email/EmailInbox").then(m => ({ default: m.EmailInbox })));
 const Messages = lazy(() => import("@/pages/Messages"));
 const MeetingIntelligence = lazy(() => import("@/pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("@/pages/MeetingInsights"));
@@ -60,14 +60,14 @@ export const sharedRoutes = (
   <>
     {/* Home route defined in App.tsx to avoid duplicate */}
     <Route path="/club-pilot" element={<ProtectedRoute><ClubPilot /></ProtectedRoute>} />
-    
+
     {/* Feed & Social */}
     <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
     <Route path="/posts/:id" element={<ProtectedRoute><Post /></ProtectedRoute>} />
     <Route path="/social-feed" element={<ProtectedRoute><SocialFeed /></ProtectedRoute>} />
     <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
     <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
-    
+
     {/* Communication */}
     <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
     <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
@@ -75,14 +75,14 @@ export const sharedRoutes = (
     {/* Meeting routes defined in meetings.routes.tsx to avoid duplicates */}
     <Route path="/meeting-intelligence" element={<ProtectedRoute><MeetingIntelligence /></ProtectedRoute>} />
     <Route path="/meeting-insights/:meetingId" element={<ProtectedRoute><MeetingInsights /></ProtectedRoute>} />
-    
+
     {/* Tasks */}
     <Route path="/unified-tasks" element={<ProtectedRoute><UnifiedTasks /></ProtectedRoute>} />
     <Route path="/objectives/:id" element={<ProtectedRoute><ObjectiveWorkspace /></ProtectedRoute>} />
-    
+
     {/* AI */}
     <Route path="/club-ai" element={<ProtectedRoute><ClubAI /></ProtectedRoute>} />
-    
+
     {/* Academy & Learning */}
     <Route path="/academy" element={<ProtectedRoute><Academy /></ProtectedRoute>} />
     <Route path="/academy/creator" element={<ProtectedRoute><AcademyCreatorHub /></ProtectedRoute>} />
@@ -91,33 +91,33 @@ export const sharedRoutes = (
     <Route path="/modules/:moduleId/edit" element={<ProtectedRoute><ModuleEdit /></ProtectedRoute>} />
     <Route path="/courses/:slug" element={<ProtectedRoute><CourseDetail /></ProtectedRoute>} />
     <Route path="/courses/:slug/edit" element={<ProtectedRoute><CourseEdit /></ProtectedRoute>} />
-    
+
     {/* Profile & Settings */}
     <Route path="/profile" element={<ProtectedRoute><EnhancedProfile /></ProtectedRoute>} />
     <Route path="/profile/:username" element={<ProtectedRoute><PublicUserProfile /></ProtectedRoute>} />
     <Route path="/candidate/:candidateId" element={<ProtectedRoute><UnifiedCandidateProfile /></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
     <Route path="/user-settings" element={<ProtectedRoute><UserSettings /></ProtectedRoute>} />
-    
+
     {/* Radio & Music */}
     <Route path="/club-dj" element={<ProtectedRoute><ClubDJ /></ProtectedRoute>} />
     <Route path="/radio" element={<ProtectedRoute><Radio /></ProtectedRoute>} />
     <Route path="/radio/:playlistId" element={<ProtectedRoute><RadioListen /></ProtectedRoute>} />
-    
+
     {/* Documents & Email */}
     <Route path="/documents" element={<ProtectedRoute><DocumentManagement /></ProtectedRoute>} />
     <Route path="/email-settings" element={<ProtectedRoute><EmailSettings /></ProtectedRoute>} />
-    
+
     {/* Company Settings */}
     <Route path="/company-settings" element={<ProtectedRoute><CompanySettings /></ProtectedRoute>} />
-    
+
     {/* WhatsApp Business - Redirect to unified hub */}
     <Route path="/whatsapp" element={<Navigate to="/admin/whatsapp" replace />} />
-    
+
     {/* Quantum OS Workspace */}
     <Route path="/pages" element={<ProtectedRoute><WorkspaceList /></ProtectedRoute>} />
     <Route path="/pages/:pageId" element={<ProtectedRoute><WorkspacePage /></ProtectedRoute>} />
-    
+
     {/* Compliance & Legal */}
     <Route path="/compliance/dashboard" element={<ProtectedRoute><ComplianceDashboard /></ProtectedRoute>} />
     <Route path="/compliance/legal-agreements" element={<ProtectedRoute><LegalAgreementsPage /></ProtectedRoute>} />

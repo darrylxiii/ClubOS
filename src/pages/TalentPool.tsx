@@ -145,8 +145,9 @@ export default function TalentPool() {
     if (!quickViewCandidate) return;
     const toastId = toast.loading('Generating dossier...');
     try {
-      const { error } = await supabase.functions.invoke('generate-candidate-dossier', {
-        body: { candidate_id: quickViewCandidate.id }
+      const { error } = await aiService.generateCandidateDossier({
+        candidateId: quickViewCandidate.id,
+        jobId: ''
       });
       if (error) throw error;
       toast.success('Dossier generated successfully', { id: toastId });

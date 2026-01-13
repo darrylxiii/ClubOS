@@ -15,7 +15,7 @@ const GlobalAnalytics = lazy(() => import("@/pages/admin/GlobalAnalytics"));
 const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
 const TranslationManager = lazy(() => import("@/pages/admin/TranslationManager"));
 const LanguageManager = lazy(() => import("@/pages/admin/LanguageManager"));
-const DisasterRecoveryPage = lazy(() => import("@/pages/admin/DisasterRecoveryPage"));
+const DisasterRecoveryPage = lazy(() => import("@/components/admin/DisasterRecoveryDashboard").then(m => ({ default: m.DisasterRecoveryDashboard })));
 // DRRunbooks and ComprehensiveDRPage consolidated into DisasterRecoveryPage
 const MemberRequestsPage = lazy(() => import("@/pages/admin/MemberRequestsPage"));
 const EmailTemplateManager = lazy(() => import("@/pages/admin/EmailTemplateManager"));
@@ -52,7 +52,7 @@ const StrategistProjectsDashboard = lazy(() => import("@/pages/admin/StrategistP
 const MarketplaceAnalytics = lazy(() => import("@/pages/admin/MarketplaceAnalytics"));
 const ExpenseTrackingPage = lazy(() => import("@/pages/admin/ExpenseTracking"));
 const ClosedJobs = lazy(() => import("@/pages/admin/ClosedJobs"));
-const RevenueLadderPage = lazy(() => import("@/pages/admin/RevenueLadderPage"));
+const RevenueLadderPage = lazy(() => import("@/components/revenue-ladder/RevenueLadderDashboard").then(m => ({ default: m.RevenueLadderDashboard })));
 
 // Enterprise Management
 const EnterpriseDashboard = lazy(() => import("@/pages/admin/EnterpriseDashboard"));

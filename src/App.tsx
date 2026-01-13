@@ -112,21 +112,29 @@ const LiveHub = lazy(() => import("./pages/LiveHub"));
 const CommunicationIntelligence = lazy(() => import("./pages/CommunicationIntelligence"));
 const MyCommunications = lazy(() => import("./pages/MyCommunications"));
 const PartnerRelationships = lazy(() => import("./pages/PartnerRelationships"));
-const CommunicationAnalyticsPage = lazy(() => import("./pages/CommunicationAnalyticsPage"));
+const CommunicationAnalyticsPage = lazy(() => import("@/components/communication/CommunicationAnalyticsDashboard").then(m => ({ default: m.CommunicationAnalyticsDashboard })));
 
 // PageLoader is now imported from @/components/PageLoader
+
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 
 // Initialize QueryClient
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60000,
-      gcTime: 300000,
+      gcTime: 300000, // 5 minutes
       retry: 1,
       refetchOnWindowFocus: false,
       refetchOnReconnect: 'always',
     },
   },
+});
+
+// Configure Persistence (LocalStorage)
+const persister = createSyncStoragePersister({
+  storage: window.localStorage,
 });
 
 // Only enable tracing in development for debugging - reduces production overhead
@@ -136,7 +144,10 @@ const App = () => {
   return (
     <SentryErrorBoundary>
       <TracingProvider enabled={isTracingEnabled}>
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 }} // 24 hours
+        >
           <TranslationProvider>
             <BrowserRouter>
               <AuthProvider>
@@ -309,7 +320,7 @@ const App = () => {
               </AuthProvider>
             </BrowserRouter>
           </TranslationProvider>
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
       </TracingProvider>
     </SentryErrorBoundary>
   );

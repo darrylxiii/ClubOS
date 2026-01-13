@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
+import { aiService } from '@/services/aiService';
 import type { CRMEmailReply, ReplyClassification } from '@/types/crm-enterprise';
 
 interface UseEmailRepliesOptions {
@@ -94,7 +95,7 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
     try {
       const { error: updateError } = await supabase
         .from('crm_email_replies')
-        .update({ 
+        .update({
           is_read: true,
           updated_at: new Date().toISOString(),
         })
@@ -102,7 +103,7 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
 
       if (updateError) throw updateError;
 
-      setReplies(prev => 
+      setReplies(prev =>
         prev.map(r => r.id === replyId ? { ...r, is_read: true } : r)
       );
 
@@ -119,7 +120,7 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
 
       const { error: updateError } = await supabase
         .from('crm_email_replies')
-        .update({ 
+        .update({
           is_actioned: true,
           actioned_at: new Date().toISOString(),
           actioned_by: user?.id,
@@ -130,10 +131,10 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
 
       if (updateError) throw updateError;
 
-      setReplies(prev => 
-        prev.map(r => r.id === replyId ? { 
-          ...r, 
-          is_actioned: true, 
+      setReplies(prev =>
+        prev.map(r => r.id === replyId ? {
+          ...r,
+          is_actioned: true,
           action_taken: action,
           actioned_at: new Date().toISOString(),
         } : r)
@@ -153,7 +154,7 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
     try {
       const { error: updateError } = await supabase
         .from('crm_email_replies')
-        .update({ 
+        .update({
           is_archived: true,
           updated_at: new Date().toISOString(),
         })
@@ -177,7 +178,7 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
     try {
       const { error: updateError } = await supabase
         .from('crm_email_replies')
-        .update({ 
+        .update({
           is_spam: true,
           classification: 'spam',
           updated_at: new Date().toISOString(),
@@ -206,15 +207,13 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      const response = await supabase.functions.invoke('analyze-email-reply', {
-        body: {
-          reply_id: replyId,
-          prospect_id: reply.prospect_id,
-          from_email: reply.from_email,
-          from_name: reply.from_name,
-          subject: reply.subject,
-          body_text: reply.body_text,
-        },
+      const response = await aiService.analyzeEmailReply({
+        reply_id: replyId,
+        prospect_id: reply.prospect_id,
+        from_email: reply.from_email,
+        from_name: reply.from_name,
+        subject: reply.subject,
+        body_text: reply.body_text,
       });
 
       if (response.error) throw response.error;

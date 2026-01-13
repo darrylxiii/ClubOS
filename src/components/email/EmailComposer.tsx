@@ -19,6 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { X, Paperclip, Send, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { communicationsService } from "@/services/communicationsService";
+import { aiService } from "@/services/aiService";
 
 interface EmailComposerProps {
   open: boolean;
@@ -43,7 +45,7 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+
     // Limit file size to 10MB per file
     const validFiles = files.filter(file => {
       if (file.size > 10 * 1024 * 1024) {
@@ -72,13 +74,13 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
 
       for (const file of attachments) {
         const filePath = `${user.id}/${Date.now()}_${file.name}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from("email-attachments")
           .upload(filePath, file);
 
         if (uploadError) throw uploadError;
-        
+
         uploadedFiles.push(filePath);
       }
 
@@ -101,16 +103,12 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
     setAiGenerating(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("assist-email-writing", {
-        body: {
-          action,
-          currentText: body,
-          subject,
-          recipientEmail: to,
-        },
+      const data = await aiService.assistEmail({
+        action: action as any,
+        currentText: body,
+        subject,
+        recipientEmail: to,
       });
-
-      if (error) throw error;
 
       if (data?.suggestion) {
         setBody(data.suggestion);
@@ -136,17 +134,15 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
       // Upload attachments first
       const attachmentPaths = await uploadAttachments();
 
-      const { data, error } = await supabase.functions.invoke("send-email", {
-        body: {
-          to,
-          subject,
-          body,
-          attachments: attachmentPaths,
-          replyToEmailId: replyTo?.email,
-        },
+      const data = await communicationsService.sendEmail({
+        to,
+        subject,
+        body,
+        attachments: attachmentPaths,
+        replyToEmailId: replyTo?.email,
       });
 
-      if (error) throw error;
+      if (!data.success) throw new Error(data.error || "Failed to send email");
 
       toast.success("Email sent successfully");
       setTo("");
