@@ -3,7 +3,7 @@
  * Phase 2 & 3: Edge Function Security Audit + Role Authorization Hardening
  */
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
 
 export type UserRole = 'admin' | 'partner' | 'strategist' | 'candidate' | 'finance';
 
