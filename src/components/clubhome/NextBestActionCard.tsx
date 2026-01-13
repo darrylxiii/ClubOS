@@ -157,6 +157,13 @@ export const NextBestActionCard = () => {
   if (!nextAction) return null;
 
   const IconComponent = nextAction.icon;
+  
+  // Safety check for icon component
+  if (!IconComponent || typeof IconComponent !== 'function') {
+    console.error('[NextBestActionCard] Invalid icon component:', IconComponent);
+    return null;
+  }
+  
   const priorityColors = {
     high: 'border-orange-500/30 bg-orange-500/5',
     medium: 'border-primary/30 bg-primary/5',
