@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { getAppUrl } from "../_shared/app-config.ts";
 
