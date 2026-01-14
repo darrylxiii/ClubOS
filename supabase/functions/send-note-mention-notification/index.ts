@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-import { corsHeaders } from '../_shared/cors.ts';
+import { publicCorsHeaders as corsHeaders } from '../_shared/cors-config.ts';
 import { sendMentionEmail } from '../_shared/email-notification-templates.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

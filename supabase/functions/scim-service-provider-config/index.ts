@@ -1,4 +1,4 @@
-import { corsHeaders } from '../_shared/cors.ts';
+import { publicCorsHeaders as corsHeaders } from '../_shared/cors-config.ts';
 
 const SERVICE_PROVIDER_CONFIG = {
   schemas: ['urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig'],
