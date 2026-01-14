@@ -3,11 +3,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 import { verifyRecaptcha, createRecaptchaErrorResponse } from '../_shared/recaptcha-verifier.ts';
 import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { publicCorsHeaders as corsHeaders } from '../_shared/cors-config.ts';
 
 // Input validation schema
 const requestSchema = z.object({
