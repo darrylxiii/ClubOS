@@ -1,6 +1,7 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { publicCorsHeaders } from "../_shared/cors-config.ts";
 
 import { handleCreateInvoice } from "./actions/create-invoice.ts";
 import { handleFetchFinancials } from "./actions/fetch-financials.ts";
@@ -8,10 +9,7 @@ import { handleSyncContacts } from "./actions/sync-contacts.ts";
 import { handleSyncInvoiceStatus } from "./actions/sync-invoice-status.ts";
 import { handleTestConnection } from "./actions/test-connection.ts";
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const corsHeaders = publicCorsHeaders;
 
 // Application Registry Mapping
 const ACTION_HANDLERS = {
