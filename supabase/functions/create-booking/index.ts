@@ -3,11 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { verifyRecaptcha, createRecaptchaErrorResponse } from "../_shared/recaptcha-verifier.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-recaptcha-token",
-};
+import { publicCorsHeaders as corsHeaders } from '../_shared/cors-config.ts';
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
