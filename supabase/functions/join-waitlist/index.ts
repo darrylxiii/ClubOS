@@ -1,12 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { publicCorsHeaders as corsHeaders } from '../_shared/cors-config.ts';
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {

@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
 import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
