@@ -2,12 +2,10 @@
  * Dynamic TURN Credentials Edge Function
  * Fetches time-limited TURN credentials from Twilio for enterprise video calls
  */
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { publicCorsHeaders } from "../_shared/cors-config.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const corsHeaders = publicCorsHeaders;
 
 interface TwilioToken {
   username: string;
