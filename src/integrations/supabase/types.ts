@@ -51947,6 +51947,7 @@ export type Database = {
         Args: { template_id: string }
         Returns: undefined
       }
+      is_admin_or_strategist: { Args: { _user_id: string }; Returns: boolean }
       is_company_blocked_by_candidate: {
         Args: { _candidate_id: string; _company_email: string }
         Returns: boolean
