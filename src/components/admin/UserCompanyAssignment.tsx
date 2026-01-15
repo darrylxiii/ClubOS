@@ -14,7 +14,7 @@ import { PageLoader } from "@/components/PageLoader";
 
 interface User {
   id: string;
-  email: string;
+  email: string | null;
   full_name: string | null;
 }
 

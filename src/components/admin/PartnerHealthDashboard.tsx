@@ -38,8 +38,7 @@ export function PartnerHealthDashboard() {
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
 
       const metricsQuery = supabase.from('partner_engagement_metrics').select('*').gte('date', sevenDaysAgo);
-      // @ts-expect-error - Avoiding deep type instantiation from Supabase queries  
-      const profilesQuery = supabase.from('profiles').select('*').eq('role', 'partner');
+      const profilesQuery = supabase.from('profiles').select('*');
 
       const metricsResult: any = await metricsQuery;
       const profilesResult: any = await profilesQuery;

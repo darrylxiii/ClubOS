@@ -147,9 +147,9 @@ export function AdminApplicationHub() {
         case 'date-asc':
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'name-asc':
-          return a.full_name.localeCompare(b.full_name);
+          return (a.full_name ?? '').localeCompare(b.full_name ?? '');
         case 'name-desc':
-          return b.full_name.localeCompare(a.full_name);
+          return (b.full_name ?? '').localeCompare(a.full_name ?? '');
         default:
           return 0;
       }
@@ -164,10 +164,10 @@ export function AdminApplicationHub() {
     try {
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: selectedApplication.email,
+        email: selectedApplication.email ?? '',
         email_confirm: true,
         user_metadata: {
-          full_name: selectedApplication.full_name
+          full_name: selectedApplication.full_name ?? ''
         }
       });
 

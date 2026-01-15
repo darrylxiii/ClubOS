@@ -58,7 +58,7 @@ export const DailyChallenges = () => {
         const { data: progressData } = await supabase
           .from('user_challenge_progress')
           .select('*')
-          .eq('user_id', user?.id)
+          .eq('user_id', user?.id ?? '')
           .in(
             'challenge_id',
             challengesData.map((c) => c.id)
@@ -84,7 +84,7 @@ export const DailyChallenges = () => {
     const { data: completedChallenges } = await supabase
       .from('user_challenge_progress')
       .select('completed_at')
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.id ?? '')
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: false })
       .limit(30);
@@ -140,11 +140,12 @@ export const DailyChallenges = () => {
 
   const renderChallenge = (challenge: Challenge) => {
     const prog = progress.get(challenge.id);
+    const currentProgress = prog?.current_progress ?? 0;
     const progressPercentage = prog
-      ? Math.min((prog.current_progress / prog.target_value) * 100, 100)
+      ? Math.min((currentProgress / prog.target_value) * 100, 100)
       : 0;
     const isCompleted = !!prog?.completed_at;
-    const remaining = prog ? prog.target_value - prog.current_progress : challenge.criteria.count || 1;
+    const remaining = prog ? prog.target_value - currentProgress : challenge.criteria.count || 1;
 
     return (
       <Card

@@ -43,15 +43,16 @@ export const ProjectConfigHistory = ({ jobId }: ProjectConfigHistoryProps) => {
         setLoading(true);
         try {
             const { data, error } = await supabase
-                .from('recruitment_project_configs')
+                .from('recruitment_project_configs' as any)
                 .select('*')
                 .eq('job_id', jobId)
                 .order('version', { ascending: false });
 
             if (error) throw error;
-            setHistory(data || []);
-            if (data && data.length > 0) {
-                setSelectedVersion(data[0]);
+            const configs = (data || []) as ProjectConfig[];
+            setHistory(configs);
+            if (configs.length > 0) {
+                setSelectedVersion(configs[0]);
             }
         } catch (error) {
             console.error('Error fetching config history:', error);
@@ -67,7 +68,7 @@ export const ProjectConfigHistory = ({ jobId }: ProjectConfigHistoryProps) => {
         try {
             // 1. Deactivate current active config
             await supabase
-                .from('recruitment_project_configs')
+                .from('recruitment_project_configs' as any)
                 .update({ is_active: false })
                 .eq('job_id', jobId)
                 .eq('is_active', true);
@@ -75,7 +76,7 @@ export const ProjectConfigHistory = ({ jobId }: ProjectConfigHistoryProps) => {
             // 2. Create new version with old config content
             const latestVersion = history.length > 0 ? history[0].version : 0;
             const { error } = await supabase
-                .from('recruitment_project_configs')
+                .from('recruitment_project_configs' as any)
                 .insert({
                     job_id: jobId,
                     config: config.config,
