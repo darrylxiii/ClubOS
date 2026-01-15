@@ -12,7 +12,7 @@ interface TopAchievement {
   name: string;
   icon_emoji: string;
   rarity: string;
-  animation_effect: string;
+  animation_effect: string | null;
   unlocked_at: string;
 }
 
@@ -30,12 +30,14 @@ export const AchievementHero = () => {
   }, [user]);
 
   const fetchHeroData = async () => {
+    if (!user?.id) return;
+
     try {
       // Fetch profile
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user?.id)
+        .eq("id", user.id)
         .single();
 
       setProfile(profileData);
@@ -47,7 +49,7 @@ export const AchievementHero = () => {
           *,
           achievement:quantum_achievements(*)
         `)
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .order("unlocked_at", { ascending: false })
         .limit(3);
 
@@ -69,13 +71,12 @@ export const AchievementHero = () => {
       const { data: engagement } = await supabase
         .from("user_engagement")
         .select("experience_points")
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .single();
 
-      if (engagement) {
-        setTotalXP(engagement.experience_points);
-        setNextMilestone(Math.ceil(engagement.experience_points / 1000) * 1000);
-      }
+      const xp = engagement?.experience_points ?? 0;
+      setTotalXP(xp);
+      setNextMilestone(Math.ceil(xp / 1000) * 1000 || 1000);
     } catch (error) {
       console.error("Error fetching hero data:", error);
     }

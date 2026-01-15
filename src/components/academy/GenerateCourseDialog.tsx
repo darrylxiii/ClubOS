@@ -51,6 +51,10 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
 
     const handleCreate = async () => {
         if (!user || !generatedCourse) return;
+        if (!academyId) {
+            notify.error('Missing academy', { description: 'Please open this from an academy.' });
+            return;
+        }
 
         setLoading(true);
         try {
@@ -62,16 +66,18 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
 
             const { data: course, error: courseError } = await supabase
                 .from("courses")
-                .insert({
-                    title: generatedCourse.title,
-                    slug: `${slug}-${Date.now()}`, // Ensure uniqueness
-                    description: generatedCourse.description,
-                    difficulty_level: generatedCourse.difficulty_level,
-                    estimated_hours: generatedCourse.estimated_hours,
-                    academy_id: academyId,
-                    created_by: user.id,
-                    is_published: false
-                })
+                .insert([
+                    {
+                        title: generatedCourse.title,
+                        slug: `${slug}-${Date.now()}`, // Ensure uniqueness
+                        description: generatedCourse.description,
+                        difficulty_level: generatedCourse.difficulty_level,
+                        estimated_hours: generatedCourse.estimated_hours,
+                        academy_id: academyId,
+                        created_by: user.id,
+                        is_published: false,
+                    },
+                ])
                 .select()
                 .single();
 

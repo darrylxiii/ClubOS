@@ -61,15 +61,17 @@ export const QuickAccessHub = () => {
 
       const pageTitle = history.length > 0 ? history[history.length - 1].title : 'Unknown Page';
 
-      const { error } = await supabase.from('user_feedback').insert([{
-        user_id: user.id,
-        rating,
-        comment: comment || null,
-        page_path: location.pathname,
-        page_title: pageTitle,
-        email: profile?.email || '',
-        role: userRole?.role || null,
-      }]);
+      const { error } = await supabase.from('user_feedback').insert([
+        {
+          user_id: user.id,
+          rating,
+          comment: comment || null,
+          page_path: location.pathname,
+          page_title: pageTitle,
+          email: profile?.email || '',
+          role: userRole?.role ?? 'unknown',
+        },
+      ]);
 
       if (error) throw error;
 

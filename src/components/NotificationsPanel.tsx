@@ -18,17 +18,17 @@ import {
 import { useTranslation } from 'react-i18next';
 import { T } from '@/components/T';
 
-interface Notification {
+interface AppNotification {
   id: string;
   user_id: string;
   title: string;
   message: string;
   type: string;
-  category: string | null;
+  category: string;
   is_read: boolean;
-  is_archived: boolean | null;
+  is_archived: boolean;
   action_url: string | null;
-  metadata: any;
+  metadata: unknown;
   created_at: string;
   read_at: string | null;
 }
@@ -37,7 +37,7 @@ export const NotificationsPanel = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
 
@@ -69,7 +69,14 @@ export const NotificationsPanel = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setNotifications(data || []);
+
+      const normalized: AppNotification[] = (data || []).map((n: any) => ({
+        ...n,
+        category: n.category ?? 'general',
+        is_archived: n.is_archived ?? false,
+      }));
+
+      setNotifications(normalized);
     } catch (error) {
       console.error('Error loading notifications:', error);
       toast.error('Failed to load notifications');
@@ -92,8 +99,14 @@ export const NotificationsPanel = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          setNotifications(prev => [payload.new as Notification, ...prev]);
-          toast.info((payload.new as any).title);
+          const next: AppNotification = {
+            ...(payload.new as any),
+            category: (payload.new as any).category ?? 'general',
+            is_archived: (payload.new as any).is_archived ?? false,
+          };
+
+          setNotifications((prev) => [next, ...prev]);
+          toast.info(next.title);
         }
       )
       .subscribe();
@@ -201,7 +214,7 @@ export const NotificationsPanel = () => {
     }
   };
 
-  const handleNotificationClick = async (notification: Notification) => {
+  const handleNotificationClick = async (notification: AppNotification) => {
     if (!notification.is_read) {
       await markAsRead(notification.id);
     }
@@ -218,10 +231,10 @@ export const NotificationsPanel = () => {
 
   const groupedNotifications = useMemo(() => {
     const groups = {
-      today: [] as Notification[],
-      yesterday: [] as Notification[],
-      thisWeek: [] as Notification[],
-      older: [] as Notification[]
+      today: [] as AppNotification[],
+      yesterday: [] as AppNotification[],
+      thisWeek: [] as AppNotification[],
+      older: [] as AppNotification[]
     };
 
     notifications.forEach(n => {
@@ -362,15 +375,15 @@ function VirtualizedNotificationList({
   deleteNotification,
   handleNotificationClick,
 }: {
-  groupedNotifications: Record<string, Notification[]>;
+  groupedNotifications: Record<string, AppNotification[]>;
   markAsRead: (id: string) => Promise<void>;
   archiveNotification: (id: string) => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
-  handleNotificationClick: (notification: Notification) => Promise<void>;
+  handleNotificationClick: (notification: AppNotification) => Promise<void>;
 }) {
   // Flatten notifications for virtualization
   const flatItems = useMemo(() => {
-    const items: Array<{ type: 'header'; period: string; count: number } | { type: 'notification'; notification: Notification }> = [];
+    const items: Array<{ type: 'header'; period: string; count: number } | { type: 'notification'; notification: AppNotification }> = [];
     
     Object.entries(groupedNotifications).forEach(([period, notifications]) => {
       if (notifications.length > 0) {
