@@ -174,19 +174,19 @@ export function ApplicationsTable({
                   </div>
                   <div className="w-[150px]">
                     <div className="text-sm">{app.email}</div>
-                    <div className="text-xs text-muted-foreground">{maskPhone(app.phone)}</div>
+                    <div className="text-xs text-muted-foreground">{maskPhone(app.phone ?? '')}</div>
                   </div>
                   <div className="w-[150px] truncate text-sm">
                     {app.current_title || 'Not specified'}
                   </div>
                   <div className="w-[120px] text-sm">
-                    {formatSalary(app.desired_salary_min, app.desired_salary_max)}
+                    {formatSalary(app.desired_salary_min ?? undefined, app.desired_salary_max ?? undefined)}
                   </div>
                   <div className="w-[100px] text-sm">
-                    {formatDistanceToNow(new Date(app.created_at), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(app.created_at ?? new Date()), { addSuffix: true })}
                   </div>
                   <div className="w-[100px]">
-                    {getStatusBadge(app.application_status)}
+                    {getStatusBadge(app.application_status ?? 'applied')}
                   </div>
                   <div className="w-[150px] flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                     <Button size="sm" variant="ghost" onClick={() => onViewDetails(app)}>

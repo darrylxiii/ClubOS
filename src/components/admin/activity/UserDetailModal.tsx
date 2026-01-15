@@ -114,7 +114,7 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
                     {userData.profile.full_name?.charAt(0) || userData.profile.email?.charAt(0)?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-background ${getStatusColor(userData.activity?.last_activity_at)}`} />
+                <div className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-background ${getStatusColor(userData.activity?.last_activity_at ?? null)}`} />
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold">

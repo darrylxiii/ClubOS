@@ -49,7 +49,7 @@ export const ProjectConfigHistory = ({ jobId }: ProjectConfigHistoryProps) => {
                 .order('version', { ascending: false });
 
             if (error) throw error;
-            const configs = (data || []) as ProjectConfig[];
+            const configs = (data || []) as unknown as ProjectConfig[];
             setHistory(configs);
             if (configs.length > 0) {
                 setSelectedVersion(configs[0]);

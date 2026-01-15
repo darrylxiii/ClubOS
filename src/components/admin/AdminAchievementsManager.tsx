@@ -1046,7 +1046,7 @@ export const AdminAchievementsManager = () => {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleToggleQuantumActive(achievement.id, achievement.is_active)}
+                            onClick={() => handleToggleQuantumActive(achievement.id, achievement.is_active ?? false)}
                           >
                             {achievement.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                           </Button>

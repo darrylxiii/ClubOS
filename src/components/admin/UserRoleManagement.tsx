@@ -16,8 +16,8 @@ interface UserWithRoles {
   id: string;
   email: string;
   full_name: string | null;
-  created_at: string;
-  email_verified: boolean;
+  created_at: string | null;
+  email_verified: boolean | null;
   roles: string[];
 }
 
@@ -90,7 +90,11 @@ export function UserRoleManagement() {
         }).filter(role => role && role !== 'undefined' && role !== 'null');
         
         return {
-          ...profile,
+          id: profile.id,
+          email: profile.email ?? '',
+          full_name: profile.full_name,
+          email_verified: profile.email_verified,
+          created_at: profile.created_at,
           roles: safeRoles
         };
       });
@@ -267,14 +271,16 @@ export function UserRoleManagement() {
 
   const generateInviteLink = async () => {
     try {
+      const inviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const userId = (await supabase.auth.getUser()).data.user?.id;
       const { data, error } = await supabase
         .from('invite_codes')
-        .insert({
-          code: Math.random().toString(36).substring(2, 10).toUpperCase(),
-          created_by: (await supabase.auth.getUser()).data.user?.id,
+        .insert([{
+          code: inviteCode,
+          created_by: userId!,
           created_by_type: 'admin',
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        })
+        }])
         .select()
         .single();
 
@@ -297,7 +303,7 @@ export function UserRoleManagement() {
         user.full_name || '',
         user.roles.join(', '),
         user.email_verified ? 'Yes' : 'No',
-        new Date(user.created_at).toLocaleDateString()
+        new Date(user.created_at ?? new Date()).toLocaleDateString()
       ])
     ].map(row => row.join(',')).join('\n');
 
@@ -413,7 +419,7 @@ export function UserRoleManagement() {
                     )}
                   </TableCell>
                   <TableCell>
-                    {new Date(user.created_at).toLocaleDateString()}
+                    {new Date(user.created_at ?? new Date()).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button

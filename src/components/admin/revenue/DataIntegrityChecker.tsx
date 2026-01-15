@@ -28,7 +28,7 @@ interface IntegrityIssue {
   issue_type: string;
   record_id: string;
   description: string;
-  detected_at: string;
+  detected_at: string | null;
 }
 
 export function DataIntegrityChecker() {

@@ -191,7 +191,7 @@ export function UnifiedUserManagement() {
     // Basic search
     if (searchQuery) {
       filtered = filtered.filter(user => 
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (user.email ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.company_name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -433,14 +433,16 @@ export function UnifiedUserManagement() {
 
   const generateInviteLink = async () => {
     try {
+      const inviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const userId = (await supabase.auth.getUser()).data.user?.id;
       const { data, error } = await supabase
         .from('invite_codes')
-        .insert({
-          code: Math.random().toString(36).substring(2, 10).toUpperCase(),
-          created_by: (await supabase.auth.getUser()).data.user?.id,
+        .insert([{
+          code: inviteCode,
+          created_by: userId!,
           created_by_type: 'admin',
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        })
+        }])
         .select()
         .single();
 
@@ -465,7 +467,7 @@ export function UnifiedUserManagement() {
         user.company_name || '',
         user.company_role || '',
         user.email_verified ? 'Yes' : 'No',
-        new Date(user.created_at).toLocaleDateString()
+        new Date(user.created_at ?? new Date()).toLocaleDateString()
       ])
     ].map(row => row.join(',')).join('\n');
 
@@ -707,7 +709,7 @@ export function UnifiedUserManagement() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {new Date(user.created_at).toLocaleDateString()}
+                        {new Date(user.created_at ?? new Date()).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">

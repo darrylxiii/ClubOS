@@ -105,7 +105,11 @@ export function StrategistAssignmentDialog({
 
       return {
         ...assignmentData,
-        strategist: profile,
+        strategist: profile ? {
+          id: profile.id,
+          full_name: profile.full_name ?? 'Unknown',
+          avatar_url: profile.avatar_url,
+        } : null,
       };
     },
     enabled: open,

@@ -62,8 +62,8 @@ export const QuantumPulse = () => {
                 .eq('status', 'pending');
 
             setStalledCount(count || 0);
-        } catch (_e) {
-            console.error("Pulse error:", e);
+        } catch (err) {
+            console.error("Pulse error:", err);
         }
     };
 
