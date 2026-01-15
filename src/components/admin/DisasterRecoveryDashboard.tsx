@@ -832,7 +832,7 @@ export const DisasterRecoveryDashboard = () => {
                       <div>
                         <p className="font-medium">{incident.title}</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(incident.created_at).toLocaleString()}
+                          {new Date(incident.created_at ?? new Date()).toLocaleString()}
                         </p>
                       </div>
                     </div>

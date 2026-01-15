@@ -583,6 +583,8 @@ export function UnifiedKPICommandCenter() {
       {/* Command Palette */}
       <Suspense fallback={null}>
         <KPICommandRegistry
+          open={commandPaletteOpen}
+          onOpenChange={setCommandPaletteOpen}
           kpis={allKPIs}
           pinnedKPIIds={pinnedSet}
           onSelectKPI={(kpi) => { setSelectedKPI(kpi); setCommandPaletteOpen(false); }}

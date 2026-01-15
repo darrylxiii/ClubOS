@@ -171,13 +171,22 @@ export const AdminMemberRequests = () => {
       const enrichedRequests = await Promise.all(
         (requestsData || []).filter(request => request.id).map(async (request) => {
           const enriched: MemberRequest = { 
-            ...request,
             id: request.id!,
             name: request.name ?? 'Unknown',
             email: request.email ?? '',
+            phone: request.phone ?? null,
+            title_or_company: request.title_or_company ?? null,
+            location: request.location ?? null,
+            desired_salary_min: request.desired_salary_min ?? null,
+            desired_salary_max: request.desired_salary_max ?? null,
+            resume_url: request.resume_url ?? null,
+            linkedin_url: request.linkedin_url ?? null,
             request_type: request.request_type as 'candidate' | 'partner',
             status: request.status as 'pending' | 'approved' | 'declined',
-            additional_data: request.additional_data as MemberRequest['additional_data'],
+            created_at: request.created_at ?? new Date().toISOString(),
+            reviewed_at: request.reviewed_at ?? null,
+            decline_reason: request.decline_reason ?? null,
+            additional_data: request.additional_data as MemberRequest['additional_data'] ?? null,
           };
 
           // Fetch additional data for candidates (including onboarding progress)

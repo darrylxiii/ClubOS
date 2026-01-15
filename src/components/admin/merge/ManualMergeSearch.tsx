@@ -11,18 +11,18 @@ import { MergePreviewDialog } from "./MergePreviewDialog";
 interface CandidateProfile {
   id: string;
   full_name: string;
-  email: string;
-  phone?: string;
-  profile_completeness?: number;
-  invitation_status?: string;
-  user_id?: string;
+  email: string | null;
+  phone?: string | null;
+  profile_completeness?: number | null;
+  invitation_status?: string | null;
+  user_id?: string | null;
 }
 
 interface UserProfile {
   id: string;
-  full_name: string;
-  email: string;
-  created_at: string;
+  full_name: string | null;
+  email: string | null;
+  created_at: string | null;
 }
 
 export function ManualMergeSearch() {

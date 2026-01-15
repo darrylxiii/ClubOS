@@ -10,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 interface StrategistActivity {
   user_id: string;
   full_name: string | null;
-  email: string;
+  email: string | null;
   avatar_url: string | null;
   last_activity_at: string | null;
   total_actions: number;
@@ -178,7 +178,7 @@ export function StrategistIntelligenceTab() {
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={strategist.avatar_url || undefined} />
                           <AvatarFallback>
-                            {strategist.full_name?.charAt(0) || strategist.email.charAt(0).toUpperCase()}
+                            {strategist.full_name?.charAt(0) || (strategist.email ?? '?').charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${getStatusColor(strategist.online_status)}`} />

@@ -49,7 +49,7 @@ export const CandidateSelectorTable = ({
           .select("candidate_id")
           .eq("job_id", jobFilter);
         
-        const candidateIds = applications?.map(a => a.candidate_id).filter(Boolean) || [];
+        const candidateIds = applications?.map(a => a.candidate_id).filter((id): id is string => Boolean(id)) || [];
         if (candidateIds.length > 0) {
           query = query.in("id", candidateIds);
         } else {

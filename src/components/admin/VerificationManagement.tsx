@@ -52,7 +52,7 @@ export const VerificationManagement = () => {
       
       // Fetch profile info for each user
       if (data) {
-        const userIds = [...new Set(data.map(a => a.user_id))];
+        const userIds = [...new Set(data.map(a => a.user_id).filter((id): id is string => id !== null))];
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name, email')
@@ -61,7 +61,7 @@ export const VerificationManagement = () => {
         const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
         const enrichedData = data.map(attempt => ({
           ...attempt,
-          profiles: profilesMap.get(attempt.user_id)
+          profiles: attempt.user_id ? profilesMap.get(attempt.user_id) : undefined
         }));
         
         setAttempts(enrichedData as any);

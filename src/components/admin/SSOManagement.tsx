@@ -284,7 +284,7 @@ export const SSOManagement = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleToggleConnection(connection.id, connection.is_active)}
+                    onClick={() => handleToggleConnection(connection.id, connection.is_active ?? false)}
                   >
                     {connection.is_active ? 'Disable' : 'Enable'}
                   </Button>

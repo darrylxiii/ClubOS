@@ -119,7 +119,7 @@ export function ApplicationDetailDrawer({
       }
     };
     
-    const variant = variants[application.application_status] || variants.applied;
+    const variant = variants[application.application_status ?? 'applied'] || variants.applied;
     return <Badge className={variant.className}>{variant.label}</Badge>;
   };
 

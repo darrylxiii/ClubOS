@@ -7,7 +7,7 @@ import { differenceInMinutes } from 'date-fns';
 
 export function ImpersonationBanner() {
   const { isImpersonating, activeSession, endImpersonation, getTargetUserInfo, isLoading } = useImpersonation();
-  const [targetUser, setTargetUser] = useState<{ full_name: string; email: string } | null>(null);
+  const [targetUser, setTargetUser] = useState<{ full_name: string | null; email: string | null } | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
 
   useEffect(() => {
