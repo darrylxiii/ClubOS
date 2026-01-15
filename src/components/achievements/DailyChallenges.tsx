@@ -11,17 +11,17 @@ import { toast } from 'sonner';
 interface Challenge {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   challenge_type: string;
   criteria: any;
-  bonus_points: number;
-  start_date: string;
-  end_date: string;
+  bonus_points: number | null;
+  start_date: string | null;
+  end_date: string | null;
 }
 
 interface ChallengeProgress {
   challenge_id: string;
-  current_progress: number;
+  current_progress: number | null;
   target_value: number;
   completed_at: string | null;
 }
@@ -52,7 +52,7 @@ export const DailyChallenges = () => {
         .order('challenge_type', { ascending: true });
 
       if (challengesData) {
-        setChallenges(challengesData);
+        setChallenges(challengesData as any);
 
         // Fetch user's progress for these challenges
         const { data: progressData } = await supabase
@@ -64,9 +64,12 @@ export const DailyChallenges = () => {
             challengesData.map((c) => c.id)
           );
 
-        const progressMap = new Map(
-          progressData?.map((p) => [p.challenge_id, p]) || []
-        );
+        const progressMap = new Map<string, ChallengeProgress>();
+        (progressData || []).forEach((p: any) => {
+          if (!p.challenge_id) return;
+          progressMap.set(p.challenge_id, p as ChallengeProgress);
+        });
+
         setProgress(progressMap);
       }
     } catch (error) {

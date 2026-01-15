@@ -70,12 +70,15 @@ export const AchievementFeed = () => {
             .select("*", { count: "exact", head: true })
             .eq("user_achievement_id", item.id);
 
-          const { data: userReaction } = await supabase
-            .from("achievement_reactions")
-            .select("id")
-            .eq("user_achievement_id", item.id)
-            .eq("reactor_id", user?.id)
-            .single();
+          const reactorId = user?.id;
+          const { data: userReaction } = reactorId
+            ? await supabase
+                .from("achievement_reactions")
+                .select("id")
+                .eq("user_achievement_id", item.id)
+                .eq("reactor_id", reactorId)
+                .single()
+            : { data: null as any };
 
           return {
             id: item.id,
@@ -122,20 +125,27 @@ export const AchievementFeed = () => {
   };
 
   const handleReaction = async (achievementId: string, currentlyReacted: boolean) => {
+    if (!user?.id) {
+      toast.error('Please sign in to react');
+      return;
+    }
+
     try {
       if (currentlyReacted) {
         await supabase
           .from("achievement_reactions")
           .delete()
           .eq("user_achievement_id", achievementId)
-          .eq("reactor_id", user?.id);
+          .eq("reactor_id", user.id);
         toast.success("Reaction removed");
       } else {
-        await supabase.from("achievement_reactions").insert({
-          user_achievement_id: achievementId,
-          reactor_id: user?.id,
-          reaction_type: "applause",
-        });
+        await supabase.from("achievement_reactions").insert([
+          {
+            user_achievement_id: achievementId,
+            reactor_id: user.id,
+            reaction_type: "applause",
+          },
+        ]);
         toast.success("Quantum applause sent! 👏");
       }
       fetchFeed();

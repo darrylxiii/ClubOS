@@ -62,14 +62,18 @@ export const AchievementLeaderboard = () => {
 
       // Weekly leaders (sort by weekly_achievements)
       const weeklyData = allTime
-        ? [...allTime].sort((a, b) => b.weekly_achievements - a.weekly_achievements).slice(0, 50)
+        ? [...allTime]
+            .sort((a, b) => (b.weekly_achievements ?? 0) - (a.weekly_achievements ?? 0))
+            .slice(0, 50)
         : [];
       const weeklyLeaders = await enrichLeaderboardData(weeklyData);
       setWeeklyLeaders(weeklyLeaders);
 
       // Monthly leaders (sort by monthly_achievements)
       const monthlyData = allTime
-        ? [...allTime].sort((a, b) => b.monthly_achievements - a.monthly_achievements).slice(0, 50)
+        ? [...allTime]
+            .sort((a, b) => (b.monthly_achievements ?? 0) - (a.monthly_achievements ?? 0))
+            .slice(0, 50)
         : [];
       const monthlyLeaders = await enrichLeaderboardData(monthlyData);
       setMonthlyLeaders(monthlyLeaders);
@@ -125,11 +129,11 @@ export const AchievementLeaderboard = () => {
         user_id: entry.user_id,
         full_name: profile?.full_name || 'Quantum Member',
         avatar_url: profile?.avatar_url || '',
-        total_achievements: entry.total_achievements,
-        total_xp: entry.total_xp,
-        rank_position: entry.rank_position,
-        weekly_achievements: entry.weekly_achievements,
-        monthly_achievements: entry.monthly_achievements,
+        total_achievements: entry.total_achievements ?? 0,
+        total_xp: entry.total_xp ?? 0,
+        rank_position: entry.rank_position ?? 0,
+        weekly_achievements: entry.weekly_achievements ?? 0,
+        monthly_achievements: entry.monthly_achievements ?? 0,
         rarest_achievement: achievement
           ? {
               name: achievement.name,

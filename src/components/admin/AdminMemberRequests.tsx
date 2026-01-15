@@ -18,7 +18,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MemberApprovalWorkflowDialog } from "./approval/MemberApprovalWorkflowDialog";
 
 interface MemberRequest {
-  id: string;
+  id: string | null;
   request_type: 'candidate' | 'partner';
   name: string;
   email: string;
@@ -180,6 +180,7 @@ export const AdminMemberRequests = () => {
           // Fetch additional data for candidates (including onboarding progress)
           if (request.request_type === 'candidate') {
             const userId = request.id;
+            if (!userId) return enriched;
             
             // Fetch onboarding progress from profiles
             const { data: profileData } = await supabase
@@ -300,7 +301,7 @@ export const AdminMemberRequests = () => {
   };
 
   const handleReview = async () => {
-    if (!selectedRequest || !reviewAction) return;
+    if (!selectedRequest || !selectedRequest.id || !reviewAction) return;
 
     console.log('[AdminMemberRequests] Starting review process', {
       request: selectedRequest.name,

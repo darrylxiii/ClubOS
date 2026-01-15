@@ -34,27 +34,29 @@ interface CompanyAchievement {
 interface QuantumAchievement {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   icon_emoji: string;
   category: string;
   rarity: string;
-  points: number;
-  is_active: boolean;
-  is_deprecated: boolean;
+  points: number | null;
+  is_active: boolean | null;
+  is_deprecated: boolean | null;
   unlock_criteria: any;
+  animation_effect?: string | null;
+  animation_type?: string | null;
   unlock_count?: number;
   created_at?: string;
 }
 
 interface Earner {
   id: string;
-  user_id?: string;
-  earned_company_id?: string;
+  user_id?: string | null;
+  earned_company_id?: string | null;
   earned_at?: string;
   unlocked_at?: string;
-  user_name?: string;
-  company_name?: string;
-  granted_by?: string;
+  user_name?: string | null;
+  company_name?: string | null;
+  granted_by?: string | null;
 }
 
 export const AdminAchievementsManager = () => {
@@ -558,9 +560,9 @@ export const AdminAchievementsManager = () => {
     setSelectedQuantumAchievement(achievement);
     setEditQuantumForm({
       name: achievement.name,
-      description: achievement.description,
+      description: achievement.description ?? '',
       icon_emoji: achievement.icon_emoji,
-      points: achievement.points
+      points: achievement.points ?? 0,
     });
     setEditQuantumDialogOpen(true);
   };
@@ -595,11 +597,11 @@ export const AdminAchievementsManager = () => {
 
   const filteredQuantumAchievements = quantumAchievements.filter(a => {
     const matchesSearch = a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         a.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+                         (a.description ?? '').toLowerCase().includes(searchQuery.toLowerCase());
+
     const matchesCategory = filterCategory === 'all' || a.category === filterCategory;
     const matchesRarity = filterRarity === 'all' || a.rarity === filterRarity;
-    
+
     return matchesSearch && matchesCategory && matchesRarity;
   });
 
