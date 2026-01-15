@@ -27,13 +27,13 @@ import {
 
 interface SSOConnection {
   id: string;
-  company_id: string;
+  company_id: string | null;
   idp_type: string;
   idp_name: string;
   entity_id: string;
   sso_url: string;
-  is_active: boolean;
-  created_at: string;
+  is_active: boolean | null;
+  created_at: string | null;
 }
 
 export const SSOManagement = () => {

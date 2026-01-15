@@ -11,17 +11,17 @@ import { getInitials } from "@/lib/strings";
 
 interface Application {
   id: string;
-  full_name: string;
-  email: string;
-  phone: string;
-  current_title?: string;
-  desired_salary_min?: number;
-  desired_salary_max?: number;
-  application_status: string;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  current_title?: string | null;
+  desired_salary_min?: number | null;
+  desired_salary_max?: number | null;
+  application_status: string | null;
   created_at: string;
-  remote_preference?: string;
-  user_id?: string;
-  email_verified?: boolean;
+  remote_preference?: string | null;
+  user_id?: string | null;
+  email_verified?: boolean | null;
 }
 
 interface ApplicationsTableProps {

@@ -16,7 +16,7 @@ interface UserRoleOption {
 export const AdminRoleSwitcher = () => {
   const { currentRole, availableRoles, switchRole, loading } = useRole();
 
-  const roleOptions: Record<UserRole, UserRoleOption> = {
+  const roleOptions: Record<string, UserRoleOption> = {
     admin: {
       value: 'admin',
       label: 'Admin',
@@ -58,7 +58,7 @@ export const AdminRoleSwitcher = () => {
   const handleRoleChange = async (newRole: string) => {
     try {
       await switchRole(newRole as UserRole);
-      toast.success(`Switched to ${roleOptions[newRole as UserRole]?.label || newRole} view`, {
+      toast.success(`Switched to ${roleOptions[newRole]?.label || newRole} view`, {
         description: "Your dashboard has been updated"
       });
     } catch (error: any) {
@@ -87,9 +87,9 @@ export const AdminRoleSwitcher = () => {
     return null; // Don't show if user only has one role
   }
 
-  const roleOptionsList = availableRoles.map(role => ({
-    ...roleOptions[role],
-    value: role
+  const roleOptionsList = availableRoles.filter(role => role !== null).map(role => ({
+    ...(roleOptions[role as string] || { value: role, label: role, icon: Shield, description: 'Role access' }),
+    value: role as UserRole
   }));
 
   return (
@@ -107,11 +107,13 @@ export const AdminRoleSwitcher = () => {
         <RadioGroup value={currentRole || 'user'} onValueChange={handleRoleChange}>
           <div className="space-y-2">
             {roleOptionsList.map((role) => {
+              if (!role.value) return null;
               const Icon = role.icon;
+              const roleValue = role.value as string;
               const isActive = currentRole === role.value;
               return (
                 <div 
-                  key={role.value} 
+                  key={roleValue} 
                   className={`
                     flex items-start space-x-3 space-y-0 p-4 rounded-2xl
                     transition-all duration-300 cursor-pointer
@@ -120,11 +122,11 @@ export const AdminRoleSwitcher = () => {
                       : 'glass-subtle border border-white/5 hover:border-white/20 hover:shadow-glass-sm'
                     }
                   `}
-                  onClick={() => handleRoleChange(role.value)}
+                  onClick={() => handleRoleChange(roleValue)}
                 >
-                  <RadioGroupItem value={role.value} id={role.value} className="mt-1" />
+                  <RadioGroupItem value={roleValue} id={roleValue} className="mt-1" />
                   <Label
-                    htmlFor={role.value}
+                    htmlFor={roleValue}
                     className="font-normal cursor-pointer flex-1"
                   >
                     <div className="flex items-center gap-2 mb-1">

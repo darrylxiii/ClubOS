@@ -18,10 +18,10 @@ import { useNavigate } from "react-router-dom";
 
 interface UserWithRoles {
   id: string;
-  email: string;
+  email: string | null;
   full_name: string | null;
-  created_at: string;
-  email_verified: boolean;
+  created_at: string | null;
+  email_verified: boolean | null;
   company_id: string | null;
   company_name: string | null;
   company_role: string | null;
