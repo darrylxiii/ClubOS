@@ -11,9 +11,9 @@ import { Badge } from "@/components/ui/badge";
 
 interface User {
   id: string;
-  full_name: string;
-  avatar_url: string;
-  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  email: string | null;
 }
 
 interface BestFriendsManagerProps {

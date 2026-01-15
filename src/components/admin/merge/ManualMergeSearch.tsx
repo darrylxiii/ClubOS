@@ -278,7 +278,7 @@ export function ManualMergeSearch() {
                         <p className="font-medium">{user.full_name}</p>
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                         <p className="text-xs text-muted-foreground">
-                          Joined {new Date(user.created_at).toLocaleDateString()}
+                          Joined {new Date(user.created_at ?? new Date()).toLocaleDateString()}
                         </p>
                       </div>
                     </div>

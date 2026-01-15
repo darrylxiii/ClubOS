@@ -128,7 +128,7 @@ export function ApplicationCommentsThread({
         .from('candidate_comments')
         .delete()
         .eq('id', commentId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id ?? '');
 
       if (error) throw error;
 

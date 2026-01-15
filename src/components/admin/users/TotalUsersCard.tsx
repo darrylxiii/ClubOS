@@ -11,8 +11,8 @@ export const TotalUsersCard = () => {
     return <MetricCardSkeleton />;
   }
 
-  const verificationRate = metrics.total_users > 0
-    ? (metrics.verified_users / metrics.total_users) * 100
+  const verificationRate = (metrics?.total_users ?? 0) > 0
+    ? ((metrics?.verified_users ?? 0) / (metrics?.total_users ?? 1)) * 100
     : 0;
 
   // Mock trend data
@@ -27,7 +27,7 @@ export const TotalUsersCard = () => {
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <CardDescription>Total Users</CardDescription>
-            <CardTitle>{metrics.total_users.toLocaleString()}</CardTitle>
+            <CardTitle>{(metrics?.total_users ?? 0).toLocaleString()}</CardTitle>
           </div>
           <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
             <TrendingUp className="w-4 h-4" />
@@ -35,7 +35,7 @@ export const TotalUsersCard = () => {
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          {metrics.verified_users} verified • {metrics.pending_verification} pending
+          {metrics?.verified_users ?? 0} verified • {metrics?.pending_verification ?? 0} pending
         </p>
         <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
           <div
