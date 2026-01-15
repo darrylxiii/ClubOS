@@ -11,7 +11,7 @@ export const RolesDistributionCard = () => {
     return <MetricCardSkeleton />;
   }
 
-  const totalRoleCount = roleDistribution.reduce((sum, role) => sum + Number(role.user_count), 0);
+  const totalRoleCount = (roleDistribution ?? []).reduce((sum, role) => sum + Number(role.user_count), 0);
 
   // Mock trend data
   const trend = "+5.3%";
@@ -25,7 +25,7 @@ export const RolesDistributionCard = () => {
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <CardDescription>Role Distribution</CardDescription>
-            <CardTitle>{roleDistribution.length}</CardTitle>
+            <CardTitle>{(roleDistribution ?? []).length}</CardTitle>
           </div>
           <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
             <TrendingUp className="w-4 h-4" />
@@ -36,7 +36,7 @@ export const RolesDistributionCard = () => {
           {totalRoleCount} users with roles
         </p>
         <div className="mt-3 pt-3 border-t border-border/50 space-y-1.5">
-          {roleDistribution.slice(0, 3).map((role, idx) => (
+          {(roleDistribution ?? []).slice(0, 3).map((role, idx) => (
             <div key={idx} className="flex justify-between text-xs">
               <span className="capitalize text-foreground/80">{role.role}</span>
               <span className="text-muted-foreground font-medium">{role.user_count}</span>

@@ -279,7 +279,7 @@ export function DataIntegrityChecker() {
                     <TableCell className="font-medium">{getIssueLabel(issue.issue_type)}</TableCell>
                     <TableCell className="text-muted-foreground">{issue.description}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {new Date(issue.detected_at).toLocaleDateString()}
+                      {new Date(issue.detected_at ?? new Date()).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
                       <Button 

@@ -22,7 +22,7 @@ export const AudienceInsights = () => {
       const { data: userPosts } = await supabase
         .from("unified_posts")
         .select("id")
-        .eq("user_id", user?.id);
+        .eq("user_id", user?.id ?? '');
 
       const postIds = userPosts?.map((p) => p.id) || [];
 

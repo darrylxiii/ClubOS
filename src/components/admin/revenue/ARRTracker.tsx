@@ -78,7 +78,7 @@ export function ARRTracker() {
         const month = new Date(currentYear, i, 1);
         const monthName = month.toLocaleString('default', { month: 'short' });
         const monthInvoices = currentInvoices?.filter(inv => {
-          const invDate = new Date(inv.invoice_date);
+          const invDate = new Date(inv.invoice_date ?? new Date());
           return invDate.getMonth() === i;
         }) || [];
         const monthRevenue = monthInvoices.reduce((sum, inv) => 

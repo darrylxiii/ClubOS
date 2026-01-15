@@ -59,7 +59,7 @@ export function RecruiterCommissionsTable() {
     const employeeId = comm.employee_id;
     if (!acc[employeeId]) {
       acc[employeeId] = {
-        userProfile: comm.user_profile,
+        userProfile: comm.user_profile ?? null,
         commissions: [],
         totalEarned: 0,
         totalPaid: 0,
