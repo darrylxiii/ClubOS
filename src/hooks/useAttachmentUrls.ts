@@ -8,7 +8,6 @@ export const useAttachmentUrls = (attachments: MessageAttachment[]) => {
 
   useEffect(() => {
     let mounted = true;
-    let refreshTimer: NodeJS.Timeout;
 
     const loadUrls = async () => {
       if (!attachments || attachments.length === 0) {
@@ -40,9 +39,9 @@ export const useAttachmentUrls = (attachments: MessageAttachment[]) => {
     };
 
     loadUrls();
-    
+
     // Refresh URLs every 45 minutes (before 1 hour expiry)
-    refreshTimer = setInterval(loadUrls, 45 * 60 * 1000);
+    const refreshTimer = setInterval(loadUrls, 45 * 60 * 1000);
     
     return () => {
       mounted = false;

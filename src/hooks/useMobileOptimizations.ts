@@ -62,9 +62,9 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
   useEffect(() => {
     const getBatteryInfo = async () => {
       try {
-        // @ts-ignore - Battery API not in all TypeScript libs
+        // @ts-expect-error - Battery API not in all TypeScript libs
         if ('getBattery' in navigator) {
-          // @ts-ignore
+          // @ts-expect-error
           const battery = await navigator.getBattery();
           
           const updateBattery = () => {

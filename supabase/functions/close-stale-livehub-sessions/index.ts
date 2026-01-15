@@ -112,7 +112,7 @@ serve(async (req) => {
       .is('ended_at', null);
 
     for (const rec of emptyChannelRecordings || []) {
-      // @ts-ignore - count comes from Supabase
+      // @ts-expect-error - count comes from Supabase
       const participantCount = rec.channel?.participants?.[0]?.count || 0;
       
       if (participantCount === 0) {

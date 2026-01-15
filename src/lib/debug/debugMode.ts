@@ -151,6 +151,7 @@ class DebugMode {
     console.error(`[${category}]`, message, data);
 
     if (this.config.enabled && this.config.breakOnError) {
+      // eslint-disable-next-line no-debugger -- intentional for debugging
       debugger;
     }
   }

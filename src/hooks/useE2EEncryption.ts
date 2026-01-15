@@ -162,7 +162,7 @@ export function useE2EEncryption(meetingId: string) {
         if (!sender.track) continue;
         
         try {
-          // @ts-ignore - createEncodedStreams is not in TypeScript types
+          // @ts-expect-error - createEncodedStreams is not in TypeScript types
           const { readable, writable } = sender.createEncodedStreams();
           
           const transformStream = new TransformStream({
@@ -207,7 +207,7 @@ export function useE2EEncryption(meetingId: string) {
         if (!receiver.track) continue;
         
         try {
-          // @ts-ignore
+          // @ts-expect-error
           const { readable, writable } = receiver.createEncodedStreams();
           
           const transformStream = new TransformStream({
