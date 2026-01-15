@@ -16,7 +16,7 @@ interface TimelineActivity {
   id: string;
   activity_type: string;
   activity_data: any;
-  created_at: string;
+  created_at: string | null;
 }
 
 export function ActivityTimeline({ userId }: { userId: string }) {
@@ -61,7 +61,7 @@ export function ActivityTimeline({ userId }: { userId: string }) {
       if (error) throw error;
       setActivities(data || []);
     } catch (_error) {
-      console.error('Error fetching activities:', error);
+      console.error('Error fetching activities:', _error);
     } finally {
       setLoading(false);
     }
@@ -114,7 +114,7 @@ export function ActivityTimeline({ userId }: { userId: string }) {
     const grouped: Record<string, TimelineActivity[]> = {};
     
     activities.forEach(activity => {
-      const dateKey = formatTimeLabel(activity.created_at);
+      const dateKey = formatTimeLabel(activity.created_at ?? new Date().toISOString());
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
       }
@@ -193,7 +193,7 @@ export function ActivityTimeline({ userId }: { userId: string }) {
                         {config.label}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(activity.created_at ?? new Date()), { addSuffix: true })}
                       </p>
                     </div>
                   </div>

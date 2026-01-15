@@ -147,7 +147,7 @@ export function TrackList() {
                   )}
                   {track.tags && Array.isArray(track.tags) && track.tags.length > 0 && (
                     <div className="flex gap-1">
-                      {track.tags.slice(0, 2).map((tag: string) => (
+                      {(track.tags as string[]).slice(0, 2).map((tag: string) => (
                         <Badge key={tag} variant="outline" className="text-xs py-0">
                           {tag}
                         </Badge>

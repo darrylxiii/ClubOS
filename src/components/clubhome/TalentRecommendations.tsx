@@ -10,15 +10,15 @@ interface TalentMatch {
   userId: string;
   userName: string;
   currentTitle: string;
-  location: string | null;
-  yearsOfExperience: number | null;
+  location: string | null | undefined;
+  yearsOfExperience: number | null | undefined;
   topSkills: string[];
   matchScore: number;
   matchFactors: string[];
   jobId: string;
   jobTitle: string;
-  desiredSalaryMin: number | null;
-  desiredSalaryMax: number | null;
+  desiredSalaryMin: number | null | undefined;
+  desiredSalaryMax: number | null | undefined;
 }
 
 interface TalentRecommendationsProps {

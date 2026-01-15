@@ -182,7 +182,7 @@ export const BestFriendsManager = ({ isOpen, onClose }: BestFriendsManagerProps)
                     >
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarImage src={user.avatar_url} />
+                          <AvatarImage src={user.avatar_url ?? undefined} />
                           <AvatarFallback>
                             {user.full_name?.charAt(0).toUpperCase()}
                           </AvatarFallback>
@@ -229,8 +229,8 @@ export const BestFriendsManager = ({ isOpen, onClose }: BestFriendsManagerProps)
                       className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent/30"
                     >
                       <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={friend.avatar_url} />
+                      <Avatar>
+                          <AvatarImage src={friend.avatar_url ?? undefined} />
                           <AvatarFallback>
                             {friend.full_name?.charAt(0).toUpperCase()}
                           </AvatarFallback>

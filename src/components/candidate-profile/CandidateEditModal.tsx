@@ -102,7 +102,7 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
       const changedFields: string[] = [];
       if (beforeData && afterData) {
         Object.keys(afterData).forEach(key => {
-          if (JSON.stringify(beforeData[key]) !== JSON.stringify(afterData[key])) {
+          if (JSON.stringify((beforeData as Record<string, unknown>)[key]) !== JSON.stringify((afterData as Record<string, unknown>)[key])) {
             changedFields.push(key);
           }
         });

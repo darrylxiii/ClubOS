@@ -106,7 +106,7 @@ export const PartnerActivityFeed = ({ companyId }: PartnerActivityFeedProps) => 
             type: 'job',
             title: 'Job Posted',
             description: `${job.title} is now live`,
-            timestamp: job.created_at,
+            timestamp: job.created_at ?? new Date().toISOString(),
             icon: Briefcase,
             iconBgColor: 'bg-green-500/10 text-green-500'
           });
@@ -129,7 +129,7 @@ export const PartnerActivityFeed = ({ companyId }: PartnerActivityFeedProps) => 
             type: 'meeting',
             title: 'Meeting Scheduled',
             description: meeting.title,
-            timestamp: meeting.created_at,
+            timestamp: meeting.created_at ?? new Date().toISOString(),
             icon: Calendar,
             iconBgColor: 'bg-purple-500/10 text-purple-500'
           });

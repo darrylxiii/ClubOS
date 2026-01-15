@@ -94,7 +94,7 @@ export const CandidateHeroSection = ({
   // Get initials for avatar fallback
   const initials = candidateName
     .split(' ')
-    .map(n => n[0])
+    .map((n: string) => n[0])
     .filter(Boolean)
     .slice(0, 2)
     .join('')
