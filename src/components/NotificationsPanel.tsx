@@ -24,9 +24,9 @@ interface Notification {
   title: string;
   message: string;
   type: string;
-  category: string;
+  category: string | null;
   is_read: boolean;
-  is_archived: boolean;
+  is_archived: boolean | null;
   action_url: string | null;
   metadata: any;
   created_at: string;

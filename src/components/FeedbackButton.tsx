@@ -47,8 +47,8 @@ export const FeedbackButton = () => {
             setRating(parsed.rating);
             setComment(parsed.comment);
           }
-        } catch (_e) {
-          console.error('Failed to parse feedback draft:', e);
+        } catch (parseErr) {
+          console.error('Failed to parse feedback draft:', parseErr);
         }
       }
     }

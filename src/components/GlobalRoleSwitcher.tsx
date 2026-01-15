@@ -35,7 +35,8 @@ export const GlobalRoleSwitcher = () => {
     
     try {
       await switchRole(newRole);
-      toast.success(`Switched to ${roleConfig[newRole].label} view`, {
+      const config = currentRole ? roleConfig[currentRole] : null;
+      toast.success(`Switched to ${config?.label || newRole} view`, {
         description: "Your dashboard will update instantly"
       });
     } catch (error: any) {
@@ -46,14 +47,15 @@ export const GlobalRoleSwitcher = () => {
     }
   };
 
-  const CurrentIcon = roleConfig[currentRole]?.icon || User;
+  const safeRole = currentRole || 'user';
+  const CurrentIcon = roleConfig[safeRole]?.icon || User;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2" aria-label={`Current role: ${roleConfig[currentRole]?.label || 'Role'}. Click to switch roles.`}>
+        <Button variant="outline" size="sm" className="gap-2" aria-label={`Current role: ${roleConfig[safeRole]?.label || 'Role'}. Click to switch roles.`}>
           <CurrentIcon className="w-4 h-4" />
-          <span className="hidden sm:inline">{roleConfig[currentRole]?.label || 'Role'}</span>
+          <span className="hidden sm:inline">{roleConfig[safeRole]?.label || 'Role'}</span>
           <Badge variant="secondary" className="hidden md:inline-flex">
             {availableRoles.length} roles
           </Badge>

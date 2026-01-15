@@ -87,6 +87,7 @@
     "@tiptap/extensions": "^3.13.0",
     "@tiptap/react": "^3.15.3",
     "@tiptap/starter-kit": "^3.15.3",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/dompurify": "^3.2.0",
     "@types/qrcode": "^1.5.5",
     "canvas-confetti": "^1.9.3",

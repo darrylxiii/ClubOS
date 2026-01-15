@@ -97,15 +97,15 @@ export const AICareerChat = () => {
               assistantMessage += content;
               setMessages([...newMessages, { role: 'assistant', content: assistantMessage }]);
             }
-          } catch (_e) {
-            console.error(e);
+          } catch (parseErr) {
+            console.error(parseErr);
             // Incomplete JSON, will try again with next chunk
           }
         }
       }
 
-    } catch (_error) {
-      console.error('Error in chat:', error);
+    } catch (err) {
+      console.error('Error in chat:', err);
       toast.error("Failed to get response. Please try again.");
     } finally {
       setIsLoading(false);

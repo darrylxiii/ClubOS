@@ -18,11 +18,11 @@ const resetCache = async () => {
         }
         // Clear PWA storage
         ['pwa-update-dismissed', 'pwa-install-dismissed', 'sb-auth-token'].forEach(k => {
-            try { localStorage.removeItem(k); } catch (_e) { console.error(e); }
+            try { localStorage.removeItem(k); } catch (storageErr) { console.error(storageErr); }
         });
         console.log('[PageLoader] Cache cleared. Reloading...');
-    } catch (_e) {
-        console.error('[PageLoader] Failed to clear cache:', e);
+    } catch (cacheErr) {
+        console.error('[PageLoader] Failed to clear cache:', cacheErr);
     }
     // Force hard reload with cache bust
     window.location.href = window.location.href.split('?')[0] + '?cache_bust=' + Date.now();

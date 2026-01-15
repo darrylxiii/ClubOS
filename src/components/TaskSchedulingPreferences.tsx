@@ -55,13 +55,13 @@ export function TaskSchedulingPreferences() {
 
       if (data) {
         setPreferences({
-          auto_schedule_enabled: data.auto_schedule_enabled,
-          working_hours_start: data.working_hours_start,
-          working_hours_end: data.working_hours_end,
-          working_days: data.working_days,
-          preferred_task_duration_minutes: data.preferred_task_duration_minutes,
-          break_between_tasks_minutes: data.break_between_tasks_minutes,
-          max_tasks_per_day: data.max_tasks_per_day,
+          auto_schedule_enabled: data.auto_schedule_enabled ?? false,
+          working_hours_start: data.working_hours_start ?? "09:00",
+          working_hours_end: data.working_hours_end ?? "17:00",
+          working_days: data.working_days ?? [1, 2, 3, 4, 5],
+          preferred_task_duration_minutes: data.preferred_task_duration_minutes ?? 30,
+          break_between_tasks_minutes: data.break_between_tasks_minutes ?? 15,
+          max_tasks_per_day: data.max_tasks_per_day ?? 8,
         });
       }
     } catch (error) {
