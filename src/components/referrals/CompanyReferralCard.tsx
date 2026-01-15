@@ -2,11 +2,10 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Building2, ChevronDown, ChevronUp, Euro, Users, Briefcase } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
-import { ReferralPolicy, ReferralEarning, useCompanyJobs, useJobApplications } from "@/hooks/useReferralSystem";
+import { ReferralPolicy, ReferralEarning, useCompanyJobs } from "@/hooks/useReferralSystem";
 import { motion, AnimatePresence } from "framer-motion";
 import { JobReferralCard } from "./JobReferralCard";
 

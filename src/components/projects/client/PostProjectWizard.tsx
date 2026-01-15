@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import {
-  FileText, DollarSign, Clock, Users, Settings,
+  FileText, DollarSign, Clock, Settings,
   ChevronRight, ChevronLeft, Sparkles, CheckCircle2,
   Plus, X, Briefcase, Target, Eye
 } from "lucide-react";

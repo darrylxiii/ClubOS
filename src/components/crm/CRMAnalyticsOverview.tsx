@@ -1,11 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
 import {
   Users,
-  Mail,
   Calendar,
   TrendingUp,
   DollarSign,
@@ -17,8 +15,6 @@ import { useCRMAnalytics } from '@/hooks/useCRMAnalytics';
 import { CRMFunnelChart } from './CRMFunnelChart';
 import { CRMRevenueForecast } from "./CRMRevenueForecast";
 import { CampaignROIDashboard } from "@/components/analytics/CampaignROIDashboard";
-import { CRMTrendChart } from './CRMTrendChart';
-import { CRMCampaignStats } from './CRMCampaignStats';
 import { formatCurrency } from '@/lib/revenueCalculations';
 import { useState } from 'react';
 

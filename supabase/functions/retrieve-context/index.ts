@@ -26,7 +26,7 @@ serve(async (req) => {
         }
 
         // Fetch Hierarchical Knowledge Profiles (Voice & Insturctions)
-        let knowledgeContext = {
+        const knowledgeContext = {
             user: null,
             job: null,
             company: null
@@ -152,7 +152,7 @@ Output JSON: { "rewritten": "string", "entities": ["react", "google"] }`
         }
 
         // Merge Vector + Graph candidates
-        let candidates = [...(vectorContext || []), ...graphContext];
+        const candidates = [...(vectorContext || []), ...graphContext];
 
         // 3. Reranking (New Step)
         // Use LLM to pick the top 5 most relevant chunks

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ConnectionQuality, ConnectionStats } from '@/hooks/useConnectionQuality';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { RefreshCw, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MeetingConnectionIndicatorProps {

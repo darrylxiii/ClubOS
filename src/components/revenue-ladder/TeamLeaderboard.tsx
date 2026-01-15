@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useTeamRevenue, TeamMemberRevenue } from '@/hooks/useTeamRevenue';
+import { useTeamRevenue } from '@/hooks/useTeamRevenue';
 
 interface TeamLeaderboardProps {
   className?: string;

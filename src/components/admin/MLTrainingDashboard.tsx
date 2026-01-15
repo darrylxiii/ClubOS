@@ -4,7 +4,7 @@ import { aiService } from '@/services/aiService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { notify } from '@/lib/notify';
-import { Loader2, Brain, TrendingUp } from 'lucide-react';
+import { Loader2, Brain } from 'lucide-react';
 
 export function MLTrainingDashboard() {
   const [generatingEmbeddings, setGeneratingEmbeddings] = useState(false);

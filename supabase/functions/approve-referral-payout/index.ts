@@ -52,7 +52,7 @@ serve(async (req) => {
       );
     }
 
-    let updateData: Record<string, any> = {
+    const updateData: Record<string, any> = {
       updated_at: new Date().toISOString(),
     };
 

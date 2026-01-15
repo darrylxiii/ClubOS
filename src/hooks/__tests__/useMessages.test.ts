@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useMessages } from '../useMessages';
-import { supabase } from '@/integrations/supabase/client';
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'test-user-id', email: 'test@example.com' } }),

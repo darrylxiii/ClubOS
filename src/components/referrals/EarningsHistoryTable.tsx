@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/revenueCalculations";
 import { ReferralEarning } from "@/hooks/useReferralSystem";
-import { formatDistanceToNow, format } from "date-fns";
+import { format } from "date-fns";
 import { Euro, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
 
 interface EarningsHistoryTableProps {

@@ -185,7 +185,7 @@ export default function InterviewPrepChat() {
                 return newMessages;
               });
             }
-          } catch (e) {
+          } catch (_e) {
             // Incomplete JSON, put it back
             textBuffer = line + '\n' + textBuffer;
             break;

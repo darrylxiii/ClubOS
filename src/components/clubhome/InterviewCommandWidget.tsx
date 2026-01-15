@@ -17,7 +17,7 @@ import {
   Play
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { format, formatDistanceToNow, isToday, isTomorrow, addHours } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
 interface InterviewItem {

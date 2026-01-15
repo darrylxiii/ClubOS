@@ -11,6 +11,7 @@ import { SecurityTrendsChart } from "./SecurityTrendsChart";
 import { SecurityAlertsPanel } from "./SecurityAlertsPanel";
 import { useQueryClient } from "@tanstack/react-query";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { AuditLogViewer } from "@/components/admin/AuditLogViewer";
 
 export const SecurityDashboard = () => {
   const queryClient = useQueryClient();
@@ -54,15 +55,13 @@ export const SecurityDashboard = () => {
           <TabsTrigger value="trends">Trends</TabsTrigger>
           <TabsTrigger value="details">Details</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="trends" className="space-y-4">
           <SecurityTrendsChart />
         </TabsContent>
-        
+
         <TabsContent value="details" className="space-y-4">
-          <div className="text-center py-8 text-muted-foreground">
-            Detailed security metrics and logs coming soon
-          </div>
+          <AuditLogViewer />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { TrendingUp, Sparkles, RefreshCw, Settings, ArrowRight } from 'lucide-react';
+import { TrendingUp, Sparkles, RefreshCw, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 

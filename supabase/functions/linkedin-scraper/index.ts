@@ -1,4 +1,3 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -173,7 +172,7 @@ Deno.serve(async (req) => {
 });
 
 function extractNameFromUrl(url: string): string {
-  const match = url.match(/linkedin\.com\/in\/([^\/\?]+)/);
+  const match = url.match(/linkedin\.com\/in\/([^/?]+)/);
   if (match && match[1]) {
     // Remove trailing numeric IDs (like /192381298) and any path segments
     let namePart = match[1].replace(/\/\d+$/, '').split('/')[0];

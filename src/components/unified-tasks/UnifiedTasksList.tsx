@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format, isToday, isTomorrow, parseISO } from "date-fns";
+import { format, isToday, parseISO } from "date-fns";
 import { CreateUnifiedTaskDialog } from "./CreateUnifiedTaskDialog";
 
 interface UnifiedTask {

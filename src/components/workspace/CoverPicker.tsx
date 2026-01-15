@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { X, Upload, Link } from 'lucide-react';
+import { X, Link } from 'lucide-react';
 
 interface CoverPickerProps {
   onSelect: (coverUrl: string | null) => void;

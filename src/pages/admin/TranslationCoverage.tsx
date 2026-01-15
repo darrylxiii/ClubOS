@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, CheckCircle2, AlertCircle, Globe, Languages, TrendingUp, Shield, Star, AlertTriangle } from 'lucide-react';
+import { RefreshCw, CheckCircle2, AlertCircle, Globe, TrendingUp, Shield, Star, AlertTriangle } from 'lucide-react';
 import { useTranslationCoverage } from '@/hooks/use-translation-coverage';
 import { useTranslationsNeedingReview, useMarkAsReviewed } from '@/hooks/use-translation-editor';
 import { toast } from 'sonner';

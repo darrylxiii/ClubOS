@@ -4,9 +4,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Clock, Timer, Camera, Bell, Activity } from "lucide-react";
+import { Clock, Camera, Bell, Activity } from "lucide-react";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -52,7 +51,7 @@ export function TimeTrackingSettings() {
       if (stored) {
         setSettings({ ...settings, ...JSON.parse(stored) });
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error loading time tracking settings:', error);
     }
   };
@@ -65,7 +64,7 @@ export function TimeTrackingSettings() {
       // Store in localStorage as these columns may not exist in DB
       localStorage.setItem(`time_tracking_settings_${user.id}`, JSON.stringify(settings));
       toast.success('Time tracking settings saved');
-    } catch (error) {
+    } catch (_error) {
       console.error('Error saving settings:', error);
       toast.error('Failed to save settings');
     } finally {

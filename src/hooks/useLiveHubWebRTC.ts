@@ -147,7 +147,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
             console.log(`[WebRTC] Adding ${track.kind} track to peer ${userId}`);
             peer.connection.addTrack(track, stream);
             addedNewTrack = true;
-          } catch (e) {
+          } catch (_e) {
             console.error(`[WebRTC] Error adding ${type} track:`, e);
           }
         } else {
@@ -321,7 +321,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
                 await createPeerConnection(p.user_id, shouldInitiate);
               }
             }
-          } catch (e) {
+          } catch (_e) {
             console.warn('[WebRTC] Could not query existing participants:', e);
           }
         }
@@ -374,7 +374,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
           toast.error('Connection issue - trying to reconnect...');
         }
       }
-    } catch (e) {
+    } catch (_e) {
       console.error('[WebRTC] Error sending signal:', e);
     }
   };
@@ -517,7 +517,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
   const monitorAudioStats = async (pc: RTCPeerConnection, userId: string) => {
     try {
       const stats = await pc.getStats();
-      let audioStats = {
+      const audioStats = {
         packetsLost: 0,
         packetsReceived: 0,
         jitter: 0,
@@ -560,7 +560,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
   const monitorVideoStats = async (pc: RTCPeerConnection, userId: string) => {
     try {
       const stats = await pc.getStats();
-      let localVideoStats = {
+      const localVideoStats = {
         framesSent: 0,
         framesReceived: 0,
         qualityLimitationReason: 'none',
@@ -675,7 +675,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     const peer = peersRef.current.get(fromUserId);
     if (!peer) {
       // Buffer candidate if peer connection not yet established
-      let candidates = pendingGlobalCandidates.current.get(fromUserId) || [];
+      const candidates = pendingGlobalCandidates.current.get(fromUserId) || [];
       candidates.push(candidate);
       pendingGlobalCandidates.current.set(fromUserId, candidates);
       console.log('[ICE] Buffered candidate for unknown peer:', fromUserId, 'total:', candidates.length);
@@ -736,7 +736,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
           peerConnection.addTrack(track, localStreamRef.current!);
           tracksAdded++;
           console.log(`[WebRTC] Added ${track.kind} track: ${track.label}`);
-        } catch (e) {
+        } catch (_e) {
           console.error('[WebRTC] Error adding track:', e);
         }
       });
@@ -748,7 +748,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
         try {
           peerConnection.addTrack(track, localScreenStreamRef.current!);
           tracksAdded++;
-        } catch (e) {
+        } catch (_e) {
           console.error('[WebRTC] Error adding screen track:', e);
         }
       });

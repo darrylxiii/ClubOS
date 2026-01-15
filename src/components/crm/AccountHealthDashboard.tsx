@@ -12,8 +12,7 @@ import {
   CheckCircle2, 
   XCircle,
   RefreshCw,
-  TrendingUp,
-  TrendingDown
+  TrendingUp
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar as CalendarIcon, Settings, Video, Clock, Sparkles, BarChart3 } from "lucide-react";
+import { Calendar as CalendarIcon, Settings, Video, Clock, Sparkles, BarChart3 } from "lucide-react";
 import { CreateMeetingDialog } from "@/components/meetings/CreateMeetingDialog";
 import { MeetingCard } from "@/components/meetings/MeetingCard";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -18,7 +18,6 @@ import { MeetingIntelligenceTab } from "@/components/meetings/MeetingIntelligenc
 import { NotetakerSettingsTab } from "@/components/meetings/NotetakerSettingsTab";
 import { MeetingHistoryTab } from "@/components/meetings/MeetingHistoryTab";
 import { InstantMeetingButton } from "@/components/meetings/InstantMeetingButton";
-import { PersonalMeetingRoomCard } from "@/components/meetings/PersonalMeetingRoomCard";
 import { MeetingAnalyticsDashboard } from "@/components/meetings/MeetingAnalyticsDashboard";
 import { useAutoCreatePMR } from "@/hooks/useAutoCreatePMR";
 import { toast } from "sonner";

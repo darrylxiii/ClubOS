@@ -19,7 +19,6 @@ import {
   optOut,
   optIn,
   hasOptedOut,
-  posthog,
 } from '@/lib/posthog';
 
 // Routes where session recording should be disabled

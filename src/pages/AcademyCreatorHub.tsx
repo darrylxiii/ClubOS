@@ -12,7 +12,6 @@ import {
   GraduationCap,
   BookOpen,
   Users,
-  TrendingUp,
   Plus,
   Edit,
   Eye,

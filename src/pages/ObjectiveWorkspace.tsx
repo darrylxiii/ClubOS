@@ -12,12 +12,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { 
-  ArrowLeft, Calendar, CheckCircle, Clock, Edit, Flag, 
-  MessageSquare, Target, TrendingUp, Users, Activity,
-  Send, MoreVertical, Trash2, Lock, Unlock
+  ArrowLeft, Calendar, CheckCircle, Flag, Target, TrendingUp, Users, Activity,
+  Send, MoreVertical, Lock, Unlock
 } from "lucide-react";
 import { format, isPast, differenceInDays } from "date-fns";
-import { UnifiedTaskBoard } from "@/components/unified-tasks/UnifiedTaskBoard";
 import { UnifiedTasksList } from "@/components/unified-tasks/UnifiedTasksList";
 
 interface Objective {

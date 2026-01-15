@@ -22,7 +22,7 @@ import {
   Activity,
   Target,
 } from 'lucide-react';
-import { useClientHealthScores, ClientHealthData } from '@/hooks/useClientHealthScore';
+import { useClientHealthScores } from '@/hooks/useClientHealthScore';
 import { formatCurrencyCompact } from '@/hooks/useMultiHirePipelineMetrics';
 import { formatDistanceToNow } from 'date-fns';
 

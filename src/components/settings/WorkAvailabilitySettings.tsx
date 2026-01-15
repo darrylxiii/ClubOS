@@ -6,9 +6,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Globe, Clock, Zap, Calendar } from "lucide-react";
-import { getUserTimezone } from "@/lib/timezoneUtils";
-import { format, parse } from "date-fns";
-import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { parse } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 interface WorkAvailabilitySettingsProps {
   workTimezone: string;
@@ -188,7 +187,7 @@ export function WorkAvailabilitySettings({
         flexStart: `${formatInTimeZone(flexStartEarly, localReference, "h:mm a")} - ${formatInTimeZone(flexStartLate, localReference, "h:mm a")}`,
         flexEnd: `${formatInTimeZone(flexEndEarly, localReference, "h:mm a")} - ${formatInTimeZone(flexEndLate, localReference, "h:mm a")}`,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error("Error calculating preview:", error);
       return null;
     }

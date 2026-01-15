@@ -2,11 +2,10 @@ import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle2, XCircle, AlertCircle, Loader2, Server } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { TURNServerStatus } from '@/components/meetings/TURNServerStatus';
 import { validateTURNConfig } from '@/utils/webrtcConfig';
 
 interface DiagnosticCheck {

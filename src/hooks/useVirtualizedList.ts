@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'react';
-import { useVirtualizer, VirtualizerOptions } from '@tanstack/react-virtual';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 interface UseVirtualizedListOptions<T> {
   items: T[];

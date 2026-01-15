@@ -6,8 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Brain, 
-  TrendingUp, 
-  TrendingDown,
+  TrendingUp,
   Lightbulb,
   Target,
   CheckCircle2,

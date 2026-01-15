@@ -92,7 +92,7 @@ export function useEchoDetection({
 
       setIsAnalyzing(true);
       console.log('[EchoDetection] Initialized with', remoteStreams.size, 'remote streams');
-    } catch (e) {
+    } catch (_e) {
       console.error('[EchoDetection] Failed to initialize:', e);
     }
   }, [localStream, remoteStreams, enabled]);
@@ -193,7 +193,7 @@ export function useEchoDetection({
     }
 
     let maxCorrelation = 0;
-    let matchingFrequencies: number[] = [];
+    const matchingFrequencies: number[] = [];
 
     // Compare with each remote stream
     remoteAnalysersRef.current.forEach((remoteAnalyser) => {

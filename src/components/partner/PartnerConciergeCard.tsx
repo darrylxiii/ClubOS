@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageSquare, Calendar, Mail, Phone, Clock, Activity } from "lucide-react";
+import { MessageSquare, Calendar, Mail, Clock, Activity } from "lucide-react";
 import { CardLoadingSkeleton } from "@/components/LoadingSkeletons";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";

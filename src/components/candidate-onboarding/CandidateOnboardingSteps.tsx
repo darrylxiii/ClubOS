@@ -127,7 +127,7 @@ export function CandidateOnboardingSteps() {
       if (data) {
         setCities(data);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error loading cities:', error);
     }
   };
@@ -166,7 +166,7 @@ export function CandidateOnboardingSteps() {
       }
 
       return data?.exists || false;
-    } catch (error) {
+    } catch (_error) {
       console.error('Error checking email:', error);
       return false;
     } finally {
@@ -501,7 +501,7 @@ export function CandidateOnboardingSteps() {
             
             formData.resume_url = publicUrl;
           }
-        } catch (error) {
+        } catch (_error) {
           console.error('Error moving resume:', error);
         }
       }
@@ -759,7 +759,7 @@ export function CandidateOnboardingSteps() {
         if (urlParts[1]) {
           await supabase.storage.from('resumes').remove([urlParts[1]]);
         }
-      } catch (error) {
+      } catch (_error) {
         console.error('Error removing resume:', error);
       }
     }

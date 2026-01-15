@@ -311,7 +311,7 @@ function calculateTextRelevance(query: string, candidate: any): number {
   const queryTerms = queryLower.split(/\s+/).filter(t => t.length > 2);
   
   let score = 0;
-  let maxScore = queryTerms.length * 10;
+  const maxScore = queryTerms.length * 10;
 
   const searchableText = [
     candidate.full_name,

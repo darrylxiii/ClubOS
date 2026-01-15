@@ -3,14 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Search,
   Plus,
   MessageCircle,
-  Phone,
-  Video,
   Info,
   Users,
   ArrowLeft,
@@ -31,7 +28,6 @@ import { AudioCallLauncher } from '@/components/messages/AudioCallLauncher';
 import { VideoCallInterface } from '@/components/messages/VideoCallInterface';
 import { AudioCallInterface } from '@/components/messages/AudioCallInterface';
 import { ConnectingCallOverlay } from '@/components/messages/ConnectingCallOverlay';
-import { UnreadBadge } from '@/components/messages/UnreadBadge';
 import { MessageEditor } from '@/components/messages/MessageEditor';
 import { ThreadView } from '@/components/messages/ThreadView';
 import { OnlineStatusIndicator } from '@/components/messages/OnlineStatusIndicator';

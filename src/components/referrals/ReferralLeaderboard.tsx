@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Medal, Award, Crown, TrendingUp, Eye, EyeOff } from "lucide-react";
+import { Trophy, Medal, Award, Crown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useReferralLeaderboard, type LeaderboardPeriod } from "@/hooks/useReferralLeaderboard";
 import { useAuth } from "@/contexts/AuthContext";

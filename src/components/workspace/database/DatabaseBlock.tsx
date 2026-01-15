@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useWorkspaceDatabase, ViewType } from '@/hooks/useWorkspaceDatabase';
+import { useWorkspaceDatabase } from '@/hooks/useWorkspaceDatabase';
 import { DatabaseTableView } from './views/DatabaseTableView';
 import { DatabaseBoardView } from './views/DatabaseBoardView';
 import { DatabaseGalleryView } from './views/DatabaseGalleryView';

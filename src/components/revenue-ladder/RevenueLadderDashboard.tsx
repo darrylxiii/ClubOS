@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   RefreshCw, Plus, LayoutGrid, List, 
-  Sparkles, Gavel, Trophy, History, User, Target, Settings, Pencil
+  Sparkles, Gavel, Trophy, History, User, Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';

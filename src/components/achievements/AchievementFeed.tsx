@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
-import { Heart, MessageCircle, Sparkles, Trophy } from "lucide-react";
+import { Heart, Sparkles, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 interface FeedItem {

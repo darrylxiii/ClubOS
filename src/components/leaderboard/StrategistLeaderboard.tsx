@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Trophy,
   TrendingUp,
@@ -19,7 +18,7 @@ import {
   Award,
   Loader2,
 } from 'lucide-react';
-import { useStrategistLeaderboard, StrategistRanking } from '@/hooks/useStrategistLeaderboard';
+import { useStrategistLeaderboard } from '@/hooks/useStrategistLeaderboard';
 import { formatCurrencyCompact } from '@/hooks/useMultiHirePipelineMetrics';
 
 export function StrategistLeaderboard() {

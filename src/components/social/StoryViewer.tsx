@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
-import { toast } from "sonner";
 
 interface Story {
   id: string;

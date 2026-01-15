@@ -17,8 +17,6 @@ import {
   Target,
   Database,
   Activity,
-  TrendingUp,
-  Users,
   FileDown,
   RefreshCw,
   Sparkles,

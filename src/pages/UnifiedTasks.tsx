@@ -4,14 +4,12 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   LayoutDashboard, 
   Users, 
   Calendar,
   List,
   Settings,
-  Info,
   Wand2,
   Target,
   Grid3x3,

@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { SignaturePad } from "@/components/contracts/SignaturePad";
 import { MinimalHeader } from "@/components/MinimalHeader";
 import { ProjectContract } from "@/types/projects";
-import { ArrowLeft, FileText, Download, CheckCircle } from "lucide-react";
+import { FileText, Download, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -67,7 +67,7 @@ export default function ContractSignaturePage() {
             clientIp = ipData.ip || 'unknown';
           }
         }
-      } catch (e) {
+      } catch (_e) {
         logger.warn('Could not fetch IP address:', e);
         clientIp = 'unknown';
       }

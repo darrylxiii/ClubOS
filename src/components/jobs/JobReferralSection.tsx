@@ -8,8 +8,7 @@ import {
   Copy, 
   Check, 
   Share2, 
-  TrendingUp, 
-  Users,
+  TrendingUp,
   Info
 } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";

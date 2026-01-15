@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   FileText, Upload, Download, Eye, Trash2, 
-  CheckCircle2, FileCheck, User, FileImage, Award, File, FolderOpen, Loader2,
+  CheckCircle2, FileCheck, User, FileImage, Award, File, Loader2,
   Calendar, AlertTriangle, Archive, ArchiveRestore
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -79,7 +78,7 @@ export function MessageReactions({ messageId, reactions, onReactionsChange }: Me
       }
 
       onReactionsChange();
-    } catch (error) {
+    } catch (_error) {
       console.error('Error toggling reaction:', error);
       toast.error('Failed to react to message');
     }

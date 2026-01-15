@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { JobsPage } from '../page-objects/JobsPage';
-import { AuthPage } from '../page-objects/AuthPage';
 
 test.describe('Jobs Flow', () => {
   let jobsPage: JobsPage;

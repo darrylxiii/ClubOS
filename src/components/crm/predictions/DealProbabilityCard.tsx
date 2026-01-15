@@ -1,13 +1,11 @@
-import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Loader2, RefreshCw } from 'lucide-react';
+import { TrendingUp, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CRMDeal } from '@/types/crm';
 import { CRMProspect } from '@/types/crm-enterprise';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 
 interface DealProbabilityCardProps {
     deal: CRMDeal | CRMProspect;

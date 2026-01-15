@@ -10,7 +10,7 @@ import { WhatsAppTemplateSelector } from "@/components/whatsapp/WhatsAppTemplate
 import { WhatsAppAIInsights } from "@/components/whatsapp/WhatsAppAIInsights";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { MessageSquare, Sparkles, Settings, BarChart3 } from "lucide-react";
+import { MessageSquare, Settings, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { notify } from "@/lib/notify";
 import { useRelationshipHealth } from "@/hooks/useRelationshipHealth";

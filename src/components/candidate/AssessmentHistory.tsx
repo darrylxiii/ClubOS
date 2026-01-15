@@ -14,7 +14,6 @@ import {
   Clock, 
   Award,
   Eye,
-  Download,
   RefreshCw
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -96,7 +95,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
       }));
       
       setResults(mappedResults);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error fetching assessment results:', error);
     } finally {
       setLoading(false);

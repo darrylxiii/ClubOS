@@ -3,8 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Calendar, MessageSquare, CheckSquare, Paperclip, MoreHorizontal, User, Briefcase, Target, Lock } from "lucide-react";
+import { Calendar, User, Briefcase } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 

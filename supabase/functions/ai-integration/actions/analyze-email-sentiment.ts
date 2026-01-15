@@ -1,5 +1,4 @@
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 export const handleAnalyzeEmailSentiment = async ({ supabase, payload, token }: { supabase: any; payload: any, token: string | null }) => {
     const { email, save_match = true } = payload;

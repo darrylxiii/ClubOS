@@ -2,7 +2,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Infinity, User, Users } from "lucide-react";
+import { Infinity as InfinityIcon, User, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PipelineTypeSelectorProps {
@@ -96,7 +96,7 @@ export function PipelineTypeSelector({
               htmlFor="unlimited"
               className="text-sm font-medium leading-none cursor-pointer flex items-center gap-1.5"
             >
-              <Infinity className="h-4 w-4" />
+              <InfinityIcon className="h-4 w-4" />
               Unlimited hires
             </label>
           </div>

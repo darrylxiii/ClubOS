@@ -8,19 +8,14 @@ import {
   Video, 
   Calendar, 
   CheckCircle2, 
-  Clock, 
-  User, 
   FileText,
   MessageSquare,
   ThumbsUp,
   ThumbsDown,
-  Minus,
-  ChevronRight,
-  Play,
-  ExternalLink
+  Minus
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { format, formatDistanceToNow, isToday, isTomorrow } from 'date-fns';
+import { format, isToday, isTomorrow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
 interface PartnerInterview {

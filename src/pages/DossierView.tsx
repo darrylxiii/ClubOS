@@ -4,10 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  User, Calendar, Clock, Star, CheckCircle2, 
+import { Calendar, Clock, Star, CheckCircle2, 
   AlertTriangle, TrendingUp, FileText, Video, Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';

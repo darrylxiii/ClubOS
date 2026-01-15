@@ -34,7 +34,7 @@ export const useLiveHubPresence = () => {
       .select('user_id, status, last_seen')
       .in('user_id', profiles?.map(p => p.id) || []);
 
-    const presenceMap = new Map(presenceData?.map(p => [p.user_id, p]) || []);
+    const presenceMap = new Map<string, any>(presenceData?.map(p => [p.user_id, p]) || []);
 
     // Determine status based on last_seen and status
     const now = new Date();
@@ -46,7 +46,7 @@ export const useLiveHubPresence = () => {
         if (presence.status === 'online') {
           const lastSeen = new Date(presence.last_seen);
           const minutesSinceLastSeen = (now.getTime() - lastSeen.getTime()) / 1000 / 60;
-          
+
           if (minutesSinceLastSeen < 5) {
             status = 'online';
           } else if (minutesSinceLastSeen < 15) {
@@ -59,6 +59,7 @@ export const useLiveHubPresence = () => {
 
       return {
         ...member,
+        full_name: member.full_name || 'Unknown User',
         status
       };
     });
@@ -86,7 +87,7 @@ export const useLiveHubPresence = () => {
 
     // Track current user's presence
     const trackingChannel = supabase.channel('livehub-presence');
-    
+
     trackingChannel
       .on('presence', { event: 'sync' }, () => {
         const state = trackingChannel.presenceState();

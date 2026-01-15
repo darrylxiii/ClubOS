@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,20 +12,15 @@ import {
   Shield,
   Database,
   Globe,
-  TrendingUp,
-  Users,
   FileDown,
   RefreshCw,
   Sparkles,
   Settings,
   Activity,
-  Award,
   Zap,
   Building2,
   BarChart3,
   Lock,
-  Unlock,
-  UserCog,
   Brain,
 } from "lucide-react";
 import { toast } from "sonner";

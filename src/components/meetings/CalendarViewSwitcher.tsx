@@ -4,7 +4,7 @@ import {
   ChevronLeft, ChevronRight 
 } from "lucide-react";
 import { ExtendedViewMode } from "@/hooks/useCalendarView";
-import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek } from "date-fns";
 
 interface CalendarViewSwitcherProps {
   viewMode: ExtendedViewMode;

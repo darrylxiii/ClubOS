@@ -27,7 +27,7 @@ export const useAssessmentAnalytics = (assessmentId?: string) => {
 
       if (error) throw error;
 
-      setAnalytics(data || []);
+      setAnalytics((data || []) as unknown as AssessmentAnalytics[]);
     } catch (error) {
       console.error('Error loading analytics:', error);
     } finally {

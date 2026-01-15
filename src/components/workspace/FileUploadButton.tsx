@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { usePageAttachments } from '@/hooks/usePageAttachments';
-import { Upload, Image, FileText, Paperclip, Loader2 } from 'lucide-react';
+import { Image, FileText, Paperclip, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FileUploadButtonProps {

@@ -13,14 +13,13 @@ import {
   Bot, 
   Eye,
   CheckCircle2,
-  XCircle,
   AlertTriangle,
   Clock,
   TrendingUp,
   Activity,
   BarChart3
 } from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 
 interface AgentDecision {
   id: string;

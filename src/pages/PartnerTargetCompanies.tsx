@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Target, TrendingUp, Clock, CheckCircle, Building, MapPin, Briefcase, ThumbsUp } from "lucide-react";
+import { Plus, Target, TrendingUp, Clock, CheckCircle, Building } from "lucide-react";
 import { TargetCompanyTable } from "@/components/partner/TargetCompanyTable";
 import { TargetCompanyDialog } from "@/components/partner/TargetCompanyDialog";
 import { useTargetCompanies } from "@/hooks/useTargetCompanies";

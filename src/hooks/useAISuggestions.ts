@@ -22,7 +22,7 @@ export function useAISuggestions() {
   useEffect(() => {
     if (user) {
       loadSuggestions();
-      
+
       // Subscribe to new suggestions
       const channel = supabase
         .channel('ai-suggestions')
@@ -68,7 +68,7 @@ export function useAISuggestions() {
         priority: s.priority as 'low' | 'medium' | 'high' | 'urgent',
         suggestion_type: s.suggestion_type,
         action_data: s.action_data,
-        created_at: s.created_at,
+        created_at: s.created_at || new Date().toISOString(),
         shown: s.shown || false
       }));
 

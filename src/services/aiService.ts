@@ -128,8 +128,8 @@ export const aiService = {
         });
         if (error) throw error;
         // The endpoint returns { suggestion: ... } or { error ... }
-        if (data.error) throw new Error(data.error);
-        return data;
+        if (data && data.error) throw new Error(data.error);
+        return data as { suggestion: string };
     },
 
     generateText: async (params: GenerateTextParams): Promise<{ result: string }> => {
@@ -137,8 +137,8 @@ export const aiService = {
             body: { action: 'generate-text', payload: params }
         });
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-        return data;
+        if (data && data.error) throw new Error(data.error);
+        return data as { result: string };
     },
 
     analyzeSentiment: async (text: string): Promise<SentimentResult> => {
@@ -146,8 +146,8 @@ export const aiService = {
             body: { action: 'analyze-sentiment', payload: { text } }
         });
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-        return data;
+        if (data && data.error) throw new Error(data.error);
+        return data as SentimentResult;
     },
 
     classifyIntent: async (query: string): Promise<ClassificationResult> => {
@@ -155,8 +155,8 @@ export const aiService = {
             body: { action: 'classify-intent', payload: { query } }
         });
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-        return data;
+        if (data && data.error) throw new Error(data.error);
+        return data as ClassificationResult;
     },
 
     generateEmbedding: async (params: EmbeddingParams): Promise<{ embedding: number[]; dimensions: number }> => {
@@ -164,8 +164,8 @@ export const aiService = {
             body: { action: 'generate-embedding', payload: params }
         });
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-        return data;
+        if (data && data.error) throw new Error(data.error);
+        return data as { embedding: number[]; dimensions: number };
     },
 
     batchGenerateEmbedding: async (params: BatchEmbeddingParams): Promise<{ processed: number; errors: number }> => {
@@ -173,8 +173,8 @@ export const aiService = {
             body: { action: 'batch-generate-embedding', payload: params }
         });
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-        return data;
+        if (data && data.error) throw new Error(data.error);
+        return data as { processed: number; errors: number };
     },
 
     semanticSearch: async (params: SearchParams): Promise<{ results: any[]; count: number }> => {
@@ -182,8 +182,8 @@ export const aiService = {
             body: { action: 'semantic-search', payload: params }
         });
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-        return data;
+        if (data && data.error) throw new Error(data.error);
+        return data as { results: any[]; count: number };
     },
 
     analyzeInterview: async (params: AnalyzeInterviewParams): Promise<any> => {
@@ -191,8 +191,8 @@ export const aiService = {
             body: { action: 'analyze-interview', payload: params }
         });
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-        return data.analysis || data; // Handle both wrapper styles if necessary, simplified here
+        if (data && data.error) throw new Error(data.error);
+        return data.analysis || data;
     },
 
     analyzeInterviewRealtime: async (params: RealtimeAnalysisParams): Promise<{ success: boolean; scores: any }> => {
@@ -200,8 +200,8 @@ export const aiService = {
             body: { action: 'analyze-interview-realtime', payload: params }
         });
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-        return data;
+        if (data && data.error) throw new Error(data.error);
+        return data as { success: boolean; scores: any };
     },
 
     voiceToText: async (params: VoiceToTextParams): Promise<{ text: string }> => {
@@ -209,8 +209,8 @@ export const aiService = {
             body: { action: 'voice-to-text', payload: params }
         });
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-        return data;
+        if (data && data.error) throw new Error(data.error);
+        return data as { text: string };
     },
 
     generateInterviewPrep: async (params: PrepParams): Promise<{ brief: any }> => {
@@ -218,8 +218,8 @@ export const aiService = {
             body: { action: 'generate-interview-prep', payload: params }
         });
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-        return data;
+        if (data && data.error) throw new Error(data.error);
+        return data as { brief: any };
     },
 
     generateInterviewCoach: async (params: CoachParams): Promise<{ prepMaterial: any }> => {
@@ -227,12 +227,12 @@ export const aiService = {
             body: { action: 'generate-interview-coach', payload: params }
         });
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-        return data;
+        if (data && data.error) throw new Error(data.error);
+        return data as { prepMaterial: any };
     },
 
     // Helper to invoke the unified function
-    async invokeAI(action: string, payload: any) {
+    async invokeAI(action: string, payload: any): Promise<any> {
         const { data, error } = await supabase.functions.invoke('ai-integration', {
             body: { action, payload }
         });

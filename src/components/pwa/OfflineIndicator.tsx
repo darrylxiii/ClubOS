@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { WifiOff, Cloud, CloudOff } from 'lucide-react';
+import { WifiOff, Cloud } from 'lucide-react';
 
 interface OfflineIndicatorProps {
   pendingActions?: number;

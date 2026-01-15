@@ -19,7 +19,6 @@ import {
   Loader2,
   MoreHorizontal,
   Trash2,
-  AtSign,
 } from 'lucide-react';
 import {
   DropdownMenu,

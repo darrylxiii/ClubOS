@@ -39,14 +39,13 @@ export function InterviewPrepPanel({
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  // Only show to interviewers
-  if (!['host', 'interviewer', 'observer'].includes(userRole)) {
-    return null;
-  }
+  const isAuthorizedRole = ['host', 'interviewer', 'observer'].includes(userRole);
 
   useEffect(() => {
-    loadBrief();
-  }, [meetingId]);
+    if (isAuthorizedRole) {
+      loadBrief();
+    }
+  }, [meetingId, isAuthorizedRole]);
 
   const loadBrief = async () => {
     try {
@@ -67,6 +66,11 @@ export function InterviewPrepPanel({
       setLoading(false);
     }
   };
+
+  // Only show to interviewers - moved after hooks
+  if (!isAuthorizedRole) {
+    return null;
+  }
 
   const generateBrief = async () => {
     if (!candidateId || !roleTitle) {

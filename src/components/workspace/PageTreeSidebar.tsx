@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { WorkspacePage, useWorkspacePages } from '@/hooks/useWorkspacePages';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,11 +10,8 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+
+
 import { 
   ChevronRight, 
   Plus, 
@@ -22,7 +19,6 @@ import {
   Star,
   Copy,
   Trash2,
-  MoreHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

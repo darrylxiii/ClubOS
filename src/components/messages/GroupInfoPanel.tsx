@@ -2,20 +2,16 @@ import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
   Users,
-  Image as ImageIcon,
   FileText,
-  Video,
   Link as LinkIcon,
   ChevronDown,
   ChevronUp,
   X,
   Info,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useConversationMedia } from '@/hooks/useConversationMedia';
 import { SharedMediaGallery } from './SharedMediaGallery';
 import { SharedLinksPanel } from './SharedLinksPanel';

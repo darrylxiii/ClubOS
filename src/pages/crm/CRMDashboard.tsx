@@ -17,8 +17,7 @@ import {
   Zap,
   Calendar,
   MessageSquare,
-  Focus,
-  DollarSign
+  Focus
 } from 'lucide-react';
 import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';

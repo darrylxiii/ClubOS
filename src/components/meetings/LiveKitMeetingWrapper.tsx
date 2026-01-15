@@ -1,18 +1,17 @@
-import { useEffect, useState, lazy, Suspense, ComponentType } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useLiveKitMeeting } from '@/hooks/useLiveKitMeeting';
-import { Skeleton } from '@/components/ui/skeleton';
 
 // Lazy load LiveKit components
-const LazyLiveKitRoom = lazy(() => 
+const LazyLiveKitRoom = lazy(() =>
   import('@livekit/components-react').then(mod => ({ default: mod.LiveKitRoom }))
 );
-const LazyVideoConference = lazy(() => 
+const LazyVideoConference = lazy(() =>
   import('@livekit/components-react').then(mod => ({ default: mod.VideoConference }))
 );
-const LazyRoomAudioRenderer = lazy(() => 
+const LazyRoomAudioRenderer = lazy(() =>
   import('@livekit/components-react').then(mod => ({ default: mod.RoomAudioRenderer }))
 );
-const LazyLayoutContextProvider = lazy(() => 
+const LazyLayoutContextProvider = lazy(() =>
   import('@livekit/components-react').then(mod => ({ default: mod.LayoutContextProvider }))
 );
 
@@ -44,7 +43,7 @@ export function LiveKitMeetingWrapper({
   className
 }: LiveKitMeetingWrapperProps) {
   const [stylesLoaded, setStylesLoaded] = useState(false);
-  
+
   const {
     token,
     isConnected,
@@ -110,7 +109,7 @@ export function LiveKitMeetingWrapper({
         <LazyLayoutContextProvider>
           <LazyLiveKitRoom
             token={token}
-            serverUrl="https://thequantumclub-os.livekit.cloud" // TODO: Use env var
+            serverUrl={import.meta.env.VITE_LIVEKIT_URL || "https://thequantumclub-os.livekit.cloud"}
             connect={true}
             data-lk-theme="default"
             className="h-full w-full"

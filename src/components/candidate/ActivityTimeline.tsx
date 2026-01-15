@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { 
   FileText, 
   Eye, 
@@ -61,7 +60,7 @@ export function ActivityTimeline({ userId }: { userId: string }) {
 
       if (error) throw error;
       setActivities(data || []);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error fetching activities:', error);
     } finally {
       setLoading(false);

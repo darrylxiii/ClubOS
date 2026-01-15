@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Eye, UserCheck, UserX, MessageSquare, AlertCircle } from "lucide-react";
+import { Eye, UserCheck, UserX, AlertCircle } from "lucide-react";
 import { CandidateDetailDialog } from "./CandidateDetailDialog";
 import { EnhancedCandidateActionDialog } from "./EnhancedCandidateActionDialog";
 

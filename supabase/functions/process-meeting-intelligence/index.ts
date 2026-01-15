@@ -14,7 +14,7 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     console.log('[Process Meeting Intelligence] Starting processing...');
@@ -63,7 +63,75 @@ serve(async (req) => {
             break;
 
           case 'transcript_analysis':
-            // Basic transcript analysis - mark as complete
+            console.log(`[Process Meeting Intelligence] Generating embeddings for meeting ${task.meeting_id}`);
+
+            // 1. Fetch recording data to embed
+            // Using 'meeting_recordings' table directly if view has issues, or just use the view if we are sure
+            const { data: recData, error: recError } = await supabase
+              .from('meeting_recordings') // Using base table to be safe
+              .select('id, user_id, transcript, ai_summary, created_at')
+              .eq('meeting_id', task.meeting_id)
+              .maybeSingle();
+
+            if (recError) {
+              console.error('Error fetching recording for embedding:', recError);
+            } else if (recData && recData.transcript) {
+              // 2. Prepare content for RAG
+              // We combine summary and part of transcript to keep it searchable but concise
+              const summary = recData.ai_summary?.executiveSummary || '';
+              const actionItems = JSON.stringify(recData.ai_summary?.actionItems || []);
+              const transcriptSnippet = recData.transcript.substring(0, 4000); // First 4k chars to fit in embedding context
+
+              const textToEmbed = `Meeting Summary: ${summary}
+Action Items: ${actionItems}
+Transcript: ${transcriptSnippet}`.trim();
+
+              if (textToEmbed) {
+                // 3. Generate Embedding
+                try {
+                  const embeddingResp = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${lovableApiKey}`,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      model: 'text-embedding-3-small',
+                      input: textToEmbed,
+                    })
+                  });
+
+                  if (embeddingResp.ok) {
+                    const embeddingData = await embeddingResp.json();
+                    const vector = embeddingData.data[0].embedding;
+
+                    // 4. Store in intelligence_embeddings
+                    const { error: embedError } = await supabase
+                      .from('intelligence_embeddings')
+                      .insert({
+                        user_id: recData.user_id,
+                        content: textToEmbed,
+                        embedding: vector,
+                        metadata: {
+                          type: 'meeting',
+                          meeting_id: task.meeting_id,
+                          recording_id: recData.id,
+                          date: recData.created_at
+                        }
+                      });
+
+                    if (embedError) console.error('Failed to insert meeting embedding:', embedError);
+                    else console.log('Meeting embedding stored successfully');
+                  } else {
+                    console.error('Failed to generate meeting embedding:', await embeddingResp.text());
+                  }
+                } catch (err) {
+                  console.error('Error in embedding generation:', err);
+                }
+              }
+            }
+
+            // Mark as complete regardless of embedding success to prevent loop
             await supabase
               .from('meeting_intelligence_processing')
               .update({
@@ -89,7 +157,7 @@ serve(async (req) => {
 
       } catch (error: any) {
         console.error(`[Process Meeting Intelligence] Error processing task ${task.id}:`, error);
-        
+
         // Mark as failed
         await supabase
           .from('meeting_intelligence_processing')

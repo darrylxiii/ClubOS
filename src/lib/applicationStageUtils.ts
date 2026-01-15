@@ -1,4 +1,4 @@
-import { Clock, CheckCircle2, XCircle, Hourglass } from "lucide-react";
+import { Clock, CheckCircle2, XCircle } from "lucide-react";
 
 export interface StageDisplayInfo {
   label: string;

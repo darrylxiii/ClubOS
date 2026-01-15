@@ -54,7 +54,7 @@ export function useAITranscription(): UseAITranscriptionReturn {
     participantName: string
   ) => {
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
+
     if (!SpeechRecognitionAPI) {
       console.warn('Speech recognition not supported');
       return;
@@ -68,13 +68,13 @@ export function useAITranscription(): UseAITranscriptionReturn {
     recognition.lang = settings.language;
     recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       let interimTranscript = '';
-      
+
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
         const transcript = result[0].transcript;
-        
+
         if (result.isFinal) {
           const segment: TranscriptSegment = {
             id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -87,20 +87,20 @@ export function useAITranscription(): UseAITranscriptionReturn {
             language: settings.language,
             isInterim: false,
           };
-          
+
           setTranscripts(prev => [...prev, segment]);
           setCurrentInterim('');
         } else {
           interimTranscript += transcript;
         }
       }
-      
+
       if (interimTranscript) {
         setCurrentInterim(interimTranscript);
       }
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       if (event.error !== 'no-speech') {
         setIsTranscribing(false);
@@ -112,7 +112,7 @@ export function useAITranscription(): UseAITranscriptionReturn {
       if (isTranscribing && recognitionRef.current) {
         try {
           recognition.start();
-        } catch (e) {
+        } catch (_e) {
           console.error('Failed to restart recognition:', e);
         }
       }
@@ -142,7 +142,7 @@ export function useAITranscription(): UseAITranscriptionReturn {
     const minutes = date.getUTCMinutes().toString().padStart(2, '0');
     const seconds = date.getUTCSeconds().toString().padStart(2, '0');
     const milliseconds = date.getUTCMilliseconds().toString().padStart(3, '0');
-    
+
     if (format === 'srt') {
       return `${hours}:${minutes}:${seconds},${milliseconds}`;
     }
@@ -155,7 +155,7 @@ export function useAITranscription(): UseAITranscriptionReturn {
         return transcripts
           .map(t => `[${new Date(t.timestamp).toLocaleTimeString()}] ${t.participantName}: ${t.text}`)
           .join('\n');
-      
+
       case 'srt':
         return transcripts
           .map((t, i) => {
@@ -164,7 +164,7 @@ export function useAITranscription(): UseAITranscriptionReturn {
             return `${i + 1}\n${startTime} --> ${endTime}\n${t.participantName}: ${t.text}\n`;
           })
           .join('\n');
-      
+
       case 'vtt':
         let vtt = 'WEBVTT\n\n';
         vtt += transcripts
@@ -175,10 +175,10 @@ export function useAITranscription(): UseAITranscriptionReturn {
           })
           .join('\n');
         return vtt;
-      
+
       case 'json':
         return JSON.stringify({ transcripts, exportedAt: new Date().toISOString() }, null, 2);
-      
+
       default:
         return '';
     }
@@ -190,7 +190,7 @@ export function useAITranscription(): UseAITranscriptionReturn {
 
   const searchTranscripts = useCallback((query: string): TranscriptSegment[] => {
     const lowerQuery = query.toLowerCase();
-    return transcripts.filter(t => 
+    return transcripts.filter(t =>
       t.text.toLowerCase().includes(lowerQuery) ||
       t.participantName.toLowerCase().includes(lowerQuery)
     );

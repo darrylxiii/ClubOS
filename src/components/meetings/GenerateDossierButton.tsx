@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { aiService } from '@/services/aiService';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

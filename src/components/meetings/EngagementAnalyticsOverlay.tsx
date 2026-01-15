@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { 
   Activity, Mic, MicOff, TrendingUp, TrendingDown, 
-  Clock, Users, X, Maximize2, Minimize2 
+  Clock, X, Maximize2, Minimize2 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface ParticipantMetrics {
   id: string;

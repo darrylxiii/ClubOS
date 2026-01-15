@@ -14,10 +14,8 @@ import {
   Mail,
   Clock,
   TrendingUp,
-  Loader2,
-  MessageSquare
+  Loader2
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useMutation } from '@tanstack/react-query';
 import { notify } from '@/lib/notify';
 import { aiService } from '@/services/aiService';

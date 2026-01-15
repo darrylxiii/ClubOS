@@ -1,8 +1,8 @@
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
 import { 
   TrendingUp, TrendingDown, Clock, MessageSquare, AlertTriangle, 
-  CheckCircle, XCircle, Mail, Building2, Briefcase, Users, ExternalLink
+  CheckCircle, XCircle, Mail, Briefcase, Users, ExternalLink
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

@@ -61,7 +61,7 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
 
         // Preload route-specific namespaces in background (using window.location for initial load)
         preloadNamespacesForRoute(window.location.pathname);
-      } catch (error) {
+      } catch (_error) {
         console.error('[TranslationProvider] Error loading translations:', error);
         // Still set ready to avoid blocking the app
         setIsReady(true);
@@ -92,7 +92,7 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
       
       // Dispatch custom event for other components
       window.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
-    } catch (error) {
+    } catch (_error) {
       console.error('[TranslationProvider] Failed to change language:', error);
     }
   };
@@ -101,7 +101,7 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
     try {
       console.log('[TranslationProvider] Reloading all translations');
       await forceReloadLanguage(currentLanguage);
-    } catch (error) {
+    } catch (_error) {
       console.error('[TranslationProvider] Failed to reload translations:', error);
     }
   };

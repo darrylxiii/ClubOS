@@ -2,7 +2,6 @@
  * Google Cloud Translation Edge Function
  * Enterprise-grade: Uses Google Cloud Translation v2 API for high-quality translations
  */
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
 import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';

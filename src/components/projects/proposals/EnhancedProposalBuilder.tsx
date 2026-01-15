@@ -16,7 +16,6 @@ import {
   Clock, DollarSign, Video, FileText, CheckCircle
 } from "lucide-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface EnhancedProposalBuilderProps {
   projectId: string;

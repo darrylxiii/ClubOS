@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Target, Calendar, MessageSquare, Users, Heart, Clock, CheckCircle } from "lucide-react";
+import { Target, Calendar, Users, Clock, CheckCircle } from "lucide-react";
 import { PredictiveAnalyticsDashboard } from "@/components/intelligence/PredictiveAnalyticsDashboard";
 import { UpcomingInterviewsWidget } from "@/components/partner/UpcomingInterviewsWidget";
 import { ClientHealthDashboard } from "@/components/client-health/ClientHealthDashboard";

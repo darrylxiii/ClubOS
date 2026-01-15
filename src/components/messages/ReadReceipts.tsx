@@ -66,7 +66,7 @@ export const ReadReceipts = ({ messageId, senderId, conversationId }: ReadReceip
 
         setReadBy(enriched);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error loading read receipts:', error);
     } finally {
       setLoading(false);

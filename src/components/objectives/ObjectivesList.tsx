@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Calendar, Flag, Target, Users, Lock, Unlock } from "lucide-react";
+import { Plus, Calendar, Flag, Target, Lock, Unlock } from "lucide-react";
 import { CreateObjectiveDialog } from "./CreateObjectiveDialog";
 import { toast } from "sonner";
 import { format } from "date-fns";

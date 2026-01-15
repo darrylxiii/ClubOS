@@ -51,7 +51,7 @@ export const validateTURNConfig = async (): Promise<TURNServerHealth> => {
     if (health.validationErrors.length === 0) {
       logger.info('[WebRTC Config] ✅ Production TURN servers validated', {
         serverCount: urls.length,
-        urls: urls.map(u => u.split('@')[1] || u) // Hide credentials in logs
+        urls: urls.map((u: string) => u.split('@')[1] || u) // Hide credentials in logs
       });
     }
   } else {

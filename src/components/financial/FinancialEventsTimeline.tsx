@@ -9,7 +9,6 @@ import {
   FileText, 
   CheckCircle, 
   DollarSign, 
-  UserPlus, 
   Gift,
   Clock,
   AlertCircle,

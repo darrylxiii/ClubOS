@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, Calendar, CheckCircle, Clock, Flag, Target, TrendingUp, Users, Lock, Unlock } from "lucide-react";
+import { AlertCircle, Calendar, CheckCircle, Clock, Flag, TrendingUp, Users, Lock, Unlock } from "lucide-react";
 import { format, differenceInDays, isPast } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 

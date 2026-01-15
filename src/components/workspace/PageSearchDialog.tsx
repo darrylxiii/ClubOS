@@ -10,8 +10,7 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { useWorkspacePages, WorkspacePage } from '@/hooks/useWorkspacePages';
-import { FileText, Star, Clock, Plus, Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Star, Clock, Plus, Search } from 'lucide-react';
 
 interface PageSearchDialogProps {
   open: boolean;

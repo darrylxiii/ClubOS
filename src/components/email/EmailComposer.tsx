@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Sheet,
@@ -9,18 +8,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
+
 import { Badge } from "@/components/ui/badge";
 import { X, Paperclip, Send, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { communicationsService } from "@/services/communicationsService";
 import { aiService } from "@/services/aiService";
+import { ZenComposer } from "./ZenComposer";
 
 interface EmailComposerProps {
   open: boolean;
@@ -192,61 +188,22 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="body">Message</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={aiGenerating}
-                      className="h-7 text-xs"
-                    >
-                      {aiGenerating ? (
-                        <>
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          AI Assist
-                        </>
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleAiAssist("compose")}>
-                      <Sparkles className="h-3 w-3 mr-2" />
-                      Compose email
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAiAssist("improve")}>
-                      Improve writing
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAiAssist("shorten")}>
-                      Make shorter
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAiAssist("expand")}>
-                      Make longer
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAiAssist("professional")}>
-                      More professional
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAiAssist("friendly")}>
-                      More friendly
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <Textarea
-                id="body"
+            <div className="space-y-2 flex-1 flex flex-col min-h-0">
+              <Label htmlFor="body" className="sr-only">Message</Label>
+              <ZenComposer
                 value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder="Write your message or use AI to help you compose..."
-                className="min-h-[300px] resize-none"
+                onChange={setBody}
+                onAiAssist={handleAiAssist}
                 disabled={aiGenerating}
               />
+
+              {/* AI generation overlay/status */}
+              {aiGenerating && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground animate-pulse px-2">
+                  <Sparkles className="h-3 w-3 text-violet-500" />
+                  AI is writing...
+                </div>
+              )}
             </div>
 
             {/* Attachments */}

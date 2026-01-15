@@ -81,7 +81,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
             battery.removeEventListener('chargingchange', updateBattery);
           };
         }
-      } catch (e) {
+      } catch (_e) {
         console.log('[MobileOpt] Battery API not available');
       }
     };

@@ -7,7 +7,6 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { useBandwidthTest, VideoCapability } from '@/hooks/useBandwidthTest';
 import { cn } from '@/lib/utils';
 import { Wifi, Download, Upload, Clock, Activity, CheckCircle2, AlertTriangle, XCircle, Headphones, Video, Loader2 } from 'lucide-react';

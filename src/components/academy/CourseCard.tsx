@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Clock, Users, Star, BookOpen } from "lucide-react";
+import { Clock, Star, BookOpen } from "lucide-react";
 
 interface CourseCardProps {
   course: any;

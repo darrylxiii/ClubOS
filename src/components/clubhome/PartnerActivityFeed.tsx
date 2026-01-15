@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, UserPlus, Briefcase, Calendar, Eye } from "lucide-react";
+import { Activity, UserPlus, Briefcase, Calendar } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ActivityEvent {

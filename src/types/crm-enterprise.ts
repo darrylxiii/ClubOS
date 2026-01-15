@@ -30,40 +30,40 @@ export interface CRMCampaign {
   owner_avatar?: string;
 }
 
-export type ProspectStage = 
-  | 'new' 
-  | 'contacted' 
-  | 'opened' 
-  | 'replied' 
-  | 'qualified' 
-  | 'meeting_booked' 
-  | 'proposal_sent' 
-  | 'negotiation' 
-  | 'closed_won' 
-  | 'closed_lost' 
-  | 'nurture' 
+export type ProspectStage =
+  | 'new'
+  | 'contacted'
+  | 'opened'
+  | 'replied'
+  | 'qualified'
+  | 'meeting_booked'
+  | 'proposal_sent'
+  | 'negotiation'
+  | 'closed_won'
+  | 'closed_lost'
+  | 'nurture'
   | 'unsubscribed';
 
-export type ProspectSource = 
-  | 'instantly' 
-  | 'linkedin' 
-  | 'referral' 
-  | 'website' 
-  | 'event' 
-  | 'cold_call' 
-  | 'manual' 
-  | 'import' 
+export type ProspectSource =
+  | 'instantly'
+  | 'linkedin'
+  | 'referral'
+  | 'website'
+  | 'event'
+  | 'cold_call'
+  | 'manual'
+  | 'import'
   | 'other';
 
-export type ReplySentiment = 
-  | 'hot' 
-  | 'warm' 
-  | 'neutral' 
-  | 'cold' 
-  | 'negative' 
-  | 'out_of_office' 
-  | 'referral' 
-  | 'objection' 
+export type ReplySentiment =
+  | 'hot'
+  | 'warm'
+  | 'neutral'
+  | 'cold'
+  | 'negative'
+  | 'out_of_office'
+  | 'referral'
+  | 'objection'
   | 'unsubscribe';
 
 export interface CRMProspect {
@@ -133,6 +133,10 @@ export interface CRMProspect {
   // Timestamps
   created_at: string;
   updated_at: string;
+  // Intelligence
+  health_score: number;
+  health_trend: 'improving' | 'declining' | 'stable';
+  last_enriched_at: string | null;
   // Joined
   owner_name?: string;
   owner_avatar?: string;
@@ -170,19 +174,19 @@ export interface CRMTouchpoint {
   created_at: string;
 }
 
-export type ReplyClassification = 
-  | 'hot_lead' 
-  | 'warm_lead' 
-  | 'interested' 
-  | 'objection' 
-  | 'not_interested' 
-  | 'out_of_office' 
-  | 'auto_reply' 
-  | 'bounce' 
-  | 'unsubscribe' 
-  | 'referral' 
-  | 'question' 
-  | 'spam' 
+export type ReplyClassification =
+  | 'hot_lead'
+  | 'warm_lead'
+  | 'interested'
+  | 'objection'
+  | 'not_interested'
+  | 'out_of_office'
+  | 'auto_reply'
+  | 'bounce'
+  | 'unsubscribe'
+  | 'referral'
+  | 'question'
+  | 'spam'
   | 'unclassified';
 
 export interface CRMEmailReply {

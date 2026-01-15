@@ -4,9 +4,8 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Key, Webhook, Link2, Copy, Eye, EyeOff, Trash2, Plus, ExternalLink } from "lucide-react";
+import { Key, Webhook, Link2, Eye, EyeOff, Trash2, Plus, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -64,7 +63,7 @@ export function APIIntegrationSettings() {
           setIntegrations(prev => ({ ...prev, ...parsedSettings.integrations }));
         }
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error loading API settings:', error);
     }
   };
@@ -118,7 +117,7 @@ export function APIIntegrationSettings() {
         integrations,
       }));
       toast.success('API settings saved');
-    } catch (error) {
+    } catch (_error) {
       console.error('Error saving API settings:', error);
       toast.error('Failed to save settings');
     } finally {

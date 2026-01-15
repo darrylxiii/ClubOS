@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
-import { format, isToday, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 interface TodayInterview {
   id: string;

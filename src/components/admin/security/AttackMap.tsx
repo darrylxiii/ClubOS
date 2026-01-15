@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { WorldMap } from '@/components/ui/world-map';
-import { useAttackGeoData, useCountryAttackStats, AttackGeoPoint } from '@/hooks/useAttackGeoData';
+import { useAttackGeoData, useCountryAttackStats } from '@/hooks/useAttackGeoData';
 import { Globe, Shield, AlertTriangle, MapPin, Wifi } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 

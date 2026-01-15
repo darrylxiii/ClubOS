@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { ArrowUpDown, ArrowUp, ArrowDown, Plus, X, Trash2, GripVertical } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Plus, X, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface SortCondition {

@@ -13,8 +13,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LucideIcon } from "lucide-react";
 import { useNavigationState } from "@/hooks/useNavigationState";
-import { T } from "@/components/T";
-import { useTranslation } from "react-i18next";
 import { AppearanceSettingsModal } from "./appearance/AppearanceSettingsModal";
 
 interface SidebarContextProps {

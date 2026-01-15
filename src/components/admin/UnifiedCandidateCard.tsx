@@ -13,12 +13,8 @@ import {
   FileText,
   Link2Icon,
   Clock,
-  Users,
   Briefcase as BriefcaseIcon,
-  Pencil,
-  History,
-  Archive,
-  Trash2
+  Pencil
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";

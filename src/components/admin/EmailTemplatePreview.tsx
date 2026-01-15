@@ -16,7 +16,7 @@ export function EmailTemplatePreview({ template, contentOverride }: EmailTemplat
   let contentData;
   try {
     contentData = contentOverride ? JSON.parse(contentOverride) : template.content_template;
-  } catch (e) {
+  } catch (_e) {
     contentData = template.content_template;
   }
 

@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
+import { PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, Building2, MapPin, Users, DollarSign, Check } from "lucide-react";
+import { Building2, MapPin, Users, DollarSign, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Application {

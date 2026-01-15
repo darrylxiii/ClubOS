@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Archive, Trash2, Clock, CheckCircle, X, 
-  Send, Tag, Download, MoreHorizontal 
+  Archive, Clock, CheckCircle, X, Download 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +8,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

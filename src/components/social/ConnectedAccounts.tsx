@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Instagram, Twitter, Video, Linkedin, Facebook, Youtube, Plus, Trash2, RefreshCw, ExternalLink } from "lucide-react";
+import { Instagram, Twitter, Video, Linkedin, Facebook, Youtube, Trash2, RefreshCw, ExternalLink } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,

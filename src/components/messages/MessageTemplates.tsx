@@ -64,7 +64,7 @@ export function MessageTemplates({ onSelectTemplate, companyId }: MessageTemplat
       setNewTemplate({ name: '', category: '', content: '' });
       setCreateOpen(false);
       loadTemplates();
-    } catch (error) {
+    } catch (_error) {
       console.error('Error creating template:', error);
       toast.error('Failed to create template');
     }

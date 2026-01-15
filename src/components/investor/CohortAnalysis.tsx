@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Users } from "lucide-react";
-import { format, subMonths, startOfMonth } from "date-fns";
+import { format, startOfMonth } from "date-fns";
 
 interface CohortData {
   cohort: string;

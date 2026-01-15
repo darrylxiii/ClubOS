@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { BasePage } from '../page-objects/BasePage';
 
 test.describe('Navigation & Accessibility', () => {
   test.describe('Public Routes', () => {

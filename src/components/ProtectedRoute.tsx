@@ -18,13 +18,13 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   logger.debug("[ProtectedRoute] State", { loading, hasUser: !!user, accountStatus, onboardingCompleted });
 
-  // Reduced timeout to 6s since AuthContext guarantees loading=false within 3s
+  // Reduced timeout to 2s since AuthContext now fails fast
   useEffect(() => {
     if (loading) {
       const timer = setTimeout(() => {
-        logger.warn("[ProtectedRoute] 🚨 Loading timeout after 6s - forcing redirect");
+        logger.warn("[ProtectedRoute] 🚨 Loading timeout after 2s - forcing redirect");
         setLoadingTimeout(true);
-      }, 6000);
+      }, 2000);
       return () => clearTimeout(timer);
     } else {
       // Reset timeout flag when loading completes normally

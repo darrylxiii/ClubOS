@@ -30,7 +30,7 @@ export async function handleFetchFinancials(supabase: SupabaseClient, payload: a
 
     // 1. Fetch Invoices (Full Pagination)
     const periodFilter = `${input.year}0101..${input.year}1231`;
-    let allInvoices: any[] = [];
+    const allInvoices: any[] = [];
     let page = 1;
     let hasMore = true;
 

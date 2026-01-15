@@ -5,11 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Send, Bot, X, Sparkles, Lock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { notify } from "@/lib/notify";
 import { useAuth } from "@/contexts/AuthContext";
 import ReactMarkdown from "react-markdown";
-import { useAnimatedText } from "@/hooks/useAnimatedText";
 
 interface CourseAIChatProps {
   courseId: string;

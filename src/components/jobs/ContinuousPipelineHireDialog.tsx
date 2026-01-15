@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Infinity, Users, DollarSign, Loader2 } from "lucide-react";
+import { Infinity as InfinityIcon, Users, DollarSign, Loader2 } from "lucide-react";
 import { useContinuousPipelineHire } from "@/hooks/useContinuousPipelineHire";
 import { formatCurrency } from "@/lib/revenueCalculations";
 
@@ -112,7 +112,7 @@ export function ContinuousPipelineHireDialog({
             <Badge variant="outline" className="gap-1 text-primary">
               {isUnlimited ? (
                 <>
-                  <Infinity className="h-3 w-3" />
+                  <InfinityIcon className="h-3 w-3" />
                   Continuous
                 </>
               ) : (

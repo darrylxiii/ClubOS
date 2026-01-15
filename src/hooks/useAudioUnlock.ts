@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger';
 
 // Singleton state for global audio unlock
 let isAudioUnlocked = false;
-let audioUnlockPromise: Promise<void> | null = null;
+const audioUnlockPromise: Promise<void> | null = null;
 const pendingAudioElements: Set<HTMLAudioElement> = new Set();
 const pendingAudioContexts: Set<AudioContext> = new Set();
 
@@ -36,7 +36,7 @@ const unlockAllAudio = async () => {
       try {
         await ctx.resume();
         logger.debug('Resumed AudioContext', { componentName: 'AudioUnlock' });
-      } catch (e) {
+      } catch (_e) {
         logger.warn('Failed to resume AudioContext', { componentName: 'AudioUnlock', error: e });
       }
     }
@@ -49,7 +49,7 @@ const unlockAllAudio = async () => {
         await audio.play();
         logger.debug('Started playing audio element', { componentName: 'AudioUnlock' });
       }
-    } catch (e) {
+    } catch (_e) {
       logger.warn('Failed to play audio', { componentName: 'AudioUnlock', error: e });
     }
   }

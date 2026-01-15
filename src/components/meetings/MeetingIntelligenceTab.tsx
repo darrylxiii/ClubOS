@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Calendar, Users, TrendingUp, MessageSquare, Clock } from "lucide-react";
+import { Search, Calendar, TrendingUp, MessageSquare, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";

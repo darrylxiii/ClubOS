@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ArrowLeft, Globe, Linkedin, Twitter, Instagram,
   Settings, Eye, Share2, Image as ImageIcon, Building2,
-  MapPin, Users, Calendar, Briefcase, Heart, Star, Mail, Sparkles, Target, Newspaper, Brain, BarChart3, Wallet
+  MapPin, Users, Calendar, Briefcase, Heart, Star, Sparkles, Target, Newspaper, Brain, BarChart3, Wallet
 } from "lucide-react";
 import { SectionLoader } from "@/components/ui/unified-loader";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,10 +17,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { CompanySocialActivity } from "@/components/companies/CompanySocialActivity";
-import { CompanyPosts } from "@/components/partner/CompanyPosts";
 import { CompanyMembersStack } from "@/components/companies/CompanyMembersStack";
 import { EditCompanyDialog } from "@/components/companies/EditCompanyDialog";
-import { TeamManagement } from "@/components/partner/TeamManagement";
 import { CompanyMembersDialog } from "@/components/companies/CompanyMembersDialog";
 import { CreateJobDialog } from "@/components/partner/CreateJobDialog";
 import { DepartmentManager } from "@/components/organization/DepartmentManager";
@@ -28,7 +26,6 @@ import { MemberAssignmentEditor } from "@/components/organization/MemberAssignme
 import { OrgChartView } from "@/components/organization/OrgChartView";
 import { JobCard } from "@/components/JobCard";
 import { TargetCompanies } from "@/components/partner/TargetCompanies";
-import { CompanyCRMMetrics } from "@/components/crm/CompanyCRMMetrics";
 import { getJobViewPath } from "@/utils/jobNavigation";
 import { NewsArticleCard } from "@/components/company/NewsArticleCard";
 import { AddNewsArticleDialog } from "@/components/company/AddNewsArticleDialog";

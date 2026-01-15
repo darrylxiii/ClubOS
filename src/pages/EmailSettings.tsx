@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
   Mail, Plus, Trash2, CheckCircle, XCircle,
-  RefreshCw, Settings, Loader2, AlertCircle
+  RefreshCw, Loader2, AlertCircle
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,7 +25,6 @@ import {
   DialogTrigger,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
 import { SectionLoader } from "@/components/ui/unified-loader";
 
@@ -46,12 +45,13 @@ const EmailSettings = () => {
   const [connections, setConnections] = useState<EmailConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [newEmail, setNewEmail] = useState('');
+  const [newEmail, setNewEmail] = useState(''); // Kept for manual Outlook/IMAP if needed, but Gmail flow is different
   const [newProvider, setNewProvider] = useState<'gmail' | 'outlook' | 'other'>('gmail');
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
     loadConnections();
+    handleOAuthCallback();
   }, [user?.id]);
 
   const loadConnections = async () => {
@@ -72,8 +72,109 @@ const EmailSettings = () => {
     setLoading(false);
   };
 
+  const handleOAuthCallback = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const error = params.get('error');
+
+    if (error) {
+      toast.error('Google authentication failed');
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
+    if (code) {
+      setConnecting(true);
+      toast.info('Completing email connection...');
+
+      try {
+        // Clean URL immediately to prevent re-use of code
+        const redirectUri = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        const { data, error: funcError } = await supabase.functions.invoke('gmail-oauth', {
+          body: {
+            action: 'exchangeCode',
+            code,
+            redirectUri
+          }
+        });
+
+        if (funcError) throw funcError;
+
+        // Use the email from the token or fetch user profile
+        // For now, we'll fetch the user profile from Google using the token to get the email
+        // Or simpler: The backend could return the email, but it returns tokens.
+        // We'll fetch the user info here or just use a placeholder if the token doesn't have email scope exposed easily purely from token response.
+        // Actually, the backend requested `userinfo.email` scope. 
+        // We really should fetch the email to save it correctly. 
+        // Let's assume for this MVP we fetch it or the user confirms it. 
+        // Wait, better: Let's fetch it using the access token.
+
+        const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+          headers: { Authorization: `Bearer ${data.access_token}` }
+        });
+        const userData = await userResponse.json();
+        const connectedEmail = userData.email;
+
+        // Save connection
+        const { error: insertError } = await supabase
+          .from('email_connections')
+          .upsert({
+            user_id: user?.id,
+            email: connectedEmail,
+            provider: 'gmail',
+            label: connectedEmail,
+            access_token: data.access_token,
+            refresh_token: data.refresh_token,
+            expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
+            is_active: true,
+            sync_enabled: true
+          }, { onConflict: 'user_id,email' });
+
+        if (insertError) throw insertError;
+
+        toast.success(`Successfully connected ${connectedEmail}`);
+        loadConnections();
+
+      } catch (err: any) {
+        console.error('OAuth Error:', err);
+        toast.error('Failed to connect email: ' + (err.message || 'Unknown error'));
+      } finally {
+        setConnecting(false);
+      }
+    }
+  };
+
   const handleAddConnection = async () => {
-    if (!user?.id || !newEmail) {
+    if (!user?.id) return;
+
+    if (newProvider === 'gmail') {
+      setConnecting(true);
+      try {
+        const redirectUri = window.location.origin + window.location.pathname;
+        const { data, error } = await supabase.functions.invoke('gmail-oauth', {
+          body: {
+            action: 'getAuthUrl',
+            redirectUri
+          }
+        });
+
+        if (error) throw error;
+        if (data?.authUrl) {
+          window.location.href = data.authUrl;
+        }
+      } catch (error) {
+        logger.error('Failed to initiate Gmail OAuth:', error);
+        toast.error('Failed to start Google connection');
+        setConnecting(false);
+      }
+      return;
+    }
+
+    // Fallback for non-Gmail (Simulated)
+    if (!newEmail) {
       toast.error('Please enter an email address');
       return;
     }
@@ -81,8 +182,6 @@ const EmailSettings = () => {
     setConnecting(true);
 
     try {
-      // In a real app, this would initiate OAuth flow
-      // For now, we'll just create the connection record
       const { error } = await supabase
         .from('email_connections')
         .insert({
@@ -90,7 +189,7 @@ const EmailSettings = () => {
           email: newEmail,
           provider: newProvider,
           label: newEmail,
-          access_token: 'placeholder_token', // In production, this would be OAuth token
+          access_token: 'placeholder_token',
           is_active: true,
           sync_enabled: true
         });

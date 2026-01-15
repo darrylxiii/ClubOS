@@ -58,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     console.log('[process-email-ai] Processing request');
-    
+
     const { emailId }: ProcessRequest = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -132,9 +132,9 @@ Body: ${email.body_text || email.snippet || ""}
 
     if (!aiResponse.ok) {
       const errorMessage = aiResponse.status === 429 ? 'AI rate limit exceeded' :
-                          aiResponse.status === 402 ? 'AI credits exhausted' :
-                          'AI service error';
-      
+        aiResponse.status === 402 ? 'AI credits exhausted' :
+          'AI service error';
+
       await logAIUsage({
         userId,
         functionName: 'process-email-ai',
@@ -170,11 +170,11 @@ Body: ${email.body_text || email.snippet || ""}
       priorityScore = Math.min(100, priorityScore + 15);
       priorityReason += " • Meeting detected";
     }
-    
-    const inboxType = analysis.category === "newsletter" || analysis.category === "marketing" ? "newsletters" : 
-                     priorityScore >= 80 ? "important" : 
-                     analysis.action_items?.length > 0 ? "action" : 
-                     priorityScore < 40 ? "low" : "fyi";
+
+    const inboxType = analysis.category === "newsletter" || analysis.category === "marketing" ? "newsletters" :
+      priorityScore >= 80 ? "important" :
+        analysis.action_items?.length > 0 ? "action" :
+          priorityScore < 40 ? "low" : "fyi";
 
     // Update email with AI insights
     const { error: updateError } = await supabase
@@ -226,7 +226,7 @@ Body: ${email.body_text || email.snippet || ""}
     if (analysis.follow_up?.needsFollowUp) {
       const followUpDate = new Date();
       followUpDate.setDate(followUpDate.getDate() + (analysis.follow_up.followUpDays || 3));
-      
+
       await supabase.from("email_follow_ups").insert({
         user_id: email.user_id,
         email_id: emailId,
@@ -250,6 +250,58 @@ Body: ${email.body_text || email.snippet || ""}
       }, {
         onConflict: 'user_id,contact_email',
       });
+
+    // --- RAG INTEGRATION: Generate & Store Embedding ---
+    try {
+      console.log('[process-email-ai] Generating embedding for RAG...');
+      const embeddingResp = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'text-embedding-3-small',
+          input: emailText,
+        })
+      });
+
+      if (embeddingResp.ok) {
+        const embeddingData = await embeddingResp.json();
+        const vector = embeddingData.data[0].embedding;
+
+        // Insert into intelligence_embeddings
+        // metadata should match what search_universal_context might expect or just be flexible
+        const { error: embedError } = await supabase
+          .from('intelligence_embeddings')
+          .insert({
+            user_id: userId, // Ensure RLS works
+            content: emailText,
+            role: 'user', // Default to user role ownership? Or checks 'role' column
+            embedding: vector,
+            metadata: {
+              type: 'email',
+              email_id: emailId,
+              subject: email.subject,
+              from: email.from_email,
+              date: email.email_date,
+              priority: analysis.priority
+            }
+          });
+
+        if (embedError) {
+          console.error('[process-email-ai] Failed to store embedding:', embedError);
+        } else {
+          console.log('[process-email-ai] Embedding stored successfully');
+        }
+      } else {
+        console.error('[process-email-ai] Failed to generate embedding:', await embeddingResp.text());
+      }
+    } catch (e) {
+      console.error('[process-email-ai] RAG integration error:', e);
+      // Don't fail the whole request, just log it
+    }
+    // ---------------------------------------------------
 
     await logAIUsage({
       userId,

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import {
   Video,
   Play,
-  Clock,
   Calendar,
   Users,
   FileText,
@@ -20,7 +19,6 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { MeetingRecordingExtended } from '@/hooks/useMeetingRecordings';
-import { supabase } from '@/integrations/supabase/client';
 import { aiService } from '@/services/aiService';
 import { toast } from 'sonner';
 

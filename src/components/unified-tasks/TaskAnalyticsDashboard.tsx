@@ -18,7 +18,6 @@ import {
 import { TaskBurndownChart } from "./TaskBurndownChart";
 import { TeamWorkloadView } from "./TeamWorkloadView";
 import { 
-  TrendingUp, 
   CheckCircle2, 
   Clock, 
   AlertTriangle,

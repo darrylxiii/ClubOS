@@ -16,19 +16,16 @@ import {
   Building,
   MapPin,
   Calendar,
-  Zap,
   MessageSquare,
-  Edit,
   Trash2,
   Clock,
   Send,
   CheckCircle,
-  XCircle,
-  AlertCircle
+  XCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { PROSPECT_STAGES, type CRMProspect, type CRMTouchpoint } from '@/types/crm-enterprise';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
 import {
   Select,
@@ -52,9 +49,7 @@ import { ProspectScoreCard } from '@/components/crm/ProspectScoreCard';
 import { AIReplySuggestion } from '@/components/crm/AIReplySuggestion';
 import { ActivityList } from '@/components/crm/ActivityList';
 import { ActivityQuickAdd } from '@/components/crm/ActivityQuickAdd';
-import { RottingIndicator } from '@/components/crm/RottingIndicator';
 import { MobileProspectActionBar } from '@/components/crm/MobileProspectActionBar';
-import { differenceInDays } from 'date-fns';
 
 export default function ProspectDetail() {
   const { prospectId } = useParams<{ prospectId: string }>();

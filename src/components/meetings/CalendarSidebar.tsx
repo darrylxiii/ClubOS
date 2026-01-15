@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { CalendarFilters } from "@/types/calendar";
-import { Star, Calendar as CalendarIcon, RefreshCw } from "lucide-react";
+import { Star, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface CalendarSidebarProps {

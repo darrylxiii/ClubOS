@@ -17,7 +17,7 @@ import {
   ThumbsDown,
   RefreshCw
 } from 'lucide-react';
-import { useWhatsAppTemplateAnalytics, type TemplatePerformance } from '@/hooks/useWhatsAppTemplateAnalytics';
+import { useWhatsAppTemplateAnalytics } from '@/hooks/useWhatsAppTemplateAnalytics';
 import { cn } from '@/lib/utils';
 
 interface WhatsAppTemplateAnalyticsProps {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Gavel, Clock, CheckCircle2, XCircle, AlertTriangle,
-  Filter, Search, ChevronDown, Users, Calendar, Shield,
+  Filter, Search, ChevronDown, Users, Shield,
   ArrowUpRight, Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

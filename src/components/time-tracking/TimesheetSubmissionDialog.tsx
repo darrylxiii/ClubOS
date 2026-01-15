@@ -10,7 +10,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { useTimesheets, TimesheetPeriod, TimesheetValidation } from '@/hooks/useTimesheets';
 import { format, parseISO } from 'date-fns';
 import { 
@@ -18,7 +17,6 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   XCircle,
-  Clock,
   Loader2
 } from 'lucide-react';
 

@@ -11,9 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Sparkles, TrendingUp, AlertTriangle, CheckCircle, DollarSign, Target, Lightbulb, FileText } from 'lucide-react';
+import { Loader2, Sparkles, AlertTriangle, CheckCircle, DollarSign, Target, Lightbulb } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
 import { OfferLetterGenerator } from './OfferLetterGenerator';
@@ -90,7 +89,7 @@ export function SmartOfferBuilder({
           companyId: jobRes.data.company_id || '',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error fetching candidate info:', error);
     }
   };
@@ -108,7 +107,7 @@ export function SmartOfferBuilder({
       setBaseSalary(data.recommended_base_salary);
       setBonusPercentage(data.recommended_bonus_percentage);
       setEquityPercentage(data.recommended_equity_percentage);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error generating recommendation:', error);
       notify.error('Failed to generate offer recommendation');
     } finally {
@@ -147,7 +146,7 @@ export function SmartOfferBuilder({
 
       setSavedOfferId(data.id);
       onOfferCreated?.(data.id);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error saving offer:', error);
       notify.error('Failed to save offer');
     } finally {

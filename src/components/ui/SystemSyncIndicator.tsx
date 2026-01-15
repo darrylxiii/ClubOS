@@ -8,8 +8,7 @@ import {
   CheckCircle, 
   AlertCircle, 
   Clock, 
-  CloudOff,
-  RefreshCw 
+  CloudOff 
 } from "lucide-react";
 
 export type SyncStatus = "syncing" | "synced" | "error" | "pending" | "offline";

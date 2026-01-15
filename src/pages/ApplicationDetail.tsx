@@ -5,16 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
-  ArrowLeft, MapPin, DollarSign, Users, Calendar, 
+  ArrowLeft, MapPin, DollarSign, Calendar, 
   Briefcase, FileText, Target, MessageSquare, ExternalLink, Check, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OnlineStatusIndicator } from "@/components/messages/OnlineStatusIndicator";
-import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
+import { PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { ProgressionHeatmap } from "@/components/applications/ProgressionHeatmap";
 import { CompetitionInsight } from "@/components/applications/CompetitionInsight";
 import { TimelineDeadlines } from "@/components/applications/TimelineDeadlines";

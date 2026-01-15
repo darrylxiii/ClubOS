@@ -5,8 +5,7 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { withTracing, traceLog, createChildSpan, endSpan } from "../_shared/edge-tracing.ts";
+import { withTracing } from "../_shared/edge-tracing.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

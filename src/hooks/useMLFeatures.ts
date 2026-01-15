@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { aiService } from '@/services/aiService';
 import type { MLFeatures, FeatureGenerationRequest } from '@/types/ml';
 

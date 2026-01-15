@@ -1,5 +1,5 @@
 import { UnifiedCalendarEvent } from "@/types/calendar";
-import { differenceInMinutes, isPast, isFuture, isWithinInterval } from "date-fns";
+import { differenceInMinutes, isPast, isWithinInterval } from "date-fns";
 
 export type MeetingStatus = 
   | 'upcoming' 

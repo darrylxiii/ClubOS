@@ -6,16 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import {
-  Inbox, Search, Filter, Star, Clock, DollarSign,
+  Inbox, Search, Star, Clock, DollarSign,
   CheckCircle2, XCircle, MessageSquare, Calendar,
-  ChevronRight, Sparkles, Eye, ThumbsUp, ThumbsDown
+  ChevronRight, Sparkles, Eye, ThumbsDown
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ProjectChat } from "@/components/projects/ProjectChat";

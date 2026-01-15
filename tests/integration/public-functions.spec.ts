@@ -6,9 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { 
   invokeEdgeFunction, 
-  expectStatus, 
-  measureResponseTime,
-  testRateLimit 
+  measureResponseTime 
 } from './edge-function-client';
 
 test.describe('Public Edge Functions', () => {

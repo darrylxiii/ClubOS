@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import { logger } from '@/lib/logger';
 
 interface JitterBufferConfig {

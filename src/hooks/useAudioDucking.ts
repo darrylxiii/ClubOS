@@ -84,7 +84,7 @@ export function useAudioDucking({
       });
 
       console.log('[AudioDucking] Registered audio source:', id, type);
-    } catch (e) {
+    } catch (_e) {
       console.error('[AudioDucking] Failed to register source:', id, e);
     }
   }, [enabled, getAudioContext]);

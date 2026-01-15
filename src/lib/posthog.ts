@@ -65,7 +65,7 @@ function shouldReduceTracking(): boolean {
 }
 
 // Track initialization state
-let initializationPromise: Promise<void> | null = null;
+const initializationPromise: Promise<void> | null = null;
 
 /**
  * Initialize PostHog with privacy-compliant settings

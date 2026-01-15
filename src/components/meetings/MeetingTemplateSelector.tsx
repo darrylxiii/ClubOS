@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, FileText } from "lucide-react";
+import { Clock, FileText } from "lucide-react";
 
 export interface MeetingTemplate {
   id: string;

@@ -88,7 +88,7 @@ export function IncomingCallBanner({
         };
 
         playSequence();
-      } catch (error) {
+      } catch (_error) {
         console.error('Error initializing audio:', error);
       }
     };

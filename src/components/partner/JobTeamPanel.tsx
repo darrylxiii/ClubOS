@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Users, Plus, Crown, UserCheck, Eye, MoreVertical, CalendarClock, Shield, Building2 } from 'lucide-react';
+import { Users, Plus, Crown, UserCheck, Eye, MoreVertical, CalendarClock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -13,7 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { AddJobTeamMemberDialog } from './AddJobTeamMemberDialog';
 import { resolveTeamMember, getAssignmentTypeBadge, ResolvedTeamMember } from '@/utils/jobTeamUtils';
 import { ListSkeleton } from '@/components/LoadingSkeletons';

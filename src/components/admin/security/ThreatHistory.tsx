@@ -10,12 +10,10 @@ import {
   CheckCircle, 
   Search, 
   Download,
-  Calendar,
-  User,
-  Clock
+  Calendar
 } from 'lucide-react';
 import { useThreatEvents } from '@/hooks/useThreatDetection';
-import { ThreatEvent, ThreatSeverity } from '@/types/threat';
+import { ThreatSeverity } from '@/types/threat';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow, format } from 'date-fns';
 

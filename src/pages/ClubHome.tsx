@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useRole } from "@/contexts/RoleContext";
@@ -8,7 +7,6 @@ import { CandidateHome } from "@/components/clubhome/CandidateHome";
 import { PartnerHome } from "@/components/clubhome/PartnerHome";
 import { AdminHome } from "@/components/clubhome/AdminHome";
 import { ClubHomeHeader } from "@/components/clubhome/ClubHomeHeader";
-import { BackgroundVideo } from "@/components/BackgroundVideo";
 
 const ClubHome = () => {
   const { currentRole: role, loading: roleLoading } = useRole();

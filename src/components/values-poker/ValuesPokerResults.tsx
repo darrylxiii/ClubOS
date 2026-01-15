@@ -2,9 +2,8 @@ import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { ValuesPokerResult } from '@/types/assessment';
-import { Award, TrendingUp, Building, AlertTriangle } from 'lucide-react';
+import { Award, Building, AlertTriangle } from 'lucide-react';
 import { WORK_VALUES } from '@/data/valuesPokerData';
 
 interface ValuesPokerResultsProps {

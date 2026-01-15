@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft, User, Briefcase, MapPin, Mail, Phone, Linkedin,
-  Github, Globe, Calendar, Target, TrendingUp, Eye, Activity,
-  Star, Clock, FileText, Edit
+  Github, Globe, Target, TrendingUp, Activity,
+  Star, Clock, Edit
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -24,7 +24,6 @@ import { CandidateLinkedJobs } from "@/components/partner/CandidateLinkedJobs";
 import { CandidateInteractionLog } from "@/components/partner/CandidateInteractionLog";
 import { CandidateAnalytics } from "@/components/partner/CandidateAnalytics";
 import { CandidateQuickActions } from "@/components/partner/CandidateQuickActions";
-import { MusicSection } from "@/components/profile/MusicSection";
 import { CandidateDecisionDashboard } from "@/components/partner/CandidateDecisionDashboard";
 import { CandidateDocumentsViewer } from "@/components/partner/CandidateDocumentsViewer";
 import { CandidateWorkAuthCard } from "@/components/partner/CandidateWorkAuthCard";
@@ -33,7 +32,6 @@ import { CandidateNotesManager } from "@/components/partner/CandidateNotesManage
 import { CandidatePipelineContextBanner } from "@/components/partner/CandidatePipelineContextBanner";
 import { SourceInformationCard } from "@/components/partner/SourceInformationCard";
 import { EditCandidateDialog } from "@/components/partner/EditCandidateDialog";
-import { CandidateSettingsViewer } from "@/components/admin/CandidateSettingsViewer";
 import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
 import { AssessmentHistory } from "@/components/candidate/AssessmentHistory";
 import { TalentPoolTags } from "@/components/candidates/TalentPoolTags";

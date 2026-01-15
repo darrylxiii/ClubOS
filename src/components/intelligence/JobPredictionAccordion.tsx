@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, AlertTriangle, Briefcase, Infinity } from "lucide-react";
+import { ChevronDown, ChevronRight, AlertTriangle, Briefcase, Infinity as InfinityIcon } from "lucide-react";
 import { PredictiveAnalyticsDashboard } from "./PredictiveAnalyticsDashboard";
 import { cn } from "@/lib/utils";
 
@@ -110,7 +110,7 @@ export function JobPredictionAccordion({ jobs, jobHealthScores }: JobPredictionA
                       <h4 className="font-medium">{job.title}</h4>
                       {job.is_continuous && (
                         <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/20">
-                          <Infinity className="h-3 w-3 mr-1" />
+                          <InfinityIcon className="h-3 w-3 mr-1" />
                           Continuous
                         </Badge>
                       )}

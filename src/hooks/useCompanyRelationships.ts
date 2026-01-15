@@ -122,23 +122,23 @@ export function useCompanyRelationships(selectedCompanyId?: string | null) {
       });
 
       // Build score map
-      const scoreMap = new Map(scores?.map(s => [s.entity_id, s]) || []);
+      const scoreMap = new Map<string, any>(scores?.map(s => [s.entity_id, s]) || []);
 
       // Build email sentiment map
-      const sentimentMap = new Map(
-        (emailSentiments || []).map(s => [s.company_id, s])
+      const sentimentMap = new Map<string, any>(
+        (emailSentiments || []).filter(s => s.company_id).map(s => [s.company_id as string, s])
       );
 
       // Combine data
       let combinedData: CompanyRelationship[] = (companiesData || []).map(company => {
         const score = scoreMap.get(company.id);
         const emailSentiment = sentimentMap.get(company.id);
-        
+
         // Use email sentiment data if available, fall back to communication scores
         const avgSentiment = emailSentiment?.avg_sentiment_score ?? score?.avg_sentiment ?? 0;
         const healthScore = emailSentiment?.health_score ?? null;
         const healthStatus = emailSentiment?.health_status ?? null;
-        
+
         return {
           id: score?.id || company.id,
           company_id: company.id,
@@ -211,17 +211,17 @@ export function useCompanyRelationships(selectedCompanyId?: string | null) {
     // Subscribe to realtime updates
     const channel = supabase
       .channel('company_relationships_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
         table: 'communication_relationship_scores',
         filter: 'entity_type=eq.company'
       }, () => {
         fetchRelationships();
       })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
         table: 'company_email_sentiment'
       }, () => {
         fetchRelationships();
@@ -250,8 +250,8 @@ function calculateDaysSince(dateStr: string | null): number | null {
 
 // Calculate risk level from health status or score
 function calculateRiskFromHealth(
-  healthStatus: string | null, 
-  healthScore: number | null, 
+  healthStatus: string | null,
+  healthScore: number | null,
   score: any
 ): RiskLevel {
   if (healthStatus) {
@@ -263,19 +263,19 @@ function calculateRiskFromHealth(
       default: return 'medium';
     }
   }
-  
+
   if (healthScore !== null) {
     if (healthScore >= 80) return 'low';
     if (healthScore >= 60) return 'medium';
     if (healthScore >= 40) return 'high';
     return 'critical';
   }
-  
+
   // Fall back to original calculation
   if (!score) return 'medium';
   const daysSince = score.days_since_contact || 0;
   const engagement = score.engagement_score || 0;
-  
+
   if (daysSince > 30 || engagement < 2) return 'critical';
   if (daysSince > 14 || engagement < 4) return 'high';
   if (daysSince > 7 || engagement < 6) return 'medium';

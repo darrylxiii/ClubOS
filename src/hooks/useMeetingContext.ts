@@ -277,8 +277,8 @@ export const useUpcomingMeetingsWithContext = (userId?: string) => {
         ];
 
         const uniqueMeetings = Array.from(
-          new Map(allMeetings.map(m => [m.id, m])).values()
-        ).sort((a, b) => 
+          new Map<string, any>(allMeetings.map(m => [m.id, m])).values()
+        ).sort((a, b) =>
           new Date(a.scheduled_start!).getTime() - new Date(b.scheduled_start!).getTime()
         );
 

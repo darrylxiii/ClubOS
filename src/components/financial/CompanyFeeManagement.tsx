@@ -21,7 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Loader2, Building2, Percent, AlertTriangle, CheckCircle, Edit2, X, Save, AlertCircle, DollarSign, Shuffle, Settings2 } from "lucide-react";
+import { Loader2, Building2, Percent, AlertTriangle, CheckCircle, AlertCircle, DollarSign, Shuffle, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CompanyFeeConfigDialog } from "./CompanyFeeConfigDialog";
 

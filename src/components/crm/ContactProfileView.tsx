@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { ActivityTimeline } from "./ActivityTimeline";
 import { 
-  ArrowLeft, Mail, Building2, Tag, TrendingUp, 
+  ArrowLeft, Building2, Tag, 
   Target, Sparkles, Briefcase, User
 } from "lucide-react";
 import { toast } from "sonner";

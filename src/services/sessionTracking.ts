@@ -6,12 +6,12 @@ import { supabase } from '@/integrations/supabase/client';
 export const getSessionId = (): string => {
   const key = 'activity_session_id';
   let sessionId = sessionStorage.getItem(key);
-  
+
   if (!sessionId) {
     sessionId = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
     sessionStorage.setItem(key, sessionId);
   }
-  
+
   return sessionId;
 };
 
@@ -21,12 +21,12 @@ export const getSessionId = (): string => {
 export const getSessionStartTime = (): Date => {
   const key = 'activity_session_start';
   let startTime = sessionStorage.getItem(key);
-  
+
   if (!startTime) {
     startTime = new Date().toISOString();
     sessionStorage.setItem(key, startTime);
   }
-  
+
   return new Date(startTime);
 };
 
@@ -76,12 +76,12 @@ export const trackEvent = async (
       p_user_id: userId,
       p_session_id: sessionId,
       p_event_type: eventType,
-      p_event_category: options?.eventCategory || null,
+      p_event_category: options?.eventCategory ?? null,
       p_action_data: options?.actionData ? JSON.parse(JSON.stringify(options.actionData)) : null,
       p_page_path: options?.pagePath || window.location.pathname,
       p_referrer: options?.referrer || document.referrer || null,
       p_device_type: deviceType,
-      p_duration_seconds: options?.durationSeconds || null,
+      p_duration_seconds: options?.durationSeconds ?? null,
     });
   } catch (error) {
     console.error('Error tracking event:', error);
@@ -96,9 +96,9 @@ export const trackLogin = async (userId: string, method: 'email' | 'google' | 'l
     // Reset session tracking on login
     sessionStorage.removeItem('activity_session_id');
     sessionStorage.removeItem('activity_session_start');
-    
+
     const sessionId = getSessionId();
-    
+
     // Track login event
     await trackEvent(userId, 'login', {
       eventCategory: 'auth',

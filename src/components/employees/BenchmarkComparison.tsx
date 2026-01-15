@@ -6,8 +6,7 @@ import {
   BarChart3, 
   Users, 
   CheckCircle2,
-  DollarSign,
-  TrendingUp
+  DollarSign
 } from "lucide-react";
 import { AnalyticsCardSkeleton } from "@/components/LoadingSkeletons";
 

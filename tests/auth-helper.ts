@@ -1,4 +1,4 @@
-import { Page, BrowserContext, test as base } from '@playwright/test';
+import { Page, test as base } from '@playwright/test';
 import { testUsers } from './fixtures/test-data';
 import * as fs from 'fs';
 import * as path from 'path';

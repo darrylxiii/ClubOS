@@ -7,34 +7,26 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2 } from "lucide-react";
+import { ArrowLeft, Users, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, Archive, Trash2 } from "lucide-react";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { JobClosureDialog } from "@/components/jobs/JobClosureDialog";
 import { JobDeleteDialog } from "@/components/jobs/JobDeleteDialog";
 import { JobArchiveDialog } from "@/components/jobs/JobArchiveDialog";
-import { useCloseJobWon, useCloseJobLost, useArchiveJob, useDeleteJob } from "@/hooks/useDealPipeline";
+import { useCloseJobLost, useArchiveJob, useDeleteJob } from "@/hooks/useDealPipeline";
 import { useRole } from "@/contexts/RoleContext";
 import { QuickActionsBar } from "@/components/partner/QuickActionsBar";
 import { SmartInsightsCard } from "@/components/partner/SmartInsightsCard";
-import { EnhancedFiltersPanel } from "@/components/partner/EnhancedFiltersPanel";
-import { JobDashboardCandidates } from "@/components/partner/JobDashboardCandidates";
-import { PipelineAuditLog } from "@/components/partner/PipelineAuditLog";
 import { TeamActivityCard } from "@/components/partner/TeamActivityCard";
 import { RejectedCandidatesTab } from "@/components/partner/RejectedCandidatesTab";
 import { EnhancedCandidateActionDialog } from "@/components/partner/EnhancedCandidateActionDialog";
 import { ExpandablePipelineStage } from "@/components/partner/ExpandablePipelineStage";
-import { CandidateActionDialog } from "@/components/partner/CandidateActionDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PipelineDisplaySettings, defaultSettings, type DisplaySettings } from "@/components/partner/PipelineDisplaySettings";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AddStageDialog } from "@/components/partner/AddStageDialog";
 import { AdminJobTools } from "@/components/partner/AdminJobTools";
 import { EditJobSheet } from "@/components/partner/EditJobSheet";
-import { JobDocuments } from "@/components/partner/JobDocuments";
 import { JobAnalytics } from "@/components/partner/JobAnalytics";
-import { UpcomingInterviewsWidget } from "@/components/partner/UpcomingInterviewsWidget";
-import { JobTeamPanel } from "@/components/partner/JobTeamPanel";
 import { CandidateIntelligenceDossier } from "@/components/intelligence/CandidateIntelligenceDossier";
 import { ExecutiveBriefingCard } from "@/components/intelligence/ExecutiveBriefingCard";
 import { PredictiveAnalyticsDashboard } from "@/components/intelligence/PredictiveAnalyticsDashboard";
@@ -49,14 +41,9 @@ import { CalendarInterviewLinker } from "@/components/partner/CalendarInterviewL
 import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledgeProfile";
 import {
   JobDashboardSidebar,
-  InlineActivityFeed,
-  CollapsibleSection,
   CandidatesAtRiskPanel,
-  QuickResponseTimeTracker,
   PipelineVelocityTracker,
   CandidateLeaderboard,
-  CandidateEngagementStream,
-  StageQuickActionsToolbar,
   JobPerformanceScorecard
 } from "@/components/job-dashboard";
 import { motion } from "framer-motion";
@@ -75,6 +62,8 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 
+import { SectionErrorBoundary } from "@/components/ui/SectionErrorBoundary";
+
 interface JobMetrics {
   totalApplicants: number;
   stageBreakdown: { [key: number]: number };
@@ -82,34 +71,6 @@ interface JobMetrics {
   conversionRates: { [key: string]: number };
   needsClubCheck: number;
   lastActivity: string;
-}
-
-interface ErrorBoundaryProps {
-  children: React.ReactNode;
-  fallback: React.ReactNode;
-}
-
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, { hasError: boolean }> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: any) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: any, errorInfo: any) {
-    console.error("Component Error:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback;
-    }
-
-    return this.props.children;
-  }
 }
 
 export default function JobDashboard() {
@@ -178,7 +139,7 @@ export default function JobDashboard() {
       if (saved) {
         try {
           setDisplaySettings(JSON.parse(saved));
-        } catch (e) {
+        } catch (_e) {
           console.error('Failed to parse display settings:', e);
         }
       }
@@ -387,7 +348,7 @@ export default function JobDashboard() {
               profileData.avatar_url = userProfile.avatar_url;
             }
           }
-        } 
+        }
         // Strategy 2: Direct candidate_profiles lookup via app.candidate_id
         else if (app.candidate_id) {
           const { data: candidateProfile } = await supabase
@@ -395,13 +356,13 @@ export default function JobDashboard() {
             .select('user_id, full_name, email, phone, avatar_url, current_title, current_company, linkedin_url')
             .eq('id', app.candidate_id)
             .maybeSingle();
-          
+
           if (candidateProfile) {
             profileData = candidateProfile;
             candidateId = app.candidate_id;
             if (candidateProfile.user_id) {
               linkedUserId = candidateProfile.user_id;
-              
+
               // Get user's latest avatar if linked
               const { data: userProfile } = await supabase
                 .from('profiles')
@@ -536,13 +497,16 @@ export default function JobDashboard() {
       <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6 animate-fade-in">
         {/* Admin Tools Bar - Only visible to admins */}
         {role === 'admin' && (
-          <ErrorBoundary fallback={<div className="p-4 border border-red-200 rounded text-red-500 text-sm">Failed to load Admin Tools</div>}>
+          <SectionErrorBoundary
+            sectionName="Admin Tools"
+            fallback={<div className="p-4 border border-red-200 rounded text-red-500 text-sm">Failed to load Admin Tools</div>}
+          >
             <AdminJobTools
               jobId={jobId!}
               jobTitle={job.title}
               onRefresh={fetchJobDetails}
             />
-          </ErrorBoundary>
+          </SectionErrorBoundary>
         )}
 
         <Dialog open={showBrainConfig} onOpenChange={setShowBrainConfig}>
@@ -682,37 +646,45 @@ export default function JobDashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
               >
-                <CandidatesAtRiskPanel
-                  applications={applications}
-                  stages={stages}
-                  avgDaysInStage={metrics.avgDaysInStage}
-                  jobId={jobId!}
-                />
+                <SectionErrorBoundary sectionName="Candidates At Risk">
+                  <CandidatesAtRiskPanel
+                    applications={applications}
+                    stages={stages}
+                    avgDaysInStage={metrics.avgDaysInStage}
+                    jobId={jobId!}
+                  />
+                </SectionErrorBoundary>
               </motion.div>
             )}
 
             {/* Pipeline Velocity & Performance - Side by Side */}
             {metrics && (
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <PipelineVelocityTracker
-                  stages={stages}
-                  avgDaysInStage={metrics.avgDaysInStage}
-                  stageBreakdown={metrics.stageBreakdown}
-                />
-                <JobPerformanceScorecard
-                  metrics={metrics}
-                  daysOpen={Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))}
-                />
+                <SectionErrorBoundary sectionName="Pipeline Velocity">
+                  <PipelineVelocityTracker
+                    stages={stages}
+                    avgDaysInStage={metrics.avgDaysInStage}
+                    stageBreakdown={metrics.stageBreakdown}
+                  />
+                </SectionErrorBoundary>
+                <SectionErrorBoundary sectionName="Performance Scorecard">
+                  <JobPerformanceScorecard
+                    metrics={metrics}
+                    daysOpen={Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))}
+                  />
+                </SectionErrorBoundary>
               </div>
             )}
 
             {/* Top Candidates Leaderboard */}
             {applications.length > 0 && (
-              <CandidateLeaderboard
-                applications={applications}
-                stages={stages}
-                jobId={jobId!}
-              />
+              <SectionErrorBoundary sectionName="Candidate Leaderboard">
+                <CandidateLeaderboard
+                  applications={applications}
+                  stages={stages}
+                  jobId={jobId!}
+                />
+              </SectionErrorBoundary>
             )}
 
             {/* Smart Insights - Promoted */}
@@ -722,7 +694,9 @@ export default function JobDashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
               >
-                <SmartInsightsCard metrics={metrics} stages={stages} />
+                <SectionErrorBoundary sectionName="Smart Insights">
+                  <SmartInsightsCard metrics={metrics} stages={stages} />
+                </SectionErrorBoundary>
               </motion.div>
             )}
 
@@ -792,114 +766,116 @@ export default function JobDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <DndContext
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                  sensors={sensors}
-                >
-                  <SortableContext
-                    items={stages.map((_, i) => `stage-${i}`)}
-                    strategy={verticalListSortingStrategy}
+                <SectionErrorBoundary sectionName="Pipeline Kanban">
+                  <DndContext
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                    sensors={sensors}
                   >
-                    <div className="space-y-3 md:space-y-4">
-                      {[...stages].sort((a, b) => a.order - b.order).map((stage, index) => {
-                        const count = metrics?.stageBreakdown[stage.order] || 0;
-                        const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
-                        const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
-                        const stageApplications = applications.filter(app => app.current_stage_index === stage.order);
+                    <SortableContext
+                      items={stages.map((_, i) => `stage-${i}`)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-3 md:space-y-4">
+                        {[...stages].sort((a, b) => a.order - b.order).map((stage, index) => {
+                          const count = metrics?.stageBreakdown[stage.order] || 0;
+                          const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
+                          const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
+                          const stageApplications = applications.filter(app => app.current_stage_index === stage.order);
 
-                        // Stage health indicator
-                        const stageHealth = avgDays > 14 ? 'red' : avgDays > 7 ? 'yellow' : 'green';
+                          // Stage health indicator
+                          const stageHealth = avgDays > 14 ? 'red' : avgDays > 7 ? 'yellow' : 'green';
 
-                        return (
-                          <ExpandablePipelineStage
-                            key={`stage-${index}`}
-                            stage={stage}
-                            stageIndex={stage.order}
-                            candidateCount={count}
-                            avgDays={avgDays}
-                            conversionRate={nextConversion}
-                            applications={stageApplications}
-                            jobId={jobId!}
-                            isExpanded={expandedStageIndices.has(stage.order)}
-                            onToggleExpand={() => toggleStageExpansion(stage.order)}
-                            displaySettings={displaySettings}
-                            totalStages={stages.length}
-                            onEdit={(updatedStage) => {
-                              // Save inline edits
-                              const updatedStages = [...stages];
-                              updatedStages[index] = { ...updatedStage, order: index };
+                          return (
+                            <ExpandablePipelineStage
+                              key={`stage-${index}`}
+                              stage={stage}
+                              stageIndex={stage.order}
+                              candidateCount={count}
+                              avgDays={avgDays}
+                              conversionRate={nextConversion}
+                              applications={stageApplications}
+                              jobId={jobId!}
+                              isExpanded={expandedStageIndices.has(stage.order)}
+                              onToggleExpand={() => toggleStageExpansion(stage.order)}
+                              displaySettings={displaySettings}
+                              totalStages={stages.length}
+                              onEdit={(updatedStage) => {
+                                // Save inline edits
+                                const updatedStages = [...stages];
+                                updatedStages[index] = { ...updatedStage, order: index };
 
-                              supabase
-                                .from('jobs')
-                                .update({ pipeline_stages: updatedStages })
-                                .eq('id', jobId)
-                                .then(({ error }) => {
-                                  if (!error) {
-                                    fetchJobDetails();
-                                    toast.success("Stage updated successfully");
-                                  } else {
-                                    toast.error("Failed to update stage");
-                                  }
-                                });
-                            }}
-                            onDuplicate={async () => {
-                              const duplicatedStage = {
-                                ...stage,
-                                name: `${stage.name} (Copy)`,
-                                order: stages.length
-                              };
-                              const updatedStages = [...stages, duplicatedStage];
+                                supabase
+                                  .from('jobs')
+                                  .update({ pipeline_stages: updatedStages })
+                                  .eq('id', jobId)
+                                  .then(({ error }) => {
+                                    if (!error) {
+                                      fetchJobDetails();
+                                      toast.success("Stage updated successfully");
+                                    } else {
+                                      toast.error("Failed to update stage");
+                                    }
+                                  });
+                              }}
+                              onDuplicate={async () => {
+                                const duplicatedStage = {
+                                  ...stage,
+                                  name: `${stage.name} (Copy)`,
+                                  order: stages.length
+                                };
+                                const updatedStages = [...stages, duplicatedStage];
 
-                              const { error } = await supabase
-                                .from('jobs')
-                                .update({ pipeline_stages: updatedStages })
-                                .eq('id', jobId);
+                                const { error } = await supabase
+                                  .from('jobs')
+                                  .update({ pipeline_stages: updatedStages })
+                                  .eq('id', jobId);
 
-                              if (!error) {
-                                await fetchJobDetails();
-                                toast.success("Stage duplicated successfully");
-                              } else {
-                                toast.error("Failed to duplicate stage");
-                              }
-                            }}
-                            onDelete={async () => {
-                              const updatedStages = stages
-                                .filter((_, i) => i !== index)
-                                .map((s, i) => ({ ...s, order: i }));
+                                if (!error) {
+                                  await fetchJobDetails();
+                                  toast.success("Stage duplicated successfully");
+                                } else {
+                                  toast.error("Failed to duplicate stage");
+                                }
+                              }}
+                              onDelete={async () => {
+                                const updatedStages = stages
+                                  .filter((_, i) => i !== index)
+                                  .map((s, i) => ({ ...s, order: i }));
 
-                              const { error } = await supabase
-                                .from('jobs')
-                                .update({ pipeline_stages: updatedStages })
-                                .eq('id', jobId);
+                                const { error } = await supabase
+                                  .from('jobs')
+                                  .update({ pipeline_stages: updatedStages })
+                                  .eq('id', jobId);
 
-                              if (!error) {
-                                await fetchJobDetails();
-                                toast.success("Stage deleted successfully");
-                              } else {
-                                toast.error("Failed to delete stage");
-                              }
-                            }}
-                            onAdvanceCandidate={(candidate) => {
-                              setSelectedCandidateForAction({ candidate, action: 'advance' });
-                            }}
-                            onRejectCandidate={(candidate) => {
-                              setSelectedCandidateForAction({ candidate, action: 'decline' });
-                            }}
-                            onViewProfile={(candidate) => {
-                              const candidateId = (candidate as any).candidate_id || (candidate as any).user_id;
-                              if (!candidateId) {
-                                toast.error('Unable to load candidate profile');
-                                return;
-                              }
-                              navigate(`/candidate/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(stage.name)}&stageIndex=${stage.order || 0}`);
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  </SortableContext>
-                </DndContext>
+                                if (!error) {
+                                  await fetchJobDetails();
+                                  toast.success("Stage deleted successfully");
+                                } else {
+                                  toast.error("Failed to delete stage");
+                                }
+                              }}
+                              onAdvanceCandidate={(candidate) => {
+                                setSelectedCandidateForAction({ candidate, action: 'advance' });
+                              }}
+                              onRejectCandidate={(candidate) => {
+                                setSelectedCandidateForAction({ candidate, action: 'decline' });
+                              }}
+                              onViewProfile={(candidate) => {
+                                const candidateId = (candidate as any).candidate_id || (candidate as any).user_id;
+                                if (!candidateId) {
+                                  toast.error('Unable to load candidate profile');
+                                  return;
+                                }
+                                navigate(`/candidate/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(stage.name)}&stageIndex=${stage.order || 0}`);
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                </SectionErrorBoundary>
               </CardContent>
             </Card>
 

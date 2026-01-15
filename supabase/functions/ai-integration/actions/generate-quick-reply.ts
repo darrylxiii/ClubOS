@@ -1,8 +1,6 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { checkUserRateLimit, createRateLimitResponse } from '../../_shared/rate-limiter.ts';
+import { checkUserRateLimit } from '../../_shared/rate-limiter.ts';
 import { logAIUsage } from '../../_shared/ai-logger.ts';
-import { fetchAI, handleAIError, createTimeoutResponse, AITimeoutError } from '../../_shared/ai-fetch.ts';
-import { CommonErrors } from '../../_shared/error-responses.ts';
+import { fetchAI } from '../../_shared/ai-fetch.ts';
 
 interface ActionContext {
     supabase: any;

@@ -5,7 +5,7 @@ import { useMeetingTranscription } from './useMeetingTranscription';
 import { useLiveHubWebRTC } from './useLiveHubWebRTC';
 import { useVirtualBackground } from './useVirtualBackground';
 import { useAudioDiagnostics } from './useAudioDiagnostics';
-import { useConnectionQuality, ConnectionQuality, ConnectionStats } from './useConnectionQuality';
+import { useConnectionQuality } from './useConnectionQuality';
 import { useAdaptiveAudio } from './useAdaptiveAudio';
 import { useMobileOptimizations } from './useMobileOptimizations';
 import { toast } from 'sonner';
@@ -157,7 +157,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
             connection_state: 'connected',
             quality_level: connectionQuality
           });
-        } catch (e) {
+        } catch (_e) {
           // Silently fail - stats logging shouldn't break voice
         }
       }
@@ -790,7 +790,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
             // @ts-ignore - contentHint is not in TypeScript types yet
             screenTrack.contentHint = 'detail'; // Default to detail for crisp text
             console.log('[Screen] Applied content hint: detail');
-          } catch (e) {
+          } catch (_e) {
             console.warn('[Screen] Content hint not supported');
           }
         }
@@ -899,7 +899,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
     toast.info('Reconnecting...', { id: 'reconnecting' });
 
     const startTime = Date.now();
-    let attemptNumber = 1;
+    const attemptNumber = 1;
 
     // Helper to log reconnection (fire-and-forget)
     const logReconnection = async (success: boolean, errorMsg?: string) => {
@@ -914,7 +914,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
           success,
           error_message: errorMsg || null
         });
-      } catch (e) {
+      } catch (_e) {
         // Silently fail - logging shouldn't break voice
       }
     };

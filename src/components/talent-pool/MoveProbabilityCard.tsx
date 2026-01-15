@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { TrendingUp, RefreshCw, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { TrendingUp, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMoveProbability } from '@/hooks/useTalentPool';
 import { Skeleton } from '@/components/ui/skeleton';

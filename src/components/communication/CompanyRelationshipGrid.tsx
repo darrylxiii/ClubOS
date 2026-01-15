@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Building2, AlertTriangle, CheckCircle, TrendingUp, Filter } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Building2, AlertTriangle, CheckCircle, Filter } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { CompanyRelationshipCard } from './CompanyRelationshipCard';
-import { CompanyRelationship, CompanyRelationshipStats, RiskLevel } from '@/hooks/useCompanyRelationships';
+import { CompanyRelationship, CompanyRelationshipStats } from '@/hooks/useCompanyRelationships';
 import { cn } from '@/lib/utils';
 
 interface CompanyRelationshipGridProps {

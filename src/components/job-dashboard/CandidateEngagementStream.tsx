@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Activity, Eye, FileText, MessageSquare, CheckCircle, XCircle, Clock, Video, ArrowRight, UserPlus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { formatDistanceToNow, parseISO } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { ActivityFeedSkeleton } from "@/components/LoadingSkeletons";
 
 interface EngagementEvent {

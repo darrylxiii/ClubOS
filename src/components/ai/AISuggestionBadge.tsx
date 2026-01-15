@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
 import { useAISuggestions } from "@/hooks/useAISuggestions";

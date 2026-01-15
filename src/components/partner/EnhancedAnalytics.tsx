@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/contexts/RoleContext";
-import { Calendar, Download, TrendingUp, Users, Briefcase, CheckCircle } from "lucide-react";
+import { Calendar, Download, Users, Briefcase, CheckCircle } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
 

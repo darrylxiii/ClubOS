@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { Phone, PhoneOff, Video, X } from 'lucide-react';
+import { Phone, PhoneOff, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEffect, useState, useRef } from 'react';
@@ -92,7 +92,7 @@ export function IncomingCallCard({
         };
 
         playSequence();
-      } catch (error) {
+      } catch (_error) {
         console.error('Error initializing audio:', error);
       }
     };

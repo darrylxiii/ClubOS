@@ -97,7 +97,7 @@ async function fetchApplicationsOptimized(userId: string): Promise<ApplicationDa
     if (app.jobs?.company_id) {
       const memberForCompany = companyMembers
         ?.filter(m => m.company_id === app.jobs.company_id)
-        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0];
+        .sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime())[0];
 
       if (memberForCompany) {
         const profile = profiles?.find(p => p.id === memberForCompany.user_id);
@@ -114,27 +114,27 @@ async function fetchApplicationsOptimized(userId: string): Promise<ApplicationDa
 
     // Format pipeline stages
     const jobPipelineStages = app.jobs?.pipeline_stages || [];
-    const formattedStages = Array.isArray(jobPipelineStages) 
+    const formattedStages = Array.isArray(jobPipelineStages)
       ? jobPipelineStages.map((stage: any) => ({
-          id: stage.id || String(stage.order),
-          title: stage.name,
-          description: stage.description,
-          status: "upcoming" as const,
-          preparation: stage.resources ? {
-            title: "Preparation Guide",
-            content: stage.description || "",
-            resources: stage.resources
-          } : undefined,
-          scheduledDate: stage.scheduled_date,
-          duration: stage.duration,
-          location: stage.location,
-          meetingType: stage.format,
-          interviewers: stage.owner ? [{
-            name: stage.owner,
-            title: stage.owner_role || "Interviewer",
-            photo: stage.owner_avatar
-          }] : undefined,
-        }))
+        id: stage.id || String(stage.order),
+        title: stage.name,
+        description: stage.description,
+        status: "upcoming" as const,
+        preparation: stage.resources ? {
+          title: "Preparation Guide",
+          content: stage.description || "",
+          resources: stage.resources
+        } : undefined,
+        scheduledDate: stage.scheduled_date,
+        duration: stage.duration,
+        location: stage.location,
+        meetingType: stage.format,
+        interviewers: stage.owner ? [{
+          name: stage.owner,
+          title: stage.owner_role || "Interviewer",
+          photo: stage.owner_avatar
+        }] : undefined,
+      }))
       : [];
 
     return {
@@ -144,7 +144,7 @@ async function fetchApplicationsOptimized(userId: string): Promise<ApplicationDa
       other_candidates_count: countsByJob[app.job_id] || 0,
       talent_strategist: strategist,
     };
-  });
+  }) as ApplicationData[];
 }
 
 export function useApplications(userId: string | undefined, includeRejected: boolean = false) {

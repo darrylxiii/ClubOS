@@ -11,7 +11,6 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
-  DragOverEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,

@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  AlertTriangle, AlertCircle, CheckCircle, TrendingDown,
-  Mail, Shield, RefreshCw, X, ChevronRight, Settings
+  AlertTriangle, AlertCircle, CheckCircle, Shield, RefreshCw, X, ChevronRight
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

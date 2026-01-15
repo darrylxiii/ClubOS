@@ -34,7 +34,7 @@ export function useAlgorithmicFeed() {
         .from('post_reposts')
         .select('*', { count: 'exact', head: true })
         .eq('original_post_id', postId);
-      
+
       if (error) {
         console.error('Error fetching share count:', error);
         return 0;
@@ -66,8 +66,8 @@ export function useAlgorithmicFeed() {
       }
 
       // Get unique user IDs and company IDs
-      const userIds = [...new Set(postsData.map(p => p.user_id).filter(Boolean))];
-      const companyIds = [...new Set(postsData.map(p => p.company_id).filter(Boolean))];
+      const userIds = [...new Set(postsData.map(p => p.user_id).filter(Boolean))] as string[];
+      const companyIds = [...new Set(postsData.map(p => p.company_id).filter(Boolean))] as string[];
 
       // Fetch profiles
       const { data: profilesData } = await supabase
@@ -96,49 +96,49 @@ export function useAlgorithmicFeed() {
       // Fetch original posts for reposts
       const repostIds = postsData.filter(p => p.repost_of).map(p => p.repost_of).filter(Boolean);
       let originalPostsData: any[] = [];
-      
+
       if (repostIds.length > 0) {
         // 1. Fetch raw original posts
         const { data: originals, error: originalsError } = await supabase
           .from('posts')
           .select('*')
-          .in('id', repostIds);
-        
+          .in('id', repostIds as string[]);
+
         if (originalsError) {
           console.error('Error fetching original posts:', originalsError);
         }
-        
+
         if (originals && originals.length > 0) {
           // 2. Extract unique IDs
-          const originalUserIds = [...new Set(originals.map(p => p.user_id).filter(Boolean))];
-          const originalCompanyIds = [...new Set(originals.map(p => p.company_id).filter(Boolean))];
-          
+          const originalUserIds = [...new Set(originals.map(p => p.user_id).filter(Boolean))] as string[];
+          const originalCompanyIds = [...new Set(originals.map(p => p.company_id).filter(Boolean))] as string[];
+
           // 3. Fetch profiles and companies separately
           const { data: originalProfiles } = await supabase
             .from('profiles')
             .select('id, full_name, avatar_url, current_title')
-            .in('id', originalUserIds);
-          
+            .in('id', originalUserIds as string[]);
+
           const { data: originalCompanies } = await supabase
             .from('companies')
             .select('id, name, logo_url, slug')
-            .in('id', originalCompanyIds);
-          
+            .in('id', originalCompanyIds as string[]);
+
           // 4. Fetch likes and comments for original posts
           const { data: originalLikes } = await supabase
             .from('post_likes')
             .select('post_id, user_id')
             .in('post_id', originals.map(p => p.id));
-          
+
           const { data: originalComments } = await supabase
             .from('post_comments')
             .select('id, post_id')
             .in('post_id', originals.map(p => p.id));
-          
+
           // 5. Create lookup maps
           const originalProfilesMap = new Map(originalProfiles?.map(p => [p.id, p]) || []);
           const originalCompaniesMap = new Map(originalCompanies?.map(c => [c.id, c]) || []);
-          
+
           // 6. Enrich original posts with relations
           originalPostsData = originals.map(orig => ({
             ...orig,
@@ -147,7 +147,7 @@ export function useAlgorithmicFeed() {
             post_likes: originalLikes?.filter(l => l.post_id === orig.id) || [],
             post_comments: originalComments?.filter(c => c.post_id === orig.id) || [],
           }));
-          
+
           console.log('✅ Original posts enriched:', originalPostsData.length, 'posts');
           console.log('📊 Sample original post:', originalPostsData[0]);
         }
@@ -202,7 +202,7 @@ export function useAlgorithmicFeed() {
         });
 
         enrichedPosts = await Promise.all(scoresPromises);
-        
+
         // Sort by algorithm score
         enrichedPosts.sort((a, b) => (b.algorithmScore || 0) - (a.algorithmScore || 0));
       } else if (feedType === 'trending') {
@@ -221,9 +221,9 @@ export function useAlgorithmicFeed() {
             .from('user_follows')
             .select('following_id')
             .eq('follower_id', user.id);
-          
+
           const followingIds = followingData?.map(f => f.following_id) || [];
-          enrichedPosts = enrichedPosts.filter(post => followingIds.includes(post.user_id));
+          enrichedPosts = enrichedPosts.filter(post => post.user_id && followingIds.includes(post.user_id as string));
         }
       }
 

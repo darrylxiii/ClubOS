@@ -4,8 +4,6 @@ import {
   CandidateProfileData, 
   ApprovalWorkflowData,
   ApprovalWorkflowResult,
-  StaffAssignment,
-  PipelineAssignment,
   ExistingApplication
 } from "@/types/approval";
 import { mergeService } from "@/services/mergeService";

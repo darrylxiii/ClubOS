@@ -120,7 +120,7 @@ export function useMeetingFeatureSettings(): UseMeetingFeatureSettingsReturn {
       if (stored) {
         return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
       }
-    } catch (e) {
+    } catch (_e) {
       console.warn('Failed to load feature settings:', e);
     }
     return DEFAULT_SETTINGS;
@@ -130,7 +130,7 @@ export function useMeetingFeatureSettings(): UseMeetingFeatureSettingsReturn {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    } catch (e) {
+    } catch (_e) {
       console.warn('Failed to save feature settings:', e);
     }
   }, [settings]);

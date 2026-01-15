@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import { AdminTableSkeleton } from "@/components/LoadingSkeletons";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { TargetCompanyDialog } from "@/components/partner/TargetCompanyDialog";
 import {
   Select,
   SelectContent,

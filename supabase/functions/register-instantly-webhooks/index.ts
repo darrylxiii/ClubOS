@@ -3,8 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
 import { 
   listWebhooks, 
   createWebhook, 
-  deleteWebhook, 
-  INSTANTLY_WEBHOOK_EVENTS,
+  deleteWebhook,
   type InstantlyWebhookEvent 
 } from "../_shared/instantly-client.ts";
 import { publicCorsHeaders } from "../_shared/cors-config.ts";

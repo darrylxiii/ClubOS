@@ -36,7 +36,7 @@ export function extractTwitterId(url: string): string | null {
  */
 export function extractLinkedInId(url: string): string | null {
   const patterns = [
-    /linkedin\.com\/posts\/([^\/]+)[-_]([a-zA-Z0-9\-_]+)/,
+    /linkedin\.com\/posts\/([^/]+)[-_]([a-zA-Z0-9_-]+)/,
     /linkedin\.com\/feed\/update\/urn:li:activity:(\d+)/,
     /linkedin\.com\/feed\/update\/urn:li:share:(\d+)/,
     /linkedin\.com\/embed\/feed\/update\/urn:li:(?:share|ugcPost):(\d+)/,
@@ -56,7 +56,7 @@ export function extractLinkedInId(url: string): string | null {
  * Extract LinkedIn username from URL
  */
 export function extractLinkedInUsername(url: string): string | null {
-  const match = url.match(/linkedin\.com\/posts\/([^\/\-_]+)/);
+  const match = url.match(/linkedin\.com\/posts\/([^/_-]+)/);
   return match ? match[1] : null;
 }
 
@@ -65,9 +65,9 @@ export function extractLinkedInUsername(url: string): string | null {
  */
 export function extractInstagramId(url: string): string | null {
   const patterns = [
-    /instagram\.com\/p\/([^\/\?]+)/,
-    /instagram\.com\/reel\/([^\/\?]+)/,
-    /instagram\.com\/tv\/([^\/\?]+)/,
+    /instagram\.com\/p\/([^/?]+)/,
+    /instagram\.com\/reel\/([^/?]+)/,
+    /instagram\.com\/tv\/([^/?]+)/,
   ];
 
   for (const pattern of patterns) {

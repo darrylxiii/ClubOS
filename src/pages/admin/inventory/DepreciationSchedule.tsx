@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TrendingDown, Play, CheckCircle, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, History } from "lucide-react";
 import { useState } from "react";
-import { useDepreciationLedger, type DepreciationEntry } from "@/hooks/useDepreciationLedger";
+import { useDepreciationLedger } from "@/hooks/useDepreciationLedger";
 import { useDepreciationRuns } from "@/hooks/useAssetEvents";
 import { CATEGORY_LABELS } from "@/hooks/useInventoryCategories";
 import { Badge } from "@/components/ui/badge";

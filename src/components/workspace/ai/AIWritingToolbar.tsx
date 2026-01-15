@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Wand2, 
-  FileText, 
   Expand, 
   Languages, 
   Sparkles,
@@ -18,7 +17,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { useAIWriting, AIOperation } from '@/hooks/useAIWriting';
+import { useAIWriting } from '@/hooks/useAIWriting';
 
 interface AIWritingToolbarProps {
   editorElement: HTMLElement | null;

@@ -42,7 +42,7 @@ async function bootstrap() {
     (window as unknown as any).__APP_BOOTED__ = true;
 
     console.log('[Main] ✅ Application initialized successfully');
-  } catch (error) {
+  } catch (_error) {
     console.error('[Main] ❌ CRITICAL: Failed to initialize application:', error);
 
     // Report to Sentry if available

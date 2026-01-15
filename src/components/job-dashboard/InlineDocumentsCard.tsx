@@ -47,7 +47,7 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
         
         // Use dedicated JD uploader fields if available, fall back to job creator
         let jdUploaderName = data.jd_uploader_name || 'Unknown';
-        let jdUploadedAt = data.jd_uploaded_at || data.updated_at;
+        const jdUploadedAt = data.jd_uploaded_at || data.updated_at;
         
         // If no dedicated JD uploader, fetch job creator name as fallback
         if (!data.jd_uploader_name && data.created_by) {

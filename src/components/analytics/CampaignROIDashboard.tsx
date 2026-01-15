@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, MousePointerClick, Trophy, Users } from 'lucide-react';
+import { DollarSign, Trophy, Users } from 'lucide-react';
 import { formatCurrency } from '@/lib/revenueCalculations';
 
 export function CampaignROIDashboard() {

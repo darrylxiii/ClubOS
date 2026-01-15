@@ -1,4 +1,4 @@
-import { LazyCharts, ChartSkeleton } from "@/components/charts/LazyCharts";
+import { LazyCharts } from "@/components/charts/LazyCharts";
 import { HiringMetrics } from "@/hooks/useAnalytics";
 import { format } from "date-fns";
 

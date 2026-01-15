@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Lock, Shield } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { TwoFactorSettings } from '@/components/TwoFactorSettings';
 import { AccountLinking } from '@/components/AccountLinking';
 import { GDPRControls } from './GDPRControls';

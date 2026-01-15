@@ -99,6 +99,18 @@ const TalentPoolListDetail = lazy(() => import("@/pages/TalentPoolListDetail"));
 // Missing Routes
 const ArchivedCandidates = lazy(() => import("@/pages/ArchivedCandidates"));
 
+// Prompt Template Management
+const PromptTemplateManager = lazy(() => import("@/pages/admin/PromptTemplateManager"));
+
+// Job Calibration & Governance
+const JobCalibrationHistory = lazy(() => import("@/pages/admin/JobCalibrationHistory"));
+
+// Phase 3: Sourcing Hub
+const SourcingHub = lazy(() => import("@/pages/admin/SourcingHub"));
+
+// Phase 4: Candidate Review
+const CandidateReviewStack = lazy(() => import("@/pages/admin/CandidateReviewStack"));
+
 export const adminRoutes = (
   <>
     <Route
@@ -744,6 +756,16 @@ export const adminRoutes = (
 
     {/* Phase 5: Analytics Dashboards */}
     <Route path="/admin/jobs/:jobId/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* Job Calibration & Governance (ADD-01) */}
+    <Route path="/admin/jobs/:jobId/calibration" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobCalibrationHistory /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* Sourcing Hub (Phase 3) */}
+    <Route path="/admin/sourcing-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SourcingHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* Candidate Review (Phase 4) */}
+    <Route path="/admin/jobs/:jobId/review" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CandidateReviewStack /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
     <Route path="/admin/job-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsIndex /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/conversation-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ConversationAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/security-events" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SecurityEventDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
@@ -785,6 +807,9 @@ export const adminRoutes = (
 
     {/* RAG Analytics Dashboard */}
     <Route path="/admin/rag-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RAGAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* Prompt Template Manager (Admin-Editable AI Prompts) */}
+    <Route path="/admin/prompt-templates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><PromptTemplateManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
 
     {/* Archived Candidates */}
     <Route path="/archived-candidates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ArchivedCandidates /></Suspense></RouteErrorBoundary></ProtectedRoute>} />

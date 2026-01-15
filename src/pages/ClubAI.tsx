@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ModelSelector } from "@/components/ui/model-selector";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Sparkles, Loader2, Briefcase, TrendingUp, MessageSquare, Target, Plus, Clock, Trash2, Globe, Brain, Palette } from "lucide-react";
+import { Sparkles, Briefcase, TrendingUp, MessageSquare, Target, Plus, Clock, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { aiService } from "@/services/aiService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,8 +25,6 @@ import { migrateToast as toast } from "@/lib/notify";
 import ReactMarkdown from "react-markdown";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { PromptInputBox } from "@/components/ui/ai-prompt-box";
-import { EncryptedText } from "@/components/ui/encrypted-text";
-import { AIQuickActions } from "@/components/ai/AIQuickActions";
 import { useAISuggestions } from "@/hooks/useAISuggestions";
 
 interface Message {
@@ -399,7 +397,7 @@ const ClubAI = () => {
                 path: args.path,
                 reason: args.reason
               });
-            } catch (e) {
+            } catch (_e) {
               console.error("Failed to parse tool call:", e);
             }
           }
@@ -958,7 +956,7 @@ const ClubAI = () => {
                                 path: args.path,
                                 reason: args.reason
                               });
-                            } catch (e) {
+                            } catch (_e) {
                               console.error("Failed to parse tool call:", e);
                             }
                           }

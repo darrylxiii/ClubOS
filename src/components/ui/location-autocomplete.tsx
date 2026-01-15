@@ -92,7 +92,7 @@ export function LocationAutocomplete({
             )
           );
         }
-      } catch (error) {
+      } catch (_error) {
         console.error("Error fetching location suggestions:", error);
       } finally {
         setLoading(false);

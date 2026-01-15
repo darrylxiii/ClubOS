@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { cn } from "@/lib/utils";
-import { CheckCircle, Circle, Clock, XCircle } from "lucide-react";
+import { CheckCircle, Circle, XCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,

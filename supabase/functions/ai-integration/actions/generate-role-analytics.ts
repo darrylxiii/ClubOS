@@ -9,7 +9,7 @@ export async function handleGenerateRoleAnalytics({ supabase, payload, userId }:
 
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single();
     const role = profile?.role || 'candidate';
-    let insights: any[] = [];
+    const insights: any[] = [];
 
     if (role === 'candidate') {
         const { data: candProfile } = await supabase.from('candidate_profiles').select('id').eq('user_id', userId).single();

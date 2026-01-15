@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { useCustomAssessments } from '@/hooks/useCustomAssessments';
 import { AssessmentTemplate } from '@/types/assessment';
-import { Plus, Edit, Trash, Copy } from 'lucide-react';
+import { Plus, Edit, Trash } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export const CustomAssessmentsTab = memo(() => {

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, Clock, CheckCircle2, Circle, PlayCircle, Pause, Settings, Calendar, Zap, Target, GitBranch, Users, Bot } from "lucide-react";
+import { Sparkles, Clock, CheckCircle2, Circle, PlayCircle, Pause, Settings, Calendar, Zap, Target, GitBranch, Bot } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";

@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Filter, X, ChevronDown } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TalentTier, TalentPoolFilters as Filters } from '@/hooks/useTalentPool';
 

@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/select";
 import { Square, Clock } from "lucide-react";
 import { useTimeTracking, formatDuration } from "@/hooks/useTimeTracking";
-import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
 export function GlobalRunningTimerHeader() {

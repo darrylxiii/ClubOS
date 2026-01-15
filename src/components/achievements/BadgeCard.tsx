@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Lock, Sparkles, Calendar, TrendingUp } from "lucide-react";
+import { Lock, Sparkles, Calendar } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AchievementProgressCard } from "./AchievementProgressCard";
 import {

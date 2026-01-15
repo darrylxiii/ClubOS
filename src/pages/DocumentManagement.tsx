@@ -2,12 +2,10 @@ import { AppLayout } from "@/components/AppLayout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  Upload, FileText, Download, Trash2, Star, Eye,
-  CheckCircle, XCircle, File, AlertTriangle
+  Upload, FileText, Download, Trash2, Star,
+  CheckCircle, File
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,7 +14,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { InlineLoader, SectionLoader } from "@/components/ui/unified-loader";
+import { InlineLoader } from "@/components/ui/unified-loader";
 import { logger } from "@/lib/logger";
 import {
   AlertDialog,

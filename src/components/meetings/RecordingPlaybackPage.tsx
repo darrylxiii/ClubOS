@@ -11,11 +11,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Play, Download, Share2, AlertTriangle, Star,
-  CheckCircle2, Clock, User, ChevronDown, ArrowLeft,
-  RefreshCw, FileText, Mic, Video, BarChart3, Scissors, Mail, Sparkles
+  CheckCircle2, Clock, User, ArrowLeft,
+  RefreshCw, FileText, Mic, Video, Scissors, Mail, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -25,6 +24,7 @@ import { SpeakingMetricsPanel } from './SpeakingMetricsPanel';
 import { RecordingClipCreator } from './RecordingClipCreator';
 import { GenerateDossierButton } from './GenerateDossierButton';
 import { AIHighlightClips } from './AIHighlightClips';
+import { generateMeetingPDF } from '@/utils/generateMeetingPDF';
 
 export default function RecordingPlaybackPage() {
   const { recordingId } = useParams();
@@ -180,6 +180,45 @@ export default function RecordingPlaybackPage() {
     toast.success('Transcript downloaded');
   };
 
+  const handleExportPDF = () => {
+    if (!recording) return;
+
+    // Prepare data
+    const aiSummary = recording.ai_summary || {};
+    const evalData = aiSummary.candidateEvaluation || {};
+    const actionItems = (aiSummary.actionItems || recording.action_items || []).map((item: any) => ({
+      task: item.task,
+      owner: item.owner,
+      deadline: item.deadline,
+      priority: item.priority
+    }));
+
+    const keyMoments = (aiSummary.keyMoments || recording.key_moments || []).map((moment: any) => ({
+      timestamp: moment.timestamp,
+      description: moment.description,
+      type: moment.type
+    }));
+
+    try {
+      generateMeetingPDF({
+        title: recording.title || recording.meeting?.title || 'Meeting Report',
+        date: recording.meeting?.scheduled_start
+          ? format(new Date(recording.meeting.scheduled_start), 'MMMM d, yyyy')
+          : format(new Date(recording.created_at), 'MMMM d, yyyy'),
+        duration: recording.duration_seconds || 0,
+        participants: recording.participants || [],
+        summary: aiSummary.executiveSummary || recording.executive_summary || '',
+        actionItems,
+        keyMoments,
+        transcript: recording.transcript
+      });
+      toast.success('PDF Report Generated');
+    } catch (error) {
+      console.error('PDF Generation Error:', error);
+      toast.error('Failed to generate PDF');
+    }
+  };
+
   if (loading) {
     return (
       <AppLayout>
@@ -268,7 +307,7 @@ export default function RecordingPlaybackPage() {
                 <FileText className="h-4 w-4 mr-2" />
                 Export Transcript
               </Button>
-              <Button onClick={() => toast.info('PDF export coming soon')} variant="outline" size="sm">
+              <Button onClick={handleExportPDF} variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 Export PDF
               </Button>

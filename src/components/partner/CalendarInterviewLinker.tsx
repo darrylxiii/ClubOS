@@ -19,7 +19,7 @@ import {
   suggestCandidateFromEvent
 } from "@/utils/calendarInterviewUtils";
 import { toast } from "sonner";
-import { format, isToday, isTomorrow, isThisWeek, isFuture } from "date-fns";
+import { format, isFuture } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";

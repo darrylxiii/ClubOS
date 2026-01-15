@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
-import { Users, Clock, TrendingUp, AlertTriangle } from "lucide-react";
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { Users, Clock, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";

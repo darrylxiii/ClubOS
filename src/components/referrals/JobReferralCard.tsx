@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Briefcase, ChevronDown, ChevronUp, Euro, Users, Clock } from "lucide-react";
+import { Briefcase, ChevronDown, ChevronUp, Users } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
 import { ReferralEarning, useJobApplications } from "@/hooks/useReferralSystem";
 import { motion, AnimatePresence } from "framer-motion";

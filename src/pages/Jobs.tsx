@@ -16,7 +16,6 @@ import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
 import { useRole } from "@/contexts/RoleContext";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
-import { logger } from "@/lib/logger";
 import { useNavigate } from "react-router-dom";
 import { HorizontalFilters } from "@/components/jobs/HorizontalFilters";
 import type { JobFilters } from "@/components/jobs/JobFilterSidebar";

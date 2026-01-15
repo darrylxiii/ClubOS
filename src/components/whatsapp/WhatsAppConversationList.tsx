@@ -10,7 +10,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WhatsAppConsentBadge } from "@/components/whatsapp/WhatsAppConsentBadge";
 import {
   Search,
-  Filter,
   Pin,
   Clock,
   MessageSquare,
@@ -23,7 +22,6 @@ import {
   Timer
 } from "lucide-react";
 import { formatDistanceToNow, differenceInHours } from "date-fns";
-import { motion, AnimatePresence } from "framer-motion";
 import type { WhatsAppConversation, SlaStatus } from "@/hooks/useWhatsAppConversations";
 
 interface WhatsAppConversationListProps {

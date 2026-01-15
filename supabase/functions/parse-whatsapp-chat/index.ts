@@ -76,7 +76,7 @@ serve(async (req) => {
     let currentMessage: WhatsAppMessage | null = null;
 
     for (const line of lines) {
-      const match = line.match(/^\[?(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[AP]M)?)\]?\s*[-:]?\s*([^:]+):\s*(.+)$/i);
+      const match = line.match(/^\[?(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[AP]M)?)\]?\s*[-:]?\s*([^:]+):\s*(.+)$/i);
       
       if (match) {
         if (currentMessage) {
@@ -85,7 +85,7 @@ serve(async (req) => {
 
         const [, dateStr, timeStr, sender, content] = match;
         
-        const dateParts = dateStr.split(/[\/\-]/);
+        const dateParts = dateStr.split(/[/-]/);
         let year = parseInt(dateParts[2]);
         if (year < 100) year += 2000;
         

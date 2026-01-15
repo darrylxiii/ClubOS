@@ -21,7 +21,6 @@ import {
   Clock,
   Trash2,
   Edit,
-  UserPlus,
   ArrowRight,
   Video,
 } from 'lucide-react';

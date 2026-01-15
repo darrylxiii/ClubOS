@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Mic, Square, Send, Trash2, Loader2 } from "lucide-react";
+import { Mic, Square, Trash2, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -138,7 +138,7 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
       setDuration(0);
       chunksRef.current = [];
       toast.success("Voice note sent");
-    } catch (error) {
+    } catch (_error) {
       console.error("Error uploading voice note:", error);
       toast.error("Failed to send voice note");
     } finally {

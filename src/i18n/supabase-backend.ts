@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { BackendModule, ReadCallback } from 'i18next';
-import { getCachedTranslations, setCachedTranslations } from './config';
+import { getCachedTranslations, setCachedTranslations } from './cache';
 import { logger } from '@/lib/logger';
 
 /**
@@ -122,7 +122,7 @@ class SupabaseBackend implements BackendModule {
 
       return data.translations as Record<string, any>;
     } catch (error) {
-      logger.warn(`[i18n Backend] Failed to fetch ${language}/${namespace}:`, error);
+      logger.warn(`[i18n Backend] Failed to fetch ${language}/${namespace}:`, { error });
       return null;
     }
   }

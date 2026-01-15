@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   History, CheckCircle, XCircle, Clock, RefreshCw, Search,
-  Mail, Bell, UserPlus, Tag, Plus, Zap, Loader2
+  Mail, Bell, UserPlus, Tag, Plus, Zap
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';

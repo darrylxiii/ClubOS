@@ -13,7 +13,6 @@ import { AdminApplicationHub } from "@/components/admin/AdminApplicationHub";
 import { DataIntegrityChecker } from "@/components/admin/revenue/DataIntegrityChecker";
 import { AuditLogViewer } from "@/components/admin/AuditLogViewer";
 import { SSOManagement } from "@/components/admin/SSOManagement";
-import { ActivityMonitoringDashboard } from "@/components/admin/ActivityMonitoringDashboard";
 import { CompanyEngagementLeaderboard } from "@/components/admin/CompanyEngagementLeaderboard";
 import { DisasterRecoveryDashboard } from "@/components/admin/DisasterRecoveryDashboard";
 import { SecurityDashboard } from "@/components/admin/security/SecurityDashboard";
@@ -28,7 +27,6 @@ import { EmployeeCommissionSettings } from "@/components/admin/revenue/EmployeeC
 import { BackfillRunner } from "@/components/admin/revenue/BackfillRunner";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate, useNavigate } from "react-router-dom";
-import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 
 const Admin = () => {

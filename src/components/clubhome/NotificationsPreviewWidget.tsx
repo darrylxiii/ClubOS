@@ -4,7 +4,6 @@ import { Bell, ArrowRight, CheckCheck, Mail, Briefcase, MessageSquare, Users } f
 import { Link } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";

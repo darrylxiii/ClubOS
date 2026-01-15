@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { FunctionsHttpError, FunctionsFetchError } from '@supabase/supabase-js';
 import { 
-  MessageSquare, Shield, RefreshCw, ExternalLink, Copy, CheckCircle, 
+  MessageSquare, RefreshCw, ExternalLink, Copy, 
   AlertCircle, Key, Globe, Loader2, Users, Wifi, WifiOff, Clock,
   ShieldCheck, Activity, Stethoscope, AlertTriangle, CheckCircle2, XCircle, LogIn
 } from 'lucide-react';

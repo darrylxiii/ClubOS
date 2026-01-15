@@ -4,7 +4,7 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { DollarSign, Briefcase, Calendar, Ban } from 'lucide-react';
+import { DollarSign, Briefcase, Calendar } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 interface CompensationSettingsProps {

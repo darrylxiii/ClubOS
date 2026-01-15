@@ -92,7 +92,7 @@ export function useActivationFunnel(days: number = 30) {
       milestones.forEach((milestone, index) => {
         const count = milestoneCounts[milestone.name]?.size || 0;
         const baseCount = index === 0 ? count : previousCount;
-        
+
         funnelSteps.push({
           step: `Step ${milestone.order}`,
           milestone: milestone.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
@@ -135,12 +135,14 @@ export function useTimeToActivation(milestone: string, days: number = 30) {
       if (!signups || !targets) return { avgHours: 0, medianHours: 0, count: 0 };
 
       // Calculate time differences
-      const signupMap = new Map(signups.map(s => [s.user_id, new Date(s.created_at)]));
+      const validSignups = signups.filter(s => s.user_id) as { user_id: string, created_at: string }[];
+      const signupMap = new Map<string, Date>(validSignups.map(s => [s.user_id, new Date(s.created_at)]));
       const times: number[] = [];
 
       targets.forEach(t => {
-        const signupTime = signupMap.get(t.user_id);
-        if (signupTime) {
+        if (!t.user_id) return;
+        const signupTime = signupMap.get(t.user_id as string);
+        if (signupTime && t.created_at) {
           const diff = (new Date(t.created_at).getTime() - signupTime.getTime()) / (1000 * 60 * 60);
           if (diff > 0) times.push(diff);
         }
@@ -181,7 +183,8 @@ export function useTimeToMilestone(days: number = 30) {
 
       if (!signups || !events) return [];
 
-      const signupMap = new Map(signups.map(s => [s.user_id, new Date(s.created_at)]));
+      const validSignups = signups.filter(s => s.user_id) as { user_id: string, created_at: string }[];
+      const signupMap = new Map<string, Date>(validSignups.map(s => [s.user_id, new Date(s.created_at)]));
       const milestoneStats: Record<string, { times: number[]; count: number }> = {};
 
       events.forEach(e => {
@@ -191,7 +194,7 @@ export function useTimeToMilestone(days: number = 30) {
           milestoneStats[e.milestone_name] = { times: [], count: 0 };
         }
         milestoneStats[e.milestone_name].count++;
-        if (signupTime) {
+        if (signupTime && e.created_at) {
           const diff = (new Date(e.created_at).getTime() - signupTime.getTime()) / (1000 * 60 * 60);
           if (diff > 0) milestoneStats[e.milestone_name].times.push(diff);
         }

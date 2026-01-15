@@ -4,7 +4,7 @@
  * Ensures all participants are properly captured in the recording
  */
 
-import { useRef, useCallback, useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';

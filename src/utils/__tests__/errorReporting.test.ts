@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { logErrorToDatabase, logCriticalError, logNetworkError } from '../errorReporting';
-import { supabase } from '@/integrations/supabase/client';
 
 describe('errorReporting', () => {
   beforeEach(() => {

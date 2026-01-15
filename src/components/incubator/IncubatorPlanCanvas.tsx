@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { REQUIRED_SECTIONS } from '@/data/incubatorScenarios';
 import { CheckCircle2, Circle } from 'lucide-react';

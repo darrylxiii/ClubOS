@@ -1,5 +1,4 @@
 import { ReactNode, createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { useSafeArea } from '@/hooks/useSafeArea';
 import { secureStorage } from '@/services/secureStorage';

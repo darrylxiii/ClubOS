@@ -181,7 +181,7 @@ export function sanitizeJson<T>(input: unknown, schema?: {
 
   try {
     return sanitizeValue(input, 0) as T;
-  } catch (e) {
+  } catch (_e) {
     console.warn('[Sanitize] JSON sanitization failed:', e);
     return null;
   }

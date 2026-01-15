@@ -44,7 +44,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 import {
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';

@@ -435,7 +435,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
               if (isPoll) {
                 try {
                   pollData = JSON.parse(message.content.substring(7));
-                } catch (e) {
+                } catch (_e) {
                   console.error('Failed to parse poll data', e);
                 }
               }

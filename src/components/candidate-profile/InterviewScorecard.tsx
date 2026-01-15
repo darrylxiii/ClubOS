@@ -15,12 +15,10 @@ import {
   Video, 
   ThumbsUp, 
   ThumbsDown, 
-  TrendingUp, 
-  AlertCircle,
+  TrendingUp,
   CheckCircle,
   XCircle,
   HelpCircle,
-  Star,
   Clock
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';

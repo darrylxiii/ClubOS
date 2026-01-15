@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Headphones, MessageCircleHeart, Languages, X, BookOpen } from "lucide-react";
+import { Settings, Headphones, MessageCircleHeart, Languages, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
@@ -82,7 +82,7 @@ export const QuickAccessHub = () => {
       setComment('');
       setFeedbackOpen(false);
       setOpen(false);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error submitting feedback:', error);
       toast({
         title: 'Error',

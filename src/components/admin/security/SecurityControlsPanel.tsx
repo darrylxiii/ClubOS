@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Settings, Shield, Plus, Trash2, Save, Clock, AlertTriangle } from 'lucide-react';
+import { Shield, Plus, Trash2, Save, AlertTriangle } from 'lucide-react';
 import { 
   useSecurityConfig, 
   useUpdateSecurityConfig, 
@@ -16,7 +15,6 @@ import {
   useRemoveFromWhitelist,
   WhitelistedIP
 } from '@/hooks/useSecurityConfig';
-import { formatDistanceToNow } from 'date-fns';
 import { Json } from '@/integrations/supabase/types';
 
 interface ThresholdConfig {

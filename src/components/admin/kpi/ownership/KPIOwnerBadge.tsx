@@ -2,8 +2,8 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { User, AlertTriangle, Clock } from 'lucide-react';
-import { useKPIOwnership, KPIOwnership } from '@/hooks/useKPIOwnership';
+import { User, AlertTriangle } from 'lucide-react';
+import { useKPIOwnership } from '@/hooks/useKPIOwnership';
 import { formatDistanceToNow } from 'date-fns';
 
 interface KPIOwnerBadgeProps {

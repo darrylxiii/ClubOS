@@ -6,18 +6,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { 
   Briefcase, 
   MapPin, 
   Clock, 
-  DollarSign, 
-  Calendar,
+  DollarSign,
   Users,
   Target,
-  CheckCircle2,
   AlertCircle,
   Sparkles,
   ArrowLeft,

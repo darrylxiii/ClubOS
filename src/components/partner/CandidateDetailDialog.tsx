@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Star, MessageSquare, Calendar, FileText, TrendingUp, History, Users } from "lucide-react";
+import { History, Users } from "lucide-react";
 import { CandidateInteractionLog } from "./CandidateInteractionLog";
 import { EnhancedCandidateDetails } from "./EnhancedCandidateDetails";
 import { getVisibleFields } from "@/utils/candidateVisibility";

@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Share2, MoreHorizontal, FileText, Bookmark, Trash2, Edit, Copy, Flag, Mail, ChevronLeft, ChevronRight, Sparkles, ChevronDown, Twitter, Linkedin, Send, Flame } from "lucide-react";
+import { MessageCircle, Share2, MoreHorizontal, FileText, Bookmark, Trash2, Edit, Copy, Flag, Mail, ChevronLeft, ChevronRight, Sparkles, ChevronDown, Flame } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { PostComments } from "./PostComments";
 import { CreateConversationDialog } from "@/components/messages/CreateConversationDialog";

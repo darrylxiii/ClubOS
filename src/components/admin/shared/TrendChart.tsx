@@ -1,10 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   LineChart, 
-  Line, 
-  AreaChart,
+  Line,
   Area,
-  BarChart,
   Bar,
   XAxis, 
   YAxis, 

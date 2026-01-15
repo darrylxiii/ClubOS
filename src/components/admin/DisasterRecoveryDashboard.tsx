@@ -233,7 +233,7 @@ export const DisasterRecoveryDashboard = () => {
         .order('timestamp', { ascending: false })
         .limit(1)
         .single();
-      
+
       if (error) throw error;
       return data as BackupVerificationLog;
     },
@@ -249,7 +249,7 @@ export const DisasterRecoveryDashboard = () => {
         .select('*')
         .order('timestamp', { ascending: false })
         .limit(10);
-      
+
       if (error) throw error;
       return data as BackupVerificationLog[];
     },
@@ -266,7 +266,7 @@ export const DisasterRecoveryDashboard = () => {
         .eq('acknowledged', false)
         .order('created_at', { ascending: false })
         .limit(10);
-      
+
       if (error) throw error;
       return data as PlatformAlert[];
     },
@@ -282,7 +282,7 @@ export const DisasterRecoveryDashboard = () => {
         .select('*')
         .order('timestamp', { ascending: false })
         .limit(10);
-      
+
       if (error) throw error;
       return data as PITRTestLog[];
     },
@@ -371,12 +371,12 @@ export const DisasterRecoveryDashboard = () => {
   const latestPitrTest = pitrTests?.[0];
 
   // Calculate RPO (time since last verified backup)
-  const rpoMinutes = latestBackup 
+  const rpoMinutes = latestBackup
     ? Math.floor((Date.now() - new Date(latestBackup.timestamp).getTime()) / 60000)
     : null;
 
   // Calculate metrics from ComprehensiveDR
-  const avgRTO = recoveryMetrics?.length 
+  const avgRTO = recoveryMetrics?.length
     ? Math.round(recoveryMetrics.reduce((sum, m) => sum + (m.actual_rto_minutes || 0), 0) / recoveryMetrics.length)
     : 0;
 
@@ -392,14 +392,14 @@ export const DisasterRecoveryDashboard = () => {
     try {
       toast.info('Running manual backup verification...');
       const { data, error } = await supabase.functions.invoke('verify-database-backups');
-      
+
       if (error) throw error;
-      
+
       toast.success('Backup verification completed successfully');
       setTimeout(() => window.location.reload(), 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Manual verification failed:', error);
-      toast.error('Failed to run backup verification');
+      toast.error(`Verification Failed: ${error.message || 'Unknown error'}. Check console/network logs.`);
     }
   };
 
@@ -407,14 +407,15 @@ export const DisasterRecoveryDashboard = () => {
     try {
       toast.info('Running manual PITR test...');
       const { data, error } = await supabase.functions.invoke('test-pitr-recovery');
-      
+
       if (error) throw error;
-      
+
       toast.success('PITR test completed successfully');
       setTimeout(() => window.location.reload(), 2000);
     } catch (error) {
+    } catch (error: any) {
       console.error('Manual PITR test failed:', error);
-      toast.error('Failed to run PITR test');
+      toast.error(`PITR Test Failed: ${error.message || 'Unknown error'}. Check console/network logs.`);
     }
   };
 
@@ -422,15 +423,15 @@ export const DisasterRecoveryDashboard = () => {
     try {
       const { error } = await supabase
         .from('platform_alerts')
-        .update({ 
-          acknowledged: true, 
+        .update({
+          acknowledged: true,
           acknowledged_at: new Date().toISOString(),
           acknowledged_by: (await supabase.auth.getUser()).data.user?.id
         })
         .eq('id', alertId);
-      
+
       if (error) throw error;
-      
+
       toast.success('Alert acknowledged');
       refetchAlerts();
     } catch (error) {
@@ -699,7 +700,7 @@ export const DisasterRecoveryDashboard = () => {
                             </span>
                             <Badge variant={
                               successRate === 100 ? 'default' :
-                              successRate >= 90 ? 'secondary' : 'destructive'
+                                successRate >= 90 ? 'secondary' : 'destructive'
                             }>
                               {successRate.toFixed(0)}%
                             </Badge>
@@ -710,10 +711,9 @@ export const DisasterRecoveryDashboard = () => {
                         </div>
                         <div className="w-full bg-muted rounded-full h-2">
                           <div
-                            className={`h-2 rounded-full transition-all ${
-                              successRate === 100 ? 'bg-green-500' :
+                            className={`h-2 rounded-full transition-all ${successRate === 100 ? 'bg-green-500' :
                               successRate >= 90 ? 'bg-amber-500' : 'bg-red-500'
-                            }`}
+                              }`}
                             style={{ width: `${successRate}%` }}
                           />
                         </div>

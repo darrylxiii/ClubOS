@@ -85,7 +85,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
         if (error) throw error;
         toast.success('Application Updated', { description: `Status changed to ${newStatus}` });
         return `Updated application to ${newStatus}`;
-      } catch (e) {
+      } catch (_e) {
         toast.error('Update Failed', { description: 'Could not update application status' });
         return `Failed to update application`;
       }
@@ -99,7 +99,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
         if (error) throw error;
         toast.success('Task Completed');
         return `Task marked as complete`;
-      } catch (e) {
+      } catch (_e) {
         return `Failed to complete task`;
       }
     },
@@ -125,7 +125,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
           .join(', ');
 
         return `You have ${applications.length} applications: ${summary}`;
-      } catch (e) {
+      } catch (_e) {
         return 'Unable to fetch pipeline data';
       }
     },
@@ -146,7 +146,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
         if (error) throw error;
         toast.success('Note Captured');
         return `Note saved: ${content.substring(0, 50)}...`;
-      } catch (e) {
+      } catch (_e) {
         return 'Failed to save note';
       }
     },
@@ -165,7 +165,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
         if (!interviews?.length) return 'No upcoming interviews in your pipeline';
 
         return `You have ${interviews.length} applications in interview stage`;
-      } catch (e) {
+      } catch (_e) {
         return 'Unable to fetch interview data';
       }
     },
@@ -228,7 +228,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
 
         toast.success('Note Added', { description: 'Added voice note to prospect.' });
         return `Added note to prospect.`;
-      } catch (e) {
+      } catch (_e) {
         return 'Failed to add note to prospect.';
       }
     },
@@ -258,7 +258,7 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
         try {
           setInputVolume(conversation.getInputVolume?.() || 0);
           setOutputVolume(conversation.getOutputVolume?.() || 0);
-        } catch (e) {
+        } catch (_e) {
           // Ignore volume errors
         }
       }, 100);

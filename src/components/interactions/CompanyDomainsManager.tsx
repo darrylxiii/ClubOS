@@ -48,7 +48,7 @@ export function CompanyDomainsManager({
       }
 
       // Basic domain validation
-      const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/;
+      const domainRegex = /^[a-z0-9]+([-.][a-z0-9]+)*\.[a-z]{2,}$/;
       if (!domainRegex.test(cleanDomain)) {
         throw new Error("Please enter a valid domain (e.g., example.com)");
       }

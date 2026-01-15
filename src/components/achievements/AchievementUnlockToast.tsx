@@ -55,7 +55,7 @@ export const AchievementUnlockToast = () => {
       audio.play().catch(() => {
         // Ignore audio errors
       });
-    } catch (e) {
+    } catch (_e) {
       // Ignore
     }
 

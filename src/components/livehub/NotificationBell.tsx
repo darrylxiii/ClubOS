@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Gift, Briefcase, TrendingUp, CheckCircle2, XCircle } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,

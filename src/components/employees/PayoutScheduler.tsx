@@ -17,7 +17,6 @@ import {
   Calendar, 
   CheckCircle2, 
   Download,
-  Send,
   Loader2,
   CreditCard
 } from "lucide-react";

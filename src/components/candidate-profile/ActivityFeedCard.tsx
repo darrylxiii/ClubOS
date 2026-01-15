@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { ActivityFeedSkeleton } from "@/components/LoadingSkeletons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Activity, Eye, FileText, Send, Calendar, UserCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";

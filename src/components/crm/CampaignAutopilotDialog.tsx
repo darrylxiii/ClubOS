@@ -14,7 +14,7 @@ import {
 import { aiService } from '@/services/aiService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, Sparkles, Wand2, Target, Rocket } from 'lucide-react';
+import { Sparkles, Wand2, Rocket } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface CampaignAutopilotDialogProps {

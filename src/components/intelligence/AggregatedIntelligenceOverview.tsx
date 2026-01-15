@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Brain, TrendingUp, TrendingDown, Minus, AlertTriangle, Lightbulb, Target, BarChart3, RefreshCw, Loader2 } from "lucide-react";
 import type { AggregatedHiringInsights } from "@/types/analytics";
 

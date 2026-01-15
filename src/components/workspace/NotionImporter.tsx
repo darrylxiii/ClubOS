@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, FileText, Code, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useTemplates, CreateTemplateParams } from '@/hooks/useTemplates';
+import { useTemplates } from '@/hooks/useTemplates';
 
 interface NotionImporterProps {
   open: boolean;
@@ -74,7 +74,7 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
         });
       }
       // Bullet lists
-      else if (line.match(/^[\-\*]\s/)) {
+      else if (line.match(/^[-*]\s/)) {
         blocks.push({
           type: 'bulletListItem',
           content: [{ type: 'text', text: line.slice(2).trim(), styles: {} }],
@@ -88,12 +88,12 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
         });
       }
       // Checkboxes
-      else if (line.match(/^[\-\*]\s\[[ x]\]/i)) {
+      else if (line.match(/^[-*]\s\[[ x]\]/i)) {
         const checked = line.includes('[x]') || line.includes('[X]');
         blocks.push({
           type: 'checkListItem',
           props: { checked },
-          content: [{ type: 'text', text: line.replace(/^[\-\*]\s\[[ x]\]\s?/i, '').trim(), styles: {} }],
+          content: [{ type: 'text', text: line.replace(/^[-*]\s\[[ x]\]\s?/i, '').trim(), styles: {} }],
         });
       }
       // Code blocks
@@ -127,7 +127,7 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
       // Regular paragraph
       else {
         // Parse inline formatting
-        let text = line.trim();
+        const text = line.trim();
         const content: any[] = [];
         
         // Simple text for now - could enhance with bold/italic parsing

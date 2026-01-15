@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban, MapPin, Globe, Eye, Download, Lock, Link as LinkIcon } from "lucide-react";
+import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, FileText, Sparkles, X, Ban, MapPin, Globe, Eye, Download, Link as LinkIcon } from "lucide-react";
 import { InlineLoader } from "@/components/ui/unified-loader";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -1156,7 +1156,7 @@ const Profile = () => {
                 });
                 const userInfo = await userInfoResponse.json();
                 email = userInfo.email || email;
-              } catch (e) {
+              } catch (_e) {
                 console.log('Could not fetch user email');
               }
             } else {
@@ -1188,7 +1188,7 @@ const Profile = () => {
                 });
                 const userInfo = await userInfoResponse.json();
                 email = userInfo.mail || userInfo.userPrincipalName || email;
-              } catch (e) {
+              } catch (_e) {
                 console.log('Could not fetch user email');
               }
             }

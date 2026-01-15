@@ -9,7 +9,7 @@ import { JobMatchesCard } from "@/components/academy/JobMatchesCard";
 import { Link } from "react-router-dom";
 import { 
   Trophy, TrendingUp, Clock, Target, Award, Flame,
-  BookOpen, CheckCircle2, Download, ExternalLink
+  BookOpen, CheckCircle2, Download
 } from "lucide-react";
 
 interface Analytics {

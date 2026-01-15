@@ -2,15 +2,12 @@ import { useState, useMemo, useEffect } from "react";
 import { aiService } from '@/services/aiService';
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Flame, Sun, ThumbsUp, HelpCircle, ThumbsDown, Plane,
-  Archive, RefreshCw, Sparkles, Mail, Filter, Search,
-  CheckCircle, Clock, Zap, AlarmClock
+  Flame, Sun, HelpCircle, ThumbsDown, Plane, RefreshCw, Sparkles, Mail, Search
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

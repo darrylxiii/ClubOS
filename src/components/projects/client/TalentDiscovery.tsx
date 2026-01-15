@@ -2,19 +2,18 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
-  Search, Filter, Star, MapPin, Clock, DollarSign,
-  Sparkles, Heart, MessageSquare, UserPlus, ChevronDown,
-  Award, Briefcase, Globe, CheckCircle2, X
+  Search, Filter, Star, Clock, DollarSign,
+  Sparkles, Heart, UserPlus, ChevronDown,
+  Award, Briefcase, CheckCircle2, X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

@@ -7,10 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Brain, Target, TrendingUp, AlertTriangle, Zap, 
-  RefreshCw, Sparkles, Clock, Users, BarChart3,
+  RefreshCw, Sparkles, Users, BarChart3,
   ArrowRight, CheckCircle2, XCircle
 } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { usePredictiveAnalytics, ChurnRiskUser, HiringPrediction } from '@/hooks/usePredictiveAnalytics';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';

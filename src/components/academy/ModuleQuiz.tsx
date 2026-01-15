@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
-import { Check, X, Loader2, Trophy } from 'lucide-react';
+import { X, Loader2, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { trackAssessmentInteraction } from '@/services/sessionTracking';
 

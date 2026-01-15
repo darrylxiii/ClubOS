@@ -1,11 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Users, Clock, TrendingUp, BarChart3 } from "lucide-react";
+import { Users, Clock, BarChart3 } from "lucide-react";
 import { secondsToHours } from "@/hooks/useTimeTracking";
 import { format, startOfWeek, endOfWeek } from "date-fns";
 

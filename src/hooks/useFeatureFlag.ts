@@ -3,7 +3,7 @@
  * Type-safe hooks for PostHog feature flags
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useOptionalPostHog } from '@/providers/PostHogProvider';
 import { 
   isFeatureEnabled, 

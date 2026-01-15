@@ -113,7 +113,7 @@ export function useLiveHubTranscription({
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try {
         mediaRecorderRef.current.stop();
-      } catch (e) {
+      } catch (_e) {
         console.warn('[LiveHub Transcription] Error stopping MediaRecorder:', e);
       }
     }
@@ -227,7 +227,7 @@ export function useLiveHubTranscription({
             if (mediaRecorderRef.current === mediaRecorder) {
               try {
                 mediaRecorder.start();
-              } catch (e) {
+              } catch (_e) {
                 console.warn('[LiveHub Transcription] Could not restart MediaRecorder:', e);
               }
             }

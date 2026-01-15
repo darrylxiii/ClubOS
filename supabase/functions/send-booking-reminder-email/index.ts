@@ -48,7 +48,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Processing email reminder for booking: ${booking.id} to ${email}`);
 
     // Fetch additional booking details if needed
-    let bookingDetails = booking;
+    const bookingDetails = booking;
     let hostName = "Your Host";
     let meetingTitle = "Your Meeting";
 

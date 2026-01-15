@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface SalesKPI {
@@ -83,9 +84,11 @@ export function useSalesKPIsByCategory(category: string, periodType: string = 'd
   });
 }
 
-// Fetch all Sales KPIs
+// Fetch all Sales KPIs with real-time updates
 export function useAllSalesKPIs(periodType: string = 'daily') {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['sales-kpis', 'all', periodType],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -94,11 +97,32 @@ export function useAllSalesKPIs(periodType: string = 'daily') {
         .eq('period_type', periodType)
         .order('calculated_at', { ascending: false })
         .limit(200);
-      
+
       if (error) throw error;
       return data as SalesKPI[];
     },
   });
+
+  // Real-time subscription for live updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('sales-kpi-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'sales_kpi_metrics' },
+        () => {
+          // Invalidate and refetch when data changes
+          queryClient.invalidateQueries({ queryKey: ['sales-kpis'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 // Calculate Sales KPIs via edge function

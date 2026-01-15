@@ -3,7 +3,7 @@ import { RoleGate } from "@/components/RoleGate";
 import { TeamOverviewDashboard } from "@/components/employees/TeamOverviewDashboard";
 import { TeamPerformanceComparison } from "@/components/employees/TeamPerformanceComparison";
 import { TeamCommissionsApproval } from "@/components/employees/TeamCommissionsApproval";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { ClubSyncBadge } from "@/components/jobs/ClubSyncBadge";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -26,7 +26,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -43,17 +42,11 @@ import {
   Users,
   CheckCircle,
   XCircle,
-  AlertCircle,
   Briefcase,
-  Target,
-  Calendar,
   Award,
-  BookOpen,
   Bell,
-  FileText,
   Info,
   Sparkles,
-  Timer,
   Flag,
   PlayCircle,
   Settings,
@@ -76,13 +69,10 @@ import { JobCardMetrics } from "./job-card/JobCardMetrics";
 import { JobCardLastActivity } from "./job-card/JobCardLastActivity";
 import { JobCardActions } from "./job-card/JobCardActions";
 import { JobCardHeader } from "./job-card/JobCardHeader";
-import { JobsAnalyticsWidget } from "./JobsAnalyticsWidget";
 import { JobFilterBar, JobFilterType } from "./JobFilterBar";
-import { formatLastActivity } from "@/lib/jobUtils";
 import { JobSearchBar } from "./JobSearchBar";
 import { AdvancedJobFilters } from "./AdvancedJobFilters";
 import { usePersistedJobFilters } from "@/hooks/usePersistedJobFilters";
-import { JobFilterState } from "@/types/jobFilters";
 import { JobStatusSummaryBar, JobStatusFilter } from "./JobStatusSummaryBar";
 
 interface PartnerJobsHomeProps {

@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Heart, MessageCircle, Share2, Instagram, Twitter, Video, Settings, Youtube, ArrowRight } from "lucide-react";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { processPostContent } from "@/lib/textUtils";
 import { extractYouTubeVideoId, containsYouTubeUrl } from "@/lib/youtubeUtils";

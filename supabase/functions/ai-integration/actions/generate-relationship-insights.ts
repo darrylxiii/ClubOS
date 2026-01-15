@@ -34,7 +34,7 @@ export async function handleGenerateRelationshipInsights({ supabase, payload }: 
 
     // Risk Calc
     let riskLevel = 'low';
-    let riskFactors = [];
+    const riskFactors = [];
     if (hoursSinceContact > 72) { riskLevel = 'high'; riskFactors.push('No contact > 3 days'); }
     else if (hoursSinceContact > 48) { riskLevel = 'medium'; riskFactors.push('No contact > 2 days'); }
     if (avgSentiment < -0.2) { riskLevel = riskLevel === 'low' ? 'medium' : 'high'; riskFactors.push('Negative sentiment'); }

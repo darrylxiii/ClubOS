@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ZoomIn, ZoomOut, RotateCw, Sparkles } from "lucide-react";
+import { ZoomOut, RotateCw, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AvatarEditorProps {

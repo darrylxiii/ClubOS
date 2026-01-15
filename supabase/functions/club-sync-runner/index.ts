@@ -85,7 +85,7 @@ serve(async (req) => {
     console.log(`[club-sync-runner] Found ${activeJobs?.length || 0} active jobs`);
 
     let applicationsCreated = 0;
-    let applicationsSkipped = 0;
+    const applicationsSkipped = 0;
     const results: Array<{ candidateId: string; jobId: string; status: string; matchScore?: number }> = [];
 
     // 3. For each candidate, find matching jobs and auto-apply

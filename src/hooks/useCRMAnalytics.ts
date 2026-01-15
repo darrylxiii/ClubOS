@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfMonth, endOfMonth, subMonths, format, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns';
+import { startOfMonth, endOfMonth, subMonths, startOfWeek, endOfWeek } from 'date-fns';
 
 export interface CRMAnalyticsData {
   overview: {
@@ -87,98 +87,54 @@ export function useCRMAnalytics(options: UseCRMAnalyticsOptions = {}) {
       setError(null);
 
       const { start, end } = getDateRange();
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
 
-      // Fetch prospects
-      let prospectQuery = supabase
-        .from('crm_prospects')
-        .select('*')
-        .gte('created_at', start.toISOString())
-        .lte('created_at', end.toISOString());
+      // RPC Calls
+      const [
+        overviewRes,
+        funnelRes,
+        trendsRes,
+        ownerRes,
+        replyRes,
+        campaignsRes
+      ] = await Promise.all([
+        supabase.rpc('get_crm_overview_stats' as any, {
+          range_start: startIso,
+          range_end: endIso,
+          campaign_id_filter: options.campaignId || null,
+          owner_id_filter: options.ownerId || null
+        }),
+        supabase.rpc('get_crm_funnel_stats' as any, {
+          range_start: startIso,
+          range_end: endIso,
+          campaign_id_filter: options.campaignId || null,
+          owner_id_filter: options.ownerId || null
+        }),
+        supabase.rpc('get_crm_daily_trends' as any, {
+          range_start: startIso,
+          range_end: endIso
+        }),
+        supabase.rpc('get_crm_owner_stats' as any, {
+          range_start: startIso,
+          range_end: endIso
+        }),
+        supabase.rpc('get_crm_reply_stats' as any, {
+          range_start: startIso,
+          range_end: endIso
+        }),
+        supabase.from('crm_campaigns').select('*')
+      ]);
 
-      if (options.campaignId) {
-        prospectQuery = prospectQuery.eq('campaign_id', options.campaignId);
-      }
+      if (overviewRes.error) throw overviewRes.error;
+      if (funnelRes.error) throw funnelRes.error;
+      if (trendsRes.error) throw trendsRes.error;
+      if (ownerRes.error) throw ownerRes.error;
+      if (replyRes.error) throw replyRes.error;
+      if (campaignsRes.error) throw campaignsRes.error;
 
-      if (options.ownerId) {
-        prospectQuery = prospectQuery.eq('owner_id', options.ownerId);
-      }
-
-      const { data: prospects, error: prospectsError } = await prospectQuery;
-      if (prospectsError) throw prospectsError;
-
-      // Fetch campaigns
-      const { data: campaigns, error: campaignsError } = await supabase
-        .from('crm_campaigns')
-        .select('*');
-      if (campaignsError) throw campaignsError;
-
-      // Fetch replies
-      let repliesQuery = supabase
-        .from('crm_email_replies')
-        .select('*')
-        .gte('received_at', start.toISOString())
-        .lte('received_at', end.toISOString());
-
-      const { data: replies, error: repliesError } = await repliesQuery;
-      if (repliesError) throw repliesError;
-
-      // Calculate overview
-      const allProspects = prospects || [];
-      const hotLeads = allProspects.filter(p => p.reply_sentiment === 'hot').length;
-      const meetingsBooked = allProspects.filter(p => p.stage === 'meeting_booked').length;
-      const closedWon = allProspects.filter(p => p.stage === 'closed_won');
-      const totalRevenue = closedWon.reduce((sum, p) => sum + (p.deal_value || 0), 0);
-      const dealsWithValue = allProspects.filter(p => p.deal_value && p.deal_value > 0);
-
-      const overview = {
-        totalProspects: allProspects.length,
-        activeProspects: allProspects.filter(p => !['closed_won', 'closed_lost', 'unsubscribed'].includes(p.stage)).length,
-        hotLeads,
-        meetingsBooked,
-        dealsWon: closedWon.length,
-        totalRevenue,
-        avgDealSize: dealsWithValue.length > 0
-          ? dealsWithValue.reduce((sum, p) => sum + (p.deal_value || 0), 0) / dealsWithValue.length
-          : 0,
-        conversionRate: allProspects.length > 0
-          ? (closedWon.length / allProspects.length) * 100
-          : 0,
-      };
-
-      // Calculate funnel
-      const stages = ['new', 'contacted', 'opened', 'replied', 'qualified', 'meeting_booked', 'proposal_sent', 'negotiation', 'closed_won', 'closed_lost'];
-      const funnel = stages.map((stage, index) => {
-        const stageProspects = allProspects.filter(p => p.stage === stage);
-        const prevStageCount = index > 0
-          ? allProspects.filter(p => stages.indexOf(p.stage) >= index - 1).length
-          : allProspects.length;
-        return {
-          stage,
-          count: stageProspects.length,
-          value: stageProspects.reduce((sum, p) => sum + (p.deal_value || 0), 0),
-          conversionRate: prevStageCount > 0 ? (stageProspects.length / prevStageCount) * 100 : 0,
-        };
-      });
-
-      // Calculate trends
-      const days = eachDayOfInterval({ start, end });
-      const trends = days.map(day => {
-        const dayStr = format(day, 'yyyy-MM-dd');
-        const dayProspects = allProspects.filter(p => format(new Date(p.created_at), 'yyyy-MM-dd') === dayStr);
-        const dayReplies = (replies || []).filter(r => format(new Date(r.received_at), 'yyyy-MM-dd') === dayStr);
-        const dayMeetings = dayProspects.filter(p => p.stage === 'meeting_booked');
-        const dayDeals = dayProspects.filter(p => p.stage === 'closed_won');
-        return {
-          date: dayStr,
-          prospects: dayProspects.length,
-          replies: dayReplies.length,
-          meetings: dayMeetings.length,
-          deals: dayDeals.length,
-        };
-      });
-
-      // Campaign performance
-      const campaignPerformance = (campaigns || []).map(campaign => ({
+      // Transform Campaign Performance (Client-side mapping of counters is fine)
+      const campaignPerformance = (campaignsRes.data || []).map(campaign => ({
         campaignId: campaign.id,
         campaignName: campaign.name,
         sent: campaign.total_sent || 0,
@@ -188,50 +144,33 @@ export function useCRMAnalytics(options: UseCRMAnalyticsOptions = {}) {
         replyRate: campaign.reply_rate || 0,
       }));
 
-      // Owner performance (aggregate by owner)
-      const ownerMap = new Map<string, { name: string; prospects: number; meetings: number; deals: number; revenue: number }>();
-      allProspects.forEach(p => {
-        if (p.owner_id) {
-          const existing = ownerMap.get(p.owner_id) || { name: 'Unknown', prospects: 0, meetings: 0, deals: 0, revenue: 0 };
-          existing.prospects += 1;
-          if (p.stage === 'meeting_booked') existing.meetings += 1;
-          if (p.stage === 'closed_won') {
-            existing.deals += 1;
-            existing.revenue += p.deal_value || 0;
-          }
-          ownerMap.set(p.owner_id, existing);
-        }
+      // map owner results
+      const ownerPerformance = (ownerRes.data || []).map((o: any) => ({
+        ownerId: o.ownerId,
+        ownerName: 'Unknown', // RPC doesn't join with users table yet
+        prospects: o.prospects,
+        meetings: o.meetings,
+        deals: o.deals,
+        revenue: o.revenue,
+      }));
+
+      // map funnel results (calculate simple conversion rate)
+      const funnelRaw = (funnelRes.data || []) as any[];
+      const funnel = funnelRaw.map((stage: any, index: number) => {
+        const prevCount = index > 0 ? funnelRaw[index - 1].count : 0;
+        return {
+          ...stage,
+          conversionRate: prevCount > 0 ? (stage.count / prevCount) * 100 : 0
+        };
       });
 
-      const ownerPerformance = Array.from(ownerMap.entries()).map(([ownerId, stats]) => ({
-        ownerId,
-        ownerName: stats.name,
-        prospects: stats.prospects,
-        meetings: stats.meetings,
-        deals: stats.deals,
-        revenue: stats.revenue,
-      }));
-
-      // Reply breakdown
-      const replyClassifications = (replies || []).reduce((acc, reply) => {
-        acc[reply.classification] = (acc[reply.classification] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      const totalReplies = (replies || []).length;
-      const replyBreakdown = Object.entries(replyClassifications).map(([classification, count]) => ({
-        classification,
-        count,
-        percentage: totalReplies > 0 ? (count / totalReplies) * 100 : 0,
-      }));
-
       setData({
-        overview,
-        funnel,
-        trends,
+        overview: overviewRes.data as any,
+        funnel: funnel,
+        trends: trendsRes.data as any,
+        ownerPerformance: ownerPerformance,
+        replyBreakdown: replyRes.data as any,
         campaignPerformance,
-        ownerPerformance,
-        replyBreakdown,
       });
 
     } catch (err) {
@@ -244,6 +183,33 @@ export function useCRMAnalytics(options: UseCRMAnalyticsOptions = {}) {
 
   useEffect(() => {
     fetchAnalytics();
+  }, [fetchAnalytics]);
+
+  // Real-time subscription for live CRM updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('crm-analytics-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'crm_prospects' },
+        () => {
+          // Refetch analytics when prospects change
+          fetchAnalytics();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'crm_activities' },
+        () => {
+          // Refetch analytics when activities change
+          fetchAnalytics();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchAnalytics]);
 
   return {

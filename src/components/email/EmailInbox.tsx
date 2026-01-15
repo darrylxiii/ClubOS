@@ -9,21 +9,21 @@ import { notify } from "@/lib/notify";
 import { EmailSidebar } from "./EmailSidebar";
 import { EmailList } from "./EmailList";
 import { EmailDetail } from "./EmailDetail";
-import { EmailDetailDrawer } from "./EmailDetailDrawer";
 import { EmailComposer } from "./EmailComposer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { AdvancedSearchInput } from "./AdvancedSearchInput";
 import { PriorityInboxTabs } from "./intelligence/PriorityInboxTabs";
-import { AICommandPalette } from "./intelligence/AICommandPalette";
+import { AICommandRegistry } from "./intelligence/AICommandPalette";
 import { QuickActionsBar } from "./intelligence/QuickActionsBar";
-import { useCommandPalette } from "@/hooks/useCommandPalette";
+import { useCommand } from "@/contexts/CommandContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCw, Mail, Settings as SettingsIcon, ArrowLeft, HelpCircle, Menu } from "lucide-react";
+import { RefreshCw, Mail, Settings as SettingsIcon, Menu, Search, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 export function EmailInbox() {
   const [filter, setFilter] = useState("inbox");
@@ -34,9 +34,23 @@ export function EmailInbox() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [selectedEmailIds, setSelectedEmailIds] = useState<Set<string>>(new Set());
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+
+  // Handle '?' key for shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if user is pressing '?' (Shift + /) and not in an input
+      if (e.key === '?' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+        setShowShortcuts(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const { user } = useAuth();
   const { executeWithUndo } = useUndoableAction();
-  const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette();
+  const { toggle: toggleCommandPalette } = useCommand();
   const isMobile = useIsMobile();
 
   const {
@@ -72,16 +86,23 @@ export function EmailInbox() {
 
       setHasConnections((connections?.length || 0) > 0);
 
-      // Auto-sync on first load if never synced
-      const needsSync = connections?.some((c) => !c.last_sync_at);
-      if (needsSync && !syncing && connections && connections.length > 0) {
-        console.log("Initial sync - fetching last 90 days of emails...");
-        setIsInitialSync(true);
-        // Allow edge functions to deploy
-        setTimeout(async () => {
-          await syncEmails();
-          setIsInitialSync(false);
-        }, 3000);
+      // Auto-sync logic
+      const neverSynced = connections?.some((c) => !c.last_sync_at);
+
+      if (connections && connections.length > 0 && !syncing) {
+        if (neverSynced) {
+          // First time ever: show special initial sync UI
+          console.log("Initial sync - fetching last 90 days of emails...");
+          setIsInitialSync(true);
+          setTimeout(async () => {
+            await syncEmails();
+            setIsInitialSync(false);
+          }, 1000); // Reduced from 3000ms to 1000ms for snappier feel
+        } else {
+          // Regular auto-sync on visit
+          console.log("Auto-syncing emails...");
+          syncEmails();
+        }
       }
     };
 
@@ -197,7 +218,7 @@ export function EmailInbox() {
   ]);
 
   const handleEmailSelect = (email: Email) => {
-    console.log('[EmailInbox] Email selected:', email.id, 'Current filter:', filter);
+    // console.log('[EmailInbox] Email selected:', email.id);
     setSelectedEmail(email);
 
     // Mark as read only if in inbox and unread
@@ -208,7 +229,6 @@ export function EmailInbox() {
 
   // Clear selection when filter changes
   useEffect(() => {
-    console.log('[EmailInbox] Filter changed to:', filter, 'Clearing selection');
     setSelectedEmail(null);
   }, [filter]);
 
@@ -217,11 +237,9 @@ export function EmailInbox() {
     if (selectedEmail) {
       const updatedEmail = emails.find(e => e.id === selectedEmail.id);
       if (updatedEmail) {
-        console.log('[EmailInbox] Updating selected email from emails array');
         setSelectedEmail(updatedEmail);
       } else {
-        // Email not in current filter - fetch it directly to show updates
-        console.log('[EmailInbox] Selected email not in filter, fetching directly');
+        // Fetch to confirm existence if moved
         const fetchEmail = async () => {
           const { data, error } = await supabase
             .from("emails")
@@ -232,8 +250,6 @@ export function EmailInbox() {
           if (data && !error) {
             setSelectedEmail(data);
           } else {
-            // Email was deleted or moved - clear selection
-            console.log('[EmailInbox] Selected email no longer exists, clearing');
             setSelectedEmail(null);
           }
         };
@@ -244,11 +260,8 @@ export function EmailInbox() {
 
   const handleSnooze = () => {
     if (!selectedEmail) return;
-
-    // Snooze for 3 hours
     const snoozeUntil = new Date();
     snoozeUntil.setHours(snoozeUntil.getHours() + 3);
-
     snoozeEmail(selectedEmail.id, snoozeUntil);
     notify.success("Email snoozed", { description: "This email will reappear in 3 hours" });
     setSelectedEmail(null);
@@ -256,47 +269,26 @@ export function EmailInbox() {
 
   const handleArchive = async () => {
     if (!selectedEmail) return;
-
     const emailToArchive = selectedEmail;
     setSelectedEmail(null);
-
     await executeWithUndo({
       description: "Email archived",
-      execute: async () => {
-        await archiveEmail(emailToArchive.id);
-      },
-      undo: async () => {
-        // Restore from archive
-        await supabase
-          .from("emails")
-          .update({ status: "inbox", archived_at: null })
-          .eq("id", emailToArchive.id);
-      },
+      execute: async () => await archiveEmail(emailToArchive.id),
+      undo: async () => await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", emailToArchive.id),
     });
   };
 
   const handleDelete = async () => {
     if (!selectedEmail) return;
-
     const emailToDelete = selectedEmail;
     setSelectedEmail(null);
-
     await executeWithUndo({
       description: "Email moved to trash",
-      execute: async () => {
-        await deleteEmail(emailToDelete.id);
-      },
-      undo: async () => {
-        // Restore from trash
-        await supabase
-          .from("emails")
-          .update({ status: "inbox", deleted_at: null })
-          .eq("id", emailToDelete.id);
-      },
+      execute: async () => await deleteEmail(emailToDelete.id),
+      undo: async () => await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", emailToDelete.id),
     });
   };
 
-  // Bulk actions
   const handleBulkArchive = async () => {
     const promises = Array.from(selectedEmailIds).map(id => archiveEmail(id));
     await Promise.all(promises);
@@ -334,7 +326,6 @@ export function EmailInbox() {
     notify.success(`Marked ${selectedEmailIds.size} emails as unread`);
   };
 
-  // Show empty state if no connections
   if (hasConnections === false && !loading) {
     return (
       <div className="h-[100dvh] flex items-center justify-center p-4 sm:p-8">
@@ -364,7 +355,6 @@ export function EmailInbox() {
     );
   }
 
-  // Show loading or syncing state
   if (hasConnections && emails.length === 0 && (loading || syncing)) {
     return (
       <div className="h-[100dvh] flex items-center justify-center p-4 sm:p-8">
@@ -388,168 +378,247 @@ export function EmailInbox() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-3.5rem)] sm:h-[calc(100dvh-4rem)]">
-      {/* Top Bar - Mobile Optimized */}
-      <div className="border-b border-border p-2 sm:p-3 md:p-4 flex items-center gap-2 flex-wrap">
-        {/* Hamburger menu for mobile */}
+    <div className="flex flex-col h-[calc(100dvh-3.5rem)] sm:h-[calc(100dvh-4rem)] bg-background">
+      {/* Top Bar - Premium App Feel */}
+      <div className="border-b border-border p-3 flex items-center gap-3 bg-card/50 backdrop-blur-sm z-10 sticky top-0 h-16">
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={() => setMobileSidebarOpen(true)}
-          className="md:hidden min-h-[44px] min-w-[44px] flex-shrink-0"
+          className="md:hidden"
         >
           <Menu className="h-5 w-5" />
         </Button>
 
-        <AdvancedSearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search emails..."
-          className="flex-1 min-w-[150px] sm:min-w-[200px] max-w-2xl"
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={syncEmails}
-          disabled={syncing}
-          className="min-h-[44px]"
-        >
-          <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""} sm:mr-2`} />
-          <span className="hidden sm:inline">{syncing ? "Syncing..." : "Sync"}</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowShortcuts(true)}
-          className="min-h-[44px] min-w-[44px]"
-        >
-          <HelpCircle className="h-4 w-4" />
-        </Button>
+        <div className={cn(
+          "flex-1 flex items-center transition-all duration-300",
+          isSearchExpanded ? "absolute inset-0 z-20 bg-background px-2" : ""
+        )}>
+          {isSearchExpanded && (
+            <Button variant="ghost" size="icon" onClick={() => setIsSearchExpanded(false)} className="mr-2 md:hidden">
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+
+          <div className={cn(
+            "relative w-full max-w-2xl transition-all",
+            !isSearchExpanded && "hidden md:block"
+          )}>
+            <AdvancedSearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search emails..."
+              className="w-full bg-muted/50 border-transparent hover:bg-muted focus:bg-background transition-all"
+            />
+          </div>
+
+          {!isSearchExpanded && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSearchExpanded(true)}
+              className="md:hidden ml-auto"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
+        <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden")}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={syncEmails}
+            disabled={syncing}
+            className="hidden sm:flex transition-all active:scale-95"
+          >
+            <RefreshCw className={cn("h-4 w-4 mr-2", syncing && "animate-spin")} />
+            {syncing ? "Syncing..." : "Sync"}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={syncEmails}
+            disabled={syncing}
+            className="sm:hidden"
+          >
+            <RefreshCw className={cn("h-4 w-4", syncing && "animate-spin")} />
+          </Button>
+        </div>
       </div>
 
-      {/* Priority Tabs - Only show in inbox */}
-      {filter === "inbox" && (
-        <PriorityInboxTabs
-          activeTab={priorityTab}
-          onTabChange={setPriorityTab}
-          counts={tabCounts}
-        />
-      )}
+      {/* Main Content - Resizable Three-Pane Layout */}
+      <div className="flex-1 overflow-hidden">
+        {isMobile ? (
+          <div className="h-full flex flex-col">
+            <div className={cn("flex-1 overflow-hidden", selectedEmail ? "hidden" : "block")}>
+              {filter === "inbox" && (
+                <div className="px-2 pt-2">
+                  <PriorityInboxTabs
+                    activeTab={priorityTab}
+                    onTabChange={setPriorityTab}
+                    counts={tabCounts}
+                  />
+                </div>
+              )}
+              <EmailList
+                emails={displayedEmails}
+                selectedEmailId={selectedEmail?.id || null}
+                onEmailSelect={handleEmailSelect}
+                onToggleStar={toggleStar}
+                onArchive={(id) => executeWithUndo({
+                  description: "Email archived",
+                  execute: async () => await archiveEmail(id),
+                  undo: async () => await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", id)
+                })}
+                onDelete={(id) => executeWithUndo({
+                  description: "Email moved to trash",
+                  execute: async () => await deleteEmail(id),
+                  undo: async () => await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", id)
+                })}
+                onMarkAsRead={markAsRead}
+                onMarkAsUnread={markAsUnread}
+                loading={loading}
+                hasMore={hasMore}
+                onLoadMore={loadMore}
+                loadingMore={loadingMore}
+              />
+            </div>
 
-      {/* Main Content - Mobile responsive layout */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 relative">
-        {/* Floating Compose Button - Mobile only */}
+            {selectedEmail && (
+              <div className="h-full flex flex-col bg-background">
+                <div className="border-b p-2 flex items-center">
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedEmail(null)}>
+                    <X className="mr-2 h-4 w-4" /> Back
+                  </Button>
+                </div>
+                <EmailDetail
+                  email={selectedEmail}
+                  onReply={() => setComposerOpen(true)}
+                  onForward={() => setComposerOpen(true)}
+                  onArchive={handleArchive}
+                  onDelete={handleDelete}
+                  onSnooze={handleSnooze}
+                  onMarkAsUnread={() => markAsUnread(selectedEmail.id)}
+                  onToggleStar={(starred) => toggleStar(selectedEmail.id, starred)}
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          <ResizablePanelGroup direction="horizontal" className="h-full items-stretch">
+            <ResizablePanel defaultSize={18} minSize={14} maxSize={20} className="hidden md:block bg-muted/10">
+              <EmailSidebar
+                currentFilter={filter}
+                onFilterChange={setFilter}
+                labels={labels}
+                unreadCount={unreadCount}
+                onCompose={() => setComposerOpen(true)}
+              />
+            </ResizablePanel>
+
+            <ResizableHandle withHandle />
+
+            <ResizablePanel defaultSize={32} minSize={25} maxSize={40} className="bg-background min-w-[350px]">
+              <div className="h-full flex flex-col">
+                {filter === "inbox" && (
+                  <div className="px-3 pt-2">
+                    <PriorityInboxTabs
+                      activeTab={priorityTab}
+                      onTabChange={setPriorityTab}
+                      counts={tabCounts}
+                    />
+                  </div>
+                )}
+                <EmailList
+                  emails={displayedEmails}
+                  selectedEmailId={selectedEmail?.id || null}
+                  onEmailSelect={handleEmailSelect}
+                  onToggleStar={toggleStar}
+                  onArchive={(id) => executeWithUndo({
+                    description: "Email archived",
+                    execute: async () => await archiveEmail(id),
+                    undo: async () => await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", id)
+                  })}
+                  onDelete={(id) => executeWithUndo({
+                    description: "Email moved to trash",
+                    execute: async () => await deleteEmail(id),
+                    undo: async () => await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", id)
+                  })}
+                  onMarkAsRead={markAsRead}
+                  onMarkAsUnread={markAsUnread}
+                  loading={loading}
+                  hasMore={hasMore}
+                  onLoadMore={loadMore}
+                  loadingMore={loadingMore}
+                />
+              </div>
+            </ResizablePanel>
+
+            <ResizableHandle withHandle />
+
+            <ResizablePanel defaultSize={50} minSize={30}>
+              {selectedEmail ? (
+                <EmailDetail
+                  key={selectedEmail.id}
+                  email={selectedEmail}
+                  onReply={() => setComposerOpen(true)}
+                  onForward={() => setComposerOpen(true)}
+                  onArchive={handleArchive}
+                  onDelete={handleDelete}
+                  onSnooze={handleSnooze}
+                  onMarkAsUnread={() => markAsUnread(selectedEmail.id)}
+                  onToggleStar={(starred) => toggleStar(selectedEmail.id, starred)}
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center text-muted-foreground bg-muted/5/50">
+                  <div className="text-center">
+                    <div className="bg-muted p-4 rounded-full w-fit mx-auto mb-4">
+                      <Mail className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-medium text-foreground">Select an email to read</h3>
+                    <p className="max-w-xs mx-auto mt-2 text-sm text-muted-foreground">
+                      Choose an email from the list to view its contents.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )}
+      </div>
+
+      {isMobile && !composerOpen && (
         <Button
           onClick={() => setComposerOpen(true)}
-          className="md:hidden fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full shadow-lg"
           size="icon"
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50 transition-transform active:scale-95"
         >
           <Mail className="h-6 w-6" />
         </Button>
+      )}
 
-        {/* Mobile Sidebar Sheet */}
-        <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
-          <SheetContent side="left" className="p-0 w-[280px] md:hidden">
-            <SheetHeader className="p-4 border-b">
-              <SheetTitle>Menu</SheetTitle>
-            </SheetHeader>
-            <EmailSidebar
-              currentFilter={filter}
-              onFilterChange={(newFilter) => {
-                setFilter(newFilter);
-                setMobileSidebarOpen(false);
-              }}
-              labels={labels}
-              unreadCount={unreadCount}
-              onCompose={() => {
-                setComposerOpen(true);
-                setMobileSidebarOpen(false);
-              }}
-            />
-          </SheetContent>
-        </Sheet>
-
-        {/* Desktop Sidebar - Hidden on mobile, visible on md+ */}
-        <div className={cn(
-          "hidden md:block md:w-64 lg:w-72 xl:w-80 max-w-[320px] flex-shrink-0 border-r border-border overflow-x-hidden",
-          selectedEmail && "lg:hidden xl:block"
-        )}>
+      <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+        <SheetContent side="left" className="p-0 w-[280px] md:hidden">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle>Mailboxes</SheetTitle>
+          </SheetHeader>
           <EmailSidebar
             currentFilter={filter}
-            onFilterChange={setFilter}
+            onFilterChange={(newFilter) => {
+              setFilter(newFilter);
+              setMobileSidebarOpen(false);
+            }}
             labels={labels}
             unreadCount={unreadCount}
-            onCompose={() => setComposerOpen(true)}
+            onCompose={() => {
+              setComposerOpen(true);
+              setMobileSidebarOpen(false);
+            }}
           />
-        </div>
-
-        {/* Email List - Full width on mobile when no email selected */}
-        <div className={cn(
-          "flex-1 w-full md:w-auto md:flex-none md:max-w-[420px] lg:max-w-[480px] border-r border-border overflow-y-auto overflow-x-hidden min-h-0",
-          selectedEmail && "hidden lg:block"
-        )}>
-          <EmailList
-            emails={displayedEmails}
-            selectedEmailId={selectedEmail?.id || null}
-            onEmailSelect={handleEmailSelect}
-            onToggleStar={toggleStar}
-            onArchive={(id) => executeWithUndo({
-              description: "Email archived",
-              execute: async () => await archiveEmail(id),
-              undo: async () => {
-                await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", id);
-              },
-            })}
-            onDelete={(id) => executeWithUndo({
-              description: "Email moved to trash",
-              execute: async () => await deleteEmail(id),
-              undo: async () => {
-                await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", id);
-              },
-            })}
-            onMarkAsRead={markAsRead}
-            onMarkAsUnread={markAsUnread}
-            loading={loading}
-            hasMore={hasMore}
-            onLoadMore={loadMore}
-            loadingMore={loadingMore}
-          />
-        </div>
-
-        {/* Email Detail - Full screen on mobile, flex on desktop */}
-        {selectedEmail && (
-          <div className="flex-1 overflow-hidden min-w-0 flex flex-col">
-            {/* Mobile back button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden m-2 min-h-[44px] flex-shrink-0"
-              onClick={() => setSelectedEmail(null)}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Inbox
-            </Button>
-            <EmailDetail
-              key={selectedEmail.id}
-              email={selectedEmail}
-              onReply={() => setComposerOpen(true)}
-              onForward={() => setComposerOpen(true)}
-              onArchive={handleArchive}
-              onDelete={handleDelete}
-              onSnooze={handleSnooze}
-              onMarkAsUnread={() => markAsUnread(selectedEmail.id)}
-              onToggleStar={(starred) => toggleStar(selectedEmail.id, starred)}
-            />
-          </div>
-        )}
-
-        {/* Empty state when no email selected */}
-        {!selectedEmail && (
-          <div className="hidden md:flex flex-1 items-center justify-center text-muted-foreground">
-            <p>Select an email to read</p>
-          </div>
-        )}
-      </div>
+        </SheetContent>
+      </Sheet>
 
       <EmailComposer
         open={composerOpen}
@@ -569,9 +638,7 @@ export function EmailInbox() {
         onOpenChange={setShowShortcuts}
       />
 
-      <AICommandPalette
-        open={commandPaletteOpen}
-        onOpenChange={setCommandPaletteOpen}
+      <AICommandRegistry
         selectedEmail={selectedEmail}
         onArchive={handleArchive}
         onDelete={handleDelete}

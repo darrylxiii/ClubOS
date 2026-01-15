@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Archive, CheckCircle, UserPlus, X, Trash2 } from 'lucide-react';
+import { Archive, CheckCircle, UserPlus, X } from 'lucide-react';
 
 interface BulkActionsBarProps {
   selectedCount: number;

@@ -14,12 +14,9 @@ import { toast } from "sonner";
 import { 
   Plus, 
   Trash2, 
-  Save, 
   Layers,
   Percent,
-  DollarSign,
-  Loader2,
-  Edit2
+  Loader2
 } from "lucide-react";
 
 export function CommissionTierBuilder() {

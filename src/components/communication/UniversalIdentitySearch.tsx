@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Search, User, Briefcase, Target, Plus, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { cn } from '@/lib/utils';
 
 export interface IdentityResult {
     id: string;

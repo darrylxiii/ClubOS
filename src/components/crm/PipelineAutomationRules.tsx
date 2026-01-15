@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Plus, Trash2, ArrowRight, Mail, MessageSquare, Calendar, UserCheck } from 'lucide-react';
+import { Zap, Plus, Trash2, ArrowRight, Mail, MessageSquare, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

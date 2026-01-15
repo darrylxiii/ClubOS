@@ -15,7 +15,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Image as ImageIcon,
-  Video,
   BarChart,
   Calendar as CalendarIcon,
   FileText,

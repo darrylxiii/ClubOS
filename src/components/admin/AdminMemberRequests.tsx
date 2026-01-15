@@ -12,7 +12,7 @@ import { CheckCircle2, XCircle, Clock, User, Mail, Phone, Briefcase, MapPin, Ext
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OnboardingProgressTracker } from "./OnboardingProgressTracker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MemberApprovalWorkflowDialog } from "./approval/MemberApprovalWorkflowDialog";

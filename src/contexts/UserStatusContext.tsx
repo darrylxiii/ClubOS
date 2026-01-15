@@ -71,7 +71,7 @@ export function UserStatusProvider({ children }: { children: ReactNode }) {
 
       setOnboardingCompleted(!needsOnboarding);
       setAccountStatus((profile.account_status as 'approved' | 'pending' | 'declined') || 'pending');
-    } catch (error) {
+    } catch (_error) {
       logger.error("[UserStatusContext] Error fetching status:", error);
       setOnboardingCompleted(false);
       setAccountStatus('pending');

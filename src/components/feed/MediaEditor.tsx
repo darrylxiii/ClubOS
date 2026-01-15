@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Crop, RotateCw, Sun, Contrast, Droplets, Sparkles, Loader2 } from "lucide-react";
+import { RotateCw, Sun, Contrast, Droplets, Loader2 } from "lucide-react";
 
 // Types for dynamically imported Fabric.js
 type FabricCanvasType = import('fabric').Canvas;

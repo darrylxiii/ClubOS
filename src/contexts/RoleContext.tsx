@@ -83,7 +83,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
           }
         });
 
-    } catch (error) {
+    } catch (_error) {
       logger.error('[RoleContext] Error in fetchRoles:', error);
       setCurrentRole('user');
       setAvailableRoles(['user']);
@@ -214,7 +214,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-    } catch (error) {
+    } catch (_error) {
       // Revert local state on critical errors
       logger.error('[RoleContext] Critical error switching role, reverting:', error);
       setCurrentRole(previousRole);

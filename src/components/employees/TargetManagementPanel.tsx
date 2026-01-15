@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { 
   Target, 
@@ -11,8 +11,7 @@ import {
   RefreshCw,
   Calendar,
   TrendingUp,
-  Trash2,
-  Edit
+  Trash2
 } from "lucide-react";
 import { useAllEmployees } from "@/hooks/useEmployeeProfile";
 import { useAllTargets, useRecalculateTargetProgress, useDeleteTarget } from "@/hooks/useTargetManagement";

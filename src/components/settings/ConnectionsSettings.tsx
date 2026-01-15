@@ -311,7 +311,7 @@ export const ConnectionsSettings = ({
       window.history.replaceState({}, document.title, '/settings');
       
       console.log('✅ OAuth complete!');
-    } catch (error) {
+    } catch (_error) {
       console.error('❌ OAuth error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to complete connection');
       
@@ -439,7 +439,7 @@ export const ConnectionsSettings = ({
       setResumeFile(null);
       setResumeDisplayName('');
       await loadUserResumes();
-    } catch (error) {
+    } catch (_error) {
       console.error('Error uploading resume:', error);
       // Hook handles upload errors, we catch DB errors here
       if ((error as any).message !== 'Upload failed') { // Simple check
@@ -467,7 +467,7 @@ export const ConnectionsSettings = ({
 
       toast.success('Resume deleted successfully');
       await loadUserResumes();
-    } catch (error) {
+    } catch (_error) {
       console.error('Error deleting resume:', error);
       toast.error('Failed to delete resume');
     }
@@ -489,7 +489,7 @@ export const ConnectionsSettings = ({
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error downloading resume:', error);
       toast.error('Failed to download resume');
     }
@@ -511,7 +511,7 @@ export const ConnectionsSettings = ({
       setPreviewResumeUrl(data.signedUrl);
       setPreviewResumeName(fileName);
       setShowPreviewDialog(true);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error previewing resume:', error);
       toast.error('Failed to preview resume');
     }
@@ -533,7 +533,7 @@ export const ConnectionsSettings = ({
 
       toast.success('Primary resume updated');
       await loadUserResumes();
-    } catch (error) {
+    } catch (_error) {
       console.error('Error setting primary resume:', error);
       toast.error('Failed to set primary resume');
     }
@@ -716,7 +716,7 @@ export const ConnectionsSettings = ({
       console.log(`[Calendar] Redirecting to ${provider} OAuth...`);
       // Redirect to OAuth
       window.location.href = data.authUrl;
-    } catch (error) {
+    } catch (_error) {
       console.error(`[Calendar] ${provider} Calendar connection error:`, error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
@@ -746,7 +746,7 @@ export const ConnectionsSettings = ({
       
       await loadConnectedCalendars();
       toast.success('Calendar disconnected');
-    } catch (error) {
+    } catch (_error) {
       console.error('Error disconnecting calendar:', error);
       toast.error('Failed to disconnect calendar');
     }
@@ -793,7 +793,7 @@ export const ConnectionsSettings = ({
 
       console.log(`📧 Redirecting to ${pendingEmailProvider} OAuth...`);
       window.location.href = data.authUrl;
-    } catch (error) {
+    } catch (_error) {
       console.error('Email connection error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to connect email');
       localStorage.removeItem('pending_email_connection');
@@ -812,7 +812,7 @@ export const ConnectionsSettings = ({
 
       await loadConnectedEmails();
       toast.success(`Email sync ${enabled ? 'enabled' : 'disabled'}`);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error toggling email sync:', error);
       toast.error('Failed to update sync setting');
     }
@@ -829,7 +829,7 @@ export const ConnectionsSettings = ({
 
       await loadConnectedEmails();
       toast.success('Email disconnected');
-    } catch (error) {
+    } catch (_error) {
       console.error('Error disconnecting email:', error);
       toast.error('Failed to disconnect email');
     }

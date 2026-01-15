@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { TrendingUp, Trophy, Calendar, Infinity, Banknote, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, Calendar, Banknote, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';

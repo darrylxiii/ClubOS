@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { ContinuousPipelineAnalytics, ContinuousPipelineHire } from "@/types/analytics";
+import type { ContinuousPipelineHire } from "@/types/analytics";
 
 export function useContinuousPipelineJobs(companyId: string | undefined) {
   return useQuery({

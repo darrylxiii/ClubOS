@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { MLPrediction } from '@/types/ml';
-import { useSemanticSearch, type SemanticEntityType } from './useSemanticSearch';
+import { useSemanticSearch } from './useSemanticSearch';
 
 interface UseMLMatchingOptions {
   jobId: string;

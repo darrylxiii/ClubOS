@@ -16,7 +16,6 @@ import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
 import { CourseAIChat } from "@/components/academy/CourseAIChat";
 import { CourseProgressRing } from "@/components/academy/CourseProgressRing";
 import { CourseCompletionModal } from "@/components/academy/CourseCompletionModal";
-import { ModuleQuiz } from "@/components/academy/ModuleQuiz";
 import { NoteEditor } from "@/components/academy/NoteEditor";
 import { CourseReviewForm } from "@/components/academy/CourseReviewForm";
 import { AverageRatingDisplay } from "@/components/academy/AverageRatingDisplay";

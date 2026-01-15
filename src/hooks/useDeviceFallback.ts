@@ -56,7 +56,7 @@ export function useDeviceFallback({
         lastUpdated: Date.now()
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
-    } catch (e) {
+    } catch (_e) {
       console.warn('[DeviceFallback] Failed to save preferences:', e);
     }
   }, []);
@@ -67,7 +67,7 @@ export function useDeviceFallback({
       const devices = await navigator.mediaDevices.enumerateDevices();
       setAvailableDevices(devices);
       return devices;
-    } catch (e) {
+    } catch (_e) {
       console.error('[DeviceFallback] Failed to enumerate devices:', e);
       return [];
     }
@@ -144,7 +144,7 @@ export function useDeviceFallback({
 
       console.log(`[DeviceFallback] ✅ Switched ${type} to:`, deviceInfo?.label || deviceId);
       return streamRef.current;
-    } catch (e) {
+    } catch (_e) {
       console.error(`[DeviceFallback] Failed to switch ${type} device:`, e);
       setFailedDevices(prev => new Set(prev).add(deviceId));
       return null;

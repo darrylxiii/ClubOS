@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow, isPast, parseISO } from "date-fns";
+import { isPast, parseISO } from "date-fns";
 
 interface TaskSummary {
   pending: number;

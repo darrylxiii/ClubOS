@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2, Edit, FileText, Mail, Shield } from "lucide-react";
+import { Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2, Edit, FileText, Mail, Shield } from "lucide-react";
 import { ExperienceSection } from "@/components/profile/ExperienceSection";
 import { EducationSection } from "@/components/profile/EducationSection";
 import { SkillsSection } from "@/components/profile/SkillsSection";

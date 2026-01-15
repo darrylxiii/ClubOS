@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { 
   UserCircle, 
   Search, 
-  Calendar, 
-  RefreshCw,
+  Calendar,
   Sparkles,
   ArrowRight,
   CheckCircle2,

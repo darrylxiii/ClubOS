@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useActivationFunnel, useTimeToMilestone, ACTIVATION_MILESTONES, ActivationFunnelStep } from "@/hooks/useActivationMetrics";
+import { useActivationFunnel, useTimeToMilestone, ACTIVATION_MILESTONES } from "@/hooks/useActivationMetrics";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";

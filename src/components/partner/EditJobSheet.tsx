@@ -16,7 +16,6 @@ import {
   Loader2, 
   Upload, 
   Save, 
-  Eye, 
   Briefcase,
   Settings,
   FileStack,
@@ -38,7 +37,6 @@ import { stealthJobAuditService } from "@/services/stealthJobAuditService";
 import { JobStatusManager } from "@/components/jobs/JobStatusManager";
 import { JobStatus } from "@/components/jobs/JobStatusBadge";
 import { EnhancedLocationAutocomplete, type LocationResult } from "@/components/ui/enhanced-location-autocomplete";
-import { LocationMapCard } from "@/components/ui/location-map-card";
 import { PipelineTypeSelector } from "@/components/jobs/PipelineTypeSelector";
 import { JobFeeConfiguration, type FeeConfiguration } from "@/components/jobs/JobFeeConfiguration";
 

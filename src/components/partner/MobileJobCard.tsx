@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Users, Calendar, DollarSign, Edit, Eye, Share2, Repeat } from "lucide-react";
+import { MapPin, Users, Calendar, DollarSign, Edit, Eye, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";

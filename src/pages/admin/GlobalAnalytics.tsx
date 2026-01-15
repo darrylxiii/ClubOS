@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription as CardDescriptionOld, CardHeader, CardTitle as CardTitleOld } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   AnimatedCard,
   CardBody,
@@ -11,7 +11,7 @@ import { Visual1 } from "@/components/ui/visual-1";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
-import { Building2, Users, Briefcase, TrendingUp, Clock, Award } from "lucide-react";
+import { Building2, Users, Briefcase, Clock, Award } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppLayout } from "@/components/AppLayout";

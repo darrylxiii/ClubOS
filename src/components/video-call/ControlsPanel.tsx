@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -46,7 +45,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { meetingZIndex, meetingInteractions, meetingShadows, meetingBackdrop } from '@/config/meeting-design-tokens';
+import { meetingZIndex } from '@/config/meeting-design-tokens';
 import { motion } from 'framer-motion';
 
 interface ControlsPanelProps {

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Shield, AlertTriangle, Ban, BarChart3, Globe, Monitor, Settings, History, Download } from 'lucide-react';
+import { RefreshCw, Shield, AlertTriangle, Ban, BarChart3, Globe, Monitor, Settings, History } from 'lucide-react';
 import { ThreatOverview } from './ThreatOverview';
 import { ActiveThreatsPanel } from './ActiveThreatsPanel';
 import { Suspense, lazy } from 'react';

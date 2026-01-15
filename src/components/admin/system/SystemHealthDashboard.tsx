@@ -1,5 +1,5 @@
 import { DashboardHeader } from "../shared/DashboardHeader";
-import { TrendingUp, TrendingDown, CheckCircle } from "lucide-react";
+import { TrendingDown, CheckCircle } from "lucide-react";
 import { useSystemHealthMetrics } from "@/hooks/useSystemHealthMetrics";
 import { MetricCardSkeleton } from "../shared/MetricCardSkeleton";
 import { useQueryClient } from "@tanstack/react-query";

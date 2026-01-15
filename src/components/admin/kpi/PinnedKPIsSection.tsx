@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pin, X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Pin, X, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
 import { KPISparkline } from './KPISparkline';

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Settings, Clock, Calendar, Sparkles } from "lucide-react";
+import { Clock, Calendar, Sparkles } from "lucide-react";
 
 interface AISchedulingSettingsProps {
   open: boolean;

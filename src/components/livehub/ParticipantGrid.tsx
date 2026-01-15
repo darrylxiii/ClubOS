@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Mic, MicOff, Volume2, Monitor, Video, VideoOff, Loader2, User } from 'lucide-react';
+import { Mic, MicOff, Monitor, Video, VideoOff, Loader2 } from 'lucide-react';
 import { SpeakingBadge } from '@/components/shared/AudioLevelIndicator';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';

@@ -6,8 +6,6 @@ import { motion } from 'framer-motion';
 import {
   TrendingUp,
   DollarSign,
-  Target,
-  Calendar,
   ArrowUpRight,
   ArrowDownRight,
   Zap

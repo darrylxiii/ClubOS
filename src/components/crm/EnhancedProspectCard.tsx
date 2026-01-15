@@ -18,7 +18,6 @@ import {
   Clock,
   MoreHorizontal,
   Sparkles,
-  ListTodo,
   Euro,
   TrendingUp,
   Eye,

@@ -1,9 +1,8 @@
-import { useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
+import { PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { toast } from "sonner";
-import { Briefcase, Building2, MapPin, Users, DollarSign, ArrowRight, Check, Share2, Download, Loader2 as DownloadLoader } from "lucide-react";
+import { MapPin, DollarSign, Check, Share2, Download } from "lucide-react";
 import { exportToCSV } from "@/utils/analyticsExport";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";

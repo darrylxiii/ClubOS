@@ -10,12 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { 
   Search, CheckCircle2, XCircle, Ban, Pause,
-  Star, Building2, Clock, TrendingUp, Users,
-  ExternalLink, Calendar, FileText, Download
+  Star, Building2, Clock, Users,
+  ExternalLink, FileText, Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

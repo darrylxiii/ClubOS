@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { changeLanguageWithReload, clearTranslationCache } from '@/i18n/config';
+import { changeLanguageWithReload } from '@/i18n/config';
+import { clearTranslationCache } from '@/i18n/cache';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -39,14 +40,14 @@ export const LanguageSwitcher = () => {
           .select('preferred_language')
           .eq('id', user.id)
           .single();
-        
+
         if (profile?.preferred_language && profile.preferred_language !== i18n.language) {
           // Clear cache and reload with user's preferred language
           await changeLanguageWithReload(profile.preferred_language);
         }
       }
     };
-    
+
     loadUserLanguage();
   }, []);
 
@@ -58,24 +59,24 @@ export const LanguageSwitcher = () => {
 
   const handleChangeLanguage = async (code: string) => {
     if (code === i18n.language || isChanging) return;
-    
+
     setIsChanging(true);
     setIsOpen(false);
-    
+
     const targetLang = languages.find(l => l.code === code);
     const loadingToast = toast.loading(`Switching to ${targetLang?.name}...`);
-    
+
     try {
       // Clear cache for the target language to ensure fresh data
       clearTranslationCache(code);
-      
+
       // Use our new reload function
       const success = await changeLanguageWithReload(code);
-      
+
       if (!success) {
         throw new Error('Language change failed');
       }
-      
+
       // Persist to user profile (if authenticated)
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -84,10 +85,10 @@ export const LanguageSwitcher = () => {
           .update({ preferred_language: code })
           .eq('id', user.id);
       }
-      
+
       toast.dismiss(loadingToast);
       toast.success(`Language changed to ${targetLang?.name}`);
-      
+
       // Force page re-render by triggering a state update
       window.dispatchEvent(new Event('languageChange'));
     } catch (error) {
@@ -102,10 +103,10 @@ export const LanguageSwitcher = () => {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="relative z-[60]" 
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative z-[60]"
           disabled={isChanging}
         >
           {isChanging ? (

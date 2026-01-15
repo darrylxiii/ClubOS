@@ -29,11 +29,10 @@ import {
 } from 'lucide-react';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
 import type { CRMCampaign } from '@/types/crm-enterprise';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import { CSVImportDialog } from '@/components/crm/CSVImportDialog';
 import { CreateCampaignDialog } from '@/components/crm/CreateCampaignDialog';
 import { CampaignAutopilotDialog } from '@/components/crm/CampaignAutopilotDialog';
-import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 import {
   DropdownMenu,
   DropdownMenuContent,

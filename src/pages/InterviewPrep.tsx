@@ -8,9 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Building2, 
-  FileText, 
-  MessageSquare, 
-  Lightbulb,
+  MessageSquare,
   Star,
   CheckCircle2,
   Sparkles

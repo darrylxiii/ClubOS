@@ -12,12 +12,9 @@ import {
   Bookmark,
   Share2,
   Clock,
-  Eye,
-  Users,
   Settings,
   Camera,
-  ExternalLink,
-  Repeat
+  ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ContinuousPipelineBadge } from "./ContinuousPipelineBadge";

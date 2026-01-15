@@ -163,7 +163,7 @@ async function calculateAdaptiveAdjustments(
     : 5;
 
   // Determine adjustments based on patterns
-  let adjustment: WeightAdjustment = {
+  const adjustment: WeightAdjustment = {
     semantic_delta: 0,
     keyword_delta: 0,
     recency_delta: 0,
@@ -209,7 +209,7 @@ async function calibrateWeights(supabase: any, userId: string, queryContext: any
   // Analyze query to suggest optimal weights
   const { query, entity_type, time_sensitivity } = queryContext || {};
 
-  let suggestedWeights: SearchWeights = {
+  const suggestedWeights: SearchWeights = {
     semantic_weight: 0.6,
     keyword_weight: 0.4,
     recency_weight: 0.2,
@@ -278,7 +278,7 @@ async function updateFromFeedback(supabase: any, userId: string, feedbackData: a
   const learningRate = 0.02; // Small adjustments
   let newSemanticWeight = prefs.semantic_weight;
   let newKeywordWeight = prefs.keyword_weight;
-  let newRecencyWeight = prefs.recency_weight;
+  const newRecencyWeight = prefs.recency_weight;
 
   if (feedback_type === 'thumbs_up') {
     // Current weights worked well - reinforce them slightly

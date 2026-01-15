@@ -15,9 +15,7 @@ import {
   ThumbsUp, 
   ThumbsDown, 
   Minus,
-  Play,
   Clock,
-  AlertCircle,
   CheckCircle2,
   User,
   Briefcase

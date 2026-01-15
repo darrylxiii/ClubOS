@@ -77,7 +77,7 @@ CardHeading.displayName = "CardHeading";
 // ============================================================================
 // SUBTITLE -> Body LG
 // ============================================================================
-interface SubtitleProps extends React.HTMLAttributes<HTMLParagraphElement> { }
+type SubtitleProps = React.HTMLAttributes<HTMLParagraphElement>
 
 export const Subtitle = React.forwardRef<HTMLParagraphElement, SubtitleProps>(
   ({ className, ...props }, ref) => (
@@ -93,7 +93,7 @@ Subtitle.displayName = "Subtitle";
 // ============================================================================
 // LABEL -> Label MD
 // ============================================================================
-interface LabelTextProps extends React.HTMLAttributes<HTMLSpanElement> { }
+type LabelTextProps = React.HTMLAttributes<HTMLSpanElement>
 
 export const LabelText = React.forwardRef<HTMLSpanElement, LabelTextProps>(
   ({ className, ...props }, ref) => (
@@ -109,7 +109,7 @@ LabelText.displayName = "LabelText";
 // ============================================================================
 // CAPTION -> Label SM
 // ============================================================================
-interface CaptionProps extends React.HTMLAttributes<HTMLSpanElement> { }
+type CaptionProps = React.HTMLAttributes<HTMLSpanElement>
 
 export const Caption = React.forwardRef<HTMLSpanElement, CaptionProps>(
   ({ className, ...props }, ref) => (
@@ -181,7 +181,7 @@ BodyText.displayName = "BodyText";
 // ============================================================================
 // MICRO -> Label XS
 // ============================================================================
-interface MicroProps extends React.HTMLAttributes<HTMLSpanElement> { }
+type MicroProps = React.HTMLAttributes<HTMLSpanElement>
 
 export const Micro = React.forwardRef<HTMLSpanElement, MicroProps>(
   ({ className, ...props }, ref) => (
@@ -197,7 +197,7 @@ Micro.displayName = "Micro";
 // ============================================================================
 // OVERLINE -> Label XS Uppercase
 // ============================================================================
-interface OverlineProps extends React.HTMLAttributes<HTMLSpanElement> { }
+type OverlineProps = React.HTMLAttributes<HTMLSpanElement>
 
 export const Overline = React.forwardRef<HTMLSpanElement, OverlineProps>(
   ({ className, ...props }, ref) => (

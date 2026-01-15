@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Target, Link2, TrendingUp, Plus, X, Search, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Target, Link2, TrendingUp, Plus, X, Search, AlertCircle } from 'lucide-react';
 import { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
 import { useOKRObjectives, useKPIOKRLinks, type OKRObjective, type OKRKeyResult } from '@/hooks/useOKRs';
 import { toast } from 'sonner';

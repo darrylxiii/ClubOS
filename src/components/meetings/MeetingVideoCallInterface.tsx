@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,13 +10,13 @@ import { useMeetingQualityMonitor } from '@/hooks/useMeetingQualityMonitor';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ControlsPanel } from '@/components/video-call/ControlsPanel';
 import { VideoGrid } from '@/components/video-call/VideoGrid';
+import { ControlBar } from '@/components/meetings/live/ControlBar';
+import { ConnectionStatus } from '@/components/meetings/live/ConnectionStatus';
 import { PreCallDiagnostics } from '@/components/video-call/PreCallDiagnostics';
 import { OnScreenReactions } from '@/components/video-call/OnScreenReactions';
 import { MeetingChatSidebar } from '@/components/video-call/MeetingChatSidebar';
 import { DeviceSelector } from '@/components/video-call/DeviceSelector';
-import { LiveCaptions } from '@/components/video-call/LiveCaptions';
 import { MeetingNotes } from '@/components/video-call/MeetingNotes';
-import { TranscriptionPanel } from '@/components/video-call/TranscriptionPanel';
 import { HostApprovalPanel } from '@/components/meetings/HostApprovalPanel';
 import { HostSettingsPanel } from '@/components/meetings/HostSettingsPanel';
 import { ParticipantsPanel } from '@/components/meetings/ParticipantsPanel';
@@ -38,14 +38,10 @@ import { RecordingIndicator } from '@/components/meetings/RecordingIndicator';
 import { RecordingConsentBanner } from '@/components/meetings/RecordingConsentBanner';
 import { RecordingConsentModal, ConsentOptions } from '@/components/meetings/RecordingConsentModal';
 import { EnhancedRecordingIndicator } from '@/components/meetings/EnhancedRecordingIndicator';
-import { MeetingConnectionIndicator } from '@/components/meetings/MeetingConnectionIndicator';
 import { MobileMeetingControls } from '@/components/meetings/MobileMeetingControls';
-import { MeetingStatsBar } from '@/components/meetings/MeetingStatsBar';
 import { E2EEncryptionToggle } from '@/components/meetings/E2EEncryptionToggle';
-import { AudioLevelIndicator } from '@/components/shared/AudioLevelIndicator';
 import { useCompositorRecording } from '@/hooks/useCompositorRecording';
 import { PresenterHUD } from '@/components/video-call/PresenterHUD';
-import { useMeetingTranscription } from '@/hooks/useMeetingTranscription';
 import { useStreamingTranscription } from '@/hooks/useStreamingTranscription';
 import { StreamingCaptions } from '@/components/video-call/StreamingCaptions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -80,6 +76,10 @@ export function MeetingVideoCallInterface({
     enabled: true, // simplified for hook placement, will use meetingStarted later
     simulate: true // Enable simulation for demo Phase 3
   });
+
+  // P2P Fallback Toggle (Controlled by Env Var or Manual Flag)
+  // Set to true to use the custom P2P engine instead of LiveKit
+  const useP2P = false;
 
   const [showDiagnostics, setShowDiagnostics] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -161,6 +161,7 @@ export function MeetingVideoCallInterface({
     participantId,
     participantName,
     enableE2EE: false,
+    enabled: useP2P, // Disable P2P engine if using LiveKit
     onRemoteStream: async (remoteParticipantId, stream) => {
       console.log('[Meeting] 📹 Remote stream received from:', remoteParticipantId);
       console.log('[Meeting] 📹 Stream details:', {
@@ -1029,6 +1030,8 @@ export function MeetingVideoCallInterface({
 
       {/* Participant Count, Video Quality & E2EE Status */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+        <ConnectionStatus />
+
         {/* E2E Encryption Toggle */}
         <E2EEncryptionToggle
           isEnabled={e2eeState?.enabled || false}
@@ -1058,18 +1061,31 @@ export function MeetingVideoCallInterface({
         </div>
       </div>
 
-      {/* Video Grid - Updated to use Real LiveKit Wrapper */}
+      {/* Video Grid - Updated to use Real LiveKit Wrapper OR P2P Fallback */}
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-950/50 via-transparent to-black/50 pointer-events-none" />
-        {/* Swapped VideoGrid for LiveKitMeetingWrapper */}
-        <LiveKitMeetingWrapper
-          meetingId={meeting.id}
-          participantName={participantName}
-          participantId={participantId}
-          isHost={meeting.host_id === participantId}
-          onEnd={onEnd}
-          className="h-full w-full"
-        />
+
+        {useP2P ? (
+          /* Pure WebRTC P2P Grid */
+          <VideoGrid
+            localStream={localStream}
+            remoteStreams={remoteStreams}
+            participantName={participantName}
+            layout={layout}
+            isScreenSharing={isScreenSharing}
+            screenStream={screenStream}
+          />
+        ) : (
+          /* LiveKit Cloud Wrapper */
+          <LiveKitMeetingWrapper
+            meetingId={meeting.id}
+            participantName={participantName}
+            participantId={participantId}
+            isHost={meeting.host_id === participantId}
+            onEnd={onEnd}
+            className="h-full w-full"
+          />
+        )}
       </div>
 
 
@@ -1182,76 +1198,99 @@ export function MeetingVideoCallInterface({
         participant_name: r.name
       }))} />
 
-      {/* Controls Panel - Desktop (Disabled for LiveKit Video) */}
-      {!isMobile && false && (
-        <ControlsPanel
-          isAudioEnabled={isAudioEnabled}
-          isVideoEnabled={isVideoEnabled}
-          isScreenSharing={!!screenStream}
-          isRecording={isRecording}
-          isHandRaised={isHandRaised}
-          onToggleAudio={toggleAudio}
-          onToggleVideo={toggleVideo}
-          onToggleScreenShare={handleToggleScreenShare}
-          onToggleRecording={handleToggleRecording}
-          onToggleHandRaise={handleToggleHandRaise}
-          onEndCall={handleEndCall}
-          onOpenChat={handleOpenChat}
-          onOpenParticipants={handleOpenParticipants}
-          onOpenSettings={handleOpenSettings}
-          onReaction={handleReaction}
-          onOpenNotes={handleOpenNotes}
-          onToggleCaptions={handleToggleCaptions}
-          captionsEnabled={captionsEnabled}
-          onOpenTranscription={handleOpenTranscription}
-          transcriptionEnabled={transcriptionEnabled}
-          isTranscribing={isTranscribing}
-          onOpenHostSettings={meeting.host_id === participantId ? handleOpenHostSettings : undefined}
-          onOpenMeetingInfo={handleOpenMeetingInfo}
-          onEnablePiP={handleEnablePiP}
-          onOpenInterviewIntelligence={
-            ['host', 'interviewer', 'observer'].includes(userRole)
-              ? handleOpenInterviewIntelligence
-              : undefined
-          }
-          onOpenBreakoutRooms={handleOpenBreakoutRooms}
-          onOpenPolls={handleOpenPolls}
-          onOpenQA={handleOpenQA}
-          onOpenBackgrounds={handleOpenBackgrounds}
-          layout={layout}
-          onToggleLayout={handleToggleLayout}
-          onToggleBackchannel={
-            ['host', 'interviewer', 'observer'].includes(userRole)
-              ? handleToggleBackchannel
-              : undefined
-          }
-          onToggleVoting={
-            ['host', 'interviewer', 'observer'].includes(userRole)
-              ? handleToggleVoting
-              : undefined
-          }
-          // Phase 6: Advanced AI Features
-          onToggleQUINVoice={
-            ['host', 'interviewer', 'observer'].includes(userRole)
-              ? handleToggleQUINVoice
-              : undefined
-          }
-          showQUINVoice={showQUINVoice}
-          onToggleTranslation={handleToggleTranslation}
-          showTranslation={showTranslation}
-          onTogglePredictiveHiring={
-            ['host', 'interviewer', 'observer'].includes(userRole)
-              ? handleTogglePredictiveHiring
-              : undefined
-          }
-          showPredictiveHiring={showPredictiveHiring}
-          onToggleEngagementAnalytics={
-            ['host', 'interviewer', 'observer'].includes(userRole)
-              ? handleToggleEngagementAnalytics
-              : undefined
-          }
-          showEngagementAnalytics={showEngagementAnalytics}
-        />
+      {/* Controls Panel - Desktop */}
+      {!isMobile && (
+        useP2P ? (
+          <ControlBar
+            channelId={meeting.id}
+            userId={participantId}
+            userName={participantName}
+            onOpenChat={handleOpenChat}
+            onOpenParticipants={handleOpenParticipants}
+            onOpenSettings={handleOpenSettings}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-full shadow-2xl"
+
+            // P2P Controls
+            onToggleVideo={toggleVideo}
+            onToggleMute={toggleAudio}
+            onToggleScreenShare={toggleScreenShare}
+            onLeave={cleanup}
+
+            // P2P State
+            isVideoOn={isVideoEnabled}
+            isMuted={!isAudioEnabled}
+            isScreenSharing={!!screenStream}
+          />
+        ) : (
+          <ControlsPanel
+            isAudioEnabled={isAudioEnabled}
+            isVideoEnabled={isVideoEnabled}
+            isScreenSharing={!!screenStream}
+            isRecording={isRecording}
+            isHandRaised={isHandRaised}
+            onToggleAudio={toggleAudio}
+            onToggleVideo={toggleVideo}
+            onToggleScreenShare={toggleScreenShare}
+            onToggleRecording={toggleRecording}
+            onToggleHandRaise={toggleHandRaise}
+            onEndCall={cleanup}
+            onOpenChat={handleOpenChat}
+            onOpenParticipants={handleOpenParticipants}
+            onOpenSettings={handleOpenSettings}
+            onReaction={handleReaction}
+            onOpenNotes={handleOpenNotes}
+            onToggleCaptions={handleToggleCaptions}
+            captionsEnabled={captionsEnabled}
+            onOpenTranscription={handleOpenTranscription}
+            transcriptionEnabled={transcriptionEnabled}
+            isTranscribing={isTranscribing}
+            onOpenHostSettings={meeting.host_id === participantId ? handleOpenHostSettings : undefined}
+            onOpenMeetingInfo={handleOpenMeetingInfo}
+            onEnablePiP={handleEnablePiP}
+            onOpenInterviewIntelligence={
+              ['host', 'interviewer', 'observer'].includes(userRole)
+                ? handleOpenInterviewIntelligence
+                : undefined
+            }
+            onOpenBreakoutRooms={handleOpenBreakoutRooms}
+            onOpenPolls={handleOpenPolls}
+            onOpenQA={handleOpenQA}
+            onOpenBackgrounds={handleOpenBackgrounds}
+            layout={layout}
+            onToggleLayout={handleToggleLayout}
+            onToggleBackchannel={
+              ['host', 'interviewer', 'observer'].includes(userRole)
+                ? handleToggleBackchannel
+                : undefined
+            }
+            onToggleVoting={
+              ['host', 'interviewer', 'observer'].includes(userRole)
+                ? handleToggleVoting
+                : undefined
+            }
+            // Phase 6: Advanced AI Features
+            onToggleQUINVoice={
+              ['host', 'interviewer', 'observer'].includes(userRole)
+                ? handleToggleQUINVoice
+                : undefined
+            }
+            showQUINVoice={showQUINVoice}
+            onToggleTranslation={handleToggleTranslation}
+            showTranslation={showTranslation}
+            onTogglePredictiveHiring={
+              ['host', 'interviewer', 'observer'].includes(userRole)
+                ? handleTogglePredictiveHiring
+                : undefined
+            }
+            showPredictiveHiring={showPredictiveHiring}
+            onToggleEngagementAnalytics={
+              ['host', 'interviewer', 'observer'].includes(userRole)
+                ? handleToggleEngagementAnalytics
+                : undefined
+            }
+            showEngagementAnalytics={showEngagementAnalytics}
+          />
+        )
       )}
 
       {/* Mobile Controls */}

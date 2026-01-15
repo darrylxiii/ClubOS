@@ -122,7 +122,7 @@ export function useWorkspaceInvitations(workspaceId: string | undefined) {
         await supabase.functions.invoke('send-workspace-invitation', {
           body: { invitationId: data.id },
         });
-      } catch (e) {
+      } catch (_e) {
         console.error('Failed to send invitation email:', e);
       }
 

@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building, Heart, MoreHorizontal, Youtube, Sparkles } from "lucide-react";
+import { Image, Video, FileText, Send, X, Plus, Users, Globe, UserCircle, Building, Heart, MoreHorizontal, Youtube, Sparkles } from "lucide-react";
 import { CreatePoll } from "./PollPost";
 import { notify } from "@/lib/notify";
 import { MediaEditor } from "./MediaEditor";
@@ -22,8 +21,6 @@ import { detectSocialEmbeds, containsSocialMediaUrl, removeSocialMediaUrls, Soci
 import { detectSpotifyEmbeds, containsSpotifyUrl, removeSpotifyUrls } from "@/lib/spotifyEmbedUtils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { YouTubePickerDialog } from "./YouTubePickerDialog";
-import { SocialEmbed } from "./SocialEmbed";
-import { SpotifyEmbed } from "./SpotifyEmbed";
 
 interface CreatePostProps {
   onPostCreated: () => void;

@@ -1,4 +1,4 @@
-import { Download, FileText, Image as ImageIcon } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Attachment {

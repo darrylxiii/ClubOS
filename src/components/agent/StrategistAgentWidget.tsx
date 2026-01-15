@@ -1,21 +1,16 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { 
   Compass, 
   DollarSign, 
   Users, 
   TrendingUp,
   AlertCircle,
-  Sparkles,
-  ArrowUpRight,
   Target,
   Zap
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 interface PortfolioHealth {
   clientId: string;

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Cloud, CloudOff, RefreshCw, Check, AlertCircle } from 'lucide-react';
+import { CloudOff, RefreshCw, Check, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatDistanceToNow } from 'date-fns';
 

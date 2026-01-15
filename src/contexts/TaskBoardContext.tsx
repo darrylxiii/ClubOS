@@ -49,7 +49,7 @@ export function TaskBoardProvider({ children }: { children: ReactNode }) {
         const personalBoard = data.find(b => b.visibility === 'personal');
         setCurrentBoard(personalBoard || data[0]);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to load boards:', error);
       toast.error('Failed to load task boards');
     } finally {
@@ -94,7 +94,7 @@ export function TaskBoardProvider({ children }: { children: ReactNode }) {
       }
 
       return data;
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to create board:', error);
       toast.error('Failed to create board');
       return null;

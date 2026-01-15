@@ -1,5 +1,5 @@
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { fetchAI, handleAIError } from "../../_shared/ai-fetch.ts";
+import { fetchAI } from "../../_shared/ai-fetch.ts";
 
 const OperationSchema = z.enum(['improve', 'summarize', 'expand', 'translate', 'generate', 'simplify', 'professional', 'casual']);
 

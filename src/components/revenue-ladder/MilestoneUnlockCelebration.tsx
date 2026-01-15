@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Sparkles, PartyPopper, X } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { RevenueMilestone } from '@/hooks/useRevenueLadder';
 

@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/lib/notify';
 import { 
   Brain, TrendingUp, AlertTriangle, CheckCircle, Clock, 
-  Users, MessageSquare, Target, Zap, RefreshCw
+  Users, Target, Zap, RefreshCw
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';

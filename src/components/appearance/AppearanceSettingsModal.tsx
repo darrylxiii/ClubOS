@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { useAppearance } from '@/contexts/AppearanceContext';
 import { useTheme } from 'next-themes';
 import { PresetGallery } from './PresetGallery';
-import { Moon, Sun, Monitor, Image, Sparkles } from 'lucide-react';
+import { Moon, Sun, Monitor, Sparkles } from 'lucide-react';
 
 interface AppearanceSettingsModalProps {
   open: boolean;

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Clock, TrendingUp, Calendar, MousePointerClick, FileText, Mail, Building2 } from 'lucide-react';
+import { Activity, Clock, TrendingUp, Calendar, MousePointerClick, Mail, Building2 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 
 interface UserDetailModalProps {

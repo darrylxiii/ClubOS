@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Eye, Edit2, Send, Loader2 } from "lucide-react";
+import { Mail, Edit2, Loader2 } from "lucide-react";
 import { EmailTemplateEditor } from "@/components/admin/EmailTemplateEditor";
 import { toast } from "sonner";
 

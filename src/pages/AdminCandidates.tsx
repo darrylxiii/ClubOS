@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Download, Filter, Users, Grid3x3, Table as TableIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, Users, Grid3x3, Table as TableIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { adminCandidateService } from "@/services/adminCandidateService";
 import { UnifiedCandidateCard } from "@/components/admin/UnifiedCandidateCard";

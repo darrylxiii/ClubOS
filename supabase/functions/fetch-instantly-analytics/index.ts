@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { listCampaigns, getAllCampaignsAnalytics, getAccount, CampaignAnalytics, mapCampaignStatus } from "../_shared/instantly-client.ts";
+import { getAllCampaignsAnalytics, getAccount, CampaignAnalytics, mapCampaignStatus } from "../_shared/instantly-client.ts";
 import { publicCorsHeaders } from "../_shared/cors-config.ts";
 
 const corsHeaders = publicCorsHeaders;

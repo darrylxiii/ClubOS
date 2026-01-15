@@ -1,5 +1,4 @@
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 export const handleGenerateABTestVariants = async ({ supabase, payload }: { supabase: any; payload: any }) => {
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');

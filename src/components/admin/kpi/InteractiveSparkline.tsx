@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import type { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
 import { useKPIHistory } from '@/hooks/useKPIHistory';
 import { format } from 'date-fns';

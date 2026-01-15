@@ -10,7 +10,7 @@ import { useBookingRealtime } from "@/hooks/useBookingRealtime";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import { WaitlistForm } from "./WaitlistForm";
 import { TimezoneWarning } from "./TimezoneWarning";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface BookingTimeSlotsProps {
   bookingLink: {
