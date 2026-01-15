@@ -412,7 +412,6 @@ export const DisasterRecoveryDashboard = () => {
 
       toast.success('PITR test completed successfully');
       setTimeout(() => window.location.reload(), 2000);
-    } catch (error) {
     } catch (error: any) {
       console.error('Manual PITR test failed:', error);
       toast.error(`PITR Test Failed: ${error.message || 'Unknown error'}. Check console/network logs.`);
