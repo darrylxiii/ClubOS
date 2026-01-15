@@ -73,8 +73,8 @@ export class ScoutBot {
 
             // Handle Audio/Video permissions if not auto-accepted (Context handles this mostly)
             console.log('[Scout] Joined Zoom Lobby/Meeting');
-        } catch (_e) {
-            console.error('[Scout] Error joining Zoom:', e);
+        } catch (err) {
+            console.error('[Scout] Error joining Zoom:', err);
         }
     }
 
@@ -94,8 +94,8 @@ export class ScoutBot {
             } else {
                 console.log('[Scout] Login might be required for this Meet link');
             }
-        } catch (_e) {
-            console.error('[Scout] Error joining Google Meet:', e);
+        } catch (err) {
+            console.error('[Scout] Error joining Google Meet:', err);
         }
     }
 

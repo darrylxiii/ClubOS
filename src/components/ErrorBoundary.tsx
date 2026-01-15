@@ -31,7 +31,7 @@ export class ErrorBoundary extends Component<Props, State> {
     
     // Log to database with enhanced error reporting
     logCriticalError(error, 'ErrorBoundary', {
-      componentStack: errorInfo.componentStack,
+      componentStack: errorInfo.componentStack ?? undefined,
       errorType: 'react',
     });
     

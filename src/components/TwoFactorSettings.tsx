@@ -35,8 +35,8 @@ export const TwoFactorSettings = () => {
       
       const hasVerifiedFactor = factors.some(f => f.status === 'verified');
       setMfaEnabled(hasVerifiedFactor);
-    } catch (_error) {
-      console.error('Error checking MFA status:', error);
+    } catch (err) {
+      console.error('Error checking MFA status:', err);
       toast.error('Failed to check 2FA status');
     } finally {
       setLoading(false);

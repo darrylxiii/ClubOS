@@ -82,8 +82,8 @@ export const QuickAccessHub = () => {
       setComment('');
       setFeedbackOpen(false);
       setOpen(false);
-    } catch (_error) {
-      console.error('Error submitting feedback:', error);
+    } catch (err) {
+      console.error('Error submitting feedback:', err);
       toast({
         title: 'Error',
         description: 'Failed to submit feedback. Please try again.',
