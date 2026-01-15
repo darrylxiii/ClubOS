@@ -16,10 +16,10 @@ interface PilotTask {
   task_type: string;
   title: string;
   description: string | null;
-  priority_score: number;
-  impact_score: number;
-  urgency_score: number;
-  effort_minutes: number;
+  priority_score: number | null;
+  impact_score: number | null;
+  urgency_score: number | null;
+  effort_minutes: number | null;
   scheduled_start: string | null;
   scheduled_end: string | null;
   ai_recommendation: string | null;

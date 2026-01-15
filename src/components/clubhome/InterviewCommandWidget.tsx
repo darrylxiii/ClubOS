@@ -24,27 +24,27 @@ interface InterviewItem {
   id: string;
   title: string;
   scheduled_start: string;
-  interview_stage?: string;
+  interview_stage?: string | null;
   candidate?: {
     id: string;
     full_name: string;
-    avatar_url?: string;
-    current_title?: string;
-  };
+    avatar_url?: string | null;
+    current_title?: string | null;
+  } | null;
   job?: {
     id: string;
     title: string;
-  };
-  application_id?: string;
+  } | null;
+  application_id?: string | null;
 }
 
 interface PendingScorecard {
   meeting_id: string;
   meeting_title: string;
   candidate_name: string;
-  candidate_avatar?: string;
+  candidate_avatar?: string | null;
   completed_at: string;
-  due_at?: string;
+  due_at?: string | null;
 }
 
 export const InterviewCommandWidget = () => {
@@ -257,7 +257,7 @@ export const InterviewCommandWidget = () => {
                         <div className="flex items-center gap-3">
                           {interview.candidate ? (
                             <Avatar className="h-10 w-10">
-                              <AvatarImage src={interview.candidate.avatar_url} />
+                              <AvatarImage src={interview.candidate.avatar_url ?? undefined} />
                               <AvatarFallback>
                                 {interview.candidate.full_name.split(' ').map(n => n[0]).join('')}
                               </AvatarFallback>

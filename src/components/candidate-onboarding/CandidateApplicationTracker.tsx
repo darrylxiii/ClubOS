@@ -8,8 +8,8 @@ import { Progress } from "@/components/ui/progress";
 
 interface Profile {
   id: string;
-  full_name: string;
-  avatar_url: string;
+  full_name: string | null;
+  avatar_url: string | null;
 }
 
 const TRACKER_STEPS = [
@@ -91,7 +91,7 @@ export function CandidateApplicationTracker() {
           </div>
           <div className="flex items-start gap-4">
             <Avatar className="w-16 h-16 border-2 border-primary/20">
-              <AvatarImage src={strategist.avatar_url} />
+              <AvatarImage src={strategist.avatar_url ?? undefined} />
               <AvatarFallback className="bg-primary/10 text-primary text-lg">
                 {strategist.full_name
                   ?.split(" ")

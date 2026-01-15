@@ -77,7 +77,7 @@ export function TalentPoolTags({
       setTags(newTags);
       onTagsChange?.(newTags);
     } catch (_error) {
-      console.error('Error saving tags:', error);
+      console.error('Error saving tags:', _error);
       toast.error('Failed to update tags');
     } finally {
       setSaving(false);

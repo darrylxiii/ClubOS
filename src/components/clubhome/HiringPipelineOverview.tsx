@@ -75,7 +75,7 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
               data.totalDays += daysSinceUpdate;
             }
           } catch (_e) {
-            console.error('Error parsing stages:', e);
+            console.error('Error parsing stages:', _e);
           }
         });
 

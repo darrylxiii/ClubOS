@@ -75,7 +75,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
       const { data, error } = await supabase
         .from('assessment_results')
         .select('*')
-        .eq('user_id', targetUserId)
+        .eq('user_id', targetUserId ?? '')
         .order('completed_at', { ascending: false });
 
       if (error) throw error;
@@ -96,7 +96,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
       
       setResults(mappedResults);
     } catch (_error) {
-      console.error('Error fetching assessment results:', error);
+      console.error('Error fetching assessment results:', _error);
     } finally {
       setLoading(false);
     }

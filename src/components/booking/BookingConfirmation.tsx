@@ -84,7 +84,7 @@ export function BookingConfirmation({
         .single();
 
       if (error) throw error;
-      setBooking(data);
+      setBooking(data as unknown as Booking);
     } catch (error: any) {
       console.error("Error loading booking:", error);
       toast.error("Failed to load booking details");

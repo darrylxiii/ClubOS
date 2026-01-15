@@ -17,7 +17,7 @@ interface Meeting {
   title: string;
   scheduled_start: string;
   scheduled_end: string | null;
-  meeting_type: string;
+  meeting_type: string | null;
   status: string;
   participants: { full_name: string; avatar_url: string | null }[];
 }

@@ -17,7 +17,7 @@ interface TaskSummary {
     id: string;
     title: string;
     due_date: string | null;
-    priority: string;
+    priority: string | null;
     status: string;
   }>;
 }

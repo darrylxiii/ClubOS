@@ -129,7 +129,7 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
       }, 500);
 
     } catch (_error) {
-      console.error('Error processing upload:', error);
+      console.error('Error processing upload:', _error);
       toast.error('Failed to save document metadata.');
     }
   };
