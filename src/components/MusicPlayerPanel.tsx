@@ -211,7 +211,7 @@ export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
           {/* DJ Profile */}
           <div className="flex items-center gap-3 mb-4">
             <Avatar className="h-12 w-12 ring-2 ring-red-500 ring-offset-2">
-              <AvatarImage src={liveSession.profile?.avatar_url} />
+              <AvatarImage src={liveSession.profile?.avatar_url ?? undefined} />
               <AvatarFallback>
                 {liveSession.profile?.full_name?.[0] || 'DJ'}
               </AvatarFallback>

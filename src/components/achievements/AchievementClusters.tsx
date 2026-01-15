@@ -25,12 +25,12 @@ interface Achievement {
   id: string;
   achievement_id: string;
   name: string;
-  description: string;
+  description: string | null;
   icon_emoji: string;
   rarity: string;
   category: string;
   unlocked_at: string | null;
-  animation_effect: string;
+  animation_effect: string | null;
   points: number;
   is_unlocked: boolean;
   progress?: any;
@@ -73,13 +73,13 @@ export const AchievementClusters = ({
       const { data: userAchievements } = await supabase
         .from("user_quantum_achievements")
         .select("*")
-        .eq("user_id", user?.id);
+        .eq("user_id", user?.id ?? '');
 
       // Fetch progress for locked achievements
       const { data: progressData } = await supabase
         .from("achievement_progress")
         .select("*")
-        .eq("user_id", user?.id);
+        .eq("user_id", user?.id ?? '');
 
       const unlockedMap = new Map(
         userAchievements?.map((ua) => [ua.achievement_id, ua]) || []

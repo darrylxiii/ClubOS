@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 interface JobMatch {
   id: string;
   title: string;
-  company_name: string;
+  company_name: string | null;
   match_percentage: number;
   skills_matched: number;
   skills_total: number;

@@ -11,13 +11,13 @@ interface Recommendation {
   id: string;
   recommended_type: string;
   recommended_id: string;
-  recommendation_score: number;
-  recommendation_reason: string;
+  recommendation_score: number | null;
+  recommendation_reason: string | null;
   content?: {
     title: string;
     description?: string;
     difficulty?: string;
-  };
+  } | null;
 }
 
 export function RecommendationsPanel() {
@@ -46,23 +46,34 @@ export function RecommendationsPanel() {
       // Fetch details for each recommendation
       const withDetails = await Promise.all(
         (data || []).map(async (rec) => {
-          let content = null;
+          let content: { title: string; description?: string; difficulty?: string } | null = null;
           if (rec.recommended_type === 'course') {
             const { data: course } = await supabase
               .from('courses')
-              .select('title, description, difficulty')
+              .select('title, description, difficulty_level')
               .eq('id', rec.recommended_id)
               .single();
-            content = course;
+            if (course) {
+              content = { title: course.title, description: course.description ?? undefined, difficulty: course.difficulty_level ?? undefined };
+            }
           } else if (rec.recommended_type === 'learning_path') {
             const { data: path } = await supabase
               .from('learning_paths')
-              .select('name as title, description, difficulty')
+              .select('name, description')
               .eq('id', rec.recommended_id)
               .single();
-            content = path;
+            if (path) {
+              content = { title: path.name, description: path.description ?? undefined };
+            }
           }
-          return { ...rec, content };
+          return {
+            id: rec.id,
+            recommended_type: rec.recommended_type,
+            recommended_id: rec.recommended_id,
+            recommendation_score: rec.recommendation_score,
+            recommendation_reason: rec.recommendation_reason,
+            content 
+          } as Recommendation;
         })
       );
 

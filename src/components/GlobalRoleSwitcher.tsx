@@ -65,7 +65,8 @@ export const GlobalRoleSwitcher = () => {
         <DropdownMenuLabel>Switch Role</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {availableRoles.map((role) => {
-          const Icon = roleConfig[role].icon;
+          const config = role ? (roleConfig[role] || { icon: User, label: role, color: 'bg-muted' }) : { icon: User, label: 'User', color: 'bg-muted' };
+          const Icon = config.icon;
           const isActive = role === currentRole;
           
           return (
@@ -75,9 +76,9 @@ export const GlobalRoleSwitcher = () => {
               className={isActive ? "bg-muted" : ""}
             >
               <div className="flex items-center gap-2 w-full">
-                <div className={`w-2 h-2 rounded-full ${roleConfig[role].color}`} />
+                <div className={`w-2 h-2 rounded-full ${config.color}`} />
                 <Icon className="w-4 h-4" />
-                <span className="flex-1">{roleConfig[role].label}</span>
+                <span className="flex-1">{config.label}</span>
                 {isActive && <Badge variant="default" className="text-xs">Active</Badge>}
               </div>
             </DropdownMenuItem>
