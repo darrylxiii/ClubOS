@@ -22,7 +22,7 @@ interface CompanyPost {
   post_type: string;
   created_at: string;
   author: {
-    full_name: string;
+    full_name: string | null;
     avatar_url: string | null;
   };
   likes_count: number;

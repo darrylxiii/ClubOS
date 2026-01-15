@@ -46,9 +46,9 @@ export function UniversalIdentitySearch({ onSelect, defaultValue, defaultEntityT
             ]);
 
             const allResults: IdentityResult[] = [
-                ...(usersRes.data || []).map(u => ({ id: u.id, name: u.full_name || 'Unnamed', email: u.email, type: 'user' as const })),
-                ...(candidatesRes.data || []).map(c => ({ id: c.id, name: c.full_name, email: c.email, type: 'candidate' as const })),
-                ...(prospectsRes.data || []).map(p => ({ id: p.id, name: p.full_name, email: p.email, type: 'prospect' as const }))
+                ...(usersRes.data || []).map(u => ({ id: u.id, name: u.full_name || 'Unnamed', email: u.email ?? undefined, type: 'user' as const })),
+                ...(candidatesRes.data || []).map(c => ({ id: c.id, name: c.full_name, email: c.email ?? undefined, type: 'candidate' as const })),
+                ...(prospectsRes.data || []).map(p => ({ id: p.id, name: p.full_name, email: p.email ?? undefined, type: 'prospect' as const }))
             ];
 
             setResults(allResults);

@@ -65,7 +65,7 @@ export function CRMAutomationLogs() {
     }
   });
 
-  const filteredLogs = logs.filter(log => {
+  const filteredLogs = logs.filter((log: AutomationLog) => {
     if (statusFilter !== 'all' && log.status !== statusFilter) return false;
     if (searchQuery && !log.automationName.toLowerCase().includes(searchQuery.toLowerCase()) &&
       !log.prospectName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -92,8 +92,8 @@ export function CRMAutomationLogs() {
     }
   };
 
-  const successCount = logs.filter(l => l.status === 'success').length;
-  const failedCount = logs.filter(l => l.status === 'failed').length;
+  const successCount = logs.filter((l: AutomationLog) => l.status === 'success').length;
+  const failedCount = logs.filter((l: AutomationLog) => l.status === 'failed').length;
 
   return (
     <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
@@ -149,7 +149,7 @@ export function CRMAutomationLogs() {
       <CardContent>
         <ScrollArea className="h-[400px]">
           <div className="space-y-2">
-            {filteredLogs.map((log, index) => (
+            {filteredLogs.map((log: AutomationLog, index: number) => (
               <motion.div
                 key={log.id}
                 initial={{ opacity: 0, x: -10 }}

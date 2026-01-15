@@ -22,7 +22,7 @@ const StageColumn = memo(function StageColumn({
   onDragStart,
   onPublish,
 }: {
-  stage: { id: string; name: string; color: string; description: string; probability_weight: number };
+  stage: { id: string; name: string; color: string; description: string | null; probability_weight: number };
   deals: Deal[];
   stageValue: number;
   onDragOver: (e: React.DragEvent) => void;
@@ -54,7 +54,7 @@ const StageColumn = memo(function StageColumn({
         </div>
 
         <div className="text-xs text-muted-foreground mb-1">
-          {stage.description}
+          {stage.description ?? ''}
         </div>
 
         <div className="flex items-center justify-between text-xs">

@@ -148,7 +148,7 @@ export const InterviewCommandWidget = () => {
               .single();
             if (data) {
               candidateName = data.full_name;
-              candidateAvatar = data.avatar_url;
+              candidateAvatar = data.avatar_url ?? undefined;
             }
           }
 
@@ -328,7 +328,7 @@ export const InterviewCommandWidget = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10">
-                            <AvatarImage src={scorecard.candidate_avatar} />
+                            <AvatarImage src={scorecard.candidate_avatar ?? undefined} />
                             <AvatarFallback>
                               {scorecard.candidate_name.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>

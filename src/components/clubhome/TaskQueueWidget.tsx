@@ -179,8 +179,8 @@ export const TaskQueueWidget = () => {
                       <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
                     )}
                     <span className="flex-1 truncate">{task.title}</span>
-                    <Badge variant="secondary" className={`text-xs ${getPriorityColor(task.priority)}`}>
-                      {task.priority}
+                    <Badge variant="secondary" className={`text-xs ${getPriorityColor(task.priority ?? 'medium')}`}>
+                      {task.priority ?? 'medium'}
                     </Badge>
                   </div>
                 );

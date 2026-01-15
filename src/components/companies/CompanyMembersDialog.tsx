@@ -23,8 +23,8 @@ interface CompanyMember {
 
 interface User {
   id: string;
-  full_name: string;
-  email: string;
+  full_name: string | null;
+  email: string | null;
   avatar_url: string | null;
 }
 

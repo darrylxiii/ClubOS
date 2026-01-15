@@ -59,8 +59,8 @@ export function WhatsAppCandidatePanel({ candidateId, candidatePhone, candidateN
           .from('whatsapp_conversations')
           .insert([{
             candidate_id: candidateId,
-            candidate_phone: candidatePhone,
-            candidate_name: candidateName,
+            candidate_phone: candidatePhone ?? '',
+            candidate_name: candidateName ?? '',
             conversation_status: 'active',
           }])
           .select()
