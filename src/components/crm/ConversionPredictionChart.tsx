@@ -60,7 +60,7 @@ export function ConversionPredictionChart() {
         const actualConversions = i < 7 ? Math.round(basePrediction * (0.8 + Math.random() * 0.4)) : 0;
         
         // Calculate pipeline value
-        const avgDealValue = prospects?.reduce((sum, p) => sum + (p.deal_value || 0), 0) / (prospects?.length || 1) || 50000;
+        const avgDealValue = (prospects ?? []).reduce((sum, p) => sum + (p.deal_value || 0), 0) / ((prospects ?? []).length || 1) || 50000;
         const pipelineValue = basePrediction * avgDealValue;
         
         forecastData.push({

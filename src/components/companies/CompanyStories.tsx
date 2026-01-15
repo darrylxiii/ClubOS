@@ -18,7 +18,7 @@ interface CompanyStory {
   expires_at: string;
   created_at: string;
   creator?: {
-    full_name: string;
+    full_name: string | null;
     avatar_url: string | null;
   };
   views_count?: number;

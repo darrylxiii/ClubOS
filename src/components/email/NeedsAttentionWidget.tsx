@@ -28,7 +28,7 @@ interface Meeting {
   status: string;
   emails: {
     subject: string;
-    from_name: string;
+    from_name: string | null;
   };
 }
 

@@ -20,7 +20,7 @@ interface CreateClubTaskDialogProps {
 
 interface Profile {
   id: string;
-  full_name: string;
+  full_name: string | null;
   avatar_url: string | null;
 }
 
@@ -256,9 +256,9 @@ export const CreateClubTaskDialog = ({
                   />
                   <Avatar className="h-6 w-6">
                     <AvatarImage src={profile.avatar_url || undefined} />
-                    <AvatarFallback>{profile.full_name.charAt(0)}</AvatarFallback>
+                    <AvatarFallback>{(profile.full_name ?? 'U').charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <span className="text-sm">{profile.full_name}</span>
+                  <span className="text-sm">{profile.full_name ?? 'Unknown'}</span>
                 </div>
               ))}
             </div>

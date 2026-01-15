@@ -106,7 +106,7 @@ export function EmailList({
         else if (action === "unread") await onMarkAsUnread(id);
         successCount++;
       } catch (_e) {
-        console.error(e);
+        console.error(_e);
       }
     });
 

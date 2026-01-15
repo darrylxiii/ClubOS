@@ -32,9 +32,9 @@ interface AgentGoal {
   id: string;
   goal_type: string;
   goal_description: string;
-  status: string;
-  current_progress: number;
-  assigned_agents: string[];
+  status: string | null;
+  current_progress: number | null;
+  assigned_agents: string[] | null;
   next_action_description: string | null;
   deadline: string | null;
 }
@@ -44,8 +44,8 @@ interface AgentDelegation {
   parent_agent: string;
   child_agent: string;
   task_description: string;
-  status: string;
-  delegated_at: string;
+  status: string | null;
+  delegated_at: string | null;
 }
 
 const taskTypeConfig: Record<string, { label: string; icon: typeof Target; color: string }> = {
@@ -197,7 +197,7 @@ export const PilotDashboard = () => {
           completed_at: status === "completed" ? new Date().toISOString() : null,
         })
         .eq("id", taskId)
-        .eq("user_id", user?.id);
+        .eq("user_id", user?.id ?? '');
 
       if (error) throw error;
 
@@ -489,7 +489,7 @@ const TaskCard = ({ task, onUpdateStatus }: { task: PilotTask; onUpdateStatus: (
               </div>
             </div>
             <Badge variant="secondary" className="shrink-0">
-              {Math.round(task.priority_score * 10) / 10}
+              {Math.round((task.priority_score ?? 0) * 10) / 10}
             </Badge>
           </div>
 

@@ -273,8 +273,8 @@ export function EmailInbox() {
     setSelectedEmail(null);
     await executeWithUndo({
       description: "Email archived",
-      execute: async () => await archiveEmail(emailToArchive.id),
-      undo: async () => await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", emailToArchive.id),
+      execute: async () => { await archiveEmail(emailToArchive.id); },
+      undo: async () => { await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", emailToArchive.id); },
     });
   };
 
@@ -284,8 +284,8 @@ export function EmailInbox() {
     setSelectedEmail(null);
     await executeWithUndo({
       description: "Email moved to trash",
-      execute: async () => await deleteEmail(emailToDelete.id),
-      undo: async () => await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", emailToDelete.id),
+      execute: async () => { await deleteEmail(emailToDelete.id); },
+      undo: async () => { await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", emailToDelete.id); },
     });
   };
 
@@ -469,13 +469,13 @@ export function EmailInbox() {
                 onToggleStar={toggleStar}
                 onArchive={(id) => executeWithUndo({
                   description: "Email archived",
-                  execute: async () => await archiveEmail(id),
-                  undo: async () => await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", id)
+                  execute: async () => { await archiveEmail(id); },
+                  undo: async () => { await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", id); }
                 })}
                 onDelete={(id) => executeWithUndo({
                   description: "Email moved to trash",
-                  execute: async () => await deleteEmail(id),
-                  undo: async () => await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", id)
+                  execute: async () => { await deleteEmail(id); },
+                  undo: async () => { await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", id); }
                 })}
                 onMarkAsRead={markAsRead}
                 onMarkAsUnread={markAsUnread}
@@ -538,13 +538,13 @@ export function EmailInbox() {
                   onToggleStar={toggleStar}
                   onArchive={(id) => executeWithUndo({
                     description: "Email archived",
-                    execute: async () => await archiveEmail(id),
-                    undo: async () => await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", id)
+                    execute: async () => { await archiveEmail(id); },
+                    undo: async () => { await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", id); }
                   })}
                   onDelete={(id) => executeWithUndo({
                     description: "Email moved to trash",
-                    execute: async () => await deleteEmail(id),
-                    undo: async () => await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", id)
+                    execute: async () => { await deleteEmail(id); },
+                    undo: async () => { await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", id); }
                   })}
                   onMarkAsRead={markAsRead}
                   onMarkAsUnread={markAsUnread}

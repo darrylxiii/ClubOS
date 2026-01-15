@@ -69,7 +69,8 @@ export function CRMTeamManagement() {
           .in('owner_id', userIds);
 
         const countMap = (prospectCounts || []).reduce((acc, p) => {
-          acc[p.owner_id] = (acc[p.owner_id] || 0) + 1;
+          const ownerId = p.owner_id ?? '';
+          acc[ownerId] = (acc[ownerId] || 0) + 1;
           return acc;
         }, {} as Record<string, number>);
 

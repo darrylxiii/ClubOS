@@ -33,7 +33,7 @@ export function RevenueCharts() {
         current.realized += item.fee_amount;
       });
 
-      projectedData?.forEach(item => {
+      projectedData?.forEach((item: { created_at: string; projected_fee_amount: number; confidence_score: number | null }) => {
         const month = new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
         if (!monthlyData.has(month)) {
           monthlyData.set(month, { month, realized: 0, projected: 0 });
@@ -58,7 +58,7 @@ export function RevenueCharts() {
       const monthlyData = new Map();
       
       data?.forEach(job => {
-        const month = new Date(job.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+        const month = new Date(job.created_at ?? new Date()).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
         if (!monthlyData.has(month)) {
           monthlyData.set(month, { month, entered: 0, won: 0, lost: 0 });
         }

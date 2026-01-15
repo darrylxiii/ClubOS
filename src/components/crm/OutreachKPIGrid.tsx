@@ -48,7 +48,7 @@ export function OutreachKPIGrid() {
       const { data } = await supabase
         .from('instantly_account_health')
         .select('health_score');
-      return data?.reduce((sum, a) => sum + (a.health_score || 0), 0) / (data?.length || 1) || 0;
+      return (data ?? []).reduce((sum, a) => sum + (a.health_score || 0), 0) / ((data ?? []).length || 1) || 0;
     }
   });
 
