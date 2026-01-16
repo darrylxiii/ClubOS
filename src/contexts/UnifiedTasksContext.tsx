@@ -117,7 +117,7 @@ export function UnifiedTasksProvider({
 
       setTasks((data || []) as UnifiedTask[]);
     } catch (_error) {
-      console.error("Error loading tasks:", error);
+      console.error("Error loading tasks:", _error);
       toast.error("Failed to load tasks");
     } finally {
       setLoading(false);
@@ -151,7 +151,7 @@ export function UnifiedTasksProvider({
 
       if (error) throw error;
     } catch (_error) {
-      console.error("Error updating task:", error);
+      console.error("Error updating task:", _error);
       toast.error("Failed to update task");
       loadTasks(objectiveId); // Revert on error
     }
@@ -174,7 +174,7 @@ export function UnifiedTasksProvider({
       });
       toast.success("Task deleted");
     } catch (_error) {
-      console.error("Error deleting task:", error);
+      console.error("Error deleting task:", _error);
       toast.error("Failed to delete task");
     }
   }, []);
@@ -203,7 +203,7 @@ export function UnifiedTasksProvider({
       toast.success(`${taskIds.length} tasks updated`);
       clearSelection();
     } catch (_error) {
-      console.error("Error bulk updating tasks:", error);
+      console.error("Error bulk updating tasks:", _error);
       toast.error("Failed to update tasks");
       loadTasks(objectiveId);
     }
@@ -222,7 +222,7 @@ export function UnifiedTasksProvider({
       clearSelection();
       toast.success(`${taskIds.length} tasks deleted`);
     } catch (_error) {
-      console.error("Error bulk deleting tasks:", error);
+      console.error("Error bulk deleting tasks:", _error);
       toast.error("Failed to delete tasks");
     }
   }, []);

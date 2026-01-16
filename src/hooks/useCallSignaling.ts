@@ -5,9 +5,9 @@ import { Database } from '@/integrations/supabase/types';
 
 type CallInvitation = Database['public']['Tables']['call_invitations']['Row'] & {
   caller?: {
-    full_name?: string;
-    avatar_url?: string;
-    email?: string;
+    full_name?: string | null;
+    avatar_url?: string | null;
+    email?: string | null;
   };
 };
 
@@ -86,7 +86,8 @@ export function useCallSignaling(conversationId?: string) {
   // Auto-dismiss ringing invitations after 30 seconds
   useEffect(() => {
     incomingInvitations.forEach(invitation => {
-      const createdAt = new Date(invitation.created_at).getTime();
+      const createdAtStr = invitation.created_at ?? new Date().toISOString();
+      const createdAt = new Date(createdAtStr).getTime();
       const now = Date.now();
       const elapsed = now - createdAt;
       const remaining = 30000 - elapsed;

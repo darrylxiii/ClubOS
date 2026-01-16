@@ -91,13 +91,20 @@ export function useCRMActivities(options: UseActivitiesOptions = {}) {
   const createMutation = useMutation({
     mutationFn: async (activity: Partial<CRMActivity>) => {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!activity.activity_type) throw new Error('activity_type is required');
+      
       const { data, error } = await supabase
         .from('crm_activities')
-        .insert({
-          ...activity,
+        .insert([{
+          activity_type: activity.activity_type,
+          subject: activity.subject ?? '',
+          description: activity.description,
+          due_date: activity.due_date,
+          due_time: activity.due_time,
+          prospect_id: activity.prospect_id,
           owner_id: activity.owner_id || user?.id,
           created_by: user?.id,
-        })
+        }])
         .select()
         .single();
       if (error) throw error;

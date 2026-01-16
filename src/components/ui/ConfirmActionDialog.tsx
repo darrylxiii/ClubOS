@@ -228,7 +228,7 @@ export function ConfirmActionDialog({
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            disabled={isConfirmDisabled}
+            disabled={!!isConfirmDisabled}
             className={cn(config.className)}
           >
             {isLoading || localLoading ? "Processing..." : confirmText || config.confirmText}

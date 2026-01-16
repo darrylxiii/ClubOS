@@ -11,7 +11,7 @@ interface Communication {
   content_preview: string | null;
   sentiment_score: number | null;
   original_timestamp: string;
-  created_at: string;
+  created_at: string | null;
 }
 
 interface CommunicationPreferences {

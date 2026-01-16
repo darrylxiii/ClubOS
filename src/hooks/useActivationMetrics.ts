@@ -189,7 +189,7 @@ export function useTimeToMilestone(days: number = 30) {
 
       events.forEach(e => {
         if (!e.milestone_name) return;
-        const signupTime = signupMap.get(e.user_id);
+        const signupTime = e.user_id ? signupMap.get(e.user_id) : undefined;
         if (!milestoneStats[e.milestone_name]) {
           milestoneStats[e.milestone_name] = { times: [], count: 0 };
         }

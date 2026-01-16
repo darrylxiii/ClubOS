@@ -219,7 +219,7 @@ export function useBandwidthTest({
 
       return mbps;
     } catch (_e) {
-      console.warn('[BandwidthTest] Upload measurement failed, using estimate:', e);
+      console.warn('[BandwidthTest] Upload measurement failed, using estimate:', _e);
       return 1.5; // Fallback estimate
     }
   }, []);
