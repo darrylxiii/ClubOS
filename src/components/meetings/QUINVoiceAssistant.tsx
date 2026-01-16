@@ -125,22 +125,20 @@ export function QUINVoiceAssistant({
         command,
         meetingId,
         context: {
-          transcript_segment: recentTranscript?.slice(-2000) || '',
-          remaining_time: remainingTime || 0
+          current_page: 'meeting',
+          recent_actions: recentTranscript ? [recentTranscript.slice(-2000)] : undefined
         }
       });
 
-
-
-      if (data?.response_text) {
+      if (data?.response) {
         const response: QUINResponse = {
-          responseType: data.response_type,
-          responseText: data.response_text,
+          responseType: data.response_type || 'answer',
+          responseText: data.response,
           timestamp: new Date().toISOString()
         };
 
         setResponses(prev => [response, ...prev.slice(0, 9)]);
-        speakResponse(data.response_text);
+        speakResponse(data.response);
       }
     } catch (err) {
       console.error('QUIN voice error:', err);

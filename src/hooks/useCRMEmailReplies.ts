@@ -209,7 +209,6 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
 
       const response = await aiService.analyzeEmailReply({
         email_id: replyId,
-        prospect_id: reply.prospect_id,
         from_email: reply.from_email,
         from_name: reply.from_name,
         subject: reply.subject,

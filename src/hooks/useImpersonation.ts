@@ -10,7 +10,7 @@ export interface ImpersonationSession {
   expires_at: string;
   ended_at: string | null;
   reason: string | null;
-  is_active?: boolean;
+  is_active?: boolean | null;
 }
 
 const IMPERSONATION_STORAGE_KEY = 'tqc_impersonation_session';

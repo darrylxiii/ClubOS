@@ -19,13 +19,13 @@ export function useKPIInsights(kpis: UnifiedKPI[], domainHealth: DomainHealth[])
 
             const data = await aiService.generateKPIInsights({
                 kpis: kpis.map(k => ({
-                    name: k.title,
-                    value: typeof k.value === 'number' ? k.value : parseFloat(k.value.toString().replace(/[^0-9.-]+/g, '')) || 0,
-                    trend: k.trend === 'up' || k.trend === 'down' || k.trend === 'stable' ? k.trend : undefined,
+                    name: k.displayName || k.name,
+                    value: k.value,
+                    trend: k.trendDirection,
                 })),
                 domainHealth: 85
             });
-            return data as KPIInsights;
+            return data as unknown as KPIInsights;
         },
         enabled: kpis.length > 0,
         staleTime: 1000 * 60 * 60,

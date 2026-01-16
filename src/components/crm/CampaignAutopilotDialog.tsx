@@ -48,14 +48,14 @@ export function CampaignAutopilotDialog({
 
         try {
             // 1. Generate Campaign Structure via AI
-            const { data: result, error: aiError } = await aiService.generateCampaignAutopilot(
+            const result = await aiService.generateCampaignAutopilot(
                 formData.goal,
                 formData.target_audience,
                 formData.industry
             );
 
             // The response properties are at the root level, not nested in 'campaign'
-            if (aiError || !result?.campaign_name) {
+            if (!result?.campaign_name) {
                 throw new Error('Failed to generate campaign structure');
             }
 

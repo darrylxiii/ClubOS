@@ -182,15 +182,27 @@ export const useMeetingContext = (meetingId?: string) => {
 
       setMeeting({
         ...meetingData,
-        candidate,
-        job,
-        application,
-        company,
+        candidate: candidate ?? undefined,
+        job: job ?? undefined,
+        application: application ?? undefined,
+        company: company ?? undefined,
         participants: participants?.map(p => ({
           ...p,
+          user_id: p.user_id ?? undefined,
+          guest_name: p.guest_name ?? undefined,
+          guest_email: p.guest_email ?? undefined,
+          participant_type: p.participant_type ?? undefined,
+          role_in_interview: p.role_in_interview ?? undefined,
+          rsvp_status: p.rsvp_status ?? undefined,
           profile: Array.isArray(p.profiles) ? p.profiles[0] : p.profiles
         })) || [],
-        scorecards: scorecards || [],
+        scorecards: scorecards?.map(s => ({
+          ...s,
+          overall_rating: s.overall_rating ?? undefined,
+          recommendation: s.recommendation ?? undefined,
+          status: s.status ?? 'pending',
+          submitted_at: s.submitted_at ?? undefined
+        })) || [],
         ai_analysis: {
           status: meetingData.ai_analysis_status || 'pending',
           summary: meetingData.ai_summary,

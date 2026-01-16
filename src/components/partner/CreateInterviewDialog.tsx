@@ -213,8 +213,7 @@ Keep it concise (3-4 sentences) and professional.`;
       const { description: generatedDesc } = await aiService.generateInterviewDescription({
         job_title: job?.title || 'Position',
         company_name: companyName,
-        interview_type: interviewType,
-        candidate_name: candidateName
+        interview_type: interviewType
       });
 
       if (generatedDesc) {

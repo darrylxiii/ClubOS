@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
-interface InterviewReport {
+interface LocalInterviewReport {
   id: string;
   executive_summary: string;
   key_strengths: string[];
@@ -37,7 +37,7 @@ export function InterviewReportView({
   roleTitle,
   companyName
 }: InterviewReportViewProps) {
-  const [report, setReport] = useState<InterviewReport | null>(null);
+  const [report, setReport] = useState<LocalInterviewReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
@@ -79,7 +79,7 @@ export function InterviewReportView({
         roleTitle,
         companyName
       });
-      const report = reportData;
+      const report = reportData as any;
 
       if (!report) throw new Error("No report returned");
 

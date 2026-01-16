@@ -35,7 +35,7 @@ export function GenerateDossierButton({
     shareToken: string;
     shareUrl: string;
     expiresAt: string;
-  } | null>(null);
+  } | any | null>(null);
   const [expiryHours, setExpiryHours] = useState(72);
   const [includeScorecard, setIncludeScorecard] = useState(true);
   const [includeTranscript, setIncludeTranscript] = useState(false);

@@ -65,14 +65,15 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
   const handleAISuggestion = async () => {
     setLoadingSuggestions(true);
     try {
-      const data = await aiService.generatePostSuggestions({
-        context: content,
-        postType: postType,
-        platform: (selectedPlatforms[0] || 'linkedin') as any
+      const data = await aiService.generatePost({
+        topic: content,
+        platform: (selectedPlatforms[0] || 'linkedin') as any,
+        tone: 'professional',
+        include_hashtags: true
       });
 
-      if (data?.suggestions && data.suggestions.length > 0) {
-        setAiSuggestions(data.suggestions);
+      if (data?.content) {
+        setAiSuggestions([data.content]);
         toast.success("AI suggestions generated");
       } else {
         toast.info("No suggestions available. Try again later.");

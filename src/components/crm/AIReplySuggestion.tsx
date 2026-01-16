@@ -38,8 +38,6 @@ export function AIReplySuggestion({
       const emailClassification = classification || 'neutral';
 
       const data = await aiService.generateCrmReply({
-        prospectName,
-        prospectCompany,
         originalEmail: emailContent,
         classification: emailClassification,
         tone: tone as 'casual' | 'friendly' | 'professional' | undefined

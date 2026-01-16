@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface UnreadState {
   channel_id: string;
-  unread_count: number;
+  unread_count: number | null;
   last_read_at: string | null;
 }
 

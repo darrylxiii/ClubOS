@@ -124,7 +124,7 @@ export function EnhancedProposalBuilder({
 
       // Check if response has proposal property or is the proposal itself
       // Based on error description, likely response IS the object containing coverLetter
-      const proposalData = response.proposal || response;
+      const proposalData = (typeof response === 'object' && 'proposal' in response) ? (response as any).proposal : response;
 
       if (proposalData?.coverLetter) {
         setCoverLetter(proposalData.coverLetter);
