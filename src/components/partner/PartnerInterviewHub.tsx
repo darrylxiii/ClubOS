@@ -118,7 +118,7 @@ export const PartnerInterviewHub = ({ companyId }: PartnerInterviewHubProps) => 
       const enrichInterviews = async (interviews: any[]): Promise<PartnerInterview[]> => {
         return Promise.all(
           (interviews || []).map(async (interview) => {
-            let candidate = { id: '', full_name: 'Unknown', avatar_url: undefined, current_title: undefined };
+            let candidate = { id: '', full_name: 'Unknown', avatar_url: undefined as string | undefined, current_title: undefined as string | undefined };
             let job = { id: '', title: 'Unknown Position' };
             let scorecards: any[] = [];
 
@@ -128,7 +128,7 @@ export const PartnerInterviewHub = ({ companyId }: PartnerInterviewHubProps) => 
                 .select('id, full_name, avatar_url, current_title')
                 .eq('id', interview.candidate_id)
                 .single();
-              if (data) candidate = data;
+              if (data) candidate = { ...data, avatar_url: data.avatar_url ?? undefined, current_title: data.current_title ?? undefined };
             }
 
             if (interview.job_id) {

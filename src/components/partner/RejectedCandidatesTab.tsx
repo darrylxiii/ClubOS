@@ -19,16 +19,16 @@ interface RejectedCandidate {
   candidate_id: string;
   full_name: string;
   email: string;
-  avatar_url?: string;
-  rejection_reason?: string;
-  feedback_text?: string;
-  stage_name?: string;
+  avatar_url?: string | null;
+  rejection_reason?: string | null;
+  feedback_text?: string | null;
+  stage_name?: string | null;
   skills_mismatch?: string[];
   salary_mismatch?: boolean;
   location_mismatch?: boolean;
-  seniority_mismatch?: string;
-  reviewer_name?: string;
-  reviewer_avatar?: string;
+  seniority_mismatch?: string | null;
+  reviewer_name?: string | null;
+  reviewer_avatar?: string | null;
 }
 
 interface Props {

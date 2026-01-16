@@ -66,16 +66,16 @@ export function SourceInformationCard({ candidateId }: Props) {
           sourcedBy = {
             id: sourcerProfile.id,
             name: sourcerProfile.full_name || 'Unknown',
-            avatar: sourcerProfile.avatar_url
+            avatar: sourcerProfile.avatar_url ?? undefined
           };
         }
       }
 
       setSourceInfo({
         sourcedBy,
-        createdAt: profile.created_at,
-        sourceChannel: profile.source_channel,
-        sourceContext: application?.source_context
+        createdAt: profile.created_at ?? undefined,
+        sourceChannel: profile.source_channel ?? undefined,
+        sourceContext: application?.source_context ?? undefined
       });
     } catch (error) {
       console.error('Error loading source info:', error);

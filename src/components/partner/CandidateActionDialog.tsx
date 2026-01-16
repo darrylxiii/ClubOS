@@ -122,7 +122,7 @@ export const CandidateActionDialog = ({
             ? `Rejected - ${rejectionReason}${feedback.trim() ? `: ${feedback}` : ''}`
             : `Rejected: ${feedback}`;
 
-          const { error: commentError } = await supabase
+          const { error: insertCommentError } = await supabase
             .from('candidate_comments')
             .insert([{
               application_id: application.id,
@@ -131,10 +131,8 @@ export const CandidateActionDialog = ({
               is_internal: false,
             }]);
 
-          if (commentError) throw commentError;
+          if (insertCommentError) throw insertCommentError;
         }
-
-        if (commentError) throw commentError;
 
         toast.success(`${candidateName} has been rejected`, {
           description: "Feedback recorded and candidate notified",

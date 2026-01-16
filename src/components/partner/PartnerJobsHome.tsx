@@ -1216,7 +1216,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                 <MemoizedJobCard
                   key={job.id}
                   job={job}
-                  onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
+                  onNavigate={(id: string) => navigate(`/jobs/${id}/dashboard`)}
                   onPublish={handlePublishJob}
                   onUnpublish={handleUnpublishJob}
                   onClose={handleCloseJob}
