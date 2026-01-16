@@ -6,9 +6,17 @@ interface Stage {
   name: string;
   order: number;
   owner?: 'company' | 'quantum_club';
-  format?: 'online' | 'in_person' | 'hybrid';
+  format?: 'online' | 'in_person' | 'hybrid' | 'assessment';
   resources?: string[];
   description?: string;
+  duration_minutes?: number;
+  interviewers?: string[];
+  location?: string;
+  meeting_link?: string;
+  materials_required?: string[];
+  evaluation_criteria?: string;
+  save_as_template?: boolean;
+  template_name?: string;
 }
 
 export const usePipelineManagement = (jobId: string) => {

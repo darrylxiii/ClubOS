@@ -15,11 +15,11 @@ import { toast } from 'sonner';
 interface Skill {
   id: string;
   skill_name: string;
-  category: string;
-  proficiency_level: number;
-  years_experience: number;
-  endorsement_count: number;
-  ai_verified: boolean;
+  category: string | null;
+  proficiency_level: number | null;
+  years_experience: number | null;
+  endorsement_count: number | null;
+  ai_verified: boolean | null;
 }
 
 interface SkillsSectionProps {

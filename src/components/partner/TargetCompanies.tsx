@@ -106,7 +106,7 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
         }))
       }));
 
-      setCompanies(enrichedData || []);
+      setCompanies(enrichedData as TargetCompany[] || []);
     } catch (error) {
       console.error("Error loading target companies:", error);
       toast.error("Fout bij laden van target bedrijven");
@@ -161,7 +161,7 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
         if (company) {
           await supabase
             .from("target_companies")
-            .update({ votes: Math.max(0, company.votes - 1) })
+            .update({ votes: Math.max(0, (company.votes ?? 0) - 1) })
             .eq("id", targetCompanyId);
         }
       } else {
@@ -177,7 +177,7 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
         if (company) {
           await supabase
             .from("target_companies")
-            .update({ votes: company.votes + 1 })
+            .update({ votes: (company.votes ?? 0) + 1 })
             .eq("id", targetCompanyId);
         }
       }
@@ -284,7 +284,7 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
 
         <TabsContent value={activeView} className="mt-6">
           <TargetCompanyTable
-            companies={getFilteredCompanies()}
+            companies={getFilteredCompanies() as any}
             loading={loading}
             currentUserId={user?.id || ""}
             onEdit={handleEditCompany}

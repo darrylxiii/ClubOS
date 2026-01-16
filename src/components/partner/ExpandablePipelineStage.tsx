@@ -235,12 +235,12 @@ export function ExpandablePipelineStage({
                             title: booking.title || booking.guest_name || 'Interview',
                             scheduled_start: booking.scheduled_start,
                             scheduled_end: booking.scheduled_end,
-                            meeting_link: booking.meeting_link,
+                            meeting_link: booking.meeting_link ?? undefined,
                             status: booking.status,
-                            interview_type: booking.interview_type,
-                            interviewer_ids: booking.interviewer_ids,
-                            interview_prep_sent_at: booking.interview_prep_sent_at,
-                            feedback_submitted_at: booking.feedback_submitted_at,
+                            interview_type: booking.interview_type ?? undefined,
+                            interviewer_ids: booking.interviewer_ids ?? undefined,
+                            interview_prep_sent_at: booking.interview_prep_sent_at ?? undefined,
+                            feedback_submitted_at: booking.feedback_submitted_at ?? undefined,
                           }}
                           application={{
                             id: application.id,

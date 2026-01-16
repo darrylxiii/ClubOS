@@ -20,7 +20,7 @@ interface ShareLink {
   token: string;
   expires_at: string;
   created_at: string;
-  view_count: number;
+  view_count: number | null;
   last_viewed_at: string | null;
 }
 
