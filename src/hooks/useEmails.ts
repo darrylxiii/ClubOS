@@ -54,10 +54,10 @@ export interface Email {
 export interface EmailLabel {
   id: string;
   name: string;
-  color: string;
-  icon: string;
-  type: string;
-  sort_order: number;
+  color: string | null;
+  icon: string | null;
+  type: string | null;
+  sort_order: number | null;
 }
 
 export function useEmails(filter: string = "inbox") {
@@ -119,10 +119,10 @@ export function useEmails(filter: string = "inbox") {
         if (cursor) {
           // Avoid duplicates if any
           const existingIds = new Set(prev.map(e => e.id));
-          const uniqueNew = newEmails.filter(e => !existingIds.has(e.id));
+          const uniqueNew = newEmails.filter(e => !existingIds.has(e.id)) as Email[];
           return [...prev, ...uniqueNew];
         }
-        return newEmails;
+        return newEmails as Email[];
       });
 
     } catch (error: any) {

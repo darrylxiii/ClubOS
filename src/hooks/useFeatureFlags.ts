@@ -45,8 +45,12 @@ export function useFeatureFlags() {
   }, [fetchFlags]);
 
   const createFlag = async (flag: Partial<FeatureFlag>): Promise<boolean> => {
+    if (!flag.flag_key) {
+      toast.error('Flag key is required');
+      return false;
+    }
     try {
-      const { error } = await supabase.from('feature_flags').insert({
+      const { error } = await supabase.from('feature_flags').insert([{
         flag_key: flag.flag_key,
         name: flag.name,
         description: flag.description,
@@ -56,7 +60,7 @@ export function useFeatureFlags() {
         target_company_ids: flag.target_company_ids ?? [],
         target_user_ids: flag.target_user_ids ?? [],
         metadata: flag.metadata ?? {},
-      });
+      }]);
 
       if (error) throw error;
       toast.success('Feature flag created');

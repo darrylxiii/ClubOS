@@ -137,7 +137,7 @@ export function EmailSidebar({
                     <span className="flex-1 text-left truncate text-muted-foreground/90">{label.name}</span>
                     <div
                       className="w-2 h-2 rounded-full ring-1 ring-border"
-                      style={{ backgroundColor: label.color }}
+                      style={{ backgroundColor: label.color ?? undefined }}
                     />
                   </Button>
                 ))}

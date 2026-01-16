@@ -93,7 +93,7 @@ export function useEchoDetection({
       setIsAnalyzing(true);
       console.log('[EchoDetection] Initialized with', remoteStreams.size, 'remote streams');
     } catch (_e) {
-      console.error('[EchoDetection] Failed to initialize:', e);
+      console.error('[EchoDetection] Failed to initialize:', _e);
     }
   }, [localStream, remoteStreams, enabled]);
 

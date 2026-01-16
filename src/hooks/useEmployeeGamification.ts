@@ -68,7 +68,7 @@ export function useEmployeeGamification(userId?: string) {
         currentLevel,
         currentStreak: data?.current_streak || 0,
         longestStreak: data?.longest_streak || 0,
-        lastActivityDate: data?.last_activity_date,
+        lastActivityDate: data?.last_activity_date ?? null,
         xpToNextLevel,
         levelProgress,
       };

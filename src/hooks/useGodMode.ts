@@ -23,7 +23,7 @@ export function useGodMode() {
     try {
       const { error } = await supabase.rpc('suspend_user', {
         p_target_user_id: userId,
-        p_reason: reason || null,
+        p_reason: reason ?? undefined,
       });
       
       if (error) throw error;
@@ -62,7 +62,7 @@ export function useGodMode() {
     try {
       const { error } = await supabase.rpc('ban_user', {
         p_target_user_id: userId,
-        p_reason: reason || null,
+        p_reason: reason ?? undefined,
       });
       
       if (error) throw error;
@@ -101,7 +101,7 @@ export function useGodMode() {
     try {
       const { error } = await supabase.rpc('force_user_password_reset', {
         p_target_user_id: userId,
-        p_reason: reason || null,
+        p_reason: reason ?? undefined,
       });
       
       if (error) throw error;
