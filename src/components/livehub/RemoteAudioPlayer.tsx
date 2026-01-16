@@ -33,7 +33,7 @@ const getSharedAudioContext = async (): Promise<AudioContext> => {
       await sharedAudioContext.resume();
       console.log('[RemoteAudio] Resumed shared AudioContext');
     } catch (_e) {
-      console.warn('[RemoteAudio] Could not resume AudioContext:', e);
+      console.warn('[RemoteAudio] Could not resume AudioContext:', _e);
     }
   }
   
@@ -393,7 +393,7 @@ export function RemoteAudioPlayer({
           setIsPlaying(true);
           console.log(`[RemoteAudio] Started playing after user interaction for ${userId}`);
         } catch (_e) {
-          console.warn(`[RemoteAudio] Still cannot play after interaction for ${userId}:`, e);
+          console.warn(`[RemoteAudio] Still cannot play after interaction for ${userId}:`, _e);
         }
       }
       
@@ -430,7 +430,7 @@ export function RemoteAudioPlayer({
             await sharedAudioContext.resume();
             console.log(`[RemoteAudio] Resumed AudioContext on visibility change`);
           } catch (_e) {
-            console.warn(`[RemoteAudio] Could not resume AudioContext:`, e);
+            console.warn(`[RemoteAudio] Could not resume AudioContext:`, _e);
           }
         }
         

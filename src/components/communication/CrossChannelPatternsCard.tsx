@@ -110,9 +110,9 @@ export function CrossChannelPatternsCard({ entityType, entityId, compact = false
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {String((pattern.details as Record<string, unknown>)?.description ?? '') || pattern.pattern_type?.replace(/_/g, ' ')}
                       </p>
-                      {!compact && (pattern.details as Record<string, unknown>)?.recommended_action && (
+                      {!compact && (pattern.details as Record<string, unknown>)?.recommended_action != null && (
                         <p className="text-xs text-primary mt-1">
-                          → {String((pattern.details as Record<string, unknown>)?.recommended_action ?? '')}
+                          → {String((pattern.details as Record<string, unknown>)?.recommended_action)}
                         </p>
                       )}
                     </div>

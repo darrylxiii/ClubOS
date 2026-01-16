@@ -149,7 +149,7 @@ export const EnhancedInviteGate = () => {
 
       // Track engagement event
       if (data?.id) {
-        setGeneratedReferralCode(data.referral_code);
+        setGeneratedReferralCode(data.referral_code || '');
         await supabase.from("waitlist_engagement").insert([
           {
             waitlist_id: data.id,

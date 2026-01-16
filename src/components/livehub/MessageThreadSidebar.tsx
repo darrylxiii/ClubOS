@@ -16,7 +16,7 @@ interface Message {
   created_at: string;
   reply_to_id: string | null;
   user?: {
-    full_name: string;
+    full_name: string | null;
     avatar_url: string | null;
   };
 }
@@ -51,18 +51,24 @@ const MessageThreadSidebar = ({ parentMessage, channelId, onClose }: MessageThre
       .order('created_at', { ascending: true });
 
     if (!error && data) {
-      const userIds = [...new Set(data.map(m => m.user_id))];
+      const userIds = [...new Set(data.map(m => m.user_id).filter((id): id is string => id !== null))];
       const { data: userData } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url')
-        .in('id', userIds);
+        .in('id', userIds.length > 0 ? userIds : ['__none__']);
 
       const userMap = new Map(userData?.map(u => [u.id, u]) || []);
       
-      const messagesWithUsers = data.map(msg => ({
-        ...msg,
-        user: userMap.get(msg.user_id)
-      }));
+      const messagesWithUsers: Message[] = data
+        .filter(msg => msg.user_id !== null)
+        .map(msg => ({
+          id: msg.id,
+          user_id: msg.user_id!,
+          content: msg.content,
+          created_at: msg.created_at || new Date().toISOString(),
+          reply_to_id: msg.reply_to_id,
+          user: userMap.get(msg.user_id!)
+        }));
       
       setReplies(messagesWithUsers);
     }
@@ -86,10 +92,17 @@ const MessageThreadSidebar = ({ parentMessage, channelId, onClose }: MessageThre
             .eq('id', payload.new.user_id)
             .single();
 
-          setReplies(prev => [...prev, {
-            ...payload.new as Message,
-            user: userData || undefined
-          }]);
+          const newMsg = payload.new as any;
+          if (newMsg.user_id) {
+            setReplies(prev => [...prev, {
+              id: newMsg.id,
+              user_id: newMsg.user_id,
+              content: newMsg.content,
+              created_at: newMsg.created_at || new Date().toISOString(),
+              reply_to_id: newMsg.reply_to_id,
+              user: userData || undefined
+            }]);
+          }
         }
       )
       .subscribe();

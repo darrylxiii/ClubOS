@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface Member {
   id: string;
-  full_name: string;
+  full_name: string | null;
   avatar_url: string | null;
 }
 
@@ -71,10 +71,10 @@ export function MentionAutocomplete({ query, onSelect, position }: MentionAutoco
           <Avatar className="h-6 w-6">
             <AvatarImage src={member.avatar_url || undefined} />
             <AvatarFallback className="text-xs">
-              {member.full_name.substring(0, 2).toUpperCase()}
+              {(member.full_name || 'U').substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm">{member.full_name}</span>
+          <span className="text-sm">{member.full_name || 'Unknown'}</span>
         </button>
       ))}
     </div>

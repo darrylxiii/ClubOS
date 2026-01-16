@@ -67,8 +67,8 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
             file_name: 'Job Description',
             file_url: data.job_description_url,
             file_type: 'application/pdf',
-            uploaded_at: jdUploadedAt,
-            uploaded_by: data.jd_uploaded_by || data.created_by,
+            uploaded_at: jdUploadedAt ?? undefined,
+            uploaded_by: data.jd_uploaded_by ?? data.created_by ?? undefined,
             uploader_name: jdUploaderName
           });
         }
