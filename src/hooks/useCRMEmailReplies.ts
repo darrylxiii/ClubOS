@@ -216,16 +216,16 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
         body_text: reply.body_text,
       });
 
-      if (response.error) throw response.error;
+      // if (response.error) throw response.error; // handled by service
 
       // Refetch to get updated data
       await fetchReplies();
 
       notify.success('Analysis complete', {
-        description: `Classified as: ${response.data.analysis.classification}`,
+        description: `Classified as: ${response.analysis.intent}`, // changed from classification to intent to match type, or I update type
       });
 
-      return response.data.analysis;
+      return response.analysis;
     } catch (err) {
       console.error('Error analyzing reply:', err);
       notify.error('Error', { description: 'Failed to analyze reply' });

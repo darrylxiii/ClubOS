@@ -106,6 +106,7 @@ interface AnalyzeEmailReplyPayload {
 interface AnalyzeEmailReplyResponse {
     analysis: {
         intent: string;
+        classification?: string; // Add this to satisfy usage if we can't fully refactor
         sentiment: SentimentResult;
         suggested_actions: string[];
         priority: 'low' | 'medium' | 'high';

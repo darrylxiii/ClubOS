@@ -50,7 +50,16 @@ export function LiveInterviewAnalysis({ meetingId, transcript }: LiveInterviewAn
             });
 
             if (data?.scores) {
-                setResult(data.scores);
+                setResult({
+                    communication_clarity: data.scores.communication_clarity || 0,
+                    technical_depth: data.scores.technical_depth || 0,
+                    culture_fit: data.scores.culture_fit || 0,
+                    overall_score: data.scores.overall_impression || 0,
+                    key_insights: data.suggestions?.[0] || "Analysis in progress...",
+                    red_flags: data.alerts || [],
+                    green_flags: data.suggestions || [],
+                    follow_up_suggestions: data.suggestions || []
+                });
                 toast.success("Analysis complete - AI insights generated successfully.");
             }
         } catch (error: any) {

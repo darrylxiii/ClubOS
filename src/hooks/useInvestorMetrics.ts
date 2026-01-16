@@ -177,7 +177,7 @@ export function useInvestorMetrics() {
       }
 
       // Fetch companies for customer count  
-      // @ts-expect-error - Type instantiation issue with deep Supabase types
+      // Fetch companies for customer count
       const companiesRes = await supabase
         .from('companies')
         .select('id')

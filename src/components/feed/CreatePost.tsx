@@ -483,7 +483,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       // Generate AI summary in background (don't wait for it)
       if (content.trim().length > 50 && newPost) {
         aiService.generatePostSummary({
-          postId: newPost.id,
+          post_id: newPost.id,
           content: content.trim()
         }).catch(err => console.error('Error generating summary:', err));
       }

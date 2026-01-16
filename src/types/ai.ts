@@ -84,6 +84,8 @@ export interface SearchParams {
 }
 
 export interface SearchResult {
+  success?: boolean;
+  error?: string;
   id: string;
   entity_type: SearchEntityType;
   content: string;
@@ -372,6 +374,8 @@ export interface ExecutiveBriefingParams {
 }
 
 export interface ExecutiveBriefing {
+  success?: boolean;
+  error?: string;
   summary: string;
   key_strengths: string[];
   potential_concerns: string[];
@@ -478,6 +482,8 @@ export interface GenerateDossierParams {
 }
 
 export interface CandidateDossier {
+  success?: boolean;
+  error?: string;
   candidate_summary: string;
   experience_overview: string;
   skills_assessment: Record<string, number>;
@@ -542,6 +548,8 @@ export interface OfferRecommendationParams {
 }
 
 export interface OfferRecommendation {
+  success?: boolean;
+  error?: string;
   recommended_salary: {
     base: number;
     bonus?: number;
@@ -563,6 +571,8 @@ export interface CampaignAutopilotParams {
 }
 
 export interface CampaignAutopilotResponse {
+  success?: boolean;
+  error?: string;
   campaign_name: string;
   email_sequence: Array<{
     subject: string;
@@ -581,6 +591,8 @@ export interface ABTestVariantsParams {
 }
 
 export interface ABTestVariantsResponse {
+  success?: boolean;
+  error?: string;
   variants: Array<{
     variant_id: string;
     content: string;
@@ -602,6 +614,8 @@ export interface AgentTaskParams {
 }
 
 export interface AgentTaskResponse {
+  success?: boolean;
+  error?: string;
   task_id: string;
   assigned_agent?: string;
   estimated_completion: string;
@@ -645,6 +659,8 @@ export interface SentinelAlert {
 }
 
 export interface SentinelResponse {
+  success?: boolean;
+  error?: string;
   alerts: SentinelAlert[];
   sentiment_trend: 'improving' | 'stable' | 'declining';
   engagement_score: number;
@@ -659,6 +675,8 @@ export interface VoiceSessionParams {
 }
 
 export interface VoiceSessionResponse {
+  success?: boolean;
+  error?: string;
   session_id: string;
   websocket_url: string;
   initial_prompt?: string;
@@ -683,6 +701,8 @@ export interface QuinContext {
 }
 
 export interface QuinResponse {
+  success?: boolean;
+  error?: string;
   response: string;
   actions?: Array<{
     type: string;
