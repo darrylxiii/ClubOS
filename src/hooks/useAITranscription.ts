@@ -113,7 +113,7 @@ export function useAITranscription(): UseAITranscriptionReturn {
         try {
           recognition.start();
         } catch (_e) {
-          console.error('Failed to restart recognition:', e);
+          console.error('Failed to restart recognition:', _e);
         }
       }
     };

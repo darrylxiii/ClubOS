@@ -181,7 +181,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
         } catch (err) {
           lastError = err;
           retries--;
-          logger.warn(`[RoleContext] Failed to save preference (${3 - retries}/3):`, err as Error);
+          logger.warn(`[RoleContext] Failed to save preference (${3 - retries}/3):`, { error: String(err) });
           
           if (retries > 0) {
             // Wait before retrying (exponential backoff: 500ms, 1s, 2s)
@@ -210,13 +210,13 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
             }
           });
         } catch (auditError) {
-          logger.warn('[RoleContext] Failed to log audit entry:', auditError);
+          logger.warn('[RoleContext] Failed to log audit entry:', { error: String(auditError) });
         }
       }
 
     } catch (_error) {
       // Revert local state on critical errors
-      logger.error('[RoleContext] Critical error switching role, reverting:', _error as Error);
+      logger.error('[RoleContext] Critical error switching role, reverting:', { error: String(_error) });
       setCurrentRole(previousRole);
       throw _error;
     }

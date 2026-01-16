@@ -37,7 +37,7 @@ const unlockAllAudio = async () => {
         await ctx.resume();
         logger.debug('Resumed AudioContext', { componentName: 'AudioUnlock' });
       } catch (_e) {
-        logger.warn('Failed to resume AudioContext', { componentName: 'AudioUnlock', error: e });
+        logger.warn('Failed to resume AudioContext', { componentName: 'AudioUnlock', error: _e });
       }
     }
   }
@@ -50,7 +50,7 @@ const unlockAllAudio = async () => {
         logger.debug('Started playing audio element', { componentName: 'AudioUnlock' });
       }
     } catch (_e) {
-      logger.warn('Failed to play audio', { componentName: 'AudioUnlock', error: e });
+      logger.warn('Failed to play audio', { componentName: 'AudioUnlock', error: _e });
     }
   }
   

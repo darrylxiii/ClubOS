@@ -39,14 +39,14 @@ export function useCreateBrandTerm() {
       
       const { data, error } = await supabase
         .from('brand_terms')
-        .insert({
-          term: term.term,
+        .insert([{
+          term: term.term ?? '',
           description: term.description,
           never_translate: term.never_translate ?? true,
           translations: term.translations ?? {},
           priority: term.priority ?? 0,
           created_by: user?.id,
-        })
+        }])
         .select()
         .single();
       

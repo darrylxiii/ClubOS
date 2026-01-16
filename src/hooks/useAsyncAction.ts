@@ -131,13 +131,13 @@ export function useAsyncAction() {
 export function useRetryableAction<T>(
   action: () => Promise<T>,
   options: Omit<AsyncActionOptions<T>, 'onRetry'> = {}
-) {
+): { run: () => Promise<T | undefined>; isLoading: boolean; error: Error | null; reset: () => void } {
   const { execute, isLoading, error, reset } = useAsyncAction();
   
-  const run = useCallback(() => {
+  const run = useCallback((): Promise<T | undefined> => {
     return execute(action, {
       ...options,
-      onRetry: () => run(),
+      onRetry: () => { run(); },
     });
   }, [execute, action, options]);
 

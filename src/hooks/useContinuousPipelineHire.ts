@@ -35,8 +35,9 @@ export function useContinuousPipelineHire() {
       if (jobError) throw jobError;
       
       const hireNumber = (job.hired_count || 0) + 1;
+      const createdAt = job.created_at ?? new Date().toISOString();
       const daysToFill = Math.floor(
-        (Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)
+        (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
       );
 
       // Insert continuous hire record (trigger will increment hired_count)

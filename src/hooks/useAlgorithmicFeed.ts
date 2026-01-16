@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface Post {
   id: string;
-  user_id: string;
+  user_id: string | null;
   company_id: string | null;
   content: string;
   media_urls: any;
@@ -13,7 +13,7 @@ interface Post {
   poll_question: string | null;
   poll_options: any;
   ai_summary: string | null;
-  is_public: boolean;
+  is_public: boolean | null;
   profiles?: any;
   companies?: any;
   post_likes?: any[];

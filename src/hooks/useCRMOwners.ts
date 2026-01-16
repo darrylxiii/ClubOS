@@ -3,8 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface Owner {
   id: string;
-  full_name: string;
-  avatar_url?: string;
+  full_name: string | null;
+  avatar_url: string | null;
 }
 
 export function useCRMOwners() {

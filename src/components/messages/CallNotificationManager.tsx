@@ -27,7 +27,7 @@ export function CallNotificationManager({
         const callerName = invitation.caller?.full_name || invitation.caller?.email || 'Someone';
         new Notification(`Incoming ${invitation.call_type} call`, {
           body: `${callerName} is calling you`,
-          icon: invitation.caller?.avatar_url,
+          icon: invitation.caller?.avatar_url ?? undefined,
           tag: invitation.id
         });
       }

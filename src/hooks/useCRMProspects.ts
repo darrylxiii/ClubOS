@@ -132,6 +132,9 @@ export function useCRMProspects(options: UseProspectsOptions = {}) {
           custom_fields: {},
           stakeholder_id: null,
           contact_id: null,
+          health_score: 0,
+          health_trend: 'stable',
+          last_enriched_at: null,
         };
       });
 

@@ -97,7 +97,7 @@ export function TemplateGallery({ onSelectTemplate, onPreview }: TemplateGallery
             const config = getCategoryConfig(category);
             const Icon = config.icon;
             return (
-              <TabsTrigger key={category} value={category} className="gap-2">
+              <TabsTrigger key={category} value={category ?? 'custom'} className="gap-2">
                 <Icon className="h-4 w-4" />
                 {config.label}
               </TabsTrigger>

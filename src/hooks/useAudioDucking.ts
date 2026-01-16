@@ -85,7 +85,7 @@ export function useAudioDucking({
 
       console.log('[AudioDucking] Registered audio source:', id, type);
     } catch (_e) {
-      console.error('[AudioDucking] Failed to register source:', id, e);
+      console.error('[AudioDucking] Failed to register source:', id, _e);
     }
   }, [enabled, getAudioContext]);
 
@@ -181,7 +181,7 @@ export function useAudioDucking({
       // Set release timeout
       if (newActiveSpeaker) {
         duckingTimeoutRef.current = setTimeout(() => {
-          if (getAudioLevel(analysersRef.current.get(newActiveSpeaker)!) < threshold) {
+          if (newActiveSpeaker && analysersRef.current.get(newActiveSpeaker) && getAudioLevel(analysersRef.current.get(newActiveSpeaker)!) < threshold) {
             setActiveSpeaker(null);
             setIsDucking(false);
             applyDucking(null);
