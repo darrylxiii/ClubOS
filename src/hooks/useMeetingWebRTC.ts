@@ -1111,7 +1111,7 @@ export function useMeetingWebRTC({
               console.log('[WebRTC] 🧊 ICE-CANDIDATE signal received from:', signal.sender_id);
               await handleIceCandidate(signal.sender_id, signal.signal_data);
               break;
-            case 'leave':
+            case 'leave': {
               console.log('[WebRTC] 👋 LEAVE signal received from:', signal.sender_id);
 
               // Mark as left to prevent reconnection
@@ -1131,6 +1131,7 @@ export function useMeetingWebRTC({
               onParticipantLeft(signal.sender_id);
               toast.info(`${signal.sender_id.slice(0, 8)} left the meeting`, { duration: 2000 });
               break;
+            }
             case 'screen-share-start':
               console.log('[WebRTC] 🖥️ SCREEN-SHARE-START signal received from:', signal.sender_id);
               // Remote user started screen sharing - their video track will be replaced automatically

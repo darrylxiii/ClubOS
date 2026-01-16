@@ -239,10 +239,11 @@ function evaluateTokens(tokens: Token[], context: EvaluationContext): FormulaVal
         if (token.value === 'true') return true;
         if (token.value === 'false') return false;
         return token.value;
-      case 'COLUMN_REF':
+      case 'COLUMN_REF': {
         const colValue = context.rowData[token.value];
         if (colValue === undefined || colValue === null) return null;
         return colValue as FormulaValue;
+      }
       default:
         return null;
     }
@@ -312,10 +313,11 @@ function evaluateTokens(tokens: Token[], context: EvaluationContext): FormulaVal
         case '*':
           left = (Number(left) || 0) * (Number(right) || 0);
           break;
-        case '/':
+        case '/': {
           const divisor = Number(right) || 0;
           left = divisor !== 0 ? (Number(left) || 0) / divisor : 0;
           break;
+        }
         case '%':
           left = (Number(left) || 0) % (Number(right) || 1);
           break;

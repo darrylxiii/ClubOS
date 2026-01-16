@@ -89,7 +89,7 @@ export function CalendarIntegrationSettings() {
             calendar_connected_at: new Date().toISOString(),
             calendar_sync_enabled: true,
           } as any)
-          .eq('id', user?.id!);
+          .eq('id', user?.id ?? '');
 
         if (error) throw error;
 
@@ -112,7 +112,7 @@ export function CalendarIntegrationSettings() {
             calendar_connected_at: new Date().toISOString(),
             calendar_sync_enabled: true,
           } as any)
-          .eq('id', user?.id!);
+          .eq('id', user?.id ?? '');
 
         if (error) throw error;
 
@@ -144,7 +144,7 @@ export function CalendarIntegrationSettings() {
           calendar_connected_at: null,
           calendar_sync_enabled: false,
         } as any)
-        .eq('id', user?.id!);
+        .eq('id', user?.id ?? '');
 
       if (error) throw error;
 
@@ -164,7 +164,7 @@ export function CalendarIntegrationSettings() {
       const { error } = await supabase
         .from('profiles')
         .update({ calendar_sync_enabled: enabled } as any)
-        .eq('id', user?.id!);
+        .eq('id', user?.id ?? '');
 
       if (error) throw error;
 

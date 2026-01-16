@@ -59,7 +59,9 @@ export function NDASigner({ open, onOpenChange, contractId, counterpartyName, on
         const ipResponse = await fetch("https://api.ipify.org?format=json");
         const ipData = await ipResponse.json();
         ipAddress = ipData.ip;
-      } catch {}
+      } catch {
+        // Ignore IP fetch errors - it's optional
+      }
 
       const { error } = await supabase.from("signed_documents").insert({
         contract_id: contractId,

@@ -218,7 +218,7 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
         case 'article':
         case 'section':
           // Process children
-          node.children && Array.from(node.children).forEach(processNode);
+          if (node.children) Array.from(node.children).forEach(processNode);
           break;
       }
     };

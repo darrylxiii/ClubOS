@@ -165,7 +165,7 @@ export function useAITranscription(): UseAITranscriptionReturn {
           })
           .join('\n');
 
-      case 'vtt':
+      case 'vtt': {
         let vtt = 'WEBVTT\n\n';
         vtt += transcripts
           .map((t, i) => {
@@ -175,6 +175,7 @@ export function useAITranscription(): UseAITranscriptionReturn {
           })
           .join('\n');
         return vtt;
+      }
 
       case 'json':
         return JSON.stringify({ transcripts, exportedAt: new Date().toISOString() }, null, 2);

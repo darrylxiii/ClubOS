@@ -207,7 +207,7 @@ export function useE2EEncryption(meetingId: string) {
         if (!receiver.track) continue;
         
         try {
-          // @ts-expect-error
+          // @ts-expect-error createEncodedStreams is experimental WebRTC API
           const { readable, writable } = receiver.createEncodedStreams();
           
           const transformStream = new TransformStream({

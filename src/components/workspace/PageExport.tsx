@@ -38,20 +38,22 @@ export function PageExport({ page }: PageExportProps) {
 
         // Format based on block type
         switch (type) {
-          case 'heading':
+          case 'heading': {
             const level = block.props?.level || 1;
             text = '#'.repeat(level) + ' ' + textContent;
             break;
+          }
           case 'bulletListItem':
             text = '• ' + textContent;
             break;
           case 'numberedListItem':
             text = '1. ' + textContent;
             break;
-          case 'checkListItem':
+          case 'checkListItem': {
             const checked = block.props?.checked ? '☑' : '☐';
             text = checked + ' ' + textContent;
             break;
+          }
           case 'codeBlock':
             text = '```\n' + textContent + '\n```';
             break;
@@ -105,24 +107,27 @@ export function PageExport({ page }: PageExportProps) {
           .join('');
 
         switch (type) {
-          case 'heading':
+          case 'heading': {
             const level = block.props?.level || 1;
             md = '#'.repeat(level) + ' ' + inlineContent;
             break;
+          }
           case 'bulletListItem':
             md = '- ' + inlineContent;
             break;
           case 'numberedListItem':
             md = '1. ' + inlineContent;
             break;
-          case 'checkListItem':
+          case 'checkListItem': {
             const checked = block.props?.checked ? 'x' : ' ';
             md = `- [${checked}] ` + inlineContent;
             break;
-          case 'codeBlock':
+          }
+          case 'codeBlock': {
             const lang = block.props?.language || '';
             md = '```' + lang + '\n' + inlineContent + '\n```';
             break;
+          }
           case 'image':
             md = `![${block.props?.caption || 'Image'}](${block.props?.url || ''})`;
             break;

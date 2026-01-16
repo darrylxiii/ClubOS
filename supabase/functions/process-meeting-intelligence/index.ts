@@ -62,7 +62,7 @@ serve(async (req) => {
             });
             break;
 
-          case 'transcript_analysis':
+          case 'transcript_analysis': {
             console.log(`[Process Meeting Intelligence] Generating embeddings for meeting ${task.meeting_id}`);
 
             // 1. Fetch recording data to embed
@@ -140,6 +140,7 @@ Transcript: ${transcriptSnippet}`.trim();
               })
               .eq('id', task.id);
             break;
+          }
 
           default:
             throw new Error(`Unknown processing type: ${task.processing_type}`);

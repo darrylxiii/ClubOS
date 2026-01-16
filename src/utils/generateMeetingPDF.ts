@@ -64,7 +64,7 @@ export const generateMeetingPDF = (data: MeetingData) => {
             theme: 'grid'
         });
 
-        // @ts-expect-error
+        // @ts-expect-error jspdf-autotable adds lastAutoTable property
         yPos = doc.lastAutoTable.finalY + 15;
     }
 
@@ -87,7 +87,7 @@ export const generateMeetingPDF = (data: MeetingData) => {
             theme: 'striped'
         });
 
-        // @ts-expect-error
+        // @ts-expect-error jspdf-autotable adds lastAutoTable property
         yPos = doc.lastAutoTable.finalY + 15;
     }
 

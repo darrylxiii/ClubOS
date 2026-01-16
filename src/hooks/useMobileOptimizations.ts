@@ -64,7 +64,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
       try {
         // @ts-expect-error - Battery API not in all TypeScript libs
         if ('getBattery' in navigator) {
-          // @ts-expect-error
+          // @ts-expect-error Battery API not in all browsers
           const battery = await navigator.getBattery();
           
           const updateBattery = () => {

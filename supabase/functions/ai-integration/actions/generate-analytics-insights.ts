@@ -5,7 +5,7 @@ interface ActionContext {
 }
 
 export async function handleGenerateAnalyticsInsights({ supabase, payload, userId }: ActionContext) {
-    const { } = payload; // payload might contain userId override for admins but we stick to auth context for safety mostly
+    // payload might contain userId override for admins but we stick to auth context for safety mostly
     // Original allowed userId passed in body. We'll support both but prefer context.
     const targetUserId = payload.userId || userId;
     if (!targetUserId) throw new Error('UserId required');

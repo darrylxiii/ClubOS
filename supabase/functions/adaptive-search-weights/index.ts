@@ -73,7 +73,7 @@ serve(async (req) => {
 
 async function getWeights(supabase: any, userId: string) {
   // Get user's personalized weights or create defaults
-  let { data: prefs, error } = await supabase
+  const { data: prefs, error } = await supabase
     .from('user_search_preferences')
     .select('*')
     .eq('user_id', userId)

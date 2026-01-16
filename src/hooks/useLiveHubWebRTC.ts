@@ -233,12 +233,13 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
           console.log('[WebRTC] Signal received:', signal.signal_type, 'from:', signal.from_user_id);
 
           switch (signal.signal_type) {
-            case 'join':
+            case 'join': {
               // DETERMINISTIC: Higher user ID is always the initiator
               const shouldInitiate = user!.id > signal.from_user_id;
               console.log('[WebRTC] Join from', signal.from_user_id, '- I initiate:', shouldInitiate);
               await createPeerConnection(signal.from_user_id, shouldInitiate);
               break;
+            }
 
             case 'offer':
               await handleOffer(signal.from_user_id, signal.signal_data);

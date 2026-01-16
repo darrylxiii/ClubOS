@@ -293,7 +293,7 @@ export const handleGenerateUserEmbeddings = async ({ supabase }: { supabase: any
     }
 
     // Start background processing
-    // @ts-ignore
+    // @ts-expect-error EdgeRuntime is a Deno Deploy global
     EdgeRuntime.waitUntil(processUserEmbeddings(supabase, lovableApiKey));
 
     return {

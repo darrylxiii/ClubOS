@@ -276,7 +276,7 @@ export const handleGenerateAllTranslations = async ({ supabase, payload, token, 
     console.log(`[Generate All] Created job ${currentJobId}, starting background processing`);
 
     // Start background processing using EdgeRuntime.waitUntil
-    // @ts-ignore - EdgeRuntime is a Deno Deploy global
+    // @ts-expect-error EdgeRuntime is a Deno Deploy global
     EdgeRuntime.waitUntil(
         processTranslations(supabase, `Bearer ${token}`, userId, namespacesToProcess, currentJobId!)
     );

@@ -143,11 +143,12 @@ export function useCRMReportData(
         case 'month':
           key = new Date(item.created_at).toISOString().slice(0, 7);
           break;
-        case 'week':
+        case 'week': {
           const date = new Date(item.created_at);
           const weekStart = new Date(date.setDate(date.getDate() - date.getDay()));
           key = weekStart.toISOString().slice(0, 10);
           break;
+        }
       }
 
       if (!buckets[key]) buckets[key] = { values: [], count: 0 };
@@ -215,10 +216,11 @@ function formatGroupLabel(key: string, groupBy: ReportGroupBy): string {
   switch (groupBy) {
     case 'stage':
       return key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-    case 'month':
+    case 'month': {
       const [year, month] = key.split('-');
       const date = new Date(Number(year), Number(month) - 1);
       return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    }
     case 'week':
       return `Week of ${new Date(key).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
     default:

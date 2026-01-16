@@ -787,7 +787,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
         const screenTrack = screenStream.getVideoTracks()[0];
         if (screenTrack) {
           try {
-            // @ts-ignore - contentHint is not in TypeScript types yet
+            // @ts-expect-error contentHint is not in TypeScript types yet
             screenTrack.contentHint = 'detail'; // Default to detail for crisp text
             console.log('[Screen] Applied content hint: detail');
           } catch (_e) {
