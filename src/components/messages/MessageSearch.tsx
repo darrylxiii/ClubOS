@@ -84,7 +84,7 @@ export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
       const { data: userConvos } = await supabase
         .from('conversation_participants')
         .select('conversation_id')
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id ?? '');
 
       if (userConvos) {
         query = query.in('conversation_id', userConvos.map(c => c.conversation_id));
@@ -97,7 +97,7 @@ export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
       if (error) throw error;
       setResults(data || []);
     } catch (_error) {
-      console.error('Search error:', error);
+      console.error('Search error:', _error);
     } finally {
       setLoading(false);
     }

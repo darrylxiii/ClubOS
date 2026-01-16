@@ -79,7 +79,7 @@ export function MessageReactions({ messageId, reactions, onReactionsChange }: Me
 
       onReactionsChange();
     } catch (_error) {
-      console.error('Error toggling reaction:', error);
+      console.error('Error toggling reaction:', _error);
       toast.error('Failed to react to message');
     }
   };

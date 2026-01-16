@@ -109,7 +109,7 @@ export function OfferLetterGenerator({
 
       setDialogOpen(false);
     } catch (_error) {
-      console.error('Error generating letter:', error);
+      console.error('Error generating letter:', _error);
     }
   };
 

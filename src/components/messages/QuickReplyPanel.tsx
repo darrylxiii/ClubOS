@@ -33,7 +33,7 @@ export function QuickReplyPanel({ lastMessage, onSelectReply }: QuickReplyPanelP
         setSuggestions(data.suggestions);
       }
     } catch (_error) {
-      console.error('Error generating suggestions:', error);
+      console.error('Error generating suggestions:', _error);
       // Fallback to generic suggestions
       setSuggestions([
         'Thanks for letting me know!',

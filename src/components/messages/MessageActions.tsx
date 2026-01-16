@@ -53,7 +53,7 @@ export function MessageActions({
       onDelete();
       setDeleteOpen(false);
     } catch (_error) {
-      console.error('Error deleting message:', error);
+      console.error('Error deleting message:', _error);
       toast.error('Failed to delete message');
     }
   };
@@ -93,7 +93,7 @@ export function MessageActions({
 
       // We could trigger a refresh via a callback if needed
     } catch (_error) {
-      console.error('Error translating:', error);
+      console.error('Error translating:', _error);
       toast.error('Failed to translate message');
     } finally {
       setTranslating(false);

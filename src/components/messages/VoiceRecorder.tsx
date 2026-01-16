@@ -139,7 +139,7 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
       chunksRef.current = [];
       toast.success("Voice note sent");
     } catch (_error) {
-      console.error("Error uploading voice note:", error);
+      console.error("Error uploading voice note:", _error);
       toast.error("Failed to send voice note");
     } finally {
       setUploading(false);

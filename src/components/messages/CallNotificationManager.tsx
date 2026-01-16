@@ -94,7 +94,7 @@ export function CallNotificationManager({
     <IncomingCallBanner
       key={activeInvitation.id}
       callerName={callerName}
-      callerAvatar={callerAvatar}
+      callerAvatar={callerAvatar ?? undefined}
       callType={activeInvitation.call_type as 'audio' | 'video'}
       createdAt={activeInvitation.created_at}
       onAccept={() => handleAccept(activeInvitation.id, activeInvitation.call_type)}
