@@ -98,7 +98,7 @@ export function PartnerFeeConfig() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {partners?.map((partner) => (
+            {partners?.map((partner: any) => (
               <TableRow key={partner.id}>
                 <TableCell className="font-medium">
                   {partner.company?.name || "Unknown Company"}

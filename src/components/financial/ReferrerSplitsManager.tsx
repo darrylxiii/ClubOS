@@ -177,7 +177,7 @@ export function ReferrerSplitsManager() {
                       <SelectValue placeholder="Select company" />
                     </SelectTrigger>
                     <SelectContent>
-                      {companies?.map((company) => (
+                      {companies?.map((company: any) => (
                         <SelectItem key={company.id} value={company.id}>
                           {company.name}
                         </SelectItem>
@@ -192,7 +192,7 @@ export function ReferrerSplitsManager() {
                       <SelectValue placeholder="Select referrer" />
                     </SelectTrigger>
                     <SelectContent>
-                      {referrers?.map((referrer) => (
+                      {referrers?.map((referrer: any) => (
                         <SelectItem key={referrer.id} value={referrer.id}>
                           {referrer.full_name || referrer.email}
                         </SelectItem>
@@ -251,7 +251,7 @@ export function ReferrerSplitsManager() {
                 </TableCell>
               </TableRow>
             ) : (
-              splits?.map((split) => (
+              splits?.map((split: any) => (
                 <TableRow key={split.id}>
                   <TableCell className="font-medium">
                     {split.company?.name}

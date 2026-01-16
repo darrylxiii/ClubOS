@@ -10,7 +10,7 @@ import { CreatePoll } from "./PollPost";
 import { notify } from "@/lib/notify";
 import { MediaEditor } from "./MediaEditor";
 import { VideoEditor } from "./VideoEditor";
-import { AudienceSelection } from "@/components/audience/AudiencePickerButton";
+import type { AudienceSelection } from "@/components/audience/types";
 import { AudiencePickerModal } from "@/components/audience/AudiencePickerModal";
 import { ContentOptionsDialog } from "./ContentOptionsDialog";
 import { RichTextEditor } from "./RichTextEditor";

@@ -91,9 +91,9 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
         },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            setLiveCommentsCount(prev => prev + 1);
+            setLiveCommentsCount((prev: number) => prev + 1);
           } else if (payload.eventType === 'DELETE') {
-            setLiveCommentsCount(prev => Math.max(0, prev - 1));
+            setLiveCommentsCount((prev: number) => Math.max(0, prev - 1));
           }
         }
       )

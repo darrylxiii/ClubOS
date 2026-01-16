@@ -15,7 +15,7 @@ interface FollowUp {
   metadata: any;
   emails: {
     subject: string;
-    from_name: string;
+    from_name: string | null;
     from_email: string;
   };
 }
@@ -23,8 +23,8 @@ interface FollowUp {
 interface Meeting {
   id: string;
   email_id: string;
-  meeting_title: string;
-  meeting_date: string;
+  meeting_title: string | null;
+  meeting_date: string | null;
   status: string;
   emails: {
     subject: string;
@@ -177,9 +177,9 @@ export function NeedsAttentionWidget() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm font-medium line-clamp-2">{meeting.meeting_title || meeting.emails.subject}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-                {meeting.emails.from_name} · {formatDistanceToNow(new Date(meeting.meeting_date), { addSuffix: true })}
-              </p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
+                  {meeting.emails.from_name} · {meeting.meeting_date ? formatDistanceToNow(new Date(meeting.meeting_date), { addSuffix: true }) : 'No date'}
+                </p>
             </div>
           </div>
         ))}
