@@ -1066,14 +1066,31 @@ export function MeetingVideoCallInterface({
         <div className="absolute inset-0 bg-gradient-to-br from-gray-950/50 via-transparent to-black/50 pointer-events-none" />
 
         {useP2P ? (
-          /* Pure WebRTC P2P Grid */
+          /* Pure WebRTC P2P Grid - Convert streams to Participant format */
           <VideoGrid
-            localStream={localStream}
-            remoteStreams={remoteStreams}
-            participantName={participantName}
-            layout={layout}
-            isScreenSharing={isScreenSharing}
-            screenStream={screenStream}
+            participants={Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
+              id,
+              display_name: name,
+              role: 'participant',
+              is_muted: false,
+              is_video_off: !stream.getVideoTracks().some(t => t.enabled),
+              is_screen_sharing: false,
+              is_hand_raised: false,
+              is_speaking: false,
+              stream
+            }))}
+            localParticipant={localStream ? {
+              id: participantId,
+              display_name: participantName,
+              role: meeting.host_id === participantId ? 'host' : 'participant',
+              is_muted: !isAudioEnabled,
+              is_video_off: !isVideoEnabled,
+              is_screen_sharing: isScreenSharing,
+              is_hand_raised: isHandRaised,
+              is_speaking: false,
+              stream: localStream
+            } : undefined}
+            layout={layout === 'spotlight' ? 'spotlight' : 'grid'}
           />
         ) : (
           /* LiveKit Cloud Wrapper */
@@ -1231,8 +1248,8 @@ export function MeetingVideoCallInterface({
             onToggleAudio={toggleAudio}
             onToggleVideo={toggleVideo}
             onToggleScreenShare={toggleScreenShare}
-            onToggleRecording={toggleRecording}
-            onToggleHandRaise={toggleHandRaise}
+            onToggleRecording={handleToggleRecording}
+            onToggleHandRaise={handleToggleHandRaise}
             onEndCall={cleanup}
             onOpenChat={handleOpenChat}
             onOpenParticipants={handleOpenParticipants}

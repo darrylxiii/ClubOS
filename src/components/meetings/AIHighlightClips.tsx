@@ -15,14 +15,14 @@ import { cn } from '@/lib/utils';
 
 interface AIClip {
   id: string;
-  title: string;
-  description: string;
+  title: string | null;
+  description: string | null;
   start_ms: number;
   end_ms: number;
-  highlight_type: string;
-  ai_reasoning: string;
-  confidence_score: number;
-  transcript_excerpt?: string;
+  highlight_type: string | null;
+  ai_reasoning: string | null;
+  confidence_score: number | null;
+  transcript_excerpt?: string | null;
 }
 
 interface AIHighlightClipsProps {

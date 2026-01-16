@@ -39,6 +39,12 @@ interface Attachment {
   size?: number;
 }
 
+interface Member {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
 interface Message {
   id: string;
   user_id: string;
@@ -617,7 +623,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
           {showMentionAutocomplete && (
             <MentionAutocomplete
               query={mentionQuery}
-              onSelect={handleMentionSelect}
+              onSelect={(member: Member) => handleMentionSelect({ full_name: member.full_name || 'Unknown' })}
               position={mentionPosition}
             />
           )}

@@ -39,8 +39,8 @@ interface Channel {
   id: string;
   name: string;
   channel_type: string;
-  auto_record: boolean;
-  auto_transcribe: boolean;
+  auto_record: boolean | null;
+  auto_transcribe: boolean | null;
 }
 
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉', '👏', '🔥'];
@@ -108,7 +108,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     channelName: channel?.name || 'Live Hub',
     localStream,
     remoteStreams,
-    autoRecord: channel?.auto_record ?? false, // Changed from true to false - no auto-start
+    autoRecord: Boolean(channel?.auto_record), // Changed from true to false - no auto-start
     enabled: isConnected
   });
 
