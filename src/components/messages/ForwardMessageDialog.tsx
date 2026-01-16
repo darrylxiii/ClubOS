@@ -44,7 +44,7 @@ export function ForwardMessageDialog({ open, onOpenChange, message }: ForwardMes
           metadata
         )
       `)
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.id ?? '')
       .neq('conversation.id', message.conversation_id);
 
     if (data) {

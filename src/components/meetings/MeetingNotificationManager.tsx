@@ -9,8 +9,8 @@ interface MeetingInvitation {
   id: string;
   meeting_id: string;
   inviter_id: string;
-  inviter_name?: string | null;
-  inviter_avatar?: string | null;
+  inviter_name?: string | null | undefined;
+  inviter_avatar?: string | null | undefined;
   meeting_title: string;
   meeting_start_time: string;
   meeting_duration_minutes?: number;

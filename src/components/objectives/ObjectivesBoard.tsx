@@ -25,18 +25,18 @@ import { Card, CardContent } from "@/components/ui/card";
 interface Objective {
   id: string;
   title: string;
-  description?: string;
+  description?: string | null;
   status: string;
-  priority?: string;
-  owners?: string[];
-  start_date?: string;
-  due_date?: string;
-  hard_deadline?: string;
-  completion_percentage?: number;
+  priority?: string | null;
+  owners?: string[] | null;
+  start_date?: string | null;
+  due_date?: string | null;
+  hard_deadline?: string | null;
+  completion_percentage?: number | null;
   tags?: any;
-  milestone_type?: string;
+  milestone_type?: string | null;
   created_at: string;
-  updated_at: string;
+  updated_at?: string | null;
 }
 
 const STATUS_COLUMNS = [

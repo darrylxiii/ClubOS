@@ -116,7 +116,8 @@ export function AIHighlightClips({ recordingId, onSeek, onShare }: AIHighlightCl
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const formatHighlightType = (type: string) => {
+  const formatHighlightType = (type: string | null) => {
+    if (!type) return 'Unknown';
     return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 

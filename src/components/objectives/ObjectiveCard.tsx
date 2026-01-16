@@ -187,10 +187,10 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
       )}
 
       {/* Task Dependencies Stats */}
-      {(objective.blockingCount || objective.blockedByCount) ? (
+      {((objective.blockingCount ?? 0) > 0 || (objective.blockedByCount ?? 0) > 0) ? (
         <div className="flex items-center gap-3 pt-2 border-t">
           <TooltipProvider>
-            {objective.blockingCount > 0 && (
+            {(objective.blockingCount ?? 0) > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-1.5 cursor-help">
@@ -212,7 +212,7 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
               </Tooltip>
             )}
             
-            {objective.blockedByCount > 0 && (
+            {(objective.blockedByCount ?? 0) > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-1.5 cursor-help">

@@ -90,7 +90,7 @@ export function SmartOfferBuilder({
         });
       }
     } catch (_error) {
-      console.error('Error fetching candidate info:', error);
+      console.error('Error fetching candidate info:', _error);
     }
   };
 
@@ -108,7 +108,7 @@ export function SmartOfferBuilder({
       setBonusPercentage(data.recommended_bonus_percentage);
       setEquityPercentage(data.recommended_equity_percentage);
     } catch (_error) {
-      console.error('Error generating recommendation:', error);
+      console.error('Error generating recommendation:', _error);
       notify.error('Failed to generate offer recommendation');
     } finally {
       setLoading(false);
@@ -147,7 +147,7 @@ export function SmartOfferBuilder({
       setSavedOfferId(data.id);
       onOfferCreated?.(data.id);
     } catch (_error) {
-      console.error('Error saving offer:', error);
+      console.error('Error saving offer:', _error);
       notify.error('Failed to save offer');
     } finally {
       setSaving(false);
@@ -314,8 +314,8 @@ export function SmartOfferBuilder({
             <Slider
               value={[baseSalary]}
               onValueChange={(v) => setBaseSalary(v[0])}
-              min={recommendation?.market_data.min || 40000}
-              max={recommendation?.market_data.max * 1.3 || 200000}
+              min={recommendation?.market_data?.min || 40000}
+              max={(recommendation?.market_data?.max ?? 150000) * 1.3}
               step={1000}
             />
             <div className="flex justify-between text-xs text-muted-foreground">

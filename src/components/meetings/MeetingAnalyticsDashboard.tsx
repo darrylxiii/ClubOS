@@ -52,7 +52,7 @@ export function MeetingAnalyticsDashboard() {
           meeting_participants(count),
           meeting_analytics(total_duration_minutes)
         `)
-        .eq('host_id', user?.id);
+        .eq('host_id', user?.id ?? '');
 
       if (meetingsError) throw meetingsError;
 
@@ -83,7 +83,9 @@ export function MeetingAnalyticsDashboard() {
         weekEnd.setDate(weekEnd.getDate() + 7);
 
         const weekMeetings = meetings?.filter(m => {
-          const meetingDate = new Date(m.created_at);
+          const createdAt = m.created_at;
+          if (!createdAt) return false;
+          const meetingDate = new Date(createdAt);
           return meetingDate >= weekStart && meetingDate < weekEnd;
         }).length || 0;
 
@@ -97,10 +99,13 @@ export function MeetingAnalyticsDashboard() {
       const { data: invitations } = await supabase
         .from('meeting_invitations')
         .select('invitation_method, status')
-        .eq('inviter_id', user?.id);
+        .eq('inviter_id', user?.id ?? '');
 
       const methodCounts = invitations?.reduce((acc, inv) => {
-        acc[inv.invitation_method] = (acc[inv.invitation_method] || 0) + 1;
+        const method = inv.invitation_method;
+        if (method) {
+          acc[method] = (acc[method] || 0) + 1;
+        }
         return acc;
       }, {} as Record<string, number>) || {};
 

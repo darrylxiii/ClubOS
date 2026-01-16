@@ -23,10 +23,10 @@ interface Objective {
   id: string;
   title: string;
   status: string;
-  priority?: string;
-  owners?: string[];
-  due_date?: string;
-  completion_percentage?: number;
+  priority?: string | null;
+  owners?: string[] | null;
+  due_date?: string | null;
+  completion_percentage?: number | null;
   tags?: any;
   tasks?: any[];
   blockingCount?: number;
