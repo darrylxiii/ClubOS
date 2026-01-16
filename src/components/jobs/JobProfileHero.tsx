@@ -170,7 +170,7 @@ export function JobProfileHero({
                   </Badge>
                 )}
                 <ContinuousPipelineBadge
-                  isContinuous={job.is_continuous}
+                  isContinuous={job.is_continuous ?? false}
                   hiredCount={job.hired_count || 0}
                   targetHireCount={job.target_hire_count}
                   size="md"

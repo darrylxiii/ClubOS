@@ -39,7 +39,7 @@ const getTrendIcon = (direction: "up" | "down" | "neutral") => {
   }
 };
 
-const getBadgeClass = (variant: QuickStat["badge"]["variant"]) => {
+const getBadgeClass = (variant?: "default" | "destructive" | "success" | "warning") => {
   switch (variant) {
     case "success":
       return "bg-green-500/10 text-green-500 border-green-500/20";

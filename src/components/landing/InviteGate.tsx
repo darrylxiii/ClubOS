@@ -36,7 +36,7 @@ export const InviteGate = () => {
         toast.error(data?.message || "Invalid or expired invite code. Request access to join.");
       }
     } catch (_error) {
-      console.error("Error validating invite:", error);
+      console.error("Error validating invite:", _error);
       toast.error("Error validating invite code. Please try again.");
     } finally {
       setIsLoading(false);

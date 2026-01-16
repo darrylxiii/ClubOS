@@ -42,7 +42,19 @@ export const FeaturedJobs = () => {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {jobs?.slice(0, 3).map((job) => (
-            <JobCard key={job.id} job={job} />
+            <JobCard key={job.id} job={{
+              id: job.id,
+              title: job.title,
+              created_at: job.created_at || new Date().toISOString(),
+              description: job.description ?? undefined,
+              location: job.location ?? undefined,
+              employment_type: job.employment_type ?? undefined,
+              is_stealth: job.is_stealth ?? undefined,
+              companies: job.companies ? {
+                name: job.companies.name,
+                logo_url: job.companies.logo_url ?? undefined
+              } : undefined
+            }} />
           ))}
         </div>
       )}

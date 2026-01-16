@@ -12,7 +12,7 @@ interface Message {
   content: string;
   created_at: string;
   user?: {
-    full_name: string;
+    full_name: string | null;
     avatar_url: string | null;
   };
 }
@@ -40,18 +40,23 @@ const PinnedMessagesPanel = ({ channelId, onClose, onJumpToMessage }: PinnedMess
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      const userIds = [...new Set(data.map(m => m.user_id))];
+      const userIds = [...new Set(data.map(m => m.user_id).filter((id): id is string => id !== null))];
       const { data: userData } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url')
-        .in('id', userIds);
+        .in('id', userIds.length > 0 ? userIds : ['__none__']);
 
       const userMap = new Map(userData?.map(u => [u.id, u]) || []);
       
-      const messagesWithUsers = data.map(msg => ({
-        ...msg,
-        user: userMap.get(msg.user_id)
-      }));
+      const messagesWithUsers: Message[] = data
+        .filter(msg => msg.user_id !== null)
+        .map(msg => ({
+          id: msg.id,
+          user_id: msg.user_id!,
+          content: msg.content,
+          created_at: msg.created_at || new Date().toISOString(),
+          user: userMap.get(msg.user_id!)
+        }));
       
       setPinnedMessages(messagesWithUsers);
     }
