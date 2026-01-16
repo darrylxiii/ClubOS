@@ -117,7 +117,7 @@ export function ProjectList({ userRole, isFreelancer }: ProjectListProps) {
   return (
     <div className="space-y-6">
       {/* AI Matching Banner */}
-      {isFreelancer && userProfile?.freelance_categories?.length > 0 && (
+      {isFreelancer && (userProfile?.freelance_categories?.length ?? 0) > 0 && (
         <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="h-5 w-5 text-primary" />

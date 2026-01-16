@@ -36,7 +36,7 @@ interface TargetCompany {
   created_at: string;
   enrichment_source?: 'database' | 'clearbit' | 'manual';
   profiles?: { full_name: string | null } | null;
-  jobs?: { title: string; status: string | null } | null;
+  jobs?: { title: string; status: string } | null;
   target_company_votes?: Array<{ user_id: string; profiles?: { full_name: string | null } }>;
   target_company_comments?: Array<any>;
 }
@@ -203,7 +203,7 @@ export function TargetCompanyTable({
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onVote(company.id, hasVoted);
+                        onVote(company.id, hasVoted ?? false);
                       }}
                       className="gap-1"
                     >

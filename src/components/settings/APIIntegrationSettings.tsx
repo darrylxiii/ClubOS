@@ -64,7 +64,7 @@ export function APIIntegrationSettings() {
         }
       }
     } catch (_error) {
-      console.error('Error loading API settings:', error);
+      console.error('Error loading API settings:', _error);
     }
   };
 
@@ -118,7 +118,7 @@ export function APIIntegrationSettings() {
       }));
       toast.success('API settings saved');
     } catch (_error) {
-      console.error('Error saving API settings:', error);
+      console.error('Error saving API settings:', _error);
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);

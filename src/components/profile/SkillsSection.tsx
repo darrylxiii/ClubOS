@@ -117,9 +117,9 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
     setEditingId(skill.id);
     setFormData({
       skill_name: skill.skill_name,
-      category: skill.category,
-      proficiency_level: skill.proficiency_level,
-      years_experience: skill.years_experience,
+      category: skill.category ?? 'technical',
+      proficiency_level: skill.proficiency_level ?? 3,
+      years_experience: skill.years_experience ?? 1,
       visibility: 'public'
     });
     setIsDialogOpen(true);
@@ -285,15 +285,15 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
                         {[1, 2, 3, 4, 5].map((level) => (
                           <Star 
                             key={level}
-                            className={`w-4 h-4 ${level <= skill.proficiency_level ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
+                            className={`w-4 h-4 ${level <= (skill.proficiency_level ?? 0) ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
                           />
                         ))}
                       </div>
                     </div>
-                    <Progress value={skill.proficiency_level * 20} />
+                    <Progress value={(skill.proficiency_level ?? 0) * 20} />
                   </div>
 
-                  {skill.endorsement_count > 0 && (
+                  {(skill.endorsement_count ?? 0) > 0 && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <ThumbsUp className="w-4 h-4" />
                       {skill.endorsement_count} {skill.endorsement_count === 1 ? 'endorsement' : 'endorsements'}
