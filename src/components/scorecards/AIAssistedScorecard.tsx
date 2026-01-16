@@ -131,7 +131,7 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
             recommendation,
             interview_stage: meeting.interview_stage
           }
-        }]);
+        }] as any);
       }
 
       toast.success('Scorecard submitted successfully');

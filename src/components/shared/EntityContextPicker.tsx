@@ -257,7 +257,7 @@ export function EntityContextPicker({
     return (
       <div className="space-y-1">
         {items.map((item) => {
-          const config = entityConfig[item.type];
+          const config = entityConfig[item.type as keyof typeof entityConfig];
           const isSelected = value?.id === item.id && value?.type === item.type;
           
           return (

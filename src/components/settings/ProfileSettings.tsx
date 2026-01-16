@@ -148,7 +148,7 @@ export const ProfileSettings = ({
             <PhoneVerification
               phoneNumber={phoneNumber}
               phoneVerified={phoneVerified}
-              onPhoneChange={setPhoneNumber}
+              onPhoneChange={(value) => setPhoneNumber(value ?? '')}
               onVerificationComplete={() => setPhoneVerified(true)}
             />
           </div>

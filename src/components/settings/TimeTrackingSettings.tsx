@@ -52,7 +52,7 @@ export function TimeTrackingSettings() {
         setSettings({ ...settings, ...JSON.parse(stored) });
       }
     } catch (_error) {
-      console.error('Error loading time tracking settings:', error);
+      console.error('Error loading time tracking settings:', _error);
     }
   };
 
@@ -65,7 +65,7 @@ export function TimeTrackingSettings() {
       localStorage.setItem(`time_tracking_settings_${user.id}`, JSON.stringify(settings));
       toast.success('Time tracking settings saved');
     } catch (_error) {
-      console.error('Error saving settings:', error);
+      console.error('Error saving settings:', _error);
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);

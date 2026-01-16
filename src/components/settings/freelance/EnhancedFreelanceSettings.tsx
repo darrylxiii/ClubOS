@@ -62,7 +62,7 @@ export function EnhancedFreelanceSettings() {
       freelanceProfile.professional_title,
       freelanceProfile.professional_summary,
       freelanceProfile.hourly_rate_min,
-      freelanceProfile.categories?.length > 0,
+      (freelanceProfile.categories?.length ?? 0) > 0,
       freelanceProfile.portfolio_items && (freelanceProfile.portfolio_items as any[])?.length > 0,
       freelanceProfile.video_intro_url,
       freelanceProfile.stripe_connect_onboarded,

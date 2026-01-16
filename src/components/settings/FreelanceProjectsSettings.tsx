@@ -148,7 +148,7 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
       toast.success('Freelance settings saved successfully');
       await onSave();
     } catch (_error) {
-      console.error('Error saving freelance settings:', error);
+      console.error('Error saving freelance settings:', _error);
       toast.error('Failed to save freelance settings');
     } finally {
       setSaving(false);

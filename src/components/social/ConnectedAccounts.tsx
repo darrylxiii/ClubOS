@@ -22,10 +22,10 @@ interface SocialAccount {
   id: string;
   platform: string;
   username: string;
-  display_name: string;
-  avatar_url: string;
-  profile_url: string;
-  is_active: boolean;
+  display_name: string | null;
+  avatar_url: string | null;
+  profile_url: string | null;
+  is_active: boolean | null;
   created_at: string;
 }
 
@@ -138,7 +138,7 @@ export const ConnectedAccounts = () => {
                     </div>
                   </div>
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={account.avatar_url} />
+                    <AvatarImage src={account.avatar_url ?? undefined} />
                     <AvatarFallback>{account.username[0]?.toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </div>
@@ -148,7 +148,7 @@ export const ConnectedAccounts = () => {
                     variant="outline" 
                     size="sm" 
                     className="flex-1 gap-2"
-                    onClick={() => window.open(account.profile_url, '_blank')}
+                    onClick={() => account.profile_url && window.open(account.profile_url, '_blank')}
                   >
                     <ExternalLink className="h-3 w-3" />
                     View Profile

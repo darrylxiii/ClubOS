@@ -114,14 +114,15 @@ export function AddToListDialog({
   // Create new list mutation
   const createListMutation = useMutation({
     mutationFn: async () => {
+      if (!user?.id) throw new Error('User not authenticated');
       const { data, error } = await supabase
         .from('talent_pool_lists')
-        .insert({
+        .insert([{
           name: newListName,
           description: newListDescription || null,
-          created_by: user?.id,
+          created_by: user.id,
           list_type: 'manual',
-        })
+        }])
         .select()
         .single();
 

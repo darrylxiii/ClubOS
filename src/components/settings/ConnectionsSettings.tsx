@@ -312,8 +312,8 @@ export const ConnectionsSettings = ({
       
       console.log('✅ OAuth complete!');
     } catch (_error) {
-      console.error('❌ OAuth error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to complete connection');
+      console.error('❌ OAuth error:', _error);
+      toast.error(_error instanceof Error ? _error.message : 'Failed to complete connection');
       
       localStorage.removeItem('pending_calendar_connection');
       localStorage.removeItem('pending_email_connection');
@@ -440,9 +440,9 @@ export const ConnectionsSettings = ({
       setResumeDisplayName('');
       await loadUserResumes();
     } catch (_error) {
-      console.error('Error uploading resume:', error);
+      console.error('Error uploading resume:', _error);
       // Hook handles upload errors, we catch DB errors here
-      if ((error as any).message !== 'Upload failed') { // Simple check
+      if ((_error as any)?.message !== 'Upload failed') { // Simple check
          toast.error('Failed to save resume metadata');
       }
     }
@@ -468,7 +468,7 @@ export const ConnectionsSettings = ({
       toast.success('Resume deleted successfully');
       await loadUserResumes();
     } catch (_error) {
-      console.error('Error deleting resume:', error);
+      console.error('Error deleting resume:', _error);
       toast.error('Failed to delete resume');
     }
   };
@@ -490,7 +490,7 @@ export const ConnectionsSettings = ({
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (_error) {
-      console.error('Error downloading resume:', error);
+      console.error('Error downloading resume:', _error);
       toast.error('Failed to download resume');
     }
   };
@@ -512,17 +512,18 @@ export const ConnectionsSettings = ({
       setPreviewResumeName(fileName);
       setShowPreviewDialog(true);
     } catch (_error) {
-      console.error('Error previewing resume:', error);
+      console.error('Error previewing resume:', _error);
       toast.error('Failed to preview resume');
     }
   };
 
   const handleSetPrimaryResume = async (resumeId: string) => {
+    if (!user?.id) return;
     try {
       await supabase
         .from('user_resumes')
         .update({ is_primary: false })
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       const { error } = await supabase
         .from('user_resumes')
@@ -534,7 +535,7 @@ export const ConnectionsSettings = ({
       toast.success('Primary resume updated');
       await loadUserResumes();
     } catch (_error) {
-      console.error('Error setting primary resume:', error);
+      console.error('Error setting primary resume:', _error);
       toast.error('Failed to set primary resume');
     }
   };
@@ -717,8 +718,8 @@ export const ConnectionsSettings = ({
       // Redirect to OAuth
       window.location.href = data.authUrl;
     } catch (_error) {
-      console.error(`[Calendar] ${provider} Calendar connection error:`, error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`[Calendar] ${provider} Calendar connection error:`, _error);
+      const errorMessage = _error instanceof Error ? _error.message : 'Unknown error';
       
       // Show detailed error with better formatting
       const isRedirectError = errorMessage.includes('redirect URI');
@@ -747,7 +748,7 @@ export const ConnectionsSettings = ({
       await loadConnectedCalendars();
       toast.success('Calendar disconnected');
     } catch (_error) {
-      console.error('Error disconnecting calendar:', error);
+      console.error('Error disconnecting calendar:', _error);
       toast.error('Failed to disconnect calendar');
     }
   };
@@ -794,8 +795,8 @@ export const ConnectionsSettings = ({
       console.log(`📧 Redirecting to ${pendingEmailProvider} OAuth...`);
       window.location.href = data.authUrl;
     } catch (_error) {
-      console.error('Email connection error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to connect email');
+      console.error('Email connection error:', _error);
+      toast.error(_error instanceof Error ? _error.message : 'Failed to connect email');
       localStorage.removeItem('pending_email_connection');
       setEmailLoading(false);
     }
@@ -813,7 +814,7 @@ export const ConnectionsSettings = ({
       await loadConnectedEmails();
       toast.success(`Email sync ${enabled ? 'enabled' : 'disabled'}`);
     } catch (_error) {
-      console.error('Error toggling email sync:', error);
+      console.error('Error toggling email sync:', _error);
       toast.error('Failed to update sync setting');
     }
   };
@@ -830,7 +831,7 @@ export const ConnectionsSettings = ({
       await loadConnectedEmails();
       toast.success('Email disconnected');
     } catch (_error) {
-      console.error('Error disconnecting email:', error);
+      console.error('Error disconnecting email:', _error);
       toast.error('Failed to disconnect email');
     }
   };
