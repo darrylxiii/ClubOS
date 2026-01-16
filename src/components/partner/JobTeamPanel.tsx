@@ -81,7 +81,8 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
       // Fetch company members
       const companyMemberIds = assignments
         .filter(a => a.company_member_id)
-        .map(a => a.company_member_id);
+        .map(a => a.company_member_id)
+        .filter((id): id is string => id !== null);
       
       let companyMembers: any[] = [];
       if (companyMemberIds.length > 0) {
@@ -91,13 +92,13 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
           .in('id', companyMemberIds);
         
         if (cmData) {
-          const userIds = cmData.map(cm => cm.user_id).filter(Boolean);
+          const userIds = cmData.map((cm: { user_id: string | null }) => cm.user_id).filter(Boolean) as string[];
           const { data: profiles } = await supabase
             .from('profiles')
             .select('id, full_name, email, avatar_url')
             .in('id', userIds);
           
-          companyMembers = cmData.map(cm => ({
+          companyMembers = cmData.map((cm: { id: string; job_title: string | null; user_id: string | null }) => ({
             ...cm,
             user: profiles?.find(p => p.id === cm.user_id)
           }));
@@ -107,7 +108,8 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
       // Fetch external users
       const externalUserIds = assignments
         .filter(a => a.external_user_id)
-        .map(a => a.external_user_id);
+        .map(a => a.external_user_id)
+        .filter((id): id is string => id !== null);
       
       let externalUsers: any[] = [];
       if (externalUserIds.length > 0) {
@@ -121,7 +123,8 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
       // Fetch assigned by users
       const assignedByIds = assignments
         .filter(a => a.assigned_by)
-        .map(a => a.assigned_by);
+        .map(a => a.assigned_by)
+        .filter((id): id is string => id !== null);
       
       let assignedByUsers: any[] = [];
       if (assignedByIds.length > 0) {

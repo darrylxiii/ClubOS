@@ -15,7 +15,7 @@ interface TargetCompany {
   industry: string | null;
   priority: number | null;
   job_id: string | null;
-  votes: number;
+  votes: number | null;
   company_insider: string | null;
   location: string | null;
   logo_url: string | null;
@@ -23,8 +23,8 @@ interface TargetCompany {
   notes: string | null;
   created_by: string;
   created_at: string;
-  profiles?: { full_name: string | null };
-  jobs?: { title: string; status: string };
+  profiles?: { full_name: string | null } | null;
+  jobs?: { title: string; status: string } | null;
   target_company_votes?: Array<{ user_id: string; profiles?: { full_name: string | null } }>;
   target_company_comments?: Array<{ 
     id: string;

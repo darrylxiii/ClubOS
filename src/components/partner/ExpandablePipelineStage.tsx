@@ -51,15 +51,15 @@ interface Booking {
   title?: string;
   scheduled_start: string;
   scheduled_end: string;
-  meeting_link?: string;
+  meeting_link?: string | null;
   status: string;
-  interview_type?: string;
-  interviewer_ids?: string[];
-  interview_prep_sent_at?: string;
-  feedback_submitted_at?: string;
-  application_id?: string;
-  guest_name?: string;
-  guest_email?: string;
+  interview_type?: string | null;
+  interviewer_ids?: string[] | null;
+  interview_prep_sent_at?: string | null;
+  feedback_submitted_at?: string | null;
+  application_id?: string | null;
+  guest_name?: string | null;
+  guest_email?: string | null;
 }
 
 interface ExpandablePipelineStageProps {
