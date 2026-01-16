@@ -54,7 +54,7 @@ serve(async (req) => {
     console.log(`[${requestId}] Syncing WhatsApp templates for business account: ${businessAccountId}`);
 
     // Get or create account
-    const { data: account, error: accountError } = await supabase
+    let { data: account, error: accountError } = await supabase
       .from('whatsapp_business_accounts')
       .select('*')
       .eq('business_account_id', businessAccountId)

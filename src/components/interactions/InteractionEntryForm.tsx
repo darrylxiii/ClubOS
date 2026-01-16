@@ -65,7 +65,7 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
         .limit(20);
       setCompanies(data || []);
     } catch (_error) {
-      console.error('Error loading companies:', error);
+      console.error('Error loading companies:', _error);
     } finally {
       setLoadingCompanies(false);
     }
@@ -82,7 +82,7 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
         .order('full_name');
       setStakeholders(data || []);
     } catch (_error) {
-      console.error('Error loading stakeholders:', error);
+      console.error('Error loading stakeholders:', _error);
     } finally {
       setLoadingStakeholders(false);
     }

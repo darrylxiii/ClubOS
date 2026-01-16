@@ -43,7 +43,7 @@ export function useCRMReportData(
       const endDate = options?.endDate || new Date();
 
       // Try to use the server-side RPC first (much more efficient)
-      const { data: rpcData, error: rpcError } = await supabase.rpc(
+      const { data: rpcData, error: rpcError } = await (supabase as any).rpc(
         'get_crm_report_aggregation',
         {
           p_data_source: dataSource,
@@ -243,7 +243,7 @@ export function useCRMFunnelData(options?: UseCRMReportDataOptions) {
         const startDate = options?.startDate || subDays(new Date(), 30);
         const endDate = options?.endDate || new Date();
 
-        const { data: funnelData, error: funnelError } = await supabase.rpc(
+        const { data: funnelData, error: funnelError } = await (supabase as any).rpc(
           'get_crm_funnel_data',
           {
             p_start_date: startDate.toISOString(),
@@ -253,7 +253,7 @@ export function useCRMFunnelData(options?: UseCRMReportDataOptions) {
         );
 
         if (funnelError) throw funnelError;
-        setData(funnelData || []);
+        setData(Array.isArray(funnelData) ? funnelData : []);
       } catch (err) {
         console.error('Error fetching funnel data:', err);
         setError(err as Error);
@@ -287,7 +287,7 @@ export function useCRMTimeSeries(
         const startDate = options?.startDate || subDays(new Date(), 30);
         const endDate = options?.endDate || new Date();
 
-        const { data: tsData, error: tsError } = await supabase.rpc('get_crm_time_series', {
+        const { data: tsData, error: tsError } = await (supabase as any).rpc('get_crm_time_series', {
           p_metric: metric,
           p_interval: interval,
           p_start_date: startDate.toISOString(),
@@ -295,7 +295,7 @@ export function useCRMTimeSeries(
         });
 
         if (tsError) throw tsError;
-        setData(tsData || []);
+        setData(Array.isArray(tsData) ? tsData : []);
       } catch (err) {
         console.error('Error fetching time series data:', err);
         setError(err as Error);

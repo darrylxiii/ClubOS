@@ -70,7 +70,7 @@ export function PayoutScheduler() {
     try {
       await markPaid.mutateAsync({ 
         ids: selectedIds, 
-        paymentReference: paymentRef || undefined 
+        paymentReference: paymentRef || '' 
       });
       setSelectedIds([]);
       setPaymentRef('');
@@ -84,14 +84,14 @@ export function PayoutScheduler() {
     ?.filter(p => selectedIds.includes(p.id))
     .reduce((sum, p) => sum + (p.net_amount || 0), 0) || 0;
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string | null) => {
     const styles: Record<string, string> = {
       pending: 'bg-amber-500/10 text-amber-500',
       approved: 'bg-blue-500/10 text-blue-500',
       scheduled: 'bg-purple-500/10 text-purple-500',
       paid: 'bg-green-500/10 text-green-500',
     };
-    return styles[status] || 'bg-muted text-muted-foreground';
+    return styles[status ?? 'pending'] || 'bg-muted text-muted-foreground';
   };
 
   return (
@@ -170,16 +170,16 @@ export function PayoutScheduler() {
                         {(payout.employee_profiles as any)?.full_name || payout.candidate_name || 'Employee'}
                       </span>
                       <Badge className={getStatusBadge(payout.status)}>
-                        {payout.status}
+                        {payout.status ?? 'pending'}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                       <span>Gross: €{payout.gross_amount.toLocaleString()}</span>
-                      <span>Net: €{payout.net_amount.toLocaleString()}</span>
+                      <span>Net: €{(payout.net_amount ?? 0).toLocaleString()}</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold">€{payout.net_amount.toLocaleString()}</p>
+                    <p className="text-lg font-bold">€{(payout.net_amount ?? 0).toLocaleString()}</p>
                   </div>
                 </div>
               ))}

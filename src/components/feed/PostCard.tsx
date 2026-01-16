@@ -227,12 +227,13 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   };
 
   const trackSharePlatform = async (platform: string) => {
+    if (!user?.id) return;
     try {
-      await supabase.from('post_shares').insert({
+      await supabase.from('post_shares').insert([{
         post_id: post.id,
-        shared_by: user?.id || null,
+        shared_by: user.id,
         share_platform: platform
-      });
+      }]);
       trackShare(); // Also track in engagement signals
     } catch (error) {
       console.error('Error tracking share:', error);
@@ -512,7 +513,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
 
               {mediaUrls.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
-                  {mediaUrls.map((_, index) => (
+                  {mediaUrls.map((_media: any, index: number) => (
                     <div
                       key={index}
                       className={`w-2 h-2 rounded-full transition-all ${index === currentMediaIndex

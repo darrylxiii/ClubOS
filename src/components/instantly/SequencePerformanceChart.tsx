@@ -15,11 +15,11 @@ interface SequenceStep {
   variant_id: string | null;
   variant_label: string | null;
   subject_line: string | null;
-  sent_count: number;
-  open_count: number;
-  reply_count: number;
-  click_count: number;
-  bounce_count: number;
+  sent_count: number | null;
+  open_count: number | null;
+  reply_count: number | null;
+  click_count: number | null;
+  bounce_count: number | null;
   open_rate: number | null;
   reply_rate: number | null;
   click_rate: number | null;

@@ -213,21 +213,36 @@ export function ProspectActionsMenu({
       <CloseWonDialog
         open={showWonDialog}
         onClose={() => setShowWonDialog(false)}
-        prospect={prospect}
+        prospect={{
+          id: prospect.id,
+          full_name: prospect.full_name,
+          company_name: prospect.company_name ?? undefined,
+          deal_value: prospect.deal_value ?? undefined,
+        }}
         onConfirm={handleCloseWon}
       />
       
       <CloseLostDialog
         open={showLostDialog}
         onClose={() => setShowLostDialog(false)}
-        prospect={prospect}
+        prospect={{
+          id: prospect.id,
+          full_name: prospect.full_name,
+          company_name: prospect.company_name ?? undefined,
+        }}
         onConfirm={handleCloseLost}
       />
       
       <ConvertToPartnerDialog
         open={showConvertDialog}
         onClose={() => setShowConvertDialog(false)}
-        prospect={prospect}
+        prospect={{
+          id: prospect.id,
+          full_name: prospect.full_name,
+          email: prospect.email,
+          company_name: prospect.company_name ?? undefined,
+          phone: prospect.phone ?? undefined,
+        }}
         onConvert={onConvertToPartner}
       />
       

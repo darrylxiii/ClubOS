@@ -13,10 +13,10 @@ interface Story {
   user_id: string;
   media_url: string;
   media_type: string;
-  created_at: string;
+  created_at: string | null;
   profiles: {
-    full_name: string;
-    avatar_url: string;
+    full_name: string | null;
+    avatar_url: string | null;
   };
 }
 
@@ -52,9 +52,9 @@ export function Stories() {
 
       const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
       
-      const enrichedStories = storiesData.map(story => ({
+      const enrichedStories: Story[] = storiesData.map(story => ({
         ...story,
-        profiles: profilesMap.get(story.user_id) || { full_name: 'Unknown', avatar_url: '' }
+        profiles: profilesMap.get(story.user_id) || { full_name: 'Unknown', avatar_url: null }
       }));
 
       setStories(enrichedStories);
@@ -194,7 +194,7 @@ export function Stories() {
               <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 pointer-events-none" />
               <div className="absolute bottom-2 left-2 right-2 pointer-events-none">
                 <Avatar className="w-6 h-6 border-2 border-white">
-                  <AvatarImage src={story.profiles?.avatar_url} />
+                  <AvatarImage src={story.profiles?.avatar_url ?? undefined} />
                   <AvatarFallback>{story.profiles?.full_name?.[0]}</AvatarFallback>
                 </Avatar>
                 <span className="text-xs text-white font-medium truncate ml-1">
@@ -209,7 +209,7 @@ export function Stories() {
       {/* Enhanced Story Viewer */}
       {viewingStory && (
         <EnhancedStoryViewer
-          stories={stories}
+          stories={stories as any}
           initialIndex={stories.findIndex(s => s.id === viewingStory.id)}
           onClose={() => setViewingStory(null)}
         />
