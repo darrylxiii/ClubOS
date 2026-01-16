@@ -58,7 +58,7 @@ export const TaskBurndownChart = ({ objectiveId }: TaskBurndownChartProps) => {
         
         // Count tasks created before or on this day
         const tasksCreatedByDate = tasks?.filter(t => 
-          new Date(t.created_at) <= date
+          t.created_at && new Date(t.created_at) <= date
         ).length || 0;
 
         // Count tasks completed before or on this day

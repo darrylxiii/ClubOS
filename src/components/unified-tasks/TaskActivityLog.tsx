@@ -24,10 +24,11 @@ interface ActivityLogEntry {
   old_value: any;
   new_value: any;
   description: string | null;
-  created_at: string;
+  created_at: string | null;
   profile?: {
-    full_name: string;
+    full_name: string | null;
     avatar_url: string | null;
+    id: string;
   };
 }
 
@@ -144,7 +145,7 @@ export const TaskActivityLog = ({ taskId }: TaskActivityLogProps) => {
                     {activity.profile?.full_name || "Unknown"}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                    {activity.created_at ? formatDistanceToNow(new Date(activity.created_at), { addSuffix: true }) : 'Unknown'}
                   </span>
                 </div>
                 

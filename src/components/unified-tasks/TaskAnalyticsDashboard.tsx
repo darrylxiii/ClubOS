@@ -83,8 +83,8 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
       const completedTasks = tasks?.filter(t => t.completed_at && t.created_at) || [];
       let avgTime = 0;
       if (completedTasks.length > 0) {
-        const totalTime = completedTasks.reduce((acc, t) => {
-          const created = new Date(t.created_at).getTime();
+        const totalTime = completedTasks.reduce((acc: number, t) => {
+          const created = new Date(t.created_at ?? new Date()).getTime();
           const completed = new Date(t.completed_at!).getTime();
           return acc + (completed - created);
         }, 0);

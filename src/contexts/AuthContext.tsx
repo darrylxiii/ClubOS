@@ -175,7 +175,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('[AuthContext] Backend signout error (will clear local state anyway):', error.message);
       }
     } catch (_error) {
-      console.error('[AuthContext] Error during signout (will clear local state anyway):', error);
+      console.error('[AuthContext] Error during signout (will clear local state anyway):', _error);
     } finally {
       // Reset PostHog identity
       postHogReset();

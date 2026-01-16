@@ -131,14 +131,14 @@ function EventItem({ event }: { event: ConversationEvent }) {
       <div className="flex-1 min-w-0">
         <p className="font-medium text-xs">
           {config.label}
-          {eventData?.template_name && (
+          {(eventData as Record<string, unknown>)?.template_name && (
             <span className="text-muted-foreground font-normal ml-1">
-              "{String(eventData.template_name)}"
+              &quot;{String((eventData as Record<string, unknown>).template_name)}&quot;
             </span>
           )}
-          {eventData?.tag && (
+          {(eventData as Record<string, unknown>)?.tag && (
             <span className="text-muted-foreground font-normal ml-1">
-              "{String(eventData.tag)}"
+              &quot;{String((eventData as Record<string, unknown>).tag)}&quot;
             </span>
           )}
         </p>

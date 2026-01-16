@@ -17,17 +17,18 @@ import { CreateUnifiedTaskDialog } from "./CreateUnifiedTaskDialog";
 
 interface UnifiedTask {
   id: string;
-  task_number: string;
+  task_number: string | null;
   title: string;
   description: string | null;
-  status: string;
-  priority: string;
+  status: string | null;
+  priority: string | null;
   due_date: string | null;
   scheduled_start: string | null;
-  auto_scheduled: boolean;
-  task_type: string;
+  auto_scheduled: boolean | null;
+  task_type: string | null;
   company_name: string | null;
   position: string | null;
+  assignees?: { user_id: string }[];
 }
 
 interface UnifiedTasksListProps {
@@ -97,7 +98,7 @@ export const UnifiedTasksList = ({
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: string | null) => {
     switch (priority) {
       case "high": return "destructive";
       case "medium": return "default";
@@ -106,7 +107,7 @@ export const UnifiedTasksList = ({
     }
   };
 
-  const getTaskTypeIcon = (type: string) => {
+  const getTaskTypeIcon = (type: string | null) => {
     switch (type) {
       case 'interview_prep': return '📝';
       case 'application': return '📄';
@@ -183,7 +184,7 @@ export const UnifiedTasksList = ({
                   <div className="flex items-start gap-4">
                     <Checkbox
                       checked={task.status === 'completed'}
-                      onCheckedChange={() => handleToggleTask(task.id, task.status)}
+                      onCheckedChange={() => handleToggleTask(task.id, task.status ?? 'todo')}
                       className="mt-1"
                     />
                     <div className="flex-1 min-w-0">
@@ -206,7 +207,7 @@ export const UnifiedTasksList = ({
                       )}
                       <div className="flex items-center gap-3 text-xs">
                         <Badge variant={getPriorityColor(task.priority)}>
-                          {task.priority}
+                          {task.priority ?? 'medium'}
                         </Badge>
                         {task.scheduled_start && (
                           <div className="flex items-center gap-1 text-muted-foreground">
@@ -241,7 +242,7 @@ export const UnifiedTasksList = ({
                   <div className="flex items-start gap-4">
                     <Checkbox
                       checked={task.status === 'completed'}
-                      onCheckedChange={() => handleToggleTask(task.id, task.status)}
+                      onCheckedChange={() => handleToggleTask(task.id, task.status ?? 'todo')}
                       className="mt-1"
                     />
                     <div className="flex-1 min-w-0">
@@ -261,7 +262,7 @@ export const UnifiedTasksList = ({
                         </p>
                       )}
                       <Badge variant={getPriorityColor(task.priority)} className="text-xs mt-2">
-                        {task.priority}
+                        {task.priority ?? 'medium'}
                       </Badge>
                     </div>
                   </div>
@@ -289,7 +290,7 @@ export const UnifiedTasksList = ({
                   <div className="flex items-start gap-4">
                     <Checkbox
                       checked={task.status === 'completed'}
-                      onCheckedChange={() => handleToggleTask(task.id, task.status)}
+                      onCheckedChange={() => handleToggleTask(task.id, task.status ?? 'todo')}
                       className="mt-1"
                     />
                     <div className="flex-1 min-w-0">
@@ -303,7 +304,7 @@ export const UnifiedTasksList = ({
                         </p>
                       )}
                       <Badge variant={getPriorityColor(task.priority)} className="text-xs mt-2">
-                        {task.priority}
+                        {task.priority ?? 'medium'}
                       </Badge>
                     </div>
                   </div>
