@@ -63,13 +63,13 @@ export function TalentPoolFilters({
   const [isOpen, setIsOpen] = useState(false);
 
   const activeFilterCount = [
-    filters.tiers?.length,
-    filters.industries?.length,
-    filters.seniorityLevels?.length,
-    filters.locations?.length,
+    filters.tiers?.length ?? 0,
+    filters.industries?.length ?? 0,
+    filters.seniorityLevels?.length ?? 0,
+    filters.locations?.length ?? 0,
     filters.minMoveProbability !== undefined && filters.minMoveProbability > 0 ? 1 : 0,
     filters.ownerId ? 1 : 0,
-  ].reduce((acc, count) => acc + (count || 0), 0);
+  ].reduce((acc: number, count) => acc + count, 0);
 
   const toggleTier = (tier: TalentTier) => {
     const currentTiers = filters.tiers || [];

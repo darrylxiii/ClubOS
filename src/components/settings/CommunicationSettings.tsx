@@ -64,7 +64,7 @@ export function CommunicationSettings() {
         speakers: deviceList.filter(d => d.kind === 'audiooutput'),
       });
     } catch (_error) {
-      console.error('Error loading devices:', error);
+      console.error('Error loading devices:', _error);
     }
   };
 
@@ -78,7 +78,7 @@ export function CommunicationSettings() {
         setSettings({ ...settings, ...JSON.parse(stored) });
       }
     } catch (_error) {
-      console.error('Error loading communication settings:', error);
+      console.error('Error loading communication settings:', _error);
     }
   };
 
@@ -91,7 +91,7 @@ export function CommunicationSettings() {
       localStorage.setItem(`communication_settings_${user.id}`, JSON.stringify(settings));
       toast.success('Communication settings saved');
     } catch (_error) {
-      console.error('Error saving settings:', error);
+      console.error('Error saving settings:', _error);
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);

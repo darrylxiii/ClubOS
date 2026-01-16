@@ -30,7 +30,7 @@ export function BiometricSettings() {
       const enabled = await secureStorage.isBiometricEnabled();
       setBiometricEnabled(enabled);
     } catch (_error) {
-      console.error('Error loading biometric settings:', error);
+      console.error('Error loading biometric settings:', _error);
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +51,7 @@ export function BiometricSettings() {
       setBiometricEnabled(enabled);
       toast.success(enabled ? `${biometryName} enabled` : `${biometryName} disabled`);
     } catch (_error) {
-      console.error('Error saving biometric settings:', error);
+      console.error('Error saving biometric settings:', _error);
       toast.error('Failed to save settings');
     } finally {
       setIsSaving(false);

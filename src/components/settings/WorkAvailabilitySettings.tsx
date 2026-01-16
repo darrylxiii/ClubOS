@@ -188,7 +188,7 @@ export function WorkAvailabilitySettings({
         flexEnd: `${formatInTimeZone(flexEndEarly, localReference, "h:mm a")} - ${formatInTimeZone(flexEndLate, localReference, "h:mm a")}`,
       };
     } catch (_error) {
-      console.error("Error calculating preview:", error);
+      console.error("Error calculating preview:", _error);
       return null;
     }
   };

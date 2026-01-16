@@ -51,10 +51,12 @@ export const StoryViewer = ({ stories, initialIndex, onClose }: StoryViewerProps
 
   const recordView = async () => {
     try {
-      await supabase.from("story_views").insert({
+      const viewerId = (await supabase.auth.getUser()).data.user?.id;
+      if (!viewerId) return;
+      await supabase.from("story_views").insert([{
         story_id: currentStory.id,
-        viewer_id: (await supabase.auth.getUser()).data.user?.id,
-      });
+        viewer_id: viewerId,
+      }]);
     } catch (error) {
       console.error("Error recording view:", error);
     }

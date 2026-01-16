@@ -97,7 +97,7 @@ export const NotificationPreferences = () => {
         });
       }
     } catch (_error) {
-      console.error('Error loading preferences:', error);
+      console.error('Error loading preferences:', _error);
       toast.error('Failed to load notification preferences');
     } finally {
       setLoading(false);
@@ -121,7 +121,7 @@ export const NotificationPreferences = () => {
 
       toast.success('Notification preferences saved');
     } catch (_error) {
-      console.error('Error saving preferences:', error);
+      console.error('Error saving preferences:', _error);
       toast.error('Failed to save preferences');
     } finally {
       setSaving(false);

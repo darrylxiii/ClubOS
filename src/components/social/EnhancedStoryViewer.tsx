@@ -58,8 +58,8 @@ interface StoryComment {
   comment_text: string;
   created_at: string;
   profiles: {
-    full_name: string;
-    avatar_url: string;
+    full_name: string | null;
+    avatar_url: string | null;
   };
 }
 

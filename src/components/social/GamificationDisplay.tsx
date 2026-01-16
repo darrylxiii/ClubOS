@@ -14,11 +14,11 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 
 interface UserEngagement {
-  current_streak: number;
-  longest_streak: number;
-  total_posts: number;
-  level: number;
-  experience_points: number;
+  current_streak: number | null;
+  longest_streak: number | null;
+  total_posts: number | null;
+  level: number | null;
+  experience_points: number | null;
   badges: unknown;
   achievements: unknown;
 }
@@ -58,41 +58,43 @@ export const GamificationDisplay = () => {
     return null;
   }
 
-  const experienceToNextLevel = engagement.level * 100;
-  const progressPercentage = (engagement.experience_points / experienceToNextLevel) * 100;
+  const level = engagement.level ?? 1;
+  const experiencePoints = engagement.experience_points ?? 0;
+  const experienceToNextLevel = level * 100;
+  const progressPercentage = (experiencePoints / experienceToNextLevel) * 100;
 
   const stats = [
     {
       icon: Flame,
       label: "Current Streak",
-      value: `${engagement.current_streak} days`,
+      value: `${engagement.current_streak ?? 0} days`,
       color: "text-orange-500",
     },
     {
       icon: Trophy,
       label: "Longest Streak",
-      value: `${engagement.longest_streak} days`,
+      value: `${engagement.longest_streak ?? 0} days`,
       color: "text-yellow-500",
     },
     {
       icon: Star,
       label: "Total Posts",
-      value: engagement.total_posts.toString(),
+      value: (engagement.total_posts ?? 0).toString(),
       color: "text-blue-500",
     },
     {
       icon: Zap,
       label: "Level",
-      value: engagement.level.toString(),
+      value: level.toString(),
       color: "text-purple-500",
     },
   ];
 
   const badges = [
     { id: 1, name: "Early Adopter", icon: "🌟", unlocked: true },
-    { id: 2, name: "Consistent Creator", icon: "🔥", unlocked: engagement.current_streak >= 7 },
-    { id: 3, name: "Social Butterfly", icon: "🦋", unlocked: engagement.total_posts >= 10 },
-    { id: 4, name: "Engagement Master", icon: "💎", unlocked: engagement.level >= 5 },
+    { id: 2, name: "Consistent Creator", icon: "🔥", unlocked: (engagement.current_streak ?? 0) >= 7 },
+    { id: 3, name: "Social Butterfly", icon: "🦋", unlocked: (engagement.total_posts ?? 0) >= 10 },
+    { id: 4, name: "Engagement Master", icon: "💎", unlocked: level >= 5 },
   ];
 
   return (
@@ -106,18 +108,18 @@ export const GamificationDisplay = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Level</p>
-              <p className="text-3xl font-bold">{engagement.level}</p>
+              <p className="text-3xl font-bold">{level}</p>
             </div>
           </div>
           <Badge variant="secondary" className="gap-2">
             <Zap className="h-4 w-4" />
-            {engagement.experience_points} XP
+            {experiencePoints} XP
           </Badge>
         </div>
         <Progress value={progressPercentage} className="h-3" />
         <p className="text-xs text-muted-foreground mt-2 text-center">
-          {experienceToNextLevel - engagement.experience_points} XP to Level{" "}
-          {engagement.level + 1}
+          {experienceToNextLevel - experiencePoints} XP to Level{" "}
+          {level + 1}
         </p>
       </Card>
 

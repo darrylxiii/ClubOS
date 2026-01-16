@@ -64,7 +64,7 @@ export function CalendarIntegrationSettings() {
         setCalendarSyncEnabled((data as any).calendar_sync_enabled || false);
       }
     } catch (_error) {
-      console.error('Error loading calendar settings:', error);
+      console.error('Error loading calendar settings:', _error);
     } finally {
       setLoading(false);
     }
@@ -125,7 +125,7 @@ export function CalendarIntegrationSettings() {
         toast.info('This calendar provider is coming soon!');
       }
     } catch (_error) {
-      console.error('Error connecting calendar:', error);
+      console.error('Error connecting calendar:', _error);
       toast.error('Failed to connect calendar');
     } finally {
       setConnecting(null);
@@ -154,7 +154,7 @@ export function CalendarIntegrationSettings() {
 
       toast.success('Calendar disconnected');
     } catch (_error) {
-      console.error('Error disconnecting calendar:', error);
+      console.error('Error disconnecting calendar:', _error);
       toast.error('Failed to disconnect calendar');
     }
   };
@@ -171,7 +171,7 @@ export function CalendarIntegrationSettings() {
       setCalendarSyncEnabled(enabled);
       toast.success(enabled ? 'Calendar sync enabled' : 'Calendar sync disabled');
     } catch (_error) {
-      console.error('Error updating sync setting:', error);
+      console.error('Error updating sync setting:', _error);
       toast.error('Failed to update sync setting');
     }
   };
