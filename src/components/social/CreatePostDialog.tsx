@@ -68,7 +68,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
       const data = await aiService.generatePostSuggestions({
         context: content,
         postType: postType,
-        platform: selectedPlatforms[0] || 'linkedin'
+        platform: (selectedPlatforms[0] || 'linkedin') as any
       });
 
       if (data?.suggestions && data.suggestions.length > 0) {

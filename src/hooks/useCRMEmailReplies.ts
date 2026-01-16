@@ -208,7 +208,7 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
       if (!session) throw new Error('Not authenticated');
 
       const response = await aiService.analyzeEmailReply({
-        reply_id: replyId,
+        email_id: replyId,
         prospect_id: reply.prospect_id,
         from_email: reply.from_email,
         from_name: reply.from_name,

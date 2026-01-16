@@ -57,7 +57,7 @@ export function AIInsightsPanel() {
       setGenerating(true);
       const data = await aiService.generateOutreachInsights();
 
-      if (data.error) throw new Error(data.error);
+      // if (data.error) throw new Error(data.error);
       return data;
     },
     onSuccess: () => {

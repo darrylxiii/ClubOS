@@ -121,9 +121,13 @@ export function useAnalyzeEmailSentiment() {
       from_email: string;
       to_emails?: string[];
       email_date?: string;
+      email_id?: string;
     }) => {
       // Use the unified aiService
-      return await aiService.analyzeEmailSentiment({ email, save_match: true });
+      return await aiService.analyzeEmailSentiment({
+        email: { ...email, id: email.email_id || crypto.randomUUID() },
+        save_match: true
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['company-email-sentiment'] });

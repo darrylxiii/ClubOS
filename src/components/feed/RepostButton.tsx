@@ -110,8 +110,7 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
           // Use aiService.generatePostSummary instead of direct invocation
           await aiService.generatePostSummary({
             post_id: newPost.id, // Use newPost.id for the reposted post
-            content: combinedContent,
-            type: 'repost_with_commentary'
+            include_comments: true
           });
           // No success toast here, as the main repost success is below.
           // AI summary generation is a background task.

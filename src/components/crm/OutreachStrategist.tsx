@@ -60,7 +60,7 @@ export function OutreachStrategist() {
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: data.response || 'I apologize, but I could not generate a response. Please try again.',
+        content: (data as any).response || data.strategy?.messaging_approach || 'Strategy generated.',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, assistantMessage]);
@@ -132,8 +132,8 @@ export function OutreachStrategist() {
                   )}
                   <div
                     className={`max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted/50'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted/50'
                       }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>

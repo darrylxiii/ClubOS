@@ -198,23 +198,22 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
   const generateSmartRepliesMutation = useMutation({
     mutationFn: async (reply: CRMEmailReply) => {
       const data = await aiService.generatePersonalizedFollowUp({
-        reply_content: reply.body_text || '',
-        reply_id: reply.id,
-        prospect_id: reply.prospect_id,
-        classification: reply.classification,
-        tone
+        recipient_id: reply.prospect_id,
+        last_interaction_date: new Date().toISOString(),
+        relationship_type: reply.classification || 'prospect',
+        context: reply.body_text || ''
       });
 
-      setGeneratedReply(data.followUp || null);
+      setGeneratedReply(data.message || null);
       if (!data) throw new Error("No data returned");
       return data;
     },
     onSuccess: (data: any) => {
-      if (data?.followUp) {
+      if (data?.message) {
         setSmartReplies({
-          professional: data.followUp.professional,
-          friendly: data.followUp.friendly,
-          decline: data.followUp.concise
+          professional: data.message.professional,
+          friendly: data.message.friendly,
+          decline: data.message.concise
         });
         toast.success('AI replies generated');
       }

@@ -19,13 +19,13 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
   const loadBriefing = async () => {
     try {
       setLoading(true);
-      const { briefing, error } = await aiService.generateExecutiveBriefing({
+      const briefingData = await aiService.generateExecutiveBriefing({
         candidateId,
         jobId
       });
 
-      if (error) throw new Error(error);
-      setBriefing(briefing);
+      if (briefingData.error) throw new Error(briefingData.error);
+      setBriefing(briefingData);
       toast.success("Executive briefing generated");
     } catch (error: any) {
       console.error('Error loading briefing:', error);

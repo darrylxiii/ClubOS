@@ -58,13 +58,14 @@ export function ABTestAnalyzer() {
   const generateMutation = useMutation({
     mutationFn: async (content: string) => {
       setGenerating(true);
-      const { data, error } = await aiService.invokeAI('generate-ab-test-variants', {
+      const result = await aiService.invokeAI('generate-ab-test-variants', {
         body: {
           original_content: content,
           variant_type: 'subject_line',
           num_variants: 5
         }
-      });
+      }) as { data: any; error: any };
+      const { data, error } = result;
       if (error) throw error;
       return data;
     },

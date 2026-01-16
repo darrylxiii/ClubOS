@@ -44,18 +44,21 @@ export function GenerateDossierButton({
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      const { dossier, success } = await aiService.generateMeetingDossier({
+      const dossierData = await aiService.generateMeetingDossier({
         recordingId,
         meetingId,
         candidateId,
         options: {
-          expiryHours,
-          includeScorecard,
-          includeTranscript
+          include_transcript: includeTranscript,
+          include_analysis: includeScorecard,
+          include_action_items: true
         }
       });
 
-      if (!success) throw new Error('Failed to generate');
+      if (!dossierData) throw new Error('Failed to generate');
+
+      // Map response to component state shape if needed, or assume it matches
+      const dossier = dossierData;
 
       if (dossier) {
         setDossier(dossier);

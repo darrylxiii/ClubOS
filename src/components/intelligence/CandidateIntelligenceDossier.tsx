@@ -19,10 +19,11 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
   const loadDossier = async () => {
     try {
       setLoading(true);
-      const { dossier, rawData } = await aiService.generateCandidateDossier({
+      const dossierData = await aiService.generateCandidateDossier({
         candidateId,
         jobId
       });
+      const dossier = dossierData;
 
       if (!dossier) throw new Error('No data returned');
       setDossier(dossier);

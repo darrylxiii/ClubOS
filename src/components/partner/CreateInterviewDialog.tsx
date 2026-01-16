@@ -210,14 +210,11 @@ Include:
 Keep it concise (3-4 sentences) and professional.`;
 
       // Use edge function for secure AI generation
-      const { description: generatedDesc, generated } = await aiService.generateInterviewDescription({
-        candidateName,
-        candidateTitle: application.candidate_title,
-        jobTitle: job?.title,
-        companyName,
-        stageName,
-        interviewType,
-        interviewerNames: selectedInterviewerNames || 'TBD',
+      const { description: generatedDesc } = await aiService.generateInterviewDescription({
+        job_title: job?.title || 'Position',
+        company_name: companyName,
+        interview_type: interviewType,
+        candidate_name: candidateName
       });
 
       if (generatedDesc) {

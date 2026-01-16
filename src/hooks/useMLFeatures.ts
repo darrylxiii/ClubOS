@@ -22,7 +22,7 @@ export function useMLFeatures() {
 
       if (functionError) throw functionError;
 
-      return data.features;
+      return data.features as MLFeatures;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to generate features');
       setError(error);

@@ -42,7 +42,7 @@ export function AIReplySuggestion({
         prospectCompany,
         originalEmail: emailContent,
         classification: emailClassification,
-        tone
+        tone: tone as 'casual' | 'friendly' | 'professional' | undefined
       });
       // The new service returns { reply, classification } directly
       // Corrected syntax for `data.reply || ''`

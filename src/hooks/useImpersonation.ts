@@ -10,7 +10,7 @@ export interface ImpersonationSession {
   expires_at: string;
   ended_at: string | null;
   reason: string | null;
-  is_active: boolean;
+  is_active?: boolean;
 }
 
 const IMPERSONATION_STORAGE_KEY = 'tqc_impersonation_session';
@@ -44,7 +44,7 @@ export function useImpersonation() {
     try {
       const { data, error } = await supabase.rpc('start_impersonation_session', {
         p_target_user_id: targetUserId,
-        p_reason: reason || null,
+        p_reason: reason || undefined,
       });
 
       if (error) throw error;

@@ -54,11 +54,12 @@ export function CampaignAutopilotDialog({
                 formData.industry
             );
 
-            if (aiError || !result?.campaign) {
+            // The response properties are at the root level, not nested in 'campaign'
+            if (aiError || !result?.campaign_name) {
                 throw new Error('Failed to generate campaign structure');
             }
 
-            const campaignData = result.campaign;
+            const campaignData = result;
 
             // 2. Create Draft Campaign in DB
             const { data: { user } } = await supabase.auth.getUser();

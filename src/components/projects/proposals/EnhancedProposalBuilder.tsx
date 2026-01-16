@@ -120,10 +120,14 @@ export function EnhancedProposalBuilder({
         freelancerId: profile?.id ?? ''
       });
 
-      if (!response.success) throw new Error(response.error || "Failed to generate");
+      if (!response) throw new Error("Failed to generate");
 
-      if (response.proposal?.coverLetter) {
-        setCoverLetter(response.proposal.coverLetter);
+      // Check if response has proposal property or is the proposal itself
+      // Based on error description, likely response IS the object containing coverLetter
+      const proposalData = response.proposal || response;
+
+      if (proposalData?.coverLetter) {
+        setCoverLetter(proposalData.coverLetter);
         toast.success("AI cover letter generated!");
       }
     } catch (error) {

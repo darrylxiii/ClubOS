@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 interface UnreadState {
   channel_id: string;
   unread_count: number;
-  last_read_at: string;
+  last_read_at: string | null;
 }
 
 export const useLiveHubUnread = () => {

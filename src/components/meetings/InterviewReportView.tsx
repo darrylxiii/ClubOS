@@ -73,12 +73,13 @@ export function InterviewReportView({
 
     setGenerating(true);
     try {
-      const { report } = await aiService.generateInterviewReport({
+      const reportData = await aiService.generateInterviewReport({
         meetingId,
         candidateId,
         roleTitle,
         companyName
       });
+      const report = reportData;
 
       if (!report) throw new Error("No report returned");
 
