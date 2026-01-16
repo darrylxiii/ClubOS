@@ -11,7 +11,6 @@ interface ControlBarProps {
     onOpenParticipants: () => void;
     onOpenSettings: () => void;
     onOpenPerformance?: () => void;
-    onOpenPerformance?: () => void;
     className?: string;
     // P2P/External Props
     onToggleMute?: () => void;

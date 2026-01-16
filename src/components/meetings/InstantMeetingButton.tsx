@@ -59,10 +59,12 @@ export function InstantMeetingButton({
   };
 
   const loadPMR = async () => {
+    if (!user?.id) return;
+    
     const { data } = await supabase
       .from('personal_meeting_rooms')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('user_id', user.id)
       .eq('is_active', true)
       .single();
     

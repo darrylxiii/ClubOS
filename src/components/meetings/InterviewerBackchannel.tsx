@@ -17,8 +17,8 @@ interface BackchannelMessage {
   is_important: boolean;
   created_at: string;
   sender?: {
-    full_name: string;
-    avatar_url?: string;
+    full_name: string | null;
+    avatar_url: string | null;
   };
 }
 
