@@ -99,7 +99,7 @@ export function useCRMBatchContactLookup(emails: string[]) {
       // Update cache
       normalizedEmails.forEach(email => {
         const found = (data || []).find((p: any) => p.email?.toLowerCase() === email);
-        lookupCache.set(email, found as CRMProspect || null);
+        lookupCache.set(email, found as unknown as CRMProspect || null);
       });
 
       // Build result from cache

@@ -109,12 +109,14 @@ export function useDirectMessages() {
       }));
 
       // Mark messages as read
-      await supabase
-        .from('dm_messages')
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq('conversation_id', conversationId)
-        .neq('sender_id', user?.id)
-        .eq('is_read', false);
+      if (user?.id) {
+        await supabase
+          .from('dm_messages')
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .eq('conversation_id', conversationId)
+          .neq('sender_id', user.id)
+          .eq('is_read', false);
+      }
 
     } catch (error) {
       console.error('Error loading messages:', error);

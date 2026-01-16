@@ -78,7 +78,7 @@ describe('AuthContext', () => {
     user: mockUser,
   };
 
-  let authStateCallback: ((event: string, session: any) => void) | null = null;
+  let authStateCallback: ((event: any, session: any) => void) | null = null;
 
   beforeEach(() => {
     vi.clearAllMocks();

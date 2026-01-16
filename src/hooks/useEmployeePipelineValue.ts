@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface PipelineDeal {
-  application_id: string;
+  application_id: string | null;
   candidate_full_name: string;
   job_title: string;
   company_name: string;

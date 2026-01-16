@@ -114,7 +114,7 @@ export function useLiveHubTranscription({
       try {
         mediaRecorderRef.current.stop();
       } catch (_e) {
-        console.warn('[LiveHub Transcription] Error stopping MediaRecorder:', e);
+        console.warn('[LiveHub Transcription] Error stopping MediaRecorder:', _e);
       }
     }
     mediaRecorderRef.current = null;
@@ -228,7 +228,7 @@ export function useLiveHubTranscription({
               try {
                 mediaRecorder.start();
               } catch (_e) {
-                console.warn('[LiveHub Transcription] Could not restart MediaRecorder:', e);
+                console.warn('[LiveHub Transcription] Could not restart MediaRecorder:', _e);
               }
             }
           }
