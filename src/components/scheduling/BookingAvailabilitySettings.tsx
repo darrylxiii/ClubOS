@@ -86,11 +86,12 @@ export function BookingAvailabilitySettings() {
   }, [user]);
 
   const loadCalendars = async () => {
+    if (!user?.id) return;
     try {
       const { data, error } = await supabase
         .from("calendar_connections")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .eq("is_active", true);
 
       if (error) throw error;
@@ -101,11 +102,12 @@ export function BookingAvailabilitySettings() {
   };
 
   const loadSettings = async () => {
+    if (!user?.id) return;
     try {
       const { data, error } = await supabase
         .from("booking_availability_settings")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (error && error.code !== "PGRST116") throw error;
@@ -122,14 +124,15 @@ export function BookingAvailabilitySettings() {
   };
 
   const saveSettings = async () => {
+    if (!user?.id) return;
     setSaving(true);
     try {
       const { error } = await supabase
         .from("booking_availability_settings")
-        .upsert({
+        .upsert([{
           ...settings,
-          user_id: user?.id,
-        });
+          user_id: user.id,
+        }]);
 
       if (error) throw error;
       toast.success("Settings saved successfully");

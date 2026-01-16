@@ -96,7 +96,7 @@ export function RadioPlaylists() {
                 {/* Spotify Embed Preview */}
                 <div className="aspect-square relative">
                   <iframe
-                    src={playlist.spotify_embed_url}
+                    src={playlist.spotify_embed_url ?? undefined}
                     className="w-full h-full border-0"
                     allow="encrypted-media"
                     loading="lazy"

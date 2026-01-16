@@ -24,7 +24,7 @@ interface Story {
   id: string;
   media_url: string;
   media_type: string;
-  created_at: string;
+  created_at: string | null;
 }
 
 interface Like {
@@ -44,8 +44,8 @@ interface SocialAccount {
   id: string;
   platform: string;
   username: string;
-  display_name: string;
-  avatar_url: string;
+  display_name: string | null;
+  avatar_url: string | null;
 }
 
 interface SocialActivityFeedProps {
@@ -86,6 +86,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
   };
 
   const fetchPosts = async () => {
+    if (!targetUserId) return;
     const { data } = await supabase
       .from('posts')
       .select('*')
@@ -97,6 +98,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
   };
 
   const fetchStories = async () => {
+    if (!targetUserId) return;
     const { data } = await supabase
       .from('stories')
       .select('*')
@@ -105,10 +107,11 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
       .order('created_at', { ascending: false })
       .limit(5);
     
-    if (data) setStories(data);
+    if (data) setStories(data as Story[]);
   };
 
   const fetchLikes = async () => {
+    if (!targetUserId) return;
     const { data } = await supabase
       .from('post_likes')
       .select(`
@@ -128,13 +131,14 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
   };
 
   const fetchSocialAccounts = async () => {
+    if (!targetUserId) return;
     const { data } = await supabase
       .from('social_media_accounts')
       .select('*')
       .eq('user_id', targetUserId)
       .eq('is_active', true);
     
-    if (data) setSocialAccounts(data);
+    if (data) setSocialAccounts(data as SocialAccount[]);
   };
 
   const getPlatformIcon = (platform: string) => {

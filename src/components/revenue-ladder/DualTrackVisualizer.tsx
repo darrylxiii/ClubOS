@@ -34,7 +34,7 @@ function TrackCard({
         bgColor: 'bg-primary/10',
       }
     : {
-        icon: Infinity,
+        icon: TrendingUp,
         title: 'Lifetime Revenue',
         subtitle: 'Since founding',
         gradient: 'from-premium/20 via-premium/10 to-transparent',

@@ -72,6 +72,7 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
   const { data: disputes, isLoading } = useQuery({
     queryKey: ["contract-disputes", contractId],
     queryFn: async () => {
+      if (!contractId) return [];
       const { data, error } = await supabase
         .from("project_disputes")
         .select(`
@@ -84,11 +85,13 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
       if (error) throw error;
       return data as Dispute[];
     },
+    enabled: !!contractId,
   });
 
   const { data: contract } = useQuery({
     queryKey: ["contract-for-dispute", contractId],
     queryFn: async () => {
+      if (!contractId) return null;
       const { data, error } = await supabase
         .from("freelance_contracts")
         .select("*")
@@ -98,6 +101,7 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
       if (error) throw error;
       return data;
     },
+    enabled: !!contractId,
   });
 
   const createDisputeMutation = useMutation({

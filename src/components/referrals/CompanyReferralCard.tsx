@@ -114,10 +114,16 @@ export function CompanyReferralCard({ policy, earnings }: CompanyReferralCardPro
                     <h4 className="font-medium">Jobs from {policy.company?.name}</h4>
                   </div>
                   {jobs.length > 0 ? (
-                    jobs.map((job) => (
+                    jobs.map((job: any) => (
                       <JobReferralCard
                         key={job.id}
-                        job={job}
+                        job={{
+                          ...job,
+                          salary_min: job.salary_min ?? undefined,
+                          salary_max: job.salary_max ?? undefined,
+                          status: job.status ?? undefined,
+                          created_at: job.created_at ?? undefined,
+                        }}
                         earnings={companyEarnings.filter(e => e.job_id === job.id)}
                         sharePercentage={policy.share_percentage}
                         compact

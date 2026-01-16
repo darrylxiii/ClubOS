@@ -76,7 +76,7 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
       else if (ai.recommendation === 'strong_no') setOverallRating(1);
 
       if (ai.recommendation) setRecommendation(ai.recommendation);
-      if (ai.summary) setNotes(prev => prev || ai.summary);
+      if (ai.summary) setNotes(prev => prev || ai.summary || '');
     }
   }, [meeting]);
 
@@ -118,10 +118,10 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
 
       // Create pipeline event
       if (meeting?.application?.id) {
-        await supabase.from('pipeline_events').insert({
+        await supabase.from('pipeline_events').insert([{
           application_id: meeting.application.id,
-          candidate_id: meeting.candidate?.id,
-          job_id: meeting.job?.id,
+          candidate_id: meeting.candidate?.id ?? null,
+          job_id: meeting.job?.id ?? null,
           event_type: 'scorecard_submitted',
           triggered_by: 'manual',
           performed_by: user.user.id,
@@ -131,7 +131,7 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
             recommendation,
             interview_stage: meeting.interview_stage
           }
-        });
+        }]);
       }
 
       toast.success('Scorecard submitted successfully');

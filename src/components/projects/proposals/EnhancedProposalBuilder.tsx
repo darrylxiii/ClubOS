@@ -82,11 +82,12 @@ export function EnhancedProposalBuilder({
       }
 
       // Then create proposal
+      if (!profile?.id) throw new Error("Profile not found");
       const { error: proposalError } = await supabase
         .from("project_proposals")
         .insert([{
           project_id: projectId,
-          freelancer_id: profile?.id,
+          freelancer_id: profile.id,
           cover_letter: coverLetter,
           proposed_rate: parseFloat(proposedRate),
           proposed_timeline_weeks: parseInt(estimatedDuration) || 1,
@@ -116,7 +117,7 @@ export function EnhancedProposalBuilder({
     try {
       const response = await aiService.generateProjectProposal({
         projectId,
-        freelancerId: profile?.id
+        freelancerId: profile?.id ?? ''
       });
 
       if (!response.success) throw new Error(response.error || "Failed to generate");
