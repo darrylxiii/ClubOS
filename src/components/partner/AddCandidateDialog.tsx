@@ -277,12 +277,12 @@ export const AddCandidateDialog = ({
       const { data: rpcData, error: rpcError } = await supabase.rpc('admin_add_candidate', {
         p_job_id: jobId,
         p_job_title: jobTitle,
-        p_email: formData.email || null,
+        p_email: formData.email || undefined,
         p_full_name: formData.fullName,
-        p_linkedin_url: formData.linkedinUrl || null,
-        p_current_company: formData.currentCompany || null,
-        p_current_title: formData.currentTitle || null,
-        p_phone: formData.phone || null,
+        p_linkedin_url: formData.linkedinUrl || undefined,
+        p_current_company: formData.currentCompany || undefined,
+        p_current_title: formData.currentTitle || undefined,
+        p_phone: formData.phone || undefined,
         p_notes: `Candidate: ${formData.fullName}\nEmail: ${formData.email || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\nLinkedIn: ${formData.linkedinUrl || 'N/A'}\nCurrent: ${formData.currentTitle || 'N/A'} at ${formData.currentCompany || 'N/A'}\n\n${formData.notes}`,
         p_start_stage_index: parseInt(formData.startStageIndex),
         p_sourced_by: creditTo.length > 0 ? creditTo[0] : adminUser.id
@@ -373,8 +373,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           .eq('id', jobId)
           .single();
 
-        const stages = jobStages?.pipeline_stages || [];
-        const startingStageName = stages[parseInt(formData.startStageIndex)]?.name || 'Applied';
+        const stages = Array.isArray(jobStages?.pipeline_stages) ? jobStages.pipeline_stages : [];
+        const stageIndex = parseInt(formData.startStageIndex);
+        const startingStageName = (stages[stageIndex] as any)?.name || 'Applied';
 
         await supabase.from('pipeline_audit_logs').insert({
           job_id: jobId,

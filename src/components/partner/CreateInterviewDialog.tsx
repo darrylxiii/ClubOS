@@ -152,7 +152,7 @@ export const CreateInterviewDialog = ({
         member.interview_stages?.includes(stageIndex)
       );
       if (stageInterviewers && stageInterviewers.length > 0) {
-        setSelectedInterviewers(stageInterviewers.map((m) => m.company_member_id));
+        setSelectedInterviewers(stageInterviewers.map((m) => m.company_member_id).filter((id): id is string => id !== null));
       }
 
       // Set candidate email
@@ -163,11 +163,11 @@ export const CreateInterviewDialog = ({
       const emails = teamData?.map((m) => {
         const userProfile = m.company_member?.user;
         return {
-          id: m.company_member_id,
+          id: m.company_member_id || '',
           name: (userProfile as any)?.full_name || 'Unknown',
           email: (userProfile as any)?.email || '',
         };
-      }).filter(e => e.email) || [];
+      }).filter(e => e.email && e.id) || [];
       setInterviewerEmails(emails);
     } catch (error) {
       console.error('Error fetching job and team:', error);

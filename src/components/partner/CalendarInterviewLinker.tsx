@@ -175,11 +175,12 @@ export function CalendarInterviewLinker({
         }
       }
       let externalUsersData: any[] = [];
-      if (externalUserIds.length > 0) {
+      const validExternalUserIds = externalUserIds.filter((id): id is string => id !== null);
+      if (validExternalUserIds.length > 0) {
         const { data: extData } = await supabase
           .from('profiles')
           .select('id, email, full_name, avatar_url')
-          .in('id', externalUserIds);
+          .in('id', validExternalUserIds);
         
         externalUsersData = extData || [];
       }

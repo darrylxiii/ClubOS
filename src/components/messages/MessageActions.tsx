@@ -26,9 +26,9 @@ import { toast } from 'sonner';
 interface MessageActionsProps {
   message: any;
   isOwnMessage: boolean;
-  onEdit: () => void;
-  onReply: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onReply?: () => void;
+  onDelete?: () => void;
 }
 
 export function MessageActions({
@@ -50,7 +50,7 @@ export function MessageActions({
         .eq('id', message.id);
 
       toast.success('Message deleted');
-      onDelete();
+      onDelete?.();
       setDeleteOpen(false);
     } catch (_error) {
       console.error('Error deleting message:', _error);

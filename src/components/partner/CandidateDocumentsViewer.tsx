@@ -92,7 +92,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
     }
 
     // Fetch uploader info separately
-    const uploaderIds = [...new Set((data || []).map(doc => doc.uploaded_by).filter(Boolean))];
+    const uploaderIds = [...new Set((data || []).map(doc => doc.uploaded_by).filter((id): id is string => id !== null))];
     const { data: uploaders } = await supabase
       .from('profiles')
       .select('id, full_name, email')

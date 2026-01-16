@@ -52,14 +52,14 @@ export function MeetingInvitationCard({
       const userId = (await supabase.auth.getUser()).data.user?.id;
       if (userId) {
         await supabase.from('meeting_notification_analytics').insert({
-          user_id: userId,
+          meeting_invitation_id: invitation.id,
           notification_type: 'browser',
           responded_at: new Date().toISOString(),
           response_action: response,
           response_time_seconds: Math.floor(
             (new Date().getTime() - new Date(invitation.created_at).getTime()) / 1000
           ),
-        });
+        } as any);
       }
 
       toast.success(

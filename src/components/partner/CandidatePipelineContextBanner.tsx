@@ -101,7 +101,7 @@ export function CandidatePipelineContextBanner({
           sourcedBy = {
             id: sourcerProfile.id,
             name: sourcerProfile.full_name || 'Unknown',
-            avatar: sourcerProfile.avatar_url
+            avatar: sourcerProfile.avatar_url ?? undefined
           };
         }
       }
@@ -110,7 +110,7 @@ export function CandidatePipelineContextBanner({
         jobId: application.job.id,
         jobTitle: application.job.title,
         companyName: application.job.company?.name || 'Unknown Company',
-        companyLogo: application.job.company?.logo_url,
+        companyLogo: application.job.company?.logo_url ?? undefined,
         currentStage: stageName,
         stageIndex: currentStageIndex,
         totalStages: stages.length,
