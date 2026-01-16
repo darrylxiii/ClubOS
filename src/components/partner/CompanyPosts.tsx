@@ -60,9 +60,15 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
     e.preventDefault();
     
     try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser?.id) {
+        toast.error("Not authenticated");
+        return;
+      }
+      
       const postData = {
         company_id: companyId,
-        author_id: (await supabase.auth.getUser()).data.user?.id,
+        author_id: currentUser.id,
         title: formData.title,
         content: formData.content,
         post_type: formData.post_type,

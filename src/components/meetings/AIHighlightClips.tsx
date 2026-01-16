@@ -195,7 +195,7 @@ export function AIHighlightClips({ recordingId, onSeek, onShare }: AIHighlightCl
                 >
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-center gap-2">
-                      {getHighlightIcon(clip.highlight_type)}
+                      {getHighlightIcon(clip.highlight_type || 'default')}
                       <span className="font-medium text-sm">{clip.title}</span>
                     </div>
                     <div className="flex items-center gap-2">

@@ -96,7 +96,7 @@ export function CallNotificationManager({
       callerName={callerName}
       callerAvatar={callerAvatar ?? undefined}
       callType={activeInvitation.call_type as 'audio' | 'video'}
-      createdAt={activeInvitation.created_at}
+      createdAt={activeInvitation.created_at ?? new Date().toISOString()}
       onAccept={() => handleAccept(activeInvitation.id, activeInvitation.call_type)}
       onDecline={() => handleDecline(activeInvitation.id)}
     />
