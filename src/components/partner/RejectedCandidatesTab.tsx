@@ -360,7 +360,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={candidate.avatar_url} />
+                    <AvatarImage src={candidate.avatar_url ?? undefined} />
                     <AvatarFallback>{candidate.full_name.substring(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
 
@@ -435,7 +435,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <span>Rejected by:</span>
                           <Avatar className="w-5 h-5">
-                            <AvatarImage src={candidate.reviewer_avatar} />
+                            <AvatarImage src={candidate.reviewer_avatar ?? undefined} />
                             <AvatarFallback className="text-[10px]">
                               {candidate.reviewer_name.substring(0, 2).toUpperCase()}
                             </AvatarFallback>

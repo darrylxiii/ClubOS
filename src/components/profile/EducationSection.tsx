@@ -17,16 +17,16 @@ import { format } from 'date-fns';
 interface Education {
   id: string;
   institution_name: string;
-  degree_type: string;
-  field_of_study: string;
-  grade: string;
-  start_date: string;
+  degree_type: string | null;
+  field_of_study: string | null;
+  grade: string | null;
+  start_date: string | null;
   end_date: string | null;
-  is_current: boolean;
-  description: string;
-  certificate_url: string;
-  certificate_verified: boolean;
-  visibility: string;
+  is_current: boolean | null;
+  description: string | null;
+  certificate_url: string | null;
+  certificate_verified: boolean | null;
+  visibility: string | null;
 }
 
 interface EducationSectionProps {
@@ -127,15 +127,15 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
     setEditingId(edu.id);
     setFormData({
       institution_name: edu.institution_name,
-      degree_type: edu.degree_type,
-      field_of_study: edu.field_of_study,
-      grade: edu.grade,
-      start_date: edu.start_date,
+      degree_type: edu.degree_type || 'bachelor',
+      field_of_study: edu.field_of_study || '',
+      grade: edu.grade || '',
+      start_date: edu.start_date || '',
       end_date: edu.end_date || '',
-      is_current: edu.is_current,
-      description: edu.description,
-      certificate_url: edu.certificate_url,
-      visibility: edu.visibility
+      is_current: edu.is_current || false,
+      description: edu.description || '',
+      certificate_url: edu.certificate_url || '',
+      visibility: edu.visibility || 'public'
     });
     setIsDialogOpen(true);
   };

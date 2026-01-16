@@ -15,15 +15,15 @@ import { toast } from 'sonner';
 interface Portfolio {
   id: string;
   title: string;
-  description: string;
-  type: string;
-  thumbnail_url: string;
-  project_url: string;
-  github_url: string;
-  tags: any;
-  featured: boolean;
-  views_count: number;
-  likes_count: number;
+  description: string | null;
+  type: string | null;
+  thumbnail_url: string | null;
+  project_url: string | null;
+  github_url: string | null;
+  tags: string[];
+  featured: boolean | null;
+  views_count: number | null;
+  likes_count: number | null;
 }
 
 interface PortfolioSectionProps {
@@ -69,7 +69,11 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
       console.error('Error loading portfolio:', error);
       return;
     }
-    setItems(data || []);
+    const mappedData = (data || []).map((item: any) => ({
+      ...item,
+      tags: Array.isArray(item.tags) ? item.tags : []
+    }));
+    setItems(mappedData);
   };
 
   const handleSave = async () => {
@@ -127,13 +131,13 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
     setEditingId(item.id);
     setFormData({
       title: item.title,
-      description: item.description,
-      type: item.type,
-      thumbnail_url: item.thumbnail_url,
-      project_url: item.project_url,
-      github_url: item.github_url,
-      tags: item.tags.join(', '),
-      featured: item.featured,
+      description: item.description || '',
+      type: item.type || 'project',
+      thumbnail_url: item.thumbnail_url || '',
+      project_url: item.project_url || '',
+      github_url: item.github_url || '',
+      tags: (item.tags || []).join(', '),
+      featured: item.featured || false,
       visibility: 'public'
     });
     setIsDialogOpen(true);
@@ -331,9 +335,9 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                       <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
                     )}
 
-                    {item.tags.length > 0 && (
+                    {item.tags && item.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {item.tags.map((tag, idx) => (
+                        {item.tags.map((tag: string, idx: number) => (
                           <Badge key={idx} variant="secondary" className="text-xs">{tag}</Badge>
                         ))}
                       </div>
