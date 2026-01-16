@@ -761,7 +761,7 @@ export function useMeetingWebRTC({
             try {
               await pc.addIceCandidate(new RTCIceCandidate(candidate));
             } catch (_e) {
-              console.warn('[WebRTC] Failed to add queued candidate:', e);
+              console.warn('[WebRTC] Failed to add queued candidate:', _e);
             }
           }
           pendingCandidates.current.delete(senderId);

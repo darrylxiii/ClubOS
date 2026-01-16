@@ -92,7 +92,7 @@ export function useMeetingTranscription({
       try {
         mediaRecorderRef.current.stop();
       } catch (_e) {
-        console.warn('[Transcription] Error stopping MediaRecorder:', e);
+        console.warn('[Transcription] Error stopping MediaRecorder:', _e);
       }
     }
     mediaRecorderRef.current = null;
@@ -206,7 +206,7 @@ export function useMeetingTranscription({
               try {
                 mediaRecorder.start();
               } catch (_e) {
-                console.warn('[Transcription] Could not restart MediaRecorder:', e);
+                console.warn('[Transcription] Could not restart MediaRecorder:', _e);
               }
             }
           }

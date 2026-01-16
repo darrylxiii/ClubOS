@@ -16,7 +16,7 @@ export interface MeetingFeatureSettings {
   echoCancellation: {
     enabled: boolean;
   };
-  
+
   // Video features
   lowLightEnhancement: {
     enabled: boolean;
@@ -38,7 +38,7 @@ export interface MeetingFeatureSettings {
     maxFps: number;
     contentType: 'screen' | 'window' | 'tab';
   };
-  
+
   // AI features
   transcription: {
     enabled: boolean;
@@ -53,7 +53,7 @@ export interface MeetingFeatureSettings {
     enabled: boolean;
     categories: ('action_item' | 'decision' | 'question')[];
   };
-  
+
   // Network features
   adaptiveQuality: {
     enabled: boolean;
@@ -64,7 +64,7 @@ export interface MeetingFeatureSettings {
     enabled: boolean;
     autoReconnect: boolean;
   };
-  
+
   // Performance features
   performanceMonitoring: {
     enabled: boolean;
@@ -81,19 +81,19 @@ const DEFAULT_SETTINGS: MeetingFeatureSettings = {
   spatialAudio: { enabled: false },
   audioNormalization: { enabled: true, targetLevel: -20 },
   echoCancellation: { enabled: true },
-  
+
   lowLightEnhancement: { enabled: false, mode: 'auto', intensity: 50 },
   virtualBackground: { enabled: false, type: 'none', blurRadius: 10 },
   svc: { enabled: true, codec: 'vp9' },
   hdScreenShare: { enabled: true, maxFps: 30, contentType: 'screen' },
-  
+
   transcription: { enabled: false, language: 'en-US', showSpeakerLabels: true },
   gestureRecognition: { enabled: false, showReactions: true },
   autoHighlight: { enabled: false, categories: ['action_item', 'decision'] },
-  
+
   adaptiveQuality: { enabled: true, minQuality: 'low', maxQuality: 'high' },
   networkResilience: { enabled: true, autoReconnect: true },
-  
+
   performanceMonitoring: { enabled: true, showDashboard: false },
   resourceOptimization: { enabled: true, batterySaver: false },
 };
@@ -121,7 +121,7 @@ export function useMeetingFeatureSettings(): UseMeetingFeatureSettingsReturn {
         return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
       }
     } catch (_e) {
-      console.warn('Failed to load feature settings:', e);
+      console.warn('Failed to load feature settings:', _e);
     }
     return DEFAULT_SETTINGS;
   });
@@ -131,7 +131,7 @@ export function useMeetingFeatureSettings(): UseMeetingFeatureSettingsReturn {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     } catch (_e) {
-      console.warn('Failed to save feature settings:', e);
+      console.warn('Failed to save feature settings:', _e);
     }
   }, [settings]);
 
