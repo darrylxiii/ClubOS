@@ -156,7 +156,7 @@ export function ConfirmActionDialog({
       setConfirmInput("");
       onOpenChange(false);
     } catch (_error) {
-      console.error("Confirm action failed:", error);
+      console.error("Confirm action failed:", _error);
     } finally {
       setLocalLoading(false);
     }

@@ -72,7 +72,7 @@ export function PilotTaskTimerIntegration() {
       const { data: latestEntry } = await supabase
         .from('time_entries')
         .select('id')
-        .eq('user_id', user?.id)
+        .eq('user_id', user?.id ?? '')
         .eq('is_running', true)
         .single();
 

@@ -77,12 +77,12 @@ export function BlockComments({ pageId, blockId, className }: BlockCommentsProps
 
   const addCommentMutation = useMutation({
     mutationFn: async (content: string) => {
-      const { error } = await supabase.from('page_comments').insert({
+      const { error } = await supabase.from('page_comments').insert([{
         page_id: pageId,
         block_id: blockId,
-        user_id: user?.id,
+        user_id: user?.id ?? '',
         content,
-      });
+      }]);
       if (error) throw error;
     },
     onSuccess: () => {

@@ -43,8 +43,8 @@ export function PersonCell({ value, onChange, multiple = false }: PersonCellProp
       return data?.map(p => ({
         id: p.id,
         name: p.full_name || p.email || 'Unknown',
-        avatar_url: p.avatar_url,
-        email: p.email
+        avatar_url: p.avatar_url ?? undefined,
+        email: p.email ?? undefined
       })) || [];
     },
   });

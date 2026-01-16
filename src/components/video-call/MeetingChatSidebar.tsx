@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 interface Message {
   id: string;
-  sender_id: string;
+  sender_id: string | null;
   sender_name: string;
   content: string;
   created_at: string;

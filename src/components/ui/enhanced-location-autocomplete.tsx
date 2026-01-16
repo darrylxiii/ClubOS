@@ -66,7 +66,7 @@ function getRecentLocations(): RecentLocation[] {
       return JSON.parse(stored);
     }
   } catch (_e) {
-    console.error("Error reading recent locations:", e);
+    console.error("Error reading recent locations:", _e);
   }
   return [];
 }
@@ -80,7 +80,7 @@ function saveRecentLocation(location: LocationResult): void {
     ].slice(0, MAX_RECENT);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   } catch (_e) {
-    console.error("Error saving recent location:", e);
+    console.error("Error saving recent location:", _e);
   }
 }
 
@@ -171,7 +171,7 @@ export function EnhancedLocationAutocomplete({
           setSuggestions(parsed);
         }
       } catch (_error) {
-        console.error("Error fetching location suggestions:", error);
+        console.error("Error fetching location suggestions:", _error);
       } finally {
         setLoading(false);
       }
