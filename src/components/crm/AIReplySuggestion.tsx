@@ -38,8 +38,9 @@ export function AIReplySuggestion({
       const emailClassification = classification || 'neutral';
 
       const data = await aiService.generateCrmReply({
-        originalEmail: emailContent,
-        classification: emailClassification,
+        prospect_id: '', // Context provided via 'context' param when ID missing
+        context: emailContent,
+        goal: emailClassification,
         tone: tone as 'casual' | 'friendly' | 'professional' | undefined
       });
       // The new service returns { reply, classification } directly

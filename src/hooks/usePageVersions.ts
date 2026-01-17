@@ -33,15 +33,15 @@ export function usePageVersions(pageId: string | undefined) {
       if (error) throw error;
 
       // Fetch editor names separately
-      const editorIds = [...new Set(data.map(v => v.edited_by).filter(Boolean))];
+      const editorIds = [...new Set(data.map(v => v.edited_by).filter((id): id is string => !!id))];
       let editorMap: Record<string, string> = {};
-      
+
       if (editorIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name')
           .in('id', editorIds);
-        
+
         if (profiles) {
           editorMap = Object.fromEntries(profiles.map(p => [p.id, p.full_name || 'Unknown']));
         }

@@ -82,7 +82,7 @@ export const useLiveHubUnread = () => {
   }, [unreadStates]);
 
   const getTotalUnreadCount = useCallback(() => {
-    return Object.values(unreadStates).reduce((total, state) => total + state.unread_count, 0);
+    return Object.values(unreadStates).reduce((total, state) => total + (state.unread_count ?? 0), 0);
   }, [unreadStates]);
 
   return {

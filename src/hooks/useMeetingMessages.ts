@@ -21,7 +21,7 @@ export const useMeetingMessages = () => {
     try {
       const { error } = await supabase
         .from('messages')
-        .insert({
+        .insert([{
           conversation_id: conversationId,
           sender_id: (await supabase.auth.getUser()).data.user?.id,
           content,
@@ -32,7 +32,7 @@ export const useMeetingMessages = () => {
             ...metadata,
             is_meeting_system_message: true
           }
-        });
+        }]);
 
       if (error) throw error;
     } catch (error: any) {

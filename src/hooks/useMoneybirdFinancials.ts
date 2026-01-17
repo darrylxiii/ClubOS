@@ -68,14 +68,23 @@ export function useMoneybirdFinancials(year?: number) {
       // Parse JSONB fields
       return {
         ...data,
-        revenue_by_month: (data.revenue_by_month as unknown as MonthlyRevenue[]) || [],
-        top_clients: (data.top_clients as unknown as TopClient[]) || [],
-        payment_aging: (data.payment_aging as unknown as PaymentAging) || {
-          current: 0,
-          overdue_30: 0,
-          overdue_60: 0,
-          overdue_90: 0,
-          overdue_90_plus: 0,
+        revenue_by_month: (data.revenue_by_month as unknown as MonthlyRevenue[] || []).map(m => ({
+          ...m,
+          revenue: m.revenue ?? 0,
+          paid: m.paid ?? 0,
+          count: m.count ?? 0
+        })),
+        top_clients: (data.top_clients as unknown as TopClient[] || []).map(c => ({
+          ...c,
+          revenue: c.revenue ?? 0,
+          paid: c.paid ?? 0
+        })),
+        payment_aging: {
+          current: (data.payment_aging as any)?.current ?? 0,
+          overdue_30: (data.payment_aging as any)?.overdue_30 ?? 0,
+          overdue_60: (data.payment_aging as any)?.overdue_60 ?? 0,
+          overdue_90: (data.payment_aging as any)?.overdue_90 ?? 0,
+          overdue_90_plus: (data.payment_aging as any)?.overdue_90_plus ?? 0,
         },
         metadata: (data.metadata as Record<string, unknown>) || {},
       };

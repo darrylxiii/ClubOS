@@ -55,7 +55,7 @@ export function usePagePresence(pageId: string | undefined) {
 
     const fetchViewers = async () => {
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-      
+
       const { data } = await supabase
         .from("page_presence")
         .select("*")
@@ -63,7 +63,7 @@ export function usePagePresence(pageId: string | undefined) {
         .gte("last_seen_at", fiveMinutesAgo);
 
       if (data) {
-        setViewers(data);
+        setViewers(data.map(p => ({ ...p, is_editing: p.is_editing ?? false })));
 
         // Fetch user profiles
         const userIds = [...new Set(data.map((p) => p.user_id))];

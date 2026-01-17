@@ -59,7 +59,7 @@ export function usePartnerEngagement() {
         .in('id', partnerIds);
 
       // Get company names
-      const companyIds = [...new Set(partnerProfiles?.map(p => p.company_id).filter(Boolean) || [])];
+      const companyIds = [...new Set(partnerProfiles?.map(p => p.company_id).filter((id): id is string => !!id) || [])];
       const { data: companies } = await supabase
         .from('companies')
         .select('id, name')

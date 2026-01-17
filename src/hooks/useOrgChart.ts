@@ -106,7 +106,7 @@ export function useOrgChart(companyId: string | null) {
   const updateMemberReporting = async (
     memberId: string,
     reportsToMemberId: string | null,
-    departmentId: string | null = undefined
+    departmentId: string | null = null
   ) => {
     try {
       const updates: any = {

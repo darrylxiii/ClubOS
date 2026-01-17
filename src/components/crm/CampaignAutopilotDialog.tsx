@@ -67,13 +67,13 @@ export function CampaignAutopilotDialog({
             const { data: newCampaign, error: dbError } = await supabase
                 .from('crm_campaigns')
                 .insert({
-                    name: campaignData.name,
-                    description: campaignData.description,
+                    name: campaignData.campaign_name,
+                    description: `Campaign targeting: ${campaignData.target_personas?.join(', ') || 'General audience'}`,
                     status: 'draft',
                     source: 'ai_autopilot',
                     owner_id: user?.id,
-                    target_audience: campaignData.target_audience, // JSONB
-                    config: campaignData.config, // JSONB
+                    target_audience: { personas: campaignData.target_personas },
+                    config: { estimated_response_rate: campaignData.estimated_response_rate },
                     metrics: {
                         sent: 0,
                         opens: 0,
@@ -84,7 +84,7 @@ export function CampaignAutopilotDialog({
                         prospects: 0
                     },
                     metadata: {
-                        generated_steps: campaignData.steps, // Store generated steps in metadata for now, or unified field
+                        generated_steps: campaignData.email_sequence,
                         original_prompt: formData
                     }
                 })

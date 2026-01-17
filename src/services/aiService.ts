@@ -314,6 +314,10 @@ export const aiService = {
         return this.invokeAI('generate-post-suggestions', params as unknown as Record<string, unknown>);
     },
 
+    async generatePost(params: GeneratePostParams): Promise<GeneratePostResponse> {
+        return this.invokeAI('generate-social-post', params as unknown as Record<string, unknown>);
+    },
+
     async generateQuickReply(params: GenerateQuickReplyParams): Promise<GenerateQuickReplyResponse> {
         return this.invokeAI('generate-quick-reply', params as unknown as Record<string, unknown>);
     },

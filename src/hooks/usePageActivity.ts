@@ -77,13 +77,13 @@ export function usePageActivity(pageId: string | undefined) {
 
   // Log an activity
   const logActivity = useMutation({
-    mutationFn: async ({ 
-      activityPageId, 
-      activityType, 
-      activityData = {} 
-    }: { 
-      activityPageId: string; 
-      activityType: ActivityType; 
+    mutationFn: async ({
+      activityPageId,
+      activityType,
+      activityData = {}
+    }: {
+      activityPageId: string;
+      activityType: ActivityType;
       activityData?: Record<string, string | number | boolean | null>;
     }) => {
       const { error } = await supabase
@@ -207,8 +207,8 @@ export function useWorkspaceAnalytics(workspaceId: string | undefined, days: num
         pages,
         topPages,
         recentActivity: recentActivity || [],
-        totalViews: analytics?.reduce((sum, a) => sum + a.view_count, 0) || 0,
-        totalEdits: analytics?.reduce((sum, a) => sum + a.edit_count, 0) || 0,
+        totalViews: analytics?.reduce((sum, a) => sum + (a.view_count ?? 0), 0) || 0,
+        totalEdits: analytics?.reduce((sum, a) => sum + (a.edit_count ?? 0), 0) || 0,
       };
     },
     enabled: !!workspaceId && !!user,

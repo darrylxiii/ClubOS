@@ -51,7 +51,7 @@ export function useFeatureFlags() {
     }
     try {
       const { error } = await supabase.from('feature_flags').insert([{
-        flag_key: flag.flag_key!,
+        flag_key: flag.flag_key!,!,
         name: flag.name,
         description: flag.description,
         enabled: flag.enabled ?? false,
@@ -62,63 +62,63 @@ export function useFeatureFlags() {
         metadata: flag.metadata ?? {},
       }]);
 
-      if (error) throw error;
-      toast.success('Feature flag created');
-      await fetchFlags();
-      return true;
-    } catch (error: any) {
-      console.error('Error creating feature flag:', error);
-      toast.error(error.message || 'Failed to create feature flag');
-      return false;
-    }
-  };
+    if (error) throw error;
+    toast.success('Feature flag created');
+    await fetchFlags();
+    return true;
+  } catch (error: any) {
+    console.error('Error creating feature flag:', error);
+    toast.error(error.message || 'Failed to create feature flag');
+    return false;
+  }
+};
 
-  const updateFlag = async (id: string, updates: Partial<FeatureFlag>): Promise<boolean> => {
-    try {
-      const { error } = await supabase
-        .from('feature_flags')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id);
+const updateFlag = async (id: string, updates: Partial<FeatureFlag>): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('feature_flags')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id);
 
-      if (error) throw error;
-      toast.success('Feature flag updated');
-      await fetchFlags();
-      return true;
-    } catch (error: any) {
-      console.error('Error updating feature flag:', error);
-      toast.error(error.message || 'Failed to update feature flag');
-      return false;
-    }
-  };
+    if (error) throw error;
+    toast.success('Feature flag updated');
+    await fetchFlags();
+    return true;
+  } catch (error: any) {
+    console.error('Error updating feature flag:', error);
+    toast.error(error.message || 'Failed to update feature flag');
+    return false;
+  }
+};
 
-  const deleteFlag = async (id: string): Promise<boolean> => {
-    try {
-      const { error } = await supabase.from('feature_flags').delete().eq('id', id);
+const deleteFlag = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase.from('feature_flags').delete().eq('id', id);
 
-      if (error) throw error;
-      toast.success('Feature flag deleted');
-      await fetchFlags();
-      return true;
-    } catch (error: any) {
-      console.error('Error deleting feature flag:', error);
-      toast.error(error.message || 'Failed to delete feature flag');
-      return false;
-    }
-  };
+    if (error) throw error;
+    toast.success('Feature flag deleted');
+    await fetchFlags();
+    return true;
+  } catch (error: any) {
+    console.error('Error deleting feature flag:', error);
+    toast.error(error.message || 'Failed to delete feature flag');
+    return false;
+  }
+};
 
-  const toggleFlag = async (id: string, enabled: boolean): Promise<boolean> => {
-    return updateFlag(id, { enabled });
-  };
+const toggleFlag = async (id: string, enabled: boolean): Promise<boolean> => {
+  return updateFlag(id, { enabled });
+};
 
-  return {
-    flags,
-    isLoading,
-    fetchFlags,
-    createFlag,
-    updateFlag,
-    deleteFlag,
-    toggleFlag,
-  };
+return {
+  flags,
+  isLoading,
+  fetchFlags,
+  createFlag,
+  updateFlag,
+  deleteFlag,
+  toggleFlag,
+};
 }
 
 // Hook to check if a specific feature is enabled for current user

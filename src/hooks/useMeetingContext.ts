@@ -152,7 +152,7 @@ export const useMeetingContext = (meetingId?: string) => {
       if (meetingData.job_id) {
         const { data } = await supabase
           .from('jobs')
-          .select('id, title, department, location')
+          .select('id, title, location')
           .eq('id', meetingData.job_id)
           .single();
         job = data;

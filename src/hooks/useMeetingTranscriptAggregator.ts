@@ -95,9 +95,9 @@ export function useMeetingTranscriptAggregator({
             id: t.id,
             text: t.text,
             speaker_name: await getSpeakerName(t.participant_id),
-            speaker_id: t.participant_id,
+            speaker_id: t.participant_id ?? 'unknown',
             timestamp_ms: t.timestamp_ms,
-            is_final: t.is_final,
+            is_final: t.is_final ?? true,
             confidence: t.confidence
           }))
         );
@@ -131,9 +131,9 @@ export function useMeetingTranscriptAggregator({
         },
         async (payload) => {
           const newTranscript = payload.new as any;
-          
+
           const speakerName = await getSpeakerName(newTranscript.participant_id);
-          
+
           const enriched: AggregatedTranscript = {
             id: newTranscript.id,
             text: newTranscript.text,
@@ -147,9 +147,9 @@ export function useMeetingTranscriptAggregator({
           setTranscripts(prev => {
             // If this is an update to an existing interim transcript, replace it
             const existingIndex = prev.findIndex(
-              t => t.speaker_id === enriched.speaker_id && 
-                   !t.is_final && 
-                   Math.abs(t.timestamp_ms - enriched.timestamp_ms) < 5000
+              t => t.speaker_id === enriched.speaker_id &&
+                !t.is_final &&
+                Math.abs(t.timestamp_ms - enriched.timestamp_ms) < 5000
             );
 
             if (existingIndex >= 0 && !enriched.is_final) {
@@ -182,15 +182,15 @@ export function useMeetingTranscriptAggregator({
           const updated = payload.new as any;
           const speakerName = await getSpeakerName(updated.participant_id);
 
-          setTranscripts(prev => 
-            prev.map(t => 
+          setTranscripts(prev =>
+            prev.map(t =>
               t.id === updated.id
                 ? {
-                    ...t,
-                    text: updated.text,
-                    is_final: updated.is_final,
-                    speaker_name: speakerName
-                  }
+                  ...t,
+                  text: updated.text,
+                  is_final: updated.is_final,
+                  speaker_name: speakerName
+                }
                 : t
             )
           );
@@ -211,7 +211,7 @@ export function useMeetingTranscriptAggregator({
   // Get latest transcript per speaker (for captions)
   const getLatestBySpeaker = useCallback((): Map<string, AggregatedTranscript> => {
     const latestMap = new Map<string, AggregatedTranscript>();
-    
+
     // Process in order, keeping most recent per speaker
     for (const t of transcripts) {
       const existing = latestMap.get(t.speaker_id);
@@ -219,7 +219,7 @@ export function useMeetingTranscriptAggregator({
         latestMap.set(t.speaker_id, t);
       }
     }
-    
+
     return latestMap;
   }, [transcripts]);
 

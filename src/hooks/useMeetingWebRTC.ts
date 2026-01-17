@@ -732,7 +732,7 @@ export function useMeetingWebRTC({
           try {
             await pc.addIceCandidate(new RTCIceCandidate(candidate));
           } catch (_e) {
-            console.warn('[WebRTC] Failed to add queued candidate:', e);
+            console.warn('[WebRTC] Failed to add queued candidate:', _e);
           }
         }
         pendingCandidates.current.delete(senderId);
@@ -898,6 +898,8 @@ export function useMeetingWebRTC({
         console.log('[WebRTC] 📊 Processing', signals.length, 'signals from polling');
 
         for (const signal of signals) {
+          if (!signal.sender_id) continue;
+
           // Process signal - cast signal_data to appropriate type via unknown
           switch (signal.signal_type) {
             case 'join':

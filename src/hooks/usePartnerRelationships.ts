@@ -94,7 +94,7 @@ export function usePartnerRelationships() {
 
       // Partners are limited to their own company; admins/strategists see all
       if (!isAdminOrStrategist) {
-        applicationsQuery = applicationsQuery.eq('jobs.company_id', companyId);
+        applicationsQuery = applicationsQuery.eq('jobs.company_id', companyId!);
       }
 
       const { data: applications, error: applicationsError } = await applicationsQuery;
@@ -158,8 +158,8 @@ export function usePartnerRelationships() {
       // Calculate stats
       const healthy = unique.filter(r => r.risk_level === 'low').length;
       const atRisk = unique.filter(r => ['high', 'critical'].includes(r.risk_level || '')).length;
-      const avgResponse = unique.length > 0 
-        ? unique.reduce((sum, r) => sum + (r.response_rate || 0), 0) / unique.length 
+      const avgResponse = unique.length > 0
+        ? unique.reduce((sum, r) => sum + (r.response_rate || 0), 0) / unique.length
         : 0;
       const avgEng = unique.length > 0
         ? unique.reduce((sum, r) => sum + (r.engagement_score || 0), 0) / unique.length
@@ -187,10 +187,10 @@ export function usePartnerRelationships() {
     // Real-time subscription
     const channel = supabase
       .channel('partner_relationships')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'communication_relationship_scores' 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'communication_relationship_scores'
       }, () => {
         fetchRelationships();
       })
