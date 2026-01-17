@@ -201,8 +201,8 @@ class DebugMode {
     if (filter?.level) {
       result = result.filter((l) => l.level === filter.level);
     }
-    if (filter?.since) {
-      result = result.filter((l) => l.timestamp >= filter.since);
+    if (filter?.since !== undefined) {
+      result = result.filter((l) => l.timestamp >= filter.since!);
     }
 
     return result;

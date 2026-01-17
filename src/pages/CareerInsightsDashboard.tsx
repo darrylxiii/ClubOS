@@ -56,17 +56,18 @@ export default function CareerInsightsDashboard() {
     setGenerating(true);
     try {
       // Call the edge function for AI-powered insights
-      const { insights, error } = await aiService.generateCareerInsights({
-        userId: user.id
-      });
+      const result = await aiService.generateCareerInsights({
+        userId: user?.id ?? ''
+      }) as any;
 
-      if (error) throw new Error(error);
-      if (insights) {
+      if (result?.error) throw new Error(result.error);
+      const insightsData = result?.insights || result;
+      if (insightsData) {
         setInsights({
-          skillGapAnalysis: insights.skill_gap_analysis || [],
-          marketPosition: insights.market_position || { percentile: 0, salaryRange: { min: 0, max: 0 }, demandLevel: 'unknown' },
-          careerTrends: insights.career_trends || [],
-          nextActions: insights.next_actions || [],
+          skillGapAnalysis: insightsData.skill_gap_analysis || [],
+          marketPosition: insightsData.market_position || { percentile: 0, salaryRange: { min: 0, max: 0 }, demandLevel: 'unknown' },
+          careerTrends: insightsData.career_trends || [],
+          nextActions: insightsData.next_actions || [],
         });
         toast.success('Career insights generated successfully');
       }

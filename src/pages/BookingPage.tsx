@@ -25,16 +25,16 @@ interface BookingLink {
   title: string;
   description: string | null;
   duration_minutes: number;
-  buffer_before_minutes: number;
-  buffer_after_minutes: number;
-  advance_booking_days: number;
-  min_notice_hours: number;
+  buffer_before_minutes: number | null;
+  buffer_after_minutes: number | null;
+  advance_booking_days: number | null;
+  min_notice_hours: number | null;
   color: string;
   custom_questions: any;
-  is_active: boolean;
-  allow_guest_platform_choice?: boolean;
-  available_platforms?: string[];
-  video_platform?: string;
+  is_active: boolean | null;
+  allow_guest_platform_choice?: boolean | null;
+  available_platforms?: string[] | null;
+  video_platform?: string | null;
 }
 
 interface Profile {
@@ -76,7 +76,7 @@ export default function BookingPage() {
       const { data: linkData, error: linkError } = await supabase
         .from("booking_links")
         .select("*")
-        .eq("slug", slug)
+        .eq("slug", slug ?? '')
         .eq("is_active", true)
         .single();
 
@@ -88,7 +88,7 @@ export default function BookingPage() {
         return;
       }
 
-      setBookingLink(linkData);
+      setBookingLink(linkData as unknown as BookingLink);
 
       // Load profile with timezone
       const { data: profileData, error: profileError } = await supabase

@@ -96,7 +96,7 @@ export default function ApplicationDetail() {
             )
           )
         `)
-        .eq("id", applicationId)
+        .eq("id", applicationId ?? '')
         .eq("user_id", user.id)
         .single();
 
@@ -174,12 +174,18 @@ export default function ApplicationDetail() {
         ...data,
         job: {
           ...data.jobs,
+          location: data.jobs.location ?? '',
           requirements: (data.jobs.requirements as string[]) || [],
           benefits: (data.jobs.benefits as string[]) || [],
         },
         stages: formattedStages,
         other_candidates_count: count || 0,
-        talent_strategist: strategist,
+        talent_strategist: strategist ? {
+          id: strategist.id,
+          full_name: strategist.full_name ?? '',
+          avatar_url: strategist.avatar_url ?? '',
+          user_id: strategist.user_id,
+        } : undefined,
       });
     } catch (error) {
       console.error("Error loading application:", error);

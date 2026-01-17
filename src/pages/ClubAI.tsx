@@ -91,12 +91,12 @@ const ClubAI = () => {
       if (messages.length === 0) return;
 
       try {
-        const { data, error } = await aiService.generatePlaceholders({
-          messages
+        const result = await aiService.generatePlaceholders({
+          messages: messages.map(m => ({ key: m.content, context: m.role }))
         });
 
-        if (!error && data?.placeholders) {
-          setDynamicPlaceholders(data.placeholders);
+        if (result?.placeholders) {
+          setDynamicPlaceholders(Object.values(result.placeholders));
         }
       } catch (error) {
         console.error("Error generating placeholders:", error);
@@ -397,8 +397,8 @@ const ClubAI = () => {
                 path: args.path,
                 reason: args.reason
               });
-            } catch (_e) {
-              console.error("Failed to parse tool call:", e);
+            } catch (parseError) {
+              console.error("Failed to parse tool call:", parseError);
             }
           }
         });
@@ -956,8 +956,8 @@ const ClubAI = () => {
                                 path: args.path,
                                 reason: args.reason
                               });
-                            } catch (_e) {
-                              console.error("Failed to parse tool call:", e);
+                            } catch (parseError) {
+                              console.error("Failed to parse tool call:", parseError);
                             }
                           }
                         });

@@ -34,14 +34,14 @@ interface BookingLink {
   title: string;
   description: string | null;
   duration_minutes: number;
-  buffer_before_minutes: number;
-  buffer_after_minutes: number;
-  advance_booking_days: number;
-  min_notice_hours: number;
-  is_active: boolean;
+  buffer_before_minutes: number | null;
+  buffer_after_minutes: number | null;
+  advance_booking_days: number | null;
+  min_notice_hours: number | null;
+  is_active: boolean | null;
   color: string;
   primary_calendar_id: string | null;
-  enable_club_ai: boolean;
+  enable_club_ai: boolean | null;
   created_at: string;
 }
 
@@ -49,7 +49,7 @@ interface CalendarConnection {
   id: string;
   provider: string;
   email: string;
-  is_active: boolean;
+  is_active: boolean | null;
 }
 
 interface BookingStats {
@@ -120,7 +120,7 @@ export default function BookingManagement() {
       toast.error("Failed to load booking links");
       return;
     }
-    setBookingLinks(data || []);
+    setBookingLinks((data || []) as unknown as BookingLink[]);
   };
 
   const loadCalendars = async () => {
@@ -134,7 +134,7 @@ export default function BookingManagement() {
       toast.error("Failed to load calendar connections");
       return;
     }
-    setCalendars(data || []);
+    setCalendars((data || []) as unknown as CalendarConnection[]);
   };
 
   const loadStats = async () => {
@@ -268,12 +268,12 @@ export default function BookingManagement() {
       title: link.title,
       description: link.description || "",
       duration_minutes: link.duration_minutes,
-      buffer_before_minutes: link.buffer_before_minutes,
-      buffer_after_minutes: link.buffer_after_minutes,
-      advance_booking_days: link.advance_booking_days,
-      min_notice_hours: link.min_notice_hours,
+      buffer_before_minutes: link.buffer_before_minutes ?? 0,
+      buffer_after_minutes: link.buffer_after_minutes ?? 0,
+      advance_booking_days: link.advance_booking_days ?? 30,
+      min_notice_hours: link.min_notice_hours ?? 24,
       color: link.color,
-      enable_club_ai: link.enable_club_ai,
+      enable_club_ai: link.enable_club_ai ?? false,
       primary_calendar_id: link.primary_calendar_id || ""
     });
   };

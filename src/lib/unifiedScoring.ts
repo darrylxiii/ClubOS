@@ -195,7 +195,7 @@ export function calculateUnifiedScore(
   
   // Interview score (neutral if no data)
   let interviewScore = 50; // neutral baseline
-  if (input.interviewPerformance !== undefined) {
+  if (input.interviewPerformance !== undefined && input.interviewPerformance !== null) {
     interviewScore = input.interviewPerformance * 100;
   } else if ((input.interviewCount ?? 0) > 0) {
     interviewScore = 60; // slight boost for having interviews
