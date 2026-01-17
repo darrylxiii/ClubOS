@@ -248,13 +248,13 @@ export function VideoCallInterface({ conversationId, participantName, participan
         participants={participants.map(p => ({
           id: p.id,
           display_name: p.display_name,
-          role: p.role,
-          is_muted: p.is_muted,
-          is_video_off: p.is_video_off,
-          is_screen_sharing: p.is_screen_sharing,
-          is_hand_raised: p.is_hand_raised,
-          is_speaking: p.is_speaking,
-          stream: remoteStreams.get(p.user_id)
+          role: p.role ?? 'participant',
+          is_muted: p.is_muted ?? false,
+          is_video_off: p.is_video_off ?? false,
+          is_screen_sharing: p.is_screen_sharing ?? false,
+          is_hand_raised: p.is_hand_raised ?? false,
+          is_speaking: p.is_speaking ?? false,
+          stream: p.user_id ? remoteStreams.get(p.user_id) : undefined
         }))}
         localParticipant={{
           id: 'local',
@@ -350,7 +350,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
 
       {showParticipants && (
         <ParticipantPanel
-          participants={participants}
+          participants={participants as any}
           onClose={() => setShowParticipants(false)}
         />
       )}

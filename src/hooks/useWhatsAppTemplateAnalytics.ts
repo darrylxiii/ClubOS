@@ -70,19 +70,20 @@ export function useWhatsAppTemplateAnalytics(periodDays: number = 30) {
 
         for (const convId of conversationIds) {
           const templateMsg = templateMessages.find(m => m.conversation_id === convId);
-          if (templateMsg) {
+          if (templateMsg && templateMsg.created_at) {
             const templateTime = new Date(templateMsg.created_at).getTime();
             const replyMessages = (messages || []).filter(
               m =>
                 m.conversation_id === convId &&
                 m.direction === 'inbound' &&
+                m.created_at &&
                 new Date(m.created_at).getTime() > templateTime &&
                 new Date(m.created_at).getTime() - templateTime <= 24 * 60 * 60 * 1000
             );
             if (replyMessages.length > 0) {
               repliedCount++;
               const firstReply = replyMessages[0];
-              const responseTime = (new Date(firstReply.created_at).getTime() - templateTime) / 60000;
+              const responseTime = firstReply.created_at ? (new Date(firstReply.created_at).getTime() - templateTime) / 60000 : 0;
               totalResponseTime += responseTime;
               responseCount++;
             }
@@ -102,17 +103,18 @@ export function useWhatsAppTemplateAnalytics(periodDays: number = 30) {
         for (let i = 0; i < Math.min(7, periodDays); i++) {
           const date = format(subDays(new Date(), i), 'yyyy-MM-dd');
           const daySent = templateMessages.filter(
-            m => format(new Date(m.created_at), 'yyyy-MM-dd') === date
+            m => m.created_at && format(new Date(m.created_at), 'yyyy-MM-dd') === date
           ).length;
           dailyData.unshift({ date, sent: daySent, replied: 0 });
         }
 
         // Calculate trend based on last 7 days vs previous 7 days
         const last7 = templateMessages.filter(
-          m => new Date(m.created_at) >= subDays(new Date(), 7)
+          m => m.created_at && new Date(m.created_at) >= subDays(new Date(), 7)
         ).length;
         const prev7 = templateMessages.filter(
           m =>
+            m.created_at &&
             new Date(m.created_at) >= subDays(new Date(), 14) &&
             new Date(m.created_at) < subDays(new Date(), 7)
         ).length;

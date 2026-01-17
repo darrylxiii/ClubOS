@@ -55,12 +55,8 @@ export function useWhatsAppEmailBridge() {
       try {
         aiDraft = await aiService.generatePersonalizedFollowUp({
           candidateId,
-          context: {
-            source: 'whatsapp_bridge',
-            conversationSummary: conversationContext,
-            purpose: 'Continue WhatsApp conversation via email (24h window expired)',
-          },
-        });
+          context: `Source: whatsapp_bridge. ${conversationContext}. Purpose: Continue WhatsApp conversation via email (24h window expired)`,
+        } as any);
       } catch (err) {
         aiError = err instanceof Error ? err : new Error('AI generation failed');
       }

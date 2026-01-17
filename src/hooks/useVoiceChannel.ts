@@ -370,7 +370,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
     const { data, error } = await supabase
       .from('live_channel_participants')
       .select('*')
-      .eq('channel_id', channelId);
+      .eq('channel_id', channelId || '');
 
     if (error) {
       console.error('Error loading participants:', error);
@@ -392,12 +392,16 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
 
     const userMap = new Map(userData?.map(u => [u.id, u]) || []);
 
-    const participantsWithUsers = data.map(p => ({
-      ...p,
-      user: p.user_id ? userMap.get(p.user_id) : undefined
-    }));
+    const participantsWithUsers = data
+      .filter(p => p.user_id !== null)
+      .map(p => ({
+        ...p,
+        user_id: p.user_id as string,
+        channel_id: p.channel_id ?? '',
+        user: p.user_id ? userMap.get(p.user_id) : undefined
+      }));
 
-    setParticipants(participantsWithUsers);
+    setParticipants(participantsWithUsers as Participant[]);
   };
 
   const subscribeToParticipants = () => {
@@ -510,7 +514,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
       await supabase
         .from('live_channel_participants')
         .delete()
-        .eq('channel_id', channelId)
+        .eq('channel_id', channelId || '')
         .eq('user_id', user.id);
 
       setIsConnected(false);
@@ -530,7 +534,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
       const { error } = await supabase
         .from('live_channel_participants')
         .update(updates)
-        .eq('channel_id', channelId)
+        .eq('channel_id', channelId || '')
         .eq('user_id', user.id);
 
       if (error) {
@@ -787,8 +791,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
         const screenTrack = screenStream.getVideoTracks()[0];
         if (screenTrack) {
           try {
-            // @ts-expect-error contentHint is not in TypeScript types yet
-            screenTrack.contentHint = 'detail'; // Default to detail for crisp text
+            (screenTrack as any).contentHint = 'detail'; // Default to detail for crisp text
             console.log('[Screen] Applied content hint: detail');
           } catch (_e) {
             console.warn('[Screen] Content hint not supported');
