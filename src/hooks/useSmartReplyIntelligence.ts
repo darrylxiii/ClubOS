@@ -115,21 +115,16 @@ export function useSmartReplyIntelligence(replyId?: string) {
       tone?: 'professional' | 'friendly' | 'direct';
     }) => {
       const data = await aiService.generatePersonalizedFollowUp({
-        reply_content: replyContent,
-        original_email: originalEmail,
-        prospect_name: prospectName,
-        prospect_company: prospectCompany,
-        classification,
+        prospect_id: prospectId || '',
+        context: originalEmail,
         tone: tone,
-        reply_id: replyId,
-        prospect_id: prospectId
       });
 
       return data;
     },
     onSuccess: (data) => {
-      if (data?.followUp && data.reply_id) {
-        queryClient.invalidateQueries({ queryKey: ['reply-intelligence', data.reply_id] });
+      if (data?.follow_up) {
+        queryClient.invalidateQueries({ queryKey: ['reply-intelligence'] });
       }
     },
     onError: (error: Error) => {
@@ -170,7 +165,7 @@ export function useSmartReplyIntelligence(replyId?: string) {
     isAnalyzing: analyzeReplyMutation.isPending,
     generateFollowUp: generateFollowUpMutation.mutate,
     isGenerating: generateFollowUpMutation.isPending,
-    generatedFollowUp: generateFollowUpMutation.data?.followUp,
+    generatedFollowUp: (generateFollowUpMutation.data as any)?.follow_up,
     getBantScore,
     getPriorityColor
   };

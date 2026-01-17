@@ -20,11 +20,13 @@ export const useMeetingMessages = () => {
   }: CreateMeetingMessageParams) => {
     try {
       if (!conversationId) throw new Error('Conversation ID is required');
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      if (!userId) throw new Error('User not authenticated');
       const { error } = await supabase
         .from('messages')
         .insert([{
           conversation_id: conversationId,
-          sender_id: (await supabase.auth.getUser()).data.user?.id,
+          sender_id: userId,
           content,
           message_type: 'system',
           system_message_type: systemMessageType,

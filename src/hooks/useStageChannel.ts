@@ -5,7 +5,7 @@ import { useLiveHubWebRTC } from './useLiveHubWebRTC';
 
 interface StageParticipant {
   id: string;
-  user_id: string;
+  user_id: string | null;
   display_name: string;
   avatar_url: string | null;
   role: 'host' | 'speaker' | 'listener';
@@ -45,7 +45,7 @@ export function useStageChannel(channelId: string) {
     }
 
     // Fetch profiles separately
-    const userIds = (data || []).map(p => p.user_id);
+    const userIds = (data || []).map(p => p.user_id).filter((id): id is string => id !== null);
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, full_name, avatar_url')
@@ -56,12 +56,12 @@ export function useStageChannel(channelId: string) {
     );
 
     const formatted = (data || []).map(p => {
-      const profile = profilesMap.get(p.user_id);
+      const profile = p.user_id ? profilesMap.get(p.user_id) : null;
       return {
         id: p.id,
-        user_id: p.user_id,
+        user_id: p.user_id ?? null,
         display_name: profile?.full_name || 'Unknown',
-        avatar_url: profile?.avatar_url || null,
+        avatar_url: profile?.avatar_url ?? null,
         role: (p.role || 'listener') as 'host' | 'speaker' | 'listener',
         is_muted: p.is_muted ?? true,
         is_video_on: p.is_video_on ?? false,

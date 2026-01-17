@@ -51,9 +51,9 @@ export function useFeatureFlags() {
     }
     try {
       const { error } = await supabase.from('feature_flags').insert([{
-        flag_key: flag.flag_key as string,
-        name: flag.name,
-        description: flag.description,
+        flag_key: flag.flag_key,
+        name: flag.name ?? '',
+        description: flag.description ?? null,
         enabled: flag.enabled ?? false,
         rollout_percentage: flag.rollout_percentage ?? 100,
         target_roles: flag.target_roles ?? [],

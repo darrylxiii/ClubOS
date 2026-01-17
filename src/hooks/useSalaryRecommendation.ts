@@ -59,8 +59,8 @@ export function useSalaryRecommendation() {
 
 
 
-      setRecommendation(data);
-      return data;
+      setRecommendation(data as unknown as SalaryRecommendation);
+      return data as unknown as SalaryRecommendation;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to get salary recommendation');
       setError(error);
