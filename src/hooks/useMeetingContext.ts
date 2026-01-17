@@ -182,10 +182,22 @@ export const useMeetingContext = (meetingId?: string) => {
 
       setMeeting({
         ...meetingData,
-        candidate: candidate ?? undefined,
-        job: job ?? undefined,
+        candidate: candidate ? {
+          ...candidate,
+          email: candidate.email ?? undefined,
+          avatar_url: candidate.avatar_url ?? undefined,
+          current_title: candidate.current_title ?? undefined,
+          current_company: candidate.current_company ?? undefined,
+        } : undefined,
+        job: job ? {
+          ...job,
+          location: job.location ?? undefined,
+        } : undefined,
         application: application ?? undefined,
-        company: company ?? undefined,
+        company: company ? {
+          ...company,
+          logo_url: company.logo_url ?? undefined,
+        } : undefined,
         participants: participants?.map(p => ({
           ...p,
           user_id: p.user_id ?? undefined,
@@ -194,6 +206,8 @@ export const useMeetingContext = (meetingId?: string) => {
           participant_type: p.participant_type ?? undefined,
           role_in_interview: p.role_in_interview ?? undefined,
           rsvp_status: p.rsvp_status ?? undefined,
+          avatar_url: (Array.isArray(p.profiles) ? p.profiles[0] : p.profiles)?.avatar_url ?? undefined,
+          current_title: (Array.isArray(p.profiles) ? p.profiles[0] : p.profiles)?.current_title ?? undefined,
           profile: Array.isArray(p.profiles) ? p.profiles[0] : p.profiles
         })) || [],
         scorecards: scorecards?.map(s => ({
@@ -205,8 +219,8 @@ export const useMeetingContext = (meetingId?: string) => {
         })) || [],
         ai_analysis: {
           status: meetingData.ai_analysis_status || 'pending',
-          summary: meetingData.ai_summary,
-          recommendation: meetingData.ai_recommendation,
+          summary: meetingData.ai_summary ?? undefined,
+          recommendation: meetingData.ai_recommendation ?? undefined,
           key_moments: Array.isArray(meetingData.ai_key_moments) ? meetingData.ai_key_moments : []
         }
       });

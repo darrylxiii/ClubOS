@@ -245,6 +245,7 @@ export function usePredictiveAnalytics() {
 
       // Group by user and count events
       const userEvents = (data || []).reduce((acc, event) => {
+        if (!event.user_id) return acc;
         if (!acc[event.user_id]) {
           acc[event.user_id] = { total: 0, types: {} as Record<string, number> };
         }
