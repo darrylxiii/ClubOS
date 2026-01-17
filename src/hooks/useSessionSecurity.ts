@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 export interface UserSession {
   id: string;
-  user_id: string;
+  user_id: string | null;
   session_id: string | null;
   ip_address: string | null;
   user_agent: string | null;
@@ -13,8 +13,8 @@ export interface UserSession {
   city: string | null;
   is_suspicious: boolean | null;
   suspicious_reason: string | null;
-  created_at: string;
-  last_activity: string;
+  created_at: string | null;
+  last_activity: string | null;
   user_email?: string;
 }
 
@@ -30,7 +30,7 @@ export function useActiveSessions() {
 
       if (error) throw error;
 
-      const userIds = [...new Set(data?.map(s => s.user_id) || [])];
+      const userIds = [...new Set(data?.map(s => s.user_id).filter((id): id is string => id !== null) || [])];
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, email')
@@ -40,8 +40,8 @@ export function useActiveSessions() {
 
       return (data || []).map(session => ({
         ...session,
-        user_email: emailMap.get(session.user_id) || 'Unknown'
-      }));
+        user_email: session.user_id ? emailMap.get(session.user_id) || 'Unknown' : 'Unknown'
+      })) as UserSession[];
     },
     refetchInterval: 15000,
   });
@@ -60,7 +60,7 @@ export function useSuspiciousSessions() {
 
       if (error) throw error;
 
-      const userIds = [...new Set(data?.map(s => s.user_id) || [])];
+      const userIds = [...new Set(data?.map(s => s.user_id).filter((id): id is string => id !== null) || [])];
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, email')
@@ -70,8 +70,8 @@ export function useSuspiciousSessions() {
 
       return (data || []).map(session => ({
         ...session,
-        user_email: emailMap.get(session.user_id) || 'Unknown'
-      }));
+        user_email: session.user_id ? emailMap.get(session.user_id) || 'Unknown' : 'Unknown'
+      })) as UserSession[];
     },
     refetchInterval: 30000,
   });

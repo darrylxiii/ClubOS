@@ -41,7 +41,7 @@ export interface MoneybirdFinancialMetrics {
   top_clients: TopClient[];
   payment_aging: PaymentAging;
   metadata: Record<string, unknown>;
-  last_synced_at: string;
+  last_synced_at: string | null;
 }
 
 export function useMoneybirdFinancials(year?: number) {

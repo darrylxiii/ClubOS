@@ -95,7 +95,7 @@ export function useCreateProposal() {
     }) => {
       const { data, error } = await supabase
         .from('reward_proposals')
-        .insert({ ...proposal, proposed_by: user?.id, status: 'draft' })
+        .insert([{ ...proposal, proposed_by: user?.id || '', status: 'draft' }])
         .select()
         .single();
       if (error) throw error;
@@ -140,7 +140,7 @@ export function useCastVote() {
     mutationFn: async ({ proposalId, voteType, comment }: { proposalId: string; voteType: string; comment?: string }) => {
       const { data, error } = await supabase
         .from('proposal_votes')
-        .upsert({ proposal_id: proposalId, user_id: user?.id, vote_type: voteType, comment }, { onConflict: 'proposal_id,user_id' })
+        .upsert([{ proposal_id: proposalId, user_id: user?.id || '', vote_type: voteType, comment }], { onConflict: 'proposal_id,user_id' })
         .select()
         .single();
       if (error) throw error;
@@ -170,7 +170,7 @@ export function useCreateDecision() {
     }) => {
       const { data, error } = await supabase
         .from('reward_decisions')
-        .insert({ ...decision, decided_by: user?.id })
+        .insert([{ ...decision, decided_by: user?.id || '' }])
         .select()
         .single();
       if (error) throw error;

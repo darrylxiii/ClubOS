@@ -17,8 +17,8 @@ export function useSecurityTracking() {
     try {
       const { data, error } = await supabase.rpc('record_login_attempt', {
         p_email: email,
-        p_ip_address: ipAddress || null,
-        p_user_agent: userAgent || navigator.userAgent,
+        p_ip_address: ipAddress ?? null,
+        p_user_agent: userAgent ?? navigator.userAgent,
         p_success: success,
       });
       
@@ -46,10 +46,10 @@ export function useSecurityTracking() {
     try {
       const { data, error } = await supabase.rpc('create_user_session', {
         p_user_id: userId,
-        p_session_id: sessionId || null,
-        p_ip_address: ipAddress || null,
-        p_user_agent: userAgent || navigator.userAgent,
-        p_device_fingerprint: deviceFingerprint || null,
+        p_session_id: sessionId ?? null,
+        p_ip_address: ipAddress ?? null,
+        p_user_agent: userAgent ?? navigator.userAgent,
+        p_device_fingerprint: deviceFingerprint ?? null,
       });
       
       if (error) {
@@ -73,7 +73,7 @@ export function useSecurityTracking() {
     try {
       const { error } = await supabase.rpc('end_user_session', {
         p_user_id: userId,
-        p_session_id: sessionId || null,
+        p_session_id: sessionId ?? null,
       });
       
       if (error) {
