@@ -62,7 +62,7 @@ export function RevenueOverviewChart({ year }: RevenueOverviewChartProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Last synced: {formatDistanceToNow(new Date(metrics.last_synced_at), { addSuffix: true })}
+          Last synced: {metrics.last_synced_at ? formatDistanceToNow(new Date(metrics.last_synced_at), { addSuffix: true }) : 'Never'}
         </div>
         <Button variant="outline" size="sm" onClick={handleSync} disabled={isSyncing}>
           {isSyncing ? (

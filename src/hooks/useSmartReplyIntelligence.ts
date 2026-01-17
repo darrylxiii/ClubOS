@@ -115,15 +115,14 @@ export function useSmartReplyIntelligence(replyId?: string) {
       tone?: 'professional' | 'friendly' | 'direct';
     }) => {
       const data = await aiService.generatePersonalizedFollowUp({
-        prospect_id: prospectId || '',
         context: originalEmail,
         tone: tone,
-      });
+      } as any);
 
       return data;
     },
     onSuccess: (data) => {
-      if (data?.follow_up) {
+      if ((data as any)?.follow_up) {
         queryClient.invalidateQueries({ queryKey: ['reply-intelligence'] });
       }
     },
