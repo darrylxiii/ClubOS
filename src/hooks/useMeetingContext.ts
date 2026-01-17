@@ -184,6 +184,7 @@ export const useMeetingContext = (meetingId?: string) => {
         ...meetingData,
         description: meetingData.description ?? undefined,
         meeting_type: meetingData.meeting_type ?? undefined,
+        interview_stage: meetingData.interview_stage ?? undefined,
         candidate: candidate ? {
           ...candidate,
           email: candidate.email ?? undefined,

@@ -103,7 +103,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
   const streamToSend = processedStream || localStream;
 
   const { remoteStreams, isConnected: isWebRTCConnected, sendReaction, sendWhiteboardEvent, peerConnection } = useLiveHubWebRTC({
-    channelId,
+    channelId: channelId || '',
     localStream: streamToSend,
     localScreenStream, // Pass separate screen stream
     enabled: isConnected
@@ -168,7 +168,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
 
   // Use the transcription hook
   const { transcriptions, isTranscribing } = useMeetingTranscription({
-    meetingId: channelId,
+    meetingId: channelId || '',
     participantName: user?.email || 'Unknown',
     localStream,
     enabled: isConnected && !isMuted
@@ -384,7 +384,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
     }
 
     // Fetch user data separately
-    const userIds = [...new Set(data.map(p => p.user_id))];
+    const userIds = [...new Set(data.map(p => p.user_id).filter((id): id is string => id !== null))];
     const { data: userData } = await supabase
       .from('profiles')
       .select('id, full_name, avatar_url')
@@ -394,7 +394,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
 
     const participantsWithUsers = data.map(p => ({
       ...p,
-      user: userMap.get(p.user_id)
+      user: p.user_id ? userMap.get(p.user_id) : undefined
     }));
 
     setParticipants(participantsWithUsers);

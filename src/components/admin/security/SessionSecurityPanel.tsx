@@ -240,7 +240,7 @@ function SessionRow({ session, showReason = false }: { session: UserSession; sho
             </span>
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              Active {formatDistanceToNow(new Date(session.last_activity), { addSuffix: true })}
+              Active {session.last_activity ? formatDistanceToNow(new Date(session.last_activity), { addSuffix: true }) : 'Unknown'}
             </span>
           </div>
 
@@ -302,7 +302,7 @@ function SessionRow({ session, showReason = false }: { session: UserSession; sho
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={() => terminateAllUserSessions.mutate(session.user_id)}
+                  onClick={() => session.user_id && terminateAllUserSessions.mutate(session.user_id)}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   Terminate All Sessions
