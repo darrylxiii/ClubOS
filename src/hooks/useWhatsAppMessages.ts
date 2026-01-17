@@ -58,14 +58,24 @@ export function useWhatsAppMessages(conversationId: string | null) {
       setHasMore(hasNextPage);
 
       // We fetched latest first (desc), so reverse to get chronological (asc) for display
-      const chronologizedMessages = [...newMessages].reverse();
+      const chronologizedMessages = [...newMessages].reverse().map(m => ({
+        id: m.id,
+        conversation_id: m.conversation_id ?? '',
+        direction: m.direction ?? 'outbound',
+        message_type: m.message_type ?? 'text',
+        content: m.content,
+        template_name: m.template_name,
+        media_url: m.media_url,
+        status: m.status ?? 'pending',
+        sentiment_score: m.sentiment_score,
+        intent_classification: m.intent_classification,
+        created_at: m.created_at ?? new Date().toISOString(),
+      })) as WhatsAppMessage[];
 
       setMessages(prev => {
         if (beforeTimestamp) {
-          // If loading previous, prepend them
           return [...chronologizedMessages, ...prev];
         } else {
-          // Initial load
           return chronologizedMessages;
         }
       });
@@ -131,12 +141,20 @@ export function useWhatsAppMessages(conversationId: string | null) {
         table: 'whatsapp_messages',
         filter: `conversation_id=eq.${conversationId}`
       }, (payload) => {
-        const newMessage = payload.new as WhatsAppMessage;
-        setMessages(prev => {
-          // Avoid duplicates
-          if (prev.some(m => m.id === newMessage.id)) return prev;
-          return [...prev, newMessage];
-        });
+        const raw = payload.new;
+        const newMessage: WhatsAppMessage = {
+          id: raw.id as string,
+          conversation_id: (raw.conversation_id as string) ?? '',
+          direction: (raw.direction as string) ?? 'outbound',
+          message_type: (raw.message_type as string) ?? 'text',
+          content: raw.content as string | null,
+          template_name: raw.template_name as string | null,
+          media_url: raw.media_url as string | null,
+          status: (raw.status as string) ?? 'pending',
+          sentiment_score: raw.sentiment_score as number | null,
+          intent_classification: raw.intent_classification as string | null,
+          created_at: (raw.created_at as string) ?? new Date().toISOString(),
+        };
       })
       .subscribe();
 

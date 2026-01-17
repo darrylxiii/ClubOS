@@ -14,7 +14,7 @@ export const getCachedTranslations = (language: string, namespace: string): Reco
                 return data;
             }
         }
-    } catch (_e) {
+    } catch (e) {
         console.warn('[i18n] Cache read error:', e);
     }
     return null;
@@ -25,7 +25,7 @@ export const setCachedTranslations = (language: string, namespace: string, data:
     try {
         const key = `${TRANSLATION_CACHE_PREFIX}${CACHE_VERSION}_${language}_${namespace}`;
         localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
-    } catch (_e) {
+    } catch (e) {
         console.warn('[i18n] Cache write error:', e);
     }
 };
@@ -44,7 +44,7 @@ export const clearTranslationCache = (language?: string) => {
         }
         keysToRemove.forEach(key => localStorage.removeItem(key));
         console.log(`[i18n] Cleared ${keysToRemove.length} cached translations`);
-    } catch (_e) {
+    } catch (e) {
         console.warn('[i18n] Cache clear error:', e);
     }
 };

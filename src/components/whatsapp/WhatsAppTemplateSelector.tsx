@@ -130,7 +130,7 @@ export function WhatsAppTemplateSelector({
     if (search) {
       const searchLower = search.toLowerCase();
       filtered = filtered.filter(t => 
-        t.template_name.toLowerCase().includes(searchLower) ||
+        (t.template_name ?? '').toLowerCase().includes(searchLower) ||
         getTemplatePreview(t).toLowerCase().includes(searchLower)
       );
     }
@@ -265,13 +265,13 @@ export function WhatsAppTemplateSelector({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="font-semibold text-foreground">
-                                {template.template_name.replace(/_/g, ' ')}
+                                {(template.template_name ?? '').replace(/_/g, ' ')}
                               </h4>
                               <Badge 
                                 variant="outline" 
-                                className={cn("text-xs", getCategoryColor(template.template_category))}
+                                className={cn("text-xs", getCategoryColor(template.template_category ?? ''))}
                               >
-                                {getCategoryIcon(template.template_category)}
+                                {getCategoryIcon(template.template_category ?? '')}
                                 <span className="ml-1">{template.template_category}</span>
                               </Badge>
                             </div>
@@ -306,7 +306,7 @@ export function WhatsAppTemplateSelector({
               <div className="p-4 rounded-xl bg-muted/50 border border-border">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-semibold">
-                    {selectedTemplate.template_name.replace(/_/g, ' ')}
+                    {(selectedTemplate.template_name ?? '').replace(/_/g, ' ')}
                   </h4>
                   <Button
                     variant="ghost"
