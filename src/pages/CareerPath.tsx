@@ -164,7 +164,7 @@ export default function CareerPath() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <DollarSign className="w-4 h-4" />
                 <span>
-                  €{path.salary_range_min.toLocaleString()} - €{path.salary_range_max.toLocaleString()}
+                  €{(path.salary_range_min ?? 0).toLocaleString()} - €{(path.salary_range_max ?? 0).toLocaleString()}
                 </span>
               </div>
 
@@ -172,7 +172,7 @@ export default function CareerPath() {
               <div>
                 <p className="text-sm font-bold mb-2">Required Skills</p>
                 <div className="flex flex-wrap gap-2">
-                  {path.required_skills.map((skill, idx) => (
+                  {(path.required_skills ?? []).map((skill, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs">
                       {skill}
                     </Badge>
@@ -213,7 +213,7 @@ export default function CareerPath() {
                       Master core skills and build a strong technical foundation
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {selectedPath.required_skills.slice(0, 2).map((skill, idx) => (
+                      {(selectedPath.required_skills ?? []).slice(0, 2).map((skill, idx) => (
                         <Badge key={idx} variant="outline" className="text-xs">
                           {skill}
                         </Badge>
@@ -227,12 +227,12 @@ export default function CareerPath() {
                     2
                   </div>
                   <div className="flex-1 pt-1">
-                    <h4 className="font-bold mb-1">Year 1-{Math.ceil(selectedPath.avg_years / 2)}: Growth</h4>
+                    <h4 className="font-bold mb-1">Year 1-{Math.ceil((selectedPath.avg_years ?? 0) / 2)}: Growth</h4>
                     <p className="text-sm text-muted-foreground mb-2">
                       Take on more complex projects and develop leadership skills
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {selectedPath.required_skills.slice(2).map((skill, idx) => (
+                      {(selectedPath.required_skills ?? []).slice(2).map((skill, idx) => (
                         <Badge key={idx} variant="outline" className="text-xs">
                           {skill}
                         </Badge>
@@ -246,7 +246,7 @@ export default function CareerPath() {
                     3
                   </div>
                   <div className="flex-1 pt-1">
-                    <h4 className="font-bold mb-1">Year {Math.ceil(selectedPath.avg_years / 2)}-{selectedPath.avg_years}: Transition</h4>
+                    <h4 className="font-bold mb-1">Year {Math.ceil((selectedPath.avg_years ?? 0) / 2)}-{selectedPath.avg_years ?? 0}: Transition</h4>
                     <p className="text-sm text-muted-foreground">
                       Demonstrate consistent performance and readiness for the next level
                     </p>

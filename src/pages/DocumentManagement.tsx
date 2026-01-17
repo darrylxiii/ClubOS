@@ -34,9 +34,9 @@ interface Document {
   file_path: string;
   file_size: number;
   mime_type: string;
-  is_primary: boolean;
-  uploaded_at: string;
-  updated_at: string;
+  is_primary: boolean | null;
+  uploaded_at: string | null;
+  updated_at: string | null;
 }
 
 const DocumentManagement = () => {
@@ -327,7 +327,7 @@ const DocumentManagement = () => {
                         <div className="flex items-center gap-2 text-xs">
                           <span>{formatFileSize(doc.file_size)}</span>
                           <span>•</span>
-                          <span>Uploaded {formatDistanceToNow(new Date(doc.uploaded_at), { addSuffix: true })}</span>
+                          <span>Uploaded {doc.uploaded_at ? formatDistanceToNow(new Date(doc.uploaded_at), { addSuffix: true }) : 'Unknown'}</span>
                         </div>
                       </CardDescription>
                     </div>

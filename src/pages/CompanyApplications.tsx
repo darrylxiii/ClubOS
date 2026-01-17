@@ -155,7 +155,7 @@ export default function CompanyApplications() {
         }
 
         // Get recent interactions if we found candidate
-        let interactions = [];
+        let interactions: Array<{ id: string; interaction_type: string; created_at: string }> = [];
         if (candidateData?.id) {
           const { data: interactionsData } = await supabase
             .from("candidate_interactions")

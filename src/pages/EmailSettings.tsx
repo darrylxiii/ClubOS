@@ -33,10 +33,10 @@ interface EmailConnection {
   user_id: string;
   email: string;
   provider: string;
-  is_active: boolean;
-  sync_enabled: boolean;
+  is_active: boolean | null;
+  sync_enabled: boolean | null;
   last_sync_at: string | null;
-  created_at: string;
+  created_at: string | null;
   label: string;
 }
 
@@ -121,8 +121,8 @@ const EmailSettings = () => {
         // Save connection
         const { error: insertError } = await supabase
           .from('email_connections')
-          .upsert({
-            user_id: user?.id,
+          .upsert([{
+            user_id: user?.id!,
             email: connectedEmail,
             provider: 'gmail',
             label: connectedEmail,
@@ -131,7 +131,7 @@ const EmailSettings = () => {
             expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
             is_active: true,
             sync_enabled: true
-          }, { onConflict: 'user_id,email' });
+          }], { onConflict: 'user_id,email' });
 
         if (insertError) throw insertError;
 
@@ -437,8 +437,8 @@ const EmailSettings = () => {
                   <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Switch
-                        checked={conn.sync_enabled}
-                        onCheckedChange={() => handleToggleSync(conn.id, conn.sync_enabled)}
+                        checked={conn.sync_enabled ?? false}
+                        onCheckedChange={() => handleToggleSync(conn.id, conn.sync_enabled ?? false)}
                       />
                       <Label className="cursor-pointer">
                         Auto-sync emails

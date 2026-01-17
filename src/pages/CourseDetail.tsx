@@ -62,7 +62,7 @@ export default function CourseDetail() {
           *,
           profiles:created_by(full_name, avatar_url)
         `)
-        .eq("slug", slug)
+        .eq("slug", slug ?? '')
         .single();
 
       if (courseError) throw courseError;
@@ -86,7 +86,7 @@ export default function CourseDetail() {
           .in('module_id', modulesData?.map(m => m.id) || []);
 
         if (progressData && progressData.length > 0) {
-          const avgProgress = progressData.reduce((sum, p) => sum + p.progress_percentage, 0) / progressData.length;
+          const avgProgress = progressData.reduce((sum, p) => sum + (p.progress_percentage ?? 0), 0) / progressData.length;
           setProgress(avgProgress);
           
           // Check if course just completed

@@ -74,7 +74,7 @@ const Jobs = () => {
         setUserCurrency(data.preferred_currency as Currency);
       }
       if (data?.club_sync_enabled !== undefined) {
-        setClubSyncEnabled(data.club_sync_enabled);
+        setClubSyncEnabled(data.club_sync_enabled ?? false);
       }
     };
     fetchUserSettings();
@@ -590,7 +590,7 @@ const Jobs = () => {
                     .filter(job => 
                       job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                       job.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                      job.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+                      job.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
                     )
                     .map(job => (
                       <JobCard 
@@ -651,7 +651,7 @@ const Jobs = () => {
                     .filter(job => 
                       job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                       job.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                      job.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+                      job.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
                     )
                     .map(job => (
                       <JobCard 

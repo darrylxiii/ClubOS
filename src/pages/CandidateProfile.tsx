@@ -155,7 +155,7 @@ export default function CandidateProfile() {
             ai_summary: data.data.ai_summary || candidate.ai_summary,
             last_profile_update: new Date().toISOString()
           })
-          .eq("id", id);
+          .eq("id", id ?? '');
 
         if (updateError) throw updateError;
 
