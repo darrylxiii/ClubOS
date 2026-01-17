@@ -122,8 +122,8 @@ export function useWorkspaceInvitations(workspaceId: string | undefined) {
         await supabase.functions.invoke('send-workspace-invitation', {
           body: { invitationId: data.id },
         });
-      } catch (_e) {
-        console.error('Failed to send invitation email:', e);
+      } catch (emailError) {
+        console.error('Failed to send invitation email:', emailError);
       }
 
       return data as WorkspaceInvitation;
@@ -231,13 +231,13 @@ export function useAcceptInvitation() {
       // Add user to workspace
       const { error: memberError } = await supabase
         .from('workspace_members')
-        .insert({
+        .insert([{
           workspace_id: invitation.workspace_id,
           user_id: user.id,
-          role: invitation.role,
+          role: invitation.role ?? 'member',
           invited_by: invitation.invited_by,
           invited_at: invitation.created_at,
-        });
+        }]);
 
       if (memberError) {
         if (memberError.code === '23505') {

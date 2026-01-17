@@ -101,7 +101,7 @@ export function detectSocialEmbeds(text: string): SocialEmbed[] {
     // Check LinkedIn
     const linkedinId = extractLinkedInId(url);
     if (linkedinId) {
-      const username = extractLinkedInUsername(url);
+      const username = extractLinkedInUsername(url) ?? undefined;
       embeds.push({ platform: 'linkedin', url, id: linkedinId, username });
       continue;
     }

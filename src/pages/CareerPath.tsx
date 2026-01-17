@@ -17,10 +17,10 @@ interface CareerPath {
   id: string;
   from_role: string;
   to_role: string;
-  avg_years: number;
-  salary_range_min: number;
-  salary_range_max: number;
-  required_skills: string[];
+  avg_years: number | null;
+  salary_range_min: number | null;
+  salary_range_max: number | null;
+  required_skills: string[] | null;
 }
 
 export default function CareerPath() {
@@ -141,10 +141,10 @@ export default function CareerPath() {
             <CardHeader>
               <div className="flex items-start justify-between mb-2">
                 <Badge className="bg-primary/20 text-primary border-primary/30">
-                  {path.avg_years} years
+                  {path.avg_years ?? 0} years
                 </Badge>
                 <Badge variant="outline">
-                  €{Math.round((path.salary_range_min + path.salary_range_max) / 2 / 1000)}K avg
+                  €{Math.round(((path.salary_range_min ?? 0) + (path.salary_range_max ?? 0)) / 2 / 1000)}K avg
                 </Badge>
               </div>
               <CardTitle className="flex items-center gap-2">
