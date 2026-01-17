@@ -65,9 +65,16 @@ export function useMoneybirdFinancials(year?: number) {
 
       if (!data) return null;
 
-      // Parse JSONB fields
+      // Parse JSONB fields and ensure non-null numbers
       return {
         ...data,
+        total_revenue: data.total_revenue ?? 0,
+        total_paid: data.total_paid ?? 0,
+        total_outstanding: data.total_outstanding ?? 0,
+        gross_profit: data.gross_profit ?? 0,
+        invoice_count_open: data.invoice_count_open ?? 0,
+        invoice_count_paid: data.invoice_count_paid ?? 0,
+        invoice_count_late: data.invoice_count_late ?? 0,
         revenue_by_month: (data.revenue_by_month as unknown as MonthlyRevenue[] || []).map(m => ({
           ...m,
           revenue: m.revenue ?? 0,

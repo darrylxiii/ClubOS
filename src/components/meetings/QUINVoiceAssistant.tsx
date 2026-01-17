@@ -132,7 +132,7 @@ export function QUINVoiceAssistant({
 
       if (data?.response) {
         const response: QUINResponse = {
-          responseType: data.response_type || 'answer',
+          responseType: (data as any).response_type || 'answer',
           responseText: data.response,
           timestamp: new Date().toISOString()
         };

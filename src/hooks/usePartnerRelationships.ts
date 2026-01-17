@@ -109,11 +109,12 @@ export function usePartnerRelationships() {
       const candidateIds = [...new Set(applications.map(a => a.candidate_id).filter(Boolean))];
 
       // Get relationship scores for these candidates
+      const validCandidateIds = candidateIds.filter((id): id is string => id !== null);
       const { data: scores } = await supabase
         .from('communication_relationship_scores')
         .select('*')
         .eq('entity_type', 'candidate')
-        .in('entity_id', candidateIds);
+        .in('entity_id', validCandidateIds);
 
       // Combine data
       const combined: CandidateRelationship[] = applications

@@ -247,11 +247,11 @@ export function useRAGAnalytics(dateRange: { start: Date; end: Date }) {
       id: exp.id,
       experiment_name: exp.experiment_name,
       prompt_variant: exp.prompt_variant,
-      total_impressions: exp.total_impressions,
-      positive_feedback: exp.positive_feedback,
-      negative_feedback: exp.negative_feedback,
-      success_rate: exp.total_impressions > 0 
-        ? (exp.positive_feedback / exp.total_impressions) 
+      total_impressions: exp.total_impressions ?? 0,
+      positive_feedback: exp.positive_feedback ?? 0,
+      negative_feedback: exp.negative_feedback ?? 0,
+      success_rate: (exp.total_impressions ?? 0) > 0 
+        ? ((exp.positive_feedback ?? 0) / (exp.total_impressions ?? 1)) 
         : 0,
       is_control: exp.is_control || false,
     }));

@@ -94,11 +94,11 @@ export function useMeetingTranscriptAggregator({
           data.map(async (t) => ({
             id: t.id,
             text: t.text,
-            speaker_name: await getSpeakerName(t.participant_id),
+            speaker_name: t.participant_id ? await getSpeakerName(t.participant_id) : 'Unknown',
             speaker_id: t.participant_id ?? 'unknown',
             timestamp_ms: t.timestamp_ms,
             is_final: t.is_final ?? true,
-            confidence: t.confidence
+            confidence: t.confidence ?? undefined
           }))
         );
 

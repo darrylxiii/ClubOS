@@ -19,6 +19,7 @@ export const useMeetingMessages = () => {
     metadata = {}
   }: CreateMeetingMessageParams) => {
     try {
+      if (!conversationId) throw new Error('Conversation ID is required');
       const { error } = await supabase
         .from('messages')
         .insert([{

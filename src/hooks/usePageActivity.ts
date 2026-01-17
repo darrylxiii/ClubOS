@@ -56,7 +56,7 @@ export function usePageActivity(pageId: string | undefined) {
 
       // Fetch user profiles for activities
       if (data && data.length > 0) {
-        const userIds = [...new Set(data.map(a => a.user_id).filter(Boolean))];
+        const userIds = [...new Set(data.map(a => a.user_id).filter((id): id is string => id !== null))];
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name, avatar_url')
@@ -192,7 +192,7 @@ export function useWorkspaceAnalytics(workspaceId: string | undefined, days: num
       const pageViewCounts = new Map<string, number>();
       analytics?.forEach(a => {
         const current = pageViewCounts.get(a.page_id) || 0;
-        pageViewCounts.set(a.page_id, current + a.view_count);
+        pageViewCounts.set(a.page_id, current + (a.view_count ?? 0));
       });
 
       const topPages = pages

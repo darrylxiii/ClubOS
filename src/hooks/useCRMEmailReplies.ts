@@ -209,8 +209,8 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
 
       const response = await aiService.analyzeEmailReply({
         email_id: replyId,
-        content: reply.body_text,
-        sender: reply.from_email,
+        content: reply.body_text ?? '',
+        sender: reply.from_email ?? '',
       });
 
       // if (response.error) throw response.error; // handled by service

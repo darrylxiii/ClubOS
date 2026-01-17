@@ -101,7 +101,7 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
         // Weight collections by aging (older = less likely to collect)
         // Use net_amount for operating cash, track VAT separately
         const collectionsData = unpaidInvoices?.reduce((acc, inv) => {
-          const dueDate = inv.due_date ? parseISO(inv.due_date) : parseISO(inv.invoice_date);
+          const dueDate = inv.due_date ? parseISO(inv.due_date) : (inv.invoice_date ? parseISO(inv.invoice_date) : today);
           const daysOverdue = differenceInDays(today, dueDate);
 
           // Payment probability based on age
@@ -178,8 +178,9 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
 
       const avgDSO = paidInvoices?.length ?
         paidInvoices.reduce((sum, inv) => {
+          if (!inv.invoice_date || !inv.paid_at) return sum;
           const invoiceDate = parseISO(inv.invoice_date);
-          const paidDate = parseISO(inv.paid_at!);
+          const paidDate = parseISO(inv.paid_at);
           return sum + differenceInDays(paidDate, invoiceDate);
         }, 0) / paidInvoices.length : 0;
 
