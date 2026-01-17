@@ -271,7 +271,8 @@ export default function BookingPage() {
                       bookingLink={{
                         ...bookingLink,
                         host_timezone: hostTimezone || undefined,
-                      }}
+                        allow_guest_platform_choice: bookingLink.allow_guest_platform_choice ?? undefined,
+                      } as any}
                       selectedDate={selectedDate}
                       selectedTime={selectedTime}
                       onComplete={handleBookingComplete}

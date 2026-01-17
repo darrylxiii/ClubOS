@@ -36,7 +36,7 @@ const FreelancerAnalyticsPage = () => {
       const { data } = await supabase
         .from('project_proposals')
         .select('*, marketplace_projects(title, budget_max)')
-        .eq('freelancer_id', user?.id);
+        .eq('freelancer_id', user?.id ?? '');
       return data || [];
     },
     enabled: !!user?.id,
@@ -48,7 +48,7 @@ const FreelancerAnalyticsPage = () => {
       const { data } = await supabase
         .from('project_contracts')
         .select('*')
-        .eq('freelancer_id', user?.id);
+        .eq('freelancer_id', user?.id ?? '');
       return data || [];
     },
     enabled: !!user?.id,
@@ -60,7 +60,7 @@ const FreelancerAnalyticsPage = () => {
       const { data } = await supabase
         .from('project_reviews')
         .select('*')
-        .eq('reviewee_id', user?.id);
+        .eq('reviewee_id', user?.id ?? '');
       return data || [];
     },
     enabled: !!user?.id,

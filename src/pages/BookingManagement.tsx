@@ -539,8 +539,8 @@ export default function BookingManagement() {
                     </div>
                     <div className="mt-4">
                       <Switch
-                        checked={link.is_active}
-                        onCheckedChange={() => toggleLinkStatus(link.id, link.is_active)}
+                        checked={link.is_active ?? false}
+                        onCheckedChange={() => toggleLinkStatus(link.id, link.is_active ?? false)}
                       />
                       <span className="ml-2 text-sm">
                         {link.is_active ? "Accepting bookings" : "Paused"}

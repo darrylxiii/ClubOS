@@ -235,10 +235,10 @@ export default function ClubDJ() {
 
             {/* Dual Deck Mixer */}
             <DualDeckMixer
-              trackA={queue?.[0]?.tracks}
-              trackB={queue?.[1]?.tracks}
+              trackA={queue?.[0]?.tracks ? { ...queue[0].tracks, artist: queue[0].tracks.artist ?? '', cover_image_url: queue[0].tracks.cover_image_url ?? '', duration_seconds: queue[0].tracks.duration_seconds ?? 0 } : undefined}
+              trackB={queue?.[1]?.tracks ? { ...queue[1].tracks, artist: queue[1].tracks.artist ?? '', cover_image_url: queue[1].tracks.cover_image_url ?? '', duration_seconds: queue[1].tracks.duration_seconds ?? 0 } : undefined}
               liveSessionId={liveSession?.id}
-              queueTracks={queue || []}
+              queueTracks={(queue || []).map(q => ({ id: q.id, tracks: { ...q.tracks, artist: q.tracks.artist ?? '', cover_image_url: q.tracks.cover_image_url ?? '', duration_seconds: q.tracks.duration_seconds ?? 0 } }))}
             />
           </TabsContent>
         </Tabs>

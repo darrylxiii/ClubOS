@@ -59,7 +59,7 @@ export default function DossierView() {
       const { data, error: dbError } = await supabase
         .from('meeting_dossiers')
         .select('*')
-        .eq('share_token', shareToken)
+        .eq('share_token', shareToken ?? '')
         .single();
 
       if (dbError) throw dbError;

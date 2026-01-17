@@ -134,7 +134,7 @@ export default function CompanyPage() {
       const { data, error } = await supabase
         .from("companies")
         .select("*")
-        .eq("slug", slug)
+        .eq("slug", slug ?? '')
         .eq("is_active", true)
         .maybeSingle();
 

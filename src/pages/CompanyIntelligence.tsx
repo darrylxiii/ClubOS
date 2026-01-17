@@ -35,7 +35,7 @@ export default function CompanyIntelligence() {
       const { data: companyData } = await supabase
         .from('companies')
         .select('*')
-        .eq('id', id)
+        .eq('id', id ?? '')
         .single();
       setCompany(companyData);
 
@@ -66,14 +66,14 @@ export default function CompanyIntelligence() {
     if (!id) return;
     setLoadingInsights(true);
     try {
-      const { insights, error } = await aiService.generateCompanyInsights({
+      const result = await aiService.generateCompanyInsights({
         companyId: id!
-      });
+      }) as any;
 
-      if (error) throw new Error(error);
+      if (result?.error) throw new Error(result.error);
 
-      if (insights) {
-        setInsights(insights);
+      if (result?.insights || result) {
+        setInsights(result?.insights || result);
         toast.success("Insights generated successfully");
       }
     } catch (error) {

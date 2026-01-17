@@ -67,8 +67,8 @@ export default function ContractSignaturePage() {
             clientIp = ipData.ip || 'unknown';
           }
         }
-      } catch (_e) {
-        logger.warn('Could not fetch IP address:', e);
+      } catch (ipFetchErr) {
+        logger.warn('Could not fetch IP address');
         clientIp = 'unknown';
       }
 
