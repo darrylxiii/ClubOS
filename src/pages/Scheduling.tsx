@@ -161,10 +161,11 @@ export default function Scheduling() {
   const loadUpcomingBookings = async () => {
     try {
       const now = new Date().toISOString();
+      if (!user?.id) return;
       const { data, error } = await supabase
         .from("bookings")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .gte("scheduled_start", now)
         .eq("status", "confirmed")
         .order("scheduled_start", { ascending: true })
@@ -190,15 +191,17 @@ export default function Scheduling() {
       return;
     }
 
+    if (!user?.id) {
+      toast.error("You must be logged in to create a booking link");
+      return;
+    }
     setIsCreatingLink(true);
     try {
       console.log("[Scheduling] Creating booking link with data:", newLink);
+      const { user_id, ...insertData } = { ...newLink, user_id: user.id };
       const { data, error } = await supabase
         .from("booking_links")
-        .insert({
-          ...newLink,
-          user_id: user?.id,
-        })
+        .insert([{ ...insertData, user_id }])
         .select()
         .single();
 
@@ -726,7 +729,7 @@ export default function Scheduling() {
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => toggleLinkStatus(link.id, link.is_active)}
+                            onClick={() => toggleLinkStatus(link.id, link.is_active ?? false)}
                           >
                             <Settings className="h-4 w-4" />
                           </Button>

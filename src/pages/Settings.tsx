@@ -259,21 +259,21 @@ const Settings = () => {
           setSocialConnections(prev => ({
             ...prev,
             instagram: true,
-            instagramUsername: data.instagram_username
+            instagramUsername: data.instagram_username ?? ''
           }));
         }
         if (data.twitter_connected && data.twitter_username) {
           setSocialConnections(prev => ({
             ...prev,
             twitter: true,
-            twitterUsername: data.twitter_username
+            twitterUsername: data.twitter_username ?? ''
           }));
         }
         if (data.github_connected && data.github_username) {
           setSocialConnections(prev => ({
             ...prev,
             github: true,
-            githubUsername: data.github_username
+            githubUsername: data.github_username ?? ''
           }));
         }
 
@@ -417,16 +417,17 @@ const Settings = () => {
     debouncedSave();
   };
 
-  const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram' | 'github') => {
+  const handleConnectSocial = async (provider: string) => {
     try {
       const redirectTo = `${window.location.origin}/settings`;
+      const validProvider = provider as 'linkedin_oidc' | 'twitter' | 'instagram' | 'github';
 
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: provider as any,
+        provider: validProvider as any,
         options: {
           redirectTo,
-          scopes: provider === 'linkedin_oidc' ? 'openid profile email' :
-            provider === 'github' ? 'read:user user:email' : undefined,
+          scopes: validProvider === 'linkedin_oidc' ? 'openid profile email' :
+            validProvider === 'github' ? 'read:user user:email' : undefined,
         }
       });
 
@@ -439,7 +440,7 @@ const Settings = () => {
     }
   };
 
-  const handleDisconnectSocial = async (platform: 'linkedin' | 'instagram' | 'twitter' | 'github') => {
+  const handleDisconnectSocial = async (platform: string) => {
     try {
       const updates: any = {};
 
@@ -461,7 +462,7 @@ const Settings = () => {
       const { error } = await supabase
         .from('profiles')
         .update(updates)
-        .eq('id', user?.id);
+        .eq('id', user?.id ?? '');
 
       if (error) throw error;
 

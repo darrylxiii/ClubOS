@@ -31,7 +31,7 @@ interface Objective {
   goals?: string | null;
   start_date?: string | null;
   tags?: string[];
-  owners?: string[];
+  owners?: string[] | null;
   tasks?: Record<string, any>[];
 }
 
@@ -537,7 +537,7 @@ const ObjectiveWorkspace = () => {
           </TabsContent>
 
           <TabsContent value="tasks" className="space-y-6">
-            <UnifiedTasksList objectiveId={id} onRefresh={loadObjective} aiSchedulingEnabled={false} />
+            <UnifiedTasksList objectiveId={id ?? null} onRefresh={loadObjective} aiSchedulingEnabled={false} />
           </TabsContent>
 
           <TabsContent value="comments" className="space-y-6">
