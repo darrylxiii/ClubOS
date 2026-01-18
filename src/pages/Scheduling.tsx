@@ -30,20 +30,20 @@ interface BookingLink {
   title: string;
   description: string | null;
   duration_minutes: number;
-  buffer_before_minutes: number;
-  buffer_after_minutes: number;
-  advance_booking_days: number;
-  min_notice_hours: number;
-  is_active: boolean;
-  color: string;
-  created_at: string;
-  scheduling_type: string;
+  buffer_before_minutes: number | null;
+  buffer_after_minutes: number | null;
+  advance_booking_days: number | null;
+  min_notice_hours: number | null;
+  is_active: boolean | null;
+  color: string | null;
+  created_at: string | null;
+  scheduling_type: string | null;
   video_conferencing_provider: string | null;
-  auto_generate_meeting_link: boolean;
-  allow_waitlist: boolean;
-  single_use: boolean;
+  auto_generate_meeting_link: boolean | null;
+  allow_waitlist: boolean | null;
+  single_use: boolean | null;
   max_uses: number | null;
-  requires_approval: boolean;
+  requires_approval: boolean | null;
   max_bookings_per_day: number | null;
 }
 
@@ -108,7 +108,7 @@ export default function Scheduling() {
       const { count, error } = await supabase
         .from("bookings")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", user?.id)
+        .eq("user_id", user?.id ?? '')
         .eq("status", "pending_approval");
 
       if (!error) {
@@ -124,7 +124,7 @@ export default function Scheduling() {
       const { data, error } = await supabase
         .from('calendar_connections')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user?.id ?? '')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
@@ -141,7 +141,7 @@ export default function Scheduling() {
       const { data, error } = await supabase
         .from("booking_links")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", user?.id ?? '')
         .order("created_at", { ascending: false });
 
       if (error) {

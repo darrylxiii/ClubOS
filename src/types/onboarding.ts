@@ -15,10 +15,10 @@ export interface OnboardingFormData {
 export interface ReferralMetadata {
   job_title: string;
   company_name: string;
-  friend_name?: string;
-  friend_current_role?: string;
-  friend_linkedin?: string;
-  referred_by?: string;
+  friend_name?: string | null;
+  friend_current_role?: string | null;
+  friend_linkedin?: string | null;
+  referred_by?: string | null;
   [key: string]: any; // Allow additional fields
 }
 

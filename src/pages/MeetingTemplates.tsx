@@ -109,9 +109,13 @@ export default function MeetingTemplates() {
         if (error) throw error;
         toast.success('Template updated successfully');
       } else {
+        if (!user?.id) {
+          toast.error('You must be logged in to create templates');
+          return;
+        }
         const { error } = await supabase
           .from('meeting_templates')
-          .insert([templateData]);
+          .insert([{ ...templateData, user_id: user.id }]);
 
         if (error) throw error;
         toast.success('Template created successfully');

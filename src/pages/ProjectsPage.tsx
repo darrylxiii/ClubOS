@@ -159,7 +159,7 @@ export default function ProjectsPage() {
 
           {isFreelancer && (
             <TabsContent value="dashboard" className="space-y-6">
-              <FreelancerDashboard userId={user?.id} />
+              <FreelancerDashboard userId={user?.id ?? ''} />
             </TabsContent>
           )}
 

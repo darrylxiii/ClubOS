@@ -523,7 +523,7 @@ export default function OAuthOnboarding() {
                   international
                   defaultCountry={(countryCode as any) || "NL"}
                   value={phoneNumber}
-                  onChange={(value: string) => setPhoneNumber(value || "")}
+                  onChange={(value) => setPhoneNumber(value ?? "")}
                   disabled={phoneVerified}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />

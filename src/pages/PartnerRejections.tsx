@@ -72,10 +72,14 @@ export default function PartnerRejections() {
     setLoading(true);
     try {
       // Get user's company
+      if (!user?.id) {
+        toast.error("You must be logged in");
+        return;
+      }
       const { data: membership } = await supabase
         .from('company_members')
         .select('company_id')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .eq('is_active', true)
         .single();
 
@@ -116,7 +120,7 @@ export default function PartnerRejections() {
       if (appsError) throw appsError;
 
       // Fetch candidate profiles
-      const candidateIds = applications?.map(app => app.candidate_id).filter(Boolean) || [];
+      const candidateIds = (applications?.map(app => app.candidate_id).filter((id): id is string => id !== null && id !== undefined)) || [];
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url, email')

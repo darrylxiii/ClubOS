@@ -136,7 +136,7 @@ export default function MeetingRoom() {
       const { data, error } = await supabase
         .from('meetings')
         .select('*')
-        .eq('meeting_code', meetingCode)
+        .eq('meeting_code', meetingCode ?? '')
         .maybeSingle();
 
       if (error) {

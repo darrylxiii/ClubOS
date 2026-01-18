@@ -257,7 +257,7 @@ export default function ReferralProgram() {
                           {(referral.referred as any)?.full_name || (referral.referred as any)?.email}
                         </p>
                         <p className="text-sm text-muted-foreground capitalize">
-                          {referral.referral_type} • {formatDistanceToNow(new Date(referral.created_at), { addSuffix: true })}
+                          {referral.referral_type} • {formatDistanceToNow(new Date(referral.created_at ?? new Date()), { addSuffix: true })}
                         </p>
                       </div>
                     </div>

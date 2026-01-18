@@ -59,7 +59,7 @@ export default function MeetingInsights() {
       const { data: meetingData, error: meetingError } = await supabase
         .from('meetings')
         .select('*')
-        .eq('id', meetingId)
+        .eq('id', meetingId ?? '')
         .single();
 
       if (meetingError) throw meetingError;
@@ -69,7 +69,7 @@ export default function MeetingInsights() {
       const { data: insightsData, error: insightsError } = await supabase
         .from('meeting_insights')
         .select('*')
-        .eq('meeting_id', meetingId)
+        .eq('meeting_id', meetingId ?? '')
         .single();
 
       if (insightsError) {

@@ -25,10 +25,12 @@ const PartnerTargetCompanies = () => {
   useEffect(() => {
     const loadAssignedCompanies = async () => {
       if (role === 'strategist') {
+        const authUser = await supabase.auth.getUser();
+        if (!authUser.data.user?.id) return;
         const { data } = await supabase
           .from('company_members')
           .select('company_id, companies (id, name, logo_url)')
-          .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+          .eq('user_id', authUser.data.user.id);
         
         if (data) {
           const companies = data.map(cm => (cm as any).companies).filter(Boolean);
