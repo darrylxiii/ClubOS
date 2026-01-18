@@ -63,7 +63,7 @@ export default function MeetingRoom() {
         data.last_seen && 
         (new Date().getTime() - new Date(data.last_seen).getTime()) < 30000;
       
-      setHostIsPresent(isActive);
+      setHostIsPresent(isActive ?? false);
     };
     
     checkHostPresence();

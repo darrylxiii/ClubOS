@@ -153,7 +153,7 @@ export default function MeetingTemplates() {
           ...template,
           id: undefined,
           name: `${template.name} (Copy)`,
-          user_id: user?.id,
+          user_id: user?.id ?? '',
           usage_count: 0,
           created_at: new Date().toISOString(),
         }]);

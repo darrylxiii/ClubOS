@@ -139,8 +139,8 @@ export default function JobDashboard() {
       if (saved) {
         try {
           setDisplaySettings(JSON.parse(saved));
-        } catch (_e) {
-          console.error('Failed to parse display settings:', e);
+        } catch (parseError) {
+          console.error('Failed to parse display settings:', parseError);
         }
       }
     }
@@ -178,7 +178,7 @@ export default function JobDashboard() {
       const { error } = await supabase
         .from('jobs')
         .update({ pipeline_stages: reorderedStages })
-        .eq('id', jobId);
+        .eq('id', jobId ?? '');
 
       if (!error) {
         await fetchJobDetails();
@@ -246,7 +246,7 @@ export default function JobDashboard() {
             )
           )
         `)
-        .eq('id', jobId)
+        .eq('id', jobId ?? '')
         .single();
 
       if (error) throw error;
@@ -257,8 +257,8 @@ export default function JobDashboard() {
       if (!sessionStorage.getItem(sessionKey)) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          await supabase.from('pipeline_audit_logs').insert({
-            job_id: jobId,
+          await supabase.from('pipeline_audit_logs').insert([{
+            job_id: jobId ?? '',
             user_id: user.id,
             action: 'job_viewed',
             stage_data: {
@@ -269,7 +269,7 @@ export default function JobDashboard() {
               referrer: document.referrer || 'direct',
               user_agent: navigator.userAgent.substring(0, 200)
             }
-          });
+          }]);
           sessionStorage.setItem(sessionKey, 'true');
         }
       }
