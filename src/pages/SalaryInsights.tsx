@@ -11,9 +11,9 @@ import { toast } from "sonner";
 interface SalaryBenchmark {
   role_title: string;
   location: string;
-  salary_min: number;
-  salary_max: number;
-  sample_size: number;
+  salary_min: number | null;
+  salary_max: number | null;
+  sample_size: number | null;
 }
 
 export default function SalaryInsights() {

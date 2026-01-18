@@ -19,10 +19,10 @@ interface PersonalMeetingRoom {
   id: string;
   room_code: string;
   display_name: string;
-  allow_guests: boolean;
-  require_approval: boolean;
-  total_meetings: number;
-  is_active: boolean;
+  allow_guests: boolean | null;
+  require_approval: boolean | null;
+  total_meetings: number | null;
+  is_active: boolean | null;
 }
 
 export default function PersonalMeetingRoom() {
@@ -43,17 +43,17 @@ export default function PersonalMeetingRoom() {
       const { data, error } = await supabase
         .from('personal_meeting_rooms')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user?.id ?? '')
         .maybeSingle();
 
       if (error) throw error;
       
       if (data) {
-        setPmr(data);
+        setPmr(data as PersonalMeetingRoom);
         setCustomName(data.display_name);
         setSettings({
-          allow_guests: data.allow_guests,
-          require_approval: data.require_approval,
+          allow_guests: data.allow_guests ?? true,
+          require_approval: data.require_approval ?? false,
         });
       }
     } catch (error) {

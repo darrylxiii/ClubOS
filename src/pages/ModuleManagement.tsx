@@ -57,7 +57,7 @@ export default function ModuleManagement() {
       }
 
       setCourse(courseData as unknown as Course);
-      const sortedModules = (courseData.modules || []).sort((a: { display_order: number }, b: { display_order: number }) => a.display_order - b.display_order);
+      const sortedModules = (courseData.modules || []).sort((a: { display_order: number | null }, b: { display_order: number | null }) => (a.display_order ?? 0) - (b.display_order ?? 0));
       setModules(sortedModules as unknown as Module[]);
     } catch (error) {
       notify.error("Error loading modules", { 

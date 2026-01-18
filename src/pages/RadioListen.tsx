@@ -28,7 +28,7 @@ export default function RadioListen() {
       const { data: playlist } = await supabase
         .from('playlists')
         .select('*')
-        .eq('id', sessionId)
+        .eq('id', sessionId ?? '')
         .single();
       
       if (playlist) {
@@ -45,10 +45,10 @@ export default function RadioListen() {
             title,
             artist,
             file_url,
-            cover_image_url
-          )
-        `)
-        .eq('id', sessionId)
+          cover_image_url
+        )
+      `)
+        .eq('id', sessionId ?? '')
         .single();
       
       if (error) throw error;
@@ -106,8 +106,8 @@ export default function RadioListen() {
         const { data: { user } } = await supabase.auth.getUser();
         
         const { data, error } = await supabase.rpc('register_listener', {
-          p_session_id: sessionId,
-          p_user_id: user?.id || null,
+          p_session_id: sessionId ?? '',
+          p_user_id: user?.id ?? null,
           p_ip_address: null, // Could use a service to get IP if needed
         });
 
@@ -129,8 +129,8 @@ export default function RadioListen() {
       if (sessionId) {
         supabase.auth.getUser().then(({ data: { user } }) => {
           supabase.rpc('unregister_listener', {
-            p_session_id: sessionId,
-            p_user_id: user?.id || null,
+            p_session_id: sessionId ?? '',
+            p_user_id: user?.id ?? null,
             p_ip_address: null,
           }).then(({ error }) => {
             if (error) console.error('Failed to unregister:', error);
@@ -146,7 +146,7 @@ export default function RadioListen() {
       supabase
         .from('playlists')
         .update({ play_count: (session.data.play_count || 0) + 1 })
-        .eq('id', sessionId)
+        .eq('id', sessionId ?? '')
         .then(() => console.log('Play count incremented'));
     }
   }, [session?.type, sessionId]);
@@ -158,7 +158,7 @@ export default function RadioListen() {
       const { error } = await supabase
         .from('playlists')
         .update({ like_count: (session.data.like_count || 0) + 1 })
-        .eq('id', sessionId);
+        .eq('id', sessionId ?? '');
       
       if (error) throw error;
     },
@@ -248,8 +248,8 @@ export default function RadioListen() {
             {/* Spotify Embed */}
             <SpotifyEmbed 
               type="playlist"
-              spotifyId={session.data.spotify_playlist_id}
-              url={session.data.spotify_embed_url}
+              spotifyId={session.data.spotify_playlist_id ?? undefined}
+              url={session.data.spotify_embed_url ?? undefined}
               className="h-[380px]"
             />
 
@@ -305,7 +305,7 @@ export default function RadioListen() {
             <div className="flex items-center justify-between pt-4 border-t border-white/10">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={session?.data?.profile?.avatar_url} />
+                  <AvatarImage src={session?.data?.profile?.avatar_url ?? undefined} />
                   <AvatarFallback>
                     {session?.data?.profile?.full_name?.[0] || 'DJ'}
                   </AvatarFallback>

@@ -70,14 +70,14 @@ export default function Meetings() {
       const { data: hostedMeetings, error: hostedError } = await supabase
         .from('meetings')
         .select('*')
-        .eq('host_id', user?.id);
+        .eq('host_id', user?.id ?? '');
 
       if (hostedError) throw hostedError;
 
       const { data: participantMeetings, error: participantError } = await supabase
         .from('meeting_participants')
         .select('meeting_id, meetings(*)')
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id ?? '');
 
       if (participantError) throw participantError;
 

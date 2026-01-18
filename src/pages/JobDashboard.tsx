@@ -282,7 +282,7 @@ export default function JobDashboard() {
       const { count } = await supabase
         .from('applications')
         .select('*', { count: 'exact', head: true })
-        .eq('job_id', jobId)
+        .eq('job_id', jobId ?? '')
         .eq('status', 'rejected');
 
       setRejectedCount(count || 0);
@@ -300,7 +300,7 @@ export default function JobDashboard() {
       const { data, error } = await supabase
         .from('applications')
         .select('*')
-        .eq('job_id', jobId)
+        .eq('job_id', jobId ?? '')
         .neq('status', 'rejected');
 
       if (error) throw error;
@@ -394,12 +394,12 @@ export default function JobDashboard() {
           email: profileData?.email || app.candidate_email,
           phone: profileData?.phone || app.candidate_phone,
           avatar_url: profileData?.avatar_url,
-          current_title: profileData?.current_title || app.candidate_title,
-          current_company: profileData?.current_company || app.candidate_company,
-          linkedin_url: profileData?.linkedin_url || app.candidate_linkedin_url,
+          current_title: (profileData as any)?.current_title || app.candidate_title,
+          current_company: (profileData as any)?.current_company || app.candidate_company,
+          linkedin_url: (profileData as any)?.linkedin_url || app.candidate_linkedin_url,
           user_id: linkedUserId,
           stages: app.stages || [],
-          is_linked_user: !!profileData?.user_id,
+          is_linked_user: !!(profileData as any)?.user_id,
         };
       }));
 
@@ -808,7 +808,7 @@ export default function JobDashboard() {
                                 supabase
                                   .from('jobs')
                                   .update({ pipeline_stages: updatedStages })
-                                  .eq('id', jobId)
+                                  .eq('id', jobId ?? '')
                                   .then(({ error }) => {
                                     if (!error) {
                                       fetchJobDetails();
@@ -829,7 +829,7 @@ export default function JobDashboard() {
                                 const { error } = await supabase
                                   .from('jobs')
                                   .update({ pipeline_stages: updatedStages })
-                                  .eq('id', jobId);
+                                  .eq('id', jobId ?? '');
 
                                 if (!error) {
                                   await fetchJobDetails();
@@ -846,7 +846,7 @@ export default function JobDashboard() {
                                 const { error } = await supabase
                                   .from('jobs')
                                   .update({ pipeline_stages: updatedStages })
-                                  .eq('id', jobId);
+                                  .eq('id', jobId ?? '');
 
                                 if (!error) {
                                   await fetchJobDetails();
@@ -1058,7 +1058,7 @@ export default function JobDashboard() {
           const { error } = await supabase
             .from('jobs')
             .update({ pipeline_stages: updatedStages })
-            .eq('id', jobId);
+            .eq('id', jobId ?? '');
 
           if (!error) {
             await fetchJobDetails();
@@ -1117,7 +1117,7 @@ export default function JobDashboard() {
       <CalendarInterviewLinker
         open={showCalendarLinker}
         onOpenChange={setShowCalendarLinker}
-        jobId={jobId}
+        jobId={jobId ?? ''}
         applications={applications}
         onInterviewLinked={fetchJobDetails}
       />
