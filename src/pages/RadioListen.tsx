@@ -107,8 +107,8 @@ export default function RadioListen() {
         
         const { data, error } = await supabase.rpc('register_listener', {
           p_session_id: sessionId ?? '',
-          p_user_id: user?.id ?? null,
-          p_ip_address: null, // Could use a service to get IP if needed
+          p_user_id: user?.id ?? undefined,
+          p_ip_address: undefined,
         });
 
         if (error) {
@@ -130,8 +130,8 @@ export default function RadioListen() {
         supabase.auth.getUser().then(({ data: { user } }) => {
           supabase.rpc('unregister_listener', {
             p_session_id: sessionId ?? '',
-            p_user_id: user?.id ?? null,
-            p_ip_address: null,
+            p_user_id: user?.id ?? undefined,
+            p_ip_address: undefined,
           }).then(({ error }) => {
             if (error) console.error('Failed to unregister:', error);
           });
@@ -248,8 +248,8 @@ export default function RadioListen() {
             {/* Spotify Embed */}
             <SpotifyEmbed 
               type="playlist"
-              spotifyId={session.data.spotify_playlist_id ?? undefined}
-              url={session.data.spotify_embed_url ?? undefined}
+              spotifyId={session.data.spotify_playlist_id || ''}
+              url={session.data.spotify_embed_url || ''}
               className="h-[380px]"
             />
 
