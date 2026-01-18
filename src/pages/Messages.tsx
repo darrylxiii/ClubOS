@@ -307,12 +307,12 @@ export default function Messages() {
                   <AudioCallLauncher
                     conversationId={selectedConversationId}
                     participantName={selectedConversation.title}
-                    onSendMessage={sendMessage}
+                    onSendMessage={(content, metadata) => sendMessage(content, [], metadata)}
                   />
                   <VideoCallLauncher
                     conversationId={selectedConversationId}
                     participantName={selectedConversation.title}
-                    onSendMessage={sendMessage}
+                    onSendMessage={(content, metadata) => sendMessage(content, [], metadata)}
                   />
                   <Button
                     variant={showGroupInfo ? "default" : "ghost"}

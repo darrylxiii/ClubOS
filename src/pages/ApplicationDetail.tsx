@@ -41,9 +41,9 @@ interface ApplicationDetail {
     company_id: string;
     companies: {
       name: string;
-      logo_url: string;
-      description: string;
-      website_url: string;
+      logo_url: string | null;
+      description: string | null;
+      website_url: string | null;
     };
   };
   other_candidates_count: number;

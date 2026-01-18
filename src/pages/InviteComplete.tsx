@@ -36,7 +36,7 @@ export default function InviteComplete() {
       const { data: invite, error: inviteError } = await supabase
         .from('candidate_invitations')
         .select('*')
-        .eq('invitation_token', token)
+        .eq('invitation_token', token ?? '')
         .single();
 
       if (inviteError || !invite) {

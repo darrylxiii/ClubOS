@@ -25,7 +25,7 @@ export default function InviteAcceptance() {
       const { data: inviteData, error: inviteError } = await supabase
         .from('candidate_invitations')
         .select('*, candidate_profiles(*)')
-        .eq('invitation_token', token)
+        .eq('invitation_token', token ?? '')
         .single();
 
       if (inviteError || !inviteData) {

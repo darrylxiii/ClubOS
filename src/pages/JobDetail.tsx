@@ -97,7 +97,7 @@ export default function JobDetail() {
             )
           )
         `)
-        .eq('id', jobId)
+        .eq('id', jobId ?? '')
         .single();
 
       if (error) throw error;
@@ -220,15 +220,15 @@ export default function JobDetail() {
 
       const { error } = await supabase
         .from('applications')
-        .insert({
+        .insert([{
           user_id: user.id,
-          job_id: jobId,
+          job_id: jobId ?? '',
           position: job?.title || 'Position',
           company_name: job?.companies?.name || 'Company',
           status: 'active',
           current_stage_index: 0,
           stages: applicationStages,
-        });
+        }]);
 
       if (error) throw error;
 
@@ -254,7 +254,7 @@ export default function JobDetail() {
           .from('saved_jobs')
           .delete()
           .eq('user_id', user.id)
-          .eq('job_id', jobId);
+          .eq('job_id', jobId ?? '');
 
         if (error) throw error;
 
@@ -265,7 +265,7 @@ export default function JobDetail() {
         // Add to database
         const { error } = await supabase
           .from('saved_jobs')
-          .insert({ user_id: user.id, job_id: jobId });
+          .insert([{ user_id: user.id, job_id: jobId ?? '' }]);
 
         if (error) throw error;
 
