@@ -816,5 +816,8 @@ export const adminRoutes = (
 
     {/* Archived Candidates */}
     <Route path="/archived-candidates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ArchivedCandidates /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* Data Export */}
+    <Route path="/admin/data-export" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><DataExport /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );
