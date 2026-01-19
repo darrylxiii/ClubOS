@@ -111,6 +111,9 @@ const SourcingHub = lazy(() => import("@/pages/admin/SourcingHub"));
 // Phase 4: Candidate Review
 const CandidateReviewStack = lazy(() => import("@/pages/admin/CandidateReviewStack"));
 
+// Data Export
+const DataExport = lazy(() => import("@/pages/admin/DataExport"));
+
 export const adminRoutes = (
   <>
     <Route

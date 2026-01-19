@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { AppLayout } from '@/components/layout/AppLayout';
-import { RoleGate } from '@/components/auth/RoleGate';
+import { RoleGate } from '@/components/RoleGate';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -137,8 +136,7 @@ export default function DataExport() {
 
   return (
     <RoleGate allowedRoles={['admin']}>
-      <AppLayout>
-        <div className="container max-w-6xl py-8 space-y-6">
+      <div className="container max-w-6xl py-8 space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -308,7 +306,6 @@ export default function DataExport() {
             </CardContent>
           </Card>
         </div>
-      </AppLayout>
-    </RoleGate>
+      </RoleGate>
   );
 }

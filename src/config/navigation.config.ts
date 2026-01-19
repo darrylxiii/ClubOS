@@ -360,6 +360,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Employee Dashboard", icon: Users, path: "/admin/employee-management" },
         { name: "System Health", icon: Heart, path: "/admin/system-health" },
         { name: "Bulk Operations", icon: Users, path: "/admin/bulk-operations" },
+        { name: "Data Export", icon: Database, path: "/admin/data-export", badge: "New" },
         { name: "Page Templates", icon: FileText, path: "/admin/templates" },
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
       ],
