@@ -445,10 +445,12 @@ const Profile = () => {
         updates.github_profile_data = null;
       }
 
+      if (!user?.id) return;
+      
       const { error } = await supabase
         .from('profiles')
         .update(updates)
-        .eq('id', user?.id);
+        .eq('id', user.id);
 
       if (error) throw error;
 
@@ -488,7 +490,16 @@ const Profile = () => {
       return;
     }
 
-    setUserResumes(data || []);
+    setUserResumes((data || []).map(cv => ({
+      id: cv.id,
+      display_name: cv.display_name,
+      file_name: cv.file_name,
+      file_path: cv.file_path,
+      file_size: cv.file_size,
+      mime_type: cv.mime_type,
+      is_primary: cv.is_primary ?? false,
+      uploaded_at: cv.uploaded_at ?? new Date().toISOString(),
+    })));
   };
 
   const handleUploadResume = async () => {
@@ -614,11 +625,13 @@ const Profile = () => {
 
   const handleSetPrimaryResume = async (resumeId: string) => {
     try {
+      if (!user?.id) return;
+      
       // Unset all primary flags
       await supabase
         .from('user_resumes')
         .update({ is_primary: false })
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       // Set new primary
       const { error } = await supabase
@@ -738,21 +751,21 @@ const Profile = () => {
           setSocialConnections(prev => ({
             ...prev,
             instagram: true,
-            instagramUsername: data.instagram_username
+            instagramUsername: data.instagram_username ?? ''
           }));
         }
         if (data.twitter_connected && data.twitter_username) {
           setSocialConnections(prev => ({
             ...prev,
             twitter: true,
-            twitterUsername: data.twitter_username
+            twitterUsername: data.twitter_username ?? ''
           }));
         }
         if (data.github_connected && data.github_username) {
           setSocialConnections(prev => ({
             ...prev,
             github: true,
-            githubUsername: data.github_username
+            githubUsername: data.github_username ?? ''
           }));
         }
 
@@ -2684,48 +2697,49 @@ const Profile = () => {
               <SocialConnections
                 socialConnections={socialConnections}
                 musicConnections={musicConnections}
-                onUpdate={async () => {
-                  const { data } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user?.id)
-                    .single();
+                  onUpdate={async () => {
+                    if (!user?.id) return;
+                    const { data } = await supabase
+                      .from('profiles')
+                      .select('*')
+                      .eq('id', user.id)
+                      .single();
 
-                  if (data) {
-                    setMusicConnections({
-                      spotifyConnected: (data as any).spotify_connected || false,
-                      appleMusicConnected: (data as any).apple_music_connected || false,
-                      spotifyPlaylists: (data as any).spotify_playlists || [],
-                      appleMusicPlaylists: (data as any).apple_music_playlists || [],
-                    });
+                    if (data) {
+                      setMusicConnections({
+                        spotifyConnected: (data as any).spotify_connected || false,
+                        appleMusicConnected: (data as any).apple_music_connected || false,
+                        spotifyPlaylists: (data as any).spotify_playlists || [],
+                        appleMusicPlaylists: (data as any).apple_music_playlists || [],
+                      });
 
-                    // Update social connections
-                    if (data.linkedin_connected) {
-                      setSocialConnections(prev => ({ ...prev, linkedin: true }));
+                      // Update social connections
+                      if (data.linkedin_connected) {
+                        setSocialConnections(prev => ({ ...prev, linkedin: true }));
+                      }
+                      if (data.instagram_connected && data.instagram_username) {
+                        setSocialConnections(prev => ({
+                          ...prev,
+                          instagram: true,
+                          instagramUsername: data.instagram_username ?? ''
+                        }));
+                      }
+                      if (data.twitter_connected && data.twitter_username) {
+                        setSocialConnections(prev => ({
+                          ...prev,
+                          twitter: true,
+                          twitterUsername: data.twitter_username ?? ''
+                        }));
+                      }
+                      if (data.github_connected && data.github_username) {
+                        setSocialConnections(prev => ({
+                          ...prev,
+                          github: true,
+                          githubUsername: data.github_username ?? ''
+                        }));
+                      }
                     }
-                    if (data.instagram_connected && data.instagram_username) {
-                      setSocialConnections(prev => ({
-                        ...prev,
-                        instagram: true,
-                        instagramUsername: data.instagram_username
-                      }));
-                    }
-                    if (data.twitter_connected && data.twitter_username) {
-                      setSocialConnections(prev => ({
-                        ...prev,
-                        twitter: true,
-                        twitterUsername: data.twitter_username
-                      }));
-                    }
-                    if (data.github_connected && data.github_username) {
-                      setSocialConnections(prev => ({
-                        ...prev,
-                        github: true,
-                        githubUsername: data.github_username
-                      }));
-                    }
-                  }
-                }}
+                  }}
                 onConnectSocial={handleConnectSocial}
                 onDisconnectSocial={handleDisconnectSocial}
               />

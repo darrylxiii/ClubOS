@@ -65,6 +65,8 @@ export default function UnifiedCandidateProfile() {
   }, [candidateId]);
 
   const loadCandidateData = async () => {
+    if (!candidateId) return;
+    
     try {
       // Load candidate and profile
       const { data: candidateData } = await supabase

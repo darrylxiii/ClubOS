@@ -89,7 +89,11 @@ const UnifiedTasks = () => {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        setPreferences(data);
+        setPreferences({
+          ...data,
+          show_migration_banner: data.show_migration_banner ?? true,
+          ai_scheduling_enabled: data.ai_scheduling_enabled ?? true,
+        });
       } else {
         const { data: newPrefs, error: insertError } = await supabase
           .from("task_system_preferences")
@@ -103,7 +107,13 @@ const UnifiedTasks = () => {
           .single();
 
         if (insertError) throw insertError;
-        setPreferences(newPrefs);
+        if (newPrefs) {
+          setPreferences({
+            ...newPrefs,
+            show_migration_banner: newPrefs.show_migration_banner ?? true,
+            ai_scheduling_enabled: newPrefs.ai_scheduling_enabled ?? true,
+          });
+        }
       }
     } catch (error) {
       console.error("Error loading preferences:", error);
