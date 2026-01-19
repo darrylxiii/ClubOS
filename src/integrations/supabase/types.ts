@@ -51788,6 +51788,12 @@ export type Database = {
               total_enrollments: number
             }[]
           }
+      get_public_tables: {
+        Args: never
+        Returns: {
+          table_name: string
+        }[]
+      }
       get_realtime_system_health: {
         Args: never
         Returns: {

@@ -41,27 +41,22 @@ interface ExportResponse {
   expiresIn?: string;
 }
 
-// Comprehensive list of known tables from schema
-const KNOWN_TABLES = [
-  'profiles', 'companies', 'jobs', 'applications', 'bookings',
-  'candidate_profiles', 'experience', 'education', 'skills',
-  'notifications', 'messages', 'payments', 'invoices', 'referrals',
-  'teams', 'projects', 'tasks', 'activity_feed', 'admin_audit_activity',
-  'achievement_progress', 'ai_conversations', 'ai_suggestions',
-  'calendar_events', 'commission_entries', 'communication_logs',
-  'contacts', 'crm_activities', 'deals', 'email_templates',
-  'freelancer_teams', 'interview_schedules', 'job_boards',
-  'meeting_recordings', 'notes', 'pipeline_stages', 'placement_fees',
-  'proposals', 'talent_pools', 'time_entries', 'user_resumes',
-  'video_meetings', 'workflow_runs', 'workspace_members'
-].sort();
-
 export default function DataExport() {
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const { trackDataExport } = useAdminTracking();
 
-  const filteredTables = KNOWN_TABLES.filter(table => 
+  // Fetch all public tables dynamically
+  const { data: allTables = [], isLoading: tablesLoading, refetch: refetchTables } = useQuery({
+    queryKey: ['public-tables'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_public_tables');
+      if (error) throw error;
+      return (data as { table_name: string }[]).map(t => t.table_name).sort();
+    },
+  });
+
+  const filteredTables = allTables.filter(table => 
     table.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -285,8 +280,19 @@ export default function DataExport() {
 
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <span>{selectedTables.size} of {filteredTables.length} tables selected</span>
-                <span className="flex items-center gap-1">
-                  <Badge variant="outline">{KNOWN_TABLES.length} known tables</Badge>
+                <span className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => refetchTables()}
+                    disabled={tablesLoading}
+                  >
+                    <RefreshCw className={`h-3 w-3 mr-1 ${tablesLoading ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
+                  <Badge variant="outline">
+                    {tablesLoading ? 'Loading...' : `${allTables.length} tables`}
+                  </Badge>
                 </span>
               </div>
             </CardContent>
