@@ -212,7 +212,7 @@ export default function TalentPoolListDetail() {
                       <TierBadge tier={(candidate.talent_tier || 'pool') as TalentTier} />
                     </TableCell>
                     <TableCell>
-                      <MoveProbabilityBadge probability={candidate.move_probability} />
+                      <MoveProbabilityBadge probability={candidate.move_probability ?? 0} />
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {formatDistanceToNow(new Date(member.added_at), { addSuffix: true })}

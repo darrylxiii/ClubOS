@@ -55,7 +55,7 @@ export default function TeamPerformance() {
         
         const target = targets?.[0];
         const targetProgress = target?.revenue_target 
-          ? (target.revenue_achieved / target.revenue_target) * 100 
+          ? ((target.revenue_achieved ?? 0) / target.revenue_target) * 100 
           : 0;
 
         metrics[report.id] = {
