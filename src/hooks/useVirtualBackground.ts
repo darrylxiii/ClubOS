@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { SelfieSegmentation } from '@mediapipe/selfie_segmentation';
-import { Camera } from '@mediapipe/camera_utils';
 import { logger } from '@/lib/logger';
+
+// Types for dynamic imports
+type SelfieSegmentationType = import('@mediapipe/selfie_segmentation').SelfieSegmentation;
+type CameraType = import('@mediapipe/camera_utils').Camera;
 
 interface VirtualBackgroundOptions {
     enabled: boolean;
@@ -13,8 +15,8 @@ interface VirtualBackgroundOptions {
 export function useVirtualBackground(inputStream: MediaStream | null, options: VirtualBackgroundOptions) {
     const [processedStream, setProcessedStream] = useState<MediaStream | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const segmentationRef = useRef<SelfieSegmentation | null>(null);
-    const cameraRef = useRef<Camera | null>(null);
+    const segmentationRef = useRef<SelfieSegmentationType | null>(null);
+    const cameraRef = useRef<CameraType | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const activeEffectRef = useRef<VirtualBackgroundOptions>(options);
     const backgroundImageRef = useRef<HTMLImageElement | null>(null);
@@ -53,6 +55,12 @@ export function useVirtualBackground(inputStream: MediaStream | null, options: V
         }
 
         const init = async () => {
+            // Dynamically import heavy MediaPipe libraries only when needed
+            const [{ SelfieSegmentation }, { Camera }] = await Promise.all([
+                import('@mediapipe/selfie_segmentation'),
+                import('@mediapipe/camera_utils')
+            ]);
+
             // Create hidden video element to play input stream
             const video = document.createElement('video');
             video.srcObject = inputStream;

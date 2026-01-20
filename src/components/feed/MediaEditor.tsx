@@ -3,8 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Canvas as FabricCanvas, FabricImage, filters } from "fabric";
-import { Crop, RotateCw, Sun, Contrast, Droplets, Sparkles } from "lucide-react";
+import { Crop, RotateCw, Sun, Contrast, Droplets, Sparkles, Loader2 } from "lucide-react";
+
+// Types for dynamic fabric import
+type FabricCanvasType = import('fabric').Canvas;
+type FabricImageType = import('fabric').FabricImage;
 
 interface MediaEditorProps {
   file: File;
@@ -15,68 +18,84 @@ interface MediaEditorProps {
 
 export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
-  const [image, setImage] = useState<FabricImage | null>(null);
+  const [fabricCanvas, setFabricCanvas] = useState<FabricCanvasType | null>(null);
+  const [image, setImage] = useState<FabricImageType | null>(null);
   const [brightness, setBrightness] = useState(0);
   const [contrast, setContrast] = useState(0);
   const [saturation, setSaturation] = useState(0);
   const [rotation, setRotation] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const fabricModuleRef = useRef<typeof import('fabric') | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current || !open) return;
 
-    // Clean up previous canvas
-    if (fabricCanvas) {
-      fabricCanvas.dispose();
-    }
+    const initEditor = async () => {
+      setIsLoading(true);
+      
+      // Dynamic import to reduce build memory
+      const fabricModule = await import('fabric');
+      fabricModuleRef.current = fabricModule;
 
-    const canvas = new FabricCanvas(canvasRef.current, {
-      width: 800,
-      height: 600,
-      backgroundColor: "#ffffff",
-    });
+      // Clean up previous canvas
+      if (fabricCanvas) {
+        fabricCanvas.dispose();
+      }
 
-    setFabricCanvas(canvas);
+      const canvas = new fabricModule.Canvas(canvasRef.current!, {
+        width: 800,
+        height: 600,
+        backgroundColor: "#ffffff",
+      });
 
-    // Load image
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imgElement = new Image();
-      imgElement.src = e.target?.result as string;
-      imgElement.onload = () => {
-        FabricImage.fromURL(e.target?.result as string).then((img) => {
-          // Calculate scale to fit canvas while maintaining aspect ratio
-          const scale = Math.min(
-            (canvas.width! - 40) / img.width!,
-            (canvas.height! - 40) / img.height!
-          );
-          
-          img.scale(scale);
-          img.set({
-            left: canvas.width! / 2,
-            top: canvas.height! / 2,
-            originX: 'center',
-            originY: 'center',
-            selectable: false, // Prevent accidental dragging
+      setFabricCanvas(canvas);
+
+      // Load image
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imgElement = new Image();
+        imgElement.src = e.target?.result as string;
+        imgElement.onload = () => {
+          fabricModule.FabricImage.fromURL(e.target?.result as string).then((img) => {
+            // Calculate scale to fit canvas while maintaining aspect ratio
+            const scale = Math.min(
+              (canvas.width! - 40) / img.width!,
+              (canvas.height! - 40) / img.height!
+            );
+            
+            img.scale(scale);
+            img.set({
+              left: canvas.width! / 2,
+              top: canvas.height! / 2,
+              originX: 'center',
+              originY: 'center',
+              selectable: false, // Prevent accidental dragging
+            });
+            
+            canvas.add(img);
+            canvas.centerObject(img);
+            setImage(img);
+            canvas.renderAll();
+            setIsLoading(false);
           });
-          
-          canvas.add(img);
-          canvas.centerObject(img);
-          setImage(img);
-          canvas.renderAll();
-        });
+        };
       };
+      reader.readAsDataURL(file);
     };
-    reader.readAsDataURL(file);
+
+    initEditor();
 
     return () => {
-      canvas.dispose();
+      if (fabricCanvas) {
+        fabricCanvas.dispose();
+      }
     };
   }, [file, open]);
 
   const applyFilters = () => {
-    if (!image || !fabricCanvas) return;
+    if (!image || !fabricCanvas || !fabricModuleRef.current) return;
 
+    const { filters } = fabricModuleRef.current;
     const filterList: any[] = [];
 
     if (brightness !== 0) {
@@ -155,8 +174,15 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex justify-center bg-muted rounded-lg border p-4">
-            <canvas ref={canvasRef} className="max-w-full" />
+          <div className="flex justify-center bg-muted rounded-lg border p-4 min-h-[400px] items-center">
+            {isLoading ? (
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Loading editor...</p>
+              </div>
+            ) : (
+              <canvas ref={canvasRef} className="max-w-full" />
+            )}
           </div>
 
           <Tabs defaultValue="adjust" className="w-full">
@@ -232,7 +258,7 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={isLoading}>
               Save Changes
             </Button>
           </div>
