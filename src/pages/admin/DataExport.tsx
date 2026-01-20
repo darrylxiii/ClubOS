@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { RoleGate } from '@/components/RoleGate';
@@ -50,6 +50,17 @@ interface ExportResponse {
   runtimeMs?: number;
 }
 
+type BatchManifest = {
+  exportRunId: string;
+  batchIndex: number;
+  batchCount: number;
+  createdAt: string;
+  tables: string[];
+  totalRows: number;
+  files: ExportFile[];
+  exportResults: ExportResult[];
+};
+
 function downloadUrl(url: string, filename?: string) {
   const a = document.createElement('a');
   a.href = url;
@@ -59,15 +70,49 @@ function downloadUrl(url: string, filename?: string) {
   document.body.removeChild(a);
 }
 
+function downloadJson(filename: string, payload: unknown) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  downloadUrl(url, filename);
+  setTimeout(() => URL.revokeObjectURL(url), 2500);
+}
+
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 export default function DataExport() {
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const [batchSize, setBatchSize] = useState<number>(20);
+  const [batchExport, setBatchExport] = useState<{
+    running: boolean;
+    exportRunId: string;
+    batchIndex: number;
+    batchCount: number;
+    doneTables: number;
+    totalTables: number;
+    totalRows: number;
+    manifests: BatchManifest[];
+  }>({
+    running: false,
+    exportRunId: '',
+    batchIndex: 0,
+    batchCount: 0,
+    doneTables: 0,
+    totalTables: 0,
+    totalRows: 0,
+    manifests: [],
+  });
+
   const [exportAllProgress, setExportAllProgress] = useState<{
     running: boolean;
     total: number;
     done: number;
     totalRows: number;
   }>({ running: false, total: 0, done: 0, totalRows: 0 });
+
+  const cancelBatchRef = useRef(false);
 
   const { trackDataExport } = useAdminTracking();
 
@@ -79,21 +124,26 @@ export default function DataExport() {
         // Fallback to just table names if counts RPC doesn't exist
         const { data: tables, error: tablesError } = await supabase.rpc('get_public_tables');
         if (tablesError) throw tablesError;
-        return (tables as { table_name: string }[]).map((t) => ({ 
-          table_name: t.table_name, 
-          row_count: -1 // Unknown
-        })).sort((a, b) => a.table_name.localeCompare(b.table_name));
+        return (tables as { table_name: string }[])
+          .map((t) => ({
+            table_name: t.table_name,
+            row_count: -1, // Unknown
+          }))
+          .sort((a, b) => a.table_name.localeCompare(b.table_name));
       }
-      return (data as { table_name: string; row_count: number }[])
-        .sort((a, b) => a.table_name.localeCompare(b.table_name));
+      return (data as { table_name: string; row_count: number }[]).sort((a, b) =>
+        a.table_name.localeCompare(b.table_name),
+      );
     },
   });
 
   const allTables = useMemo(() => tableData.map((t) => t.table_name), [tableData]);
-  
+
   const tableRowCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    tableData.forEach((t) => { counts[t.table_name] = t.row_count; });
+    tableData.forEach((t) => {
+      counts[t.table_name] = t.row_count;
+    });
     return counts;
   }, [tableData]);
 
@@ -103,15 +153,13 @@ export default function DataExport() {
   );
 
   const handleDeselectEmpty = () => {
-    const nonEmpty = new Set(
-      Array.from(selectedTables).filter((t) => tableRowCounts[t] !== 0)
-    );
+    const nonEmpty = new Set(Array.from(selectedTables).filter((t) => tableRowCounts[t] !== 0));
     setSelectedTables(nonEmpty);
   };
 
   const emptyTableCount = useMemo(
     () => Array.from(selectedTables).filter((t) => tableRowCounts[t] === 0).length,
-    [selectedTables, tableRowCounts]
+    [selectedTables, tableRowCounts],
   );
 
   const exportMutation = useMutation({
@@ -158,6 +206,136 @@ export default function DataExport() {
 
   const handleExport = () => {
     exportMutation.mutate(Array.from(selectedTables));
+  };
+
+  const handleExportSelectedInBatches = async () => {
+    const tables = Array.from(selectedTables);
+    if (tables.length === 0) return;
+
+    cancelBatchRef.current = false;
+
+    const exportRunId = new Date().toISOString().replace(/[:.]/g, '-');
+    const effectiveBatchSize = Math.max(1, Math.min(50, Math.floor(batchSize || 20)));
+
+    const batches: string[][] = [];
+    for (let i = 0; i < tables.length; i += effectiveBatchSize) {
+      batches.push(tables.slice(i, i + effectiveBatchSize));
+    }
+
+    setBatchExport({
+      running: true,
+      exportRunId,
+      batchIndex: 0,
+      batchCount: batches.length,
+      doneTables: 0,
+      totalTables: tables.length,
+      totalRows: 0,
+      manifests: [],
+    });
+
+    try {
+      let doneTables = 0;
+      let totalRows = 0;
+      const manifests: BatchManifest[] = [];
+
+      for (let batchIndex = 0; batchIndex < batches.length; batchIndex += 1) {
+        if (cancelBatchRef.current) break;
+
+        const batchTables = batches[batchIndex];
+        const chunkSize = 5; // backend hard cap
+
+        const batchFiles: ExportFile[] = [];
+        const batchResults: ExportResult[] = [];
+        let batchRows = 0;
+
+        // Process batch in 5-table calls
+        for (let i = 0; i < batchTables.length; i += chunkSize) {
+          if (cancelBatchRef.current) break;
+
+          const chunk = batchTables.slice(i, i + chunkSize);
+          const { data, error } = await supabase.functions.invoke('admin-bulk-export', {
+            body: { tables: chunk },
+          });
+
+          if (error) {
+            // Keep going; record per-table chunk failure
+            const msg = (error as any)?.message || 'Export call failed';
+            chunk.forEach((t) => batchResults.push({ table: t, rows: 0, parts: 0, error: msg }));
+          } else {
+            const resp = data as ExportResponse;
+            batchFiles.push(...resp.files);
+            batchResults.push(...resp.exportResults);
+            batchRows += resp.totalRows;
+          }
+
+          // Small delay to reduce 429/overload + browser throttling
+          if (i + chunkSize < batchTables.length) {
+            await sleep(350);
+          }
+        }
+
+        doneTables += batchTables.length;
+        totalRows += batchRows;
+
+        const manifest: BatchManifest = {
+          exportRunId,
+          batchIndex: batchIndex + 1,
+          batchCount: batches.length,
+          createdAt: new Date().toISOString(),
+          tables: batchTables,
+          totalRows: batchRows,
+          files: batchFiles,
+          exportResults: batchResults,
+        };
+
+        manifests.push(manifest);
+
+        // Auto-download ONE manifest per batch (safe, doesn’t trip browser blockers)
+        downloadJson(
+          `export_${exportRunId}__batch${String(batchIndex + 1).padStart(2, '0')}_of_${String(batches.length).padStart(2, '0')}.json`,
+          manifest,
+        );
+
+        setBatchExport({
+          running: true,
+          exportRunId,
+          batchIndex: batchIndex + 1,
+          batchCount: batches.length,
+          doneTables,
+          totalTables: tables.length,
+          totalRows,
+          manifests: [...manifests],
+        });
+
+        // Slightly longer pause between 20-table batches
+        if (batchIndex + 1 < batches.length) {
+          await sleep(900);
+        }
+      }
+
+      if (cancelBatchRef.current) {
+        toast.message('Batch export stopped', {
+          description: `Downloaded ${batchExport.manifests.length} manifest(s) so far.`,
+        });
+      } else {
+        toast.success(`Batch export complete: ${totalRows.toLocaleString()} rows`, {
+          description: `Downloaded ${batches.length} batch manifest(s).`,
+        });
+      }
+
+      await trackDataExport('bulk_database_export_selected_batched', totalRows);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error('Batch export failed', { description: msg });
+    } finally {
+      setBatchExport((p) => ({ ...p, running: false }));
+      cancelBatchRef.current = false;
+    }
+  };
+
+  const handleCancelBatch = () => {
+    cancelBatchRef.current = true;
+    setBatchExport((p) => ({ ...p, running: false }));
   };
 
   const handleExportAll = async () => {
@@ -227,7 +405,7 @@ export default function DataExport() {
     }
   };
 
-  const isBusy = exportMutation.isPending || exportAllProgress.running;
+  const isBusy = exportMutation.isPending || exportAllProgress.running || batchExport.running;
 
   return (
     <RoleGate allowedRoles={['admin']}>
@@ -240,7 +418,7 @@ export default function DataExport() {
             </h1>
             <p className="text-muted-foreground">Bulk export database tables as CSV files</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" onClick={handleExportAll} disabled={isBusy || tablesLoading}>
               {exportAllProgress.running ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -249,6 +427,7 @@ export default function DataExport() {
               )}
               Export All Tables
             </Button>
+
             <Button onClick={handleExport} disabled={selectedTables.size === 0 || isBusy}>
               {exportMutation.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -257,6 +436,28 @@ export default function DataExport() {
               )}
               Export Selected ({selectedTables.size})
             </Button>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Batch size</span>
+              <Input
+                value={String(batchSize)}
+                onChange={(e) => setBatchSize(Number(e.target.value) || 20)}
+                inputMode="numeric"
+                className="h-9 w-20"
+              />
+              <Button
+                variant="secondary"
+                onClick={handleExportSelectedInBatches}
+                disabled={selectedTables.size === 0 || isBusy}
+              >
+                Export in Batches
+              </Button>
+              {batchExport.running && (
+                <Button variant="outline" onClick={handleCancelBatch}>
+                  Stop
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
