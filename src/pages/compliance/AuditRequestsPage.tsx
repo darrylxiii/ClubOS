@@ -48,7 +48,7 @@ export default function AuditRequestsPage() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setRequests(data || []);
+      setRequests(((data as any) || []) as AuditRequest[]);
     } catch (error) {
       console.error("Error loading audit requests:", error);
       toast({

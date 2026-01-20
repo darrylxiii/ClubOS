@@ -23,6 +23,8 @@ const JobCalibrationHistory = () => {
     }, [jobId]);
 
     const fetchJob = async () => {
+        if (!jobId) return;
+
         const { data, error } = await supabase
             .from('jobs')
             .select('id, title, company_id')

@@ -67,7 +67,8 @@ const PromptTemplateManager = () => {
     const fetchPrompts = async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
+            const sb = supabase as any;
+            const { data, error } = await sb
                 .from('llm_prompt_templates')
                 .select('*')
                 .order('slug', { ascending: true });
@@ -102,7 +103,8 @@ const PromptTemplateManager = () => {
 
         setSaving(true);
         try {
-            const { error } = await supabase
+            const sb = supabase as any;
+            const { error } = await sb
                 .from('llm_prompt_templates')
                 .update({
                     name: formData.name,
@@ -133,8 +135,9 @@ const PromptTemplateManager = () => {
 
     const handleDuplicate = async (prompt: PromptTemplate) => {
         try {
+            const sb = supabase as any;
             const newSlug = `${prompt.slug}.copy`;
-            const { error } = await supabase
+            const { error } = await sb
                 .from('llm_prompt_templates')
                 .insert({
                     slug: newSlug,
@@ -161,7 +164,8 @@ const PromptTemplateManager = () => {
 
     const handleToggleActive = async (prompt: PromptTemplate) => {
         try {
-            const { error } = await supabase
+            const sb = supabase as any;
+            const { error } = await sb
                 .from('llm_prompt_templates')
                 .update({ is_active: !prompt.is_active, updated_at: new Date().toISOString() })
                 .eq('id', prompt.id);

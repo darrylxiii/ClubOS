@@ -265,9 +265,12 @@ export default function TranslationManager() {
     addLog('info', `Starting translation for "${namespace}"...`, undefined, 'generate');
 
     try {
-      const { data, error } = await aiService.generateAllTranslations({
-        namespace
+      const res: any = await aiService.generateAllTranslations({
+        namespace,
       });
+
+      const data = res?.data ?? res;
+      const error = res?.error;
 
       if (error) {
         if (error.message?.includes('already running')) {
@@ -334,9 +337,12 @@ export default function TranslationManager() {
     addLog('info', `Starting full generation (${namespaceCount} namespaces × ${TARGET_LANGUAGES.length} languages)...`, undefined, 'generate');
 
     try {
-      const { data, error } = await aiService.generateAllTranslations({
-        generateAll: true
+      const res: any = await aiService.generateAllTranslations({
+        generateAll: true,
       });
+
+      const data = res?.data ?? res;
+      const error = res?.error;
 
       if (error) {
         // Handle 409 conflict (duplicate job) gracefully
@@ -415,9 +421,11 @@ export default function TranslationManager() {
         // Now trigger generation for missing keys
         addLog('info', 'Triggering translation for missing keys...', undefined, 'sync');
 
-        const { error: genError } = await aiService.generateAllTranslations({
-          generateAll: true
+        const res: any = await aiService.generateAllTranslations({
+          generateAll: true,
         });
+
+        const genError = res?.error;
 
         if (genError) {
           addLog('error', 'Generation failed after sync', genError.message, 'sync');

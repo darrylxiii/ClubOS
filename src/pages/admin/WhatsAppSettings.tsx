@@ -214,7 +214,7 @@ export default function WhatsAppSettings() {
                           </p>
                         </div>
                         <Switch
-                          checked={rule.is_active}
+                          checked={!!rule.is_active}
                           onCheckedChange={(checked) => toggleRuleMutation.mutate({ id: rule.id, is_active: checked })}
                         />
                       </div>
