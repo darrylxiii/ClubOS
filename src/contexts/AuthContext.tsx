@@ -50,19 +50,61 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }, 15000); // Keep 15s for safety, but we'll fail fast below
 
-    // FAIL-FAST: Check local storage synchronously before waiting for usage
-    // This removes the "lag" for unauthenticated users
+    // ALWAYS set up auth subscription FIRST - never early-return before this
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!mounted) return;
+
+        const elapsed = Date.now() - startTime;
+        console.log("[AuthContext] 📢 Auth event:", event, "at", elapsed, "ms | User ID:", session?.user?.id, "Email:", session?.user?.email, "Has session:", !!session);
+
+        setSession(session);
+        setUser(session?.user ?? null);
+        setAuthError(null);
+
+        // Track login and create security session (non-blocking)
+        if (event === 'SIGNED_IN' && session?.user?.id) {
+          const userId = session.user.id;
+          const userEmail = session.user.email || '';
+          const sessionId = session.access_token?.substring(0, 32);
+
+          if (sessionCreatedRef.current !== userId) {
+            sessionCreatedRef.current = userId;
+
+            setTimeout(() => {
+              postHogIdentify(userId, { email: userEmail });
+              recordLoginAttempt(userEmail, true).catch(err => {
+                console.log('[AuthContext] Login attempt tracking failed (non-critical):', err);
+              });
+              const fingerprint = generateDeviceFingerprint();
+              createSession(userId, sessionId, undefined, undefined, fingerprint).catch(err => {
+                console.log('[AuthContext] Security session creation failed (non-critical):', err);
+              });
+              trackLogin(userId, 'email').catch(err => {
+                console.log('[AuthContext] Login tracking failed (non-critical):', err.message);
+              });
+            }, 0);
+          }
+        }
+
+        if (event === 'SIGNED_OUT') {
+          sessionCreatedRef.current = null;
+        }
+      }
+    );
+
+    // FAIL-FAST: Check local storage synchronously
+    // This removes the "lag" for unauthenticated users, but subscription is already set up
     const hasLocalParams = window.location.hash.includes('access_token') || window.location.search.includes('code=');
     const hasStorageSession = localStorage.getItem('supabase-auth-token');
 
     if (!hasStorageSession && !hasLocalParams) {
       console.log("[AuthContext] ⚡ Fast-fail: No local session found, resolving immediately.");
       setLoading(false);
-      return;
-    }
-
-    // PHASE 2: Call getSession() FIRST to ensure user is available immediately
-    supabase.auth.getSession()
+      // DON'T return - let cleanup run properly
+    } else {
+      // Only call getSession if we have reason to believe there's a session
+      supabase.auth.getSession()
       .then(({ data: { session }, error }) => {
         if (!mounted) return;
 
@@ -83,71 +125,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         setLoading(false);
       })
-      .catch((err) => {
-        if (!mounted) return;
-
-        // Clear timeout on error too
-        clearAuthTimeout();
-
-        const elapsed = Date.now() - startTime;
-        console.error("[AuthContext] 💥 getSession() rejected at", elapsed, "ms:", err);
-        setLoading(false);
-        setAuthError(err.message || 'Session initialization failed');
-      });
-
-    // THEN set up auth state listener for future changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!mounted) return;
-
-        const elapsed = Date.now() - startTime;
-        console.log("[AuthContext] 📢 Auth event:", event, "at", elapsed, "ms | User ID:", session?.user?.id, "Email:", session?.user?.email, "Has session:", !!session);
-
-        setSession(session);
-        setUser(session?.user ?? null);
-        setAuthError(null);
-
-        // Track login and create security session (non-blocking)
-        if (event === 'SIGNED_IN' && session?.user?.id) {
-          const userId = session.user.id;
-          const userEmail = session.user.email || '';
-          const sessionId = session.access_token?.substring(0, 32); // Use part of token as session ID
-
-          // Prevent duplicate session creation
-          if (sessionCreatedRef.current !== userId) {
-            sessionCreatedRef.current = userId;
-
-            setTimeout(() => {
-              // Identify user in PostHog
-              postHogIdentify(userId, {
-                email: userEmail,
-              });
-
-              // Record successful login attempt
-              recordLoginAttempt(userEmail, true).catch(err => {
-                console.log('[AuthContext] Login attempt tracking failed (non-critical):', err);
-              });
-
-              // Create security session
-              const fingerprint = generateDeviceFingerprint();
-              createSession(userId, sessionId, undefined, undefined, fingerprint).catch(err => {
-                console.log('[AuthContext] Security session creation failed (non-critical):', err);
-              });
-
-              // Legacy session tracking
-              trackLogin(userId, 'email').catch(err => {
-                console.log('[AuthContext] Login tracking failed (non-critical):', err.message);
-              });
-            }, 0);
-          }
-        }
-
-        // Clear session ref on sign out
-        if (event === 'SIGNED_OUT') {
-          sessionCreatedRef.current = null;
-        }
-      }
-    );
+        .catch((err) => {
+          if (!mounted) return;
+          clearAuthTimeout();
+          const elapsed = Date.now() - startTime;
+          console.error("[AuthContext] 💥 getSession() rejected at", elapsed, "ms:", err);
+          setLoading(false);
+          setAuthError(err.message || 'Session initialization failed');
+        });
+    }
 
     return () => {
       mounted = false;
