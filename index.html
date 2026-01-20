@@ -224,9 +224,11 @@
         window.__APP_BOOTED__ = false;
         window.__APP_BOOTING__ = false;
         window.__BOOT_START__ = Date.now();
-        window.__BUILD_ID__ = '2026-01-20T23:25Z'; // Updated on each deploy
+        window.__BUILD_ID__ = '2026-01-20T23:45Z'; // Updated on each deploy
         window.__MAIN_LOADED__ = false;
         window.__SCRIPT_ERROR__ = false;
+        window.__FAILED_SCRIPT_URL__ = null;
+        window.__RECOVERY_ATTEMPTED__ = false;
         
         // Capture first fatal error for diagnostics
         window.__BOOT_ERROR__ = null;
@@ -292,7 +294,32 @@
         }
         window.resetCache = resetCache;
         
-        function showBootError(message, detail) {
+        // Enhanced diagnostics: check script URL status via HEAD request
+        async function checkScriptStatus(url) {
+          try {
+            var res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+            return res.status;
+          } catch (e) {
+            return 0; // Network error
+          }
+        }
+        
+        // Get recent resource loading entries for diagnostics
+        function getResourceDiagnostics() {
+          try {
+            var entries = performance.getEntriesByType('resource');
+            var jsEntries = entries.filter(function(e) { 
+              return e.initiatorType === 'script' || e.name.endsWith('.js'); 
+            }).slice(-5);
+            return jsEntries.map(function(e) { 
+              return e.name.split('/').pop().substring(0, 30); 
+            }).join(', ');
+          } catch (e) {
+            return 'unavailable';
+          }
+        }
+        
+        async function showBootError(message, detail) {
           var errorDiv = document.getElementById('boot-error');
           var spinner = document.getElementById('boot-spinner');
           var msgEl = document.getElementById('boot-error-msg');
@@ -302,7 +329,7 @@
           if (spinner) spinner.style.display = 'none';
           if (message && msgEl) msgEl.textContent = message;
           
-          // Enhanced diagnostics
+          // Enhanced diagnostics with script URL and status
           var diagnostics = [
             'Build: ' + (window.__BUILD_ID__ || 'unknown'),
             'Main loaded: ' + (window.__MAIN_LOADED__ ? 'yes' : 'no'),
@@ -310,9 +337,24 @@
             'Booted: ' + (window.__APP_BOOTED__ ? 'yes' : 'no'),
             'Script error: ' + (window.__SCRIPT_ERROR__ ? 'yes' : 'no')
           ];
+          
+          // Add failing script URL and status if available
+          if (window.__FAILED_SCRIPT_URL__) {
+            var status = await checkScriptStatus(window.__FAILED_SCRIPT_URL__);
+            diagnostics.push('Script URL: ' + window.__FAILED_SCRIPT_URL__);
+            diagnostics.push('HEAD status: ' + status);
+          }
+          
+          // Add resource loading info
+          var resources = getResourceDiagnostics();
+          if (resources && resources !== 'unavailable') {
+            diagnostics.push('Recent scripts: ' + resources);
+          }
+          
           if (window.__BOOT_ERROR__) {
             diagnostics.push('Error: ' + window.__BOOT_ERROR__);
           }
+          
           var fullDetail = (detail || '') + '\n' + diagnostics.join(' | ');
           
           if (detailEl) {
@@ -321,6 +363,40 @@
           }
         }
         window.showBootError = showBootError;
+        
+        // CRITICAL: Handle script load errors with smart recovery
+        window.handleScriptError = function(e) {
+          window.__SCRIPT_ERROR__ = true;
+          
+          // Capture the actual failing script URL
+          var scriptUrl = (e && e.target && e.target.src) || window.__FAILED_SCRIPT_URL__;
+          window.__FAILED_SCRIPT_URL__ = scriptUrl;
+          
+          console.error('[Boot] Script failed to load:', scriptUrl);
+          
+          // Attempt auto-recovery if not already tried
+          if (!window.__RECOVERY_ATTEMPTED__ && scriptUrl) {
+            window.__RECOVERY_ATTEMPTED__ = true;
+            console.log('[Boot] Attempting auto-recovery...');
+            
+            // Strategy: Force HTML refresh with cache-busting query params
+            // This ensures we get fresh index.html pointing to current bundles
+            var newUrl = location.pathname + '?v=' + encodeURIComponent(window.__BUILD_ID__) + '&r=' + Date.now();
+            console.log('[Boot] Redirecting to:', newUrl);
+            
+            // Small delay to let logs flush
+            setTimeout(function() {
+              location.replace(newUrl);
+            }, 100);
+            return;
+          }
+          
+          // If recovery was already attempted, show error UI
+          showBootError(
+            'Failed to load application script.',
+            'The main application bundle could not be downloaded. Please reset cache.'
+          );
+        };
         
         // Auto-recovery: If build ID changed, clear caches automatically
         try {
@@ -349,33 +425,21 @@
           }
         }, 5000);
         
-        // Fallback: If main script hasn't loaded after 3s, try cache-busting reload
+        // Fallback: If main script hasn't loaded after 3s, attempt recovery
         setTimeout(function() {
-          if (!window.__MAIN_LOADED__ && !window.__SCRIPT_ERROR__) {
-            console.warn('[Boot] Main script not loaded after 3s, attempting cache-bust reload');
-            var script = document.createElement('script');
-            script.type = 'module';
-            script.src = '/src/main.tsx?bust=' + Date.now();
-            script.onerror = function() {
-              window.__SCRIPT_ERROR__ = true;
-              showBootError(
-                'Failed to load application.',
-                'Could not load the application bundle. Try resetting cache or incognito mode.'
-              );
-            };
-            document.body.appendChild(script);
+          if (!window.__MAIN_LOADED__ && !window.__SCRIPT_ERROR__ && !window.__RECOVERY_ATTEMPTED__) {
+            console.warn('[Boot] Main script not loaded after 3s, attempting recovery');
+            window.__RECOVERY_ATTEMPTED__ = true;
+            
+            // Force HTML refresh with cache bust
+            var newUrl = location.pathname + '?v=' + encodeURIComponent(window.__BUILD_ID__) + '&r=' + Date.now();
+            location.replace(newUrl);
           }
         }, 3000);
       })();
     </script>
     
     <!-- Standard Vite entry - transformed at build time to hashed bundle -->
-    <script type="module" src="/src/main.tsx" onerror="
-      window.__SCRIPT_ERROR__ = true;
-      showBootError(
-        'Failed to load application script.',
-        'The main application bundle could not be downloaded. Please reset cache.'
-      );
-    "></script>
+    <script type="module" src="/src/main.tsx" onerror="handleScriptError(event)"></script>
   </body>
 </html>
