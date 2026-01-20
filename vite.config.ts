@@ -161,21 +161,14 @@ export default defineConfig(({ mode, command }) => ({
               }
             }
           },
-          // CRITICAL: JS/CSS bundles use NetworkFirst to prevent stale-asset bricking
-          // When index.html references new hashed bundles, we MUST fetch from network
+          // CRITICAL: JS/CSS bundles use NetworkOnly to GUARANTEE fresh assets
+          // Trade-off: No offline JS/CSS support, but eliminates stale-asset bricking
+          // This prevents the "stale HTML referencing missing bundle" class of outages
           {
             urlPattern: /\.(?:js|css)$/i,
-            handler: 'NetworkFirst',
+            handler: 'NetworkOnly',
             options: {
-              cacheName: 'static-resources',
-              networkTimeoutSeconds: 5, // Fast fallback to cache if offline
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days for offline fallback
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
+              cacheName: 'static-resources-network-only'
             }
           }
         ]
