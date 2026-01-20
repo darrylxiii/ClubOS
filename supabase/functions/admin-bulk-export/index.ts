@@ -22,11 +22,11 @@ interface ExportResult {
   error?: string;
 }
 
-// Reduced chunk sizes to avoid memory limits (edge functions have ~150MB limit)
-const PAGE_SIZE = 1_000;        // Fetch 1k rows at a time
-const PAGES_PER_PART = 1;       // Upload immediately after each page (1k rows per CSV)
+// Increased page size for faster exports; each part still uploads after PAGES_PER_PART pages
+const PAGE_SIZE = 5_000;        // Fetch 5k rows at a time (Supabase allows up to ~50k with range)
+const PAGES_PER_PART = 1;       // Upload immediately after each page (5k rows per CSV part)
 const MAX_TABLES_PER_CALL = 5;  // Process fewer tables per call
-const MAX_RUNTIME_MS = 25_000;  // Bail out gracefully before 30s timeout
+const MAX_RUNTIME_MS = 55_000;  // Increase to 55s (edge functions have 60s limit)
 
 function escapeCsvValue(value: unknown): string {
   if (value === null || value === undefined) return '';
@@ -199,13 +199,41 @@ serve(async (req) => {
       };
 
       try {
+        // First get total count for this table to verify we export everything
+        const { count: expectedCount } = await supabaseAdmin
+          .from(tableName)
+          .select('*', { count: 'exact', head: true });
+
+        console.log(`Table ${tableName}: expecting ${expectedCount ?? '?'} rows`);
+
         for (let offset = 0; ; offset += PAGE_SIZE) {
+          // Use explicit ordering to guarantee consistent pagination
+          // Order by primary key (most tables have 'id', fallback to 'created_at' or first column)
           const { data, error } = await supabaseAdmin
             .from(tableName)
             .select('*')
+            .order('id', { ascending: true, nullsFirst: false })
             .range(offset, offset + PAGE_SIZE - 1);
 
           if (error) {
+            // If 'id' column doesn't exist, retry without ordering (rare edge case)
+            if (error.message.includes('column') && error.message.includes('id')) {
+              const { data: fallbackData, error: fallbackError } = await supabaseAdmin
+                .from(tableName)
+                .select('*')
+                .range(offset, offset + PAGE_SIZE - 1);
+
+              if (fallbackError) throw new Error(fallbackError.message);
+              if (!fallbackData || fallbackData.length === 0) break;
+
+              if (!headers) headers = Object.keys(fallbackData[0] ?? {});
+              csvLines.push(...toCsvLines(fallbackData as Record<string, unknown>[], headers));
+              totalRows += fallbackData.length;
+              pagesInCurrentPart += 1;
+
+              if (pagesInCurrentPart >= PAGES_PER_PART) await uploadPart();
+              continue;
+            }
             throw new Error(error.message);
           }
 
@@ -223,6 +251,11 @@ serve(async (req) => {
 
           if (pagesInCurrentPart >= PAGES_PER_PART) {
             await uploadPart();
+          }
+
+          // If we got fewer rows than requested, we've reached the end
+          if (data.length < PAGE_SIZE) {
+            break;
           }
         }
 
@@ -250,8 +283,22 @@ serve(async (req) => {
         }
 
         const partsForTable = files.filter((f) => f.table === tableName).length;
-        exportResults.push({ table: tableName, rows: totalRows, parts: partsForTable });
+
+        // Verify we got all rows
+        if (expectedCount !== null && expectedCount !== undefined && totalRows !== expectedCount) {
+          console.warn(`Table ${tableName}: exported ${totalRows} rows but expected ${expectedCount}`);
+          exportResults.push({
+            table: tableName,
+            rows: totalRows,
+            parts: partsForTable,
+            error: `Partial export: got ${totalRows} of ${expectedCount} rows`,
+          });
+        } else {
+          console.log(`Table ${tableName}: successfully exported ${totalRows} rows in ${partsForTable} parts`);
+          exportResults.push({ table: tableName, rows: totalRows, parts: partsForTable });
+        }
       } catch (err) {
+        console.error(`Table ${tableName} export failed:`, err);
         exportResults.push({ table: tableName, rows: 0, parts: 0, error: String(err) });
       }
     }
