@@ -70,10 +70,10 @@ export default function WorkspacePage() {
     debouncedSave(content);
   }, [debouncedSave]);
 
-  const handleUpdate = useCallback((updates: Partial<typeof page>) => {
-    if (!pageId) return;
+  const handleUpdate = useCallback((updates: Partial<NonNullable<typeof page>>) => {
+    if (!pageId || !page) return;
     updatePage.mutate({ id: pageId, updates });
-  }, [pageId, updatePage]);
+  }, [pageId, page, updatePage]);
 
   const handleDelete = useCallback(() => {
     if (!pageId) return;

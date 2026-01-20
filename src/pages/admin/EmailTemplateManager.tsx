@@ -13,14 +13,14 @@ interface EmailTemplate {
   id: string;
   template_key: string;
   name: string;
-  description: string;
+  description: string | null;
   category: string;
   subject_template: string;
   content_template: any;
   variables: any;
-  is_enabled: boolean;
-  edge_function: string;
-  last_modified_at: string;
+  is_enabled: boolean | null;
+  edge_function: string | null;
+  last_modified_at: string | null;
 }
 
 export default function EmailTemplateManager() {

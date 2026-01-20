@@ -71,7 +71,7 @@ export default function FinancialDashboard() {
 
           {/* Revenue Summary Cards */}
           <div className="mb-8">
-            <RevenueSummaryCards metrics={metrics} isLoading={metricsLoading} />
+            <RevenueSummaryCards metrics={metrics ?? null} isLoading={metricsLoading} />
           </div>
 
           {/* Financial Overview Chart */}

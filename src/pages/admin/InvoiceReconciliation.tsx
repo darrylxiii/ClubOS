@@ -43,7 +43,7 @@ export default function InvoiceReconciliation() {
       if (error) throw error;
 
       // Fetch company names for matched invoices
-      const companyIds = data?.filter(i => i.company_id).map(i => i.company_id) || [];
+      const companyIds = data?.filter(i => i.company_id).map(i => i.company_id).filter((id): id is string => id !== null) || [];
       let companiesMap: Record<string, { id: string; name: string }> = {};
 
       if (companyIds.length > 0) {
