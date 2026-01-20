@@ -273,17 +273,17 @@
         }
         window.showBootError = showBootError;
         
-        // Boot timeout - show error if app doesn't start within 15 seconds
+        // Boot timeout - show error if app doesn't start within 8 seconds
         setTimeout(function() {
           if (!window.__APP_BOOTED__) {
             var elapsed = ((Date.now() - window.__BOOT_START__) / 1000).toFixed(1);
-            console.error('[Recovery] App did not boot within 15 seconds');
+            console.error('[Recovery] App did not boot within 8 seconds');
             showBootError(
               'Application failed to initialize.',
               'Boot timeout after ' + elapsed + 's. Try resetting the cache.'
             );
           }
-        }, 15000);
+        }, 8000);
       })();
     </script>
     
