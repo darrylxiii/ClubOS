@@ -151,8 +151,8 @@ export const debouncedSearch = async <T = any>(
         
         if (error) throw error;
         resolve(data as T[]);
-      } catch (_error) {
-        reject(error);
+      } catch (err) {
+        reject(err);
       }
     }, delay);
   });

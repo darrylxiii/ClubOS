@@ -256,7 +256,7 @@ export const aiService = {
     },
 
     // Helper to invoke the unified function with proper typing
-    async invokeAI<T>(action: string, payload: Record<string, unknown>): Promise<T> {
+    async invokeAI<T>(action: string, payload: unknown): Promise<T> {
         const { data, error } = await supabase.functions.invoke('ai-integration', {
             body: { action, payload }
         });

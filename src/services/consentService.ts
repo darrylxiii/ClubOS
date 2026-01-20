@@ -4,12 +4,12 @@ export interface ConsentReceipt {
   id: string;
   consent_type: string;
   scope: string;
-  recipient_type?: string;
-  recipient_id?: string;
+  recipient_type?: string | null;
+  recipient_id?: string | null;
   granted: boolean;
-  consent_text?: string;
+  consent_text?: string | null;
   granted_at: string;
-  revoked_at?: string;
+  revoked_at?: string | null;
 }
 
 export async function grantConsent(
@@ -38,7 +38,7 @@ export async function grantConsent(
     .single();
 
   if (error) throw error;
-  return data;
+  return data as ConsentReceipt;
 }
 
 export async function revokeConsent(consentId: string) {
@@ -60,5 +60,5 @@ export async function getMyConsents(): Promise<ConsentReceipt[]> {
     .order('granted_at', { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as ConsentReceipt[];
 }

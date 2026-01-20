@@ -91,7 +91,7 @@ async function fetchQuantumClubMeetings(
     start: new Date(meeting.scheduled_start),
     end: new Date(meeting.scheduled_end),
     source: 'quantum_club' as const,
-    description: meeting.description,
+    description: meeting.description ?? undefined,
     location: meeting.meeting_code ? `/meetings/${meeting.id}` : undefined,
     is_quantum_club: true,
     has_club_ai: !!meeting.meeting_bot_sessions?.[0],
