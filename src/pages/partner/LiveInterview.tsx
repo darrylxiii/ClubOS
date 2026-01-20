@@ -65,12 +65,12 @@ const LiveInterview = () => {
                 // Call our Sentinel Brain
                 const data = await aiService.analyzeInterviewStream({
                     transcript_chunk: chunk,
-                });
+                }) as any;
 
                 if (data && data.status !== 'safe') {
                     setAnalysisLog(prev => [{
-                        status: data.status,
-                        message: data.message,
+                        status: data.status as AnalysisResult['status'],
+                        message: data.message ?? '',
                         details: data.details,
                         timestamp: Date.now()
                     }, ...prev]);

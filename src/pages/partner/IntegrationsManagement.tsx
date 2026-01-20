@@ -119,10 +119,10 @@ export default function IntegrationsManagement() {
                     </div>
                     {status && (
                       <Switch
-                        checked={status.is_active}
+                        checked={!!status.is_active}
                         onCheckedChange={() => toggleIntegration.mutate({ 
                           id: status.id, 
-                          isActive: status.is_active 
+                          isActive: !!status.is_active 
                         })}
                       />
                     )}

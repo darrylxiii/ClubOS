@@ -68,6 +68,7 @@ export default function ProspectDetail() {
   }, [prospectId]);
 
   const fetchProspect = async () => {
+    if (!prospectId) return;
     try {
       const { data, error } = await supabase
         .from('crm_prospects')
@@ -86,7 +87,10 @@ export default function ProspectDetail() {
         owner_name: data.owner?.full_name,
         owner_avatar: data.owner?.avatar_url,
         campaign_name: data.campaign?.name,
-      } as CRMProspect);
+        health_score: (data as any).health_score ?? 0,
+        health_trend: (data as any).health_trend ?? 'stable',
+        last_enriched_at: (data as any).last_enriched_at ?? null,
+      } as unknown as CRMProspect);
       setNotes(data.notes || '');
     } catch (error) {
       console.error('Error fetching prospect:', error);
@@ -97,6 +101,7 @@ export default function ProspectDetail() {
   };
 
   const fetchTouchpoints = async () => {
+    if (!prospectId) return;
     try {
       const { data, error } = await supabase
         .from('crm_touchpoints')
