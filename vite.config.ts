@@ -189,9 +189,7 @@ export default defineConfig(({ mode, command }) => ({
     },
   },
   build: {
-    modulePreload: {
-      polyfill: true,
-    },
+    modulePreload: false, // Disable to reduce memory
     // Development-mode builds (build:dev) should be cheap on memory.
     minify: mode === 'development' ? false : 'esbuild',
     cssMinify: mode === 'development' ? false : true,
@@ -201,61 +199,32 @@ export default defineConfig(({ mode, command }) => ({
     sourcemap: false,
 
     // Reduce chunk size warnings threshold
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 3000,
 
     // CRITICAL: Limit concurrent operations to reduce memory pressure
     rollupOptions: {
       // Limit the number of concurrent module transforms
-      maxParallelFileOps: 10,
-      
-      // CRITICAL: Externalize heavy optional dependencies in dev builds
-      external: mode === 'development' ? [
-        // These are lazy-loaded anyway, externalize in dev to save memory
-        'mermaid',
-        '@mediapipe/camera_utils',
-        '@mediapipe/selfie_segmentation',
-      ] : [],
+      maxParallelFileOps: 5,
       
       output: {
-        // Disable experimentalMinChunkSize to avoid extra memory during merging
-        // experimentalMinChunkSize: 1000, // REMOVED - causes extra memory
-        
-        // Simpler chunking strategy to reduce memory
+        // Simpler chunking - isolate only the heaviest libs
         manualChunks: (id) => {
-          // Node modules only - skip src files for auto-chunking
-          if (!id.includes('node_modules')) {
-            return undefined;
-          }
+          if (!id.includes('node_modules')) return undefined;
           
           // Heavy libraries - isolate into their own chunks
-          if (id.includes('mermaid')) return 'mermaid';
-          if (id.includes('katex')) return 'katex';
           if (id.includes('recharts') || id.includes('d3-')) return 'charts';
           if (id.includes('@blocknote')) return 'blocknote';
           if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
+          if (id.includes('livekit') || id.includes('@livekit')) return 'livekit';
+          if (id.includes('framer-motion')) return 'motion';
           if (id.includes('@radix-ui')) return 'radix';
           if (id.includes('@supabase')) return 'supabase';
-          if (id.includes('framer-motion')) return 'motion';
-          if (id.includes('@mantine')) return 'mantine';
-          if (id.includes('@opentelemetry')) return 'telemetry';
-          if (id.includes('@sentry')) return 'sentry';
-          if (id.includes('livekit') || id.includes('@livekit')) return 'livekit';
-          if (id.includes('@elevenlabs')) return 'elevenlabs';
+          if (id.includes('mermaid')) return 'mermaid';
           if (id.includes('fabric')) return 'fabric';
           if (id.includes('jspdf')) return 'pdf';
-          if (id.includes('date-fns')) return 'date-fns';
-          if (id.includes('i18next')) return 'i18n';
-          if (id.includes('posthog')) return 'posthog';
-          if (id.includes('@tanstack')) return 'tanstack';
-          if (id.includes('@dnd-kit') || id.includes('@hello-pangea')) return 'dnd';
-          if (id.includes('@capacitor')) return 'capacitor';
-
-          // Core React - single vendor chunk
-          if (
-            id.includes('node_modules/react/') ||
-            id.includes('node_modules/react-dom/') ||
-            id.includes('node_modules/react-router')
-          ) {
+          
+          // Core React vendor
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
             return 'react-vendor';
           }
         },
@@ -263,7 +232,7 @@ export default defineConfig(({ mode, command }) => ({
     },
     // Target modern browsers for smaller bundles
     target: 'esnext',
-    // Enable CSS code splitting
-    cssCodeSplit: true,
+    // Disable CSS code splitting to reduce memory
+    cssCodeSplit: false,
   },
 }));
