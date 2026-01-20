@@ -224,8 +224,9 @@
         window.__APP_BOOTED__ = false;
         window.__APP_BOOTING__ = false;
         window.__BOOT_START__ = Date.now();
-        window.__BUILD_ID__ = '2026-01-20T23:10Z'; // Updated on each deploy
+        window.__BUILD_ID__ = '2026-01-20T23:25Z'; // Updated on each deploy
         window.__MAIN_LOADED__ = false;
+        window.__SCRIPT_ERROR__ = false;
         
         // Capture first fatal error for diagnostics
         window.__BOOT_ERROR__ = null;
@@ -241,6 +242,23 @@
             console.error('[Boot] Captured rejection:', window.__BOOT_ERROR__);
           }
         });
+        
+        // CRITICAL: Unregister SW if origin changed (prevents cross-domain cache issues)
+        (function() {
+          var swKey = '__sw_origin__';
+          try {
+            var storedOrigin = localStorage.getItem(swKey);
+            if (storedOrigin && storedOrigin !== location.origin) {
+              console.log('[Boot] Origin changed from', storedOrigin, 'to', location.origin, '- unregistering SW');
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(regs) {
+                  regs.forEach(function(r) { r.unregister(); });
+                });
+              }
+            }
+            localStorage.setItem(swKey, location.origin);
+          } catch(e) {}
+        })();
         
         async function resetCache() {
           var btn = event && event.target;
@@ -262,7 +280,7 @@
               console.log('[Recovery] Deleted', keys.length, 'cache(s)');
             }
             // Clear PWA storage
-            ['pwa-update-dismissed', 'pwa-install-dismissed'].forEach(function(k) {
+            ['pwa-update-dismissed', 'pwa-install-dismissed', '__sw_origin__', '__last_build_id__'].forEach(function(k) {
               try { localStorage.removeItem(k); } catch(e) {}
             });
             console.log('[Recovery] Cache cleared. Reloading...');
@@ -289,7 +307,8 @@
             'Build: ' + (window.__BUILD_ID__ || 'unknown'),
             'Main loaded: ' + (window.__MAIN_LOADED__ ? 'yes' : 'no'),
             'Booting: ' + (window.__APP_BOOTING__ ? 'yes' : 'no'),
-            'Booted: ' + (window.__APP_BOOTED__ ? 'yes' : 'no')
+            'Booted: ' + (window.__APP_BOOTED__ ? 'yes' : 'no'),
+            'Script error: ' + (window.__SCRIPT_ERROR__ ? 'yes' : 'no')
           ];
           if (window.__BOOT_ERROR__) {
             diagnostics.push('Error: ' + window.__BOOT_ERROR__);
@@ -318,21 +337,45 @@
           localStorage.setItem('__last_build_id__', window.__BUILD_ID__);
         } catch(e) {}
         
-        // Boot timeout - show error if app doesn't start within 8 seconds
+        // Boot timeout - show error if app doesn't start within 5 seconds
         setTimeout(function() {
           if (!window.__APP_BOOTED__) {
             var elapsed = ((Date.now() - window.__BOOT_START__) / 1000).toFixed(1);
-            console.error('[Recovery] App did not boot within 8 seconds');
+            console.error('[Recovery] App did not boot within 5 seconds');
             showBootError(
               'Application failed to initialize.',
               'Boot timeout after ' + elapsed + 's. Try resetting the cache.'
             );
           }
-        }, 8000);
+        }, 5000);
+        
+        // Fallback: If main script hasn't loaded after 3s, try cache-busting reload
+        setTimeout(function() {
+          if (!window.__MAIN_LOADED__ && !window.__SCRIPT_ERROR__) {
+            console.warn('[Boot] Main script not loaded after 3s, attempting cache-bust reload');
+            var script = document.createElement('script');
+            script.type = 'module';
+            script.src = '/src/main.tsx?bust=' + Date.now();
+            script.onerror = function() {
+              window.__SCRIPT_ERROR__ = true;
+              showBootError(
+                'Failed to load application.',
+                'Could not load the application bundle. Try resetting cache or incognito mode.'
+              );
+            };
+            document.body.appendChild(script);
+          }
+        }, 3000);
       })();
     </script>
     
     <!-- Standard Vite entry - transformed at build time to hashed bundle -->
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx" onerror="
+      window.__SCRIPT_ERROR__ = true;
+      showBootError(
+        'Failed to load application script.',
+        'The main application bundle could not be downloaded. Please reset cache.'
+      );
+    "></script>
   </body>
 </html>

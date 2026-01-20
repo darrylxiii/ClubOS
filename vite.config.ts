@@ -96,21 +96,15 @@ export default defineConfig(({ mode, command }) => ({
 
         // Runtime caching strategies
         runtimeCaching: [
-          // CRITICAL: Document navigations use NetworkFirst with SHORT cache
-          // This ensures fresh index.html on every page load
+          // CRITICAL: Document navigations use NetworkOnly
+          // This GUARANTEES fresh index.html - eliminates stale bundle references
+          // Trade-off: No offline HTML (acceptable - stale HTML bricks the app)
           {
             urlPattern: ({ request }) => request.destination === 'document',
-            handler: 'NetworkFirst',
+            handler: 'NetworkOnly',
             options: {
-              cacheName: 'html-cache',
-              expiration: {
-                maxEntries: 5,
-                maxAgeSeconds: 60 // Only 1 minute cache - prevents stale HTML
-              },
-              networkTimeoutSeconds: 5, // Wait up to 5s for network before cache fallback
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
+              // NetworkOnly doesn't cache, but we need a name for Workbox
+              cacheName: 'html-network-only'
             }
           },
           {
