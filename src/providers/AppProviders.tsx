@@ -16,6 +16,15 @@ import i18n, { preloadNamespacesForRoute } from "@/i18n/config";
 import { initSentry } from "@/lib/sentry";
 import { HelmetProvider } from "react-helmet-async";
 
+// Boot success signal - tells index.html that React has fully mounted
+const BootSuccessSignal = memo(() => {
+    useEffect(() => {
+        (window as unknown as { __APP_BOOTED__: boolean }).__APP_BOOTED__ = true;
+        console.log('[Boot] AppProviders initialized successfully');
+    }, []);
+    return null;
+});
+
 // Initialize Sentry first
 initSentry();
 
@@ -102,6 +111,7 @@ export const AppProviders = ({ children }: AppProvidersProps) => {
                                 <AuthProvider>
                                     <PostHogProvider>
                                         <CommandProvider>
+                                            <BootSuccessSignal />
                                             <Toaster />
                                             <Sonner />
                                             <LanguageSync />
