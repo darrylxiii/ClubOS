@@ -45,48 +45,35 @@ serve(async (req) => {
   try {
     // Get auth header
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
-    // Create admin client with service role
+    // Create admin client with service role (bypasses RLS)
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // Verify user is admin
-    const supabaseUser = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
+    // Standardized auth + role lookup
+    const { authenticateUser, requireRole, createAuthErrorResponse } = await import(
+      '../_shared/auth-helpers.ts'
     );
 
-    const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid user session' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    let authContext: { userId: string; email: string; roles: string[] };
+
+    try {
+      authContext = await authenticateUser(authHeader);
+      requireRole(authContext, ['admin']);
+    } catch (authErr) {
+      const message = authErr instanceof Error ? authErr.message : String(authErr);
+      const status = message.toLowerCase().includes('missing authorization') ||
+        message.toLowerCase().includes('invalid')
+        ? 401
+        : 403;
+
+      // Helpful debugging for the logged-in user (does not expose data)
+      return createAuthErrorResponse(message, status, corsHeaders);
     }
 
-    // Check admin role from user_roles table (security best practice)
-    const { data: adminRole } = await supabaseAdmin
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
-
-    if (!adminRole) {
-      return new Response(
-        JSON.stringify({ error: 'Admin access required' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const user = { id: authContext.userId, email: authContext.email };
 
     // Parse request body
     const body: ExportRequest = req.method === 'POST' ? await req.json() : {};
