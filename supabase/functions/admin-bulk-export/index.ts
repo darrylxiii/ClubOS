@@ -22,9 +22,11 @@ interface ExportResult {
   error?: string;
 }
 
-const PAGE_SIZE = 5_000;
-const PAGES_PER_PART = 2; // 10k rows per CSV part max
-const MAX_TABLES_PER_CALL = 10; // keep runtime bounded; UI batches for "export all"
+// Reduced chunk sizes to avoid memory limits (edge functions have ~150MB limit)
+const PAGE_SIZE = 1_000;        // Fetch 1k rows at a time
+const PAGES_PER_PART = 1;       // Upload immediately after each page (1k rows per CSV)
+const MAX_TABLES_PER_CALL = 5;  // Process fewer tables per call
+const MAX_RUNTIME_MS = 25_000;  // Bail out gracefully before 30s timeout
 
 function escapeCsvValue(value: unknown): string {
   if (value === null || value === undefined) return '';
@@ -129,8 +131,9 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Exporting ${tablesToExport.length} tables (chunked)`);
+    console.log(`Exporting ${tablesToExport.length} tables (streaming, 1k rows per part)`);
 
+    const startTime = Date.now();
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const basePrefix = `exports/${timestamp}`;
     const bucket = 'admin-exports';
@@ -139,8 +142,15 @@ serve(async (req) => {
 
     const files: ExportFile[] = [];
     const exportResults: ExportResult[] = [];
+    let timedOut = false;
 
     for (const tableName of tablesToExport) {
+      // Check if we're running low on time
+      if (Date.now() - startTime > MAX_RUNTIME_MS) {
+        console.log(`Approaching timeout after ${tablesToExport.indexOf(tableName)} tables, returning partial results`);
+        timedOut = true;
+        break;
+      }
       let totalRows = 0;
       let part = 1;
       let pagesInCurrentPart = 0;
@@ -184,7 +194,8 @@ serve(async (req) => {
 
         part += 1;
         pagesInCurrentPart = 0;
-        csvLines = [];
+        // Clear array in-place to help garbage collection
+        csvLines.length = 0;
       };
 
       try {
@@ -275,6 +286,8 @@ serve(async (req) => {
         successfulTables: exportResults.filter((r) => !r.error).length,
         totalRows: exportResults.reduce((sum, r) => sum + r.rows, 0),
         expiresIn: '24 hours',
+        timedOut,
+        runtimeMs: Date.now() - startTime,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );

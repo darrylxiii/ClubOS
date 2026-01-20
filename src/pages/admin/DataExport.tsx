@@ -46,6 +46,8 @@ interface ExportResponse {
   successfulTables: number;
   totalRows: number;
   expiresIn?: string;
+  timedOut?: boolean;
+  runtimeMs?: number;
 }
 
 function downloadUrl(url: string, filename?: string) {
@@ -132,35 +134,61 @@ export default function DataExport() {
   const handleExportAll = async () => {
     if (allTables.length === 0) return;
 
-    const chunkSize = 10;
+    const chunkSize = 5; // Reduced from 10 to match edge function limit
     setExportAllProgress({ running: true, total: allTables.length, done: 0, totalRows: 0 });
 
     try {
       let done = 0;
       let totalRows = 0;
+      let failedChunks: string[][] = [];
 
       for (let i = 0; i < allTables.length; i += chunkSize) {
         const chunk = allTables.slice(i, i + chunkSize);
 
-        const { data, error } = await supabase.functions.invoke('admin-bulk-export', {
-          body: { tables: chunk },
-        });
+        try {
+          const { data, error } = await supabase.functions.invoke('admin-bulk-export', {
+            body: { tables: chunk },
+          });
 
-        if (error) throw error;
+          if (error) {
+            console.error(`Chunk failed: ${chunk.join(', ')}`, error);
+            failedChunks.push(chunk);
+            done += chunk.length;
+            setExportAllProgress({ running: true, total: allTables.length, done, totalRows });
+            continue; // Continue with next chunk instead of failing completely
+          }
 
-        const resp = data as ExportResponse;
+          const resp = data as ExportResponse;
 
-        for (const f of resp.files) {
-          const filename = `${f.table}${resp.files.filter((x) => x.table === f.table).length > 1 ? `__part${String(f.part).padStart(3, '0')}` : ''}.csv`;
-          downloadUrl(f.signedUrl, filename);
+          for (const f of resp.files) {
+            const filename = `${f.table}${resp.files.filter((x) => x.table === f.table).length > 1 ? `__part${String(f.part).padStart(3, '0')}` : ''}.csv`;
+            downloadUrl(f.signedUrl, filename);
+          }
+
+          done += chunk.length;
+          totalRows += resp.totalRows;
+          setExportAllProgress({ running: true, total: allTables.length, done, totalRows });
+
+          // Small delay between chunks to avoid overwhelming the browser with downloads
+          if (i + chunkSize < allTables.length) {
+            await new Promise((r) => setTimeout(r, 500));
+          }
+        } catch (chunkError) {
+          console.error(`Chunk error: ${chunk.join(', ')}`, chunkError);
+          failedChunks.push(chunk);
+          done += chunk.length;
+          setExportAllProgress({ running: true, total: allTables.length, done, totalRows });
         }
-
-        done += chunk.length;
-        totalRows += resp.totalRows;
-        setExportAllProgress({ running: true, total: allTables.length, done, totalRows });
       }
 
-      toast.success(`Exported ${totalRows.toLocaleString()} rows across ${allTables.length} tables`);
+      if (failedChunks.length > 0) {
+        toast.warning(
+          `Exported ${totalRows.toLocaleString()} rows, but ${failedChunks.flat().length} tables failed`,
+          { description: `Failed: ${failedChunks.flat().slice(0, 5).join(', ')}${failedChunks.flat().length > 5 ? '...' : ''}` }
+        );
+      } else {
+        toast.success(`Exported ${totalRows.toLocaleString()} rows across ${allTables.length} tables`);
+      }
       await trackDataExport('bulk_database_export_all', totalRows);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
