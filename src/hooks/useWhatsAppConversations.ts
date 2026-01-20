@@ -12,22 +12,21 @@ export interface SlaStatus {
 
 export interface WhatsAppConversation {
   id: string;
-  account_id: string | null;
+  account_id: string;
   candidate_id: string | null;
   candidate_phone: string;
   candidate_name: string | null;
   profile_picture_url: string | null;
-  conversation_status: string | null;
+  conversation_status: string;
   messaging_window_expires_at: string | null;
   assigned_strategist_id: string | null;
   last_message_at: string | null;
   last_message_preview: string | null;
   last_message_direction: string | null;
-  unread_count: number | null;
-  is_pinned: boolean | null;
-  tags: string[] | null;
-  created_at: string | null;
-  updated_at?: string | null;
+  unread_count: number;
+  is_pinned: boolean;
+  tags: string[];
+  created_at: string;
   // Computed SLA fields
   slaStatus?: SlaStatus | null;
 }
@@ -91,7 +90,7 @@ export function useWhatsAppConversations() {
   // Derived: conversations needing response sorted by urgency
   const needsResponse = useMemo(() => {
     return conversations
-      .filter(c => c.last_message_direction === 'inbound' && (c.unread_count ?? 0) > 0)
+      .filter(c => c.last_message_direction === 'inbound' && c.unread_count > 0)
       .sort((a, b) => {
         const aWait = a.slaStatus?.waitMinutes || 0;
         const bWait = b.slaStatus?.waitMinutes || 0;

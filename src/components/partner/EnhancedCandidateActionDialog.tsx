@@ -246,7 +246,7 @@ export function EnhancedCandidateActionDialog({
         });
 
         // Log advancement action in interaction log
-        await supabase.from('candidate_interactions').insert([{
+        await supabase.from('candidate_interactions').insert({
           candidate_id: candidateProfileId,
           application_id: applicationId,
           interaction_type: 'status_change',
@@ -267,7 +267,7 @@ export function EnhancedCandidateActionDialog({
           created_by: user.id,
           is_internal: true,
           visible_to_candidate: false,
-        }] as any);
+        });
 
       } else if (actionType === 'decline') {
         // Update application status with detailed error logging
@@ -361,7 +361,7 @@ export function EnhancedCandidateActionDialog({
 
         // Log rejection action in interaction log
         const rejectionLabel = REJECTION_REASONS.find(r => r.value === rejectionReason)?.label || rejectionReason;
-        await supabase.from('candidate_interactions').insert([{
+        await supabase.from('candidate_interactions').insert({
           candidate_id: candidateProfileId,
           application_id: applicationId,
           interaction_type: 'status_change',
@@ -385,7 +385,7 @@ export function EnhancedCandidateActionDialog({
           created_by: user.id,
           is_internal: true,
           visible_to_candidate: false,
-        }] as any);
+        });
       }
 
       toast.success(

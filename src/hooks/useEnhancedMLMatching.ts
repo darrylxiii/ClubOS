@@ -78,9 +78,9 @@ export function useEnhancedMLMatching() {
 
       // Enhance predictions with additional signals
       const enhancedPredictions: EnhancedPrediction[] = basePredictions.map(prediction => {
-        const assessmentScore = (assessmentData as Record<string, number>)[prediction.candidate_id] || 0;
-        const interviewScore = (meetingIntelligenceData as Record<string, number | null>)[prediction.candidate_id] ?? null;
-        const engagementScore = (engagementData as Record<string, number>)[prediction.candidate_id] || 0.5;
+        const assessmentScore = assessmentData[prediction.candidate_id] || 0;
+        const interviewScore = meetingIntelligenceData[prediction.candidate_id] || null;
+        const engagementScore = engagementData[prediction.candidate_id] || 0.5;
 
         // Calculate assessment boost (up to 15% increase)
         const assessmentBoost = assessmentScore * 0.15;

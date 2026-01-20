@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Send, Pin, Reply } from 'lucide-react';
+import { Send, ChevronLeft, MoreVertical, Pin, Reply } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,7 +24,7 @@ interface Message {
   created_at: string;
   is_pinned: boolean | null;
   user?: {
-    full_name: string | null;
+    full_name: string;
     avatar_url: string | null;
   };
 }
@@ -88,23 +88,17 @@ const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
       .limit(100);
 
     if (!error && data) {
-      const userIds = [...new Set(data.map(m => m.user_id).filter((id): id is string => id !== null))];
+      const userIds = [...new Set(data.map(m => m.user_id))];
       const { data: userData } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url')
-        .in('id', userIds.length > 0 ? userIds : ['__none__']);
+        .in('id', userIds);
 
       const userMap = new Map(userData?.map(u => [u.id, u]) || []);
-      const messagesWithUsers: Message[] = data
-        .filter(msg => msg.user_id !== null)
-        .map(msg => ({
-          id: msg.id,
-          user_id: msg.user_id!,
-          content: msg.content,
-          created_at: msg.created_at || new Date().toISOString(),
-          is_pinned: msg.is_pinned,
-          user: userMap.get(msg.user_id!)
-        }));
+      const messagesWithUsers = data.map(msg => ({
+        ...msg,
+        user: userMap.get(msg.user_id)
+      }));
       
       setMessages(messagesWithUsers);
     }

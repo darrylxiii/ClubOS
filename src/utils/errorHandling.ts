@@ -9,15 +9,12 @@ export interface ErrorHandlerOptions {
 }
 
 /**
- * Centralized error handling utility.
- * Provides consistent error messaging, toast notifications, and logging across the application.
+ * Centralized error handling utility
+ * Provides consistent error messaging and logging across the application
  */
 export class ErrorHandler {
   /**
-   * Handle and format errors with optional toast notification.
-   * @param error - The caught error object.
-   * @param options - Configuration for handling the error (toast, logging, etc.).
-   * @returns The extracted error message string.
+   * Handle and format errors with optional toast notification
    */
   static handle(
     error: unknown,
@@ -51,9 +48,7 @@ export class ErrorHandler {
   }
 
   /**
-   * Extract a human-readable error message from various error types.
-   * @param error - The error object/string.
-   * @param fallback - Default message if extraction fails.
+   * Extract human-readable error message from various error types
    */
   static extractErrorMessage(error: unknown, fallback: string): string {
     if (!error) return fallback;
@@ -77,8 +72,7 @@ export class ErrorHandler {
   }
 
   /**
-   * Handle Supabase query errors specifically.
-   * Formats the error code and message for easier debugging.
+   * Handle Supabase query errors specifically
    */
   static handleSupabaseError(
     error: { message: string; code?: string } | null,
@@ -97,7 +91,7 @@ export class ErrorHandler {
   }
 
   /**
-   * Handle authentication errors with a user-friendly default message.
+   * Handle authentication errors
    */
   static handleAuthError(error: unknown): string {
     return this.handle(error, {
@@ -107,7 +101,7 @@ export class ErrorHandler {
   }
 
   /**
-   * Handle network/API errors with a connectivity-focused default message.
+   * Handle network/API errors
    */
   static handleNetworkError(error: unknown): string {
     return this.handle(error, {
@@ -117,7 +111,7 @@ export class ErrorHandler {
   }
 
   /**
-   * Handle validation errors (e.g., form input issues).
+   * Handle validation errors
    */
   static handleValidationError(error: unknown): string {
     return this.handle(error, {
@@ -128,9 +122,7 @@ export class ErrorHandler {
 }
 
 /**
- * Async operation wrapper with automatic error handling and retry logic.
- * @param operation - The async function to execute.
- * @param options - Retry configuration (retries count, delay, onError callback).
+ * Async operation wrapper with automatic error handling and retry logic
  */
 export async function withRetry<T>(
   operation: () => Promise<T>,
@@ -145,13 +137,13 @@ export async function withRetry<T>(
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       return await operation();
-    } catch (err) {
+    } catch (error) {
       if (onError) {
-        onError(err as Error, attempt);
+        onError(error, attempt);
       }
 
       if (attempt === retries) {
-        throw err;
+        throw error;
       }
 
       // Wait before retry
@@ -163,10 +155,7 @@ export async function withRetry<T>(
 }
 
 /**
- * Safe async operation wrapper that never throws.
- * Returns a fallback value instead of throwing an error.
- * @param operation - The async function to execute.
- * @param fallback - The value to return if the operation fails.
+ * Safe async operation wrapper that never throws
  */
 export async function safeAsync<T>(
   operation: () => Promise<T>,
@@ -174,8 +163,8 @@ export async function safeAsync<T>(
 ): Promise<T> {
   try {
     return await operation();
-  } catch (_error) {
-    console.error('Safe async operation failed:', _error);
+  } catch (error) {
+    console.error('Safe async operation failed:', error);
     return fallback;
   }
 }

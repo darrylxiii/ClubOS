@@ -42,7 +42,7 @@ export function AudioLevelIndicator({
     if (sourceRef.current) {
       try {
         sourceRef.current.disconnect();
-      } catch (_e) {
+      } catch (e) {
         // Already disconnected
       }
       sourceRef.current = null;
@@ -50,7 +50,7 @@ export function AudioLevelIndicator({
     if (analyserRef.current) {
       try {
         analyserRef.current.disconnect();
-      } catch (_e) {
+      } catch (e) {
         // Already disconnected
       }
       analyserRef.current = null;

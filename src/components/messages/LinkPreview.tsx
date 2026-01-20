@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
-import { Loader2, ExternalLink } from 'lucide-react';
+import { Loader2, ExternalLink, ImageIcon } from 'lucide-react';
 
 interface LinkPreviewProps {
     url: string;

@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-type CardProps = React.HTMLAttributes<HTMLDivElement>
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function AnimatedCard({ className, ...props }: CardProps) {
   return (
@@ -32,7 +32,7 @@ export function CardBody({ className, ...props }: CardProps) {
   )
 }
 
-type CardTitleProps = React.HTMLAttributes<HTMLHeadingElement>
+interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
 
 export function CardTitle({ className, ...props }: CardTitleProps) {
   return (
@@ -46,7 +46,8 @@ export function CardTitle({ className, ...props }: CardTitleProps) {
   )
 }
 
-type CardDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>
+interface CardDescriptionProps
+  extends React.HTMLAttributes<HTMLParagraphElement> {}
 
 export function CardDescription({ className, ...props }: CardDescriptionProps) {
   return (

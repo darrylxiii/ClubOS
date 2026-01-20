@@ -53,7 +53,7 @@ export const SystemErrorsWidget = () => {
             id: e.id,
             message: e.error_message || 'Unknown error',
             severity: e.severity || 'error',
-            created_at: e.created_at ?? new Date().toISOString()
+            created_at: e.created_at
           }))
         });
       }

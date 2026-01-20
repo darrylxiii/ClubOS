@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   UserPlus, Mail, Phone, Briefcase, Star, StarOff, 
-  Trash2, Globe, Plus, AlertCircle 
+  Trash2, Edit2, Save, X, Globe, Plus, AlertCircle 
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import {
   useCreateCompanyDomain,
   useDeleteCompanyDomain,
   CompanyContact,
+  CompanyDomain,
 } from '@/hooks/useCompanyContacts';
 
 interface CompanyContactManagerProps {

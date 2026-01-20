@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Share2, Mail, MessageCircle, Copy, Check, 
-  QrCode, Twitter, Linkedin
+  Share2, Link2, Mail, MessageCircle, Copy, Check, 
+  QrCode, Twitter, Linkedin, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { notify } from "@/lib/notify";
+import { cn } from "@/lib/utils";
 
 interface ReferralShareSheetProps {
   jobId?: string;
@@ -134,11 +135,10 @@ export function ReferralShareSheet({
       case 'twitter':
         shareUrl = `https://twitter.com/intent/tweet?text=${text}`;
         break;
-      case 'email': {
+      case 'email':
         const subject = encodeURIComponent(`${jobTitle} - Referral`);
         shareUrl = `mailto:?subject=${subject}&body=${text}`;
         break;
-      }
     }
     
     if (shareUrl) {

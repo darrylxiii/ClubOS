@@ -151,7 +151,6 @@ class DebugMode {
     console.error(`[${category}]`, message, data);
 
     if (this.config.enabled && this.config.breakOnError) {
-      // eslint-disable-next-line no-debugger -- intentional for debugging
       debugger;
     }
   }
@@ -201,8 +200,8 @@ class DebugMode {
     if (filter?.level) {
       result = result.filter((l) => l.level === filter.level);
     }
-    if (filter?.since !== undefined) {
-      result = result.filter((l) => l.timestamp >= filter.since!);
+    if (filter?.since) {
+      result = result.filter((l) => l.timestamp >= filter.since);
     }
 
     return result;

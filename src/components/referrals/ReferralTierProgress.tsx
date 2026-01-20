@@ -149,9 +149,9 @@ export function ReferralTierProgress() {
               <div key={tier.id} className="flex items-center">
                 <div className="flex flex-col items-center gap-1">
                   <TierBadge 
-                    tierName={tier.tier_name ?? 'Unknown'}
-                    badgeIcon={tier.badge_icon ?? 'award'}
-                    badgeColor={tier.badge_color ?? '#888888'}
+                    tierName={tier.tier_name}
+                    badgeIcon={tier.badge_icon}
+                    badgeColor={tier.badge_color}
                     isActive={isActive}
                     isUnlocked={isUnlocked}
                   />

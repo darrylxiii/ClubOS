@@ -1,5 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useKPIMetrics, type KPIMetric } from './useQuantumKPIs';
 import { useLatestWebKPIs, getKPIStatus, type WebKPIMetric } from './useWebsiteKPIs';
@@ -1078,8 +1077,6 @@ function calculateDomainHealth(kpis: UnifiedKPI[], domain: KPIDomain, label: str
 
 // Main hook
 export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
-  const queryClient = useQueryClient();
-
   // Original 3 domains
   const { data: operationsData, isLoading: opsLoading, refetch: refetchOps } = useKPIMetrics(period);
   const { data: websiteData, isLoading: webLoading, refetch: refetchWeb } = useLatestWebKPIs();
@@ -1232,7 +1229,7 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
   }, {} as Record<string, UnifiedKPI[]>);
   
   // Refresh all - call unified KPI calculator then refetch
-  const refreshAll = useCallback(async () => {
+  const refreshAll = async () => {
     try {
       // Call the unified KPI calculator edge function
       await supabase.functions.invoke('calculate-all-kpis', {
@@ -1241,56 +1238,17 @@ export function useUnifiedKPIs(period: 'weekly' | 'monthly' = 'weekly') {
     } catch (error) {
       console.error('Error calling calculate-all-kpis:', error);
     }
-
+    
     // Then refetch all data
     await Promise.all([
-      refetchOps(),
-      refetchWeb(),
-      refetchSales(),
+      refetchOps(), 
+      refetchWeb(), 
+      refetchSales(), 
       refetchPlatform(),
       refetchChurn(),
       refetchModel(),
     ]);
-  }, [refetchOps, refetchWeb, refetchSales, refetchPlatform, refetchChurn, refetchModel]);
-
-  // Real-time subscriptions for live KPI updates
-  useEffect(() => {
-    const channel = supabase
-      .channel('unified-kpi-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'kpi_metrics' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['kpi-metrics'] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'sales_kpi_metrics' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['sales-kpis'] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'web_kpi_metrics' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['web-kpis'] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'platform_metrics' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['system-health'] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
+  };
   
   return {
     isLoading,

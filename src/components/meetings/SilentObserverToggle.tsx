@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';

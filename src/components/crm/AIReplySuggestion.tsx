@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { aiService } from '@/services/aiService';
 import { motion } from 'framer-motion';
 import { Sparkles, Copy, Send, RefreshCw, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
 interface AIReplySuggestionProps {
@@ -26,25 +26,21 @@ export function AIReplySuggestion({
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [tone, setTone] = useState('professional');
 
   const generateSuggestion = async () => {
     setLoading(true);
     try {
-      // Using the provided instruction's structure for aiService.generateCrmReply
-      // If `lastEmail` is not provided, `originalEmail` prop will be used as a fallback for content,
-      // and `classification` prop for classification.
-      const emailContent = originalEmail;
-      const emailClassification = classification || 'neutral';
-
-      const data = await aiService.generateCrmReply({
-        prospect_id: '', // Context provided via 'context' param when ID missing
-        context: emailContent,
-        goal: emailClassification,
-        tone: tone as 'casual' | 'friendly' | 'professional' | undefined
+      const { data, error } = await supabase.functions.invoke('generate-crm-reply', {
+        body: {
+          prospectName,
+          prospectCompany,
+          originalEmail,
+          classification,
+          tone: 'professional'
+        }
       });
-      // The new service returns { reply, classification } directly
-      // Corrected syntax for `data.reply || ''`
+
+      if (error) throw error;
       setSuggestion(data.reply || '');
     } catch (error) {
       console.error('Error generating reply:', error);

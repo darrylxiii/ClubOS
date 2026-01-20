@@ -66,18 +66,16 @@ export const CandidateActionDialog = ({
         // Add comment if feedback provided
         if (feedback.trim()) {
           const { data: userData } = await supabase.auth.getUser();
-          if (userData.user?.id) {
-            const { error: commentError } = await supabase
-              .from('candidate_comments')
-              .insert([{
-                application_id: application.id,
-                user_id: userData.user.id,
-                comment: `Advanced to ${nextStage.name}: ${feedback}`,
-                is_internal: true,
-              }]);
+          const { error: commentError } = await supabase
+            .from('candidate_comments')
+            .insert({
+              application_id: application.id,
+              user_id: userData.user?.id,
+              comment: `Advanced to ${nextStage.name}: ${feedback}`,
+              is_internal: true,
+            });
 
-            if (commentError) throw commentError;
-          }
+          if (commentError) throw commentError;
         }
 
         // Celebration effect for advancement
@@ -117,22 +115,20 @@ export const CandidateActionDialog = ({
 
         // Add rejection feedback
         const { data: userData } = await supabase.auth.getUser();
-        if (userData.user?.id) {
-          const rejectionComment = rejectionReason
-            ? `Rejected - ${rejectionReason}${feedback.trim() ? `: ${feedback}` : ''}`
-            : `Rejected: ${feedback}`;
+        const rejectionComment = rejectionReason
+          ? `Rejected - ${rejectionReason}${feedback.trim() ? `: ${feedback}` : ''}`
+          : `Rejected: ${feedback}`;
 
-          const { error: insertCommentError } = await supabase
-            .from('candidate_comments')
-            .insert([{
-              application_id: application.id,
-              user_id: userData.user.id,
-              comment: rejectionComment,
-              is_internal: false,
-            }]);
+        const { error: commentError } = await supabase
+          .from('candidate_comments')
+          .insert({
+            application_id: application.id,
+            user_id: userData.user?.id,
+            comment: rejectionComment,
+            is_internal: false, // Make visible to candidate
+          });
 
-          if (insertCommentError) throw insertCommentError;
-        }
+        if (commentError) throw commentError;
 
         toast.success(`${candidateName} has been rejected`, {
           description: "Feedback recorded and candidate notified",

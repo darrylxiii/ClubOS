@@ -2,14 +2,18 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatMetricValue, checkThreshold } from "@/utils/performanceBaselines";
+import { PERFORMANCE_THRESHOLDS, formatMetricValue, checkThreshold } from "@/utils/performanceBaselines";
 import { 
+  Activity, 
   AlertTriangle, 
   CheckCircle2, 
+  Clock, 
   Gauge,
+  TrendingDown,
+  TrendingUp,
   Zap
 } from "lucide-react";
 import { format, subDays, subHours } from "date-fns";
@@ -21,6 +25,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  AreaChart,
+  Area,
 } from "recharts";
 
 interface MetricSummary {

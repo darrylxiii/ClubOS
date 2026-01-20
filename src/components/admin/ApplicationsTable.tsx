@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -11,17 +11,17 @@ import { getInitials } from "@/lib/strings";
 
 interface Application {
   id: string;
-  full_name: string | null;
-  email: string | null;
-  phone: string | null;
-  current_title?: string | null;
-  desired_salary_min?: number | null;
-  desired_salary_max?: number | null;
-  application_status: string | null;
+  full_name: string;
+  email: string;
+  phone: string;
+  current_title?: string;
+  desired_salary_min?: number;
+  desired_salary_max?: number;
+  application_status: string;
   created_at: string;
-  remote_preference?: string | null;
-  user_id?: string | null;
-  email_verified?: boolean | null;
+  remote_preference?: string;
+  user_id?: string;
+  email_verified?: boolean;
 }
 
 interface ApplicationsTableProps {
@@ -174,19 +174,19 @@ export function ApplicationsTable({
                   </div>
                   <div className="w-[150px]">
                     <div className="text-sm">{app.email}</div>
-                    <div className="text-xs text-muted-foreground">{maskPhone(app.phone ?? '')}</div>
+                    <div className="text-xs text-muted-foreground">{maskPhone(app.phone)}</div>
                   </div>
                   <div className="w-[150px] truncate text-sm">
                     {app.current_title || 'Not specified'}
                   </div>
                   <div className="w-[120px] text-sm">
-                    {formatSalary(app.desired_salary_min ?? undefined, app.desired_salary_max ?? undefined)}
+                    {formatSalary(app.desired_salary_min, app.desired_salary_max)}
                   </div>
                   <div className="w-[100px] text-sm">
-                    {formatDistanceToNow(new Date(app.created_at ?? new Date()), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(app.created_at), { addSuffix: true })}
                   </div>
                   <div className="w-[100px]">
-                    {getStatusBadge(app.application_status ?? 'applied')}
+                    {getStatusBadge(app.application_status)}
                   </div>
                   <div className="w-[150px] flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                     <Button size="sm" variant="ghost" onClick={() => onViewDetails(app)}>

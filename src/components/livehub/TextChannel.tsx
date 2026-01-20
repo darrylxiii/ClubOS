@@ -39,12 +39,6 @@ interface Attachment {
   size?: number;
 }
 
-interface Member {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-}
-
 interface Message {
   id: string;
   user_id: string;
@@ -54,7 +48,7 @@ interface Message {
   is_pinned: boolean | null;
   attachments: Attachment[] | null;
   user?: {
-    full_name: string | null;
+    full_name: string;
     avatar_url: string | null;
   };
 }
@@ -119,26 +113,19 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
       .limit(100);
 
     if (!error && data) {
-      const userIds = [...new Set(data.map(m => m.user_id).filter((id): id is string => id !== null))];
+      const userIds = [...new Set(data.map(m => m.user_id))];
       const { data: userData } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url')
-        .in('id', userIds.length > 0 ? userIds : ['__none__']);
+        .in('id', userIds);
 
       const userMap = new Map(userData?.map(u => [u.id, u]) || []);
 
-      const messagesWithUsers: Message[] = data
-        .filter(msg => msg.user_id !== null)
-        .map(msg => ({
-          id: msg.id,
-          user_id: msg.user_id!,
-          content: msg.content,
-          created_at: msg.created_at || new Date().toISOString(),
-          reply_to_id: msg.reply_to_id,
-          is_pinned: msg.is_pinned,
-          attachments: msg.attachments as unknown as Attachment[] | null,
-          user: userMap.get(msg.user_id!)
-        }));
+      const messagesWithUsers = data.map(msg => ({
+        ...msg,
+        attachments: msg.attachments as unknown as Attachment[] | null,
+        user: userMap.get(msg.user_id)
+      }));
 
       setMessages(messagesWithUsers);
       return;
@@ -448,8 +435,8 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
               if (isPoll) {
                 try {
                   pollData = JSON.parse(message.content.substring(7));
-                } catch (_e) {
-                  console.error('Failed to parse poll data', _e);
+                } catch (e) {
+                  console.error('Failed to parse poll data', e);
                 }
               }
 
@@ -623,7 +610,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
           {showMentionAutocomplete && (
             <MentionAutocomplete
               query={mentionQuery}
-              onSelect={(member: Member) => handleMentionSelect({ full_name: member.full_name || 'Unknown' })}
+              onSelect={handleMentionSelect}
               position={mentionPosition}
             />
           )}

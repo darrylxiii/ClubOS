@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,8 +8,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import {
   Calendar,
+  CheckCircle2,
   AlertTriangle,
   Clock,
+  Zap,
   PartyPopper,
   RefreshCw,
   Plus,

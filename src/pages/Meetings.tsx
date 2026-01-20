@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Settings, Video, Clock, Sparkles, BarChart3 } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Settings, Video, Clock, Sparkles, BarChart3 } from "lucide-react";
 import { CreateMeetingDialog } from "@/components/meetings/CreateMeetingDialog";
 import { MeetingCard } from "@/components/meetings/MeetingCard";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -18,6 +18,7 @@ import { MeetingIntelligenceTab } from "@/components/meetings/MeetingIntelligenc
 import { NotetakerSettingsTab } from "@/components/meetings/NotetakerSettingsTab";
 import { MeetingHistoryTab } from "@/components/meetings/MeetingHistoryTab";
 import { InstantMeetingButton } from "@/components/meetings/InstantMeetingButton";
+import { PersonalMeetingRoomCard } from "@/components/meetings/PersonalMeetingRoomCard";
 import { MeetingAnalyticsDashboard } from "@/components/meetings/MeetingAnalyticsDashboard";
 import { useAutoCreatePMR } from "@/hooks/useAutoCreatePMR";
 import { toast } from "sonner";
@@ -70,14 +71,14 @@ export default function Meetings() {
       const { data: hostedMeetings, error: hostedError } = await supabase
         .from('meetings')
         .select('*')
-        .eq('host_id', user?.id ?? '');
+        .eq('host_id', user?.id);
 
       if (hostedError) throw hostedError;
 
       const { data: participantMeetings, error: participantError } = await supabase
         .from('meeting_participants')
         .select('meeting_id, meetings(*)')
-        .eq('user_id', user?.id ?? '');
+        .eq('user_id', user?.id);
 
       if (participantError) throw participantError;
 

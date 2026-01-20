@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Video, VideoOff, Pencil } from 'lucide-react';
+import { Video, VideoOff, Mic, MicOff, PhoneOff, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 import { useVideoCall } from '@/hooks/useVideoCall';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { useBandwidthMonitor } from '@/hooks/useBandwidthMonitor';
@@ -145,7 +148,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
         setIsScreenSharing(true);
         toast.success('Screen sharing started');
       }
-    } catch (_error) {
+    } catch (error) {
       toast.error('Failed to start screen sharing');
     }
   };
@@ -248,13 +251,13 @@ export function VideoCallInterface({ conversationId, participantName, participan
         participants={participants.map(p => ({
           id: p.id,
           display_name: p.display_name,
-          role: p.role ?? 'participant',
-          is_muted: p.is_muted ?? false,
-          is_video_off: p.is_video_off ?? false,
-          is_screen_sharing: p.is_screen_sharing ?? false,
-          is_hand_raised: p.is_hand_raised ?? false,
-          is_speaking: p.is_speaking ?? false,
-          stream: p.user_id ? remoteStreams.get(p.user_id) : undefined
+          role: p.role,
+          is_muted: p.is_muted,
+          is_video_off: p.is_video_off,
+          is_screen_sharing: p.is_screen_sharing,
+          is_hand_raised: p.is_hand_raised,
+          is_speaking: p.is_speaking,
+          stream: remoteStreams.get(p.user_id)
         }))}
         localParticipant={{
           id: 'local',
@@ -350,7 +353,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
 
       {showParticipants && (
         <ParticipantPanel
-          participants={participants as any}
+          participants={participants}
           onClose={() => setShowParticipants(false)}
         />
       )}

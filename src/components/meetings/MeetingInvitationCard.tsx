@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { X, Video, Calendar, Clock, Check, X as XIcon, HelpCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Video, Calendar, Clock, Users, Check, X as XIcon, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -49,18 +49,16 @@ export function MeetingInvitationCard({
       if (error) throw error;
 
       // Track analytics
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (userId) {
-        await supabase.from('meeting_notification_analytics').insert({
-          meeting_invitation_id: invitation.id,
-          notification_type: 'browser',
-          responded_at: new Date().toISOString(),
-          response_action: response,
-          response_time_seconds: Math.floor(
-            (new Date().getTime() - new Date(invitation.created_at).getTime()) / 1000
-          ),
-        } as any);
-      }
+      await supabase.from('meeting_notification_analytics').insert({
+        meeting_invitation_id: invitation.id,
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        notification_type: 'browser',
+        responded_at: new Date().toISOString(),
+        response_action: response,
+        response_time_seconds: Math.floor(
+          (new Date().getTime() - new Date(invitation.created_at).getTime()) / 1000
+        ),
+      });
 
       toast.success(
         response === 'accepted' 

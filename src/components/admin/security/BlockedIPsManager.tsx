@@ -22,9 +22,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Ban, Plus, Trash2, Clock, Shield } from 'lucide-react';
+import { Ban, Plus, Trash2, Clock, User, Shield } from 'lucide-react';
 import { useBlockedIPs, useBlockIP, useUnblockIP } from '@/hooks/useThreatDetection';
-import { formatDistanceToNow } from 'date-fns';
+import { BlockedIP } from '@/types/threat';
+import { formatDistanceToNow, format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 const blockTypeLabels: Record<string, { label: string; color: string }> = {

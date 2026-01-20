@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceChannel } from '@/hooks/useVoiceChannel';
@@ -39,8 +39,8 @@ interface Channel {
   id: string;
   name: string;
   channel_type: string;
-  auto_record: boolean | null;
-  auto_transcribe: boolean | null;
+  auto_record: boolean;
+  auto_transcribe: boolean;
 }
 
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉', '👏', '🔥'];
@@ -108,7 +108,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     channelName: channel?.name || 'Live Hub',
     localStream,
     remoteStreams,
-    autoRecord: Boolean(channel?.auto_record), // Changed from true to false - no auto-start
+    autoRecord: channel?.auto_record ?? false, // Changed from true to false - no auto-start
     enabled: isConnected
   });
 

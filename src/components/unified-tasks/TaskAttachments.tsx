@@ -14,9 +14,8 @@ interface Attachment {
   file_url: string;
   file_type: string | null;
   file_size: number | null;
-  created_at: string | null;
+  created_at: string;
   user_id: string;
-  task_id: string;
 }
 
 interface TaskAttachmentsProps {
@@ -199,7 +198,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
                       {attachment.file_name}
                     </a>
                     <p className="text-xs text-muted-foreground">
-                      {formatFileSize(attachment.file_size)} • {attachment.created_at ? format(new Date(attachment.created_at), "MMM d, yyyy") : 'Unknown'}
+                      {formatFileSize(attachment.file_size)} • {format(new Date(attachment.created_at), "MMM d, yyyy")}
                     </p>
                   </div>
                   {attachment.user_id === user?.id && (

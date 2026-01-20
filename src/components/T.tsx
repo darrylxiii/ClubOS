@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { ReactNode } from 'react';
 import { logger } from '@/lib/logger';
 
 interface TProps {

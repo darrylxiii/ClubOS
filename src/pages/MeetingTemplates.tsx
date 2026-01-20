@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Copy, Users, Calendar, Clock, Shield } from 'lucide-react';
+import { Plus, Edit, Trash2, Copy, Zap, Briefcase, Users, Calendar, Clock, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -109,13 +109,9 @@ export default function MeetingTemplates() {
         if (error) throw error;
         toast.success('Template updated successfully');
       } else {
-        if (!user?.id) {
-          toast.error('You must be logged in to create templates');
-          return;
-        }
         const { error } = await supabase
           .from('meeting_templates')
-          .insert([{ ...templateData, user_id: user.id }]);
+          .insert([templateData]);
 
         if (error) throw error;
         toast.success('Template created successfully');
@@ -157,7 +153,7 @@ export default function MeetingTemplates() {
           ...template,
           id: undefined,
           name: `${template.name} (Copy)`,
-          user_id: user?.id ?? '',
+          user_id: user?.id,
           usage_count: 0,
           created_at: new Date().toISOString(),
         }]);

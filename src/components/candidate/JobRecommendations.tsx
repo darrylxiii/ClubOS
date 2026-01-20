@@ -91,8 +91,8 @@ export function JobRecommendations({ userId }: { userId: string }) {
       })) || [];
 
       setRecommendations(formatted);
-    } catch (_error) {
-      logger.warn('Error fetching recommendations', { componentName: 'JobRecommendations', error: _error });
+    } catch (error) {
+      logger.warn('Error fetching recommendations', { componentName: 'JobRecommendations', error });
       setRecommendations([]);
     } finally {
       setLoading(false);
@@ -115,8 +115,8 @@ export function JobRecommendations({ userId }: { userId: string }) {
 
       setRecommendations(prev => prev.filter(rec => rec.job_id !== jobId));
       toast.success("Job removed from recommendations");
-    } catch (_error) {
-      console.error('Error dismissing job:', _error);
+    } catch (error) {
+      console.error('Error dismissing job:', error);
       toast.error("Failed to dismiss job");
     }
   };

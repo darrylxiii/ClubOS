@@ -1,8 +1,10 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { publicCorsHeaders } from "../_shared/cors-config.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 
-const corsHeaders = publicCorsHeaders;
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -117,21 +119,14 @@ serve(async (req) => {
 
     console.log("SMS message inserted:", smsMessage.id);
 
-    // Queue for sentiment analysis (and save it)
-    await supabase.functions.invoke("ai-integration", {
+    // Queue for sentiment analysis
+    await supabase.functions.invoke("analyze-sentiment", {
       body: {
-        action: 'analyze-sentiment',
-        payload: { text: Body }
+        text: Body,
+        entity_type: "sms",
+        entity_id: smsMessage.id,
       }
-    })
-      .then(async ({ data }) => {
-        if (data && data.score !== undefined) {
-          await supabase.from("sms_messages")
-            .update({ sentiment_score: data.score })
-            .eq("id", smsMessage.id);
-        }
-      })
-      .catch(err => console.error("Sentiment analysis failed:", err));
+    }).catch(err => console.error("Sentiment analysis failed:", err));
 
     // Create notification for owner
     if (ownerId) {
@@ -157,19 +152,19 @@ serve(async (req) => {
 </Response>`;
 
     return new Response(twimlResponse, {
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/xml"
+      headers: { 
+        ...corsHeaders, 
+        "Content-Type": "application/xml" 
       },
     });
   } catch (error) {
     console.error("twilio-sms-webhook error:", error);
-
+    
     // Return valid TwiML even on error
     const errorTwiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
 </Response>`;
-
+    
     return new Response(errorTwiml, {
       status: 200, // Twilio expects 200 even on our errors
       headers: { ...corsHeaders, "Content-Type": "application/xml" },

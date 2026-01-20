@@ -15,7 +15,7 @@ interface TargetCompany {
   industry: string | null;
   priority: number | null;
   job_id: string | null;
-  votes: number | null;
+  votes: number;
   company_insider: string | null;
   location: string | null;
   logo_url: string | null;
@@ -23,8 +23,8 @@ interface TargetCompany {
   notes: string | null;
   created_by: string;
   created_at: string;
-  profiles?: { full_name: string | null } | null;
-  jobs?: { title: string; status: string } | null;
+  profiles?: { full_name: string | null };
+  jobs?: { title: string; status: string };
   target_company_votes?: Array<{ user_id: string; profiles?: { full_name: string | null } }>;
   target_company_comments?: Array<{ 
     id: string;
@@ -106,7 +106,7 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
         }))
       }));
 
-      setCompanies(enrichedData as TargetCompany[] || []);
+      setCompanies(enrichedData || []);
     } catch (error) {
       console.error("Error loading target companies:", error);
       toast.error("Fout bij laden van target bedrijven");
@@ -161,7 +161,7 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
         if (company) {
           await supabase
             .from("target_companies")
-            .update({ votes: Math.max(0, (company.votes ?? 0) - 1) })
+            .update({ votes: Math.max(0, company.votes - 1) })
             .eq("id", targetCompanyId);
         }
       } else {
@@ -177,7 +177,7 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
         if (company) {
           await supabase
             .from("target_companies")
-            .update({ votes: (company.votes ?? 0) + 1 })
+            .update({ votes: company.votes + 1 })
             .eq("id", targetCompanyId);
         }
       }
@@ -284,7 +284,7 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
 
         <TabsContent value={activeView} className="mt-6">
           <TargetCompanyTable
-            companies={getFilteredCompanies() as any}
+            companies={getFilteredCompanies()}
             loading={loading}
             currentUserId={user?.id || ""}
             onEdit={handleEditCompany}

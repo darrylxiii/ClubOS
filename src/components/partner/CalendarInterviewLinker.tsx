@@ -19,7 +19,7 @@ import {
   suggestCandidateFromEvent
 } from "@/utils/calendarInterviewUtils";
 import { toast } from "sonner";
-import { format, isFuture } from "date-fns";
+import { format, isToday, isTomorrow, isThisWeek, isFuture } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -103,7 +103,7 @@ export function CalendarInterviewLinker({
         .order('scheduled_start', { ascending: true });
 
       if (detectedError) throw detectedError;
-      setDetectedInterviews((detected || []) as DetectedInterview[]);
+      setDetectedInterviews(detected || []);
 
       // Load calendar events (next 60 days)
       const startDate = new Date();
@@ -114,7 +114,7 @@ export function CalendarInterviewLinker({
       
       // Enrich events with detection data
       const enrichedEvents = events.map(event => 
-        enrichCalendarEventWithDetection(event, (detected || []) as DetectedInterview[])
+        enrichCalendarEventWithDetection(event, detected || [])
       );
 
       setCalendarEvents(enrichedEvents);
@@ -153,34 +153,32 @@ export function CalendarInterviewLinker({
       // Fetch company members with their profiles
       let companyMembersData: any[] = [];
       if (companyMemberIds.length > 0) {
-        const validIds = companyMemberIds.filter((id): id is string => id !== null);
-        if (validIds.length > 0) {
-          const { data: cmData } = await supabase
-            .from('company_members')
-            .select('id, user_id, job_title')
-            .in('id', validIds);
+        const { data: cmData } = await supabase
+          .from('company_members')
+          .select('id, user_id, job_title')
+          .in('id', companyMemberIds);
         
-          if (cmData && cmData.length > 0) {
-            const userIds = cmData.map(cm => cm.user_id).filter(Boolean);
-            const { data: profilesData } = await supabase
-              .from('profiles')
-              .select('id, email, full_name, avatar_url')
-              .in('id', userIds);
-            
-            companyMembersData = cmData.map(cm => ({
-              ...cm,
-              profile: profilesData?.find(p => p.id === cm.user_id)
-            }));
-          }
+        if (cmData && cmData.length > 0) {
+          const userIds = cmData.map(cm => cm.user_id).filter(Boolean);
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, email, full_name, avatar_url')
+            .in('id', userIds);
+          
+          companyMembersData = cmData.map(cm => ({
+            ...cm,
+            profile: profilesData?.find(p => p.id === cm.user_id)
+          }));
         }
       }
+
+      // Fetch external user profiles
       let externalUsersData: any[] = [];
-      const validExternalUserIds = externalUserIds.filter((id): id is string => id !== null);
-      if (validExternalUserIds.length > 0) {
+      if (externalUserIds.length > 0) {
         const { data: extData } = await supabase
           .from('profiles')
           .select('id, email, full_name, avatar_url')
-          .in('id', validExternalUserIds);
+          .in('id', externalUserIds);
         
         externalUsersData = extData || [];
       }

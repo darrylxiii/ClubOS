@@ -38,19 +38,19 @@ export function TaskBoardProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      setBoards((data || []) as TaskBoard[]);
+      setBoards(data || []);
 
       // Auto-select board
       const savedBoardId = localStorage.getItem('currentBoardId');
       if (savedBoardId && data?.find(b => b.id === savedBoardId)) {
-        setCurrentBoard((data.find(b => b.id === savedBoardId) || null) as TaskBoard | null);
+        setCurrentBoard(data.find(b => b.id === savedBoardId) || null);
       } else if (data && data.length > 0) {
         // Default to personal board or first available
         const personalBoard = data.find(b => b.visibility === 'personal');
-        setCurrentBoard((personalBoard || data[0]) as TaskBoard);
+        setCurrentBoard(personalBoard || data[0]);
       }
-    } catch (_error) {
-      console.error('Failed to load boards:', _error);
+    } catch (error) {
+      console.error('Failed to load boards:', error);
       toast.error('Failed to load task boards');
     } finally {
       setLoading(false);
@@ -93,9 +93,9 @@ export function TaskBoardProvider({ children }: { children: ReactNode }) {
         switchBoard(data.id);
       }
 
-      return data as TaskBoard;
-    } catch (_error) {
-      console.error('Failed to create board:', _error);
+      return data;
+    } catch (error) {
+      console.error('Failed to create board:', error);
       toast.error('Failed to create board');
       return null;
     }

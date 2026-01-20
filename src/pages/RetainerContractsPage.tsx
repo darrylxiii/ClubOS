@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Clock, DollarSign, Plus, CheckCircle } from "lucide-react";
+import { Calendar, Clock, DollarSign, Plus, Play, Pause, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -157,10 +157,10 @@ export default function RetainerContractsPage() {
                     <CardTitle className="text-lg">
                       {retainer.client?.full_name || "Client"} ↔ {retainer.freelancer?.full_name || "Freelancer"}
                     </CardTitle>
-                    {getStatusBadge(retainer.status ?? 'pending')}
+                    {getStatusBadge(retainer.status)}
                   </div>
                   <CardDescription>
-                    Started {format(new Date(retainer.start_date ?? new Date()), "MMM d, yyyy")}
+                    Started {format(new Date(retainer.start_date), "MMM d, yyyy")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -221,7 +221,7 @@ export default function RetainerContractsPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">Pending Retainer</CardTitle>
-                    {getStatusBadge(retainer.status ?? 'pending')}
+                    {getStatusBadge(retainer.status)}
                   </div>
                 </CardHeader>
                 <CardContent>

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Check, CheckCheck, Clock, AlertCircle, FileText, Mic } from "lucide-react";
+import { Check, CheckCheck, Clock, AlertCircle, Image, FileText, Mic } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 

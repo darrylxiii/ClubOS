@@ -150,9 +150,9 @@ export function PlaylistManager() {
                 />
               ))}
             </div>
-          ) : (playlists ?? []).filter(p => p.playlist_type === 'uploaded').length > 0 ? (
+          ) : playlists?.filter(p => p.playlist_type === 'uploaded').length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(playlists ?? [])
+              {playlists
                 .filter(p => p.playlist_type === 'uploaded')
                 .map((playlist) => (
                   <PlaylistCard
@@ -187,9 +187,9 @@ export function PlaylistManager() {
                 />
               ))}
             </div>
-          ) : (playlists ?? []).filter(p => p.playlist_type === 'spotify').length > 0 ? (
+          ) : playlists?.filter(p => p.playlist_type === 'spotify').length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(playlists ?? [])
+              {playlists
                 .filter(p => p.playlist_type === 'spotify')
                 .map((playlist) => (
                   <PlaylistCard

@@ -12,21 +12,9 @@ interface CompanyProfilePreviewProps {
   companyId: string;
 }
 
-interface CompanyData {
-  id: string;
-  name: string;
-  slug: string | null;
-  logo_url: string | null;
-  tagline: string | null;
-  industry: string | null;
-  headquarters_location: string | null;
-  company_size: string | null;
-  membership_tier: string | null;
-}
-
 export function CompanyProfilePreview({ companyId }: CompanyProfilePreviewProps) {
   const navigate = useNavigate();
-  const [company, setCompany] = useState<CompanyData | null>(null);
+  const [company, setCompany] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

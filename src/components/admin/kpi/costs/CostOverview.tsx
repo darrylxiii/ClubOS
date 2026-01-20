@@ -14,6 +14,7 @@ import {
   CheckCircle,
   HardDrive,
   Bot,
+  Mail,
   Shield
 } from 'lucide-react';
 import { useCostMetrics } from '@/hooks/useCostMetrics';

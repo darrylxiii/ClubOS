@@ -63,8 +63,8 @@ export function CalendarIntegrationSettings() {
         setCalendarConnectedAt((data as any).calendar_connected_at);
         setCalendarSyncEnabled((data as any).calendar_sync_enabled || false);
       }
-    } catch (_error) {
-      console.error('Error loading calendar settings:', _error);
+    } catch (error) {
+      console.error('Error loading calendar settings:', error);
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ export function CalendarIntegrationSettings() {
             calendar_connected_at: new Date().toISOString(),
             calendar_sync_enabled: true,
           } as any)
-          .eq('id', user?.id ?? '');
+          .eq('id', user?.id!);
 
         if (error) throw error;
 
@@ -112,7 +112,7 @@ export function CalendarIntegrationSettings() {
             calendar_connected_at: new Date().toISOString(),
             calendar_sync_enabled: true,
           } as any)
-          .eq('id', user?.id ?? '');
+          .eq('id', user?.id!);
 
         if (error) throw error;
 
@@ -124,8 +124,8 @@ export function CalendarIntegrationSettings() {
       } else {
         toast.info('This calendar provider is coming soon!');
       }
-    } catch (_error) {
-      console.error('Error connecting calendar:', _error);
+    } catch (error) {
+      console.error('Error connecting calendar:', error);
       toast.error('Failed to connect calendar');
     } finally {
       setConnecting(null);
@@ -144,7 +144,7 @@ export function CalendarIntegrationSettings() {
           calendar_connected_at: null,
           calendar_sync_enabled: false,
         } as any)
-        .eq('id', user?.id ?? '');
+        .eq('id', user?.id!);
 
       if (error) throw error;
 
@@ -153,8 +153,8 @@ export function CalendarIntegrationSettings() {
       setCalendarSyncEnabled(false);
 
       toast.success('Calendar disconnected');
-    } catch (_error) {
-      console.error('Error disconnecting calendar:', _error);
+    } catch (error) {
+      console.error('Error disconnecting calendar:', error);
       toast.error('Failed to disconnect calendar');
     }
   };
@@ -164,14 +164,14 @@ export function CalendarIntegrationSettings() {
       const { error } = await supabase
         .from('profiles')
         .update({ calendar_sync_enabled: enabled } as any)
-        .eq('id', user?.id ?? '');
+        .eq('id', user?.id!);
 
       if (error) throw error;
 
       setCalendarSyncEnabled(enabled);
       toast.success(enabled ? 'Calendar sync enabled' : 'Calendar sync disabled');
-    } catch (_error) {
-      console.error('Error updating sync setting:', _error);
+    } catch (error) {
+      console.error('Error updating sync setting:', error);
       toast.error('Failed to update sync setting');
     }
   };

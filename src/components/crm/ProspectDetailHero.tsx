@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import {
   ArrowLeft,
@@ -13,15 +13,13 @@ import {
   Building,
   Calendar,
   Zap,
+  ExternalLink,
   MapPin,
   Briefcase,
   DollarSign,
   UserPlus,
-  Sparkles,
-  RefreshCw
 } from 'lucide-react';
-import { DealProbabilityCard } from '@/components/crm/predictions/DealProbabilityCard';
-import { PROSPECT_STAGES, type CRMProspect } from '@/types/crm-enterprise';
+import { PROSPECT_STAGES, type CRMProspect, type ProspectStage } from '@/types/crm-enterprise';
 import {
   Select,
   SelectContent,
@@ -29,26 +27,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { HealthScoreBadge } from '@/components/crm/HealthScoreBadge';
 
 interface ProspectDetailHeroProps {
-  prospect: CRMProspect & {
-    health_score?: number;
-    health_trend?: string;
-    last_enriched_at?: string;
-  };
+  prospect: CRMProspect;
   onStageChange: (stage: string) => void;
   onConvertToPartner?: () => void;
 }
 
-export function ProspectDetailHero({
-  prospect,
+export function ProspectDetailHero({ 
+  prospect, 
   onStageChange,
   onConvertToPartner,
 }: ProspectDetailHeroProps) {
-  const [isEnriching, setIsEnriching] = useState(false);
   const stageConfig = PROSPECT_STAGES.find(s => s.value === prospect.stage);
 
   const getInitials = (name: string) => {
@@ -66,6 +56,12 @@ export function ProspectDetailHero({
     return 'text-muted-foreground';
   };
 
+  const getScoreLabel = (score: number) => {
+    if (score >= 70) return 'Hot Lead';
+    if (score >= 40) return 'Warm';
+    return 'Cold';
+  };
+
   const stageColors: Record<string, string> = {
     gray: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
     blue: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -78,36 +74,6 @@ export function ProspectDetailHero({
     red: 'bg-red-500/20 text-red-400 border-red-500/30',
     indigo: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
   };
-
-  const handleEnrich = async () => {
-    setIsEnriching(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('enrich-entity', {
-        body: { prospect_id: prospect.id }
-      });
-
-      if (error) throw error;
-
-      toast.success("Prospect enriched!", {
-        description: "Data has been updated from external sources."
-      });
-
-      // Ideally we should trigger a reload or update local state here
-      // depending on how the parent handles data
-      window.location.reload(); // Temporary brute force refresh to see changes
-
-    } catch (error) {
-      console.error('Enrichment failed:', error);
-      toast.error("Enrichment failed", {
-        description: "Could not fetch external data."
-      });
-    } finally {
-      setIsEnriching(false);
-    }
-  };
-
-  // Prioritize health score, fallback to lead score, default 50
-  const displayScore = prospect.health_score ?? prospect.lead_score ?? 50;
 
   return (
     <motion.div
@@ -131,16 +97,7 @@ export function ProspectDetailHero({
           </Avatar>
 
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-2xl font-bold">{prospect.full_name}</h1>
-              {prospect.last_enriched_at && (
-                <Badge variant="secondary" className="text-[10px] h-5 gap-1">
-                  <Sparkles className="w-3 h-3 text-purple-400" />
-                  Enriched
-                </Badge>
-              )}
-            </div>
-
+            <h1 className="text-2xl font-bold mb-1">{prospect.full_name}</h1>
             <div className="flex flex-wrap items-center gap-2 text-muted-foreground mb-3">
               {prospect.job_title && (
                 <span className="flex items-center gap-1">
@@ -170,7 +127,7 @@ export function ProspectDetailHero({
 
             {/* Contact Info */}
             <div className="flex flex-wrap items-center gap-3">
-              <a
+              <a 
                 href={`mailto:${prospect.email}`}
                 className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors"
               >
@@ -178,7 +135,7 @@ export function ProspectDetailHero({
                 {prospect.email}
               </a>
               {prospect.phone && (
-                <a
+                <a 
                   href={`tel:${prospect.phone}`}
                   className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors"
                 >
@@ -193,8 +150,8 @@ export function ProspectDetailHero({
         {/* Middle: Stage & Score */}
         <div className="flex-1 flex flex-wrap items-center gap-4 lg:justify-center">
           {/* Stage Badge */}
-          <Badge
-            variant="outline"
+          <Badge 
+            variant="outline" 
             className={cn(
               "px-4 py-2 text-sm font-medium",
               stageConfig && stageColors[stageConfig.color]
@@ -203,7 +160,7 @@ export function ProspectDetailHero({
             {stageConfig?.label || prospect.stage}
           </Badge>
 
-          {/* Health Score Gauge */}
+          {/* Lead Score Gauge */}
           <div className="flex flex-col items-center">
             <div className="relative w-20 h-20">
               <svg className="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
@@ -219,22 +176,18 @@ export function ProspectDetailHero({
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="3"
-                  strokeDasharray={`${displayScore}, 100`}
-                  className={getScoreColor(displayScore)}
+                  strokeDasharray={`${prospect.lead_score}, 100`}
+                  className={getScoreColor(prospect.lead_score)}
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <Zap className={cn("w-4 h-4", getScoreColor(displayScore))} />
-                <span className="text-lg font-bold">{displayScore}</span>
+                <Zap className={cn("w-4 h-4", getScoreColor(prospect.lead_score))} />
+                <span className="text-lg font-bold">{prospect.lead_score}</span>
               </div>
             </div>
-
-            <div className="mt-2">
-              <HealthScoreBadge
-                score={displayScore}
-                trend={prospect.health_trend}
-              />
-            </div>
+            <span className={cn("text-xs font-medium mt-1", getScoreColor(prospect.lead_score))}>
+              {getScoreLabel(prospect.lead_score)}
+            </span>
           </div>
 
           {/* Deal Value */}
@@ -247,31 +200,10 @@ export function ProspectDetailHero({
               <span className="text-[10px] text-muted-foreground">Deal Value</span>
             </div>
           )}
-
-          {/* Win Probability Widget */}
-          <div className="w-full lg:w-48">
-            <DealProbabilityCard deal={prospect} />
-          </div>
         </div>
 
         {/* Right: Actions */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* AI Enrichment */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleEnrich}
-            disabled={isEnriching}
-            className="bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-purple-500/20"
-          >
-            {isEnriching ? (
-              <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
-            ) : (
-              <Sparkles className="w-4 h-4 mr-1" />
-            )}
-            {isEnriching ? 'Enriching...' : 'Enrich Data'}
-          </Button>
-
           {/* Quick Actions */}
           <Button variant="outline" size="sm" asChild>
             <a href={`mailto:${prospect.email}`}>

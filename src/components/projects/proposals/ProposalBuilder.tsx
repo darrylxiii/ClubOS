@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
-import { Sparkles, Send,
-  CheckCircle2, Plus, X,
-  ArrowLeft
+import {
+  FileText, DollarSign, Clock, Sparkles, Send,
+  CheckCircle2, AlertCircle, Video, Plus, X,
+  ArrowLeft, Briefcase, Target
 } from "lucide-react";
 
 interface ProposalBuilderProps {

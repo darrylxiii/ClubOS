@@ -1,4 +1,4 @@
-import { useState, createContext, useContext, ReactNode, useEffect } from "react";
+import { useState, createContext, useContext, ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X, ChevronDown, Palette } from "lucide-react";
@@ -13,15 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LucideIcon } from "lucide-react";
 import { useNavigationState } from "@/hooks/useNavigationState";
+import { T } from "@/components/T";
+import { useTranslation } from "react-i18next";
 import { AppearanceSettingsModal } from "./appearance/AppearanceSettingsModal";
 
 interface SidebarContextProps {
-  open: boolean; // Computed: isMobileOpen || isHovered (for Links)
-  setOpen: (open: boolean) => void; // Legacy support (maps to isMobileOpen toggle usually, or ignored?)
-  isMobileOpen: boolean;
-  setMobileOpen: (open: boolean) => void;
-  isHovered: boolean;
-  setIsHovered: (hover: boolean) => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
 const SidebarContext = createContext<SidebarContextProps | undefined>(undefined);
@@ -36,30 +34,17 @@ export const useSidebar = () => {
 
 interface SidebarProviderProps {
   children: ReactNode;
+  open?: boolean;
+  setOpen?: (open: boolean) => void;
 }
 
-export const SidebarProvider = ({ children }: SidebarProviderProps) => {
-  const [isMobileOpen, setMobileOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-
-  // Computed 'open' state for internal components (Links, Groups) to know if they should show text
-  // On mobile, if menu is open, it's "expanded". On desktop, if hovered, it's "expanded".
-  const open = isMobileOpen || isHovered;
-
-  // Legacy setOpen compatibility: if called, usually means toggle mobile menu
-  const setOpen = (value: boolean) => {
-    setMobileOpen(value);
-  };
+export const SidebarProvider = ({ children, open: openProp, setOpen: setOpenProp }: SidebarProviderProps) => {
+  const [openState, setOpenState] = useState(false);
+  const open = openProp !== undefined ? openProp : openState;
+  const setOpen = setOpenProp !== undefined ? setOpenProp : setOpenState;
 
   return (
-    <SidebarContext.Provider value={{
-      open,
-      setOpen,
-      isMobileOpen,
-      setMobileOpen,
-      isHovered,
-      setIsHovered
-    }}>
+    <SidebarContext.Provider value={{ open, setOpen }}>
       {children}
     </SidebarContext.Provider>
   );
@@ -91,15 +76,13 @@ export const Sidebar = ({ children, className, logoLight, logoDark, logoLightSho
 
 // Wrapper to expose toggle function
 const MobileSidebarWrapper = ({ children }: { children: ReactNode }) => {
-  const { isMobileOpen, setMobileOpen } = useSidebar();
+  const { open, setOpen } = useSidebar();
 
-  useEffect(() => {
-    // Expose toggle function and state getter globally for header button
-    if (typeof window !== 'undefined') {
-      (window as any).__toggleSidebar = () => setMobileOpen(!isMobileOpen);
-      (window as any).__getSidebarOpen = () => isMobileOpen;
-    }
-  }, [isMobileOpen, setMobileOpen]);
+  // Expose toggle function and state getter globally for header button
+  if (typeof window !== 'undefined') {
+    (window as any).__toggleSidebar = () => setOpen(!open);
+    (window as any).__getSidebarOpen = () => open;
+  }
 
   return <>{children}</>;
 };
@@ -114,7 +97,7 @@ interface DesktopSidebarProps {
 }
 
 const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightShort, logoDarkShort }: DesktopSidebarProps) => {
-  const { isHovered, setIsHovered } = useSidebar();
+  const { open, setOpen } = useSidebar();
 
   return (
     <motion.aside
@@ -125,19 +108,19 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
         className
       )}
       animate={{
-        width: isHovered ? "300px" : "80px",
+        width: open ? "300px" : "80px",
       }}
       transition={{
         duration: 0.3,
         ease: [0.4, 0, 0.2, 1],
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-border/20 relative z-[100]">
+      <div className="h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-[100]">
         <AnimatePresence mode="wait">
-          {isHovered ? (
+          {open ? (
             <motion.div
               key="expanded"
               initial={{ opacity: 0 }}
@@ -198,13 +181,13 @@ interface MobileSidebarProps {
 }
 
 const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) => {
-  const { isMobileOpen, setMobileOpen } = useSidebar();
+  const { open, setOpen } = useSidebar();
   const [isDebouncing, setIsDebouncing] = useState(false);
 
   const handleToggle = () => {
     if (isDebouncing) return;
     setIsDebouncing(true);
-    setMobileOpen(!isMobileOpen);
+    setOpen(!open);
     setTimeout(() => setIsDebouncing(false), 300);
   };
 
@@ -236,7 +219,7 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
 
       {/* Mobile Overlay with proper z-index */}
       <AnimatePresence>
-        {isMobileOpen && (
+        {open && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
@@ -270,7 +253,7 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => setOpen(false)}
                   aria-label="Close sidebar"
                 >
                   <X className="h-5 w-5" aria-hidden="true" />

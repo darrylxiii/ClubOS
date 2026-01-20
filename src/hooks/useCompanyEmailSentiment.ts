@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { aiService } from '@/services/aiService';
 
 export interface CompanyEmailSentiment {
   id: string;
@@ -121,13 +120,13 @@ export function useAnalyzeEmailSentiment() {
       from_email: string;
       to_emails?: string[];
       email_date?: string;
-      email_id?: string;
     }) => {
-      // Use the unified aiService
-      return await aiService.analyzeEmailSentiment({
-        email: { ...email, id: email.email_id || crypto.randomUUID() },
-        save_match: true
+      const { data, error } = await supabase.functions.invoke('analyze-email-sentiment', {
+        body: { email, save_match: true },
       });
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['company-email-sentiment'] });

@@ -9,8 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { AudiencePickerButton } from "@/components/audience/AudiencePickerButton";
-import type { AudienceSelection } from "@/components/audience/types";
+import { AudiencePickerButton, AudienceSelection } from "@/components/audience/AudiencePickerButton";
 
 interface CreatePostDialogProps {
   open: boolean;

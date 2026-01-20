@@ -1,28 +1,27 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { aiService } from '@/services/aiService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Sparkles, Play, Share2, RefreshCw, AlertTriangle,
-  CheckCircle2, Lightbulb, Users, Code, Loader2
+import { 
+  Sparkles, Play, Share2, RefreshCw, AlertTriangle, 
+  CheckCircle2, Lightbulb, Users, Code, Loader2 
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface AIClip {
   id: string;
-  title: string | null;
-  description: string | null;
+  title: string;
+  description: string;
   start_ms: number;
   end_ms: number;
-  highlight_type: string | null;
-  ai_reasoning: string | null;
-  confidence_score: number | null;
-  transcript_excerpt?: string | null;
+  highlight_type: string;
+  ai_reasoning: string;
+  confidence_score: number;
+  transcript_excerpt?: string;
 }
 
 interface AIHighlightClipsProps {
@@ -61,9 +60,11 @@ export function AIHighlightClips({ recordingId, onSeek, onShare }: AIHighlightCl
   const generateHighlights = async () => {
     setGenerating(true);
     try {
-      const data = await aiService.generateHighlightClips(recordingId);
+      const { data, error } = await supabase.functions.invoke('generate-highlight-clips', {
+        body: { recordingId }
+      });
 
-      if (!data) throw new Error("No highlights generated");
+      if (error) throw error;
 
       toast.success(`Generated ${data?.clips?.length || 0} highlight clips`);
       loadClips();
@@ -116,8 +117,7 @@ export function AIHighlightClips({ recordingId, onSeek, onShare }: AIHighlightCl
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const formatHighlightType = (type: string | null) => {
-    if (!type) return 'Unknown';
+  const formatHighlightType = (type: string) => {
     return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 
@@ -195,11 +195,11 @@ export function AIHighlightClips({ recordingId, onSeek, onShare }: AIHighlightCl
                 >
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-center gap-2">
-                      {getHighlightIcon(clip.highlight_type || 'default')}
+                      {getHighlightIcon(clip.highlight_type)}
                       <span className="font-medium text-sm">{clip.title}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs">
                         {formatTime(clip.start_ms)} - {formatTime(clip.end_ms)}
                       </Badge>
                       <Button

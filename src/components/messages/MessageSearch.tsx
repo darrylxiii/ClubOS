@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Filter, Calendar, User } from 'lucide-react';
+import { Search, Filter, Calendar, User, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -84,7 +84,7 @@ export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
       const { data: userConvos } = await supabase
         .from('conversation_participants')
         .select('conversation_id')
-        .eq('user_id', user?.id ?? '');
+        .eq('user_id', user?.id);
 
       if (userConvos) {
         query = query.in('conversation_id', userConvos.map(c => c.conversation_id));
@@ -96,8 +96,8 @@ export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
 
       if (error) throw error;
       setResults(data || []);
-    } catch (_error) {
-      console.error('Search error:', _error);
+    } catch (error) {
+      console.error('Search error:', error);
     } finally {
       setLoading(false);
     }

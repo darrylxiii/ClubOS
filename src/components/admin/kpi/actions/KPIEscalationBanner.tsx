@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertTriangle, ArrowRight, Clock, X } from 'lucide-react';
-import { useKPIActions } from '@/hooks/useKPIOwnership';
+import { useKPIActions, KPIImprovementAction } from '@/hooks/useKPIOwnership';
 import { formatDistanceToNow, isPast, differenceInDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 

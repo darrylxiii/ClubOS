@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { notify } from '@/lib/notify';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageSquare, Shield, Zap, RefreshCw, ExternalLink, Copy, CheckCircle, AlertCircle } from 'lucide-react';
+import { MessageSquare, Settings, Shield, Zap, RefreshCw, ExternalLink, Copy, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function WhatsAppSettings() {
   const queryClient = useQueryClient();
@@ -214,7 +214,7 @@ export default function WhatsAppSettings() {
                           </p>
                         </div>
                         <Switch
-                          checked={!!rule.is_active}
+                          checked={rule.is_active}
                           onCheckedChange={(checked) => toggleRuleMutation.mutate({ id: rule.id, is_active: checked })}
                         />
                       </div>

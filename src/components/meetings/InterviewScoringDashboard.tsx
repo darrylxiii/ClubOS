@@ -29,13 +29,14 @@ export function InterviewScoringDashboard({ meetingId, userRole }: InterviewScor
   const [intelligence, setIntelligence] = useState<InterviewIntelligence | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const isAuthorizedRole = ['host', 'interviewer', 'observer'].includes(userRole);
+  // Only show to interviewers, not candidates
+  if (!['host', 'interviewer', 'observer'].includes(userRole)) {
+    return null;
+  }
 
   useEffect(() => {
-    if (!isAuthorizedRole) return;
-
     loadIntelligence();
-
+    
     // Subscribe to real-time updates
     const channel = supabase
       .channel(`interview-intelligence-${meetingId}`)
@@ -49,7 +50,7 @@ export function InterviewScoringDashboard({ meetingId, userRole }: InterviewScor
         },
         (payload) => {
           if (payload.new) {
-            setIntelligence(payload.new as unknown as InterviewIntelligence);
+            setIntelligence(payload.new as any);
           }
         }
       )
@@ -58,12 +59,7 @@ export function InterviewScoringDashboard({ meetingId, userRole }: InterviewScor
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [meetingId, isAuthorizedRole]);
-
-  // Only show to interviewers, not candidates - moved after hooks
-  if (!isAuthorizedRole) {
-    return null;
-  }
+  }, [meetingId]);
 
   const loadIntelligence = async () => {
     try {

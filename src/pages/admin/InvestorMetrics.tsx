@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  TrendingUp,
-  DollarSign,
-  Target,
+import { 
+  TrendingUp, 
+  Users, 
+  DollarSign, 
+  Target, 
   RefreshCw,
   Download,
   ArrowUpRight,
@@ -17,9 +18,9 @@ import {
   BarChart3,
   Percent
 } from "lucide-react";
-import {
-  useLatestInvestorMetrics,
-  useInvestorMetricsHistory,
+import { 
+  useLatestInvestorMetrics, 
+  useInvestorMetricsHistory, 
   useCaptureInvestorSnapshot,
   useValuationMetrics,
   formatCurrencyCompact
@@ -254,16 +255,16 @@ export default function InvestorMetrics() {
                 <div>
                   <p className="text-sm text-muted-foreground">Net Revenue Retention</p>
                   <p className="text-2xl font-bold">
-                    {latest?.net_revenue_retention
-                      ? `${(latest.net_revenue_retention * 100).toFixed(0)}%`
+                    {latest?.net_revenue_retention 
+                      ? `${(latest.net_revenue_retention * 100).toFixed(0)}%` 
                       : '—'}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Logo Retention</p>
                   <p className="text-2xl font-bold">
-                    {latest?.logo_retention
-                      ? `${(latest.logo_retention * 100).toFixed(0)}%`
+                    {latest?.logo_retention 
+                      ? `${(latest.logo_retention * 100).toFixed(0)}%` 
                       : '—'}
                   </p>
                 </div>
@@ -347,8 +348,8 @@ export default function InvestorMetrics() {
                 <div className="text-center p-4 rounded-lg bg-muted/50">
                   <p className="text-sm text-muted-foreground">Placement Rate</p>
                   <p className="text-2xl font-bold">
-                    {latest?.placement_rate
-                      ? `${(latest.placement_rate * 100).toFixed(1)}%`
+                    {latest?.placement_rate 
+                      ? `${(latest.placement_rate * 100).toFixed(1)}%` 
                       : '—'}
                   </p>
                 </div>
@@ -367,12 +368,12 @@ export default function InvestorMetrics() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <span>
-                  Last snapshot: {latest?.snapshot_date
-                    ? new Date(latest.snapshot_date).toLocaleDateString('nl-NL', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })
+                  Last snapshot: {latest?.snapshot_date 
+                    ? new Date(latest.snapshot_date).toLocaleDateString('nl-NL', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })
                     : 'Never'}
                 </span>
                 <span>{history?.length || 0} historical snapshots</span>

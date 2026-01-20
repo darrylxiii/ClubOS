@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Video, Users, Clock, Zap, Target } from 'lucide-react';
+import { Video, Users, Clock, TrendingUp, Zap, Calendar, Target, Award } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -52,7 +53,7 @@ export function MeetingAnalyticsDashboard() {
           meeting_participants(count),
           meeting_analytics(total_duration_minutes)
         `)
-        .eq('host_id', user?.id ?? '');
+        .eq('host_id', user?.id);
 
       if (meetingsError) throw meetingsError;
 
@@ -83,9 +84,7 @@ export function MeetingAnalyticsDashboard() {
         weekEnd.setDate(weekEnd.getDate() + 7);
 
         const weekMeetings = meetings?.filter(m => {
-          const createdAt = m.created_at;
-          if (!createdAt) return false;
-          const meetingDate = new Date(createdAt);
+          const meetingDate = new Date(m.created_at);
           return meetingDate >= weekStart && meetingDate < weekEnd;
         }).length || 0;
 
@@ -99,13 +98,10 @@ export function MeetingAnalyticsDashboard() {
       const { data: invitations } = await supabase
         .from('meeting_invitations')
         .select('invitation_method, status')
-        .eq('inviter_id', user?.id ?? '');
+        .eq('inviter_id', user?.id);
 
       const methodCounts = invitations?.reduce((acc, inv) => {
-        const method = inv.invitation_method;
-        if (method) {
-          acc[method] = (acc[method] || 0) + 1;
-        }
+        acc[inv.invitation_method] = (acc[inv.invitation_method] || 0) + 1;
         return acc;
       }, {} as Record<string, number>) || {};
 

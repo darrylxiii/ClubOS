@@ -1,9 +1,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
+import { Users, ChevronDown } from "lucide-react";
 import { AudiencePickerModal } from "./AudiencePickerModal";
 
-import { AudienceSelection, AudienceType } from "./types";
+export type AudienceType = 'public' | 'connections' | 'company_internal' | 'best_friends' | 'custom';
+
+export interface AudienceSelection {
+  type: AudienceType;
+  customListIds?: string[];
+  multiSelect?: {
+    company: boolean;
+    connections: boolean;
+    bestFriends: boolean;
+  };
+}
 
 interface AudiencePickerButtonProps {
   value: AudienceSelection;

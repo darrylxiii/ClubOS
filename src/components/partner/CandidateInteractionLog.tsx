@@ -23,7 +23,7 @@ import {
   Clock,
   Target
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 
 interface CandidateInteractionLogProps {
   candidateId: string;

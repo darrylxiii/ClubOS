@@ -1,5 +1,5 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { publicCorsHeaders as corsHeaders } from '../_shared/cors-config.ts';
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from '../_shared/cors.ts';
 
 // Structured logging utility
 function log(level: 'info' | 'error' | 'warn', message: string, context?: any) {

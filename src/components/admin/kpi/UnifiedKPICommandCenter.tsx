@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback, useEffect, lazy, Suspense } from
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUnifiedKPIs, type KPIDomain, type UnifiedKPI, type DomainHealth } from '@/hooks/useUnifiedKPIs';
-import { KPIErrorBoundary } from './KPIErrorBoundary';
 import { useKPIRefresh } from '@/hooks/useKPIRefresh';
 import { ExecutiveSummaryBar } from './ExecutiveSummaryBar';
 import { DomainSidebar } from './DomainSidebar';
@@ -35,7 +34,7 @@ import {
 const CostOverview = lazy(() => import('./costs/CostOverview').then(m => ({ default: m.CostOverview })));
 const AIExecutiveSummary = lazy(() => import('./AIExecutiveSummary').then(m => ({ default: m.AIExecutiveSummary })));
 const FinancialKPISection = lazy(() => import('./FinancialKPISection').then(m => ({ default: m.FinancialKPISection })));
-import { KPICommandPalette as KPICommandRegistry } from './KPICommandPalette';
+const KPICommandPalette = lazy(() => import('./KPICommandPalette').then(m => ({ default: m.KPICommandPalette })));
 const ExecutiveKPIDashboard = lazy(() => import('./ExecutiveKPIDashboard').then(m => ({ default: m.ExecutiveKPIDashboard })));
 const BoardReportGenerator = lazy(() => import('./BoardReportGenerator').then(m => ({ default: m.BoardReportGenerator })));
 const KPIReportBuilder = lazy(() => import('./KPIReportBuilder').then(m => ({ default: m.KPIReportBuilder })));
@@ -80,12 +79,12 @@ export function UnifiedKPICommandCenter() {
   const { pinnedKPIIds, isPinned, togglePin: persistentTogglePin, isLoading: isPinsLoading } = usePinnedKPIs();
 
   // KPI Refresh hook for backend recalculation
-  const {
-    isRefreshing: isRecalculating,
-    refreshAll: recalculateAll,
+  const { 
+    isRefreshing: isRecalculating, 
+    refreshAll: recalculateAll, 
     refreshSingleDomain,
     lastRefresh,
-    lastResult
+    lastResult 
   } = useKPIRefresh();
 
   const {
@@ -109,19 +108,19 @@ export function UnifiedKPICommandCenter() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const isInputFocused = document.activeElement?.tagName === 'INPUT' ||
-        document.activeElement?.tagName === 'TEXTAREA';
-
+      const isInputFocused = document.activeElement?.tagName === 'INPUT' || 
+                             document.activeElement?.tagName === 'TEXTAREA';
+      
       // Command palette: Cmd/Ctrl + Shift + K
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'k') {
         e.preventDefault();
         setCommandPaletteOpen(true);
         return;
       }
-
+      
       // Skip other shortcuts when focused on input
       if (isInputFocused) return;
-
+      
       // Help: ?
       if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
@@ -162,16 +161,16 @@ export function UnifiedKPICommandCenter() {
   const filteredKPIs = useMemo(() => {
     return allKPIs.filter(kpi => {
       // Search filter
-      const matchesSearch = searchTerm === '' ||
+      const matchesSearch = searchTerm === '' || 
         kpi.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         kpi.id.toLowerCase().includes(searchTerm.toLowerCase());
-
+      
       // Status filter
       const matchesStatus = statusFilter === 'all' ||
         (statusFilter === 'critical' && kpi.status === 'critical') ||
         (statusFilter === 'warning' && kpi.status === 'warning') ||
         (statusFilter === 'on_target' && kpi.status === 'success');
-
+      
       return matchesSearch && matchesStatus;
     });
   }, [allKPIs, searchTerm, statusFilter]);
@@ -186,7 +185,7 @@ export function UnifiedKPICommandCenter() {
 
   // Pinned KPIs - convert array to set for lookup
   const pinnedSet = useMemo(() => new Set(pinnedKPIIds), [pinnedKPIIds]);
-  const pinnedKPIs = useMemo(() =>
+  const pinnedKPIs = useMemo(() => 
     allKPIs.filter(kpi => pinnedSet.has(kpi.id)),
     [allKPIs, pinnedSet]
   );
@@ -195,9 +194,9 @@ export function UnifiedKPICommandCenter() {
     // Find the KPI's domain if not provided
     const kpi = allKPIs.find(k => k.id === kpiId);
     const kpiDomain = domain || kpi?.domain || 'operations';
-
+    
     persistentTogglePin(kpiId, kpiDomain);
-
+    
     if (isPinned(kpiId)) {
       toast.success('KPI unpinned');
     } else {
@@ -296,9 +295,9 @@ export function UnifiedKPICommandCenter() {
         {isMobile ? (
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
+              <Button 
+                variant="outline" 
+                size="icon" 
                 className="fixed bottom-4 left-4 z-50 shadow-lg"
               >
                 <Menu className="h-4 w-4" />
@@ -315,7 +314,7 @@ export function UnifiedKPICommandCenter() {
         {/* Main Content */}
         <div className="flex-1 overflow-auto">
           <div className="container mx-auto px-4 py-6 max-w-7xl">
-            {selectedDomain === 'costs' ? (
+{selectedDomain === 'costs' ? (
               <Suspense fallback={<LazyFallback />}>
                 <CostOverview />
               </Suspense>
@@ -377,19 +376,19 @@ export function UnifiedKPICommandCenter() {
                       </Tabs>
 
                       {/* Command Palette Trigger */}
-                      <Button
-                        variant="outline"
+                      <Button 
+                        variant="outline" 
                         size="sm"
                         onClick={() => setCommandPaletteOpen(true)}
                         className="hidden md:flex"
                       >
                         <Command className="h-4 w-4 mr-2" />
-                        <span className="text-muted-foreground text-xs">⌘K</span>
+                        <span className="text-muted-foreground text-xs">⌘⇧K</span>
                       </Button>
 
                       {/* Keyboard Shortcuts Help */}
-                      <Button
-                        variant="ghost"
+                      <Button 
+                        variant="ghost" 
                         size="sm"
                         onClick={() => setShortcutsHelpOpen(true)}
                         className="hidden md:flex"
@@ -397,17 +396,17 @@ export function UnifiedKPICommandCenter() {
                         <Keyboard className="h-4 w-4" />
                       </Button>
 
-                      <Button
-                        variant="outline"
-                        size="sm"
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
                         onClick={handleRefresh}
                         disabled={isRefreshing}
                       >
                         <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
                         {isRefreshing ? 'Calculating...' : 'Recalculate'}
                       </Button>
-                      <ComparisonToggle
-                        isComparing={isComparing}
+                      <ComparisonToggle 
+                        isComparing={isComparing} 
                         onToggle={() => setIsComparing(!isComparing)}
                         period={period}
                       />
@@ -419,18 +418,18 @@ export function UnifiedKPICommandCenter() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => {
-                            exportToCSV(allKPIs, 'all-kpis');
+                          <DropdownMenuItem onClick={() => { 
+                            exportToCSV(allKPIs, 'all-kpis'); 
                             logAction('export', undefined, undefined, { format: 'csv' });
-                            toast.success('Exported to CSV');
+                            toast.success('Exported to CSV'); 
                           }}>
                             <FileText className="h-4 w-4 mr-2" />
                             Export CSV
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => {
-                            exportToPDF(allKPIs, 'all-kpis');
+                          <DropdownMenuItem onClick={() => { 
+                            exportToPDF(allKPIs, 'all-kpis'); 
                             logAction('export', undefined, undefined, { format: 'pdf' });
-                            toast.success('Opening PDF...');
+                            toast.success('Opening PDF...'); 
                           }}>
                             <FileText className="h-4 w-4 mr-2" />
                             Export PDF
@@ -448,7 +447,7 @@ export function UnifiedKPICommandCenter() {
                       </DropdownMenu>
                     </div>
                   </div>
-
+                  
                   {/* Search and Filter Bar - Only in Overview mode */}
                   {viewMode === 'overview' && (
                     <KPISearchFilter
@@ -461,50 +460,36 @@ export function UnifiedKPICommandCenter() {
                   )}
                 </div>
 
-                {/* View Mode Content */}
+{/* View Mode Content */}
                 <Suspense fallback={<LazyFallback />}>
                   {viewMode === 'executive' ? (
-                    <KPIErrorBoundary fallbackMessage="Unable to load Executive Dashboard">
-                      <ExecutiveKPIDashboard
-                        allKPIs={allKPIs}
-                        domainHealth={domainHealth}
-                        overallHealth={overallHealth}
-                        onGenerateReport={() => setBoardReportOpen(true)}
-                      />
-                    </KPIErrorBoundary>
+                    <ExecutiveKPIDashboard
+                      allKPIs={allKPIs}
+                      domainHealth={domainHealth}
+                      overallHealth={overallHealth}
+                      onGenerateReport={() => setBoardReportOpen(true)}
+                    />
                   ) : viewMode === 'audit' ? (
-                    <KPIErrorBoundary fallbackMessage="Unable to load Audit Log">
-                      <KPIAuditLogViewer />
-                    </KPIErrorBoundary>
+                    <KPIAuditLogViewer />
                   ) : viewMode === 'department' ? (
-                    <KPIErrorBoundary fallbackMessage="Unable to load Department View">
-                      <DepartmentHeadView
-                        allKPIs={allKPIs}
-                        domainHealth={domainHealth}
-                      />
-                    </KPIErrorBoundary>
+                    <DepartmentHeadView
+                      allKPIs={allKPIs}
+                      domainHealth={domainHealth}
+                    />
                   ) : viewMode === 'okr' ? (
-                    <KPIErrorBoundary fallbackMessage="Unable to load OKR Integration">
-                      <OKRIntegration
-                        kpis={allKPIs}
-                      />
-                    </KPIErrorBoundary>
+                    <OKRIntegration
+                      kpis={allKPIs}
+                    />
                   ) : viewMode === 'lineage' ? (
-                    <KPIErrorBoundary fallbackMessage="Unable to load Data Lineage">
-                      <DataLineageViewer
-                        kpis={allKPIs}
-                      />
-                    </KPIErrorBoundary>
+                    <DataLineageViewer
+                      kpis={allKPIs}
+                    />
                   ) : viewMode === 'goals' ? (
-                    <KPIErrorBoundary fallbackMessage="Unable to load Personal Goals">
-                      <div className="space-y-6">
-                        <PersonalKPIGoals availableKPIs={allKPIs} />
-                      </div>
-                    </KPIErrorBoundary>
+                    <div className="space-y-6">
+                      <PersonalKPIGoals availableKPIs={allKPIs} />
+                    </div>
                   ) : viewMode === 'governance' ? (
-                    <KPIErrorBoundary fallbackMessage="Unable to load Access Management">
-                      <KPIVisibilityManager />
-                    </KPIErrorBoundary>
+                    <KPIVisibilityManager />
                   ) : (
                     <>
                       {/* Pinned KPIs */}
@@ -520,25 +505,21 @@ export function UnifiedKPICommandCenter() {
 
                       {/* AI Executive Summary */}
                       <div className="mb-6">
-                        <KPIErrorBoundary fallbackMessage="Unable to load AI Summary">
-                          <AIExecutiveSummary
-                            allKPIs={allKPIs}
-                            domainHealth={domainHealth.reduce((acc, domain) => {
-                              acc[domain.domain] = domain;
-                              return acc;
-                            }, {} as Record<string, DomainHealth>)}
-                            overallHealth={overallHealth}
-                            onRefresh={handleRefresh}
-                            isRefreshing={isRefreshing}
-                          />
-                        </KPIErrorBoundary>
+                        <AIExecutiveSummary
+                          allKPIs={allKPIs}
+                          domainHealth={domainHealth.reduce((acc, domain) => {
+                            acc[domain.domain] = domain;
+                            return acc;
+                          }, {} as Record<string, DomainHealth>)}
+                          overallHealth={overallHealth}
+                          onRefresh={handleRefresh}
+                          isRefreshing={isRefreshing}
+                        />
                       </div>
 
                       {/* Moneybird Financial KPIs Section */}
                       <div className="mb-6">
-                        <KPIErrorBoundary fallbackMessage="Unable to load Financial KPIs">
-                          <FinancialKPISection />
-                        </KPIErrorBoundary>
+                        <FinancialKPISection />
                       </div>
 
                       <KPIOverview
@@ -580,9 +561,9 @@ export function UnifiedKPICommandCenter() {
         onSave={handleSaveAlert}
       />
 
-      {/* Command Palette */}
+{/* Command Palette */}
       <Suspense fallback={null}>
-        <KPICommandRegistry
+        <KPICommandPalette
           open={commandPaletteOpen}
           onOpenChange={setCommandPaletteOpen}
           kpis={allKPIs}

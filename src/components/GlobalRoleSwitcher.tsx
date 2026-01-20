@@ -35,8 +35,7 @@ export const GlobalRoleSwitcher = () => {
     
     try {
       await switchRole(newRole);
-      const config = currentRole ? roleConfig[currentRole] : null;
-      toast.success(`Switched to ${config?.label || newRole} view`, {
+      toast.success(`Switched to ${roleConfig[newRole].label} view`, {
         description: "Your dashboard will update instantly"
       });
     } catch (error: any) {
@@ -47,15 +46,14 @@ export const GlobalRoleSwitcher = () => {
     }
   };
 
-  const safeRole = currentRole || 'user';
-  const CurrentIcon = roleConfig[safeRole]?.icon || User;
+  const CurrentIcon = roleConfig[currentRole]?.icon || User;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2" aria-label={`Current role: ${roleConfig[safeRole]?.label || 'Role'}. Click to switch roles.`}>
+        <Button variant="outline" size="sm" className="gap-2" aria-label={`Current role: ${roleConfig[currentRole]?.label || 'Role'}. Click to switch roles.`}>
           <CurrentIcon className="w-4 h-4" />
-          <span className="hidden sm:inline">{roleConfig[safeRole]?.label || 'Role'}</span>
+          <span className="hidden sm:inline">{roleConfig[currentRole]?.label || 'Role'}</span>
           <Badge variant="secondary" className="hidden md:inline-flex">
             {availableRoles.length} roles
           </Badge>
@@ -65,8 +63,7 @@ export const GlobalRoleSwitcher = () => {
         <DropdownMenuLabel>Switch Role</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {availableRoles.map((role) => {
-          const config = role ? (roleConfig[role] || { icon: User, label: role, color: 'bg-muted' }) : { icon: User, label: 'User', color: 'bg-muted' };
-          const Icon = config.icon;
+          const Icon = roleConfig[role].icon;
           const isActive = role === currentRole;
           
           return (
@@ -76,9 +73,9 @@ export const GlobalRoleSwitcher = () => {
               className={isActive ? "bg-muted" : ""}
             >
               <div className="flex items-center gap-2 w-full">
-                <div className={`w-2 h-2 rounded-full ${config.color}`} />
+                <div className={`w-2 h-2 rounded-full ${roleConfig[role].color}`} />
                 <Icon className="w-4 h-4" />
-                <span className="flex-1">{config.label}</span>
+                <span className="flex-1">{roleConfig[role].label}</span>
                 {isActive && <Badge variant="default" className="text-xs">Active</Badge>}
               </div>
             </DropdownMenuItem>

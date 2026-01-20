@@ -62,7 +62,7 @@ export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePip
       if (error) throw error;
       
       // Fetch sourcer profiles for all applications
-      const sourcerIds = appsData?.filter(app => app.sourced_by).map(app => app.sourced_by).filter((id): id is string => id !== null) || [];
+      const sourcerIds = appsData?.filter(app => app.sourced_by).map(app => app.sourced_by) || [];
       let sourcerProfiles: any = {};
       
       if (sourcerIds.length > 0) {

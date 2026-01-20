@@ -53,18 +53,19 @@ export function MessageTemplates({ onSelectTemplate, companyId }: MessageTemplat
 
     try {
       await supabase.from('message_templates').insert({
-        created_by: user?.id ?? '',
+        company_id: companyId,
+        created_by: user?.id,
         name: newTemplate.name,
         category: newTemplate.category || 'general',
         content: newTemplate.content,
-      } as any);
+      });
 
       toast.success('Template created');
       setNewTemplate({ name: '', category: '', content: '' });
       setCreateOpen(false);
       loadTemplates();
-    } catch (_error) {
-      console.error('Error creating template:', _error);
+    } catch (error) {
+      console.error('Error creating template:', error);
       toast.error('Failed to create template');
     }
   };

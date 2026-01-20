@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Eye, Bell, TrendingUp } from "lucide-react";
+import { Eye, Bell, TrendingUp, Users } from "lucide-react";
 import { ProbationTracker } from "@/components/probation/ProbationTracker";
 
 interface ObserverDashboardProps {

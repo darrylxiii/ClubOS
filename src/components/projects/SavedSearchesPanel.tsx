@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Bell, Plus, Trash2, Loader2, BellOff } from "lucide-react";
+import { Bell, Plus, Trash2, Search, Loader2, BellOff } from "lucide-react";
 
 interface SavedSearch {
   id: string;

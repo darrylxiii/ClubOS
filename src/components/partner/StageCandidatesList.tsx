@@ -10,7 +10,8 @@ import {
   Phone,
   Linkedin,
   ExternalLink,
-  Users
+  Users,
+  Calendar
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ScheduleInterviewButton } from "./ScheduleInterviewButton";

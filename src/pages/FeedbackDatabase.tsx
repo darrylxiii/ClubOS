@@ -38,7 +38,9 @@ import {
   Search, 
   Filter, 
   CheckCircle, 
-  MessageSquare,
+  MessageSquare, 
+  TrendingDown, 
+  TrendingUp,
   ArrowRight,
   Loader2,
   Download,
@@ -46,6 +48,7 @@ import {
   Activity,
   AlertCircle,
   Target,
+  Users,
   Clock,
   Plus
 } from 'lucide-react';

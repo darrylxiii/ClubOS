@@ -3,61 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { TimeRange } from "@/components/analytics/TimeRangeSelector";
 import { subHours, subDays, subMonths, startOfDay, startOfYesterday, endOfYesterday } from "date-fns";
 
-// Device detection utilities
-function detectDeviceType(): 'mobile' | 'tablet' | 'desktop' {
-  const userAgent = navigator.userAgent.toLowerCase();
-
-  // Check for tablets first (they often include "mobile" in UA)
-  if (/(ipad|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle|playbook|silk|(puffin(?!.*(IP|AP|WP))))/i.test(userAgent)) {
-    return 'tablet';
-  }
-
-  // Check for mobile devices
-  if (/mobile|iphone|ipod|android|blackberry|opera mini|iemobile|wpdesktop|windows phone/i.test(userAgent)) {
-    return 'mobile';
-  }
-
-  return 'desktop';
-}
-
-function detectBrowser(): string {
-  const userAgent = navigator.userAgent;
-
-  if (userAgent.includes('Firefox')) return 'Firefox';
-  if (userAgent.includes('SamsungBrowser')) return 'Samsung Browser';
-  if (userAgent.includes('Opera') || userAgent.includes('OPR')) return 'Opera';
-  if (userAgent.includes('Edg')) return 'Edge';
-  if (userAgent.includes('Chrome')) return 'Chrome';
-  if (userAgent.includes('Safari')) return 'Safari';
-
-  return 'Other';
-}
-
-function detectOS(): string {
-  const userAgent = navigator.userAgent;
-
-  if (userAgent.includes('Win')) return 'Windows';
-  if (userAgent.includes('Mac')) return 'macOS';
-  if (userAgent.includes('Linux')) return 'Linux';
-  if (userAgent.includes('Android')) return 'Android';
-  if (/iPhone|iPad|iPod/.test(userAgent)) return 'iOS';
-
-  return 'Other';
-}
-
-// Export device info for use in analytics tracking
-export function getDeviceInfo() {
-  return {
-    type: detectDeviceType(),
-    browser: detectBrowser(),
-    os: detectOS(),
-    screenWidth: window.screen.width,
-    screenHeight: window.screen.height,
-    language: navigator.language,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  };
-}
-
 export interface AnalyticsData {
   totalViews: number;
   uniqueViews: number;
@@ -165,10 +110,8 @@ export const useAnalyticsData = (
 
       if (postId) {
         postsQuery = postsQuery.eq("id", postId);
-      } else if (userId) {
-        postsQuery = postsQuery.eq("user_id", userId);
       } else {
-        return;
+        postsQuery = postsQuery.eq("user_id", userId);
       }
 
       const { data: posts } = await postsQuery;
@@ -242,61 +185,17 @@ export const useAnalyticsData = (
         views: views as number,
       }));
 
-      // Device breakdown - use actual data if available, otherwise estimate from engagement signals
-      let deviceBreakdown: { device: string; count: number }[] = [];
+      // Device breakdown (placeholder - add device tracking to engagement signals later)
+      const deviceBreakdown = [
+        { device: "mobile", count: Math.floor(totalViews * 0.6) },
+        { device: "desktop", count: Math.floor(totalViews * 0.35) },
+        { device: "tablet", count: Math.floor(totalViews * 0.05) },
+      ];
 
-      // Check if engagement signals have device_type column
-      const signalsWithDevice = engagementSignals?.filter((s: any) => s.device_type) || [];
-
-      if (signalsWithDevice.length > 0) {
-        // Use actual device data from signals
-        const deviceCounts = signalsWithDevice.reduce((acc: Record<string, number>, s: any) => {
-          const device = s.device_type || 'unknown';
-          acc[device] = (acc[device] || 0) + 1;
-          return acc;
-        }, {});
-
-        deviceBreakdown = Object.entries(deviceCounts).map(([device, count]) => ({
-          device,
-          count: count as number,
-        })).sort((a, b) => b.count - a.count);
-      } else {
-        // Fallback: estimate based on typical web traffic patterns
-        // These are industry-standard mobile-first estimates
-        const mobileCount = Math.floor(totalViews * 0.58);
-        const desktopCount = Math.floor(totalViews * 0.37);
-        const tabletCount = totalViews - mobileCount - desktopCount;
-
-        deviceBreakdown = [
-          { device: "mobile", count: mobileCount },
-          { device: "desktop", count: desktopCount },
-          { device: "tablet", count: tabletCount },
-        ].filter(d => d.count > 0);
-      }
-
-      // Location breakdown - use actual data if available
-      let locationBreakdown: { location: string; count: number }[] = [];
-
-      const signalsWithLocation = engagementSignals?.filter((s: any) => s.country || s.region) || [];
-
-      if (signalsWithLocation.length > 0) {
-        // Use actual location data
-        const locationCounts = signalsWithLocation.reduce((acc: Record<string, number>, s: any) => {
-          const location = s.country || s.region || 'Unknown';
-          acc[location] = (acc[location] || 0) + 1;
-          return acc;
-        }, {});
-
-        locationBreakdown = Object.entries(locationCounts).map(([location, count]) => ({
-          location,
-          count: count as number,
-        })).sort((a, b) => b.count - a.count).slice(0, 10); // Top 10 locations
-      } else {
-        // Fallback: show as unknown until location tracking is enabled
-        locationBreakdown = totalViews > 0
-          ? [{ location: "Location tracking not enabled", count: totalViews }]
-          : [];
-      }
+      // Location breakdown (placeholder - add location tracking later)
+      const locationBreakdown = [
+        { location: "Unknown", count: totalViews }
+      ];
 
       // Top posts (if viewing all posts)
       let topPosts: any[] = [];

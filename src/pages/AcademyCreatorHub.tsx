@@ -12,6 +12,7 @@ import {
   GraduationCap,
   BookOpen,
   Users,
+  TrendingUp,
   Plus,
   Edit,
   Eye,
@@ -65,7 +66,7 @@ export default function AcademyCreatorHub() {
           *,
           modules:modules(count)
         `)
-        .eq("created_by", user?.id ?? '')
+        .eq("created_by", user?.id)
         .order("created_at", { ascending: false });
 
       setCourses(coursesData || []);

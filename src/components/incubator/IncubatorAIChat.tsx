@@ -148,8 +148,8 @@ What would you like to work on?`,
                 )
               );
             }
-          } catch (_e) {
-            console.error('Parse error:', _e);
+          } catch (e) {
+            console.error('Parse error:', e);
           }
         }
       }

@@ -10,8 +10,8 @@ interface Transcript {
   id: string;
   text: string;
   timestamp_ms: number;
-  is_final: boolean | null;
-  participant_id: string | null;
+  is_final: boolean;
+  participant_id: string;
   participant_name: string | null;
   confidence: number | null;
 }

@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { financeService } from '@/services/financeService';
 
 interface MoneybirdConnectionStatus {
   connected: boolean;
@@ -29,13 +28,13 @@ export function useMoneybirdConnection() {
   return useQuery({
     queryKey: ['moneybird-connection'],
     queryFn: async () => {
-      const response = await financeService.testConnection();
+      const response = await supabase.functions.invoke('moneybird-test-connection');
 
-      if (response.error || response.connected === false) {
-        return { connected: false, error: response.error || 'Connection failed' } as MoneybirdConnectionStatus;
+      if (response.error) {
+        return { connected: false, error: response.error.message } as MoneybirdConnectionStatus;
       }
 
-      return response as MoneybirdConnectionStatus;
+      return response.data as MoneybirdConnectionStatus;
     },
     staleTime: 60000, // Cache for 1 minute
   });
@@ -96,13 +95,15 @@ export function useSyncMoneybirdContacts() {
 
   return useMutation({
     mutationFn: async (params?: { companyId?: string; syncAll?: boolean }) => {
-      const response = await financeService.syncContacts(params || {});
+      const response = await supabase.functions.invoke('moneybird-sync-contacts', {
+        body: params || {},
+      });
 
-      if (!response.success) {
-        throw new Error(response.error || 'Sync failed');
+      if (response.error) {
+        throw new Error(response.error.message || 'Sync failed');
       }
 
-      return response;
+      return response.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['moneybird-contact-syncs'] });
@@ -134,14 +135,15 @@ export function useCreateMoneybirdInvoice() {
       countryCode?: string;
       vatNumber?: string;
     }) => {
-      const response = await financeService.createInvoice(params);
+      const response = await supabase.functions.invoke('moneybird-create-invoice', {
+        body: params,
+      });
 
-      if (!response.success) {
-        // financeService throws on error usually if configured that way, but let's handle the response object
-        throw new Error(response.error || 'Failed to create invoice');
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create invoice');
       }
 
-      return response;
+      return response.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['moneybird-invoice-syncs'] });
@@ -168,13 +170,15 @@ export function useSyncMoneybirdInvoiceStatus() {
 
   return useMutation({
     mutationFn: async (params?: { partnerInvoiceId?: string; syncAll?: boolean }) => {
-      const response = await financeService.syncInvoiceStatus(params || {});
+      const response = await supabase.functions.invoke('moneybird-sync-invoice-status', {
+        body: params || {},
+      });
 
-      if (!response.success) {
-        throw new Error(response.error || 'Sync failed');
+      if (response.error) {
+        throw new Error(response.error.message || 'Sync failed');
       }
 
-      return response;
+      return response.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['moneybird-invoice-syncs'] });

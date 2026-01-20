@@ -3,8 +3,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Video, Mic, Settings2 } from "lucide-react";
+import { Video, Mic, Volume2, MonitorSpeaker, ImageIcon, Settings2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -63,8 +64,8 @@ export function CommunicationSettings() {
         microphones: deviceList.filter(d => d.kind === 'audioinput'),
         speakers: deviceList.filter(d => d.kind === 'audiooutput'),
       });
-    } catch (_error) {
-      console.error('Error loading devices:', _error);
+    } catch (error) {
+      console.error('Error loading devices:', error);
     }
   };
 
@@ -77,8 +78,8 @@ export function CommunicationSettings() {
       if (stored) {
         setSettings({ ...settings, ...JSON.parse(stored) });
       }
-    } catch (_error) {
-      console.error('Error loading communication settings:', _error);
+    } catch (error) {
+      console.error('Error loading communication settings:', error);
     }
   };
 
@@ -90,8 +91,8 @@ export function CommunicationSettings() {
       // Store in localStorage as this column may not exist in DB
       localStorage.setItem(`communication_settings_${user.id}`, JSON.stringify(settings));
       toast.success('Communication settings saved');
-    } catch (_error) {
-      console.error('Error saving settings:', _error);
+    } catch (error) {
+      console.error('Error saving settings:', error);
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);
@@ -110,7 +111,7 @@ export function CommunicationSettings() {
       setTimeout(() => {
         stream.getTracks().forEach(track => track.stop());
       }, 3000);
-    } catch (_error) {
+    } catch (error) {
       toast.error('Could not access microphone');
     }
   };
@@ -127,7 +128,7 @@ export function CommunicationSettings() {
       setTimeout(() => {
         stream.getTracks().forEach(track => track.stop());
       }, 3000);
-    } catch (_error) {
+    } catch (error) {
       toast.error('Could not access camera');
     }
   };

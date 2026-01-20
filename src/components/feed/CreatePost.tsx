@@ -1,16 +1,16 @@
 import { useState, useRef, useEffect } from "react";
-import { aiService } from '@/services/aiService';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Image, Video, FileText, Send, X, Plus, Users, Globe, UserCircle, Building, Heart, MoreHorizontal, Youtube, Sparkles } from "lucide-react";
+import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building, Heart, MoreHorizontal, Youtube, Sparkles } from "lucide-react";
 import { CreatePoll } from "./PollPost";
 import { notify } from "@/lib/notify";
 import { MediaEditor } from "./MediaEditor";
 import { VideoEditor } from "./VideoEditor";
-import type { AudienceSelection } from "@/components/audience/types";
+import { AudienceSelection } from "@/components/audience/AudiencePickerButton";
 import { AudiencePickerModal } from "@/components/audience/AudiencePickerModal";
 import { ContentOptionsDialog } from "./ContentOptionsDialog";
 import { RichTextEditor } from "./RichTextEditor";
@@ -21,6 +21,8 @@ import { detectSocialEmbeds, containsSocialMediaUrl, removeSocialMediaUrls, Soci
 import { detectSpotifyEmbeds, containsSpotifyUrl, removeSpotifyUrls } from "@/lib/spotifyEmbedUtils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { YouTubePickerDialog } from "./YouTubePickerDialog";
+import { SocialEmbed } from "./SocialEmbed";
+import { SpotifyEmbed } from "./SpotifyEmbed";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -55,9 +57,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [socialEmbeds, setSocialEmbeds] = useState<SocialEmbedType[]>([]);
   const [showSocialPrompt, setShowSocialPrompt] = useState(false);
   const [detectedSocialEmbeds, setDetectedSocialEmbeds] = useState<SocialEmbedType[]>([]);
-  const [spotifyEmbeds, setSpotifyEmbeds] = useState<Array<{ type: string, id: string, url: string }>>([]);
+  const [spotifyEmbeds, setSpotifyEmbeds] = useState<Array<{type: string, id: string, url: string}>>([]);
   const [showSpotifyPrompt, setShowSpotifyPrompt] = useState(false);
-  const [detectedSpotifyEmbeds, setDetectedSpotifyEmbeds] = useState<Array<{ type: string, id: string, url: string }>>([]);
+  const [detectedSpotifyEmbeds, setDetectedSpotifyEmbeds] = useState<Array<{type: string, id: string, url: string}>>([]);
 
   useEffect(() => {
     if (user) {
@@ -69,7 +71,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         .single()
         .then(async ({ data: profileData }) => {
           setProfile(profileData);
-
+          
           // Fetch company name if company_id exists
           if (profileData?.company_id) {
             const { data: companyData } = await supabase
@@ -77,13 +79,13 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               .select('name')
               .eq('id', profileData.company_id)
               .single();
-
+            
             if (companyData) {
               setCompanyName(companyData.name);
             }
           }
         });
-
+      
       // Load last used audience from localStorage
       const saved = localStorage.getItem('lastUsedAudience');
       if (saved) {
@@ -206,7 +208,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     const uploadPromises = uploadedFiles.map(async (file) => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user!.id}/${Date.now()}-${Math.random()}.${fileExt}`;
-
+      
       const { error: uploadError } = await supabase.storage
         .from('post-media')
         .upload(fileName, file);
@@ -219,8 +221,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
       return {
         url: publicUrl,
-        type: file.type.startsWith('image/') ? 'image' :
-          file.type.startsWith('video/') ? 'video' : 'document',
+        type: file.type.startsWith('image/') ? 'image' : 
+              file.type.startsWith('video/') ? 'video' : 'document',
         name: file.name
       };
     });
@@ -283,7 +285,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       tempDiv.innerHTML = content;
       const plainText = tempDiv.textContent || tempDiv.innerText || '';
       const updatedText = removeSocialMediaUrls(plainText);
-
+      
       // Set the cleaned content
       setContent(updatedText);
       setShowSocialPrompt(false);
@@ -327,7 +329,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const handleLinkedInClick = () => {
     const url = prompt('Paste a LinkedIn post URL (e.g., https://linkedin.com/posts/...)');
     if (!url) return;
-
+    
     if (url.includes('linkedin.com')) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'linkedin') {
@@ -336,7 +338,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = content;
         const plainText = tempDiv.textContent || tempDiv.innerText || '';
-
+        
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);
           setContent(updatedText);
@@ -345,8 +347,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           notify.success("LinkedIn post added", { description: "The post will be embedded" });
         }
       } else {
-        notify.error("Invalid LinkedIn URL", {
-          description: "Please paste a valid LinkedIn post URL (must include /posts/ or /feed/update/)"
+        notify.error("Invalid LinkedIn URL", { 
+          description: "Please paste a valid LinkedIn post URL (must include /posts/ or /feed/update/)" 
         });
       }
     } else {
@@ -357,7 +359,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const handleTwitterClick = () => {
     const url = prompt('Paste an X (Twitter) post URL (e.g., https://x.com/user/status/...)');
     if (!url) return;
-
+    
     if (url.includes('twitter.com') || url.includes('x.com')) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'twitter') {
@@ -366,7 +368,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = content;
         const plainText = tempDiv.textContent || tempDiv.innerText || '';
-
+        
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);
           setContent(updatedText);
@@ -375,8 +377,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           notify.success("X post added", { description: "The post will be embedded" });
         }
       } else {
-        notify.error("Invalid X URL", {
-          description: "Please paste a valid X/Twitter post URL (must include /status/)"
+        notify.error("Invalid X URL", { 
+          description: "Please paste a valid X/Twitter post URL (must include /status/)" 
         });
       }
     } else {
@@ -387,7 +389,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const handleInstagramClick = () => {
     const url = prompt('Paste an Instagram post URL (e.g., https://instagram.com/p/...)');
     if (!url) return;
-
+    
     if (url.includes('instagram.com')) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'instagram') {
@@ -396,7 +398,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = content;
         const plainText = tempDiv.textContent || tempDiv.innerText || '';
-
+        
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);
           setContent(updatedText);
@@ -405,8 +407,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           notify.success("Instagram post added", { description: "The post will be embedded" });
         }
       } else {
-        notify.error("Invalid Instagram URL", {
-          description: "Please paste a valid Instagram post URL (must include /p/, /reel/, or /tv/)"
+        notify.error("Invalid Instagram URL", { 
+          description: "Please paste a valid Instagram post URL (must include /p/, /reel/, or /tv/)" 
         });
       }
     } else {
@@ -482,8 +484,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
       // Generate AI summary in background (don't wait for it)
       if (content.trim().length > 50 && newPost) {
-        aiService.generatePostSummary({
-          post_id: newPost.id
+        supabase.functions.invoke('generate-post-summary', {
+          body: { postId: newPost.id, content: content.trim() }
         }).catch(err => console.error('Error generating summary:', err));
       }
 
@@ -515,7 +517,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             {profile?.full_name?.charAt(0) || 'U'}
           </AvatarFallback>
         </Avatar>
-
+        
         <div className="flex-1 max-w-full">
           <RichTextEditor
             value={content}
@@ -533,13 +535,13 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               {previews.map((preview, index) => (
                 <div key={index} className="relative group">
                   {uploadedFiles[index].type.startsWith('image/') ? (
-                    <img
-                      src={preview}
+                    <img 
+                      src={preview} 
                       alt={`Upload ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg"
                     />
                   ) : uploadedFiles[index].type.startsWith('video/') ? (
-                    <video
+                    <video 
                       src={preview}
                       className="w-full h-32 object-cover rounded-lg"
                     />
@@ -646,7 +648,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
           {showPollCreator && (
             <div className="mt-3">
-              <CreatePoll
+              <CreatePoll 
                 onPollCreated={(data) => {
                   setPollData(data);
                   setShowPollCreator(false);
@@ -784,19 +786,19 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               </div>
             </div>
           )}
-
+          
           <div className="flex items-center justify-between mt-3 pt-3 border-t gap-2">
             <div className="flex items-center gap-2 min-w-0 flex-shrink">
               {/* Content add button with hover/click to expand */}
-              <div
+              <div 
                 className="flex items-center gap-1"
                 onMouseEnter={() => setContentMenuOpen(true)}
                 onMouseLeave={() => {
                   if (!uploadedFiles.length) setContentMenuOpen(false);
                 }}
               >
-                <Button
-                  variant="ghost"
+                <Button 
+                  variant="ghost" 
                   size="sm"
                   className="h-9 w-9 p-0 hover:bg-white/5 transition-all"
                   onClick={() => setContentMenuOpen(!contentMenuOpen)}
@@ -804,7 +806,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                 >
                   <Plus className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
                 </Button>
-
+                
                 {/* Inline expandable options */}
                 {(contentMenuOpen || uploadedFiles.length > 0) && (
                   <div className="flex items-center gap-1 animate-in fade-in slide-in-from-left-2">
@@ -815,9 +817,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                         <span className="text-xs">{uploadedFiles.length}</span>
                       </div>
                     )}
-
-                    <Button
-                      variant="ghost"
+                    
+                    <Button 
+                      variant="ghost" 
                       size="sm"
                       onClick={() => handleFileSelect('image/*')}
                       disabled={loading}
@@ -826,9 +828,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       <Image className="w-4 h-4" />
                       Photo
                     </Button>
-
-                    <Button
-                      variant="ghost"
+                    
+                    <Button 
+                      variant="ghost" 
                       size="sm"
                       onClick={() => handleFileSelect('video/*')}
                       disabled={loading}
@@ -837,13 +839,13 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       <Video className="w-4 h-4" />
                       Video
                     </Button>
-
+                    
                     <div className="inline-block">
                       <YouTubePicker onSelect={handleYouTubeSelect} />
                     </div>
-
-                    <Button
-                      variant="ghost"
+                    
+                    <Button 
+                      variant="ghost" 
                       size="sm"
                       onClick={() => setShowContentModal(true)}
                       className="gap-2 whitespace-nowrap h-9"
@@ -855,10 +857,10 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                 )}
               </div>
             </div>
-
+            
             <div className="flex items-center gap-2 flex-shrink-0">
               {/* Audience selector with hover/click to expand */}
-              <div
+              <div 
                 className="flex items-center gap-1"
                 onMouseEnter={() => setAudienceMenuOpen(true)}
                 onMouseLeave={() => setAudienceMenuOpen(false)}
@@ -866,8 +868,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                 {/* Inline expandable options - More button FIRST, then current selection */}
                 {audienceMenuOpen && (
                   <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
-                    <Button
-                      variant="ghost"
+                    <Button 
+                      variant="ghost" 
                       size="sm"
                       onClick={() => {
                         setShowAudienceModal(true);
@@ -878,11 +880,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       <MoreHorizontal className="w-4 h-4" />
                       More
                     </Button>
-
+                    
                     {(() => {
                       const { icon: Icon, label } = getAudienceLabel();
                       return (
-                        <Button
+                        <Button 
                           variant="default"
                           size="sm"
                           onClick={() => handleAudienceSelect(audienceSelection.type)}
@@ -895,9 +897,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                     })()}
                   </div>
                 )}
-
-                <Button
-                  variant="ghost"
+                
+                <Button 
+                  variant="ghost" 
                   size="sm"
                   className="h-9 w-9 p-0 hover:bg-white/5 transition-all flex-shrink-0"
                   onClick={() => setAudienceMenuOpen(!audienceMenuOpen)}
@@ -906,8 +908,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   <Users className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
                 </Button>
               </div>
-
-              <Button
+              
+              <Button 
                 onClick={handlePost}
                 disabled={!content.trim() || loading}
                 className="h-9 w-9 p-0 transition-all hover:w-auto hover:px-4 overflow-hidden group/post flex-shrink-0"
@@ -965,7 +967,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       {showYoutubePicker && (
         <Dialog open={showYoutubePicker} onOpenChange={setShowYoutubePicker}>
           <DialogContent className="sm:max-w-md p-0">
-            <YouTubePickerDialog
+            <YouTubePickerDialog 
               onSelect={handleYouTubeSelect}
               onClose={() => setShowYoutubePicker(false)}
             />

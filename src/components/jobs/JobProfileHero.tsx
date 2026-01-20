@@ -12,9 +12,12 @@ import {
   Bookmark,
   Share2,
   Clock,
+  Eye,
+  Users,
   Settings,
   Camera,
-  ExternalLink
+  ExternalLink,
+  Repeat
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ContinuousPipelineBadge } from "./ContinuousPipelineBadge";
@@ -170,7 +173,7 @@ export function JobProfileHero({
                   </Badge>
                 )}
                 <ContinuousPipelineBadge
-                  isContinuous={job.is_continuous ?? false}
+                  isContinuous={job.is_continuous}
                   hiredCount={job.hired_count || 0}
                   targetHireCount={job.target_hire_count}
                   size="md"

@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { isPast, parseISO } from "date-fns";
+import { formatDistanceToNow, isPast, parseISO } from "date-fns";
 
 interface TaskSummary {
   pending: number;
@@ -17,7 +17,7 @@ interface TaskSummary {
     id: string;
     title: string;
     due_date: string | null;
-    priority: string | null;
+    priority: string;
     status: string;
   }>;
 }
@@ -179,8 +179,8 @@ export const TaskQueueWidget = () => {
                       <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
                     )}
                     <span className="flex-1 truncate">{task.title}</span>
-                    <Badge variant="secondary" className={`text-xs ${getPriorityColor(task.priority ?? 'medium')}`}>
-                      {task.priority ?? 'medium'}
+                    <Badge variant="secondary" className={`text-xs ${getPriorityColor(task.priority)}`}>
+                      {task.priority}
                     </Badge>
                   </div>
                 );

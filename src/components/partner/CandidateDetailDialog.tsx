@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { History, Users } from "lucide-react";
+import { Star, MessageSquare, Calendar, FileText, TrendingUp, History, Users } from "lucide-react";
 import { CandidateInteractionLog } from "./CandidateInteractionLog";
 import { EnhancedCandidateDetails } from "./EnhancedCandidateDetails";
 import { getVisibleFields } from "@/utils/candidateVisibility";
@@ -87,15 +87,15 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
   };
 
   const handleAddComment = async () => {
-    if (!newComment.trim() || !user?.id) return;
+    if (!newComment.trim()) return;
 
     const { error } = await supabase
       .from('candidate_comments')
-      .insert([{
+      .insert({
         application_id: application.id,
-        user_id: user.id,
+        user_id: user?.id,
         comment: newComment,
-      }]);
+      });
 
     if (error) {
       toast.error("Failed to add comment");
@@ -108,16 +108,14 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
   };
 
   const handleSubmitScorecard = async () => {
-    if (!user?.id) return;
-    
     const { error } = await supabase
       .from('candidate_scorecards')
-      .insert([{
+      .insert({
         application_id: application.id,
-        evaluator_id: user.id,
+        evaluator_id: user?.id,
         stage_index: application.current_stage_index,
         ...scorecard,
-      }] as any);
+      });
 
     if (error) {
       toast.error("Failed to submit scorecard");
@@ -125,13 +123,13 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
     }
 
     // Log event
-    await supabase.from('pipeline_events').insert([{
+    await supabase.from('pipeline_events').insert({
       application_id: application.id,
       job_id: application.job_id,
       event_type: 'feedback_added',
       performed_by: user?.id,
       metadata: { recommendation: scorecard.recommendation },
-    }] as any);
+    });
 
     toast.success("Scorecard submitted");
     fetchScorecards();
@@ -149,14 +147,14 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
     }
 
     // Log event
-    await supabase.from('pipeline_events').insert([{
+    await supabase.from('pipeline_events').insert({
       application_id: application.id,
       job_id: application.job_id,
       event_type: 'stage_change',
       from_stage: application.current_stage_index,
       to_stage: newStageIndex,
       performed_by: user?.id,
-    }] as any);
+    });
 
     toast.success("Candidate moved");
     onOpenChange(false);

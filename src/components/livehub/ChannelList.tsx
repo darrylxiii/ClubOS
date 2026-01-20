@@ -18,7 +18,7 @@ interface Channel {
   name: string;
   channel_type: string;
   category: string | null;
-  position: number | null;
+  position: number;
 }
 
 interface ChannelListProps {

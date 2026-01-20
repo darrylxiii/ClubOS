@@ -3,7 +3,7 @@ import { RoleGate } from "@/components/RoleGate";
 import { TeamOverviewDashboard } from "@/components/employees/TeamOverviewDashboard";
 import { TeamPerformanceComparison } from "@/components/employees/TeamPerformanceComparison";
 import { TeamCommissionsApproval } from "@/components/employees/TeamCommissionsApproval";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,7 +55,7 @@ export default function TeamPerformance() {
         
         const target = targets?.[0];
         const targetProgress = target?.revenue_target 
-          ? ((target.revenue_achieved ?? 0) / target.revenue_target) * 100 
+          ? (target.revenue_achieved / target.revenue_target) * 100 
           : 0;
 
         metrics[report.id] = {

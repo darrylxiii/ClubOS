@@ -31,7 +31,7 @@ interface Embedding {
     id: string;
     content: string;
     metadata: any;
-    created_at: string | null;
+    created_at: string;
 }
 
 interface ThoughtProcess {
@@ -331,7 +331,7 @@ export default function AgentBrain() {
                                                             <p className="text-sm line-clamp-2" title={item.content}>{item.content}</p>
                                                         </TableCell>
                                                         <TableCell className="text-xs text-muted-foreground">
-                                                            {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
+                                                            {new Date(item.created_at).toLocaleDateString()}
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}

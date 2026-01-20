@@ -5,7 +5,7 @@ import { useMeetingTranscription } from './useMeetingTranscription';
 import { useLiveHubWebRTC } from './useLiveHubWebRTC';
 import { useVirtualBackground } from './useVirtualBackground';
 import { useAudioDiagnostics } from './useAudioDiagnostics';
-import { useConnectionQuality } from './useConnectionQuality';
+import { useConnectionQuality, ConnectionQuality, ConnectionStats } from './useConnectionQuality';
 import { useAdaptiveAudio } from './useAdaptiveAudio';
 import { useMobileOptimizations } from './useMobileOptimizations';
 import { toast } from 'sonner';
@@ -103,7 +103,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
   const streamToSend = processedStream || localStream;
 
   const { remoteStreams, isConnected: isWebRTCConnected, sendReaction, sendWhiteboardEvent, peerConnection } = useLiveHubWebRTC({
-    channelId: channelId || '',
+    channelId,
     localStream: streamToSend,
     localScreenStream, // Pass separate screen stream
     enabled: isConnected
@@ -157,7 +157,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
             connection_state: 'connected',
             quality_level: connectionQuality
           });
-        } catch (_e) {
+        } catch (e) {
           // Silently fail - stats logging shouldn't break voice
         }
       }
@@ -168,7 +168,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
 
   // Use the transcription hook
   const { transcriptions, isTranscribing } = useMeetingTranscription({
-    meetingId: channelId || '',
+    meetingId: channelId,
     participantName: user?.email || 'Unknown',
     localStream,
     enabled: isConnected && !isMuted
@@ -370,7 +370,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
     const { data, error } = await supabase
       .from('live_channel_participants')
       .select('*')
-      .eq('channel_id', channelId || '');
+      .eq('channel_id', channelId);
 
     if (error) {
       console.error('Error loading participants:', error);
@@ -384,7 +384,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
     }
 
     // Fetch user data separately
-    const userIds = [...new Set(data.map(p => p.user_id).filter((id): id is string => id !== null))];
+    const userIds = [...new Set(data.map(p => p.user_id))];
     const { data: userData } = await supabase
       .from('profiles')
       .select('id, full_name, avatar_url')
@@ -392,16 +392,12 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
 
     const userMap = new Map(userData?.map(u => [u.id, u]) || []);
 
-    const participantsWithUsers = data
-      .filter(p => p.user_id !== null)
-      .map(p => ({
-        ...p,
-        user_id: p.user_id as string,
-        channel_id: p.channel_id ?? '',
-        user: p.user_id ? userMap.get(p.user_id) : undefined
-      }));
+    const participantsWithUsers = data.map(p => ({
+      ...p,
+      user: userMap.get(p.user_id)
+    }));
 
-    setParticipants(participantsWithUsers as Participant[]);
+    setParticipants(participantsWithUsers);
   };
 
   const subscribeToParticipants = () => {
@@ -514,7 +510,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
       await supabase
         .from('live_channel_participants')
         .delete()
-        .eq('channel_id', channelId || '')
+        .eq('channel_id', channelId)
         .eq('user_id', user.id);
 
       setIsConnected(false);
@@ -534,7 +530,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
       const { error } = await supabase
         .from('live_channel_participants')
         .update(updates)
-        .eq('channel_id', channelId || '')
+        .eq('channel_id', channelId)
         .eq('user_id', user.id);
 
       if (error) {
@@ -791,9 +787,10 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
         const screenTrack = screenStream.getVideoTracks()[0];
         if (screenTrack) {
           try {
-            (screenTrack as any).contentHint = 'detail'; // Default to detail for crisp text
+            // @ts-ignore - contentHint is not in TypeScript types yet
+            screenTrack.contentHint = 'detail'; // Default to detail for crisp text
             console.log('[Screen] Applied content hint: detail');
-          } catch (_e) {
+          } catch (e) {
             console.warn('[Screen] Content hint not supported');
           }
         }
@@ -902,7 +899,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
     toast.info('Reconnecting...', { id: 'reconnecting' });
 
     const startTime = Date.now();
-    const attemptNumber = 1;
+    let attemptNumber = 1;
 
     // Helper to log reconnection (fire-and-forget)
     const logReconnection = async (success: boolean, errorMsg?: string) => {
@@ -917,7 +914,7 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
           success,
           error_message: errorMsg || null
         });
-      } catch (_e) {
+      } catch (e) {
         // Silently fail - logging shouldn't break voice
       }
     };

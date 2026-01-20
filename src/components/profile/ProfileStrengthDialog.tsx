@@ -47,7 +47,7 @@ export const ProfileStrengthDialog = ({
       const { data, error } = await supabase
         .from('profile_strength_tasks')
         .select('task_key, completed')
-        .eq('user_id', user?.id ?? '')
+        .eq('user_id', user?.id)
         .eq('completed', true);
 
       if (error) throw error;
@@ -70,20 +70,16 @@ export const ProfileStrengthDialog = ({
     
     setLoading(true);
     try {
-      if (!user?.id) {
-        toast.error("You must be logged in");
-        return;
-      }
       const { error } = await supabase
         .from('profile_strength_tasks')
         .upsert({
-          user_id: user.id,
+          user_id: user?.id,
           task_key: task.key,
           task_level: task.level,
           role: role,
           completed: true,
           completed_at: new Date().toISOString()
-        } as any, {
+        }, {
           onConflict: 'user_id,task_key,role'
         });
 

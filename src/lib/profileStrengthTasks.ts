@@ -1,6 +1,6 @@
 import { LucideIcon, User, Briefcase, GraduationCap, Award, FileText, 
   MessageCircle, Camera, Users, Building2, Target, TrendingUp, Settings, 
-  Share2, Calendar, Star, CheckCircle, Globe, Shield, Bell } from "lucide-react";
+  Share2, Calendar, Star, CheckCircle, Globe, Shield, Bell, Heart } from "lucide-react";
 
 export interface ProfileTask {
   key: string;

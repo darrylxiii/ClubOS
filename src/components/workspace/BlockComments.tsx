@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Check, Send } from 'lucide-react';
+import { MessageSquare, X, Check, Send } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -77,12 +77,12 @@ export function BlockComments({ pageId, blockId, className }: BlockCommentsProps
 
   const addCommentMutation = useMutation({
     mutationFn: async (content: string) => {
-      const { error } = await supabase.from('page_comments').insert([{
+      const { error } = await supabase.from('page_comments').insert({
         page_id: pageId,
         block_id: blockId,
-        user_id: user?.id ?? '',
+        user_id: user?.id,
         content,
-      }]);
+      });
       if (error) throw error;
     },
     onSuccess: () => {

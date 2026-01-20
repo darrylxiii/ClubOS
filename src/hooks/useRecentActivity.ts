@@ -58,7 +58,6 @@ export function useRecentActivity() {
 
       // Process user signups
       users?.forEach(user => {
-        if (!user.created_at) return;
         activities.push({
           id: `user-${user.id}`,
           type: 'user_signup',
@@ -87,7 +86,6 @@ export function useRecentActivity() {
 
       // Process job postings
       jobs?.forEach(job => {
-        if (!job.created_at) return;
         activities.push({
           id: `job-${job.id}`,
           type: 'job_posted',

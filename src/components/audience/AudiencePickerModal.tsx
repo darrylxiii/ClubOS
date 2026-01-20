@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Globe, Users, Building2, Heart, List, Info } from "lucide-react";
-import { AudienceSelection, AudienceType } from "./types";
+import { AudienceSelection, AudienceType } from "./AudiencePickerButton";
 import { CustomListSelector } from "./CustomListSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -20,13 +20,13 @@ interface AudiencePickerModalProps {
 
 export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: AudiencePickerModalProps) => {
   const [showMore, setShowMore] = useState(false);
-
+  
   // Load last used preference from localStorage, default to best_friends
   const getInitialType = (): AudienceType => {
     const lastUsed = localStorage.getItem('lastAudienceType');
     return (lastUsed as AudienceType) || value.type || 'best_friends';
   };
-
+  
   const [selectedType, setSelectedType] = useState<AudienceType>(getInitialType());
   const [selectedListIds, setSelectedListIds] = useState<string[]>(value.customListIds || []);
   const [multiSelect, setMultiSelect] = useState({
@@ -57,23 +57,19 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
       count = 50; // Placeholder
     } else if (selectedType === 'company_internal') {
       // Count company members
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
 
-      if (user?.id) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('company_id')
-          .eq('id', user.id) // Non-null assertion redundant if inside if block, but safe
-          .single();
-
-        if (profile?.company_id) {
-          const { count: companyMembers } = await supabase
-            .from('company_members')
-            .select('*', { count: 'exact', head: true })
-            .eq('company_id', profile.company_id)
-            .eq('is_active', true);
-          count = companyMembers || 0;
-        }
+      if (profile?.company_id) {
+        const { count: companyMembers } = await supabase
+          .from('company_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('company_id', profile.company_id)
+          .eq('is_active', true);
+        count = companyMembers || 0;
       }
     } else if (selectedType === 'best_friends') {
       const { count: friendsCount } = await (supabase as any)
@@ -95,12 +91,12 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
   const handleSave = () => {
     // Save last used preference to localStorage
     localStorage.setItem('lastAudienceType', selectedType);
-
+    
     onChange({
       type: selectedType,
       customListIds: selectedType === 'custom' ? selectedListIds : undefined,
-      multiSelect: multiSelect.company || multiSelect.connections || multiSelect.bestFriends
-        ? multiSelect
+      multiSelect: multiSelect.company || multiSelect.connections || multiSelect.bestFriends 
+        ? multiSelect 
         : undefined,
     });
     onClose();
@@ -183,7 +179,7 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
                   </div>
                 );
               })}
-
+              
               {!showMore && (
                 <Button
                   type="button"

@@ -26,12 +26,12 @@ export interface TargetCompany {
   creator_name?: string;
   creator_avatar?: string;
   job_title?: string;
-  vote_count?: number | null;
-  comment_count?: number | null;
-  contact_count?: number | null;
-  jobs?: { title: string; status: string | null } | null;
-  votes?: number | null;
-  comments?: any[] | null;
+  vote_count?: number;
+  comment_count?: number;
+  contact_count?: number;
+  jobs?: any[];
+  votes?: any[];
+  comments?: any[];
 }
 
 export const useTargetCompanies = (companyId?: string | null) => {

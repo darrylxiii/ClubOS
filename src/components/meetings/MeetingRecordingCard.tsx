@@ -2,14 +2,15 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Video,
-  Play,
-  Calendar,
-  Users,
-  FileText,
-  Sparkles,
-  Trash2,
+import { 
+  Video, 
+  Play, 
+  Clock, 
+  Calendar, 
+  Users, 
+  FileText, 
+  Sparkles, 
+  Trash2, 
   Download,
   Loader2,
   AlertCircle,
@@ -19,7 +20,7 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { MeetingRecordingExtended } from '@/hooks/useMeetingRecordings';
-import { aiService } from '@/services/aiService';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface MeetingRecordingCardProps {
@@ -29,9 +30,9 @@ interface MeetingRecordingCardProps {
   onRefresh?: () => void;
 }
 
-export function MeetingRecordingCard({
-  recording,
-  onDelete,
+export function MeetingRecordingCard({ 
+  recording, 
+  onDelete, 
   onDownload,
   onRefresh
 }: MeetingRecordingCardProps) {
@@ -41,7 +42,10 @@ export function MeetingRecordingCard({
   const handleReanalyze = async () => {
     setIsReanalyzing(true);
     try {
-      await aiService.analyzeRecording({ recordingId: recording.id, reanalyze: true });
+      const { error } = await supabase.functions.invoke('analyze-meeting-recording-advanced', {
+        body: { recordingId: recording.id, reanalyze: true }
+      });
+      if (error) throw error;
       toast.success('Re-analysis started');
       onRefresh?.();
     } catch (err) {
@@ -57,7 +61,7 @@ export function MeetingRecordingCard({
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-
+    
     if (hours > 0) {
       return `${hours}h ${minutes}m`;
     }
@@ -139,8 +143,8 @@ export function MeetingRecordingCard({
             </div>
             {recording.recording_url && (
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50">
-                <Button
-                  size="sm"
+                <Button 
+                  size="sm" 
                   variant="secondary"
                   className="h-8 w-8 p-0 rounded-full"
                   onClick={handleViewRecording}
@@ -169,7 +173,7 @@ export function MeetingRecordingCard({
                   <span>{formatDistanceToNow(new Date(recording.recorded_at), { addSuffix: true })}</span>
                 </div>
               </div>
-
+              
               <div className="flex items-center gap-2">
                 {getSourceTypeBadge()}
                 {getStatusBadge()}
@@ -184,14 +188,14 @@ export function MeetingRecordingCard({
                   <span>{participantCount} participant{participantCount !== 1 ? 's' : ''}</span>
                 </div>
               )}
-
+              
               {hasTranscript && (
                 <div className="flex items-center gap-1 text-green-500">
                   <FileText className="h-3.5 w-3.5" />
                   <span>Transcript</span>
                 </div>
               )}
-
+              
               {hasAnalysis && (
                 <div className="flex items-center gap-1 text-purple-500">
                   <Sparkles className="h-3.5 w-3.5" />
@@ -209,18 +213,18 @@ export function MeetingRecordingCard({
 
             {/* Actions */}
             <div className="flex items-center gap-2 mt-3">
-              <Button
-                size="sm"
+              <Button 
+                size="sm" 
                 onClick={handleViewRecording}
                 disabled={recording.processing_status === 'failed' && !recording.recording_url}
               >
                 <Play className="h-4 w-4 mr-1" />
                 {recording.processing_status === 'completed' ? 'View Recording' : 'View Details'}
               </Button>
-
+              
               {recording.processing_status === 'pending' && (
-                <Button
-                  size="sm"
+                <Button 
+                  size="sm" 
                   variant="outline"
                   onClick={handleReanalyze}
                   disabled={isReanalyzing}
@@ -229,20 +233,20 @@ export function MeetingRecordingCard({
                   {isReanalyzing ? 'Starting...' : 'Start Analysis'}
                 </Button>
               )}
-
+              
               {recording.recording_url && onDownload && (
-                <Button
-                  size="sm"
+                <Button 
+                  size="sm" 
                   variant="outline"
                   onClick={() => onDownload(recording)}
                 >
                   <Download className="h-4 w-4" />
                 </Button>
               )}
-
+              
               {(recording.processing_status === 'failed' || recording.processing_status === 'completed') && (
-                <Button
-                  size="sm"
+                <Button 
+                  size="sm" 
                   variant="outline"
                   onClick={handleReanalyze}
                   disabled={isReanalyzing}
@@ -250,10 +254,10 @@ export function MeetingRecordingCard({
                   {isReanalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 </Button>
               )}
-
+              
               {onDelete && (
-                <Button
-                  size="sm"
+                <Button 
+                  size="sm" 
                   variant="ghost"
                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                   onClick={() => onDelete(recording.id)}

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { DollarSign, TrendingUp, Clock, Award } from "lucide-react";
+import { DollarSign, TrendingUp, Clock, Target, Award } from "lucide-react";
 import { motion } from "framer-motion";
 import { EmployeeProfile, EmployeeMetrics, EmployeeTarget } from "@/hooks/useEmployeeProfile";
 import { formatCurrency } from "@/lib/revenueCalculations";

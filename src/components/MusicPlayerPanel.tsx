@@ -3,6 +3,7 @@ import { Play, Pause, Volume2, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAudioManager } from '@/hooks/useAudioManager';
@@ -211,7 +212,7 @@ export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
           {/* DJ Profile */}
           <div className="flex items-center gap-3 mb-4">
             <Avatar className="h-12 w-12 ring-2 ring-red-500 ring-offset-2">
-              <AvatarImage src={liveSession.profile?.avatar_url ?? undefined} />
+              <AvatarImage src={liveSession.profile?.avatar_url} />
               <AvatarFallback>
                 {liveSession.profile?.full_name?.[0] || 'DJ'}
               </AvatarFallback>

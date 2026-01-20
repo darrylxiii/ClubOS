@@ -24,6 +24,7 @@ import { WorkspaceMembersList } from './WorkspaceMembersList';
 import { InviteMembersDialog } from './InviteMembersDialog';
 import { EmojiPicker } from './EmojiPicker';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { toast } from 'sonner';
 
 interface WorkspaceSettingsProps {
   workspaceId: string;

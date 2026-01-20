@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Check, X, Mail, Phone, RefreshCw, Search, AlertTriangle } from 'lucide-react';
@@ -52,7 +52,7 @@ export const VerificationManagement = () => {
       
       // Fetch profile info for each user
       if (data) {
-        const userIds = [...new Set(data.map(a => a.user_id).filter((id): id is string => id !== null))];
+        const userIds = [...new Set(data.map(a => a.user_id))];
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name, email')
@@ -61,7 +61,7 @@ export const VerificationManagement = () => {
         const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
         const enrichedData = data.map(attempt => ({
           ...attempt,
-          profiles: attempt.user_id ? profilesMap.get(attempt.user_id) : undefined
+          profiles: profilesMap.get(attempt.user_id)
         }));
         
         setAttempts(enrichedData as any);

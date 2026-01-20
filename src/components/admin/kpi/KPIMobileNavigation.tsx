@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { 
-  LayoutGrid, Target, GitBranch, BarChart3, Settings
+  LayoutGrid, Users, Target, GitBranch, 
+  ClipboardList, BarChart3, Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
   Calendar, 
+  DollarSign, 
   Clock, 
   CheckCircle, 
   AlertCircle,

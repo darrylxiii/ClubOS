@@ -21,6 +21,7 @@ import {
   Eye,
   Clock,
   MapPin,
+  User,
   Mail
 } from 'lucide-react';
 import { useThreatEvents, useResolveThreat, useBlockIP } from '@/hooks/useThreatDetection';

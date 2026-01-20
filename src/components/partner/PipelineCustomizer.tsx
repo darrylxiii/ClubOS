@@ -15,7 +15,7 @@ interface Stage {
   name: string;
   order: number;
   owner?: 'company' | 'quantum_club';
-  format?: 'online' | 'in_person' | 'hybrid' | 'assessment';
+  format?: 'online' | 'in_person' | 'hybrid';
   resources?: string[];
   description?: string;
 }

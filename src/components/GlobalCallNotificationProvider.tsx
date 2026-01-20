@@ -99,9 +99,9 @@ export function GlobalCallNotificationProvider() {
     <IncomingCallCard
       key={activeInvitation.id}
       callerName={callerName}
-      callerAvatar={callerAvatar ?? undefined}
+      callerAvatar={callerAvatar}
       callType={activeInvitation.call_type as 'audio' | 'video'}
-      createdAt={activeInvitation.created_at ?? new Date().toISOString()}
+      createdAt={activeInvitation.created_at}
       onAccept={() => handleAccept(activeInvitation)}
       onDecline={() => handleDecline(activeInvitation.id)}
     />

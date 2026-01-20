@@ -47,7 +47,7 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
         
         // Use dedicated JD uploader fields if available, fall back to job creator
         let jdUploaderName = data.jd_uploader_name || 'Unknown';
-        const jdUploadedAt = data.jd_uploaded_at || data.updated_at;
+        let jdUploadedAt = data.jd_uploaded_at || data.updated_at;
         
         // If no dedicated JD uploader, fetch job creator name as fallback
         if (!data.jd_uploader_name && data.created_by) {
@@ -67,8 +67,8 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
             file_name: 'Job Description',
             file_url: data.job_description_url,
             file_type: 'application/pdf',
-            uploaded_at: jdUploadedAt ?? undefined,
-            uploaded_by: data.jd_uploaded_by ?? data.created_by ?? undefined,
+            uploaded_at: jdUploadedAt,
+            uploaded_by: data.jd_uploaded_by || data.created_by,
             uploader_name: jdUploaderName
           });
         }

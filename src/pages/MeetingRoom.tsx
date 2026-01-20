@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Video, Lock, Calendar, Clock } from 'lucide-react';
+import { Video, Lock, Users, Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { logger } from '@/lib/logger';
 
@@ -63,7 +63,7 @@ export default function MeetingRoom() {
         data.last_seen && 
         (new Date().getTime() - new Date(data.last_seen).getTime()) < 30000;
       
-      setHostIsPresent(isActive === true);
+      setHostIsPresent(isActive);
     };
     
     checkHostPresence();
@@ -136,7 +136,7 @@ export default function MeetingRoom() {
       const { data, error } = await supabase
         .from('meetings')
         .select('*')
-        .eq('meeting_code', meetingCode ?? '')
+        .eq('meeting_code', meetingCode)
         .maybeSingle();
 
       if (error) {

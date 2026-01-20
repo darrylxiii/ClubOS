@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Users, Plus, X, ExternalLink, XCircle } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Users, Plus, X, ExternalLink, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,8 +34,8 @@ interface SocialConnectionsProps {
     appleMusicPlaylists: Playlist[];
   };
   onUpdate: () => void;
-  onConnectSocial: (provider: 'github' | 'instagram' | 'linkedin_oidc' | 'twitter') => void;
-  onDisconnectSocial: (platform: 'github' | 'instagram' | 'linkedin' | 'twitter') => void;
+  onConnectSocial: (provider: string) => void;
+  onDisconnectSocial: (platform: string) => void;
 }
 
 export function SocialConnections({
@@ -68,8 +69,8 @@ export function SocialConnections({
       
       toast.success('Spotify connected!');
       onUpdate();
-    } catch (err) {
-      console.error('Error connecting Spotify:', err);
+    } catch (error) {
+      console.error('Error connecting Spotify:', error);
       toast.error('Failed to connect Spotify');
     }
   };
@@ -90,8 +91,8 @@ export function SocialConnections({
       
       toast.success('Apple Music connected!');
       onUpdate();
-    } catch (err) {
-      console.error('Error connecting Apple Music:', err);
+    } catch (error) {
+      console.error('Error connecting Apple Music:', error);
       toast.error('Failed to connect Apple Music');
     }
   };
@@ -121,8 +122,8 @@ export function SocialConnections({
       setSpotifyUrl('');
       setShowSpotifyInput(false);
       onUpdate();
-    } catch (err) {
-      console.error('Error adding playlist:', err);
+    } catch (error) {
+      console.error('Error adding playlist:', error);
       toast.error('Failed to add playlist');
     }
   };
@@ -152,8 +153,8 @@ export function SocialConnections({
       setAppleMusicUrl('');
       setShowAppleMusicInput(false);
       onUpdate();
-    } catch (err) {
-      console.error('Error adding playlist:', err);
+    } catch (error) {
+      console.error('Error adding playlist:', error);
       toast.error('Failed to add playlist');
     }
   };
@@ -175,8 +176,8 @@ export function SocialConnections({
 
       toast.success('Removed from profile');
       onUpdate();
-    } catch (err) {
-      console.error('Error removing playlist:', err);
+    } catch (error) {
+      console.error('Error removing playlist:', error);
       toast.error('Failed to remove');
     }
   };
@@ -198,8 +199,8 @@ export function SocialConnections({
 
       toast.success(`${platform === 'spotify' ? 'Spotify' : 'Apple Music'} disconnected`);
       onUpdate();
-    } catch (err) {
-      console.error('Error disconnecting:', err);
+    } catch (error) {
+      console.error('Error disconnecting:', error);
       toast.error('Failed to disconnect');
     }
   };

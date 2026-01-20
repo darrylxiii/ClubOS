@@ -8,7 +8,7 @@ export interface SecurityConfigItem {
   config_key: string;
   config_value: Json;
   description: string | null;
-  updated_at: string | null;
+  updated_at: string;
   updated_by: string | null;
 }
 

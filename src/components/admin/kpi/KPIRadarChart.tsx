@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import type { DomainHealth, KPIDomain } from '@/hooks/useUnifiedKPIs';
 
 interface KPIRadarChartProps {

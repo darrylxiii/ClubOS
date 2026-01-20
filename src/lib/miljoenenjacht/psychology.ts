@@ -41,8 +41,8 @@ function calculateRiskTolerance(decisions: RoundDecision[], outcome: GameOutcome
     }
   });
   
-  if (outcome.tookDeal && outcome.dealRound !== null && outcome.dealRound < 5) score -= 20;
-  if (outcome.tookDeal && outcome.dealRound !== null && decisions[outcome.dealRound - 1]?.offerVsEvPercentage < 70) score -= 10;
+  if (outcome.tookDeal && outcome.dealRound && outcome.dealRound < 5) score -= 20;
+  if (outcome.tookDeal && decisions[outcome.dealRound - 1]?.offerVsEvPercentage < 70) score -= 10;
   if (!outcome.tookDeal) score += 25;
   
   return Math.max(0, Math.min(100, score));

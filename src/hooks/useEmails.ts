@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { notify } from "@/lib/notify";
 import { useAuth } from "@/contexts/AuthContext";
@@ -54,10 +54,10 @@ export interface Email {
 export interface EmailLabel {
   id: string;
   name: string;
-  color: string | null;
-  icon: string | null;
-  type: string | null;
-  sort_order: number | null;
+  color: string;
+  icon: string;
+  type: string;
+  sort_order: number;
 }
 
 export function useEmails(filter: string = "inbox") {
@@ -119,10 +119,10 @@ export function useEmails(filter: string = "inbox") {
         if (cursor) {
           // Avoid duplicates if any
           const existingIds = new Set(prev.map(e => e.id));
-          const uniqueNew = newEmails.filter(e => !existingIds.has(e.id)) as Email[];
+          const uniqueNew = newEmails.filter(e => !existingIds.has(e.id));
           return [...prev, ...uniqueNew];
         }
-        return newEmails as Email[];
+        return newEmails;
       });
 
     } catch (error: any) {

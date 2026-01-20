@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
-import { Pin, Download, RefreshCw, TrendingUp, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { Search, Pin, Bell, Download, RefreshCw, TrendingUp, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 import { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
 
 interface KPICommandPaletteProps {

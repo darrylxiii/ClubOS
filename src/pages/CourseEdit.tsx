@@ -22,6 +22,7 @@ import {
   Loader2,
   ChevronLeft,
   Save,
+  Sparkles,
   BookOpen,
   Wand2
 } from "lucide-react";

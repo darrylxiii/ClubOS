@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
-import { Mail, Eye, MessageSquare } from 'lucide-react';
+import { Mail, Eye, MessageSquare, TrendingUp } from 'lucide-react';
 import { useCRMAnalytics } from '@/hooks/useCRMAnalytics';
 
 interface CRMCampaignStatsProps {

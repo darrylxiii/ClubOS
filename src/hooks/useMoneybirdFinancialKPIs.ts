@@ -1,5 +1,5 @@
 import { useMoneybirdFinancials, usePaymentAging } from "./useMoneybirdFinancials";
-import { useInvoiceStatusCounts } from "./useMoneybirdInvoices";
+import { useMoneybirdInvoices, useInvoiceStatusCounts } from "./useMoneybirdInvoices";
 
 export interface FinancialKPI {
   id: string;

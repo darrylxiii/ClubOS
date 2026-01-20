@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import {
   StatusDomain,
   getStatusConfig,
+  StatusConfig,
   ApplicationStatus,
   JobStatus,
   SyncStatus,

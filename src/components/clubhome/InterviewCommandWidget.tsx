@@ -17,34 +17,34 @@ import {
   Play
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, isToday, isTomorrow, addHours } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
 interface InterviewItem {
   id: string;
   title: string;
   scheduled_start: string;
-  interview_stage?: string | null;
+  interview_stage?: string;
   candidate?: {
     id: string;
     full_name: string;
-    avatar_url?: string | null;
-    current_title?: string | null;
-  } | null;
+    avatar_url?: string;
+    current_title?: string;
+  };
   job?: {
     id: string;
     title: string;
-  } | null;
-  application_id?: string | null;
+  };
+  application_id?: string;
 }
 
 interface PendingScorecard {
   meeting_id: string;
   meeting_title: string;
   candidate_name: string;
-  candidate_avatar?: string | null;
+  candidate_avatar?: string;
   completed_at: string;
-  due_at?: string | null;
+  due_at?: string;
 }
 
 export const InterviewCommandWidget = () => {
@@ -148,7 +148,7 @@ export const InterviewCommandWidget = () => {
               .single();
             if (data) {
               candidateName = data.full_name;
-              candidateAvatar = data.avatar_url ?? undefined;
+              candidateAvatar = data.avatar_url;
             }
           }
 
@@ -257,7 +257,7 @@ export const InterviewCommandWidget = () => {
                         <div className="flex items-center gap-3">
                           {interview.candidate ? (
                             <Avatar className="h-10 w-10">
-                              <AvatarImage src={interview.candidate.avatar_url ?? undefined} />
+                              <AvatarImage src={interview.candidate.avatar_url} />
                               <AvatarFallback>
                                 {interview.candidate.full_name.split(' ').map(n => n[0]).join('')}
                               </AvatarFallback>
@@ -328,7 +328,7 @@ export const InterviewCommandWidget = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10">
-                            <AvatarImage src={scorecard.candidate_avatar ?? undefined} />
+                            <AvatarImage src={scorecard.candidate_avatar} />
                             <AvatarFallback>
                               {scorecard.candidate_name.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>

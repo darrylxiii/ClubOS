@@ -17,7 +17,7 @@ interface Reaction {
   id: string;
   emoji: string;
   user_id: string;
-  created_at: string | null;
+  created_at: string;
 }
 
 interface MessageReactionsDisplayProps {

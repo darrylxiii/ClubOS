@@ -5,15 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
-  ArrowLeft, MapPin, DollarSign, Calendar, 
+  ArrowLeft, MapPin, DollarSign, Users, Calendar, 
   Briefcase, FileText, Target, MessageSquare, ExternalLink, Check, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OnlineStatusIndicator } from "@/components/messages/OnlineStatusIndicator";
-import { PipelineStageData } from "@/components/ExpandablePipelineStage";
+import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { ProgressionHeatmap } from "@/components/applications/ProgressionHeatmap";
 import { CompetitionInsight } from "@/components/applications/CompetitionInsight";
 import { TimelineDeadlines } from "@/components/applications/TimelineDeadlines";
@@ -41,9 +42,9 @@ interface ApplicationDetail {
     company_id: string;
     companies: {
       name: string;
-      logo_url: string | null;
-      description: string | null;
-      website_url: string | null;
+      logo_url: string;
+      description: string;
+      website_url: string;
     };
   };
   other_candidates_count: number;
@@ -96,7 +97,7 @@ export default function ApplicationDetail() {
             )
           )
         `)
-        .eq("id", applicationId ?? '')
+        .eq("id", applicationId)
         .eq("user_id", user.id)
         .single();
 
@@ -174,22 +175,12 @@ export default function ApplicationDetail() {
         ...data,
         job: {
           ...data.jobs,
-          location: data.jobs.location ?? '',
           requirements: (data.jobs.requirements as string[]) || [],
           benefits: (data.jobs.benefits as string[]) || [],
-          salary_min: data.jobs.salary_min ?? undefined,
-          salary_max: data.jobs.salary_max ?? undefined,
-          employment_type: data.jobs.employment_type ?? '',
-          description: data.jobs.description ?? '',
         },
         stages: formattedStages,
         other_candidates_count: count || 0,
-        talent_strategist: strategist ? {
-          id: strategist.id,
-          full_name: strategist.full_name ?? '',
-          avatar_url: strategist.avatar_url ?? '',
-          user_id: strategist.user_id,
-        } : undefined,
+        talent_strategist: strategist,
       });
     } catch (error) {
       console.error("Error loading application:", error);

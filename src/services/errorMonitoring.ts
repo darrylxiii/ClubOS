@@ -126,7 +126,7 @@ class ErrorMonitoringService {
       const trendMap = new Map<string, ErrorTrend>();
 
       (data || []).forEach((log) => {
-        const date = new Date(log.created_at || new Date()).toISOString().split('T')[0];
+        const date = new Date(log.created_at).toISOString().split('T')[0];
         
         if (!trendMap.has(date)) {
           trendMap.set(date, {
@@ -227,9 +227,9 @@ class ErrorMonitoringService {
       let avgResolutionTimeHours = 0;
       
       if (resolvedWithTime.length > 0) {
-        const totalHours = resolvedWithTime.reduce((sum: number, d) => {
-          const created = new Date(d.created_at || new Date()).getTime();
-          const resolvedAt = new Date(d.resolved_at || new Date()).getTime();
+        const totalHours = resolvedWithTime.reduce((sum, d) => {
+          const created = new Date(d.created_at).getTime();
+          const resolvedAt = new Date(d.resolved_at!).getTime();
           return sum + (resolvedAt - created) / (1000 * 60 * 60);
         }, 0);
         avgResolutionTimeHours = totalHours / resolvedWithTime.length;

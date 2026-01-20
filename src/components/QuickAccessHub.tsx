@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Headphones, MessageCircleHeart, Languages, BookOpen } from "lucide-react";
+import { Settings, Headphones, MessageCircleHeart, Languages, X, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
@@ -61,17 +61,15 @@ export const QuickAccessHub = () => {
 
       const pageTitle = history.length > 0 ? history[history.length - 1].title : 'Unknown Page';
 
-      const { error } = await supabase.from('user_feedback').insert([
-        {
-          user_id: user.id,
-          rating,
-          comment: comment || null,
-          page_path: location.pathname,
-          page_title: pageTitle,
-          email: profile?.email || '',
-          role: userRole?.role ?? 'unknown',
-        },
-      ]);
+      const { error } = await supabase.from('user_feedback').insert([{
+        user_id: user.id,
+        rating,
+        comment: comment || null,
+        page_path: location.pathname,
+        page_title: pageTitle,
+        email: profile?.email || '',
+        role: userRole?.role || null,
+      }]);
 
       if (error) throw error;
 
@@ -84,8 +82,8 @@ export const QuickAccessHub = () => {
       setComment('');
       setFeedbackOpen(false);
       setOpen(false);
-    } catch (err) {
-      console.error('Error submitting feedback:', err);
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
       toast({
         title: 'Error',
         description: 'Failed to submit feedback. Please try again.',

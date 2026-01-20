@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Euro, TrendingUp, Briefcase, Target } from "lucide-react";
+import { Euro, TrendingUp, Briefcase, Target, Building2, Users } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
 import { ReferralStats } from "@/hooks/useReferralSystem";
 import { motion } from "framer-motion";

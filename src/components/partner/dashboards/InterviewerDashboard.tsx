@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UpcomingInterviewsWidget } from "@/components/partner/UpcomingInterviewsWidget";
-import { Calendar, BarChart3, Clock, CheckCircle } from "lucide-react";
+import { Calendar, BarChart3, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";

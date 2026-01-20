@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { User, MapPin, Globe, Briefcase, X } from 'lucide-react';
 import { AvatarUpload } from '@/components/AvatarUpload';
 import { EmailVerification } from '@/components/EmailVerification';
@@ -148,7 +149,7 @@ export const ProfileSettings = ({
             <PhoneVerification
               phoneNumber={phoneNumber}
               phoneVerified={phoneVerified}
-              onPhoneChange={(value) => setPhoneNumber(value ?? '')}
+              onPhoneChange={setPhoneNumber}
               onVerificationComplete={() => setPhoneVerified(true)}
             />
           </div>

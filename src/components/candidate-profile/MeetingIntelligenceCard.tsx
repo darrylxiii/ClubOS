@@ -14,11 +14,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Video,
+  Star,
   TrendingUp,
   AlertTriangle,
   ThumbsUp,
+  Clock,
   ChevronRight,
   Brain,
+  MessageSquare,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';

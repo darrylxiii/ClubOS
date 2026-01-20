@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { aiService } from '@/services/aiService';
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,11 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import {
-  Coins, Zap, Sparkles, Send, Loader2, AlertCircle,
-  Clock, DollarSign, Video, FileText, CheckCircle
+import { 
+  Coins, Zap, Sparkles, Send, Loader2, AlertCircle, 
+  Clock, DollarSign, Video, FileText, CheckCircle 
 } from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface EnhancedProposalBuilderProps {
   projectId: string;
@@ -44,7 +44,7 @@ export function EnhancedProposalBuilder({
   let baseConnectsCost = 2;
   if (avgBudget >= 5000) baseConnectsCost = 6;
   else if (avgBudget >= 500) baseConnectsCost = 4;
-
+  
   const connectsCost = isBoosted ? Math.ceil(baseConnectsCost * 1.5) : baseConnectsCost;
 
   // Get freelancer profile with connects balance
@@ -57,7 +57,7 @@ export function EnhancedProposalBuilder({
         .select("id, connects_balance, professional_summary, categories, hourly_rate_min")
         .eq("id", user.id)
         .single();
-
+      
       if (error) throw error;
       return data;
     },
@@ -71,7 +71,7 @@ export function EnhancedProposalBuilder({
     mutationFn: async () => {
       // First deduct connects
       const { data: deductResult, error: deductError } = await supabase.functions.invoke("deduct-connects", {
-        body: {
+        body: { 
           projectId,
           proposalType: isBoosted ? "boosted" : "standard"
         },
@@ -82,12 +82,11 @@ export function EnhancedProposalBuilder({
       }
 
       // Then create proposal
-      if (!profile?.id) throw new Error("Profile not found");
       const { error: proposalError } = await supabase
         .from("project_proposals")
         .insert([{
           project_id: projectId,
-          freelancer_id: profile.id,
+          freelancer_id: profile?.id,
           cover_letter: coverLetter,
           proposed_rate: parseFloat(proposedRate),
           proposed_timeline_weeks: parseInt(estimatedDuration) || 1,
@@ -115,19 +114,19 @@ export function EnhancedProposalBuilder({
   const generateAICoverLetter = async () => {
     setIsGeneratingAI(true);
     try {
-      const response = await aiService.generateProjectProposal({
-        projectId,
-        freelancerId: profile?.id ?? ''
+      const { data, error } = await supabase.functions.invoke("generate-project-proposal", {
+        body: {
+          projectTitle,
+          projectDescription: "",
+          freelancerSkills: profile?.categories || [],
+          freelancerBio: profile?.professional_summary || "",
+        },
       });
 
-      if (!response) throw new Error("Failed to generate");
-
-      // Check if response has proposal property or is the proposal itself
-      // Based on error description, likely response IS the object containing coverLetter
-      const proposalData = (typeof response === 'object' && 'proposal' in response) ? (response as any).proposal : response;
-
-      if (proposalData?.coverLetter) {
-        setCoverLetter(proposalData.coverLetter);
+      if (error) throw error;
+      
+      if (data?.coverLetter) {
+        setCoverLetter(data.coverLetter);
         toast.success("AI cover letter generated!");
       }
     } catch (error) {
@@ -176,7 +175,7 @@ export function EnhancedProposalBuilder({
               </p>
             </div>
           </div>
-
+          
           {!hasEnoughConnects && (
             <div className="mt-3 flex items-center gap-2 text-destructive text-sm">
               <AlertCircle className="h-4 w-4" />
@@ -198,8 +197,8 @@ export function EnhancedProposalBuilder({
               </p>
             </div>
           </div>
-          <Switch
-            checked={isBoosted}
+          <Switch 
+            checked={isBoosted} 
             onCheckedChange={setIsBoosted}
           />
         </div>

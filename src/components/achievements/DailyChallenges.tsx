@@ -11,17 +11,17 @@ import { toast } from 'sonner';
 interface Challenge {
   id: string;
   name: string;
-  description: string | null;
+  description: string;
   challenge_type: string;
   criteria: any;
-  bonus_points: number | null;
-  start_date: string | null;
-  end_date: string | null;
+  bonus_points: number;
+  start_date: string;
+  end_date: string;
 }
 
 interface ChallengeProgress {
   challenge_id: string;
-  current_progress: number | null;
+  current_progress: number;
   target_value: number;
   completed_at: string | null;
 }
@@ -52,24 +52,21 @@ export const DailyChallenges = () => {
         .order('challenge_type', { ascending: true });
 
       if (challengesData) {
-        setChallenges(challengesData as any);
+        setChallenges(challengesData);
 
         // Fetch user's progress for these challenges
         const { data: progressData } = await supabase
           .from('user_challenge_progress')
           .select('*')
-          .eq('user_id', user?.id ?? '')
+          .eq('user_id', user?.id)
           .in(
             'challenge_id',
             challengesData.map((c) => c.id)
           );
 
-        const progressMap = new Map<string, ChallengeProgress>();
-        (progressData || []).forEach((p: any) => {
-          if (!p.challenge_id) return;
-          progressMap.set(p.challenge_id, p as ChallengeProgress);
-        });
-
+        const progressMap = new Map(
+          progressData?.map((p) => [p.challenge_id, p]) || []
+        );
         setProgress(progressMap);
       }
     } catch (error) {
@@ -84,7 +81,7 @@ export const DailyChallenges = () => {
     const { data: completedChallenges } = await supabase
       .from('user_challenge_progress')
       .select('completed_at')
-      .eq('user_id', user?.id ?? '')
+      .eq('user_id', user?.id)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: false })
       .limit(30);
@@ -140,12 +137,11 @@ export const DailyChallenges = () => {
 
   const renderChallenge = (challenge: Challenge) => {
     const prog = progress.get(challenge.id);
-    const currentProgress = prog?.current_progress ?? 0;
     const progressPercentage = prog
-      ? Math.min((currentProgress / prog.target_value) * 100, 100)
+      ? Math.min((prog.current_progress / prog.target_value) * 100, 100)
       : 0;
     const isCompleted = !!prog?.completed_at;
-    const remaining = prog ? prog.target_value - currentProgress : challenge.criteria.count || 1;
+    const remaining = prog ? prog.target_value - prog.current_progress : challenge.criteria.count || 1;
 
     return (
       <Card

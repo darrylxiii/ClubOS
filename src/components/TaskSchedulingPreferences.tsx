@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
@@ -55,13 +56,13 @@ export function TaskSchedulingPreferences() {
 
       if (data) {
         setPreferences({
-          auto_schedule_enabled: data.auto_schedule_enabled ?? false,
-          working_hours_start: data.working_hours_start ?? "09:00",
-          working_hours_end: data.working_hours_end ?? "17:00",
-          working_days: data.working_days ?? [1, 2, 3, 4, 5],
-          preferred_task_duration_minutes: data.preferred_task_duration_minutes ?? 30,
-          break_between_tasks_minutes: data.break_between_tasks_minutes ?? 15,
-          max_tasks_per_day: data.max_tasks_per_day ?? 8,
+          auto_schedule_enabled: data.auto_schedule_enabled,
+          working_hours_start: data.working_hours_start,
+          working_hours_end: data.working_hours_end,
+          working_days: data.working_days,
+          preferred_task_duration_minutes: data.preferred_task_duration_minutes,
+          break_between_tasks_minutes: data.break_between_tasks_minutes,
+          max_tasks_per_day: data.max_tasks_per_day,
         });
       }
     } catch (error) {

@@ -30,20 +30,20 @@ interface BookingLink {
   title: string;
   description: string | null;
   duration_minutes: number;
-  buffer_before_minutes: number | null;
-  buffer_after_minutes: number | null;
-  advance_booking_days: number | null;
-  min_notice_hours: number | null;
-  is_active: boolean | null;
-  color: string | null;
-  created_at: string | null;
-  scheduling_type: string | null;
+  buffer_before_minutes: number;
+  buffer_after_minutes: number;
+  advance_booking_days: number;
+  min_notice_hours: number;
+  is_active: boolean;
+  color: string;
+  created_at: string;
+  scheduling_type: string;
   video_conferencing_provider: string | null;
-  auto_generate_meeting_link: boolean | null;
-  allow_waitlist: boolean | null;
-  single_use: boolean | null;
+  auto_generate_meeting_link: boolean;
+  allow_waitlist: boolean;
+  single_use: boolean;
   max_uses: number | null;
-  requires_approval: boolean | null;
+  requires_approval: boolean;
   max_bookings_per_day: number | null;
 }
 
@@ -108,7 +108,7 @@ export default function Scheduling() {
       const { count, error } = await supabase
         .from("bookings")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", user?.id ?? '')
+        .eq("user_id", user?.id)
         .eq("status", "pending_approval");
 
       if (!error) {
@@ -124,7 +124,7 @@ export default function Scheduling() {
       const { data, error } = await supabase
         .from('calendar_connections')
         .select('*')
-        .eq('user_id', user?.id ?? '')
+        .eq('user_id', user?.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
@@ -141,7 +141,7 @@ export default function Scheduling() {
       const { data, error } = await supabase
         .from("booking_links")
         .select("*")
-        .eq("user_id", user?.id ?? '')
+        .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -161,11 +161,10 @@ export default function Scheduling() {
   const loadUpcomingBookings = async () => {
     try {
       const now = new Date().toISOString();
-      if (!user?.id) return;
       const { data, error } = await supabase
         .from("bookings")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", user?.id)
         .gte("scheduled_start", now)
         .eq("status", "confirmed")
         .order("scheduled_start", { ascending: true })
@@ -191,17 +190,15 @@ export default function Scheduling() {
       return;
     }
 
-    if (!user?.id) {
-      toast.error("You must be logged in to create a booking link");
-      return;
-    }
     setIsCreatingLink(true);
     try {
       console.log("[Scheduling] Creating booking link with data:", newLink);
-      const { user_id, ...insertData } = { ...newLink, user_id: user.id };
       const { data, error } = await supabase
         .from("booking_links")
-        .insert([{ ...insertData, user_id }])
+        .insert({
+          ...newLink,
+          user_id: user?.id,
+        })
         .select()
         .single();
 
@@ -729,7 +726,7 @@ export default function Scheduling() {
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => toggleLinkStatus(link.id, link.is_active ?? false)}
+                            onClick={() => toggleLinkStatus(link.id, link.is_active)}
                           >
                             <Settings className="h-4 w-4" />
                           </Button>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -26,11 +26,14 @@ import { useWhatsAppAccounts, useManageWhatsAppAccount, WhatsAppAccount } from '
 import { 
   Plus, 
   Phone, 
-  Star,
+  Star, 
+  StarOff,
   Trash2, 
   CheckCircle, 
+  AlertCircle, 
   RefreshCw,
   Loader2,
+  Settings,
   Zap
 } from 'lucide-react';
 

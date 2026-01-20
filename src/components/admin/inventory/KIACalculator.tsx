@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Calculator, Lightbulb, Target } from 'lucide-react';
+import { Calculator, TrendingUp, Lightbulb, Target, Sparkles } from 'lucide-react';
 import { calculateKIA, KIA_THRESHOLDS_2024 } from '@/hooks/useInventoryStats';
 
 interface KIACalculatorProps {

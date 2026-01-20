@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { publicCorsHeaders as corsHeaders } from '../_shared/cors-config.ts';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 interface ClubSyncCandidate {
   id: string;
@@ -85,7 +89,7 @@ serve(async (req) => {
     console.log(`[club-sync-runner] Found ${activeJobs?.length || 0} active jobs`);
 
     let applicationsCreated = 0;
-    const applicationsSkipped = 0;
+    let applicationsSkipped = 0;
     const results: Array<{ candidateId: string; jobId: string; status: string; matchScore?: number }> = [];
 
     // 3. For each candidate, find matching jobs and auto-apply

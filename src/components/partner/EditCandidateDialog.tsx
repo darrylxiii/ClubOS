@@ -129,7 +129,7 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
 
       // Log audit entry
       const changedFields = Object.keys(updateData).filter(
-        key => JSON.stringify((beforeState as Record<string, any>)?.[key]) !== JSON.stringify(updateData[key])
+        key => JSON.stringify(beforeState?.[key]) !== JSON.stringify(updateData[key])
       );
 
       await (supabase as any).from('candidate_profile_audit').insert({

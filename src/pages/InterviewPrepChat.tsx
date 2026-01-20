@@ -102,8 +102,7 @@ export default function InterviewPrepChat() {
   };
 
   const streamChat = async (currentMessages: Message[]) => {
-    // Point to ai-integration wrapper
-    const CHAT_URL = `https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/ai-integration`;
+    const CHAT_URL = `https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/interview-prep-chat`;
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -115,26 +114,23 @@ export default function InterviewPrepChat() {
           'Authorization': `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({
-          action: 'interview-prep-chat',
-          payload: {
-            messages: currentMessages,
-            companyInfo: {
-              company_name: applicationData?.company_name || companyData?.name,
-              industry: companyData?.industry,
-              company_size: companyData?.company_size,
-              description: companyData?.description,
-              values: companyData?.values,
-              tech_stack: companyData?.tech_stack,
-            },
-            roleInfo: {
-              position: applicationData?.position,
-              required_skills: applicationData?.jobs?.required_skills,
-              experience_level: applicationData?.jobs?.experience_level,
-              location: applicationData?.jobs?.location,
-              description: applicationData?.jobs?.description,
-            },
-            stage: selectedStage,
-          }
+          messages: currentMessages,
+          companyInfo: {
+            company_name: applicationData?.company_name || companyData?.name,
+            industry: companyData?.industry,
+            company_size: companyData?.company_size,
+            description: companyData?.description,
+            values: companyData?.values,
+            tech_stack: companyData?.tech_stack,
+          },
+          roleInfo: {
+            position: applicationData?.position,
+            required_skills: applicationData?.jobs?.required_skills,
+            experience_level: applicationData?.jobs?.experience_level,
+            location: applicationData?.jobs?.location,
+            description: applicationData?.jobs?.description,
+          },
+          stage: selectedStage,
         }),
       });
 
@@ -185,7 +181,7 @@ export default function InterviewPrepChat() {
                 return newMessages;
               });
             }
-          } catch (_e) {
+          } catch (e) {
             // Incomplete JSON, put it back
             textBuffer = line + '\n' + textBuffer;
             break;

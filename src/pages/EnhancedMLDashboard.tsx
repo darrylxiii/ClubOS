@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Brain, TrendingUp, Target, Zap, Building2, AlertTriangle, CheckCircle, BarChart3, Briefcase } from 'lucide-react';
+import { Brain, TrendingUp, Users, Target, Zap, Database, Building2, AlertTriangle, CheckCircle, BarChart3, Briefcase } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/lib/notify';
 import { supabase } from '@/integrations/supabase/client';
+import { useMLMatching } from '@/hooks/useMLMatching';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { MLModel, MLABTest, MLModelMetrics } from '@/types/ml';
 import { format } from 'date-fns';

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Fingerprint, ScanFace, Eye, Shield, Clock, Smartphone } from 'lucide-react';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import { secureStorage } from '@/services/secureStorage';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -29,8 +30,8 @@ export function BiometricSettings() {
     try {
       const enabled = await secureStorage.isBiometricEnabled();
       setBiometricEnabled(enabled);
-    } catch (_error) {
-      console.error('Error loading biometric settings:', _error);
+    } catch (error) {
+      console.error('Error loading biometric settings:', error);
     } finally {
       setIsLoading(false);
     }
@@ -50,8 +51,8 @@ export function BiometricSettings() {
       await secureStorage.setBiometricEnabled(enabled);
       setBiometricEnabled(enabled);
       toast.success(enabled ? `${biometryName} enabled` : `${biometryName} disabled`);
-    } catch (_error) {
-      console.error('Error saving biometric settings:', _error);
+    } catch (error) {
+      console.error('Error saving biometric settings:', error);
       toast.error('Failed to save settings');
     } finally {
       setIsSaving(false);

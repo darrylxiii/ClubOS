@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
-import { communicationsService } from '@/services/communicationsService';
 
 export interface WhatsAppMessage {
   id: string;
@@ -58,24 +57,14 @@ export function useWhatsAppMessages(conversationId: string | null) {
       setHasMore(hasNextPage);
 
       // We fetched latest first (desc), so reverse to get chronological (asc) for display
-      const chronologizedMessages = [...newMessages].reverse().map(m => ({
-        id: m.id,
-        conversation_id: m.conversation_id ?? '',
-        direction: m.direction ?? 'outbound',
-        message_type: m.message_type ?? 'text',
-        content: m.content,
-        template_name: m.template_name,
-        media_url: m.media_url,
-        status: m.status ?? 'pending',
-        sentiment_score: m.sentiment_score,
-        intent_classification: m.intent_classification,
-        created_at: m.created_at ?? new Date().toISOString(),
-      })) as WhatsAppMessage[];
+      const chronologizedMessages = [...newMessages].reverse();
 
       setMessages(prev => {
         if (beforeTimestamp) {
+          // If loading previous, prepend them
           return [...chronologizedMessages, ...prev];
         } else {
+          // Initial load
           return chronologizedMessages;
         }
       });
@@ -101,15 +90,17 @@ export function useWhatsAppMessages(conversationId: string | null) {
 
     try {
       setSending(true);
-      const data = await communicationsService.sendWhatsapp({
-        conversationId,
-        messageType,
-        content,
-        templateName,
-        templateParams,
+      const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
+        body: {
+          conversationId,
+          messageType,
+          content,
+          templateName,
+          templateParams,
+        },
       });
 
-      if (!data.success) throw new Error(data.error || 'Failed to send message');
+      if (error) throw error;
 
       // We rely on the realtime subscription to add the message to the list
       // But we can also optimistic add if needed, skipping for now to rely on single source of truth (UseEffect below)
@@ -141,20 +132,12 @@ export function useWhatsAppMessages(conversationId: string | null) {
         table: 'whatsapp_messages',
         filter: `conversation_id=eq.${conversationId}`
       }, (payload) => {
-        const raw = payload.new;
-        const newMessage: WhatsAppMessage = {
-          id: raw.id as string,
-          conversation_id: (raw.conversation_id as string) ?? '',
-          direction: (raw.direction as string) ?? 'outbound',
-          message_type: (raw.message_type as string) ?? 'text',
-          content: raw.content as string | null,
-          template_name: raw.template_name as string | null,
-          media_url: raw.media_url as string | null,
-          status: (raw.status as string) ?? 'pending',
-          sentiment_score: raw.sentiment_score as number | null,
-          intent_classification: raw.intent_classification as string | null,
-          created_at: (raw.created_at as string) ?? new Date().toISOString(),
-        };
+        const newMessage = payload.new as WhatsAppMessage;
+        setMessages(prev => {
+          // Avoid duplicates
+          if (prev.some(m => m.id === newMessage.id)) return prev;
+          return [...prev, newMessage];
+        });
       })
       .subscribe();
 

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { 
   Briefcase, 
   MessageSquare, 
+  Calendar, 
   FileText, 
   Sparkles,
   Plus,

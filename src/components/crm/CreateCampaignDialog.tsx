@@ -82,31 +82,24 @@ export function CreateCampaignDialog({
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-
+      
       const { error } = await supabase
         .from('crm_campaigns')
         .insert({
           name: formData.name,
           description: formData.description || null,
-          // campaign_type is likely not in unified schema or moved to metadata - checking schema suggests it might not be a top-level column. 
-          // Schema 1.1: id, name, description, source, status, target_audience, metrics, config, owner_id, company_id, external_id, metadata.
-          // I will put campaign_type in metadata or config.
+          campaign_type: formData.campaign_type,
           status: 'draft',
           source: 'manual',
           owner_id: user?.id,
-          target_audience: {
-            industry: formData.target_industry,
-            company_size: formData.target_company_size,
-            region: formData.target_region,
-          },
-          config: {
-            start_date: formData.start_date || null,
+          start_date: formData.start_date || null,
+          settings: {
+            target_industry: formData.target_industry,
+            target_company_size: formData.target_company_size,
+            target_region: formData.target_region,
             sequence_steps: parseInt(formData.sequence_steps),
             daily_limit: parseInt(formData.daily_limit),
           },
-          metadata: {
-            campaign_type: formData.campaign_type,
-          }
         });
 
       if (error) throw error;
@@ -153,19 +146,21 @@ export function CreateCampaignDialog({
             <div key={s.key} className="flex items-center">
               <button
                 onClick={() => index <= currentStepIndex && setStep(s.key)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${step === s.key
-                  ? 'bg-primary text-primary-foreground'
-                  : index < currentStepIndex
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
+                  step === s.key
+                    ? 'bg-primary text-primary-foreground'
+                    : index < currentStepIndex
                     ? 'bg-primary/20 text-primary cursor-pointer'
                     : 'bg-muted/20 text-muted-foreground'
-                  }`}
+                }`}
               >
                 {s.icon}
                 <span className="hidden sm:inline">{s.label}</span>
               </button>
               {index < steps.length - 1 && (
-                <div className={`w-8 h-px mx-2 ${index < currentStepIndex ? 'bg-primary' : 'bg-muted/30'
-                  }`} />
+                <div className={`w-8 h-px mx-2 ${
+                  index < currentStepIndex ? 'bg-primary' : 'bg-muted/30'
+                }`} />
               )}
             </div>
           ))}

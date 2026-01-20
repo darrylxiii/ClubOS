@@ -1,4 +1,4 @@
-import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from 'recharts';
 import { useMoneybirdFinancials, useSyncMoneybirdFinancials } from '@/hooks/useMoneybirdFinancials';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Loader2 } from 'lucide-react';
@@ -62,7 +62,7 @@ export function RevenueOverviewChart({ year }: RevenueOverviewChartProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Last synced: {metrics.last_synced_at ? formatDistanceToNow(new Date(metrics.last_synced_at), { addSuffix: true }) : 'Never'}
+          Last synced: {formatDistanceToNow(new Date(metrics.last_synced_at), { addSuffix: true })}
         </div>
         <Button variant="outline" size="sm" onClick={handleSync} disabled={isSyncing}>
           {isSyncing ? (

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, UserPlus, Briefcase, Calendar } from "lucide-react";
+import { Activity, UserPlus, Briefcase, Calendar, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ActivityEvent {
@@ -106,7 +106,7 @@ export const PartnerActivityFeed = ({ companyId }: PartnerActivityFeedProps) => 
             type: 'job',
             title: 'Job Posted',
             description: `${job.title} is now live`,
-            timestamp: job.created_at ?? new Date().toISOString(),
+            timestamp: job.created_at,
             icon: Briefcase,
             iconBgColor: 'bg-green-500/10 text-green-500'
           });
@@ -129,7 +129,7 @@ export const PartnerActivityFeed = ({ companyId }: PartnerActivityFeedProps) => 
             type: 'meeting',
             title: 'Meeting Scheduled',
             description: meeting.title,
-            timestamp: meeting.created_at ?? new Date().toISOString(),
+            timestamp: meeting.created_at,
             icon: Calendar,
             iconBgColor: 'bg-purple-500/10 text-purple-500'
           });

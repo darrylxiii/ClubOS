@@ -1,8 +1,10 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Shield, Users, User, Sparkles } from "lucide-react";
 import { UserRole } from "@/hooks/useUserRole";
+import { NotificationBell } from "@/components/NotificationBell";
 import { useProfile } from "@/hooks/useProfile";
 import { TypewriterGreeting } from "./TypewriterGreeting";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -14,14 +14,28 @@ import {
   GraduationCap,
   BookOpen,
   Clock,
+  CheckCircle2,
+  Award,
+  Target,
   Plus,
   Search,
   Filter,
-  ArrowUpDown
+  ArrowUpDown,
+  PlayCircle
 } from "lucide-react";
 import { CreateCourseDialog } from "@/components/academy/CreateCourseDialog";
+import { AcademyDashboard } from "@/components/academy/AcademyDashboard";
+import { ContinueLearningCard } from "@/components/academy/ContinueLearningCard";
+import { MaterialCard } from "@/components/academy/MaterialCard";
 import { PopularCourseCard } from "@/components/academy/PopularCourseCard";
+import { LearnerDashboard } from "@/components/academy/LearnerDashboard";
+import { RecommendationsPanel } from "@/components/academy/RecommendationsPanel";
+import { BadgesDisplay } from "@/components/academy/BadgesDisplay";
 import { EnhancedSearchBar } from "@/components/academy/EnhancedSearchBar";
+import { CourseFilters } from "@/components/academy/CourseFilters";
+import { CategoryGrid } from "@/components/academy/CategoryGrid";
+import { AverageRatingDisplay } from "@/components/academy/AverageRatingDisplay";
+import { SkillTagsDisplay } from "@/components/academy/SkillTagsDisplay";
 import { HeroBanner } from "@/components/academy/HeroBanner";
 import { AcademySidebar } from "@/components/academy/AcademySidebar";
 import { CourseCarousel } from "@/components/academy/CourseCarousel";

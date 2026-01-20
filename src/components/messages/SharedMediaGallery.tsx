@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { FileText, Image as ImageIcon, Video, Download } from 'lucide-react';
+import { FileText, Image as ImageIcon, Video, Download, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 import { MediaItem } from '@/hooks/useConversationMedia';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface SharedMediaGalleryProps {
   media: MediaItem[];

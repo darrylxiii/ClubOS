@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { aiService } from '@/services/aiService';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -35,7 +35,7 @@ export function GenerateDossierButton({
     shareToken: string;
     shareUrl: string;
     expiresAt: string;
-  } | any | null>(null);
+  } | null>(null);
   const [expiryHours, setExpiryHours] = useState(72);
   const [includeScorecard, setIncludeScorecard] = useState(true);
   const [includeTranscript, setIncludeTranscript] = useState(false);
@@ -44,24 +44,23 @@ export function GenerateDossierButton({
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      const dossierData = await aiService.generateMeetingDossier({
-        recordingId,
-        meetingId,
-        candidateId,
-        options: {
-          include_transcript: includeTranscript,
-          include_analysis: includeScorecard,
-          include_action_items: true
+      const { data, error } = await supabase.functions.invoke('generate-meeting-dossier', {
+        body: {
+          recordingId,
+          meetingId,
+          candidateId,
+          options: {
+            expiryHours,
+            includeScorecard,
+            includeTranscript
+          }
         }
       });
 
-      if (!dossierData) throw new Error('Failed to generate');
+      if (error) throw error;
 
-      // Map response to component state shape if needed, or assume it matches
-      const dossier = dossierData;
-
-      if (dossier) {
-        setDossier(dossier);
+      if (data?.dossier) {
+        setDossier(data.dossier);
         toast.success('Dossier generated successfully');
       }
     } catch (error) {
@@ -149,8 +148,8 @@ export function GenerateDossierButton({
               />
             </div>
 
-            <Button
-              onClick={handleGenerate}
+            <Button 
+              onClick={handleGenerate} 
               disabled={generating}
               className="w-full"
             >
@@ -198,8 +197,8 @@ export function GenerateDossierButton({
             </div>
 
             <div className="flex gap-2">
-              <Button
-                variant="outline"
+              <Button 
+                variant="outline" 
                 className="flex-1"
                 onClick={() => {
                   setDossier(null);
@@ -207,7 +206,7 @@ export function GenerateDossierButton({
               >
                 Generate Another
               </Button>
-              <Button
+              <Button 
                 className="flex-1"
                 onClick={() => setOpen(false)}
               >

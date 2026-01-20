@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Lock, Unlock, Trophy, TrendingUp, Plus, Calendar,
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  X, Lock, Unlock, Trophy, TrendingUp, Plus, Calendar,
   Users, Clock, Gavel, History, Sparkles, ArrowUpRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Heart, MessageCircle, Share2, Instagram, Twitter, Video, Settings, Youtube, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { processPostContent } from "@/lib/textUtils";
 import { extractYouTubeVideoId, containsYouTubeUrl } from "@/lib/youtubeUtils";
@@ -24,7 +25,7 @@ interface Story {
   id: string;
   media_url: string;
   media_type: string;
-  created_at: string | null;
+  created_at: string;
 }
 
 interface Like {
@@ -44,8 +45,8 @@ interface SocialAccount {
   id: string;
   platform: string;
   username: string;
-  display_name: string | null;
-  avatar_url: string | null;
+  display_name: string;
+  avatar_url: string;
 }
 
 interface SocialActivityFeedProps {
@@ -86,7 +87,6 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
   };
 
   const fetchPosts = async () => {
-    if (!targetUserId) return;
     const { data } = await supabase
       .from('posts')
       .select('*')
@@ -98,7 +98,6 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
   };
 
   const fetchStories = async () => {
-    if (!targetUserId) return;
     const { data } = await supabase
       .from('stories')
       .select('*')
@@ -107,11 +106,10 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
       .order('created_at', { ascending: false })
       .limit(5);
     
-    if (data) setStories(data as Story[]);
+    if (data) setStories(data);
   };
 
   const fetchLikes = async () => {
-    if (!targetUserId) return;
     const { data } = await supabase
       .from('post_likes')
       .select(`
@@ -131,14 +129,13 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
   };
 
   const fetchSocialAccounts = async () => {
-    if (!targetUserId) return;
     const { data } = await supabase
       .from('social_media_accounts')
       .select('*')
       .eq('user_id', targetUserId)
       .eq('is_active', true);
     
-    if (data) setSocialAccounts(data as SocialAccount[]);
+    if (data) setSocialAccounts(data);
   };
 
   const getPlatformIcon = (platform: string) => {

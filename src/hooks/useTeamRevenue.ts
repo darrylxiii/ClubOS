@@ -22,8 +22,8 @@ export const useTeamRevenue = (year?: number | 'all') => {
     queryFn: async () => {
       // Use optimized RPC function to eliminate N+1 queries
       const { data, error } = await supabase.rpc('get_team_revenue_leaderboard', {
-        target_year: targetYear as number,
-      } as any);
+        target_year: targetYear,
+      });
 
       if (error) {
         console.error('RPC error, falling back to direct query:', error);
@@ -117,7 +117,7 @@ async function fetchTeamRevenueFallback(
     const hasValidCloser = p.closed_by && profileMap.has(p.closed_by);
     const hasValidAdder = p.added_by && profileMap.has(p.added_by);
 
-    if (hasValidSourcer && hasValidCloser && p.sourced_by && p.closed_by) {
+    if (hasValidSourcer && hasValidCloser) {
       initUser(p.sourced_by);
       initUser(p.closed_by);
 
@@ -128,17 +128,17 @@ async function fetchTeamRevenueFallback(
       const closerData = userRevenue.get(p.closed_by)!;
       closerData.revenue += feeAmount * 0.5;
       closerData.deals.add(p.id);
-    } else if (hasValidSourcer && p.sourced_by) {
+    } else if (hasValidSourcer) {
       initUser(p.sourced_by);
       const data = userRevenue.get(p.sourced_by)!;
       data.revenue += feeAmount;
       data.deals.add(p.id);
-    } else if (hasValidCloser && p.closed_by) {
+    } else if (hasValidCloser) {
       initUser(p.closed_by);
       const data = userRevenue.get(p.closed_by)!;
       data.revenue += feeAmount;
       data.deals.add(p.id);
-    } else if (hasValidAdder && p.added_by) {
+    } else if (hasValidAdder) {
       initUser(p.added_by);
       const data = userRevenue.get(p.added_by)!;
       data.revenue += feeAmount;

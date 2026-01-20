@@ -11,9 +11,13 @@
  * Returns: { predictions: [...], model_version, shap_explanations }
  */
 
-import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-import { publicCorsHeaders as corsHeaders } from '../_shared/cors-config.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 interface MatchRequest {
   job_id: string;
@@ -160,16 +164,13 @@ serve(async (req) => {
       try {
         // Generate features
         const { data: featureData, error: featureError } = await supabase.functions.invoke(
-          'ai-integration',
+          'generate-ml-features',
           {
             body: {
-              action: 'generate-ml-features',
-              payload: {
-                candidate_id: match.profile_id,
-                job_id: job_id,
-                use_cache: true,
-              }
-            }
+              candidate_id: match.profile_id,
+              job_id: job_id,
+              use_cache: true,
+            },
           }
         );
 
@@ -329,13 +330,8 @@ async function fallbackRuleBasedMatching(
   for (const candidate of candidates) {
     try {
       const { data: featureData } = await supabase.functions.invoke(
-        'ai-integration',
-        {
-          body: {
-            action: 'generate-ml-features',
-            payload: { candidate_id: candidate.id, job_id: job_id, use_cache: true }
-          }
-        }
+        'generate-ml-features',
+        { body: { candidate_id: candidate.id, job_id: job_id, use_cache: true } }
       );
 
       if (!featureData) continue;

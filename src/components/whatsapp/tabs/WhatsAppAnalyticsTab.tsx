@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { MessageSquare, Send, CheckCheck, Clock, TrendingUp, Users, Zap, Target } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { format, subDays } from 'date-fns';
 import { WhatsAppTemplateAnalytics } from '@/components/whatsapp/WhatsAppTemplateAnalytics';
 
@@ -52,7 +52,7 @@ export function WhatsAppAnalyticsTab() {
   const chartData = Array.from({ length: Math.min(days, 14) }, (_, i) => {
     const date = subDays(new Date(), (Math.min(days, 14) - 1) - i);
     const dayMessages = analytics?.messages.filter(m => 
-      m.created_at && format(new Date(m.created_at), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+      format(new Date(m.created_at), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
     ) || [];
     return {
       date: format(date, 'MMM dd'),

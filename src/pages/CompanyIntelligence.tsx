@@ -10,7 +10,6 @@ import { InlineLoader, SectionLoader } from "@/components/ui/unified-loader";
 import type { CompanyInteraction, CompanyStakeholder } from '@/types/interaction';
 import { AppLayout } from '@/components/AppLayout';
 import { toast } from 'sonner';
-import { aiService } from '@/services/aiService';
 
 export default function CompanyIntelligence() {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +34,7 @@ export default function CompanyIntelligence() {
       const { data: companyData } = await supabase
         .from('companies')
         .select('*')
-        .eq('id', id ?? '')
+        .eq('id', id)
         .single();
       setCompany(companyData);
 
@@ -66,14 +65,14 @@ export default function CompanyIntelligence() {
     if (!id) return;
     setLoadingInsights(true);
     try {
-      const result = await aiService.generateCompanyInsights({
-        companyId: id!
-      }) as any;
+      const { data, error } = await supabase.functions.invoke('generate-company-insights', {
+        body: { companyId: id }
+      });
 
-      if (result?.error) throw new Error(result.error);
+      if (error) throw error;
 
-      if (result?.insights || result) {
-        setInsights(result?.insights || result);
+      if (data?.insights) {
+        setInsights(data.insights);
         toast.success("Insights generated successfully");
       }
     } catch (error) {

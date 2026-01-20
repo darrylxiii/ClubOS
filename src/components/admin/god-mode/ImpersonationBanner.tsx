@@ -3,11 +3,11 @@ import { Eye, X, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useImpersonation } from '@/hooks/useImpersonation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { differenceInMinutes } from 'date-fns';
+import { format, differenceInMinutes } from 'date-fns';
 
 export function ImpersonationBanner() {
   const { isImpersonating, activeSession, endImpersonation, getTargetUserInfo, isLoading } = useImpersonation();
-  const [targetUser, setTargetUser] = useState<{ full_name: string | null; email: string | null } | null>(null);
+  const [targetUser, setTargetUser] = useState<{ full_name: string; email: string } | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
 
   useEffect(() => {

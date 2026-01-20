@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Calendar, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, startOfWeek, endOfWeek, subWeeks } from "date-fns";
+import { format, startOfWeek, endOfWeek, subWeeks, addWeeks } from "date-fns";
 
 interface EmployeeTimeTabProps {
   userId: string;

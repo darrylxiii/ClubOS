@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Video, Sparkles, Zap, Users, Clock } from 'lucide-react';
+import { Video, Sparkles, Zap, Briefcase, Users, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -59,12 +59,10 @@ export function InstantMeetingButton({
   };
 
   const loadPMR = async () => {
-    if (!user?.id) return;
-    
     const { data } = await supabase
       .from('personal_meeting_rooms')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', user?.id)
       .eq('is_active', true)
       .single();
     

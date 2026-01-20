@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useBulkCreateTargets, getPeriodDates } from "@/hooks/useTargetManagement";
 import { EmployeeProfile } from "@/hooks/useEmployeeProfile";
-import { Users } from "lucide-react";
+import { Users, Target } from "lucide-react";
 
 interface BulkTargetDialogProps {
   open: boolean;

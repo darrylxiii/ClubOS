@@ -1,10 +1,13 @@
-import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, Rocket, CreditCard, Coins, Video, Briefcase, Settings2, Award } from "lucide-react";
+import { toast } from "sonner";
 
 // Sub-components
 import { FreelanceAvailabilitySection } from "./FreelanceAvailabilitySection";
@@ -62,7 +65,7 @@ export function EnhancedFreelanceSettings() {
       freelanceProfile.professional_title,
       freelanceProfile.professional_summary,
       freelanceProfile.hourly_rate_min,
-      (freelanceProfile.categories?.length ?? 0) > 0,
+      freelanceProfile.categories?.length > 0,
       freelanceProfile.portfolio_items && (freelanceProfile.portfolio_items as any[])?.length > 0,
       freelanceProfile.video_intro_url,
       freelanceProfile.stripe_connect_onboarded,

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { ClubSyncBadge } from "@/components/jobs/ClubSyncBadge";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -42,11 +43,17 @@ import {
   Users,
   CheckCircle,
   XCircle,
+  AlertCircle,
   Briefcase,
+  Target,
+  Calendar,
   Award,
+  BookOpen,
   Bell,
+  FileText,
   Info,
   Sparkles,
+  Timer,
   Flag,
   PlayCircle,
   Settings,
@@ -61,7 +68,6 @@ import {
   Archive,
   RotateCcw,
 } from "lucide-react";
-import { calculateDaysSince } from "@/lib/jobUtils";
 import { CreateJobDialog } from "./CreateJobDialog";
 import { useRole } from "@/contexts/RoleContext";
 import confetti from "canvas-confetti";
@@ -69,10 +75,13 @@ import { JobCardMetrics } from "./job-card/JobCardMetrics";
 import { JobCardLastActivity } from "./job-card/JobCardLastActivity";
 import { JobCardActions } from "./job-card/JobCardActions";
 import { JobCardHeader } from "./job-card/JobCardHeader";
+import { JobsAnalyticsWidget } from "./JobsAnalyticsWidget";
 import { JobFilterBar, JobFilterType } from "./JobFilterBar";
+import { formatLastActivity } from "@/lib/jobUtils";
 import { JobSearchBar } from "./JobSearchBar";
 import { AdvancedJobFilters } from "./AdvancedJobFilters";
 import { usePersistedJobFilters } from "@/hooks/usePersistedJobFilters";
+import { JobFilterState } from "@/types/jobFilters";
 import { JobStatusSummaryBar, JobStatusFilter } from "./JobStatusSummaryBar";
 
 interface PartnerJobsHomeProps {
@@ -89,10 +98,8 @@ interface JobWithMetrics {
   candidate_count: number;
   active_stage_count: number;
   last_activity: string | null;
-  last_activity_at?: string | null;
   last_activity_user: { name: string; avatar: string | null } | null;
   days_since_opened: number;
-  days_open?: number;
   conversion_rate: number | null;
   company_name: string;
   company_logo: string | null;
@@ -131,7 +138,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const [statusFilter, setStatusFilter] = useState<JobStatusFilter>('all');
   const [isPublishingAll, setIsPublishingAll] = useState(false);
   const isAdmin = role === 'admin';
-
+  
   // Use persisted filters
   const { filters, updateFilters, resetFilters, hasActiveFilters } = usePersistedJobFilters();
 
@@ -171,11 +178,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
             logo_url
           )
         `);
-
+      
       if (role !== 'admin' && companyId) {
         query = query.eq('company_id', companyId);
       }
-
+      
       const { data: jobsData, error: jobsError } = await query
         .order('created_at', { ascending: false });
 
@@ -210,7 +217,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       const jobsWithMetrics: JobWithMetrics[] = (jobsData || []).map((job: any) => {
         const applications = applicationsByJob[job.id.toString()] || [];
         const candidateCount = applications.length;
-
+        
         // Count active candidates (not rejected/withdrawn)
         const activeStageCount = applications.filter((app: any) => {
           const stages = app.stages || [];
@@ -221,12 +228,12 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         // Get most recent activity with user info
         let lastActivity = null;
         let lastActivityUser = null;
-
+        
         if (applications.length > 0) {
           const mostRecentApp = applications.reduce((latest: any, app: any) => {
             return !latest || app.updated_at > latest.updated_at ? app : latest;
           }, null);
-
+          
           lastActivity = mostRecentApp.updated_at;
           lastActivityUser = mostRecentApp.profiles ? {
             name: mostRecentApp.profiles.full_name || 'Unknown User',
@@ -235,7 +242,9 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         }
 
         // Calculate days since job was opened
-        const daysSinceOpened = calculateDaysSince(job.created_at);
+        const daysSinceOpened = Math.floor(
+          (new Date().getTime() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)
+        );
 
         // Calculate conversion rate (hired / total applied)
         const hiredApps = applications.filter((app: any) => {
@@ -258,11 +267,9 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           last_activity: lastActivity,
           last_activity_user: lastActivityUser,
           days_since_opened: daysSinceOpened,
-          days_open: daysSinceOpened,
           conversion_rate: conversionRate,
           company_name: job.companies?.name || 'Unknown Company',
           company_logo: job.companies?.logo_url || null,
-          last_activity_at: lastActivity,
           is_stealth: job.is_stealth || false,
           is_continuous: job.is_continuous || false,
           hired_count: job.hired_count || 0,
@@ -276,7 +283,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       const activeJobs = jobsWithMetrics.filter(j => j.status === 'published').length;
       const totalCandidates = jobsWithMetrics.reduce((sum, j) => sum + j.candidate_count, 0);
       const clubSyncCount = jobsWithMetrics.filter(j => j.club_sync_status === 'accepted').length;
-
+      
       const allDaysOpen = jobsWithMetrics.map(j => j.days_since_opened);
       const avgCompanyTimeToHire = allDaysOpen.length > 0
         ? Math.round(allDaysOpen.reduce((sum, t) => sum + t, 0) / allDaysOpen.length)
@@ -323,45 +330,45 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   // Apply all filters
   const filteredJobs = useMemo(() => {
     let filtered = [...jobs];
-
+    
     // Apply search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(job =>
+      filtered = filtered.filter(job => 
         job.title.toLowerCase().includes(searchLower) ||
         job.company_name.toLowerCase().includes(searchLower) ||
         job.location.toLowerCase().includes(searchLower)
       );
     }
-
+    
     // Apply status filter
     if (filters.status.length > 0) {
-      filtered = filtered.filter(job =>
+      filtered = filtered.filter(job => 
         filters.status.includes(job.status.toLowerCase())
       );
     }
-
+    
     // Apply company filter
     if (filters.companies.length > 0) {
-      filtered = filtered.filter(job =>
+      filtered = filtered.filter(job => 
         filters.companies.includes(job.company_name)
       );
     }
-
+    
     // Apply date range filter
     if (filters.dateRange.from) {
-      filtered = filtered.filter(job =>
+      filtered = filtered.filter(job => 
         new Date(job.created_at) >= filters.dateRange.from!
       );
     }
     if (filters.dateRange.to) {
       const toDate = new Date(filters.dateRange.to);
       toDate.setHours(23, 59, 59, 999); // Include the entire day
-      filtered = filtered.filter(job =>
+      filtered = filtered.filter(job => 
         new Date(job.created_at) <= toDate
       );
     }
-
+    
     // Apply quick filter
     switch (filters.quickFilter) {
       case 'expiring-soon':
@@ -386,19 +393,19 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         break;
       case 'high-engagement':
         // Jobs with conversion rate >= 15% or many candidates
-        filtered = filtered.filter(job =>
-          (job.conversion_rate && job.conversion_rate >= 15) ||
+        filtered = filtered.filter(job => 
+          (job.conversion_rate && job.conversion_rate >= 15) || 
           job.candidate_count >= 10
         );
         filtered.sort((a, b) => (b.conversion_rate || 0) - (a.conversion_rate || 0));
         break;
       default:
         // All jobs, sorted by most recent first
-        filtered.sort((a, b) =>
+        filtered.sort((a, b) => 
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
     }
-
+    
     return filtered;
   }, [jobs, filters]);
 
@@ -412,10 +419,10 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       );
       return daysSince <= 7;
     }).length;
-    const highEngagement = jobs.filter(job =>
+    const highEngagement = jobs.filter(job => 
       (job.conversion_rate && job.conversion_rate >= 15) || job.candidate_count >= 10
     ).length;
-
+    
     return {
       all: jobs.length,
       expiringSoon,
@@ -438,7 +445,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     if (statusFilter === 'all') return filteredJobs;
     return filteredJobs.filter(job => job.status === statusFilter);
   }, [filteredJobs, statusFilter]);
-
+  
   // Handler for quick filter change
   const handleQuickFilterChange = (filter: JobFilterType) => {
     updateFilters({ quickFilter: filter });
@@ -557,10 +564,10 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     setIsPublishingAll(true);
     try {
       const draftJobs = jobs.filter(j => j.status === 'draft');
-
+      
       const { error } = await supabase
         .from('jobs')
-        .update({
+        .update({ 
           status: 'published',
           published_at: new Date().toISOString()
         })
@@ -748,361 +755,361 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       <div className="relative z-10">
         <TooltipProvider>
           {/* Welcome Modal */}
-          <Dialog open={welcomeModalOpen} onOpenChange={setWelcomeModalOpen}>
-            <DialogContent className="sm:max-w-lg glass-card">
-              <DialogHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  <Sparkles className="w-6 h-6 text-white" />
-                  <DialogTitle className="text-2xl">Welcome to Your Hiring HQ</DialogTitle>
-                </div>
-                <DialogDescription className="text-base space-y-4 pt-4">
-                  <p>Your exclusive command center for world-class hiring. Here's what you can do:</p>
-                  <ul className="space-y-3">
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
-                      <span><strong>Track live metrics</strong> across all your searches</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
-                      <span><strong>Activate Club Sync</strong> for vetted, premium candidates 3x faster</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
-                      <span><strong>Manage your pipeline</strong> with advanced analytics and insights</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
-                      <span><strong>Get white-glove support</strong> from the Quantum Club team</span>
-                    </li>
-                  </ul>
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex gap-3 mt-4">
-                <Button onClick={() => setWelcomeModalOpen(false)} variant="outline" className="flex-1">
-                  Explore on My Own
-                </Button>
-                <Button
-                  onClick={() => {
-                    setWelcomeModalOpen(false);
-                    setCreateDialogOpen(true);
-                  }}
-                  className="flex-1 gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create First Job
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+      <Dialog open={welcomeModalOpen} onOpenChange={setWelcomeModalOpen}>
+        <DialogContent className="sm:max-w-lg glass-card">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <Sparkles className="w-6 h-6 text-white" />
+              <DialogTitle className="text-2xl">Welcome to Your Hiring HQ</DialogTitle>
+            </div>
+            <DialogDescription className="text-base space-y-4 pt-4">
+              <p>Your exclusive command center for world-class hiring. Here's what you can do:</p>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
+                  <span><strong>Track live metrics</strong> across all your searches</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
+                  <span><strong>Activate Club Sync</strong> for vetted, premium candidates 3x faster</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
+                  <span><strong>Manage your pipeline</strong> with advanced analytics and insights</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
+                  <span><strong>Get white-glove support</strong> from the Quantum Club team</span>
+                </li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 mt-4">
+            <Button onClick={() => setWelcomeModalOpen(false)} variant="outline" className="flex-1">
+              Explore on My Own
+            </Button>
+            <Button 
+              onClick={() => {
+                setWelcomeModalOpen(false);
+                setCreateDialogOpen(true);
+              }} 
+              className="flex-1 gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Create First Job
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-          {/* Club Sync Info Modal */}
-          <Dialog open={clubSyncInfoOpen} onOpenChange={setClubSyncInfoOpen}>
-            <DialogContent className="sm:max-w-md glass-card">
-              <DialogHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  <Zap className="w-6 h-6 text-white" />
-                  <DialogTitle className="text-xl">What's Club Sync?</DialogTitle>
-                </div>
-                <DialogDescription className="text-base space-y-4 pt-4">
-                  <p className="font-semibold text-foreground">Your premium hiring accelerator.</p>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
-                      <TrendingUp className="w-5 h-5 text-white mt-0.5" />
-                      <div>
-                        <p className="font-semibold text-sm">3x Faster Hiring</p>
-                        <p className="text-sm text-muted-foreground">Get vetted candidates in days, not weeks</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
-                      <Award className="w-5 h-5 text-white mt-0.5" />
-                      <div>
-                        <p className="font-semibold text-sm">Pre-Vetted Talent</p>
-                        <p className="text-sm text-muted-foreground">Every candidate is Club-verified for quality</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
-                      <HeadphonesIcon className="w-5 h-5 text-white mt-0.5" />
-                      <div>
-                        <p className="font-semibold text-sm">Dedicated Support</p>
-                        <p className="text-sm text-muted-foreground">Personal recruiter assistance included</p>
-                      </div>
-                    </div>
+      {/* Club Sync Info Modal */}
+      <Dialog open={clubSyncInfoOpen} onOpenChange={setClubSyncInfoOpen}>
+        <DialogContent className="sm:max-w-md glass-card">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <Zap className="w-6 h-6 text-white" />
+              <DialogTitle className="text-xl">What's Club Sync?</DialogTitle>
+            </div>
+            <DialogDescription className="text-base space-y-4 pt-4">
+              <p className="font-semibold text-foreground">Your premium hiring accelerator.</p>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
+                  <TrendingUp className="w-5 h-5 text-white mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">3x Faster Hiring</p>
+                    <p className="text-sm text-muted-foreground">Get vetted candidates in days, not weeks</p>
                   </div>
-                </DialogDescription>
-              </DialogHeader>
-              <Button onClick={() => setClubSyncInfoOpen(false)} className="w-full">
-                Got It
-              </Button>
-            </DialogContent>
-          </Dialog>
-
-
-          {/* Header */}
-          <div className="space-y-6 mb-8">
-            <div className="flex flex-col gap-6">
-              <div>
-                <p className="text-caps text-muted-foreground mb-2">
-                  {isAdmin ? "Platform Overview" : "Your Hiring HQ"}
-                </p>
-                <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
-                  {isAdmin ? "All Active Searches" : "Active Searches"}
-                </h1>
-                {isAdmin && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {companyId ? "Viewing specific company" : "Cross-company view"}
-                  </p>
-                )}
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
+                  <Award className="w-5 h-5 text-white mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">Pre-Vetted Talent</p>
+                    <p className="text-sm text-muted-foreground">Every candidate is Club-verified for quality</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
+                  <HeadphonesIcon className="w-5 h-5 text-white mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">Dedicated Support</p>
+                    <p className="text-sm text-muted-foreground">Personal recruiter assistance included</p>
+                  </div>
+                </div>
               </div>
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setClubSyncInfoOpen(false)} className="w-full">
+            Got It
+          </Button>
+        </DialogContent>
+      </Dialog>
 
-              {/* Action Buttons - Responsive Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <Button
-                  variant="glass"
-                  className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
-                  onClick={() => navigate('/company-applications')}
-                >
-                  <LayoutDashboard className="w-5 h-5 mb-1" />
-                  <span className="text-sm font-semibold">Applications Hub</span>
-                </Button>
 
-                <Button
-                  variant="glass"
-                  className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
-                  onClick={() => navigate('/company-jobs')}
-                >
-                  <Settings className="w-5 h-5 mb-1" />
-                  <span className="text-sm font-semibold">Company Settings</span>
-                </Button>
-
-                {isAdmin ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="glass"
-                        className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
-                      >
-                        <Shield className="w-5 h-5 mb-1" />
-                        <span className="text-sm font-semibold">Admin Tools</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-72 bg-card/95 backdrop-blur-xl border-border/20">
-                      <DropdownMenuLabel className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-white" />
-                        Platform Administration
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-
-                      <DropdownMenuItem onClick={() => navigate('/admin/companies')} className="gap-2">
-                        <Building2 className="w-4 h-4" />
-                        <div className="flex-1">
-                          <p className="font-medium">Company Management</p>
-                          <p className="text-xs text-muted-foreground">View & manage all partners</p>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem className="gap-2">
-                        <Globe className="w-4 h-4" />
-                        <div className="flex-1">
-                          <p className="font-medium">Bulk Operations</p>
-                          <p className="text-xs text-muted-foreground">Cross-job actions at scale</p>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem onClick={() => navigate('/admin/ai-config')} className="gap-2">
-                        <Brain className="w-4 h-4" />
-                        <div className="flex-1">
-                          <p className="font-medium">AI Model Config</p>
-                          <p className="text-xs text-muted-foreground">Tune matching algorithms</p>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuSeparator />
-
-                      <DropdownMenuItem onClick={() => navigate('/admin/club-sync-requests')} className="gap-2">
-                        <Zap className="w-4 h-4" />
-                        <div className="flex-1">
-                          <p className="font-medium">Club Sync Requests</p>
-                          <p className="text-xs text-muted-foreground">Review partner requests</p>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem className="gap-2">
-                        <Activity className="w-4 h-4" />
-                        <div className="flex-1">
-                          <p className="font-medium">System Health</p>
-                          <p className="text-xs text-muted-foreground">Platform status & uptime</p>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem className="gap-2">
-                        <Lock className="w-4 h-4" />
-                        <div className="flex-1">
-                          <p className="font-medium">Access Control</p>
-                          <p className="text-xs text-muted-foreground">Roles & permissions</p>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem onClick={() => navigate('/admin/analytics')} className="gap-2">
-                        <BarChart3 className="w-4 h-4" />
-                        <div className="flex-1">
-                          <p className="font-medium">Global Analytics</p>
-                          <p className="text-xs text-muted-foreground">Cross-company insights</p>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuSeparator />
-
-                      <DropdownMenuItem onClick={fetchJobsWithMetrics} className="gap-2">
-                        <RefreshCw className="w-4 h-4" />
-                        <div className="flex-1">
-                          <p className="font-medium">Refresh Metrics</p>
-                          <p className="text-xs text-muted-foreground">Recalculate everything</p>
-                        </div>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <Button
+      {/* Header */}
+      <div className="space-y-6 mb-8">
+        <div className="flex flex-col gap-6">
+          <div>
+            <p className="text-caps text-muted-foreground mb-2">
+              {isAdmin ? "Platform Overview" : "Your Hiring HQ"}
+            </p>
+            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
+              {isAdmin ? "All Active Searches" : "Active Searches"}
+            </h1>
+            {isAdmin && (
+              <p className="text-sm text-muted-foreground mt-2">
+                {companyId ? "Viewing specific company" : "Cross-company view"}
+              </p>
+            )}
+          </div>
+          
+          {/* Action Buttons - Responsive Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Button 
+              variant="glass"
+              className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
+              onClick={() => navigate('/company-applications')}
+            >
+              <LayoutDashboard className="w-5 h-5 mb-1" />
+              <span className="text-sm font-semibold">Applications Hub</span>
+            </Button>
+            
+            <Button 
+              variant="glass"
+              className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
+              onClick={() => navigate('/company-jobs')}
+            >
+              <Settings className="w-5 h-5 mb-1" />
+              <span className="text-sm font-semibold">Company Settings</span>
+            </Button>
+            
+            {isAdmin ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
                     variant="glass"
                     className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
                   >
-                    <Users className="w-5 h-5 mb-1" />
-                    <span className="text-sm font-semibold">Invite Team</span>
+                    <Shield className="w-5 h-5 mb-1" />
+                    <span className="text-sm font-semibold">Admin Tools</span>
                   </Button>
-                )}
-
-                <Button
-                  onClick={() => setCreateDialogOpen(true)}
-                  variant="glass"
-                  className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
-                >
-                  <Plus className="w-5 h-5 mb-1" />
-                  <span className="text-sm font-semibold">New Job</span>
-                </Button>
-              </div>
-            </div>
-
-            {/* Bento KPI Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Active Searches - Larger emphasis */}
-              <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all sm:col-span-2 lg:col-span-1">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <Briefcase className="w-6 h-6 text-foreground" />
-                    <Badge variant="outline" className="text-xs">Live</Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-4xl font-black text-foreground">{companyMetrics.activeSearches}</p>
-                    <p className="text-sm font-medium text-muted-foreground">Active Searches</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Total Candidates */}
-              <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <Users className="w-5 h-5 text-foreground" />
-                    <Badge variant="outline" className="text-xs">Pipeline</Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-3xl font-black text-foreground">{companyMetrics.totalCandidates}</p>
-                    <p className="text-sm text-muted-foreground">Candidates in Pipeline</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Avg Time to Hire */}
-              <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <Clock className="w-5 h-5 text-foreground" />
-                    <Badge variant="outline" className="text-xs">Speed</Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-3xl font-black text-foreground">
-                      {companyMetrics.avgTimeToHire !== null ? `${companyMetrics.avgTimeToHire}d` : '—'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Avg. Time-to-Hire</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Conversion Rate */}
-              <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <TrendingUp className="w-5 h-5 text-foreground" />
-                    <Badge variant="outline" className="text-xs">Success</Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-3xl font-black text-foreground">
-                      {companyMetrics.conversionRate !== null ? `${companyMetrics.conversionRate}%` : '—'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Conversion Rate</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Club Sync Status - Larger emphasis */}
-              <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all sm:col-span-2 lg:col-span-1">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-6 h-6 text-foreground" />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => setClubSyncInfoOpen(true)}
-                          >
-                            <Info className="w-4 h-4 text-muted-foreground" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <p className="text-sm">Get top-vetted candidates 3x faster with Club Sync</p>
-                        </TooltipContent>
-                      </Tooltip>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72 bg-card/95 backdrop-blur-xl border-border/20">
+                  <DropdownMenuLabel className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-white" />
+                    Platform Administration
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={() => navigate('/admin/companies')} className="gap-2">
+                    <Building2 className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Company Management</p>
+                      <p className="text-xs text-muted-foreground">View & manage all partners</p>
                     </div>
-                    <Badge variant="outline" className="text-xs">Premium</Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-4xl font-black text-foreground">{companyMetrics.clubSyncActive}</p>
-                    <p className="text-sm font-medium text-muted-foreground">Club Sync Active</p>
-                  </div>
-                  {companyMetrics.clubSyncActive < companyMetrics.activeSearches && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full mt-3 text-xs gap-2"
-                      onClick={() => toast.info("Contact your Quantum Club rep to activate Club Sync")}
-                    >
-                      <Sparkles className="w-3 h-3" />
-                      Enable {companyMetrics.activeSearches - companyMetrics.clubSyncActive} More
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="gap-2">
+                    <Globe className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Bulk Operations</p>
+                      <p className="text-xs text-muted-foreground">Cross-job actions at scale</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem onClick={() => navigate('/admin/ai-config')} className="gap-2">
+                    <Brain className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">AI Model Config</p>
+                      <p className="text-xs text-muted-foreground">Tune matching algorithms</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={() => navigate('/admin/club-sync-requests')} className="gap-2">
+                    <Zap className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Club Sync Requests</p>
+                      <p className="text-xs text-muted-foreground">Review partner requests</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="gap-2">
+                    <Activity className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">System Health</p>
+                      <p className="text-xs text-muted-foreground">Platform status & uptime</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="gap-2">
+                    <Lock className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Access Control</p>
+                      <p className="text-xs text-muted-foreground">Roles & permissions</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem onClick={() => navigate('/admin/analytics')} className="gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Global Analytics</p>
+                      <p className="text-xs text-muted-foreground">Cross-company insights</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={fetchJobsWithMetrics} className="gap-2">
+                    <RefreshCw className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Refresh Metrics</p>
+                      <p className="text-xs text-muted-foreground">Recalculate everything</p>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="glass"
+                className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
+              >
+                <Users className="w-5 h-5 mb-1" />
+                <span className="text-sm font-semibold">Invite Team</span>
+              </Button>
+            )}
+            
+            <Button 
+              onClick={() => setCreateDialogOpen(true)}
+              variant="glass"
+              className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
+            >
+              <Plus className="w-5 h-5 mb-1" />
+              <span className="text-sm font-semibold">New Job</span>
+            </Button>
+          </div>
+        </div>
 
-              {/* Pending Actions */}
-              <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <Bell className="w-5 h-5 text-foreground" />
-                    <Badge variant="outline" className="text-xs">Action</Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-3xl font-black text-foreground">{companyMetrics.pendingActions}</p>
-                    <p className="text-sm text-muted-foreground">Pending Actions</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+        {/* Bento KPI Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Active Searches - Larger emphasis */}
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all sm:col-span-2 lg:col-span-1">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <Briefcase className="w-6 h-6 text-foreground" />
+                <Badge variant="outline" className="text-xs">Live</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-4xl font-black text-foreground">{companyMetrics.activeSearches}</p>
+                <p className="text-sm font-medium text-muted-foreground">Active Searches</p>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Quick Actions Bar - Hidden */}
-            {/*
+          {/* Total Candidates */}
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <Users className="w-5 h-5 text-foreground" />
+                <Badge variant="outline" className="text-xs">Pipeline</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black text-foreground">{companyMetrics.totalCandidates}</p>
+                <p className="text-sm text-muted-foreground">Candidates in Pipeline</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Avg Time to Hire */}
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <Clock className="w-5 h-5 text-foreground" />
+                <Badge variant="outline" className="text-xs">Speed</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black text-foreground">
+                  {companyMetrics.avgTimeToHire !== null ? `${companyMetrics.avgTimeToHire}d` : '—'}
+                </p>
+                <p className="text-sm text-muted-foreground">Avg. Time-to-Hire</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Conversion Rate */}
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <TrendingUp className="w-5 h-5 text-foreground" />
+                <Badge variant="outline" className="text-xs">Success</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black text-foreground">
+                  {companyMetrics.conversionRate !== null ? `${companyMetrics.conversionRate}%` : '—'}
+                </p>
+                <p className="text-sm text-muted-foreground">Conversion Rate</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Club Sync Status - Larger emphasis */}
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all sm:col-span-2 lg:col-span-1">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-6 h-6 text-foreground" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 w-6 p-0"
+                        onClick={() => setClubSyncInfoOpen(true)}
+                      >
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p className="text-sm">Get top-vetted candidates 3x faster with Club Sync</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <Badge variant="outline" className="text-xs">Premium</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-4xl font-black text-foreground">{companyMetrics.clubSyncActive}</p>
+                <p className="text-sm font-medium text-muted-foreground">Club Sync Active</p>
+              </div>
+              {companyMetrics.clubSyncActive < companyMetrics.activeSearches && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="w-full mt-3 text-xs gap-2"
+                  onClick={() => toast.info("Contact your Quantum Club rep to activate Club Sync")}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Enable {companyMetrics.activeSearches - companyMetrics.clubSyncActive} More
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Pending Actions */}
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <Bell className="w-5 h-5 text-foreground" />
+                <Badge variant="outline" className="text-xs">Action</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black text-foreground">{companyMetrics.pendingActions}</p>
+                <p className="text-sm text-muted-foreground">Pending Actions</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions Bar - Hidden */}
+        {/*
         <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:border-border/40 transition-all">
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1145,98 +1152,98 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         </Card>
         </div>
         */}
-          </div>
+      </div>
 
-          {/* Search and Filters Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">
-                All Jobs {jobs.length > 0 && `(${jobs.length})`}
-              </h2>
+      {/* Search and Filters Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">
+            All Jobs {jobs.length > 0 && `(${jobs.length})`}
+          </h2>
+        </div>
+        
+        {/* Status Summary Bar with Tabs and Bulk Actions */}
+        <JobStatusSummaryBar
+          counts={statusCounts}
+          currentStatus={statusFilter}
+          onStatusChange={setStatusFilter}
+          onPublishAllDrafts={handlePublishAllDrafts}
+          isPublishingAll={isPublishingAll}
+        />
+        
+        {/* Search Bar */}
+        <JobSearchBar
+          value={filters.search}
+          onChange={(value) => updateFilters({ search: value })}
+          resultsCount={statusFilteredJobs.length}
+          placeholder="Search by job title, company, or location..."
+        />
+        
+        {/* Quick Filters */}
+        <JobFilterBar
+          currentFilter={filters.quickFilter}
+          onFilterChange={handleQuickFilterChange}
+          jobCounts={jobCounts}
+        />
+        
+        {/* Advanced Filters */}
+        <AdvancedJobFilters
+          filters={filters}
+          onFilterChange={updateFilters}
+          onReset={resetFilters}
+          hasActiveFilters={hasActiveFilters}
+          availableCompanies={availableCompanies}
+        />
+      </div>
+
+      {/* Jobs Grid */}
+      {jobs.length === 0 ? (
+        <Card className="border-2 border-dashed border-border/40 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:border-border/60 transition-colors">
+          <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+            <Briefcase className="w-12 h-12 text-white mb-4" />
+            <h3 className="text-2xl font-bold mb-2">Welcome to Your Hiring HQ</h3>
+            <p className="text-muted-foreground mb-6 text-center max-w-md">
+              Create your first job to unlock Club Sync, premium candidate matching, and world-class analytics
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Button onClick={() => setWelcomeModalOpen(true)} variant="outline" size="lg" className="gap-2">
+                <PlayCircle className="w-5 h-5" />
+                Quick Tour
+              </Button>
+              <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
+                <Plus className="w-5 h-5" />
+                Create First Job
+              </Button>
             </div>
-
-            {/* Status Summary Bar with Tabs and Bulk Actions */}
-            <JobStatusSummaryBar
-              counts={statusCounts}
-              currentStatus={statusFilter}
-              onStatusChange={setStatusFilter}
-              onPublishAllDrafts={handlePublishAllDrafts}
-              isPublishingAll={isPublishingAll}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {statusFilteredJobs.map((job) => (
+            <MemoizedJobCard 
+              key={job.id}
+              job={job}
+              onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
+              onPublish={handlePublishJob}
+              onUnpublish={handleUnpublishJob}
+              onClose={handleCloseJob}
+              onReopen={handleReopenJob}
+              onArchive={handleArchiveJob}
+              onRestore={handleRestoreJob}
+              onQuickAction={handleQuickAction}
+              onClubSync={handleClubSyncAction}
+              getClubSyncBadge={getClubSyncBadge}
             />
+          ))}
+        </div>
+      )}
 
-            {/* Search Bar */}
-            <JobSearchBar
-              value={filters.search}
-              onChange={(value) => updateFilters({ search: value })}
-              resultsCount={statusFilteredJobs.length}
-              placeholder="Search by job title, company, or location..."
-            />
-
-            {/* Quick Filters */}
-            <JobFilterBar
-              currentFilter={filters.quickFilter}
-              onFilterChange={handleQuickFilterChange}
-              jobCounts={jobCounts}
-            />
-
-            {/* Advanced Filters */}
-            <AdvancedJobFilters
-              filters={filters}
-              onFilterChange={updateFilters}
-              onReset={resetFilters}
-              hasActiveFilters={hasActiveFilters}
-              availableCompanies={availableCompanies}
-            />
-          </div>
-
-          {/* Jobs Grid */}
-          {jobs.length === 0 ? (
-            <Card className="border-2 border-dashed border-border/40 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:border-border/60 transition-colors">
-              <CardContent className="flex flex-col items-center justify-center py-16 px-6">
-                <Briefcase className="w-12 h-12 text-white mb-4" />
-                <h3 className="text-2xl font-bold mb-2">Welcome to Your Hiring HQ</h3>
-                <p className="text-muted-foreground mb-6 text-center max-w-md">
-                  Create your first job to unlock Club Sync, premium candidate matching, and world-class analytics
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                  <Button onClick={() => setWelcomeModalOpen(true)} variant="outline" size="lg" className="gap-2">
-                    <PlayCircle className="w-5 h-5" />
-                    Quick Tour
-                  </Button>
-                  <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
-                    <Plus className="w-5 h-5" />
-                    Create First Job
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              {statusFilteredJobs.map((job) => (
-                <MemoizedJobCard
-                  key={job.id}
-                  job={job}
-                  onNavigate={(id: string) => navigate(`/jobs/${id}/dashboard`)}
-                  onPublish={handlePublishJob}
-                  onUnpublish={handleUnpublishJob}
-                  onClose={handleCloseJob}
-                  onReopen={handleReopenJob}
-                  onArchive={handleArchiveJob}
-                  onRestore={handleRestoreJob}
-                  onQuickAction={handleQuickAction}
-                  onClubSync={handleClubSyncAction}
-                  getClubSyncBadge={getClubSyncBadge}
-                />
-              ))}
-            </div>
-          )}
-
-          <CreateJobDialog
-            open={createDialogOpen}
-            onOpenChange={setCreateDialogOpen}
-            companyId={companyId || undefined}
-            onJobCreated={fetchJobsWithMetrics}
-          />
+      <CreateJobDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        companyId={companyId || undefined}
+        onJobCreated={fetchJobsWithMetrics}
+      />
         </TooltipProvider>
       </div>
     </div>
@@ -1244,18 +1251,18 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 };
 
 // Memoized Job Card Component for Performance
-const MemoizedJobCard = memo(({
-  job,
-  onNavigate,
+const MemoizedJobCard = memo(({ 
+  job, 
+  onNavigate, 
   onPublish,
   onUnpublish,
   onClose,
   onReopen,
   onArchive,
   onRestore,
-  onQuickAction,
+  onQuickAction, 
   onClubSync,
-  getClubSyncBadge
+  getClubSyncBadge 
 }: any) => {
   return (
     <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all duration-300">
@@ -1272,8 +1279,8 @@ const MemoizedJobCard = memo(({
             hiredCount={job.hired_count}
             targetHireCount={job.target_hire_count}
             externalUrl={job.external_url}
-            daysOpen={job.days_open ?? job.days_since_opened ?? calculateDaysSince(job.created_at)}
-            lastActivityDaysAgo={calculateDaysSince(job.last_activity_at || job.last_activity) || 999}
+            daysOpen={job.days_open || Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))}
+            lastActivityDaysAgo={job.last_activity_at ? Math.floor((Date.now() - new Date(job.last_activity_at).getTime()) / (1000 * 60 * 60 * 24)) : 999}
             applicantsCount={job.applications_count || 0}
           />
           <DropdownMenu>
@@ -1327,7 +1334,7 @@ const MemoizedJobCard = memo(({
                   Restore from Archive
                 </DropdownMenuItem>
               )}
-
+              
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-xs text-muted-foreground">Quick Actions</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => onQuickAction('invite', job.id, job.title)}>

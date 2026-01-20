@@ -4,7 +4,7 @@
  * Reduces ~20 sequential queries to ~5 batched queries
  */
 
-import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 
 export interface UserContext {
   profile: any;

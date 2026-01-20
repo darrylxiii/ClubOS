@@ -43,7 +43,7 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
       let contentJson;
       try {
         contentJson = JSON.parse(formData.content_template);
-      } catch (_e) {
+      } catch (e) {
         toast.error('Invalid JSON in content template');
         setSaving(false);
         return;

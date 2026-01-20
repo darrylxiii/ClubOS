@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Clock, CheckCircle, TrendingUp, TrendingDown, Minus, Users, Target, 
-  DollarSign, Star, BarChart3, RefreshCw, Award, Percent,
+  DollarSign, Star, BarChart3, RefreshCw, Calendar, Award, Percent,
   Timer, Briefcase, Heart, Gauge, Wallet
 } from 'lucide-react';
 import { useKPIMetrics, useRefreshKPIs, type KPIMetric } from '@/hooks/useQuantumKPIs';

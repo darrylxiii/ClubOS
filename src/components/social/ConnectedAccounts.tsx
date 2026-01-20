@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Instagram, Twitter, Video, Linkedin, Facebook, Youtube, Trash2, RefreshCw, ExternalLink } from "lucide-react";
+import { Instagram, Twitter, Video, Linkedin, Facebook, Youtube, Plus, Trash2, RefreshCw, ExternalLink } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,10 +22,10 @@ interface SocialAccount {
   id: string;
   platform: string;
   username: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  profile_url: string | null;
-  is_active: boolean | null;
+  display_name: string;
+  avatar_url: string;
+  profile_url: string;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -138,7 +138,7 @@ export const ConnectedAccounts = () => {
                     </div>
                   </div>
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={account.avatar_url ?? undefined} />
+                    <AvatarImage src={account.avatar_url} />
                     <AvatarFallback>{account.username[0]?.toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </div>
@@ -148,7 +148,7 @@ export const ConnectedAccounts = () => {
                     variant="outline" 
                     size="sm" 
                     className="flex-1 gap-2"
-                    onClick={() => account.profile_url && window.open(account.profile_url, '_blank')}
+                    onClick={() => window.open(account.profile_url, '_blank')}
                   >
                     <ExternalLink className="h-3 w-3" />
                     View Profile

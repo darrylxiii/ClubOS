@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Building2, ChevronDown, ChevronUp, Euro, Users, Briefcase } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
-import { ReferralPolicy, ReferralEarning, useCompanyJobs } from "@/hooks/useReferralSystem";
+import { ReferralPolicy, ReferralEarning, useCompanyJobs, useJobApplications } from "@/hooks/useReferralSystem";
 import { motion, AnimatePresence } from "framer-motion";
 import { JobReferralCard } from "./JobReferralCard";
 
@@ -114,16 +115,10 @@ export function CompanyReferralCard({ policy, earnings }: CompanyReferralCardPro
                     <h4 className="font-medium">Jobs from {policy.company?.name}</h4>
                   </div>
                   {jobs.length > 0 ? (
-                    jobs.map((job: any) => (
+                    jobs.map((job) => (
                       <JobReferralCard
                         key={job.id}
-                        job={{
-                          ...job,
-                          salary_min: job.salary_min ?? undefined,
-                          salary_max: job.salary_max ?? undefined,
-                          status: job.status ?? undefined,
-                          created_at: job.created_at ?? undefined,
-                        }}
+                        job={job}
                         earnings={companyEarnings.filter(e => e.job_id === job.id)}
                         sharePercentage={policy.share_percentage}
                         compact

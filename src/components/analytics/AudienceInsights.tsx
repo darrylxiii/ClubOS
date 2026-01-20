@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { MapPin, Smartphone, Clock } from "lucide-react";
+import { MapPin, Smartphone, Clock, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +22,7 @@ export const AudienceInsights = () => {
       const { data: userPosts } = await supabase
         .from("unified_posts")
         .select("id")
-        .eq("user_id", user?.id ?? '');
+        .eq("user_id", user?.id);
 
       const postIds = userPosts?.map((p) => p.id) || [];
 

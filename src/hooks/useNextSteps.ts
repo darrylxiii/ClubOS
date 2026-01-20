@@ -51,11 +51,11 @@ export const useNextSteps = () => {
     try {
       setLoading(true);
 
-      // OPTIMIZED: Consolidated 3 profile queries into 1
-      const [profileRes, calendarRes, applicationsRes, interviewsRes, referralsRes, notificationsRes] = await Promise.all([
+      // Fetch all data in parallel
+      const [profileRes, calendarRes, applicationsRes, userMetaRes, interviewsRes, referralsRes, notificationsRes, clubSyncRes] = await Promise.all([
         supabase
           .from('profiles')
-          .select('resume_url, email_verified, phone_verified, linkedin_url, career_preferences, avatar_url, created_at, updated_at, club_sync_enabled')
+          .select('resume_url, email_verified, phone_verified, linkedin_url, career_preferences, avatar_url, created_at')
           .eq('id', user.id)
           .single(),
         supabase
@@ -67,6 +67,11 @@ export const useNextSteps = () => {
           .from('applications')
           .select('id', { count: 'exact', head: true })
           .eq('user_id', user.id),
+        supabase
+          .from('profiles')
+          .select('created_at, updated_at')
+          .eq('id', user.id)
+          .single(),
         (supabase as any)
           .from('detected_interviews')
           .select('id', { count: 'exact', head: true })
@@ -80,7 +85,12 @@ export const useNextSteps = () => {
           .from('notification_preferences')
           .select('id')
           .eq('user_id', user.id)
-          .maybeSingle()
+          .maybeSingle(),
+        supabase
+          .from('profiles')
+          .select('club_sync_enabled')
+          .eq('id', user.id)
+          .single()
       ]);
 
       const profile = profileRes.data;
@@ -89,7 +99,7 @@ export const useNextSteps = () => {
       const interviewsCount = interviewsRes.count || 0;
       const referralsCount = referralsRes.count || 0;
       const notificationsConfigured = !!notificationsRes.data;
-      const clubSyncEnabled = profile?.club_sync_enabled || false;
+      const clubSyncEnabled = clubSyncRes.data?.club_sync_enabled || false;
 
       // Build user journey data
       const userData: UserJourneyData = {
@@ -108,7 +118,7 @@ export const useNextSteps = () => {
         referralsCount: referralsCount,
         notificationsConfigured: notificationsConfigured,
         clubSyncEnabled: clubSyncEnabled,
-        lastActive: profile?.updated_at ? new Date(profile.updated_at) : new Date(),
+        lastActive: userMetaRes.data?.updated_at ? new Date(userMetaRes.data.updated_at) : new Date(),
       };
 
       // Detect current stage

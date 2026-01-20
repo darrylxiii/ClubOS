@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRole } from "@/contexts/RoleContext";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertTriangle, Brain } from "lucide-react";
+import { Activity, AlertTriangle, Brain, Wifi } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -62,8 +62,8 @@ export const QuantumPulse = () => {
                 .eq('status', 'pending');
 
             setStalledCount(count || 0);
-        } catch (err) {
-            console.error("Pulse error:", err);
+        } catch (e) {
+            console.error("Pulse error:", e);
         }
     };
 

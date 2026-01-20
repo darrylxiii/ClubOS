@@ -6,7 +6,7 @@ interface MobileOptimizations {
   deviceType: 'mobile' | 'tablet' | 'desktop';
   batteryOptimization: boolean;
   reducedMotion: boolean;
-
+  
   // Recommended settings
   audioSettings: {
     maxBitrate: number;
@@ -33,104 +33,106 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
   const [isCharging, setIsCharging] = useState<boolean | null>(null);
   const [connectionType, setConnectionType] = useState<string>('unknown');
-
+  
   // Detect device type
   useEffect(() => {
     const checkDevice = () => {
       const ua = navigator.userAgent.toLowerCase();
       const width = window.innerWidth;
-
+      
       // Mobile detection
       const mobileUA = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
       const tabletUA = /ipad|tablet|playbook|silk/i.test(ua);
-
+      
       // Also check screen width
       const isMobileWidth = width < 768;
       const isTabletWidth = width >= 768 && width < 1024;
-
+      
       setIsMobile(mobileUA || isMobileWidth);
       setIsTablet(tabletUA || isTabletWidth);
     };
-
+    
     checkDevice();
     window.addEventListener('resize', checkDevice);
-
+    
     return () => window.removeEventListener('resize', checkDevice);
   }, []);
-
+  
   // Battery status API (if available)
   useEffect(() => {
     const getBatteryInfo = async () => {
       try {
+        // @ts-ignore - Battery API not in all TypeScript libs
         if ('getBattery' in navigator) {
-          const battery = await (navigator as any).getBattery();
-
+          // @ts-ignore
+          const battery = await navigator.getBattery();
+          
           const updateBattery = () => {
             setBatteryLevel(battery.level);
             setIsCharging(battery.charging);
           };
-
+          
           updateBattery();
           battery.addEventListener('levelchange', updateBattery);
           battery.addEventListener('chargingchange', updateBattery);
-
+          
           return () => {
             battery.removeEventListener('levelchange', updateBattery);
             battery.removeEventListener('chargingchange', updateBattery);
           };
         }
-      } catch (_e) {
+      } catch (e) {
         console.log('[MobileOpt] Battery API not available');
       }
     };
-
+    
     getBatteryInfo();
   }, []);
-
+  
   // Network Information API (if available)
   useEffect(() => {
-    const connection = (navigator as any).connection ||
-      (navigator as any).mozConnection ||
-      (navigator as any).webkitConnection;
-
+    const connection = (navigator as any).connection || 
+                       (navigator as any).mozConnection || 
+                       (navigator as any).webkitConnection;
+    
     if (connection) {
       const updateConnection = () => {
         setConnectionType(connection.effectiveType || 'unknown');
       };
-
+      
       updateConnection();
       connection.addEventListener('change', updateConnection);
-
+      
       return () => connection.removeEventListener('change', updateConnection);
     }
   }, []);
-
+  
   // Calculate device type
   const deviceType = useMemo((): 'mobile' | 'tablet' | 'desktop' => {
     if (isMobile) return 'mobile';
     if (isTablet) return 'tablet';
     return 'desktop';
   }, [isMobile, isTablet]);
-
+  
   // Determine if battery optimization should be enabled
   const batteryOptimization = useMemo(() => {
     if (config.forceHighQuality) return false;
     if (!config.enableBatterySaving) return false;
-
+    
     // Enable if battery < 20% and not charging
     if (batteryLevel !== null && batteryLevel < 0.2 && !isCharging) {
       return true;
     }
-
+    
     return false;
   }, [batteryLevel, isCharging, config.enableBatterySaving, config.forceHighQuality]);
-
+  
   // Check for reduced motion preference
   const reducedMotion = useMemo(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }, []);
-
+  
   // Calculate optimal audio settings
   const audioSettings = useMemo(() => {
     if (config.forceHighQuality) {
@@ -141,7 +143,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
         enableFEC: true
       };
     }
-
+    
     // Mobile/low battery settings
     if (isMobile || batteryOptimization || connectionType === '2g') {
       return {
@@ -151,7 +153,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
         enableFEC: true      // Keep FEC for reliability
       };
     }
-
+    
     // Tablet/3G settings
     if (isTablet || connectionType === '3g') {
       return {
@@ -161,7 +163,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
         enableFEC: true
       };
     }
-
+    
     // Desktop/WiFi/4G+ settings
     return {
       maxBitrate: 64000,
@@ -170,7 +172,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
       enableFEC: true
     };
   }, [isMobile, isTablet, batteryOptimization, connectionType, config.forceHighQuality]);
-
+  
   // Calculate optimal video settings
   const videoSettings = useMemo(() => {
     if (config.forceHighQuality) {
@@ -181,7 +183,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
         maxBitrate: 2500000 // 2.5 Mbps
       };
     }
-
+    
     // Mobile/low battery - aggressive optimization
     if (isMobile || batteryOptimization || connectionType === '2g') {
       return {
@@ -191,7 +193,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
         maxBitrate: 300000 // 300 Kbps
       };
     }
-
+    
     // Tablet/3G
     if (isTablet || connectionType === '3g') {
       return {
@@ -201,7 +203,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
         maxBitrate: 800000 // 800 Kbps
       };
     }
-
+    
     // Desktop/WiFi/4G+
     return {
       width: 1280,
@@ -210,7 +212,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
       maxBitrate: 2500000 // 2.5 Mbps
     };
   }, [isMobile, isTablet, batteryOptimization, connectionType, config.forceHighQuality]);
-
+  
   // Get media constraints based on device
   const getMediaConstraints = useCallback((): MediaStreamConstraints => {
     return {
@@ -229,7 +231,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
       }
     };
   }, [audioSettings, videoSettings]);
-
+  
   // Get SDP options for mobile
   const getSDPOptions = useCallback(() => {
     return {
@@ -240,7 +242,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
       preferredVideoCodec: 'VP9' as const
     };
   }, [audioSettings]);
-
+  
   const optimizations: MobileOptimizations = {
     isMobile,
     isTablet,
@@ -250,7 +252,7 @@ export function useMobileOptimizations(config: MobileOptimizationsConfig = {}) {
     audioSettings,
     videoSettings
   };
-
+  
   return {
     ...optimizations,
     batteryLevel,

@@ -41,11 +41,10 @@ export function NDASigner({ open, onOpenChange, contractId, counterpartyName, on
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
-      if (!user?.id) return null;
       const { data } = await supabase
         .from("profiles")
         .select("full_name")
-        .eq("id", user.id)
+        .eq("id", user?.id)
         .single();
       return data;
     },
@@ -60,19 +59,17 @@ export function NDASigner({ open, onOpenChange, contractId, counterpartyName, on
         const ipResponse = await fetch("https://api.ipify.org?format=json");
         const ipData = await ipResponse.json();
         ipAddress = ipData.ip;
-      } catch {
-        // Ignore IP fetch errors - it's optional
-      }
+      } catch {}
 
-      const { error } = await supabase.from("signed_documents").insert([{
+      const { error } = await supabase.from("signed_documents").insert({
         contract_id: contractId,
-        template_id: template?.id ?? null,
-        signer_id: user?.id ?? '',
+        template_id: template?.id,
+        signer_id: user?.id,
         signer_name: profile?.full_name || signature,
         signature_data: signature,
         ip_address: ipAddress,
         user_agent: navigator.userAgent,
-      }]);
+      });
 
       if (error) throw error;
     },

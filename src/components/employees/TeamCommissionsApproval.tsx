@@ -7,7 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ClipboardCheck, 
   Check, 
-  X,
+  X, 
+  AlertCircle,
   User,
   Building2,
   Briefcase

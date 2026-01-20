@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { TrendingUp, Users, MousePointerClick, CheckCircle, Download, Eye, EyeOff } from "lucide-react";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { TrendingUp, Users, MousePointerClick, CheckCircle, Download, Settings, Eye, EyeOff } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { format } from "date-fns";
 import { AppLayout } from "@/components/AppLayout";
@@ -42,7 +43,7 @@ export default function FunnelAnalytics() {
     const { error } = await supabase
       .from("funnel_config")
       .update({ is_active: !isActive })
-      .eq("id", (await supabase.from("funnel_config").select("id").single()).data?.id ?? '');
+      .eq("id", (await supabase.from("funnel_config").select("id").single()).data?.id);
 
     if (!error) {
       setIsActive(!isActive);

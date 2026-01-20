@@ -60,8 +60,8 @@ export const AssessmentResultsManager = () => {
 
       const enrichedResults = resultsData?.map((result) => ({
         ...result,
-        user_name: profileMap.get(result.user_id)?.full_name ?? undefined,
-        user_email: profileMap.get(result.user_id)?.email ?? undefined,
+        user_name: profileMap.get(result.user_id)?.full_name,
+        user_email: profileMap.get(result.user_id)?.email,
       })) || [];
 
       setResults(enrichedResults);

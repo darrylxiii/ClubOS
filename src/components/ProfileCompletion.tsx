@@ -10,15 +10,15 @@ import { ProfileStrengthDialog } from "./profile/ProfileStrengthDialog";
 import { getTasksForRole, ProfileTask } from "@/lib/profileStrengthTasks";
 
 interface ProfileStats {
-  current_level: number | null;
-  total_tasks: number | null;
-  completed_tasks: number | null;
-  completion_percentage: number | null;
-  level_1_completed: boolean | null;
-  level_2_completed: boolean | null;
-  level_3_completed: boolean | null;
-  level_4_completed: boolean | null;
-  level_5_completed: boolean | null;
+  current_level: number;
+  total_tasks: number;
+  completed_tasks: number;
+  completion_percentage: number;
+  level_1_completed: boolean;
+  level_2_completed: boolean;
+  level_3_completed: boolean;
+  level_4_completed: boolean;
+  level_5_completed: boolean;
   all_levels_completed_at: string | null;
 }
 
@@ -45,12 +45,12 @@ export const ProfileCompletion = () => {
         supabase
           .from('profile_strength_stats')
           .select('*')
-          .eq('user_id', user?.id ?? '')
+          .eq('user_id', user?.id)
           .single(),
         supabase
           .from('profile_strength_tasks')
           .select('task_key, completed')
-          .eq('user_id', user?.id ?? '')
+          .eq('user_id', user?.id)
           .eq('completed', true)
       ]);
 
@@ -115,7 +115,7 @@ export const ProfileCompletion = () => {
               </p>
             </div>
             <div className="text-3xl font-black">
-              {Math.round(stats.completion_percentage ?? 0)}%
+              {Math.round(stats.completion_percentage)}%
             </div>
           </div>
           

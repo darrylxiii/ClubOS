@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Brain, BookOpen, MessageSquare, Target, Clock, Loader2, Sparkles } from "lucide-react";
-import { aiService } from "@/services/aiService";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -21,14 +21,11 @@ export function InterviewerAICoach({ candidateId, jobId, interviewerId, intervie
   const loadPrepMaterial = async () => {
     try {
       setLoading(true);
-      setLoading(true);
-      const data = await aiService.generateInterviewCoach({
-        candidateId,
-        jobId,
-        interviewerId,
-        interviewType
+      const { data, error } = await supabase.functions.invoke('generate-interview-prep-ai', {
+        body: { candidateId, jobId, interviewerId, interviewType }
       });
 
+      if (error) throw error;
       setPrep(data.prepMaterial);
       toast.success("AI interview prep ready");
     } catch (error: any) {

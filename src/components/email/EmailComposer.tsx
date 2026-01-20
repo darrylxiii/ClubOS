@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Sheet,
@@ -8,15 +9,16 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { X, Paperclip, Send, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { communicationsService } from "@/services/communicationsService";
-import { aiService } from "@/services/aiService";
-import { ZenComposer } from "./ZenComposer";
 
 interface EmailComposerProps {
   open: boolean;
@@ -41,7 +43,7 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-
+    
     // Limit file size to 10MB per file
     const validFiles = files.filter(file => {
       if (file.size > 10 * 1024 * 1024) {
@@ -70,13 +72,13 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
 
       for (const file of attachments) {
         const filePath = `${user.id}/${Date.now()}_${file.name}`;
-
+        
         const { error: uploadError } = await supabase.storage
           .from("email-attachments")
           .upload(filePath, file);
 
         if (uploadError) throw uploadError;
-
+        
         uploadedFiles.push(filePath);
       }
 
@@ -99,12 +101,16 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
     setAiGenerating(true);
 
     try {
-      const data = await aiService.assistEmail({
-        action: action as any,
-        currentText: body,
-        subject,
-        recipientEmail: to,
+      const { data, error } = await supabase.functions.invoke("assist-email-writing", {
+        body: {
+          action,
+          currentText: body,
+          subject,
+          recipientEmail: to,
+        },
       });
+
+      if (error) throw error;
 
       if (data?.suggestion) {
         setBody(data.suggestion);
@@ -130,15 +136,17 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
       // Upload attachments first
       const attachmentPaths = await uploadAttachments();
 
-      const data = await communicationsService.sendEmail({
-        to,
-        subject,
-        body,
-        attachments: attachmentPaths,
-        replyToEmailId: replyTo?.email,
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: {
+          to,
+          subject,
+          body,
+          attachments: attachmentPaths,
+          replyToEmailId: replyTo?.email,
+        },
       });
 
-      if (!data.success) throw new Error(data.error || "Failed to send email");
+      if (error) throw error;
 
       toast.success("Email sent successfully");
       setTo("");
@@ -188,22 +196,61 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
               />
             </div>
 
-            <div className="space-y-2 flex-1 flex flex-col min-h-0">
-              <Label htmlFor="body" className="sr-only">Message</Label>
-              <ZenComposer
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="body">Message</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={aiGenerating}
+                      className="h-7 text-xs"
+                    >
+                      {aiGenerating ? (
+                        <>
+                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          AI Assist
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleAiAssist("compose")}>
+                      <Sparkles className="h-3 w-3 mr-2" />
+                      Compose email
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAiAssist("improve")}>
+                      Improve writing
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAiAssist("shorten")}>
+                      Make shorter
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAiAssist("expand")}>
+                      Make longer
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAiAssist("professional")}>
+                      More professional
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAiAssist("friendly")}>
+                      More friendly
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <Textarea
+                id="body"
                 value={body}
-                onChange={setBody}
-                onAiAssist={handleAiAssist}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Write your message or use AI to help you compose..."
+                className="min-h-[300px] resize-none"
                 disabled={aiGenerating}
               />
-
-              {/* AI generation overlay/status */}
-              {aiGenerating && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground animate-pulse px-2">
-                  <Sparkles className="h-3 w-3 text-violet-500" />
-                  AI is writing...
-                </div>
-              )}
             </div>
 
             {/* Attachments */}

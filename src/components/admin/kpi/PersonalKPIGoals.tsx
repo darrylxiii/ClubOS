@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { 
-  Target, Plus, Flame, Trophy, TrendingUp, Trash2, Sparkles 
+  Target, Plus, Flame, Trophy, TrendingUp, 
+  Edit2, Trash2, Check, X, Sparkles 
 } from 'lucide-react';
 import {
   Dialog,

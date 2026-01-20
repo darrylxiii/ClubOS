@@ -7,7 +7,7 @@ import { TrendingUp, TrendingDown, DollarSign, Target, PieChart, Calendar } from
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { format, addMonths, startOfMonth, endOfMonth } from 'date-fns';
-import { PROSPECT_STAGES } from '@/types/crm-enterprise';
+import { PROSPECT_STAGES, type CRMProspect } from '@/types/crm-enterprise';
 
 interface PipelineStageMetrics {
   stage: string;

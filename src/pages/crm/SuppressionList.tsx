@@ -44,6 +44,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 import {
   Tabs,
+  TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
@@ -55,11 +56,11 @@ interface SuppressionEntry {
   type?: string;
   reason?: string;
   source?: string;
-  added_by: string | null;
+  added_by: string;
   added_by_name?: string;
   created_at: string;
-  sync_status?: string | null;
-  last_synced_at?: string | null;
+  sync_status?: string;
+  last_synced_at?: string;
 }
 
 export default function SuppressionList() {

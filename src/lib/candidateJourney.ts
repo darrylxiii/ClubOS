@@ -1,4 +1,5 @@
 import { 
+  Shield, 
   Camera, 
   FileText, 
   Edit, 

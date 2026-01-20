@@ -35,10 +35,10 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const {
-      days_back = 180,
+    const { 
+      days_back = 180, 
       limit = 1000,
-      company_id
+      company_id 
     }: BackfillRequest = await req.json();
 
     console.log(`[ML Backfill] Starting backfill: ${days_back} days, limit ${limit}`);
@@ -77,10 +77,10 @@ serve(async (req) => {
     if (applicationsError) throw applicationsError;
     if (!applications || applications.length === 0) {
       return new Response(
-        JSON.stringify({
-          success: true,
-          records_created: 0,
-          message: 'No applications found to backfill'
+        JSON.stringify({ 
+          success: true, 
+          records_created: 0, 
+          message: 'No applications found to backfill' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -112,17 +112,14 @@ serve(async (req) => {
 
         // Generate features for this application
         const { data: featureData, error: featureError } = await supabase.functions.invoke(
-          'ai-integration',
+          'generate-ml-features',
           {
             body: {
-              action: 'generate-ml-features',
-              payload: {
-                candidate_id: app.candidate_id,
-                job_id: app.job_id,
-                application_id: app.id,
-                use_cache: false, // Don't cache for backfill
-              },
-            }
+              candidate_id: app.candidate_id,
+              job_id: app.job_id,
+              application_id: app.id,
+              use_cache: false, // Don't cache for backfill
+            },
           }
         );
 
@@ -224,17 +221,17 @@ function determineLabels(application: any): {
   const hired = status === 'hired' || status === 'offer_accepted';
 
   // Check if interviewed (reached interview stage)
-  const interviewed =
+  const interviewed = 
     status === 'interviewed' ||
     status === 'interview' ||
     hired ||
-    stages.some((stage: any) =>
-      stage.name?.toLowerCase().includes('interview') &&
+    stages.some((stage: any) => 
+      stage.name?.toLowerCase().includes('interview') && 
       stage.completed_at
     );
 
   // Check if rejected
-  const rejected =
+  const rejected = 
     status === 'rejected' ||
     status === 'declined' ||
     status === 'not_selected' ||
@@ -248,7 +245,7 @@ function calculateInterviewTime(stages: any[]): number | null {
   if (!stages || stages.length === 0) return null;
 
   const appliedStage = stages.find((s: any) => s.name?.toLowerCase().includes('applied'));
-  const interviewStage = stages.find((s: any) =>
+  const interviewStage = stages.find((s: any) => 
     s.name?.toLowerCase().includes('interview') && s.completed_at
   );
 

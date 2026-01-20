@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { aiService } from '@/services/aiService';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Sparkles, TrendingUp, AlertCircle, Loader2, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface ExecutiveBriefingCardProps {
@@ -19,13 +19,12 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
   const loadBriefing = async () => {
     try {
       setLoading(true);
-      const briefingData = await aiService.generateExecutiveBriefing({
-        candidateId,
-        jobId
+      const { data, error } = await supabase.functions.invoke('generate-executive-briefing', {
+        body: { candidateId, jobId }
       });
 
-      if (briefingData.error) throw new Error(briefingData.error);
-      setBriefing(briefingData);
+      if (error) throw error;
+      setBriefing(data.briefing);
       toast.success("Executive briefing generated");
     } catch (error: any) {
       console.error('Error loading briefing:', error);
@@ -142,9 +141,9 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
             <p className="text-xs text-muted-foreground mb-1">AI Recommendation</p>
             <p className="text-sm">{briefing.aiRecommendationReasoning}</p>
           </div>
-          <Badge className={getRecommendationColor(briefing.aiRecommendation) + " ml-3"}>
-            {briefing.aiRecommendation.replace('_', ' ').toUpperCase()}
-          </Badge>
+              <Badge className={getRecommendationColor(briefing.aiRecommendation) + " ml-3"}>
+                {briefing.aiRecommendation.replace('_', ' ').toUpperCase()}
+              </Badge>
         </div>
 
         {/* Team Consensus */}

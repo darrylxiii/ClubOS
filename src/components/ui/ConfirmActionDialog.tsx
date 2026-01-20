@@ -155,8 +155,8 @@ export function ConfirmActionDialog({
       setReason("");
       setConfirmInput("");
       onOpenChange(false);
-    } catch (_error) {
-      console.error("Confirm action failed:", _error);
+    } catch (error) {
+      console.error("Confirm action failed:", error);
     } finally {
       setLocalLoading(false);
     }
@@ -228,7 +228,7 @@ export function ConfirmActionDialog({
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            disabled={!!isConfirmDisabled}
+            disabled={isConfirmDisabled}
             className={cn(config.className)}
           >
             {isLoading || localLoading ? "Processing..." : confirmText || config.confirmText}

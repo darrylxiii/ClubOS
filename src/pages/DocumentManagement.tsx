@@ -2,10 +2,12 @@ import { AppLayout } from "@/components/AppLayout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  Upload, FileText, Download, Trash2, Star,
-  CheckCircle, File
+  Upload, FileText, Download, Trash2, Star, Eye,
+  CheckCircle, XCircle, File, AlertTriangle
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,7 +16,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { InlineLoader } from "@/components/ui/unified-loader";
+import { InlineLoader, SectionLoader } from "@/components/ui/unified-loader";
 import { logger } from "@/lib/logger";
 import {
   AlertDialog,
@@ -34,9 +36,9 @@ interface Document {
   file_path: string;
   file_size: number;
   mime_type: string;
-  is_primary: boolean | null;
-  uploaded_at: string | null;
-  updated_at: string | null;
+  is_primary: boolean;
+  uploaded_at: string;
+  updated_at: string;
 }
 
 const DocumentManagement = () => {
@@ -327,7 +329,7 @@ const DocumentManagement = () => {
                         <div className="flex items-center gap-2 text-xs">
                           <span>{formatFileSize(doc.file_size)}</span>
                           <span>•</span>
-                          <span>Uploaded {doc.uploaded_at ? formatDistanceToNow(new Date(doc.uploaded_at), { addSuffix: true }) : 'Unknown'}</span>
+                          <span>Uploaded {formatDistanceToNow(new Date(doc.uploaded_at), { addSuffix: true })}</span>
                         </div>
                       </CardDescription>
                     </div>

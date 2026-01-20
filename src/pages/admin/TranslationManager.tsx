@@ -2,12 +2,13 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { aiService } from '@/services/aiService';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle, AlertCircle, Sparkles, BarChart3, RefreshCw, Trash2, Settings2, Globe } from 'lucide-react';
+import { Languages, Download, Loader2, CheckCircle, AlertCircle, Sparkles, TrendingUp, BarChart3, RefreshCw, Trash2, ArrowRight, Settings2, Globe } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useSeedTranslations } from '@/hooks/use-seed-translations';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useTranslationCoverage } from '@/hooks/use-translation-coverage';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppLayout } from '@/components/AppLayout';
@@ -265,12 +266,9 @@ export default function TranslationManager() {
     addLog('info', `Starting translation for "${namespace}"...`, undefined, 'generate');
 
     try {
-      const res: any = await aiService.generateAllTranslations({
-        namespace,
+      const { data, error } = await supabase.functions.invoke('generate-all-translations', {
+        body: { namespace }
       });
-
-      const data = res?.data ?? res;
-      const error = res?.error;
 
       if (error) {
         if (error.message?.includes('already running')) {
@@ -337,12 +335,9 @@ export default function TranslationManager() {
     addLog('info', `Starting full generation (${namespaceCount} namespaces × ${TARGET_LANGUAGES.length} languages)...`, undefined, 'generate');
 
     try {
-      const res: any = await aiService.generateAllTranslations({
-        generateAll: true,
+      const { data, error } = await supabase.functions.invoke('generate-all-translations', {
+        body: { generateAll: true }
       });
-
-      const data = res?.data ?? res;
-      const error = res?.error;
 
       if (error) {
         // Handle 409 conflict (duplicate job) gracefully
@@ -421,11 +416,9 @@ export default function TranslationManager() {
         // Now trigger generation for missing keys
         addLog('info', 'Triggering translation for missing keys...', undefined, 'sync');
 
-        const res: any = await aiService.generateAllTranslations({
-          generateAll: true,
+        const { error: genError } = await supabase.functions.invoke('generate-all-translations', {
+          body: { generateAll: true }
         });
-
-        const genError = res?.error;
 
         if (genError) {
           addLog('error', 'Generation failed after sync', genError.message, 'sync');
@@ -661,7 +654,7 @@ export default function TranslationManager() {
 
             <TabsContent value="debug" className="space-y-4">
               <TranslationDebugPanel logs={logs} onClear={() => setLogs([])} />
-
+              
               <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
                 <CollapsibleTrigger asChild>
                   <Button variant="outline" className="w-full">

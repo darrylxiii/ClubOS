@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Lock, CheckCircle2, User, Building2, UserPlus, Crown } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Sparkles, Lock, CheckCircle2, User, Building2, UserPlus, Crown, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -149,7 +150,7 @@ export const EnhancedInviteGate = () => {
 
       // Track engagement event
       if (data?.id) {
-        setGeneratedReferralCode(data.referral_code || '');
+        setGeneratedReferralCode(data.referral_code);
         await supabase.from("waitlist_engagement").insert([
           {
             waitlist_id: data.id,

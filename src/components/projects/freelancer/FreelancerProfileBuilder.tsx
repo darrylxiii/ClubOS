@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { 
-  User, Briefcase, DollarSign, Globe, 
+  User, Briefcase, DollarSign, Clock, Globe, Award, 
   CheckCircle2, ChevronRight, ChevronLeft, Sparkles,
   Plus, X, Upload, Star
 } from "lucide-react";

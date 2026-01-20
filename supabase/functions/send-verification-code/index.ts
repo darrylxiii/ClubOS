@@ -1,10 +1,15 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { CodeBox, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
-import { publicCorsHeaders as corsHeaders } from "../_shared/cors-config.ts";
+import { Button, CodeBox, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
 
 interface VerificationRequest {
   email: string;

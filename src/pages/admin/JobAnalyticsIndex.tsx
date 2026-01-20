@@ -1,12 +1,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Briefcase,
-  BarChart3,
-  TrendingUp,
+import { 
+  Briefcase, 
+  BarChart3, 
+  TrendingUp, 
   Users,
   Clock,
   ArrowRight
@@ -34,7 +35,7 @@ export default function JobAnalyticsIndex() {
         .in('status', ['published', 'open', 'active'])
         .order('created_at', { ascending: false })
         .limit(50);
-
+      
       if (error) throw error;
       return data || [];
     }
@@ -47,11 +48,11 @@ export default function JobAnalyticsIndex() {
       const { data, error } = await supabase
         .from('applications')
         .select('job_id');
-
+      
       if (error) return {};
-
+      
       const counts: Record<string, number> = {};
-      (data || []).forEach((app: { job_id: string }) => {
+      (data || []).forEach((app: any) => {
         counts[app.job_id] = (counts[app.job_id] || 0) + 1;
       });
       return counts;
@@ -131,12 +132,11 @@ export default function JobAnalyticsIndex() {
                   <p className="text-sm text-muted-foreground">New This Month</p>
                 </div>
                 <p className="text-2xl font-bold">
-                  {jobs?.filter((j: any) => {
-                    if (!j?.created_at) return false;
+                  {jobs?.filter(j => {
                     const created = new Date(j.created_at);
                     const now = new Date();
-                    return created.getMonth() === now.getMonth() &&
-                      created.getFullYear() === now.getFullYear();
+                    return created.getMonth() === now.getMonth() && 
+                           created.getFullYear() === now.getFullYear();
                   }).length || 0}
                 </p>
               </CardContent>
@@ -158,7 +158,7 @@ export default function JobAnalyticsIndex() {
                 <ScrollArea className="h-[500px]">
                   <div className="space-y-3">
                     {jobs.map((job: any) => (
-                      <div
+                      <div 
                         key={job.id}
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
                         onClick={() => navigate(`/admin/jobs/${job.id}/analytics`)}

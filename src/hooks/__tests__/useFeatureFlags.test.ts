@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useFeatureFlags } from '../useFeatureFlags';
 import { supabase } from '@/integrations/supabase/client';
 
-vi.mock('@/lib/notify', () => ({
+vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: vi.fn() }),
-  notify: { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() },
 }));
 
 describe('useFeatureFlags', () => {

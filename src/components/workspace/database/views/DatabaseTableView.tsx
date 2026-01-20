@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DatabaseColumn, DatabaseRow, ColumnType } from '@/hooks/useWorkspaceDatabase';
 import { DatabaseCell } from '../cells/DatabaseCell';
 import { ColumnHeader } from '../ColumnHeader';

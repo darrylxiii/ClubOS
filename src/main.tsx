@@ -1,7 +1,6 @@
 // Signal IMMEDIATELY that the script is executing (before any imports)
 // This allows index.html to detect script loading vs script failure
-(window as unknown as any).__APP_BOOTING__ = true;
-(window as unknown as any).__MAIN_LOADED__ = true;
+(window as any).__APP_BOOTING__ = true;
 
 import "./index.css";
 import "./i18n/config";
@@ -32,20 +31,20 @@ async function bootstrap() {
     if (!rootElement) {
       throw new Error('Root element not found');
     }
-
+    
     console.log('[Main] Root element found, creating React root...');
     const root = createRoot(rootElement);
-
+    
     console.log('[Main] Rendering App component...');
     root.render(<App />);
-
+    
     // Signal to the boot timeout that the app has started
-    (window as unknown as any).__APP_BOOTED__ = true;
-
+    (window as any).__APP_BOOTED__ = true;
+    
     console.log('[Main] ✅ Application initialized successfully');
   } catch (error) {
     console.error('[Main] ❌ CRITICAL: Failed to initialize application:', error);
-
+    
     // Report to Sentry if available
     try {
       const { captureException } = await import("@sentry/react");
@@ -53,11 +52,11 @@ async function bootstrap() {
     } catch {
       // Sentry not available
     }
-
+    
     // Render emergency fallback UI with detailed error info
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : '';
-
+    
     document.body.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #0E0E10; color: #F5F4EF; font-family: Inter, sans-serif; padding: 2rem;">
         <div style="text-align: center; max-width: 700px;">

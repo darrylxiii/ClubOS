@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { AdminTableSkeleton } from "@/components/LoadingSkeletons";
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
-import { Card, CardContent } from '@/components/ui/card';
-
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { History, Eye, Download, RefreshCw } from 'lucide-react';
+import { History, Search, Eye, Download, RefreshCw } from 'lucide-react';
 import { useTranslationAuditLog, useAuditLogStats } from '@/hooks/use-translation-audit';
 import { useTranslationNamespaces, useActiveLanguages } from '@/hooks/use-translation-namespaces';
 
@@ -24,15 +24,15 @@ export default function TranslationAuditLog() {
     limit: 100,
   });
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
-
+  
   const { data: namespaces } = useTranslationNamespaces();
   const { data: languages } = useActiveLanguages();
   const { data: auditLog, isLoading, refetch } = useTranslationAuditLog(filters);
   const { data: stats } = useAuditLogStats();
-
+  
   const handleExport = () => {
     if (!auditLog) return;
-
+    
     const csv = [
       ['Timestamp', 'Namespace', 'Language', 'Key', 'Action', 'Old Value', 'New Value'].join(','),
       ...auditLog.map(entry => [
@@ -45,7 +45,7 @@ export default function TranslationAuditLog() {
         `"${(entry.new_value || '').replace(/"/g, '""')}"`,
       ].join(','))
     ].join('\n');
-
+    
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -54,7 +54,7 @@ export default function TranslationAuditLog() {
     a.click();
     URL.revokeObjectURL(url);
   };
-
+  
   const getActionBadge = (action: string) => {
     switch (action) {
       case 'create':
@@ -69,7 +69,7 @@ export default function TranslationAuditLog() {
         return <Badge variant="outline">{action}</Badge>;
     }
   };
-
+  
   return (
     <AppLayout>
       <RoleGate allowedRoles={['admin']}>
@@ -95,7 +95,7 @@ export default function TranslationAuditLog() {
               </Button>
             </div>
           </div>
-
+          
           {/* Stats Cards */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             <Card>
@@ -117,7 +117,7 @@ export default function TranslationAuditLog() {
               </CardContent>
             </Card>
           </div>
-
+          
           {/* Filters */}
           <Card className="mb-6">
             <CardContent className="pt-6">
@@ -138,7 +138,7 @@ export default function TranslationAuditLog() {
                     ))}
                   </SelectContent>
                 </Select>
-
+                
                 <Select
                   value={filters.language}
                   onValueChange={(v) => setFilters({ ...filters, language: v === 'all' ? '' : v })}
@@ -155,7 +155,7 @@ export default function TranslationAuditLog() {
                     ))}
                   </SelectContent>
                 </Select>
-
+                
                 <Select
                   value={filters.action}
                   onValueChange={(v) => setFilters({ ...filters, action: v === 'all' ? '' : v })}
@@ -171,14 +171,14 @@ export default function TranslationAuditLog() {
                     <SelectItem value="generate">AI Generated</SelectItem>
                   </SelectContent>
                 </Select>
-
+                
                 <Badge variant="secondary" className="h-10 px-4 flex items-center">
                   {auditLog?.length || 0} entries
                 </Badge>
               </div>
             </CardContent>
           </Card>
-
+          
           {/* Audit Table */}
           <Card>
             <CardContent className="p-0">
@@ -228,7 +228,7 @@ export default function TranslationAuditLog() {
               )}
             </CardContent>
           </Card>
-
+          
           {/* Detail Dialog */}
           <Dialog open={!!selectedEntry} onOpenChange={() => setSelectedEntry(null)}>
             <DialogContent className="max-w-2xl">
@@ -255,21 +255,21 @@ export default function TranslationAuditLog() {
                       {getActionBadge(selectedEntry.action)}
                     </div>
                   </div>
-
+                  
                   <div className="space-y-2">
                     <div className="text-sm font-medium text-muted-foreground">Old Value</div>
                     <div className="p-3 bg-destructive/10 rounded border text-sm">
                       {selectedEntry.old_value || '(empty)'}
                     </div>
                   </div>
-
+                  
                   <div className="space-y-2">
                     <div className="text-sm font-medium text-muted-foreground">New Value</div>
                     <div className="p-3 bg-green-500/10 rounded border text-sm">
                       {selectedEntry.new_value || '(empty)'}
                     </div>
                   </div>
-
+                  
                   <div className="text-sm text-muted-foreground">
                     Changed at {format(new Date(selectedEntry.changed_at), 'PPpp')}
                   </div>

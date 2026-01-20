@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { aiService } from '@/services/aiService';
 
 interface TranscriptionChunk {
   id: string;
@@ -28,7 +27,7 @@ export function useMeetingTranscription({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const transcriptionIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
+  
   // Track stream ID to detect when stream object changes
   const currentStreamIdRef = useRef<string | null>(null);
   // Track audio-only stream clone for transcription (isolated from video changes)
@@ -50,12 +49,16 @@ export function useMeetingTranscription({
       const base64Audio = await base64Promise;
 
       // Call voice-to-text edge function
-      const data = await aiService.voiceToText({
-        audio: base64Audio,
-        meetingId,
-        participantName,
-        timestamp: new Date().toISOString()
+      const { data, error } = await supabase.functions.invoke('voice-to-text', {
+        body: {
+          audio: base64Audio,
+          meetingId,
+          participantName,
+          timestamp: new Date().toISOString()
+        }
       });
+
+      if (error) throw error;
 
       if (data?.text && data.text.trim()) {
         const newChunk: TranscriptionChunk = {
@@ -91,13 +94,13 @@ export function useMeetingTranscription({
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try {
         mediaRecorderRef.current.stop();
-      } catch (_e) {
-        console.warn('[Transcription] Error stopping MediaRecorder:', _e);
+      } catch (e) {
+        console.warn('[Transcription] Error stopping MediaRecorder:', e);
       }
     }
     mediaRecorderRef.current = null;
     audioChunksRef.current = [];
-
+    
     // Cleanup audio-only stream
     if (audioStreamRef.current) {
       audioStreamRef.current.getTracks().forEach(track => track.stop());
@@ -123,7 +126,7 @@ export function useMeetingTranscription({
 
     // Check if this is the same stream (by checking audio track IDs)
     const newStreamId = audioTracks.map(t => t.id).join('-');
-
+    
     // If stream audio tracks haven't changed, don't reinitialize
     if (currentStreamIdRef.current === newStreamId && mediaRecorderRef.current) {
       console.log('[Transcription] Same audio tracks, keeping existing MediaRecorder');
@@ -135,7 +138,7 @@ export function useMeetingTranscription({
       oldId: currentStreamIdRef.current,
       newId: newStreamId
     });
-
+    
     cleanupMediaRecorder();
     currentStreamIdRef.current = newStreamId;
 
@@ -183,7 +186,7 @@ export function useMeetingTranscription({
           if (audioChunksRef.current.length > 0) {
             const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
             audioChunksRef.current = [];
-
+            
             // Process the audio blob
             await processAudioBlob(audioBlob);
           }
@@ -205,8 +208,8 @@ export function useMeetingTranscription({
             if (mediaRecorderRef.current === mediaRecorder) {
               try {
                 mediaRecorder.start();
-              } catch (_e) {
-                console.warn('[Transcription] Could not restart MediaRecorder:', _e);
+              } catch (e) {
+                console.warn('[Transcription] Could not restart MediaRecorder:', e);
               }
             }
           }

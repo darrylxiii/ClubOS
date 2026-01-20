@@ -14,8 +14,8 @@ export interface UnifiedCommunication {
   sentiment_score: number | null;
   original_timestamp: string;
   sender_id: string | null;
-  created_at: string | null;
-  updated_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface IntelligenceQueueItem {
@@ -138,10 +138,8 @@ export function useCommunicationAudit() {
       const typeCounts: Record<string, number> = {};
 
       data?.forEach(item => {
-        const status = item.status ?? 'unknown';
-        const processingType = item.processing_type ?? 'unknown';
-        statusCounts[status] = (statusCounts[status] || 0) + 1;
-        typeCounts[processingType] = (typeCounts[processingType] || 0) + 1;
+        statusCounts[item.status] = (statusCounts[item.status] || 0) + 1;
+        typeCounts[item.processing_type] = (typeCounts[item.processing_type] || 0) + 1;
       });
 
       return { statusCounts, typeCounts, total: data?.length || 0 };

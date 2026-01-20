@@ -9,11 +9,11 @@ import { formatDistanceToNow } from "date-fns";
 interface BadgeData {
   id: string;
   badge_name: string;
-  badge_description: string | null;
-  badge_icon: string | null;
-  points: number | null;
+  badge_description: string;
+  badge_icon: string;
+  points: number;
   earned?: {
-    earned_at: string | null;
+    earned_at: string;
   };
 }
 
@@ -99,7 +99,7 @@ export function BadgesDisplay() {
             <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
               {badge.badge_description}
             </p>
-            {badge.earned && badge.earned.earned_at ? (
+            {badge.earned ? (
               <Badge variant="outline" className="squircle-sm text-xs">
                 {formatDistanceToNow(new Date(badge.earned.earned_at), {
                   addSuffix: true,

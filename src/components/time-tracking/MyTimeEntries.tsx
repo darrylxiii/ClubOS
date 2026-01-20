@@ -5,13 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { useTimeTracking, TimeEntryData, formatDuration, secondsToHours } from "@/hooks/useTimeTracking";
 import { format, startOfWeek, endOfWeek, subWeeks, addWeeks, parseISO } from "date-fns";
 import { 
+  Plus, 
   Clock, 
   ChevronLeft, 
   ChevronRight,
   Calendar,
   Edit,
   Trash2,
+  Play,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { EditTimeEntryDialog } from "./EditTimeEntryDialog";
 
 export function MyTimeEntries() {

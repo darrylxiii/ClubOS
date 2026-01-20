@@ -44,40 +44,28 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
     const candidateIds = data.filter(r => r.entity_type === 'candidate').map(r => r.entity_id);
     const prospectIds = data.filter(r => r.entity_type === 'prospect').map(r => r.entity_id);
     const companyIds = data.filter(r => r.entity_type === 'company').map(r => r.entity_id);
-    // Internal entity_ids could be conversation_ids OR profile_ids - try both
-    const internalIds = data.filter(r => r.entity_type === 'internal').map(r => r.entity_id);
+    // Internal entity_ids are actually conversation_ids - look them up in conversations table
+    const internalConversationIds = data.filter(r => r.entity_type === 'internal').map(r => r.entity_id);
     // Partner/stakeholder still use profiles table
     const profileIds = data.filter(r =>
       ['partner', 'stakeholder'].includes(r.entity_type)
     ).map(r => r.entity_id);
 
-    // Combine all IDs that might be profile IDs for a single lookup
-    const allPotentialProfileIds = [...new Set([...profileIds, ...internalIds])];
-
     const [candidatesRes, prospectsRes, companiesRes, conversationsRes, profilesRes] = await Promise.all([
       candidateIds.length > 0 ? supabase.from('candidate_profiles').select('id, full_name, avatar_url').in('id', candidateIds) : { data: [] },
       prospectIds.length > 0 ? supabase.from('crm_prospects').select('id, full_name, email').in('id', prospectIds) : { data: [] },
       companyIds.length > 0 ? supabase.from('companies').select('id, name, logo_url').in('id', companyIds) : { data: [] },
-      internalIds.length > 0 ? supabase.from('conversations').select('id, title').in('id', internalIds) : { data: [] },
-      allPotentialProfileIds.length > 0 ? supabase.from('profiles').select('id, full_name, avatar_url, email').in('id', allPotentialProfileIds) : { data: [] }
+      internalConversationIds.length > 0 ? supabase.from('conversations').select('id, title').in('id', internalConversationIds) : { data: [] },
+      profileIds.length > 0 ? supabase.from('profiles').select('id, full_name, avatar_url, email').in('id', profileIds) : { data: [] }
     ]);
 
     const nameMap: Record<string, any> = {};
     (candidatesRes.data || []).forEach(c => { nameMap[c.id] = { name: c.full_name, avatar: c.avatar_url }; });
     (prospectsRes.data || []).forEach(p => { nameMap[p.id] = { name: p.full_name, email: p.email }; });
     (companiesRes.data || []).forEach(c => { nameMap[c.id] = { name: c.name, avatar: c.logo_url }; });
-    // Map conversation titles for internal entities (only if has meaningful title)
-    (conversationsRes.data || []).forEach(conv => { 
-      if (conv.title && conv.title !== 'Untitled' && !conv.title.startsWith('internal')) {
-        nameMap[conv.id] = { name: conv.title }; 
-      }
-    });
-    // Profiles take priority for internal - these are actual user names
-    (profilesRes.data || []).forEach(p => { 
-      if (p.full_name) {
-        nameMap[p.id] = { name: p.full_name, avatar: p.avatar_url, email: p.email }; 
-      }
-    });
+    // Map conversation titles for internal entities
+    (conversationsRes.data || []).forEach(conv => { nameMap[conv.id] = { name: conv.title }; });
+    (profilesRes.data || []).forEach(p => { nameMap[p.id] = { name: p.full_name, avatar: p.avatar_url, email: p.email }; });
 
     // Fallback: Check profiles table for unresolved candidates (entity_id might be user_id, not candidate_profile id)
     const unresolvedCandidateIds = candidateIds.filter(id => !nameMap[id]);
@@ -88,9 +76,7 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
         .in('id', unresolvedCandidateIds);
       
       (profileFallbacks || []).forEach(p => {
-        if (p.full_name) {
-          nameMap[p.id] = { name: p.full_name, avatar: p.avatar_url, email: p.email };
-        }
+        nameMap[p.id] = { name: p.full_name, avatar: p.avatar_url, email: p.email };
       });
     }
 

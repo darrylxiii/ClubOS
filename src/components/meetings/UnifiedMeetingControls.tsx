@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
+import { 
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -13,11 +13,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Mic,
-  MicOff,
-  Video,
-  VideoOff,
+import { 
+  Mic, 
+  MicOff, 
+  Video, 
+  VideoOff, 
   MonitorUp,
   MonitorOff,
   Hand,
@@ -47,18 +47,6 @@ interface UnifiedMeetingControlsProps {
   onOpenSettings?: () => void;
   onOpenPerformance?: () => void;
   className?: string;
-  // External control overrides (for P2P engine)
-  onToggleMute?: () => void;
-  onToggleVideo?: () => void;
-  onToggleScreenShare?: () => void;
-  onToggleRecording?: () => void;
-  onToggleHandRaise?: () => void;
-  onLeave?: () => void;
-  isMuted?: boolean;
-  isVideoOn?: boolean;
-  isScreenSharing?: boolean;
-  isRecording?: boolean;
-  handRaised?: boolean;
 }
 
 export function UnifiedMeetingControls({
@@ -69,27 +57,13 @@ export function UnifiedMeetingControls({
   onOpenParticipants,
   onOpenSettings,
   onOpenPerformance,
-  className,
-  onToggleMute,
-  onToggleVideo,
-  onToggleScreenShare,
-  onToggleRecording,
-  onToggleHandRaise,
-  onLeave,
-  isMuted: externalIsMuted,
-  isVideoOn: externalIsVideoOn,
-  isScreenSharing: externalIsScreenSharing,
-  isRecording: externalIsRecording,
-  handRaised: externalHandRaised
+  className
 }: UnifiedMeetingControlsProps) {
-  // Determine if we are in "controlled" mode (dumb UI)
-  const isControlled = !!onToggleMute;
-
   const meeting = useMasterMeeting({
     channelId,
     userId,
     userName,
-    autoJoin: !isControlled, // Disable auto-join if controlled
+    autoJoin: true,
     enablePerformanceMonitoring: true,
     enableStatePreservation: true
   });
@@ -100,11 +74,10 @@ export function UnifiedMeetingControls({
     p => p.id === meeting.meetingState.localParticipantId
   );
 
-  const isMuted = isControlled ? (externalIsMuted ?? true) : (localParticipant?.isMuted ?? true);
-  const isVideoOn = isControlled ? (externalIsVideoOn ?? false) : (localParticipant?.isVideoOn ?? false);
-  const isScreenSharing = isControlled ? (externalIsScreenSharing ?? false) : (localParticipant?.isScreenSharing ?? false);
-  const handRaised = isControlled ? (externalHandRaised ?? false) : (localParticipant?.handRaised ?? false);
-  const isRecording = isControlled ? (externalIsRecording ?? false) : meeting.meetingState.isRecording;
+  const isMuted = localParticipant?.isMuted ?? true;
+  const isVideoOn = localParticipant?.isVideoOn ?? false;
+  const isScreenSharing = localParticipant?.isScreenSharing ?? false;
+  const handRaised = localParticipant?.handRaised ?? false;
 
   const getLayoutIcon = () => {
     switch (meeting.meetingState.layout) {
@@ -132,8 +105,7 @@ export function UnifiedMeetingControls({
               variant={isMuted ? "secondary" : "secondary"}
               size="icon"
               className="h-12 w-12 rounded-full"
-
-              onClick={onToggleMute || meeting.toggleMute}
+              onClick={meeting.toggleMute}
             >
               {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </Button>
@@ -150,8 +122,7 @@ export function UnifiedMeetingControls({
               variant={isVideoOn ? "secondary" : "outline"}
               size="icon"
               className="h-12 w-12 rounded-full"
-
-              onClick={onToggleVideo || meeting.toggleVideo}
+              onClick={meeting.toggleVideo}
             >
               {isVideoOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
             </Button>
@@ -168,8 +139,7 @@ export function UnifiedMeetingControls({
               variant={isScreenSharing ? "default" : "outline"}
               size="icon"
               className="h-12 w-12 rounded-full"
-
-              onClick={onToggleScreenShare || meeting.toggleScreenShare}
+              onClick={meeting.toggleScreenShare}
             >
               {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
             </Button>
@@ -204,8 +174,7 @@ export function UnifiedMeetingControls({
                 "h-10 w-10 rounded-full",
                 handRaised && "bg-yellow-500 hover:bg-yellow-600"
               )}
-
-              onClick={onToggleHandRaise || meeting.toggleHandRaise}
+              onClick={meeting.toggleHandRaise}
             >
               <Hand className="h-4 w-4" />
             </Button>
@@ -295,13 +264,14 @@ export function UnifiedMeetingControls({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
+              variant={meeting.meetingState.isRecording ? "secondary" : "ghost"}
               size="icon"
               className="h-10 w-10 rounded-full"
-              onClick={onToggleRecording || meeting.toggleRecording}
+              onClick={meeting.toggleRecording}
             >
               <Circle className={cn(
                 "h-4 w-4",
-                isRecording && "fill-current animate-pulse"
+                meeting.meetingState.isRecording && "fill-current animate-pulse"
               )} />
             </Button>
           </TooltipTrigger>
@@ -350,8 +320,7 @@ export function UnifiedMeetingControls({
               variant="secondary"
               size="icon"
               className="h-12 w-12 rounded-full"
-
-              onClick={onLeave || meeting.leaveMeeting}
+              onClick={meeting.leaveMeeting}
             >
               <PhoneOff className="h-5 w-5" />
             </Button>
@@ -359,6 +328,6 @@ export function UnifiedMeetingControls({
           <TooltipContent>Leave meeting</TooltipContent>
         </Tooltip>
       </div>
-    </TooltipProvider >
+    </TooltipProvider>
   );
 }

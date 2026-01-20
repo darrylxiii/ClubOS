@@ -7,7 +7,6 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { aiService } from '@/services/aiService';
 
 interface SalaryRecommendation {
   recommended_base_salary: number;
@@ -51,16 +50,21 @@ export function useSalaryRecommendation() {
     setError(null);
 
     try {
-      const data = await aiService.generateOfferRecommendation({
-        candidate_id: candidateId,
-        job_id: jobId,
-        // application_id is generally inferred or not strictly needed for the calc, but keeping if needed
-      });
+      const { data, error: fnError } = await supabase.functions.invoke(
+        'generate-offer-recommendation',
+        {
+          body: {
+            candidate_id: candidateId,
+            job_id: jobId,
+            application_id: applicationId,
+          },
+        }
+      );
 
+      if (fnError) throw fnError;
 
-
-      setRecommendation(data as unknown as SalaryRecommendation);
-      return data as unknown as SalaryRecommendation;
+      setRecommendation(data);
+      return data;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to get salary recommendation');
       setError(error);

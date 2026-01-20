@@ -11,18 +11,18 @@ import { MergePreviewDialog } from "./MergePreviewDialog";
 interface CandidateProfile {
   id: string;
   full_name: string;
-  email: string | null;
-  phone?: string | null;
-  profile_completeness?: number | null;
-  invitation_status?: string | null;
-  user_id?: string | null;
+  email: string;
+  phone?: string;
+  profile_completeness?: number;
+  invitation_status?: string;
+  user_id?: string;
 }
 
 interface UserProfile {
   id: string;
-  full_name: string | null;
-  email: string | null;
-  created_at: string | null;
+  full_name: string;
+  email: string;
+  created_at: string;
 }
 
 export function ManualMergeSearch() {
@@ -278,7 +278,7 @@ export function ManualMergeSearch() {
                         <p className="font-medium">{user.full_name}</p>
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                         <p className="text-xs text-muted-foreground">
-                          Joined {new Date(user.created_at ?? new Date()).toLocaleDateString()}
+                          Joined {new Date(user.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>

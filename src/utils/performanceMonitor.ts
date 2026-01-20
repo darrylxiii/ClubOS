@@ -21,9 +21,8 @@ interface MemoryInfo {
 }
 
 /**
- * Performance Monitoring Service.
- * Tracks Web Vitals (LCP, FID, CLS, etc.), detects long tasks, and monitors memory pressure.
- * Designed to run in the background and log issues to the console or an external service.
+ * Performance Monitoring Service
+ * Tracks Web Vitals, long tasks, and memory pressure
  */
 class PerformanceMonitorService {
   private metrics: PerformanceMetric[] = [];
@@ -42,8 +41,7 @@ class PerformanceMonitorService {
   };
 
   /**
-   * Start performance monitoring.
-   * Initializes observers for Web Vitals, Long Tasks, and Memory.
+   * Start performance monitoring
    */
   start(): void {
     if (this.isMonitoring || typeof window === 'undefined') return;
@@ -63,7 +61,7 @@ class PerformanceMonitorService {
   }
 
   /**
-   * Stop performance monitoring and disconnect observers.
+   * Stop performance monitoring
    */
   stop(): void {
     this.isMonitoring = false;
@@ -71,22 +69,21 @@ class PerformanceMonitorService {
   }
 
   /**
-   * Get all recorded performance metrics.
+   * Get all recorded metrics
    */
   getMetrics(): PerformanceMetric[] {
     return [...this.metrics];
   }
 
   /**
-   * Get all recorded long tasks (>50ms).
+   * Get long tasks
    */
   getLongTasks(): LongTask[] {
     return [...this.longTasks];
   }
 
   /**
-   * Get current memory usage information.
-   * @returns MemoryInfo object or null if the API is not supported.
+   * Get current memory info
    */
   getMemoryInfo(): MemoryInfo | null {
     if (!('memory' in performance)) return null;
@@ -101,8 +98,7 @@ class PerformanceMonitorService {
   }
 
   /**
-   * Observe Web Vitals using PerformanceObserver.
-   * Tracks LCP, FID, CLS, and INP.
+   * Observe Web Vitals using PerformanceObserver
    */
   private observeWebVitals(): void {
     // Largest Contentful Paint
@@ -169,8 +165,7 @@ class PerformanceMonitorService {
   }
 
   /**
-   * Observe long tasks (>50ms).
-   * Logs warnings for tasks exceeding 100ms.
+   * Observe long tasks (>50ms)
    */
   private observeLongTasks(): void {
     try {
@@ -182,7 +177,7 @@ class PerformanceMonitorService {
             startTime: entry.startTime,
             attributionName: entry.name,
           };
-
+          
           this.longTasks.push(longTask);
 
           // Log if task is very long (>100ms)
@@ -201,8 +196,7 @@ class PerformanceMonitorService {
   }
 
   /**
-   * Start memory monitoring.
-   * Checks memory usage every 30 seconds and logs warnings if usage > 80%.
+   * Start memory monitoring
    */
   private startMemoryMonitoring(): void {
     if (!('memory' in performance)) return;
@@ -227,13 +221,13 @@ class PerformanceMonitorService {
   }
 
   /**
-   * Log initial paint metrics (FCP, TTFB).
+   * Log initial paint metrics
    */
   private logPaintMetrics(): void {
     // Wait for metrics to be available
     setTimeout(() => {
       const paintEntries = performance.getEntriesByType('paint');
-
+      
       paintEntries.forEach((entry) => {
         if (entry.name === 'first-contentful-paint') {
           this.recordMetric('FCP', entry.startTime);
@@ -250,7 +244,7 @@ class PerformanceMonitorService {
   }
 
   /**
-   * Record a performance metric and check against thresholds.
+   * Record a performance metric
    */
   private recordMetric(name: keyof typeof this.THRESHOLDS, value: number): void {
     const thresholds = this.THRESHOLDS[name];
@@ -284,8 +278,7 @@ class PerformanceMonitorService {
   }
 
   /**
-   * Get a high-level performance summary.
-   * Includes overall rating, metrics breakdown, long task stats, and memory status.
+   * Get a performance summary
    */
   getSummary(): {
     overallRating: 'good' | 'needs-improvement' | 'poor';

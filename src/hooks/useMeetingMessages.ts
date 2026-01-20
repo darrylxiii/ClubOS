@@ -19,14 +19,11 @@ export const useMeetingMessages = () => {
     metadata = {}
   }: CreateMeetingMessageParams) => {
     try {
-      if (!conversationId) throw new Error('Conversation ID is required');
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) throw new Error('User not authenticated');
       const { error } = await supabase
         .from('messages')
-        .insert([{
+        .insert({
           conversation_id: conversationId,
-          sender_id: userId,
+          sender_id: (await supabase.auth.getUser()).data.user?.id,
           content,
           message_type: 'system',
           system_message_type: systemMessageType,
@@ -35,7 +32,7 @@ export const useMeetingMessages = () => {
             ...metadata,
             is_meeting_system_message: true
           }
-        }]);
+        });
 
       if (error) throw error;
     } catch (error: any) {

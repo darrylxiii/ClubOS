@@ -4,8 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface UnreadState {
   channel_id: string;
-  unread_count: number | null;
-  last_read_at: string | null;
+  unread_count: number;
+  last_read_at: string;
 }
 
 export const useLiveHubUnread = () => {
@@ -82,7 +82,7 @@ export const useLiveHubUnread = () => {
   }, [unreadStates]);
 
   const getTotalUnreadCount = useCallback(() => {
-    return Object.values(unreadStates).reduce((total, state) => total + (state.unread_count ?? 0), 0);
+    return Object.values(unreadStates).reduce((total, state) => total + state.unread_count, 0);
   }, [unreadStates]);
 
   return {

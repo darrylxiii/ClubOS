@@ -11,7 +11,8 @@ import {
   Zap, 
   UserPlus,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';

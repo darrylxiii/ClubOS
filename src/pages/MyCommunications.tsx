@@ -1,4 +1,4 @@
-import { RefreshCw, MessageSquare, Settings } from 'lucide-react';
+import { RefreshCw, MessageSquare, Settings, TrendingUp, User } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageTitle, Subtitle } from '@/components/ui/typography';
 import { Button } from '@/components/ui/button';

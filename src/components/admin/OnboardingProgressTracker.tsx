@@ -9,11 +9,11 @@ interface OnboardingProgressTrackerProps {
   request: {
     profiles?: {
       onboarding_completed_at?: string | null;
-      onboarding_current_step?: number | null;
+      onboarding_current_step?: number;
       onboarding_partial_data?: any;
       onboarding_last_activity_at?: string | null;
-      phone_verified?: boolean | null;
-      email_verified?: boolean | null;
+      phone_verified?: boolean;
+      email_verified?: boolean;
     };
   };
 }

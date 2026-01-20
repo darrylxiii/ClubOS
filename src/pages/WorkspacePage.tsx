@@ -9,16 +9,17 @@ import { DraggablePageTree } from '@/components/workspace/DraggablePageTree';
 const WorkspaceEditor = lazy(() => import('@/components/workspace/WorkspaceEditor').then(m => ({ default: m.WorkspaceEditor })));
 import { PageBreadcrumbs } from '@/components/workspace/PageBreadcrumbs';
 import { PageSearchDialog } from '@/components/workspace/PageSearchDialog';
-import { WorkspaceCommandRegistry } from '@/components/workspace/WorkspaceCommandPalette';
+import { WorkspaceCommandPalette } from '@/components/workspace/WorkspaceCommandPalette';
 import { KeyboardShortcutsHelp } from '@/components/workspace/KeyboardShortcutsHelp';
 import { QuickCapture } from '@/components/workspace/QuickCapture';
 import { useWorkspacePage, useWorkspacePages } from '@/hooks/useWorkspacePages';
 import { useWorkspaceShortcuts } from '@/hooks/useWorkspaceShortcuts';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { FileX, Plus, Search, PanelLeftClose, PanelLeft, Command, Keyboard, Menu } from 'lucide-react';
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
+import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function WorkspacePage() {
@@ -28,10 +29,11 @@ export default function WorkspacePage() {
   const { data: page, isLoading, error } = useWorkspacePage(pageId);
   const { updatePage, deletePage, duplicatePage, toggleFavorite, recordVisit, createPage, pages } = useWorkspacePages();
   const lastSavedContent = useRef<string>('');
-
+  
   // UI State
   const [showSidebar, setShowSidebar] = useState(!isMobile);
   const [showSearch, setShowSearch] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [showQuickCapture, setShowQuickCapture] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -41,7 +43,7 @@ export default function WorkspacePage() {
     pageId,
     onSearch: () => setShowSearch(true),
     onToggleSidebar: () => isMobile ? setMobileSidebarOpen(prev => !prev) : setShowSidebar(prev => !prev),
-    onOpenCommandPalette: () => { }, // Global command palette handles this now
+    onOpenCommandPalette: () => setShowCommandPalette(true),
     onOpenShortcutsHelp: () => setShowShortcutsHelp(true),
     onQuickCapture: () => setShowQuickCapture(true),
   });
@@ -70,10 +72,10 @@ export default function WorkspacePage() {
     debouncedSave(content);
   }, [debouncedSave]);
 
-  const handleUpdate = useCallback((updates: Partial<NonNullable<typeof page>>) => {
-    if (!pageId || !page) return;
+  const handleUpdate = useCallback((updates: Partial<typeof page>) => {
+    if (!pageId) return;
     updatePage.mutate({ id: pageId, updates });
-  }, [pageId, page, updatePage]);
+  }, [pageId, updatePage]);
 
   const handleDelete = useCallback(() => {
     if (!pageId) return;
@@ -144,7 +146,7 @@ export default function WorkspacePage() {
         <div className="flex h-[calc(100vh-64px)]">
           {/* Desktop Sidebar */}
           {!isMobile && showSidebar && <SidebarContent />}
-
+          
           {/* Mobile Sidebar Sheet */}
           {isMobile && (
             <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
@@ -153,7 +155,7 @@ export default function WorkspacePage() {
               </SheetContent>
             </Sheet>
           )}
-
+          
           <div className="flex-1 overflow-y-auto">
             {/* Top Bar with breadcrumbs and actions */}
             <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b px-2 sm:px-4 py-2 flex items-center justify-between gap-2">
@@ -176,19 +178,19 @@ export default function WorkspacePage() {
                   <PageBreadcrumbs page={page} pages={pages} />
                 </div>
               </div>
-
+              
               <div className="flex items-center gap-1 shrink-0">
                 {/* Command Palette Button */}
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))} // Trigger global
+                  onClick={() => setShowCommandPalette(true)}
                   className="text-muted-foreground hidden sm:flex"
                 >
                   <Command className="h-4 w-4 mr-1" />
                   <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">⌘K</kbd>
                 </Button>
-
+                
                 {/* Search Button */}
                 <Button
                   variant="ghost"
@@ -200,7 +202,7 @@ export default function WorkspacePage() {
                   <span className="hidden sm:inline ml-2">Search</span>
                   <kbd className="hidden sm:inline ml-2 px-1.5 py-0.5 text-xs bg-muted rounded">⌘P</kbd>
                 </Button>
-
+                
                 {/* Shortcuts Help */}
                 <Button
                   variant="ghost"
@@ -221,7 +223,7 @@ export default function WorkspacePage() {
                 onDuplicate={handleDuplicate}
                 onToggleFavorite={handleToggleFavorite}
               />
-
+              
               <div className="px-4 sm:px-12 pb-24">
                 <Suspense fallback={<div className="min-h-[500px] animate-pulse bg-muted/20 rounded-lg" />}>
                   <WorkspaceEditor
@@ -233,7 +235,7 @@ export default function WorkspacePage() {
             </div>
           </div>
         </div>
-
+        
         {/* Mobile Quick Actions FAB */}
         {isMobile && (
           <div className="fixed bottom-4 right-4 flex flex-col gap-2">
@@ -246,20 +248,21 @@ export default function WorkspacePage() {
             </Button>
           </div>
         )}
-
+        
         {/* Dialogs */}
         <PageSearchDialog open={showSearch} onOpenChange={setShowSearch} />
-        <WorkspaceCommandRegistry
+        <WorkspaceCommandPalette 
+          open={showCommandPalette} 
+          onOpenChange={setShowCommandPalette}
           pageId={pageId}
-          onInsertBlock={(type) => { /* Handle block insertion if we can access editor instance, or better yet, make registry handle it if passed down */ }}
         />
-        <KeyboardShortcutsHelp
-          open={showShortcutsHelp}
-          onOpenChange={setShowShortcutsHelp}
+        <KeyboardShortcutsHelp 
+          open={showShortcutsHelp} 
+          onOpenChange={setShowShortcutsHelp} 
         />
-        <QuickCapture
-          open={showQuickCapture}
-          onOpenChange={setShowQuickCapture}
+        <QuickCapture 
+          open={showQuickCapture} 
+          onOpenChange={setShowQuickCapture} 
         />
       </RoleGate>
     </AppLayout>

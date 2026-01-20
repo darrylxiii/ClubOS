@@ -4,7 +4,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Sparkles,
+  TrendingUp,
+  TrendingDown,
   AlertTriangle,
+  CheckCircle,
   ArrowRight,
   RefreshCw
 } from 'lucide-react';

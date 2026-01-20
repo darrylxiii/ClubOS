@@ -38,7 +38,7 @@ interface MeetingRecording {
   ai_analysis: any;
   follow_up_draft: string | null;
   analyzed_at: string | null;
-  analysis_status: string | null;
+  analysis_status: string;
 }
 
 const MeetingHistory = () => {

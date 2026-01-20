@@ -27,13 +27,13 @@ import {
 
 interface SSOConnection {
   id: string;
-  company_id: string | null;
+  company_id: string;
   idp_type: string;
   idp_name: string;
   entity_id: string;
   sso_url: string;
-  is_active: boolean | null;
-  created_at: string | null;
+  is_active: boolean;
+  created_at: string;
 }
 
 export const SSOManagement = () => {
@@ -284,7 +284,7 @@ export const SSOManagement = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleToggleConnection(connection.id, connection.is_active ?? false)}
+                    onClick={() => handleToggleConnection(connection.id, connection.is_active)}
                   >
                     {connection.is_active ? 'Disable' : 'Enable'}
                   </Button>

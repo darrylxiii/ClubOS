@@ -9,6 +9,9 @@ import quantumClubLogoLightShort from "@/assets/quantum-logo-light-transparent.p
 // Full logos (for expanded state) - these are the full text logos
 import quantumClubLogoDark from "@/assets/quantum-club-logo.png"; // Full logo - black for light theme
 import quantumClubLogoLight from "@/assets/quantum-logo-dark.png"; // Full logo - white for dark theme
+import { Home, LayoutDashboard, Building2, Briefcase, Users, Calendar, Video, MessageSquare, Gift, FileText, Settings, ListTodo, Sparkles, Clock, GraduationCap, Rss, Trophy, MessagesSquare, User, BarChart3, TrendingUp, Share2, Mail, Brain } from "lucide-react";
+import { InstantMeetingButton } from "@/components/meetings/InstantMeetingButton";
+import { supabase } from "@/integrations/supabase/client";
 import { GlobalCallNotificationProvider } from "./GlobalCallNotificationProvider";
 import { MeetingNotificationManager } from "./meetings/MeetingNotificationManager";
 import { DynamicBackground } from "./DynamicBackground";
@@ -25,7 +28,6 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
 import { QuantumPulse } from "@/components/admin/QuantumPulse";
-import { useProfile } from "@/hooks/useProfile";
 import { getNavigationForRole } from "@/config/navigation.config";
 import {
   Sidebar,
@@ -43,25 +45,42 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   useTranslationSync(); // Keep all components in sync with language changes
   const location = useLocation();
   const { currentRole } = useRole();
-  // Optimized: Use cached profile data sharing key ['profile', userId]
-  const { profile } = useProfile();
+  const [userProfile, setUserProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Sync burger menu state with sidebar state via event listener (Performance: Replaced polling)
+  // Sync burger menu state with sidebar state
   useEffect(() => {
-    const handleToggle = () => {
+    const syncSidebarState = () => {
       if (typeof window !== 'undefined' && (window as any).__getSidebarOpen) {
-        setMobileMenuOpen((window as any).__getSidebarOpen());
+        const isOpen = (window as any).__getSidebarOpen();
+        setMobileMenuOpen(isOpen);
       }
     };
 
-    // We can just rely on the Sidebar component's internal state + exposure
-    // But if we truly need this sync, listen to a custom event or check on focus
-    // For now, removing the polling is the priority.
-    // The previous implementation polled 10x/sec which is excessive.
+    // Poll sidebar state every 100ms when document has focus
+    const interval = setInterval(syncSidebarState, 100);
 
-    return () => { };
+    return () => clearInterval(interval);
   }, []);
+
+  // Fetch user profile data including avatar
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user?.id) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      if (!error && data) {
+        setUserProfile(data);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user?.id]);
 
   // Determine navigation based on current role from context
   // Memoize to prevent unnecessary recalculations and stop accumulation
@@ -71,8 +90,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   );
 
   const getFirstName = () => {
-    if (profile?.full_name) {
-      return profile.full_name.split(" ")[0];
+    if (userProfile?.full_name) {
+      return userProfile.full_name.split(" ")[0];
     }
     if (user?.email) {
       return user.email.split("@")[0];
@@ -155,7 +174,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         <SidebarFooter
           userName={firstName}
           userInitial={firstName[0].toUpperCase()}
-          userAvatarUrl={profile?.avatar_url || null}
+          userAvatarUrl={userProfile?.avatar_url || null}
           onSignOut={signOut}
           profilePath={profilePath}
         />

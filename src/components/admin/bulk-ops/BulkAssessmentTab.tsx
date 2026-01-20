@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, ClipboardCheck } from "lucide-react";
+import { Send, Loader2, ClipboardCheck } from "lucide-react";
 import { CandidateSelectorTable } from "./CandidateSelectorTable";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";

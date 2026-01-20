@@ -36,10 +36,12 @@ export function PartnerHealthDashboard() {
   const fetchPartnerHealth = async () => {
     try {
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
-
+      
+      // @ts-ignore - Avoiding deep type instantiation from Supabase queries
       const metricsQuery = supabase.from('partner_engagement_metrics').select('*').gte('date', sevenDaysAgo);
-      const profilesQuery = supabase.from('profiles').select('*');
-
+      // @ts-ignore - Avoiding deep type instantiation from Supabase queries  
+      const profilesQuery = supabase.from('profiles').select('*').eq('role', 'partner');
+      
       const metricsResult: any = await metricsQuery;
       const profilesResult: any = await profilesQuery;
 

@@ -63,7 +63,7 @@ export function useRevenueLadders() {
       return (data || []).map(ladder => ({
         ...ladder,
         revenue_milestones: (ladder.revenue_milestones || []).sort(
-          (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+          (a, b) => a.display_order - b.display_order
         )
       })) as RevenueLadder[];
     }

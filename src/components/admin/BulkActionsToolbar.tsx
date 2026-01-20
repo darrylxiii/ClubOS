@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Mail, X, Download } from "lucide-react";
+import { Mail, UserPlus, X, Download } from "lucide-react";
 
 interface BulkActionsToolbarProps {
   selectedCount: number;

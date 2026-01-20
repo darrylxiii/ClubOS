@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { MapPin, DollarSign, Briefcase, Building2, Users, Wifi, X } from "lucide-react";
+import { MapPin, DollarSign, Briefcase, Building2, Users, Wifi, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { FilterPill } from "./FilterPill";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { JobFilters } from "./JobFilterSidebar";
 
 interface HorizontalFiltersProps {

@@ -28,7 +28,7 @@ interface IntegrityIssue {
   issue_type: string;
   record_id: string;
   description: string;
-  detected_at: string | null;
+  detected_at: string;
 }
 
 export function DataIntegrityChecker() {
@@ -279,7 +279,7 @@ export function DataIntegrityChecker() {
                     <TableCell className="font-medium">{getIssueLabel(issue.issue_type)}</TableCell>
                     <TableCell className="text-muted-foreground">{issue.description}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {new Date(issue.detected_at ?? new Date()).toLocaleDateString()}
+                      {new Date(issue.detected_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
                       <Button 

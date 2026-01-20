@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, eachDayOfInterval, startOfDay } from "date-fns";
-import { Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from "recharts";
 import { TrendingDown, Loader2 } from "lucide-react";
 
 interface BurndownData {
@@ -58,7 +58,7 @@ export const TaskBurndownChart = ({ objectiveId }: TaskBurndownChartProps) => {
         
         // Count tasks created before or on this day
         const tasksCreatedByDate = tasks?.filter(t => 
-          t.created_at && new Date(t.created_at) <= date
+          new Date(t.created_at) <= date
         ).length || 0;
 
         // Count tasks completed before or on this day

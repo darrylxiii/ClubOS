@@ -12,7 +12,8 @@ import {
   Shield,
   Mic,
   Video,
-  Sparkles
+  Sparkles,
+  CheckCircle2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,6 +22,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
 
 interface ProfileActionButtonsProps {
   userId: string;

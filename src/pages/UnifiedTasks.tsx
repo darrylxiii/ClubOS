@@ -4,12 +4,14 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   LayoutDashboard, 
   Users, 
   Calendar,
   List,
   Settings,
+  Info,
   Wand2,
   Target,
   Grid3x3,
@@ -89,11 +91,7 @@ const UnifiedTasks = () => {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        setPreferences({
-          ...data,
-          show_migration_banner: data.show_migration_banner ?? true,
-          ai_scheduling_enabled: data.ai_scheduling_enabled ?? true,
-        });
+        setPreferences(data);
       } else {
         const { data: newPrefs, error: insertError } = await supabase
           .from("task_system_preferences")
@@ -107,13 +105,7 @@ const UnifiedTasks = () => {
           .single();
 
         if (insertError) throw insertError;
-        if (newPrefs) {
-          setPreferences({
-            ...newPrefs,
-            show_migration_banner: newPrefs.show_migration_banner ?? true,
-            ai_scheduling_enabled: newPrefs.ai_scheduling_enabled ?? true,
-          });
-        }
+        setPreferences(newPrefs);
       }
     } catch (error) {
       console.error("Error loading preferences:", error);

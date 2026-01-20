@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -119,10 +120,10 @@ export default function IntegrationsManagement() {
                     </div>
                     {status && (
                       <Switch
-                        checked={!!status.is_active}
+                        checked={status.is_active}
                         onCheckedChange={() => toggleIntegration.mutate({ 
                           id: status.id, 
-                          isActive: !!status.is_active 
+                          isActive: status.is_active 
                         })}
                       />
                     )}

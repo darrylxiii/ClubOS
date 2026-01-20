@@ -20,14 +20,13 @@ export const StreakWidget = () => {
         .order('created_at', { ascending: false })
         .limit(100);
 
-      if (data && data.length > 0 && data[0].created_at) {
+      if (data && data.length > 0) {
         let currentStreak = 1;
         let lastDate = new Date(data[0].created_at);
         lastDate.setHours(0, 0, 0, 0);
 
         for (let i = 1; i < data.length; i++) {
-          if (!data[i].created_at) continue;
-          const date = new Date(data[i].created_at!);
+          const date = new Date(data[i].created_at);
           date.setHours(0, 0, 0, 0);
           const diffDays = Math.floor((lastDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
           

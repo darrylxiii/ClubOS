@@ -3,7 +3,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { usePageVersions, PageVersion } from '@/hooks/usePageVersions';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sheet,
   SheetContent,
@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { History, RotateCcw, Eye, Clock } from 'lucide-react';
+import { History, RotateCcw, Eye, Clock, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 

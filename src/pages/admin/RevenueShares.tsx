@@ -23,27 +23,21 @@ export default function RevenueSharesPage() {
       if (error) throw error;
       
       if (data && data.length > 0) {
-        const userIds = [...new Set(data.map((s) => s.user_id))];
+        const userIds = [...new Set(data.map(s => s.user_id))];
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name, email')
           .in('id', userIds);
-
-        const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
-
-        return data.map((share) => ({
+        
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+        
+        return data.map(share => ({
           ...share,
-          // DB allows null; normalize so downstream components get a strict boolean
-          is_active: share.is_active ?? false,
-          user_profile: profileMap.get(share.user_id) || null,
+          user_profile: profileMap.get(share.user_id) || null
         }));
       }
-
-      return (data || []).map((share) => ({
-        ...share,
-        is_active: share.is_active ?? false,
-        user_profile: null,
-      }));
+      
+      return data || [];
     }
   });
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Briefcase, MapPin, DollarSign, LayoutDashboard, Edit, Trash2, MoreVertical, Trophy, Archive, CheckCircle } from "lucide-react";
+import { Plus, Briefcase, MapPin, DollarSign, LayoutDashboard, Edit, Trash2, MoreVertical, Trophy, XCircle, Archive, CheckCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { JobClosureDialog } from "@/components/jobs/JobClosureDialog";
 import { JobDeleteDialog } from "@/components/jobs/JobDeleteDialog";

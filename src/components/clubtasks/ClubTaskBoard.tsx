@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Hand, Rocket, Pause, CheckCircle2 } from "lucide-react";
+import { Plus, MoreVertical, Hand, Rocket, Pause, CheckCircle2, ParkingCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CreateClubTaskDialog } from "./CreateClubTaskDialog";

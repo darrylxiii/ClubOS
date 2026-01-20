@@ -1,9 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { publicCorsHeaders } from '../_shared/cors-config.ts';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = publicCorsHeaders;
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 interface SearchWeights {
   semantic_weight: number;
@@ -73,7 +75,7 @@ serve(async (req) => {
 
 async function getWeights(supabase: any, userId: string) {
   // Get user's personalized weights or create defaults
-  const { data: prefs, error } = await supabase
+  let { data: prefs, error } = await supabase
     .from('user_search_preferences')
     .select('*')
     .eq('user_id', userId)
@@ -163,7 +165,7 @@ async function calculateAdaptiveAdjustments(
     : 5;
 
   // Determine adjustments based on patterns
-  const adjustment: WeightAdjustment = {
+  let adjustment: WeightAdjustment = {
     semantic_delta: 0,
     keyword_delta: 0,
     recency_delta: 0,
@@ -209,7 +211,7 @@ async function calibrateWeights(supabase: any, userId: string, queryContext: any
   // Analyze query to suggest optimal weights
   const { query, entity_type, time_sensitivity } = queryContext || {};
 
-  const suggestedWeights: SearchWeights = {
+  let suggestedWeights: SearchWeights = {
     semantic_weight: 0.6,
     keyword_weight: 0.4,
     recency_weight: 0.2,
@@ -278,7 +280,7 @@ async function updateFromFeedback(supabase: any, userId: string, feedbackData: a
   const learningRate = 0.02; // Small adjustments
   let newSemanticWeight = prefs.semantic_weight;
   let newKeywordWeight = prefs.keyword_weight;
-  const newRecencyWeight = prefs.recency_weight;
+  let newRecencyWeight = prefs.recency_weight;
 
   if (feedback_type === 'thumbs_up') {
     // Current weights worked well - reinforce them slightly

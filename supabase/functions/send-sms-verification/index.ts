@@ -1,9 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { logSecurityEvent } from "../_shared/security-logger.ts";
-import { publicCorsHeaders as corsHeaders } from "../_shared/cors-config.ts";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
@@ -14,6 +13,11 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // Development mode - ONLY for local testing, NEVER in production
 const IS_DEVELOPMENT = Deno.env.get("DENO_ENV") === "development";
 const DEV_FIXED_CODE = "123456"; // Fixed code for development testing only
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 // Cryptographically secure OTP generation
 const generateCode = () => {

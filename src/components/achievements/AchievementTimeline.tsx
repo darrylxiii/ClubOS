@@ -32,8 +32,6 @@ export const AchievementTimeline = () => {
   }, [user]);
 
   const fetchTimeline = async () => {
-    if (!user?.id) return;
-
     try {
       // Get all achievements
       const { data: allAchievements } = await supabase
@@ -46,7 +44,7 @@ export const AchievementTimeline = () => {
       const { data: userAchievements } = await supabase
         .from("user_quantum_achievements")
         .select("achievement_id, unlocked_at, id")
-        .eq("user_id", user.id);
+        .eq("user_id", user?.id);
 
       const unlockedMap = new Map(
         userAchievements?.map((ua) => [ua.achievement_id, ua]) || []
@@ -64,7 +62,7 @@ export const AchievementTimeline = () => {
             rarity: achievement.rarity,
             category: achievement.category,
             unlocked_at: userAch?.unlocked_at || null,
-            animation_effect: achievement.animation_effect ?? '',
+            animation_effect: achievement.animation_effect,
             points: achievement.points,
             is_unlocked: !!userAch,
           };

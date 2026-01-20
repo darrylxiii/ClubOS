@@ -1,7 +1,7 @@
-import { Suspense } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { ReactNode, Suspense } from "react";
+import { Navigate, Outlet } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { ProtectedProviders } from "@/contexts/ProtectedProviders";
+import { ProtectedProviders, ProtectedProvidersLoader } from "@/contexts/ProtectedProviders";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
@@ -15,13 +15,11 @@ import { PageLoader } from "@/components/PageLoader";
  * 4. Error Boundaries
  */
 export const ProtectedLayout = () => {
-    const location = useLocation();
-
     return (
         <ProtectedProviders>
             <ProtectedRoute>
                 <AppLayout>
-                    <RouteErrorBoundary key={location.pathname}>
+                    <RouteErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
                             <Outlet />
                         </Suspense>

@@ -56,7 +56,7 @@ export interface MasterMeetingReturn {
   error: string | null;
   isConnected: boolean;
   connectionStatus: any;
-
+  
   // Core actions
   joinMeeting: () => Promise<void>;
   leaveMeeting: () => Promise<void>;
@@ -70,13 +70,13 @@ export interface MasterMeetingReturn {
   toggleTranscription: () => void;
   getMeetingDuration: () => number;
   getMeetingStats: () => any;
-
+  
   // Voice channel access
   voice: ReturnType<typeof useVoiceChannel>;
-
+  
   // Performance monitoring
   performance: ReturnType<typeof usePerformanceMonitor>;
-
+  
   // Audio pipeline
   audioPipeline: {
     isProcessing: boolean;
@@ -85,7 +85,7 @@ export interface MasterMeetingReturn {
     isSpeaking: boolean;
     processingLatency: number;
   };
-
+  
   // Video pipeline
   videoPipeline: {
     isProcessing: boolean;
@@ -97,7 +97,7 @@ export interface MasterMeetingReturn {
     setQuality: (quality: 'low' | 'medium' | 'high' | 'hd') => void;
     prioritizeParticipant: (participantId: string) => void;
   };
-
+  
   // Network resilience
   networkResilience: {
     currentStats: any;
@@ -106,7 +106,7 @@ export interface MasterMeetingReturn {
     getStatusColor: () => string;
     getStatusLabel: () => string;
   };
-
+  
   // AI Transcription
   transcription: {
     isTranscribing: boolean;
@@ -117,7 +117,7 @@ export interface MasterMeetingReturn {
     exportTranscripts: (format: 'txt' | 'srt' | 'vtt' | 'json') => string;
     searchTranscripts: (query: string) => any[];
   };
-
+  
   // Gesture recognition
   gestures: {
     detectedGesture: string | null;
@@ -126,7 +126,7 @@ export interface MasterMeetingReturn {
     disable: () => void;
     isAnalyzing: boolean;
   };
-
+  
   // Meeting analytics
   analytics: {
     participantStats: Map<string, any>;
@@ -135,7 +135,7 @@ export interface MasterMeetingReturn {
     exportAnalytics: () => any;
     isTracking: boolean;
   };
-
+  
   // Auto highlights
   highlights: {
     all: any[];
@@ -144,7 +144,7 @@ export interface MasterMeetingReturn {
     search: (query: string) => any[];
     export: (format: 'json' | 'markdown') => string;
   };
-
+  
   // Quality recovery
   qualityRecovery: {
     currentQuality: 'high' | 'medium' | 'low';
@@ -152,7 +152,7 @@ export interface MasterMeetingReturn {
     qualityState: any;
     isRecovering: boolean;
   };
-
+  
   // Resource optimization
   resources: {
     optimizationLevel: number;
@@ -161,7 +161,7 @@ export interface MasterMeetingReturn {
     batteryLevel: number | null;
     isOptimizing: boolean;
   };
-
+  
   // Feature settings
   settings: {
     current: MeetingFeatureSettings;
@@ -173,7 +173,7 @@ export interface MasterMeetingReturn {
     reset: () => void;
     isFeatureEnabled: (category: keyof MeetingFeatureSettings) => boolean;
   };
-
+  
   // Browser capabilities
   capabilities: {
     supported: string[];
@@ -305,7 +305,7 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
 
     try {
       setError(null);
-
+      
       if (enablePerformanceMonitoring) {
         performance.startMonitoring();
       }
@@ -361,7 +361,7 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
     videoPipelineResult.stopProcessing();
     aiTranscription.stopTranscription();
     performance.stopMonitoring();
-
+    
     // Cleanup local stream
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
@@ -369,7 +369,7 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
     }
 
     voice.leaveChannel();
-
+    
     setMeetingState({
       isActive: false,
       startTime: null,
@@ -380,7 +380,7 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
       layout: 'grid',
       activeSpeakerId: null,
     });
-
+    
     joinMeetingRef.current = false;
   }, [voice, performance, audioPipelineResult, videoPipelineResult, aiTranscription, localStream]);
 
@@ -452,13 +452,13 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
   const toggleTranscription = useCallback(() => {
     setMeetingState(prev => {
       const newIsTranscribing = !prev.isTranscribing;
-
+      
       if (newIsTranscribing && localStream) {
         aiTranscription.startTranscription(localStream, userId, userName);
       } else {
         aiTranscription.stopTranscription();
       }
-
+      
       return { ...prev, isTranscribing: newIsTranscribing };
     });
   }, [aiTranscription, localStream, userId, userName]);
@@ -524,7 +524,7 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
     error,
     isConnected: voice.isConnected,
     connectionStatus: voice.connectionStats,
-
+    
     // Core actions
     joinMeeting,
     leaveMeeting,
@@ -538,13 +538,13 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
     toggleTranscription,
     getMeetingDuration,
     getMeetingStats,
-
+    
     // Voice channel
     voice,
-
+    
     // Performance
     performance,
-
+    
     // Audio pipeline
     audioPipeline: {
       isProcessing: audioPipelineResult.isProcessing,
@@ -553,7 +553,7 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
       isSpeaking: audioPipelineResult.isSpeaking,
       processingLatency: audioPipelineResult.processingLatency,
     },
-
+    
     // Video pipeline
     videoPipeline: {
       isProcessing: videoPipelineResult.isProcessing,
@@ -565,7 +565,7 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
       setQuality: videoPipelineResult.setQuality,
       prioritizeParticipant: videoPipelineResult.prioritizeParticipant,
     },
-
+    
     // Network resilience
     networkResilience: {
       currentStats: networkResilience.currentStats,
@@ -574,19 +574,19 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
       getStatusColor: networkResilience.getStatusColor,
       getStatusLabel: networkResilience.getStatusLabel,
     },
-
+    
     // AI Transcription
     transcription: {
       isTranscribing: aiTranscription.isTranscribing,
       transcripts: aiTranscription.transcripts,
       currentInterim: aiTranscription.currentInterim,
-      startTranscription: (stream: MediaStream) =>
+      startTranscription: (stream: MediaStream) => 
         aiTranscription.startTranscription(stream, userId, userName),
       stopTranscription: aiTranscription.stopTranscription,
       exportTranscripts: aiTranscription.exportTranscripts,
       searchTranscripts: aiTranscription.searchTranscripts,
     },
-
+    
     // Gesture recognition
     gestures: {
       detectedGesture: gestureRecognition.currentGesture,
@@ -595,7 +595,7 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
       disable: gestureRecognition.stopAnalysis,
       isAnalyzing: gestureRecognition.isAnalyzing,
     },
-
+    
     // Meeting analytics
     analytics: {
       participantStats: meetingAnalytics.participantStats,
@@ -604,16 +604,16 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
       exportAnalytics: meetingAnalytics.exportAnalytics,
       isTracking: meetingAnalytics.isTracking,
     },
-
+    
     // Auto highlights
     highlights: {
       all: autoHighlight.highlights,
       isAnalyzing: autoHighlight.isAnalyzing,
-      getByType: autoHighlight.getHighlightsByType as (type: string) => any[],
+      getByType: autoHighlight.getHighlightsByType,
       search: autoHighlight.searchHighlights,
       export: autoHighlight.exportHighlights,
     },
-
+    
     // Quality recovery
     qualityRecovery: {
       currentQuality,
@@ -621,7 +621,7 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
       qualityState: qualityRecovery.qualityState,
       isRecovering: qualityRecovery.qualityState.isRecovering,
     },
-
+    
     // Resource optimization
     resources: {
       optimizationLevel: resourceOptimizer.optimizationLevel,
@@ -630,7 +630,7 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
       batteryLevel: resourceOptimizer.metrics.batteryLevel,
       isOptimizing: resourceOptimizer.isOptimizing,
     },
-
+    
     // Feature settings
     settings: {
       current: featureSettings,
@@ -639,7 +639,7 @@ export function useMasterMeeting(options: UseMasterMeetingOptions): MasterMeetin
       reset: resetToDefaults,
       isFeatureEnabled,
     },
-
+    
     // Browser capabilities
     capabilities: {
       supported: supportedFeatures,

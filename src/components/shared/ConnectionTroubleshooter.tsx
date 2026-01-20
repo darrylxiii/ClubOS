@@ -8,6 +8,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Wifi,
+  WifiOff,
   Camera,
   Mic,
   Shield,
@@ -18,6 +19,8 @@ import {
   AlertCircle,
   Loader2,
   RefreshCw,
+  ChevronRight,
+  ChevronLeft,
   ExternalLink,
   Copy,
   Bug
@@ -25,6 +28,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 interface DiagnosticStep {

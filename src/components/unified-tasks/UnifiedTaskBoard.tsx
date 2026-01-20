@@ -2,16 +2,24 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  Plus,
   Hand,
   Rocket,
   Pause,
   CheckCircle2,
+  Sparkles,
+  Clock,
+  Lock,
+  Unlock,
   Briefcase,
   User
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { CreateUnifiedTaskDialog } from "./CreateUnifiedTaskDialog";
 import { UnifiedTaskDetailDialog } from "./UnifiedTaskDetailDialog";
 import { UnifiedTaskCard } from "./UnifiedTaskCard";
 import {
@@ -25,6 +33,9 @@ import {
   closestCorners,
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface UnifiedTask {
   id: string;

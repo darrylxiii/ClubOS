@@ -179,8 +179,8 @@ export function WhatsAppAutomationsTab() {
                         <p className="text-muted-foreground">runs</p>
                       </div>
                       <Switch
-                        checked={rule.is_active ?? false}
-                        onCheckedChange={(checked) =>
+                        checked={rule.is_active}
+                        onCheckedChange={(checked) => 
                           toggleRuleMutation.mutate({ id: rule.id, is_active: checked })
                         }
                       />

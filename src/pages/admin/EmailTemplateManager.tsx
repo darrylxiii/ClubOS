@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Edit2, Loader2 } from "lucide-react";
+import { Mail, Eye, Edit2, Send, Loader2 } from "lucide-react";
 import { EmailTemplateEditor } from "@/components/admin/EmailTemplateEditor";
 import { toast } from "sonner";
 
@@ -13,14 +13,14 @@ interface EmailTemplate {
   id: string;
   template_key: string;
   name: string;
-  description: string | null;
+  description: string;
   category: string;
   subject_template: string;
   content_template: any;
   variables: any;
-  is_enabled: boolean | null;
-  edge_function: string | null;
-  last_modified_at: string | null;
+  is_enabled: boolean;
+  edge_function: string;
+  last_modified_at: string;
 }
 
 export default function EmailTemplateManager() {

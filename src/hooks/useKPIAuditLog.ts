@@ -37,8 +37,8 @@ export function useKPIAuditLog() {
       await supabase.rpc('log_kpi_access', {
         p_user_id: user.id,
         p_action_type: action,
-        p_kpi_name: kpiName || undefined,
-        p_domain: domain || undefined,
+        p_kpi_name: kpiName || null,
+        p_domain: domain || null,
         p_metadata: metadata
       });
     } catch (error) {
@@ -56,7 +56,7 @@ export function useKPIAuditSummary(days: number = 30) {
       const { data, error } = await supabase.rpc('get_kpi_audit_summary', {
         p_days: days
       });
-
+      
       if (error) throw error;
       return data as unknown as AuditSummary;
     },
@@ -73,7 +73,7 @@ export function useKPIAuditHistory(limit: number = 100) {
         .select('*')
         .order('created_at', { ascending: false })
         .limit(limit);
-
+      
       if (error) throw error;
       return (data || []) as unknown as AuditLogEntry[];
     },

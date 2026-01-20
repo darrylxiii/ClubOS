@@ -2,9 +2,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mic, MicOff, Video, VideoOff, Settings2, Wifi, WifiOff, Loader2, Check, X, AlertTriangle } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, Settings2, Volume2, Wifi, WifiOff, Loader2, Check, X, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 import { AudioLevelIndicator } from '@/components/shared/AudioLevelIndicator';
 
 interface PreJoinPreviewProps {

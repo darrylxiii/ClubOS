@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { aiService } from "@/services/aiService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Globe, Check, Loader2, Languages, RefreshCw, Star, AlertTriangle, Bot, Sparkles } from "lucide-react";
+import { Plus, Globe, Check, X, Loader2, Languages, RefreshCw, Star, AlertTriangle, Bot, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
@@ -57,7 +56,7 @@ export default function LanguageManager() {
         .from('language_config')
         .select('*')
         .order('code');
-
+      
       if (error) throw error;
       return data;
     },
@@ -85,43 +84,43 @@ export default function LanguageManager() {
         .from('translations')
         .select('namespace, language, quality_score, quality_status, translation_provider')
         .eq('is_active', true);
-
+      
       if (error) throw error;
-
-      const coverageMap: Record<string, {
-        namespaces: Set<string>;
-        qualitySum: number;
+      
+      const coverageMap: Record<string, { 
+        namespaces: Set<string>; 
+        qualitySum: number; 
         qualityCount: number;
         needsReview: number;
         provider: string | null;
       }> = {};
-
+      
       data.forEach(t => {
         if (!coverageMap[t.language]) {
-          coverageMap[t.language] = {
-            namespaces: new Set(),
-            qualitySum: 0,
+          coverageMap[t.language] = { 
+            namespaces: new Set(), 
+            qualitySum: 0, 
             qualityCount: 0,
             needsReview: 0,
             provider: null,
           };
         }
         coverageMap[t.language].namespaces.add(t.namespace);
-
+        
         if (t.quality_score !== null) {
           coverageMap[t.language].qualitySum += t.quality_score;
           coverageMap[t.language].qualityCount++;
         }
-
+        
         if (t.quality_status === 'needs_review') {
           coverageMap[t.language].needsReview++;
         }
-
+        
         if (t.translation_provider && !coverageMap[t.language].provider) {
           coverageMap[t.language].provider = t.translation_provider;
         }
       });
-
+      
       return coverageMap;
     },
   });
@@ -146,12 +145,10 @@ export default function LanguageManager() {
 
       if (language.autoGenerate) {
         setIsGenerating(true);
-        const res: any = await aiService.generateAllTranslations({
-          generateAll: true,
-        });
-
-        const genError = res?.error;
-        const data = res?.data ?? res;
+        const { data, error: genError } = await supabase.functions.invoke(
+          'generate-all-translations',
+          { body: { generateAll: true } }
+        );
 
         if (genError) {
           console.error('Generation error:', genError);
@@ -199,12 +196,12 @@ export default function LanguageManager() {
   const handleRetranslateLowQuality = async (langCode: string) => {
     setRetranslatingLang(langCode);
     try {
-      const res: any = await aiService.generateAllTranslations({
-        generateAll: true,
+      const { error } = await supabase.functions.invoke('generate-all-translations', {
+        body: { generateAll: true }
       });
-
-      if (res?.error) throw res.error;
-
+      
+      if (error) throw error;
+      
       toast.success(`Retranslation started for ${langCode}`);
       queryClient.invalidateQueries({ queryKey: ['translation-coverage-detailed'] });
     } catch (error) {
@@ -217,13 +214,13 @@ export default function LanguageManager() {
   const getCoverage = (langCode: string) => {
     const langData = coverage?.[langCode];
     if (!langData) return { count: 0, total: totalNamespaces, percentage: 0, quality: null, needsReview: 0, provider: null };
-
-    const avgQuality = langData.qualityCount > 0
-      ? Math.round(langData.qualitySum / langData.qualityCount)
+    
+    const avgQuality = langData.qualityCount > 0 
+      ? Math.round(langData.qualitySum / langData.qualityCount) 
       : null;
-
-    return {
-      count: langData.namespaces.size,
+    
+    return { 
+      count: langData.namespaces.size, 
       total: totalNamespaces,
       percentage: Math.round((langData.namespaces.size / totalNamespaces) * 100),
       quality: avgQuality,
@@ -400,7 +397,7 @@ export default function LanguageManager() {
                     const { count, total, percentage, quality, needsReview, provider } = getCoverage(lang.code);
                     const complete = isComplete(lang.code);
                     const showRetranslate = lang.code !== 'en' && quality !== null && quality < 70;
-
+                    
                     return (
                       <div
                         key={lang.code}

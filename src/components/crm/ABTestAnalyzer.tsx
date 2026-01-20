@@ -6,17 +6,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { motion } from 'framer-motion';
-import {
-  FlaskConical,
-  Trophy,
-  Sparkles,
-  TrendingUp,
+import { 
+  FlaskConical, 
+  Trophy, 
+  Sparkles, 
+  TrendingUp, 
   TrendingDown,
   Copy,
   RefreshCw
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { aiService } from '@/services/aiService';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notify } from '@/lib/notify';
 
@@ -58,14 +57,13 @@ export function ABTestAnalyzer() {
   const generateMutation = useMutation({
     mutationFn: async (content: string) => {
       setGenerating(true);
-      const result = await aiService.invokeAI('generate-ab-test-variants', {
-        body: {
+      const { data, error } = await supabase.functions.invoke('generate-ab-test-variants', {
+        body: { 
           original_content: content,
           variant_type: 'subject_line',
           num_variants: 5
         }
-      }) as { data: any; error: any };
-      const { data, error } = result;
+      });
       if (error) throw error;
       return data;
     },
@@ -116,7 +114,7 @@ export function ABTestAnalyzer() {
               className="min-h-20"
             />
           </div>
-          <Button
+          <Button 
             onClick={() => generateMutation.mutate(subjectLine)}
             disabled={generating || !subjectLine.trim()}
           >
@@ -142,7 +140,7 @@ export function ABTestAnalyzer() {
             >
               <h4 className="text-sm font-medium">Generated Variants:</h4>
               {generatedVariants.map((variant, index) => (
-                <div
+                <div 
                   key={index}
                   className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
                 >
@@ -150,8 +148,8 @@ export function ABTestAnalyzer() {
                     <Badge variant="outline">{String.fromCharCode(65 + index)}</Badge>
                     <span className="text-sm">{variant}</span>
                   </div>
-                  <Button
-                    variant="ghost"
+                  <Button 
+                    variant="ghost" 
                     size="sm"
                     onClick={() => copyToClipboard(variant)}
                   >
@@ -248,9 +246,9 @@ export function ABTestAnalyzer() {
                   <div className="space-y-2">
                     {campaignVariants.map((variant, index) => {
                       const isLeading = index === 0;
-
+                      
                       return (
-                        <div
+                        <div 
                           key={variant.id}
                           className={`flex items-center gap-4 p-3 rounded-lg ${isLeading ? 'bg-green-500/10 border border-green-500/30' : 'bg-muted/20'}`}
                         >
@@ -258,8 +256,8 @@ export function ABTestAnalyzer() {
                             {variant.variant_name}
                           </Badge>
                           <div className="flex-1">
-                            <Progress
-                              value={variant.reply_rate}
+                            <Progress 
+                              value={variant.reply_rate} 
                               className="h-2"
                             />
                           </div>

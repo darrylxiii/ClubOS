@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'framer-motion';
@@ -12,16 +13,19 @@ import {
   Building,
   Mail,
   Zap,
+  Calendar,
   GripVertical,
   Phone,
   Linkedin,
+  DollarSign,
   Clock,
   MoreHorizontal,
   Sparkles,
+  Pencil,
+  ListTodo,
+  Eye,
   Euro,
   TrendingUp,
-  Eye,
-  Pencil,
 } from 'lucide-react';
 import type { CRMProspect } from '@/types/crm-enterprise';
 import { formatDistanceToNow } from 'date-fns';
@@ -77,6 +81,7 @@ export function EnhancedProspectCard({
   onDeleteProspect,
   onConvertToPartner
 }: EnhancedProspectCardProps) {
+  const [showActions, setShowActions] = useState(false);
   const { data: stageProbabilities } = useStageProbabilities();
 
   // Calculate weighted value based on stage probability
@@ -126,6 +131,8 @@ export function EnhancedProspectCard({
         dragging && "opacity-50 scale-105 shadow-2xl rotate-1 z-50",
         prospect.reply_sentiment && sentimentColors[prospect.reply_sentiment]
       )}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
       whileHover={{ scale: dragging ? 1 : 1.02, y: -2 }}
     >
       {/* Drag Handle + Selection Checkbox */}
@@ -134,18 +141,15 @@ export function EnhancedProspectCard({
           <Checkbox
             checked={isSelected}
             onCheckedChange={(checked) => onSelect(prospect.id, !!checked)}
-            className={cn(
-              "transition-opacity",
-              isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            )}
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
           />
         )}
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground transition-colors p-0.5"
+          className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
         >
-          <GripVertical className="w-4 h-4" />
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
         </div>
       </div>
 
@@ -161,7 +165,7 @@ export function EnhancedProspectCard({
           <div className="min-w-0 flex-1">
             <Link
               to={`/crm/prospects/${prospect.id}`}
-              className="font-medium text-sm hover:text-primary transition-colors line-clamp-1 block z-10 relative"
+              className="font-medium text-sm hover:text-primary transition-colors line-clamp-1"
             >
               {prospect.full_name}
             </Link>
@@ -210,7 +214,7 @@ export function EnhancedProspectCard({
                 onDeleteProspect={onDeleteProspect}
                 onConvertToPartner={onConvertToPartner}
                 trigger={
-                  <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground/50 hover:text-foreground transition-colors">
+                  <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 }
@@ -229,12 +233,10 @@ export function EnhancedProspectCard({
                 {prospect.company_size}
               </Badge>
             )}
-            {/* Company Enrich Button - Now safely clickable */}
-            <div className="z-10 relative">
-              <CompanyEnrichButton
-                prospect={prospect}
-              />
-            </div>
+            {/* Company Enrich Button */}
+            <CompanyEnrichButton
+              prospect={prospect}
+            />
           </div>
         )}
 
@@ -295,7 +297,7 @@ export function EnhancedProspectCard({
         </div>
 
         {/* Stats Row */}
-        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Mail className="w-3 h-3" />
             <span>{prospect.emails_sent || 0}</span>
@@ -311,23 +313,31 @@ export function EnhancedProspectCard({
           )}
         </div>
 
-        {/* Static Footer Actions */}
-        <div className="flex items-center gap-1 pt-2 border-t border-border/30">
+        {/* Inline Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: showActions ? 1 : 0, y: showActions ? 0 : 10 }}
+          className={cn(
+            "absolute inset-0 bg-gradient-to-t from-card via-card/95 to-card/80 rounded-xl",
+            "flex items-center justify-center gap-1.5 p-2",
+            !showActions && "pointer-events-none"
+          )}
+        >
+          {/* Email Button */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button size="sm" variant="ghost" className="h-7 px-2 text-muted-foreground hover:text-foreground" asChild>
+              <Button size="sm" variant="outline" className="h-8 w-8 p-0" asChild>
                 <Link to={`/crm/inbox?email=${encodeURIComponent(prospect.email)}`}>
-                  <Mail className="w-4 h-4 mr-1.5" />
-                  <span className="text-[10px]">Email</span>
+                  <Mail className="w-4 h-4" />
                 </Link>
               </Button>
             </TooltipTrigger>
             <TooltipContent>Send Email</TooltipContent>
           </Tooltip>
-
+          {/* View Prospect Details */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" asChild>
+              <Button size="sm" variant="outline" className="h-8 w-8 p-0 ml-1" asChild>
                 <Link to={`/crm/prospects/${prospect.id}`}>
                   <Eye className="w-4 h-4" />
                 </Link>
@@ -339,7 +349,7 @@ export function EnhancedProspectCard({
           {prospect.phone && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" asChild>
+                <Button size="sm" variant="outline" className="h-8 w-8 p-0" asChild>
                   <a href={`tel:${prospect.phone}`}>
                     <Phone className="w-4 h-4" />
                   </a>
@@ -352,7 +362,7 @@ export function EnhancedProspectCard({
           {prospect.linkedin_url && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" asChild>
+                <Button size="sm" variant="outline" className="h-8 w-8 p-0" asChild>
                   <a href={prospect.linkedin_url} target="_blank" rel="noopener noreferrer">
                     <Linkedin className="w-4 h-4" />
                   </a>
@@ -365,7 +375,7 @@ export function EnhancedProspectCard({
           {onEdit && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" onClick={() => onEdit(prospect)}>
+                <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => onEdit(prospect)}>
                   <Pencil className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
@@ -373,11 +383,8 @@ export function EnhancedProspectCard({
             </Tooltip>
           )}
 
-          <div className="ml-auto">
-            <CreatePilotTaskButton prospect={prospect} size="icon" variant="ghost" className="h-7 w-7" />
-          </div>
-
-        </div>
+          <CreatePilotTaskButton prospect={prospect} size="icon" variant="outline" />
+        </motion.div>
       </div>
     </motion.div>
   );

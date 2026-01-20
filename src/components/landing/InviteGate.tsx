@@ -35,8 +35,8 @@ export const InviteGate = () => {
       } else {
         toast.error(data?.message || "Invalid or expired invite code. Request access to join.");
       }
-    } catch (_error) {
-      console.error("Error validating invite:", _error);
+    } catch (error) {
+      console.error("Error validating invite:", error);
       toast.error("Error validating invite code. Please try again.");
     } finally {
       setIsLoading(false);
@@ -71,7 +71,7 @@ export const InviteGate = () => {
         setWaitlistData({ name: "", email: "", linkedin: "" });
         setIsSuccess(false);
       }, 1500);
-    } catch (_error) {
+    } catch (error) {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);

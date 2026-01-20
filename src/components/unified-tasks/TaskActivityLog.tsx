@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   CheckCircle2, 
@@ -24,11 +24,10 @@ interface ActivityLogEntry {
   old_value: any;
   new_value: any;
   description: string | null;
-  created_at: string | null;
+  created_at: string;
   profile?: {
-    full_name: string | null;
+    full_name: string;
     avatar_url: string | null;
-    id: string;
   };
 }
 
@@ -145,7 +144,7 @@ export const TaskActivityLog = ({ taskId }: TaskActivityLogProps) => {
                     {activity.profile?.full_name || "Unknown"}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {activity.created_at ? formatDistanceToNow(new Date(activity.created_at), { addSuffix: true }) : 'Unknown'}
+                    {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
                   </span>
                 </div>
                 

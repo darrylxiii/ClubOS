@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { MessageSquare, Send, Download, Clock, Users } from 'lucide-react';
+import { MessageSquare, Send, Download, Clock, TrendingUp, Users } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { AppLayout } from '@/components/AppLayout';
 

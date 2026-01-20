@@ -21,6 +21,7 @@ import {
   Clock,
   Trash2,
   Edit,
+  UserPlus,
   ArrowRight,
   Video,
 } from 'lucide-react';
@@ -213,36 +214,21 @@ export function ProspectActionsMenu({
       <CloseWonDialog
         open={showWonDialog}
         onClose={() => setShowWonDialog(false)}
-        prospect={{
-          id: prospect.id,
-          full_name: prospect.full_name,
-          company_name: prospect.company_name ?? undefined,
-          deal_value: prospect.deal_value ?? undefined,
-        }}
+        prospect={prospect}
         onConfirm={handleCloseWon}
       />
       
       <CloseLostDialog
         open={showLostDialog}
         onClose={() => setShowLostDialog(false)}
-        prospect={{
-          id: prospect.id,
-          full_name: prospect.full_name,
-          company_name: prospect.company_name ?? undefined,
-        }}
+        prospect={prospect}
         onConfirm={handleCloseLost}
       />
       
       <ConvertToPartnerDialog
         open={showConvertDialog}
         onClose={() => setShowConvertDialog(false)}
-        prospect={{
-          id: prospect.id,
-          full_name: prospect.full_name,
-          email: prospect.email,
-          company_name: prospect.company_name ?? undefined,
-          phone: prospect.phone ?? undefined,
-        }}
+        prospect={prospect}
         onConvert={onConvertToPartner}
       />
       

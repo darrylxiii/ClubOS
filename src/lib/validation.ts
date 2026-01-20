@@ -39,15 +39,15 @@ export const validatePhoneNumber = (phone: string): ValidationResult => {
 
   // Remove all non-digit characters except the leading +
   const cleanPhone = phone.replace(/[\s()-]/g, '');
-
+  
   // Must start with + and have at least 8 digits (shortest valid international number)
   // Maximum is 15 digits per E.164 standard
   const phoneRegex = /^\+[0-9]{8,15}$/;
-
+  
   if (!phoneRegex.test(cleanPhone)) {
-    return {
-      isValid: false,
-      error: 'Please enter a valid international phone number with country code (e.g., +31612345678)'
+    return { 
+      isValid: false, 
+      error: 'Please enter a valid international phone number with country code (e.g., +31612345678)' 
     };
   }
 
@@ -78,7 +78,7 @@ export const validateOTP = (otp: string, length: number = 6): ValidationResult =
  */
 export const validateURL = (url: string, required: boolean = false): ValidationResult => {
   if (!url || url.trim() === '') {
-    return required
+    return required 
       ? { isValid: false, error: 'URL is required' }
       : { isValid: true };
   }
@@ -96,7 +96,7 @@ export const validateURL = (url: string, required: boolean = false): ValidationR
  */
 export const validateLinkedInURL = (url: string, required: boolean = false): ValidationResult => {
   if (!url || url.trim() === '') {
-    return required
+    return required 
       ? { isValid: false, error: 'LinkedIn URL is required' }
       : { isValid: true };
   }
@@ -146,9 +146,9 @@ export const validateFile = (
   // Check file extension
   const extension = '.' + file.name.split('.').pop()?.toLowerCase();
   if (allowedExtensions.length > 0 && !allowedExtensions.includes(extension)) {
-    return {
-      isValid: false,
-      error: `Only ${allowedExtensions.join(', ')} files are allowed`
+    return { 
+      isValid: false, 
+      error: `Only ${allowedExtensions.join(', ')} files are allowed` 
     };
   }
 
@@ -158,7 +158,7 @@ export const validateFile = (
 /**
  * Required field validation
  */
-export const validateRequired = (value: unknown, fieldName: string): ValidationResult => {
+export const validateRequired = (value: any, fieldName: string): ValidationResult => {
   if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')) {
     return { isValid: false, error: `${fieldName} is required` };
   }
@@ -177,16 +177,16 @@ export const validateLength = (
   const length = value?.trim().length || 0;
 
   if (min !== undefined && length < min) {
-    return {
-      isValid: false,
-      error: `${fieldName || 'Field'} must be at least ${min} characters`
+    return { 
+      isValid: false, 
+      error: `${fieldName || 'Field'} must be at least ${min} characters` 
     };
   }
 
   if (max !== undefined && length > max) {
-    return {
-      isValid: false,
-      error: `${fieldName || 'Field'} must be less than ${max} characters`
+    return { 
+      isValid: false, 
+      error: `${fieldName || 'Field'} must be less than ${max} characters` 
     };
   }
 
@@ -203,16 +203,16 @@ export const validateRange = (
   fieldName?: string
 ): ValidationResult => {
   if (min !== undefined && value < min) {
-    return {
-      isValid: false,
-      error: `${fieldName || 'Value'} must be at least ${min}`
+    return { 
+      isValid: false, 
+      error: `${fieldName || 'Value'} must be at least ${min}` 
     };
   }
 
   if (max !== undefined && value > max) {
-    return {
-      isValid: false,
-      error: `${fieldName || 'Value'} must be at most ${max}`
+    return { 
+      isValid: false, 
+      error: `${fieldName || 'Value'} must be at most ${max}` 
     };
   }
 

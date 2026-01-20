@@ -1,3 +1,4 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StreakWidget } from './StreakWidget';
 import { WeeklyGoalWidget } from './WeeklyGoalWidget';
 import { TopAchievementsBadges } from './TopAchievementsBadges';

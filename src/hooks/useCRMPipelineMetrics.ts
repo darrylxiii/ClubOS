@@ -12,7 +12,7 @@ interface StageProbability {
   stage: string;
   probability_weight: number;
   stage_order: number;
-  is_terminal: boolean | null;
+  is_terminal: boolean;
 }
 
 export function useCRMPipelineMetrics() {
@@ -20,15 +20,15 @@ export function useCRMPipelineMetrics() {
     queryKey: ['crm-pipeline-metrics'],
     queryFn: async (): Promise<CRMPipelineMetrics> => {
       const { data, error } = await supabase.rpc('calculate_crm_weighted_pipeline');
-
+      
       if (error) {
         console.error('Error fetching CRM pipeline metrics:', error);
         throw error;
       }
-
+      
       // The RPC returns an array with one row
-      const result = (Array.isArray(data) ? data[0] : data) as any;
-
+      const result = Array.isArray(data) ? data[0] : data;
+      
       return {
         total_pipeline: Number(result?.total_pipeline || 0),
         weighted_pipeline: Number(result?.weighted_pipeline || 0),
@@ -48,18 +48,18 @@ export function useStageProbabilities() {
         .from('crm_stage_probabilities')
         .select('*')
         .order('stage_order');
-
+      
       if (error) {
         console.error('Error fetching stage probabilities:', error);
         throw error;
       }
-
+      
       // Convert to a map for easy lookup
       const probabilityMap: Record<string, StageProbability> = {};
       (data || []).forEach((sp: StageProbability) => {
         probabilityMap[sp.stage] = sp;
       });
-
+      
       return probabilityMap;
     },
     staleTime: 60000, // 1 minute

@@ -119,8 +119,8 @@ export function CompanyFeeConfigDialog({
       setPaymentCode(company.payment_code || "");
       
       // Auto-expand sections if data exists
-      setBankSectionOpen(Boolean(company.bank_iban));
-      setPaymentSectionOpen(Boolean(company.payment_code) || Boolean(company.default_payment_terms_days && company.default_payment_terms_days !== 30));
+      setBankSectionOpen(!!company.bank_iban);
+      setPaymentSectionOpen(!!company.payment_code || (company.default_payment_terms_days && company.default_payment_terms_days !== 30));
     }
   }, [company]);
 

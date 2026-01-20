@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   ArrowLeft, 
@@ -59,7 +60,7 @@ export default function MeetingInsights() {
       const { data: meetingData, error: meetingError } = await supabase
         .from('meetings')
         .select('*')
-        .eq('id', meetingId ?? '')
+        .eq('id', meetingId)
         .single();
 
       if (meetingError) throw meetingError;
@@ -69,7 +70,7 @@ export default function MeetingInsights() {
       const { data: insightsData, error: insightsError } = await supabase
         .from('meeting_insights')
         .select('*')
-        .eq('meeting_id', meetingId ?? '')
+        .eq('meeting_id', meetingId)
         .single();
 
       if (insightsError) {

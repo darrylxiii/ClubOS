@@ -116,8 +116,8 @@ export function UnifiedTasksProvider({
       if (error) throw error;
 
       setTasks((data || []) as UnifiedTask[]);
-    } catch (_error) {
-      console.error("Error loading tasks:", _error);
+    } catch (error) {
+      console.error("Error loading tasks:", error);
       toast.error("Failed to load tasks");
     } finally {
       setLoading(false);
@@ -137,7 +137,7 @@ export function UnifiedTasksProvider({
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
 
     try {
-       
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { assignees, labels, recurrence_rule, ...dbUpdates } = updates;
       const { error } = await supabase
         .from("unified_tasks")
@@ -150,8 +150,8 @@ export function UnifiedTasksProvider({
         .eq("id", taskId);
 
       if (error) throw error;
-    } catch (_error) {
-      console.error("Error updating task:", _error);
+    } catch (error) {
+      console.error("Error updating task:", error);
       toast.error("Failed to update task");
       loadTasks(objectiveId); // Revert on error
     }
@@ -173,8 +173,8 @@ export function UnifiedTasksProvider({
         return next;
       });
       toast.success("Task deleted");
-    } catch (_error) {
-      console.error("Error deleting task:", _error);
+    } catch (error) {
+      console.error("Error deleting task:", error);
       toast.error("Failed to delete task");
     }
   }, []);
@@ -186,7 +186,7 @@ export function UnifiedTasksProvider({
     ));
 
     try {
-       
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { assignees, labels, recurrence_rule, ...dbUpdates } = updates;
       const { error } = await supabase
         .from("unified_tasks")
@@ -202,8 +202,8 @@ export function UnifiedTasksProvider({
 
       toast.success(`${taskIds.length} tasks updated`);
       clearSelection();
-    } catch (_error) {
-      console.error("Error bulk updating tasks:", _error);
+    } catch (error) {
+      console.error("Error bulk updating tasks:", error);
       toast.error("Failed to update tasks");
       loadTasks(objectiveId);
     }
@@ -221,8 +221,8 @@ export function UnifiedTasksProvider({
       setTasks(prev => prev.filter(t => !taskIds.includes(t.id)));
       clearSelection();
       toast.success(`${taskIds.length} tasks deleted`);
-    } catch (_error) {
-      console.error("Error bulk deleting tasks:", _error);
+    } catch (error) {
+      console.error("Error bulk deleting tasks:", error);
       toast.error("Failed to delete tasks");
     }
   }, []);

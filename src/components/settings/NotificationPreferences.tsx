@@ -96,8 +96,8 @@ export const NotificationPreferences = () => {
           quiet_hours_timezone: prefData.quiet_hours_timezone,
         });
       }
-    } catch (_error) {
-      console.error('Error loading preferences:', _error);
+    } catch (error) {
+      console.error('Error loading preferences:', error);
       toast.error('Failed to load notification preferences');
     } finally {
       setLoading(false);
@@ -120,8 +120,8 @@ export const NotificationPreferences = () => {
       if (error) throw error;
 
       toast.success('Notification preferences saved');
-    } catch (_error) {
-      console.error('Error saving preferences:', _error);
+    } catch (error) {
+      console.error('Error saving preferences:', error);
       toast.error('Failed to save preferences');
     } finally {
       setSaving(false);

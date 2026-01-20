@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   listLeads,
   createLead,
@@ -8,9 +8,11 @@ import {
   LEAD_STATUS,
   LEAD_FILTERS,
 } from "../_shared/instantly-client.ts";
-import { publicCorsHeaders } from "../_shared/cors-config.ts";
 
-const corsHeaders = publicCorsHeaders;
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 // =====================================================
 // STAGE RANK SYSTEM - Prevents accidental downgrades
@@ -49,21 +51,21 @@ function getStageRank(stage: string): number {
 function computeFinalStage(existingStage: string | null, newStage: string): string {
   // If no existing stage, use new
   if (!existingStage) return newStage;
-
+  
   // Terminal stages from Instantly always apply (bounced, unsubscribed, not interested)
   if (isTerminalStage(newStage)) {
     return newStage;
   }
-
+  
   // If existing is terminal, DON'T override with non-terminal (lead might have been rescued)
   if (isTerminalStage(existingStage)) {
     return existingStage;
   }
-
+  
   // Non-terminal: keep the higher-ranked stage (no downgrades)
   const existingRank = getStageRank(existingStage);
   const newRank = getStageRank(newStage);
-
+  
   return newRank > existingRank ? newStage : existingStage;
 }
 
@@ -74,7 +76,7 @@ function computeFinalStage(existingStage: string | null, newStage: string): stri
 // Score a lead for deduplication (higher = better/more important)
 function scoreInstantlyLead(lead: InstantlyLead): number {
   let score = 0;
-
+  
   // Primary: Interest status (meeting > interested > replied > opened > contacted)
   const interestStatus = lead.lt_interest_status || 0;
   switch (interestStatus) {
@@ -95,20 +97,20 @@ function scoreInstantlyLead(lead: InstantlyLead): number {
       score += 50;
       break;
   }
-
+  
   // Secondary: Reply count (capped contribution)
   score += Math.min(lead.email_reply_count || 0, 10) * 20;
-
+  
   // Tertiary: Open count
   score += Math.min(lead.email_open_count || 0, 20) * 2;
-
+  
   // Quaternary: Recent activity (newer is better)
   if (lead.timestamp_last_interest_change) {
     const lastInterest = new Date(lead.timestamp_last_interest_change).getTime();
     const ageHours = (Date.now() - lastInterest) / (1000 * 60 * 60);
     score += Math.max(0, 100 - ageHours); // Up to 100 points for very recent
   }
-
+  
   return score;
 }
 
@@ -176,9 +178,8 @@ interface ProspectData {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   const startTime = Date.now();
@@ -188,33 +189,18 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // =====================================================
-    // JWT Authentication (manual validation since verify_jwt = false)
-    // =====================================================
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - No token provided' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      console.error('[sync-instantly-leads] JWT validation failed:', claimsError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const userId = claimsData.claims.sub as string;
-    console.log(`[sync-instantly-leads] Authenticated user: ${userId}`);
-
     // Parse request body for optional filters
     const body = await req.json().catch(() => ({}));
     const { campaign_id, direction = 'both', mode = 'hot' } = body;
+
+    // Optional: Get user context
+    const authHeader = req.headers.get('Authorization');
+    let userId: string | null = null;
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user } } = await supabase.auth.getUser(token);
+      userId = user?.id || null;
+    }
 
     console.log(`[sync-instantly-leads] Starting sync (direction: ${direction}, mode: ${mode}, campaign: ${campaign_id || 'all'})`);
 
@@ -298,7 +284,7 @@ serve(async (req) => {
               const email = lead.email.toLowerCase().trim();
               const newScore = scoreInstantlyLead(lead);
               const existing = allLeads.get(email);
-
+              
               // Keep the lead with HIGHER score (more engagement/interest)
               if (!existing || newScore > existing.score) {
                 allLeads.set(email, { lead, crmCampaignId, score: newScore });
@@ -338,10 +324,10 @@ serve(async (req) => {
           const fullName = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || email.split('@')[0];
 
           const existing = existingMap.get(email);
-
+          
           // COMPUTE FINAL STAGE with monotonic protection
           const finalStage = computeFinalStage(existing?.stage || null, instantlyStage);
-
+          
           // Track what happened to the stage
           let stageChange: 'upgraded' | 'protected' | 'terminal' | 'same' = 'same';
           if (existing) {
@@ -412,7 +398,7 @@ serve(async (req) => {
               errors.push({ email: item.data.full_name, error: updateError.message });
             } else {
               instantlyUpdated++;
-
+              
               // Track stage change stats
               switch (item.stageChange) {
                 case 'upgraded':

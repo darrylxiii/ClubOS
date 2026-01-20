@@ -11,6 +11,7 @@ import {
   Plus,
   Search,
   Lightbulb,
+  ArrowRight,
   CheckCircle2,
 } from 'lucide-react';
 

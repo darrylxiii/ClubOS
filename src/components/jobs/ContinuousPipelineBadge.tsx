@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Infinity as InfinityIcon, Users, Euro, TrendingUp } from "lucide-react";
+import { Infinity, Users, Euro, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContinuousPipelineBadgeProps {
@@ -65,7 +65,7 @@ export function ContinuousPipelineBadge({
     >
       {isUnlimited ? (
         <>
-          <InfinityIcon className="h-3 w-3" />
+          <Infinity className="h-3 w-3" />
           <span>Continuous</span>
           {showProgress && hiredCount > 0 && (
             <span className="ml-1 opacity-70">({hiredCount} hired)</span>

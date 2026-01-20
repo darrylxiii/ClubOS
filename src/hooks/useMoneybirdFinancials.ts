@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { financeService } from "@/services/financeService";
 
 interface MonthlyRevenue {
   month: string;
@@ -41,7 +40,7 @@ export interface MoneybirdFinancialMetrics {
   top_clients: TopClient[];
   payment_aging: PaymentAging;
   metadata: Record<string, unknown>;
-  last_synced_at: string | null;
+  last_synced_at: string;
 }
 
 export function useMoneybirdFinancials(year?: number) {
@@ -62,36 +61,20 @@ export function useMoneybirdFinancials(year?: number) {
         .maybeSingle();
 
       if (error) throw error;
-
+      
       if (!data) return null;
 
-      // Parse JSONB fields and ensure non-null numbers
+      // Parse JSONB fields
       return {
         ...data,
-        total_revenue: data.total_revenue ?? 0,
-        total_paid: data.total_paid ?? 0,
-        total_outstanding: data.total_outstanding ?? 0,
-        gross_profit: data.gross_profit ?? 0,
-        invoice_count_open: data.invoice_count_open ?? 0,
-        invoice_count_paid: data.invoice_count_paid ?? 0,
-        invoice_count_late: data.invoice_count_late ?? 0,
-        revenue_by_month: (data.revenue_by_month as unknown as MonthlyRevenue[] || []).map(m => ({
-          ...m,
-          revenue: m.revenue ?? 0,
-          paid: m.paid ?? 0,
-          count: m.count ?? 0
-        })),
-        top_clients: (data.top_clients as unknown as TopClient[] || []).map(c => ({
-          ...c,
-          revenue: c.revenue ?? 0,
-          paid: c.paid ?? 0
-        })),
-        payment_aging: {
-          current: (data.payment_aging as any)?.current ?? 0,
-          overdue_30: (data.payment_aging as any)?.overdue_30 ?? 0,
-          overdue_60: (data.payment_aging as any)?.overdue_60 ?? 0,
-          overdue_90: (data.payment_aging as any)?.overdue_90 ?? 0,
-          overdue_90_plus: (data.payment_aging as any)?.overdue_90_plus ?? 0,
+        revenue_by_month: (data.revenue_by_month as unknown as MonthlyRevenue[]) || [],
+        top_clients: (data.top_clients as unknown as TopClient[]) || [],
+        payment_aging: (data.payment_aging as unknown as PaymentAging) || {
+          current: 0,
+          overdue_30: 0,
+          overdue_60: 0,
+          overdue_90: 0,
+          overdue_90_plus: 0,
         },
         metadata: (data.metadata as Record<string, unknown>) || {},
       };
@@ -105,20 +88,30 @@ export function useSyncMoneybirdFinancials() {
 
   return useMutation({
     mutationFn: async (year?: number) => {
-      const response = await financeService.fetchFinancials({ year });
+      const { data, error } = await supabase.functions.invoke('moneybird-fetch-financials', {
+        body: { year: year || new Date().getFullYear() },
+      });
 
-      if (!response.success) {
-        throw new Error(response.error || 'Sync failed');
+      if (error) {
+        // Check for specific error types
+        if (error.message?.includes('Failed to send') || error.message?.includes('FunctionsFetchError')) {
+          throw new Error('Edge Function not available. Please try again in a moment.');
+        }
+        if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+          throw new Error('Moneybird credentials are invalid or missing.');
+        }
+        throw new Error(error.message || 'Failed to connect to sync service');
       }
-
-      return response.data; // financeService returns { success: true, ...data } but standard invokes returned { data } wrapper often. 
-      // Wait, let's check legacy return. Legacy returned { success: true, data: result }. 
-      // My new service returns { success: true, ...result } directly? 
-      // Let's check `fetch-financials.ts`: returns object with success: true, year, invoices_fetched.
-      // Legacy `index.ts` returned { success: true, data: result }.
-      // So I need to be careful with the return alignment.
-      // New service returns the whole object.
-      return response;
+      
+      if (!data) {
+        throw new Error('No response from sync service');
+      }
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Sync failed');
+      }
+      
+      return data.data;
     },
     onSuccess: () => {
       toast.success('Financial data synced from Moneybird');
@@ -133,19 +126,19 @@ export function useSyncMoneybirdFinancials() {
 
 export function useRevenueByMonth(year?: number) {
   const { data: metrics } = useMoneybirdFinancials(year);
-
+  
   return metrics?.revenue_by_month || [];
 }
 
 export function useTopClients(year?: number) {
   const { data: metrics } = useMoneybirdFinancials(year);
-
+  
   return metrics?.top_clients || [];
 }
 
 export function usePaymentAging(year?: number) {
   const { data: metrics } = useMoneybirdFinancials(year);
-
+  
   return metrics?.payment_aging || {
     current: 0,
     overdue_30: 0,

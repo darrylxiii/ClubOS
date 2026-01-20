@@ -152,7 +152,7 @@ export const useMeetingContext = (meetingId?: string) => {
       if (meetingData.job_id) {
         const { data } = await supabase
           .from('jobs')
-          .select('id, title, location')
+          .select('id, title, department, location')
           .eq('id', meetingData.job_id)
           .single();
         job = data;
@@ -182,48 +182,19 @@ export const useMeetingContext = (meetingId?: string) => {
 
       setMeeting({
         ...meetingData,
-        description: meetingData.description ?? undefined,
-        meeting_type: meetingData.meeting_type ?? undefined,
-        interview_stage: meetingData.interview_stage ?? undefined,
-        candidate: candidate ? {
-          ...candidate,
-          email: candidate.email ?? undefined,
-          avatar_url: candidate.avatar_url ?? undefined,
-          current_title: candidate.current_title ?? undefined,
-          current_company: candidate.current_company ?? undefined,
-        } : undefined,
-        job: job ? {
-          ...job,
-          location: job.location ?? undefined,
-        } : undefined,
-        application: application ?? undefined,
-        company: company ? {
-          ...company,
-          logo_url: company.logo_url ?? undefined,
-        } : undefined,
+        candidate,
+        job,
+        application,
+        company,
         participants: participants?.map(p => ({
           ...p,
-          user_id: p.user_id ?? undefined,
-          guest_name: p.guest_name ?? undefined,
-          guest_email: p.guest_email ?? undefined,
-          participant_type: p.participant_type ?? undefined,
-          role_in_interview: p.role_in_interview ?? undefined,
-          rsvp_status: p.rsvp_status ?? undefined,
-          avatar_url: (Array.isArray(p.profiles) ? p.profiles[0] : p.profiles)?.avatar_url ?? undefined,
-          current_title: (Array.isArray(p.profiles) ? p.profiles[0] : p.profiles)?.current_title ?? undefined,
           profile: Array.isArray(p.profiles) ? p.profiles[0] : p.profiles
         })) || [],
-        scorecards: scorecards?.map(s => ({
-          ...s,
-          overall_rating: s.overall_rating ?? undefined,
-          recommendation: s.recommendation ?? undefined,
-          status: s.status ?? 'pending',
-          submitted_at: s.submitted_at ?? undefined
-        })) || [],
+        scorecards: scorecards || [],
         ai_analysis: {
           status: meetingData.ai_analysis_status || 'pending',
-          summary: meetingData.ai_summary ?? undefined,
-          recommendation: meetingData.ai_recommendation ?? undefined,
+          summary: meetingData.ai_summary,
+          recommendation: meetingData.ai_recommendation,
           key_moments: Array.isArray(meetingData.ai_key_moments) ? meetingData.ai_key_moments : []
         }
       });
@@ -306,8 +277,8 @@ export const useUpcomingMeetingsWithContext = (userId?: string) => {
         ];
 
         const uniqueMeetings = Array.from(
-          new Map<string, any>(allMeetings.map(m => [m.id, m])).values()
-        ).sort((a, b) =>
+          new Map(allMeetings.map(m => [m.id, m])).values()
+        ).sort((a, b) => 
           new Date(a.scheduled_start!).getTime() - new Date(b.scheduled_start!).getTime()
         );
 

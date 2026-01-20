@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,7 +15,8 @@ import {
   AlertTriangle,
   ArrowUpRight,
   ArrowDownRight,
-  BarChart3
+  BarChart3,
+  UserCheck
 } from 'lucide-react';
 import { KPIRadarChart } from './KPIRadarChart';
 import { KPIHeatMap } from './KPIHeatMap';

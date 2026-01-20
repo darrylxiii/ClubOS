@@ -20,7 +20,7 @@ export function useSecurityTracking() {
         p_ip_address: ipAddress || null,
         p_user_agent: userAgent || navigator.userAgent,
         p_success: success,
-      } as any);
+      });
       
       if (error) {
         console.error('[SecurityTracking] Failed to record login attempt:', error);
@@ -50,7 +50,7 @@ export function useSecurityTracking() {
         p_ip_address: ipAddress || null,
         p_user_agent: userAgent || navigator.userAgent,
         p_device_fingerprint: deviceFingerprint || null,
-      } as any);
+      });
       
       if (error) {
         console.error('[SecurityTracking] Failed to create session:', error);
@@ -74,7 +74,7 @@ export function useSecurityTracking() {
       const { error } = await supabase.rpc('end_user_session', {
         p_user_id: userId,
         p_session_id: sessionId || null,
-      } as any);
+      });
       
       if (error) {
         console.error('[SecurityTracking] Failed to end session:', error);

@@ -8,13 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Upload, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { AssetFormData, InventoryAsset, AssetCategory, AssetType } from '@/hooks/useInventoryAssets';
-import { INTANGIBLE_CATEGORIES } from '@/hooks/useInventoryCategories';
+import { CATEGORY_LABELS, INTANGIBLE_CATEGORIES } from '@/hooks/useInventoryCategories';
 
 interface AssetFormDialogProps {
   open: boolean;

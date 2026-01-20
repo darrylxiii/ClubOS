@@ -5,8 +5,8 @@ export interface DossierShare {
   candidate_id: string;
   token: string;
   expires_at: string;
-  allowed_domains?: string[] | null;
-  watermark_text?: string | null;
+  allowed_domains?: string[];
+  watermark_text?: string;
   view_count: number;
   is_revoked: boolean;
   created_at: string;
@@ -14,9 +14,9 @@ export interface DossierShare {
 
 export interface DossierView {
   id: string;
-  viewer_email?: string | null;
-  viewer_name?: string | null;
-  viewer_company?: string | null;
+  viewer_email?: string;
+  viewer_name?: string;
+  viewer_company?: string;
   viewed_at: string;
   ip_address?: unknown;
 }
@@ -39,7 +39,7 @@ export async function createDossierShare(
     .insert([{
       candidate_id: candidateId,
       shared_by: user.user.id,
-      token: tokenData || crypto.randomUUID(),
+      token: tokenData,
       expires_at: expiresAt.toISOString(),
       allowed_domains: allowedDomains,
       watermark_text: `Confidential - ${new Date().toLocaleDateString()}`
@@ -48,7 +48,7 @@ export async function createDossierShare(
     .single();
 
   if (error) throw error;
-  return data as DossierShare;
+  return data;
 }
 
 export async function getDossierViews(shareId: string): Promise<DossierView[]> {
@@ -59,7 +59,7 @@ export async function getDossierViews(shareId: string): Promise<DossierView[]> {
     .order('viewed_at', { ascending: false });
 
   if (error) throw error;
-  return (data || []) as DossierView[];
+  return data || [];
 }
 
 export async function revokeDossierShare(shareId: string) {

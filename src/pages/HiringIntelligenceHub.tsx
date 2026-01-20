@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Sparkles, TrendingUp, AlertCircle, Users, Calendar, Target, BarChart3, Briefcase } from "lucide-react";
+import { Brain, Sparkles, TrendingUp, AlertCircle, Users, Calendar, Target, BarChart3, Briefcase, FileText, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CandidateIntelligenceDossier } from "@/components/intelligence/CandidateIntelligenceDossier";
@@ -92,7 +92,7 @@ export default function HiringIntelligenceHub() {
 
       // Load application counts per job separately (proper way to count)
       const jobIds = jobsData?.map(j => j.id) || [];
-      const applicationCounts: Record<string, number> = {};
+      let applicationCounts: Record<string, number> = {};
       
       if (jobIds.length > 0) {
         const { data: appCountData } = await supabase

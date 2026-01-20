@@ -1,9 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { publicCorsHeaders } from "../_shared/cors-config.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = publicCorsHeaders;
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 interface ExpandRequest {
   entity_type: 'candidate' | 'company' | 'job' | 'stakeholder';
@@ -110,13 +112,13 @@ async function fetchEntity(
     let keyAttributes: Record<string, any> = {};
 
     switch (entityType) {
-      case 'candidate': {
+      case 'candidate':
         const { data: profile } = await supabase
           .from('profiles')
           .select('id, full_name, email, headline, current_company, current_title, skills')
           .eq('id', entityId)
           .single();
-
+        
         if (profile) {
           data = profile;
           name = profile.full_name || 'Unknown';
@@ -129,15 +131,14 @@ async function fetchEntity(
           };
         }
         break;
-      }
 
-      case 'company': {
+      case 'company':
         const { data: company } = await supabase
           .from('companies')
           .select('id, name, industry, size_range, location, description')
           .eq('id', entityId)
           .single();
-
+        
         if (company) {
           data = company;
           name = company.name;
@@ -149,15 +150,14 @@ async function fetchEntity(
           };
         }
         break;
-      }
 
-      case 'job': {
+      case 'job':
         const { data: job } = await supabase
           .from('jobs')
           .select('id, title, company_id, location, employment_type, experience_level, status')
           .eq('id', entityId)
           .single();
-
+        
         if (job) {
           data = job;
           name = job.title;
@@ -170,15 +170,14 @@ async function fetchEntity(
           };
         }
         break;
-      }
 
-      case 'stakeholder': {
+      case 'stakeholder':
         const { data: stakeholder } = await supabase
           .from('profiles')
           .select('id, full_name, email, current_title, current_company')
           .eq('id', entityId)
           .single();
-
+        
         if (stakeholder) {
           data = stakeholder;
           name = stakeholder.full_name || 'Unknown';
@@ -189,7 +188,6 @@ async function fetchEntity(
           };
         }
         break;
-      }
     }
 
     if (!data) return null;

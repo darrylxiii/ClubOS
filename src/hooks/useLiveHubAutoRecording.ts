@@ -7,7 +7,7 @@ interface UseLiveHubAutoRecordingProps {
   channelId: string;
   channelName: string;
   localStream: MediaStream | null;
-  remoteStreams: Map<string, { camera?: MediaStream | null; screen?: MediaStream | null }>;
+  remoteStreams: Map<string, { camera?: MediaStream; screen?: MediaStream }>;
   autoRecord?: boolean;
   enabled: boolean;
 }

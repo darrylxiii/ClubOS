@@ -67,7 +67,7 @@ describe('blockedDomainsService', () => {
       vi.mocked(supabase.auth.getUser).mockResolvedValue({
         data: { user: null },
         error: null,
-      } as any);
+      });
 
       await expect(addBlockedDomain('Test', 'test.com')).rejects.toThrow('Not authenticated');
     });

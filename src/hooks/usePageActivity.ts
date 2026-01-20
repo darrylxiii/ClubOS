@@ -56,7 +56,7 @@ export function usePageActivity(pageId: string | undefined) {
 
       // Fetch user profiles for activities
       if (data && data.length > 0) {
-        const userIds = [...new Set(data.map(a => a.user_id).filter((id): id is string => id !== null))];
+        const userIds = [...new Set(data.map(a => a.user_id).filter(Boolean))];
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name, avatar_url')
@@ -77,13 +77,13 @@ export function usePageActivity(pageId: string | undefined) {
 
   // Log an activity
   const logActivity = useMutation({
-    mutationFn: async ({
-      activityPageId,
-      activityType,
-      activityData = {}
-    }: {
-      activityPageId: string;
-      activityType: ActivityType;
+    mutationFn: async ({ 
+      activityPageId, 
+      activityType, 
+      activityData = {} 
+    }: { 
+      activityPageId: string; 
+      activityType: ActivityType; 
       activityData?: Record<string, string | number | boolean | null>;
     }) => {
       const { error } = await supabase
@@ -192,7 +192,7 @@ export function useWorkspaceAnalytics(workspaceId: string | undefined, days: num
       const pageViewCounts = new Map<string, number>();
       analytics?.forEach(a => {
         const current = pageViewCounts.get(a.page_id) || 0;
-        pageViewCounts.set(a.page_id, current + (a.view_count ?? 0));
+        pageViewCounts.set(a.page_id, current + a.view_count);
       });
 
       const topPages = pages
@@ -207,8 +207,8 @@ export function useWorkspaceAnalytics(workspaceId: string | undefined, days: num
         pages,
         topPages,
         recentActivity: recentActivity || [],
-        totalViews: analytics?.reduce((sum, a) => sum + (a.view_count ?? 0), 0) || 0,
-        totalEdits: analytics?.reduce((sum, a) => sum + (a.edit_count ?? 0), 0) || 0,
+        totalViews: analytics?.reduce((sum, a) => sum + a.view_count, 0) || 0,
+        totalEdits: analytics?.reduce((sum, a) => sum + a.edit_count, 0) || 0,
       };
     },
     enabled: !!workspaceId && !!user,

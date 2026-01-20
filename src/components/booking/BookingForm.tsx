@@ -7,9 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Calendar, Clock, CheckCircle2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { getUserTimezone, parseUserTimeSelection, createBookingTime, normalizeTimeFormat, detectTimeFormat } from "@/lib/timezoneUtils";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import { parseISO, setHours, setMinutes } from "date-fns";
 import { RECAPTCHA_ENABLED } from "@/config/recaptcha";
 import { bookingFormSchema, type BookingFormData } from "@/lib/bookingSchemas";
 import { z } from "zod";
@@ -183,7 +184,7 @@ export function BookingForm({
         userTimezone
       });
 
-      const parsedTime = parseUserTimeSelection(selectedDate, selectedTime);
+      const parsedTime = parseUserTimeSelection(selectedDate, selectedTime, userTimezone);
 
       if (!parsedTime) {
         console.error('[BookingForm] Failed to parse time:', {

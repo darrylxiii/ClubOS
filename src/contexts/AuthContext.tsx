@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     let mounted = true;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     const startTime = Date.now();
-
+    
     console.log("[AuthContext] 🚀 Initializing auth at", new Date().toISOString());
 
     // Helper to clear timeout safely
@@ -41,99 +41,102 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // CRITICAL: Reduced timeout to 1.5s for snappier fall-through
+    // CRITICAL: Maximum 3-second timeout to prevent infinite loading
     timeoutId = setTimeout(() => {
       if (mounted && loading) {
         const elapsed = Date.now() - startTime;
         console.error("[AuthContext] ⏰ TIMEOUT after", elapsed, "ms - forcing loading to false");
         setLoading(false);
       }
-    }, 15000); // Keep 15s for safety, but we'll fail fast below
+    }, 3000);
 
-    // ALWAYS set up auth subscription FIRST - never early-return before this
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!mounted) return;
-
-        const elapsed = Date.now() - startTime;
-        console.log("[AuthContext] 📢 Auth event:", event, "at", elapsed, "ms | User ID:", session?.user?.id, "Email:", session?.user?.email, "Has session:", !!session);
-
-        setSession(session);
-        setUser(session?.user ?? null);
-        setAuthError(null);
-
-        // Track login and create security session (non-blocking)
-        if (event === 'SIGNED_IN' && session?.user?.id) {
-          const userId = session.user.id;
-          const userEmail = session.user.email || '';
-          const sessionId = session.access_token?.substring(0, 32);
-
-          if (sessionCreatedRef.current !== userId) {
-            sessionCreatedRef.current = userId;
-
-            setTimeout(() => {
-              postHogIdentify(userId, { email: userEmail });
-              recordLoginAttempt(userEmail, true).catch(err => {
-                console.log('[AuthContext] Login attempt tracking failed (non-critical):', err);
-              });
-              const fingerprint = generateDeviceFingerprint();
-              createSession(userId, sessionId, undefined, undefined, fingerprint).catch(err => {
-                console.log('[AuthContext] Security session creation failed (non-critical):', err);
-              });
-              trackLogin(userId, 'email').catch(err => {
-                console.log('[AuthContext] Login tracking failed (non-critical):', err.message);
-              });
-            }, 0);
-          }
-        }
-
-        if (event === 'SIGNED_OUT') {
-          sessionCreatedRef.current = null;
-        }
-      }
-    );
-
-    // FAIL-FAST: Check local storage synchronously
-    // This removes the "lag" for unauthenticated users, but subscription is already set up
-    const hasLocalParams = window.location.hash.includes('access_token') || window.location.search.includes('code=');
-    const hasStorageSession = localStorage.getItem('supabase-auth-token');
-
-    if (!hasStorageSession && !hasLocalParams) {
-      console.log("[AuthContext] ⚡ Fast-fail: No local session found, resolving immediately.");
-      setLoading(false);
-      // DON'T return - let cleanup run properly
-    } else {
-      // Only call getSession if we have reason to believe there's a session
-      supabase.auth.getSession()
+    // PHASE 2: Call getSession() FIRST to ensure user is available immediately
+    supabase.auth.getSession()
       .then(({ data: { session }, error }) => {
         if (!mounted) return;
-
+        
         // CRITICAL FIX: Clear timeout IMMEDIATELY when session loads
         clearAuthTimeout();
-
+        
         const elapsed = Date.now() - startTime;
-
+        
         if (error) {
           console.error("[AuthContext] ❌ Error getting session at", elapsed, "ms:", error.message);
           setAuthError(error.message);
           setLoading(false);
           return;
         }
-
+        
         console.log("[AuthContext] ✅ Initial session loaded at", elapsed, "ms:", !!session, "User ID:", session?.user?.id, "Email:", session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       })
-        .catch((err) => {
-          if (!mounted) return;
-          clearAuthTimeout();
-          const elapsed = Date.now() - startTime;
-          console.error("[AuthContext] 💥 getSession() rejected at", elapsed, "ms:", err);
-          setLoading(false);
-          setAuthError(err.message || 'Session initialization failed');
-        });
-    }
+      .catch((err) => {
+        if (!mounted) return;
+        
+        // Clear timeout on error too
+        clearAuthTimeout();
+        
+        const elapsed = Date.now() - startTime;
+        console.error("[AuthContext] 💥 getSession() rejected at", elapsed, "ms:", err);
+        setLoading(false);
+        setAuthError(err.message || 'Session initialization failed');
+      });
+
+    // THEN set up auth state listener for future changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!mounted) return;
+        
+        const elapsed = Date.now() - startTime;
+        console.log("[AuthContext] 📢 Auth event:", event, "at", elapsed, "ms | User ID:", session?.user?.id, "Email:", session?.user?.email, "Has session:", !!session);
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        setAuthError(null);
+        
+        // Track login and create security session (non-blocking)
+        if (event === 'SIGNED_IN' && session?.user?.id) {
+          const userId = session.user.id;
+          const userEmail = session.user.email || '';
+          const sessionId = session.access_token?.substring(0, 32); // Use part of token as session ID
+          
+          // Prevent duplicate session creation
+          if (sessionCreatedRef.current !== userId) {
+            sessionCreatedRef.current = userId;
+            
+            setTimeout(() => {
+              // Identify user in PostHog
+              postHogIdentify(userId, {
+                email: userEmail,
+              });
+              
+              // Record successful login attempt
+              recordLoginAttempt(userEmail, true).catch(err => {
+                console.log('[AuthContext] Login attempt tracking failed (non-critical):', err);
+              });
+              
+              // Create security session
+              const fingerprint = generateDeviceFingerprint();
+              createSession(userId, sessionId, undefined, undefined, fingerprint).catch(err => {
+                console.log('[AuthContext] Security session creation failed (non-critical):', err);
+              });
+              
+              // Legacy session tracking
+              trackLogin(userId, 'email').catch(err => {
+                console.log('[AuthContext] Login tracking failed (non-critical):', err.message);
+              });
+            }, 0);
+          }
+        }
+        
+        // Clear session ref on sign out
+        if (event === 'SIGNED_OUT') {
+          sessionCreatedRef.current = null;
+        }
+      }
+    );
 
     return () => {
       mounted = false;
@@ -149,7 +152,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         endSession(user.id).catch(err => {
           console.log('[AuthContext] Security session end failed (non-critical):', err);
         });
-
+        
         await trackLogout(user.id).catch(err => {
           console.log('[AuthContext] Logout tracking failed (non-critical):', err.message);
         });
@@ -160,12 +163,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         console.log('[AuthContext] Backend signout error (will clear local state anyway):', error.message);
       }
-    } catch (_error) {
-      console.error('[AuthContext] Error during signout (will clear local state anyway):', _error);
+    } catch (error) {
+      console.error('[AuthContext] Error during signout (will clear local state anyway):', error);
     } finally {
       // Reset PostHog identity
       postHogReset();
-
+      
       // Always clear local state and redirect, even if backend signout fails
       sessionCreatedRef.current = null;
       setUser(null);

@@ -15,7 +15,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, ListPlus, FolderPlus } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Plus, Loader2, ListPlus, FolderPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -114,15 +115,14 @@ export function AddToListDialog({
   // Create new list mutation
   const createListMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.id) throw new Error('User not authenticated');
       const { data, error } = await supabase
         .from('talent_pool_lists')
-        .insert([{
+        .insert({
           name: newListName,
           description: newListDescription || null,
-          created_by: user.id,
+          created_by: user?.id,
           list_type: 'manual',
-        }])
+        })
         .select()
         .single();
 

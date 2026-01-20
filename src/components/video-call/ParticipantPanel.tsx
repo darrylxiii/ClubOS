@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { X, Mic, MicOff, VideoOff, Crown, Hand } from 'lucide-react';
+import { X, Mic, MicOff, Video, VideoOff, Crown, Hand } from 'lucide-react';
 
 interface Participant {
   id: string;

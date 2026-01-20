@@ -58,8 +58,8 @@ interface StoryComment {
   comment_text: string;
   created_at: string;
   profiles: {
-    full_name: string | null;
-    avatar_url: string | null;
+    full_name: string;
+    avatar_url: string;
   };
 }
 
@@ -653,7 +653,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
                 {comments.slice(0, 3).map((comment) => (
                   <div key={comment.id} className="flex items-start gap-2 bg-black/70 backdrop-blur-sm rounded-lg p-2">
                     <Avatar className="w-6 h-6 flex-shrink-0">
-                      <AvatarImage src={comment.profiles?.avatar_url ?? undefined} />
+                      <AvatarImage src={comment.profiles?.avatar_url} />
                       <AvatarFallback className="text-xs">{comment.profiles?.full_name?.[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">

@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
-import { differenceInMinutes, differenceInHours } from 'date-fns';
+import { differenceInMinutes, differenceInHours, formatDistanceToNow } from 'date-fns';
 import { 
+  Clock, 
   MessageSquare, 
   AlertTriangle, 
   TrendingUp,
   ChevronRight,
   Zap,
+  Users,
   Timer
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';

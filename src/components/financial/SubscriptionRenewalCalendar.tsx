@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useVendorSubscriptions, VendorSubscription } from '@/hooks/useVendorSubscriptions';
 import { ChevronLeft, ChevronRight, Calendar, AlertTriangle } from 'lucide-react';
 import { 
@@ -8,7 +9,8 @@ import {
   startOfMonth, 
   endOfMonth, 
   eachDayOfInterval, 
-  isSameMonth,
+  isSameMonth, 
+  isSameDay,
   addMonths,
   subMonths,
   getDay,

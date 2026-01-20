@@ -21,7 +21,7 @@ interface ApplicationLog {
   action: string;
   actor_id: string | null;
   details: Record<string, any>;
-  created_at: string | null;
+  created_at: string;
   actor?: {
     full_name: string;
   };
@@ -104,7 +104,7 @@ export function ApplicationLogViewer({ candidateId, limit = 20 }: ApplicationLog
           .select("id, full_name")
           .in("id", actorIds as string[]);
 
-        actorMap = new Map((actors ?? []).map(a => [a.id, a.full_name ?? 'Unknown']));
+        actorMap = new Map(actors?.map(a => [a.id, a.full_name]) || []);
       }
 
       const logsWithActors = (data || []).map(log => ({
@@ -212,7 +212,7 @@ export function ApplicationLogViewer({ candidateId, limit = 20 }: ApplicationLog
 
                       <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                         <span>
-                          {formatDistanceToNow(new Date(log.created_at ?? new Date()), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
                         </span>
                         {log.actor && (
                           <>

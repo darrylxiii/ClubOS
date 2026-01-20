@@ -19,16 +19,16 @@ interface RejectedCandidate {
   candidate_id: string;
   full_name: string;
   email: string;
-  avatar_url?: string | null;
-  rejection_reason?: string | null;
-  feedback_text?: string | null;
-  stage_name?: string | null;
+  avatar_url?: string;
+  rejection_reason?: string;
+  feedback_text?: string;
+  stage_name?: string;
   skills_mismatch?: string[];
   salary_mismatch?: boolean;
   location_mismatch?: boolean;
-  seniority_mismatch?: string | null;
-  reviewer_name?: string | null;
-  reviewer_avatar?: string | null;
+  seniority_mismatch?: string;
+  reviewer_name?: string;
+  reviewer_avatar?: string;
 }
 
 interface Props {
@@ -360,7 +360,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={candidate.avatar_url ?? undefined} />
+                    <AvatarImage src={candidate.avatar_url} />
                     <AvatarFallback>{candidate.full_name.substring(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
 
@@ -435,7 +435,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <span>Rejected by:</span>
                           <Avatar className="w-5 h-5">
-                            <AvatarImage src={candidate.reviewer_avatar ?? undefined} />
+                            <AvatarImage src={candidate.reviewer_avatar} />
                             <AvatarFallback className="text-[10px]">
                               {candidate.reviewer_name.substring(0, 2).toUpperCase()}
                             </AvatarFallback>

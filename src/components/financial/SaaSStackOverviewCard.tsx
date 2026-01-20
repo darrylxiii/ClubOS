@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useSubscriptionMetrics, useVendorSubscriptions } from '@/hooks/useVendorSubscriptions';
-import { Loader2, AlertTriangle, CreditCard, Calendar, Users } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown, AlertTriangle, CreditCard, Calendar, Users } from 'lucide-react';
 
 export function SaaSStackOverviewCard() {
   const { data: subscriptions, isLoading } = useVendorSubscriptions('active');

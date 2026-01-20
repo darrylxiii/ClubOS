@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { aiService } from '@/services/aiService';
 import {
   Dialog,
   DialogContent,
@@ -63,16 +62,16 @@ export const CreateInterviewDialog = ({
   const [submitting, setSubmitting] = useState(false);
   const [job, setJob] = useState<any>(null);
   const [showSmartScheduling, setShowSmartScheduling] = useState(false);
-
+  
   // Calendar connection state
   const [calendarConnection, setCalendarConnection] = useState<any>(null);
   const [hasCalendarConnected, setHasCalendarConnected] = useState(false);
   const [syncToCalendar, setSyncToCalendar] = useState(true);
   const [checkingCalendar, setCheckingCalendar] = useState(true);
-
+  
   // Attendee emails state
   const [candidateEmail, setCandidateEmail] = useState('');
-  const [interviewerEmails, setInterviewerEmails] = useState<{ id: string; name: string; email: string }[]>([]);
+  const [interviewerEmails, setInterviewerEmails] = useState<{id: string; name: string; email: string}[]>([]);
 
   useEffect(() => {
     if (open && user) {
@@ -152,7 +151,7 @@ export const CreateInterviewDialog = ({
         member.interview_stages?.includes(stageIndex)
       );
       if (stageInterviewers && stageInterviewers.length > 0) {
-        setSelectedInterviewers(stageInterviewers.map((m) => m.company_member_id).filter((id): id is string => id !== null));
+        setSelectedInterviewers(stageInterviewers.map((m) => m.company_member_id));
       }
 
       // Set candidate email
@@ -163,11 +162,11 @@ export const CreateInterviewDialog = ({
       const emails = teamData?.map((m) => {
         const userProfile = m.company_member?.user;
         return {
-          id: m.company_member_id || '',
+          id: m.company_member_id,
           name: (userProfile as any)?.full_name || 'Unknown',
           email: (userProfile as any)?.email || '',
         };
-      }).filter(e => e.email && e.id) || [];
+      }).filter(e => e.email) || [];
       setInterviewerEmails(emails);
     } catch (error) {
       console.error('Error fetching job and team:', error);
@@ -176,7 +175,7 @@ export const CreateInterviewDialog = ({
 
   const autoGenerateTitleAndDescription = async () => {
     if (!job || !application) return;
-
+    
     setGeneratingAI(true);
     try {
       // Generate smart title: Company - Candidate Name - Stage Interview
@@ -210,14 +209,20 @@ Include:
 Keep it concise (3-4 sentences) and professional.`;
 
       // Use edge function for secure AI generation
-      const { description: generatedDesc } = await aiService.generateInterviewDescription({
-        job_title: job?.title || 'Position',
-        company_name: companyName,
-        interview_type: interviewType
+      const { data, error } = await supabase.functions.invoke('generate-interview-description', {
+        body: {
+          candidateName,
+          candidateTitle: application.candidate_title,
+          jobTitle: job?.title,
+          companyName,
+          stageName,
+          interviewType,
+          interviewerNames: selectedInterviewerNames || 'TBD',
+        },
       });
 
-      if (generatedDesc) {
-        setDescription(generatedDesc);
+      if (!error && data?.description) {
+        setDescription(data.description);
       } else {
         // Fallback to template
         setDescription(
@@ -398,7 +403,7 @@ Keep it concise (3-4 sentences) and professional.`;
               .from('bookings')
               .update({ calendar_event_id: calData.event.id })
               .eq('id', booking.id);
-
+            
             toast.success('Interview scheduled and added to your Google Calendar!');
           }
         } catch (calErr) {
@@ -447,8 +452,8 @@ Keep it concise (3-4 sentences) and professional.`;
           {!checkingCalendar && (
             <div className={cn(
               "p-4 rounded-lg border flex items-start gap-3",
-              hasCalendarConnected
-                ? "bg-green-500/10 border-green-500/30"
+              hasCalendarConnected 
+                ? "bg-green-500/10 border-green-500/30" 
                 : "bg-yellow-500/10 border-yellow-500/30"
             )}>
               {hasCalendarConnected ? (

@@ -48,14 +48,7 @@ export function usePaymentReferences(companyId?: string) {
       const { data, error } = await query.limit(100);
       
       if (error) throw error;
-      return (data || []).map(ref => ({
-        ...ref,
-        currency: ref.currency ?? 'EUR',
-        amount: ref.amount ?? null,
-        company_id: ref.company_id ?? null,
-        invoice_id: ref.invoice_id ?? null,
-        created_at: ref.created_at ?? new Date().toISOString(),
-      })) as PaymentReference[];
+      return data || [];
     },
     enabled: true,
   });
@@ -113,18 +106,12 @@ export function useGeneratePaymentReference() {
             .single();
           
           if (retryError) throw retryError;
-          return {
-            ...retryData,
-            currency: retryData.currency ?? 'EUR',
-          } as PaymentReference;
+          return retryData;
         }
         throw error;
       }
       
-      return {
-        ...data,
-        currency: data.currency ?? 'EUR',
-      } as PaymentReference;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payment-references'] });

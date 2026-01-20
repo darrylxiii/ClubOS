@@ -7,7 +7,10 @@ import {
   Briefcase, 
   TrendingUp, 
   Users, 
+  Clock, 
   CheckCircle,
+  AlertCircle,
+  ArrowRight,
   Euro
 } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";

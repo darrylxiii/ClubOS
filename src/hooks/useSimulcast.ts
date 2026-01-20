@@ -247,7 +247,8 @@ export function useSimulcast() {
     contentType: 'detail' | 'motion' | 'text'
   ): void => {
     try {
-      (track as any).contentHint = contentType;
+      // @ts-ignore - contentHint is not in TypeScript types yet
+      track.contentHint = contentType;
       logger.debug('Set screen share content hint', { componentName: 'Simulcast', contentType });
     } catch (error) {
       logger.warn('Content hint not supported', { componentName: 'Simulcast', error });

@@ -124,7 +124,7 @@ export function AddVendorSubscriptionDialog({
     };
 
     if (isEditing && editingSubscription) {
-      await updateMutation.mutateAsync({ id: editingSubscription.id, data: cleanedData as any });
+      await updateMutation.mutateAsync({ id: editingSubscription.id, data: cleanedData });
     } else {
       await createMutation.mutateAsync(cleanedData as any);
     }

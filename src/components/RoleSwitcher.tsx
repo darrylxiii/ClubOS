@@ -16,7 +16,7 @@ interface UserRoleOption {
 export function RoleSwitcher() {
   const { currentRole, availableRoles, switchRole, loading } = useRole();
 
-  const roleOptions: Record<string, UserRoleOption> = {
+  const roleOptions: Record<UserRole, UserRoleOption> = {
     admin: {
       value: 'admin',
       label: 'Admin',
@@ -58,7 +58,7 @@ export function RoleSwitcher() {
   const handleRoleChange = async (newRole: string) => {
     try {
       await switchRole(newRole as UserRole);
-      toast.success(`Switched to ${roleOptions[newRole]?.label || newRole} view`, {
+      toast.success(`Switched to ${roleOptions[newRole as UserRole]?.label || newRole} view`, {
         description: "Your dashboard has been updated"
       });
     } catch (error: any) {
@@ -87,8 +87,8 @@ export function RoleSwitcher() {
     return null; // Don't show if user only has one role
   }
 
-  const roleOptionsList = availableRoles.filter(r => r !== null).map(role => ({
-    ...(role && roleOptions[role] ? roleOptions[role] : { label: role || 'Unknown', icon: User, description: 'Role access' }),
+  const roleOptionsList = availableRoles.map(role => ({
+    ...roleOptions[role],
     value: role
   }));
 

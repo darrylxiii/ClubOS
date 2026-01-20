@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { aiService } from '@/services/aiService';
+import { supabase } from '@/integrations/supabase/client';
 
 export type SemanticEntityType = 'candidate' | 'job' | 'knowledge' | 'interaction';
 
@@ -27,12 +27,19 @@ export function useSemanticSearch() {
     setError(null);
 
     try {
-      const data = await aiService.semanticSearch({
-        query: options.query,
-        entity_type: options.entity_type,
-        limit: options.limit,
-        threshold: options.threshold
-      });
+      const { data, error: functionError } = await supabase.functions.invoke(
+        'semantic-search',
+        {
+          body: {
+            query: options.query,
+            entity_type: options.entity_type,
+            limit: options.limit || 10,
+            threshold: options.threshold || 0.7,
+          },
+        }
+      );
+
+      if (functionError) throw functionError;
 
       return data.results || [];
     } catch (err) {
@@ -65,13 +72,18 @@ export function useEmbeddingGenerator() {
     setError(null);
 
     try {
-      if (!text) throw new Error("Text is required");
+      const { data, error: functionError } = await supabase.functions.invoke(
+        'generate-embeddings',
+        {
+          body: {
+            text,
+            entity_type,
+            entity_id,
+          },
+        }
+      );
 
-      const data = await aiService.generateEmbedding({
-        text,
-        entity_type,
-        entity_id
-      });
+      if (functionError) throw functionError;
 
       return data.embedding || null;
     } catch (err) {
@@ -93,15 +105,22 @@ export function useEmbeddingGenerator() {
     setError(null);
 
     try {
-      const data = await aiService.batchGenerateEmbedding({
-        entity_type,
-        limit,
-        offset
-      });
+      const { data, error: functionError } = await supabase.functions.invoke(
+        'batch-generate-embeddings',
+        {
+          body: {
+            entity_type,
+            limit: limit || 100,
+            offset: offset || 0,
+          },
+        }
+      );
+
+      if (functionError) throw functionError;
 
       return {
-        processed: data.processed,
-        errors: data.errors
+        processed: data.processed || 0,
+        errors: data.errors || 0,
       };
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Batch generation failed');

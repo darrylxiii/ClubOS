@@ -1,8 +1,7 @@
 /**
- * PostHog Analytics Configuration - Phase 14: Deferred Initialization
+ * PostHog Analytics Configuration
  * Core initialization and configuration for PostHog
  * Optimized for free tier (1M events, 5K recordings/month)
- * Uses requestIdleCallback for ~20KB deferred initialization
  */
 
 import posthog from 'posthog-js';
@@ -64,12 +63,8 @@ function shouldReduceTracking(): boolean {
   return AUTOCAPTURE_EXCLUDED_PATHS.some(excluded => path.startsWith(excluded));
 }
 
-// Track initialization state
-const initializationPromise: Promise<void> | null = null;
-
 /**
  * Initialize PostHog with privacy-compliant settings
- * Uses requestIdleCallback for non-blocking initialization (~20KB deferred)
  */
 export function initPostHog(): void {
   if (!POSTHOG_KEY) {
@@ -82,58 +77,47 @@ export function initPostHog(): void {
     return;
   }
 
-  // Defer initialization to idle time for better performance
-  const doInit = () => {
-    posthog.init(POSTHOG_KEY, {
-      api_host: POSTHOG_HOST,
+  posthog.init(POSTHOG_KEY, {
+    api_host: POSTHOG_HOST,
+    
+    // Privacy settings
+    respect_dnt: true,
+    mask_all_text: false,
+    mask_all_element_attributes: false,
+    
+    // Session recording
+    disable_session_recording: false,
+    session_recording: {
+      maskAllInputs: true,
+      maskTextSelector: MASKED_SELECTORS.join(','),
+      blockSelector: '[data-posthog-block]',
+    },
+    
+    // Feature flags
+    bootstrap: {},
+    
+    // Autocapture settings
+    autocapture: {
+      dom_event_allowlist: ['click', 'submit', 'change'],
+      element_allowlist: ['a', 'button', 'form', 'input', 'select', 'textarea'],
+      css_selector_allowlist: ['[data-track]', '.trackable'],
+    },
+    
+    // Performance
+    capture_pageview: true,
+    capture_pageleave: true,
+    
+    // Callbacks
+    loaded: (ph) => {
+      console.log('[PostHog] Initialized successfully');
       
-      // Privacy settings
-      respect_dnt: true,
-      mask_all_text: false,
-      mask_all_element_attributes: false,
-      
-      // Session recording
-      disable_session_recording: false,
-      session_recording: {
-        maskAllInputs: true,
-        maskTextSelector: MASKED_SELECTORS.join(','),
-        blockSelector: '[data-posthog-block]',
-      },
-      
-      // Feature flags
-      bootstrap: {},
-      
-      // Autocapture settings
-      autocapture: {
-        dom_event_allowlist: ['click', 'submit', 'change'],
-        element_allowlist: ['a', 'button', 'form', 'input', 'select', 'textarea'],
-        css_selector_allowlist: ['[data-track]', '.trackable'],
-      },
-      
-      // Performance
-      capture_pageview: true,
-      capture_pageleave: true,
-      
-      // Callbacks
-      loaded: (ph) => {
-        console.log('[PostHog] Initialized successfully');
-        
-        // Check if on blocked route
-        const currentPath = window.location.pathname;
-        if (BLOCKED_ROUTES.some(route => currentPath.startsWith(route))) {
-          ph.stopSessionRecording();
-        }
-      },
-    });
-  };
-
-  // Use requestIdleCallback if available, otherwise use setTimeout
-  if ('requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(doInit, { timeout: 2000 });
-  } else {
-    // Fallback for Safari and older browsers
-    setTimeout(doInit, 100);
-  }
+      // Check if on blocked route
+      const currentPath = window.location.pathname;
+      if (BLOCKED_ROUTES.some(route => currentPath.startsWith(route))) {
+        ph.stopSessionRecording();
+      }
+    },
+  });
 }
 
 /**

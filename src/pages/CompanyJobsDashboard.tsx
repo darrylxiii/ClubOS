@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +23,12 @@ import {
   Briefcase,
   Settings,
   Plus,
+  LayoutDashboard,
+  Users,
+  Clock,
   Target,
+  TrendingUp,
+  Edit,
   Save,
   AlertCircle,
 } from "lucide-react";
@@ -120,7 +126,7 @@ const CompanyJobsDashboard = () => {
       const { data, error } = await supabase
         .from('companies')
         .select('name')
-        .eq('id', companyId ?? '')
+        .eq('id', companyId)
         .single();
 
       if (error) throw error;
@@ -136,11 +142,11 @@ const CompanyJobsDashboard = () => {
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
-        .eq('company_id', companyId ?? '')
+        .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setJobs((data || []).map(j => ({ ...j, status: j.status ?? 'draft' })) as unknown as Job[]);
+      setJobs(data || []);
     } catch (error) {
       console.error('Error fetching jobs:', error);
       toast.error('Failed to load jobs');
@@ -155,7 +161,7 @@ const CompanyJobsDashboard = () => {
       const { data: settingsData } = await supabase
         .from('company_settings')
         .select('*')
-        .eq('company_id', companyId ?? '')
+        .eq('company_id', companyId)
         .maybeSingle();
 
       if (settingsData && typeof settingsData.pipeline_settings === 'object' && settingsData.pipeline_settings !== null) {
@@ -613,7 +619,7 @@ const CompanyJobsDashboard = () => {
         <CreateJobDialog
           open={createDialogOpen}
           onOpenChange={setCreateDialogOpen}
-          companyId={companyId ?? undefined}
+          companyId={companyId}
           onJobCreated={fetchJobs}
         />
       </div>

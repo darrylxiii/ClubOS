@@ -11,9 +11,9 @@ import { toast } from "sonner";
 interface SalaryBenchmark {
   role_title: string;
   location: string;
-  salary_min: number | null;
-  salary_max: number | null;
-  sample_size: number | null;
+  salary_min: number;
+  salary_max: number;
+  sample_size: number;
 }
 
 export default function SalaryInsights() {
@@ -88,8 +88,8 @@ export default function SalaryInsights() {
 
   const avgBenchmark = benchmarks.length > 0
     ? {
-        min: Math.round(benchmarks.reduce((sum, b) => sum + (b.salary_min ?? 0), 0) / benchmarks.length),
-        max: Math.round(benchmarks.reduce((sum, b) => sum + (b.salary_max ?? 0), 0) / benchmarks.length)
+        min: Math.round(benchmarks.reduce((sum, b) => sum + b.salary_min, 0) / benchmarks.length),
+        max: Math.round(benchmarks.reduce((sum, b) => sum + b.salary_max, 0) / benchmarks.length)
       }
     : { min: 45000, max: 75000 };
 
@@ -180,7 +180,7 @@ export default function SalaryInsights() {
           </CardTitle>
           <CardDescription>
             {benchmarks.length > 0 
-              ? `Based on ${benchmarks.reduce((sum, b) => sum + (b.sample_size ?? 0), 0)} data points`
+              ? `Based on ${benchmarks.reduce((sum, b) => sum + b.sample_size, 0)} data points`
               : "Sample data shown"}
           </CardDescription>
         </CardHeader>

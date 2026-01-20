@@ -92,11 +92,11 @@ export default function AdminRejections() {
       if (appsError) throw appsError;
 
       // Fetch candidate profiles
-      const candidateIds = (applications?.map(app => app.candidate_id).filter((id): id is string => id !== null) || []);
+      const candidateIds = applications?.map(app => app.candidate_id).filter(Boolean) || [];
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url, email')
-        .in('id', candidateIds.length > 0 ? candidateIds : ['']);
+        .in('id', candidateIds);
 
       // Fetch feedback for rejected candidates
       const applicationIds = applications?.map(app => app.id) || [];

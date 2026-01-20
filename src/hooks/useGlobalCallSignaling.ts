@@ -5,9 +5,9 @@ import { Database } from '@/integrations/supabase/types';
 
 type CallInvitation = Database['public']['Tables']['call_invitations']['Row'] & {
   caller?: {
-    full_name?: string | null;
-    avatar_url?: string | null;
-    email?: string | null;
+    full_name?: string;
+    avatar_url?: string;
+    email?: string;
   };
   conversation?: {
     id: string;

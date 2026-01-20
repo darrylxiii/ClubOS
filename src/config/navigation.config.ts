@@ -57,6 +57,7 @@ import {
   Flame,
   Eye,
   Archive,
+  Upload,
   Edit,
   Percent,
   Gamepad2,
@@ -282,7 +283,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "CRM Analytics", icon: BarChart3, path: "/crm/analytics" },
         { name: "Automations", icon: Zap, path: "/crm/automations" },
         { name: "Integrations", icon: Link2, path: "/crm/integrations" },
-        { name: "Strategist Projects", icon: Layers, path: "/admin/marketplace/strategist" },
         { name: "CRM Settings", icon: Settings, path: "/crm/settings" },
       ],
       roles: ['admin', 'strategist'],
@@ -292,8 +292,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "Talent Management",
       icon: Users,
       items: [
-        { name: "Sourcing Hub", icon: Globe, path: "/admin/sourcing-hub", badge: "New" },
-        { name: "Talent Pool", icon: Sparkles, path: "/talent-pool" },
+        { name: "Talent Pool", icon: Sparkles, path: "/talent-pool", badge: "New" },
         { name: "Talent Lists", icon: FolderOpen, path: "/admin/talent-pool/lists" },
         { name: "All Candidates", icon: Users, path: "/admin/candidates" },
         { name: "All Jobs", icon: Briefcase, path: "/jobs" },
@@ -308,7 +307,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Archived Candidates", icon: Archive, path: "/archived-candidates" },
         { name: "Club Sync Requests", icon: Zap, path: "/admin/club-sync-requests" },
         { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
-        { name: "Prompt Templates", icon: MessageSquare, path: "/admin/prompt-templates", badge: "New" },
       ],
     },
     // === ASSESSMENTS & GAMES (kept separate - distinct domain) ===
@@ -330,9 +328,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Brain,
       items: [
         { name: "Global Analytics", icon: BarChart3, path: "/admin/global-analytics" },
-        { name: "Agent Brain", icon: Brain, path: "/admin/agent-brain", badge: "New" },
         { name: "RAG Analytics", icon: Brain, path: "/admin/rag-analytics", badge: "New" },
-        { name: "Marketplace Analytics", icon: BarChart3, path: "/admin/marketplace/analytics" },
         { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
         { name: "Communication Intelligence", icon: Brain, path: "/communication-intelligence" },
         { name: "Hiring Intelligence", icon: Brain, path: "/hiring-intelligence" },
@@ -360,7 +356,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Employee Dashboard", icon: Users, path: "/admin/employee-management" },
         { name: "System Health", icon: Heart, path: "/admin/system-health" },
         { name: "Bulk Operations", icon: Users, path: "/admin/bulk-operations" },
-        { name: "Data Export", icon: Database, path: "/admin/data-export", badge: "New" },
         { name: "Page Templates", icon: FileText, path: "/admin/templates" },
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
       ],
@@ -484,26 +479,26 @@ const candidateSpecificItems: NavigationItem[] = [
  */
 export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   // Normalize role - default to candidate if invalid
-  const normalizedRole: 'candidate' | 'partner' | 'admin' =
-    role === 'company_admin' || role === 'recruiter' ? 'admin' :
-      (role === 'candidate' || role === 'partner' || role === 'admin') ? role :
-        'candidate';
-
+  const normalizedRole: 'candidate' | 'partner' | 'admin' = 
+    role === 'company_admin' || role === 'recruiter' ? 'admin' : 
+    (role === 'candidate' || role === 'partner' || role === 'admin') ? role : 
+    'candidate';
+  
   const groups: NavigationGroup[] = [];
-
+  
   // 1. Add overview section
-  const overviewGroup = {
+  const overviewGroup = { 
     ...baseNavigationGroups[0],
     items: [...baseNavigationGroups[0].items]
   };
-
+  
   // Add admin panel for admin role
   if (normalizedRole === 'admin') {
     overviewGroup.items.splice(2, 0, ...adminSpecificItems);
   }
-
+  
   groups.push(overviewGroup);
-
+  
   // 2. Add role-specific sections (Career/Hiring/Management)
   const roleSpecific = roleSpecificGroups[normalizedRole];
   if (roleSpecific) {
@@ -513,9 +508,9 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
     }));
     groups.push(...deepCopiedRoleGroups);
   }
-
+  
   // 3. Add communication section with role-specific items
-  const communicationGroup = {
+  const communicationGroup = { 
     ...baseNavigationGroups[1],
     items: [...baseNavigationGroups[1].items]
   };
@@ -525,14 +520,14 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
     communicationGroup.items.push(...candidateSpecificItems);
   }
   groups.push(communicationGroup);
-
+  
   // 4. Add remaining base sections (Learning, AI & Tools, Quantum OS, Settings, Support)
   groups.push(baseNavigationGroups[2]); // Learning
   groups.push(baseNavigationGroups[3]); // AI & Tools
   groups.push(baseNavigationGroups[4]); // Quantum OS
   groups.push(baseNavigationGroups[5]); // Settings
   groups.push(baseNavigationGroups[6]); // Support
-
+  
   return groups;
 }
 
@@ -541,7 +536,7 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
  */
 export function getAllNavigationPaths(): Array<{ name: string; path: string; icon: LucideIcon; category: string }> {
   const allPaths: Array<{ name: string; path: string; icon: LucideIcon; category: string }> = [];
-
+  
   // Collect from all role-specific navigations
   (['candidate', 'partner', 'admin'] as const).forEach(role => {
     const groups = getNavigationForRole(role);
@@ -559,6 +554,6 @@ export function getAllNavigationPaths(): Array<{ name: string; path: string; ico
       });
     });
   });
-
+  
   return allPaths;
 }

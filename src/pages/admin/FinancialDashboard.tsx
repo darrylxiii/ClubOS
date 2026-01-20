@@ -2,12 +2,13 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGate } from "@/components/RoleGate";
+import { RefreshCw } from "lucide-react";
 import { SectionLoader, InlineLoader } from "@/components/ui/unified-loader";
-import { usePartnerInvoices, useReferralPayouts } from "@/hooks/useFinancialData";
+import { useFinancialStats, usePlacementFees, usePartnerInvoices, useReferralPayouts } from "@/hooks/useFinancialData";
 import { PlacementFeesTable } from "@/components/financial/PlacementFeesTable";
 import { InvoicesTable } from "@/components/financial/InvoicesTable";
 import { PayoutApprovalQueue } from "@/components/financial/PayoutApprovalQueue";
-import { RevenueOverviewChart } from "@/components/financial/RevenueOverviewChart";
+import { FinancialOverviewChart } from "@/components/financial/FinancialOverviewChart";
 import { RevenueSummaryCards } from "@/components/financial/RevenueSummaryCards";
 import { TopClientsTable } from "@/components/financial/TopClientsTable";
 import { PaymentAgingChart } from "@/components/financial/PaymentAgingChart";
@@ -71,7 +72,7 @@ export default function FinancialDashboard() {
 
           {/* Revenue Summary Cards */}
           <div className="mb-8">
-            <RevenueSummaryCards metrics={metrics ?? null} isLoading={metricsLoading} />
+            <RevenueSummaryCards metrics={metrics} isLoading={metricsLoading} />
           </div>
 
           {/* Financial Overview Chart */}
@@ -81,7 +82,7 @@ export default function FinancialDashboard() {
               <CardDescription>Monthly invoiced vs collected revenue</CardDescription>
             </CardHeader>
             <CardContent>
-              <RevenueOverviewChart year={selectedYear} />
+              <FinancialOverviewChart year={selectedYear} />
             </CardContent>
           </Card>
 

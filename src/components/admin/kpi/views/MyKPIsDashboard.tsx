@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Target, 
   TrendingUp, 
@@ -11,11 +12,13 @@ import {
   Clock, 
   CheckCircle2, 
   AlertTriangle,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 import { useKPIOwnership, useKPIActions } from '@/hooks/useKPIOwnership';
 import { useUnifiedKPIs, UnifiedKPI } from '@/hooks/useUnifiedKPIs';
 import { KPIActionPlanCard } from '../actions/KPIActionPlanCard';
+import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
 
 export function MyKPIsDashboard() {

@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Search, Phone, Mail, MessageSquare, Video, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { Plus, Search, Filter, Phone, Mail, MessageSquare, Video, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { CompanyInteraction } from '@/types/interaction';
 import { AppLayout } from '@/components/AppLayout';

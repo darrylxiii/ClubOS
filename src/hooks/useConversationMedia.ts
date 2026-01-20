@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { MessageAttachment } from './useMessages';
 
 export interface MediaItem {
   id: string;

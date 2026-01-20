@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { TrendingUp, Calendar, Banknote, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, Trophy, Calendar, Infinity, Banknote, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -34,7 +34,7 @@ function TrackCard({
         bgColor: 'bg-primary/10',
       }
     : {
-        icon: TrendingUp,
+        icon: Infinity,
         title: 'Lifetime Revenue',
         subtitle: 'Since founding',
         gradient: 'from-premium/20 via-premium/10 to-transparent',

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -19,87 +19,99 @@ export interface Profile {
 
 interface UseProfileOptions {
   userId?: string;
-  autoLoad?: boolean; // Kept for API compatibility, but React Query handles this via 'enabled'
+  autoLoad?: boolean;
   onError?: (error: Error) => void;
 }
 
 export const useProfile = (options: UseProfileOptions = {}) => {
-  const { userId, autoLoad = true } = options;
-  const queryClient = useQueryClient();
+  const { userId, autoLoad = true, onError } = options;
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState<boolean>(autoLoad);
+  const [error, setError] = useState<Error | null>(null);
 
-  // 1. Resolve effective User ID (prop or current session)
-  // Note: We use a separate query for session to ensure we don't block render if ID is missing initially
-  const { data: sessionData } = useQuery({
-    queryKey: ['session'],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getUser();
-      return data.user;
-    },
-    staleTime: Infinity, // Session doesn't change often without page reload
-    enabled: !userId, // Only fetch session if specific userId wasn't provided
-  });
+  const loadProfile = useCallback(async (targetUserId?: string) => {
+    let idToLoad = targetUserId || userId;
 
-  const targetId = userId || sessionData?.id;
+    if (!idToLoad) {
+      const { data: { user } } = await supabase.auth.getUser();
+      idToLoad = user?.id;
+    }
 
-  // 2. Main Profile Query
-  const {
-    data: profile,
-    isLoading: loading,
-    error,
-    refetch
-  } = useQuery({
-    queryKey: ['profile', targetId],
-    queryFn: async () => {
-      if (!targetId) return null;
-      console.log('[useProfile] ⚡ Fetching profile for:', targetId);
+    if (!idToLoad) {
+      setLoading(false);
+      return;
+    }
 
-      const { data, error } = await supabase
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', targetId)
+        .eq('id', idToLoad)
         .single();
 
-      if (error) throw error;
-      return data as Profile;
-    },
-    enabled: !!targetId && autoLoad,
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
-    gcTime: 1000 * 60 * 30, // 30 minutes garbage collection
-  });
+      if (fetchError) throw fetchError;
 
-  // 3. Mutation for updates
-  const updateMutation = useMutation({
-    mutationFn: async (updates: Partial<Profile>) => {
-      if (!targetId) throw new Error('No user ID found');
+      setProfile(data);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to load profile');
+      setError(error);
+      onError?.(error);
+      console.error('[useProfile] Error loading profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId, onError]);
 
-      const { data, error } = await supabase
+  const updateProfile = useCallback(async (updates: Partial<Profile>) => {
+    if (!profile?.id) {
+      throw new Error('No profile loaded');
+    }
+
+    setLoading(true);
+    try {
+      const { data, error: updateError } = await supabase
         .from('profiles')
         .update(updates)
-        .eq('id', targetId)
+        .eq('id', profile.id)
         .select()
         .single();
 
-      if (error) throw error;
-      return data as Profile;
-    },
-    onSuccess: (updatedProfile) => {
+      if (updateError) throw updateError;
+
+      setProfile(data);
       toast.success('Profile updated successfully');
-      // Update cache instantly
-      queryClient.setQueryData(['profile', targetId], updatedProfile);
-    },
-    onError: (err: Error) => {
-      toast.error(err.message || 'Failed to update profile');
-      options.onError?.(err);
+      return data;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to update profile');
+      setError(error);
+      toast.error(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
     }
-  });
+  }, [profile?.id]);
+
+  const refetch = useCallback(() => {
+    return loadProfile();
+  }, [loadProfile]);
+
+  useEffect(() => {
+    console.log('[useProfile] Effect triggered - autoLoad:', autoLoad, 'userId:', userId);
+    if (autoLoad) {
+      console.log('[useProfile] 🔄 Loading profile (userId provided or fetching current)');
+      loadProfile();
+    }
+  }, [autoLoad, userId, loadProfile]);
 
   return {
-    profile: profile || null,
+    profile,
     loading,
-    error: error as Error | null,
-    loadProfile: refetch, // Alias for backward compatibility
-    updateProfile: updateMutation.mutateAsync,
+    error,
+    loadProfile,
+    updateProfile,
     refetch,
-    isUpdating: updateMutation.isPending
   };
 };

@@ -1,8 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { ensureValidToken } from "../_shared/token-refresh.ts";
 import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
-import { publicCorsHeaders as corsHeaders } from "../_shared/cors-config.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 interface SyncRequest {
   connectionId: string;

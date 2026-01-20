@@ -90,7 +90,7 @@ export function useAudioDiagnostics({
           try {
             analyzerData.source.disconnect();
             analyzerData.analyzer.disconnect();
-          } catch (_e) {
+          } catch (e) {
             // Ignore
           }
         }
@@ -211,7 +211,7 @@ export function useAudioDiagnostics({
         try {
           source.disconnect();
           analyzer.disconnect();
-        } catch (_e) {
+        } catch (e) {
           // Ignore
         }
       });

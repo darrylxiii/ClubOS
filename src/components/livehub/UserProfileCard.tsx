@@ -52,13 +52,8 @@ export function UserProfileCard({ userId, open, onOpenChange }: UserProfileCardP
         .single();
 
       setProfile({
-        id: basicProfile?.id || userId,
-        full_name: basicProfile?.full_name ?? null,
-        avatar_url: basicProfile?.avatar_url ?? null,
-        bio: extendedProfile?.bio ?? null,
-        status_message: extendedProfile?.status_message ?? null,
-        custom_status: extendedProfile?.custom_status ?? null,
-        status_emoji: extendedProfile?.status_emoji ?? null,
+        ...basicProfile,
+        ...extendedProfile,
       });
 
       // Load role

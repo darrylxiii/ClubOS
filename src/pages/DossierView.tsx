@@ -4,8 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, Clock, Star, CheckCircle2, 
+import { 
+  User, Calendar, Clock, Star, CheckCircle2, 
   AlertTriangle, TrendingUp, FileText, Video, Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -59,7 +61,7 @@ export default function DossierView() {
       const { data, error: dbError } = await supabase
         .from('meeting_dossiers')
         .select('*')
-        .eq('share_token', shareToken ?? '')
+        .eq('share_token', shareToken)
         .single();
 
       if (dbError) throw dbError;

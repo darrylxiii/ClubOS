@@ -125,7 +125,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
   // Track unsaved changes
   useEffect(() => {
-    const hasData = Boolean(formData.title || formData.description || requiredTools.length > 0);
+    const hasData = formData.title || formData.description || requiredTools.length > 0;
     setHasUnsavedChanges(hasData && submitStep === "idle");
   }, [formData.title, formData.description, requiredTools.length, submitStep]);
 
@@ -434,11 +434,11 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         const performer = { id: user?.id || '', email: user?.email, full_name: user?.user_metadata?.full_name };
         stealthJobAuditService.logStealthToggled(jobId, formData.title, true, performer);
 
-        if (stealthViewerIds.length > 0 && user?.id) {
+        if (stealthViewerIds.length > 0) {
           const viewerInserts = stealthViewerIds.map(viewerId => ({
             job_id: jobId,
             user_id: viewerId,
-            granted_by: user.id,
+            granted_by: user?.id,
           }));
 
           const { error: viewersError } = await supabase

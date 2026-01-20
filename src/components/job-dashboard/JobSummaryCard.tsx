@@ -7,6 +7,7 @@ import {
   ChevronDown, ChevronUp, Edit, Users, Repeat
 } from "lucide-react";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
+import { HiringProgressBar } from "@/components/jobs/HiringProgressBar";
 import { formatSalaryCompact, formatEmploymentType } from "@/lib/jobFormatters";
 import type { JobWithMetrics } from "@/types/job";
 

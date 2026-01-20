@@ -18,7 +18,7 @@ interface CompanyStory {
   expires_at: string;
   created_at: string;
   creator?: {
-    full_name: string | null;
+    full_name: string;
     avatar_url: string | null;
   };
   views_count?: number;
@@ -55,53 +55,36 @@ export function CompanyStories({ companyId, isCompanyMember, onCreateStory }: Co
 
       if (error) throw error;
 
-      if (!storiesData || storiesData.length === 0) {
-        setStories([]);
-        setLoading(false);
-        return;
-      }
+      // Fetch creator profiles separately
+      const creatorIds = [...new Set(storiesData?.map(s => s.created_by) || [])];
+      const { data: creatorsData } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', creatorIds);
 
-      // OPTIMIZED: Batch fetch all engagement data in parallel
-      const storyIds = storiesData.map(s => s.id);
-      const creatorIds = [...new Set(storiesData.map(s => s.created_by))];
+      const creatorsMap = new Map(creatorsData?.map(c => [c.id, c]) || []);
 
-      const [creatorsData, viewsData, likesData, userViewsData, userLikesData] = await Promise.all([
-        // Fetch all creators
-        supabase.from('profiles').select('id, full_name, avatar_url').in('id', creatorIds),
-        // Batch fetch all view counts
-        supabase.from('company_story_views').select('story_id').in('story_id', storyIds),
-        // Batch fetch all like counts
-        supabase.from('company_story_likes').select('story_id').in('story_id', storyIds),
-        // Fetch user's views (if logged in)
-        user ? supabase.from('company_story_views').select('story_id').in('story_id', storyIds).eq('user_id', user.id) : Promise.resolve({ data: [] }),
-        // Fetch user's likes (if logged in)
-        user ? supabase.from('company_story_likes').select('story_id').in('story_id', storyIds).eq('user_id', user.id) : Promise.resolve({ data: [] }),
-      ]);
+      const enrichedStories = await Promise.all(
+        (storiesData || []).map(async (story) => {
+          const [viewsCount, likesCount, userViewed, userLiked] = await Promise.all([
+            supabase.from('company_story_views').select('*', { count: 'exact', head: true }).eq('story_id', story.id),
+            supabase.from('company_story_likes').select('*', { count: 'exact', head: true }).eq('story_id', story.id),
+            user ? supabase.from('company_story_views').select('id').eq('story_id', story.id).eq('user_id', user.id).single() : null,
+            user ? supabase.from('company_story_likes').select('id').eq('story_id', story.id).eq('user_id', user.id).single() : null,
+          ]);
 
-      // Create lookup maps for O(1) access
-      const creatorsMap = new Map(creatorsData.data?.map(c => [c.id, c]) || []);
-      
-      // Count views/likes per story
-      const viewsCountMap = new Map<string, number>();
-      const likesCountMap = new Map<string, number>();
-      viewsData.data?.forEach(v => viewsCountMap.set(v.story_id, (viewsCountMap.get(v.story_id) || 0) + 1));
-      likesData.data?.forEach(l => likesCountMap.set(l.story_id, (likesCountMap.get(l.story_id) || 0) + 1));
-      
-      // User interaction sets
-      const userViewedSet = new Set(userViewsData.data?.map(v => v.story_id) || []);
-      const userLikedSet = new Set(userLikesData.data?.map(l => l.story_id) || []);
+          const creator = creatorsMap.get(story.created_by) || { full_name: 'Unknown', avatar_url: null };
 
-      const enrichedStories = storiesData.map((story) => {
-        const creator = creatorsMap.get(story.created_by) || { full_name: 'Unknown', avatar_url: null };
-        return {
-          ...story,
-          creator,
-          views_count: viewsCountMap.get(story.id) || 0,
-          likes_count: likesCountMap.get(story.id) || 0,
-          user_has_viewed: userViewedSet.has(story.id),
-          user_has_liked: userLikedSet.has(story.id),
-        };
-      });
+          return {
+            ...story,
+            creator,
+            views_count: viewsCount.count || 0,
+            likes_count: likesCount.count || 0,
+            user_has_viewed: !!userViewed?.data,
+            user_has_liked: !!userLiked?.data,
+          };
+        })
+      );
 
       setStories(enrichedStories);
     } catch (error) {
@@ -178,9 +161,6 @@ export function CompanyStories({ companyId, isCompanyMember, onCreateStory }: Co
               src={story.media_url}
               alt="Story"
               className="w-full h-full object-cover"
-              width={96}
-              height={128}
-              loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-2 left-2 right-2">

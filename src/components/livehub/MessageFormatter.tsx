@@ -1,4 +1,4 @@
-import { LazyMarkdown } from '@/components/ui/LazyMarkdown';
+import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 
 interface MessageFormatterProps {
@@ -26,7 +26,7 @@ export function MessageFormatter({ content, mentions = [] }: MessageFormatterPro
 
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none">
-      <LazyMarkdown
+      <ReactMarkdown
         components={{
           p: ({ children }) => <p className="mb-1 last:mb-0">{parseMention(String(children))}</p>,
           code: ({ inline, children, ...props }: any) =>
@@ -56,7 +56,7 @@ export function MessageFormatter({ content, mentions = [] }: MessageFormatterPro
         }}
       >
         {content}
-      </LazyMarkdown>
+      </ReactMarkdown>
     </div>
   );
 }

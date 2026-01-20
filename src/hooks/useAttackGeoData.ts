@@ -38,7 +38,7 @@ export function useAttackGeoData() {
 
       if (threatError) throw threatError;
 
-      const uniqueIPs = [...new Set(threatEvents?.map(e => e.ip_address).filter(Boolean))] as string[];
+      const uniqueIPs = [...new Set(threatEvents?.map(e => e.ip_address).filter(Boolean))];
       if (uniqueIPs.length === 0) return [];
 
       const { data: geoData, error: geoError } = await supabase
@@ -51,9 +51,9 @@ export function useAttackGeoData() {
       const geoMap = new Map((geoData || []).map(g => [g.ip_address, g]));
 
       const ipAttacks = new Map<string, { count: number; lastAttack: string; severity: string }>();
-
+      
       threatEvents?.forEach(event => {
-        if (!event.ip_address || !event.created_at) return;
+        if (!event.ip_address) return;
         const existing = ipAttacks.get(event.ip_address);
         if (existing) {
           existing.count++;
@@ -122,13 +122,13 @@ export function useCountryAttackStats() {
       });
 
       const countryStats = new Map<string, CountryAttackStats>();
-
+      
       geoData?.forEach(geo => {
         if (!geo.country_code) return;
-
+        
         const attacks = ipAttackCounts.get(geo.ip_address) || 0;
         const existing = countryStats.get(geo.country_code);
-
+        
         if (existing) {
           existing.attack_count += attacks;
           existing.unique_ips++;

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Users, TrendingUp, AlertTriangle, MessageSquare, Target } from 'lucide-react';
+import { Users, TrendingUp, AlertTriangle, Clock, MessageSquare, Target } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 

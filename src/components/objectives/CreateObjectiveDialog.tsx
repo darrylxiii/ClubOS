@@ -26,7 +26,7 @@ interface CreateObjectiveDialogProps {
 
 interface UserProfile {
   id: string;
-  full_name: string | null;
+  full_name: string;
   avatar_url: string | null;
 }
 

@@ -109,7 +109,7 @@ export const BulkOperationHistory = () => {
 
               <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                 <span>
-                  {formatDistanceToNow(new Date(op.created_at ?? new Date()), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(op.created_at), { addSuffix: true })}
                 </span>
                 {(op as any).admin && (
                   <>
@@ -122,7 +122,7 @@ export const BulkOperationHistory = () => {
                     <span>•</span>
                     <span>
                       Duration: {Math.round(
-                        (new Date(op.completed_at ?? new Date()).getTime() - new Date(op.started_at || op.created_at || new Date()).getTime()) / 1000
+                        (new Date(op.completed_at).getTime() - new Date(op.started_at || op.created_at).getTime()) / 1000
                       )}s
                     </span>
                   </>

@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Check, ChevronRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
+import confetti from 'canvas-confetti';
 
 interface ModuleCompletionCardProps {
   moduleId: string;
@@ -44,8 +45,6 @@ export const ModuleCompletionCard = memo<ModuleCompletionCardProps>(({
 
       if (error) throw error;
 
-      // Dynamic import for confetti
-      const confetti = (await import('canvas-confetti')).default;
       confetti({
         particleCount: 100,
         spread: 70,

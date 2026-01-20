@@ -102,7 +102,7 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
                 { role: 'assistant', content: assistantContent }
               ]);
             }
-          } catch (_e) {
+          } catch (e) {
             // Incomplete JSON, continue
           }
         }
@@ -126,7 +126,7 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
                 { role: 'assistant', content: assistantContent }
               ]);
             }
-          } catch (_e) {
+          } catch (e) {
             // Ignore
           }
         }

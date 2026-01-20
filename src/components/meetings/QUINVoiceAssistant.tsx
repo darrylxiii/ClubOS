@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { aiService } from '@/services/aiService';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,11 +22,11 @@ interface QUINVoiceAssistantProps {
   onClose?: () => void;
 }
 
-export function QUINVoiceAssistant({
-  meetingId,
+export function QUINVoiceAssistant({ 
+  meetingId, 
   recentTranscript,
   remainingTime,
-  onClose
+  onClose 
 }: QUINVoiceAssistantProps) {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -37,7 +37,7 @@ export function QUINVoiceAssistant({
   const [responses, setResponses] = useState<QUINResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [speechSupported, setSpeechSupported] = useState(true);
-
+  
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -45,7 +45,7 @@ export function QUINVoiceAssistant({
   useEffect(() => {
     const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     setSpeechSupported(hasSpeechRecognition);
-
+    
     if (hasSpeechRecognition) {
       const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognitionClass();
@@ -57,7 +57,7 @@ export function QUINVoiceAssistant({
         const current = event.resultIndex;
         const result = event.results[current];
         setTranscript(result[0].transcript);
-
+        
         if (result.isFinal) {
           handleVoiceCommand(result[0].transcript);
         }
@@ -118,27 +118,31 @@ export function QUINVoiceAssistant({
 
   const handleVoiceCommand = async (command: string) => {
     if (!command.trim()) return;
-
+    
     setIsProcessing(true);
     try {
-      const data = await aiService.quinMeetingVoice({
-        command,
-        meetingId,
-        context: {
-          current_page: 'meeting',
-          recent_actions: recentTranscript ? [recentTranscript.slice(-2000)] : undefined
+      const { data, error: apiError } = await supabase.functions.invoke('quin-meeting-voice', {
+        body: {
+          command,
+          meetingId,
+          context: {
+            recentTranscript: recentTranscript?.slice(-2000),
+            remainingTime
+          }
         }
       });
 
-      if (data?.response) {
-        const response: QUINResponse = {
-          responseType: (data as any).response_type || 'answer',
-          responseText: data.response,
-          timestamp: new Date().toISOString()
-        };
+      if (apiError) throw apiError;
 
+      if (data?.responseText) {
+        const response: QUINResponse = {
+          responseType: data.responseType,
+          responseText: data.responseText,
+          timestamp: data.timestamp
+        };
+        
         setResponses(prev => [response, ...prev.slice(0, 9)]);
-        speakResponse(data.response);
+        speakResponse(data.responseText);
       }
     } catch (err) {
       console.error('QUIN voice error:', err);
@@ -152,17 +156,17 @@ export function QUINVoiceAssistant({
   const speakResponse = (text: string) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-
+      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
-
+      
       // Try to find a natural-sounding voice
       const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(v =>
-        v.name.includes('Google') ||
-        v.name.includes('Samantha') ||
+      const preferredVoice = voices.find(v => 
+        v.name.includes('Google') || 
+        v.name.includes('Samantha') || 
         v.name.includes('Daniel')
       );
       if (preferredVoice) {
@@ -211,9 +215,9 @@ export function QUINVoiceAssistant({
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
+            <Button 
+              variant="ghost" 
+              size="sm" 
               onClick={() => setShowTextInput(!showTextInput)}
               className={cn(showTextInput && 'text-primary')}
             >
@@ -238,8 +242,8 @@ export function QUINVoiceAssistant({
               disabled={isProcessing}
               className="flex-1"
             />
-            <Button
-              onClick={handleTextSubmit}
+            <Button 
+              onClick={handleTextSubmit} 
               disabled={isProcessing || !textInput.trim()}
               size="sm"
             >
@@ -288,19 +292,19 @@ export function QUINVoiceAssistant({
                   </motion.div>
                 )}
               </AnimatePresence>
-            </Button>
+          </Button>
 
-            {isSpeaking && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={stopSpeaking}
-                className="animate-pulse"
-              >
-                <Volume2 className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+          {isSpeaking && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={stopSpeaking}
+              className="animate-pulse"
+            >
+              <Volume2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
         )}
 
         {/* Status */}
@@ -358,8 +362,8 @@ export function QUINVoiceAssistant({
                     key={idx}
                     className="p-2 rounded-lg bg-muted/50 text-sm"
                   >
-                    <Badge
-                      variant="secondary"
+                    <Badge 
+                      variant="secondary" 
                       className={cn('mb-1 text-xs', getResponseTypeColor(response.responseType))}
                     >
                       {response.responseType}

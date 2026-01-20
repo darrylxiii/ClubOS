@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { SectionLoader } from "@/components/ui/unified-loader";
+import { UnifiedLoader, SectionLoader } from "@/components/ui/unified-loader";
 import { AppLayout } from "@/components/AppLayout";
 
 export default function ContractDetailPage() {

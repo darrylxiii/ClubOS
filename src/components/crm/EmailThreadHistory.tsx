@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Mail, Send, MessageSquare, Smile, Meh, Frown } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';

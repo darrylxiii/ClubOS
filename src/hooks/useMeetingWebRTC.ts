@@ -17,7 +17,6 @@ interface MeetingWebRTCConfig {
   onRemoteStream: (participantId: string, stream: MediaStream) => void;
   onParticipantLeft: (participantId: string) => void;
   enableE2EE?: boolean; // Enable end-to-end encryption
-  enabled?: boolean; // Master switch for the hook
 }
 
 export function useMeetingWebRTC({
@@ -26,8 +25,7 @@ export function useMeetingWebRTC({
   participantName,
   onRemoteStream,
   onParticipantLeft,
-  enableE2EE = false,
-  enabled = true
+  enableE2EE = false
 }: MeetingWebRTCConfig) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
@@ -176,7 +174,7 @@ export function useMeetingWebRTC({
   const monitorVideoStats = useCallback(async (pc: RTCPeerConnection, targetParticipantId: string) => {
     try {
       const stats = await pc.getStats();
-      const localVideoStats = {
+      let localVideoStats = {
         framesSent: 0,
         framesReceived: 0,
         qualityLimitationReason: 'none',
@@ -210,11 +208,6 @@ export function useMeetingWebRTC({
 
   // Initialize local media with strict race condition fixes
   const initializeMedia = useCallback(async () => {
-    if (!enabled) {
-      console.log('[WebRTC] ⏸️ initializeMedia called but hook is disabled');
-      return;
-    }
-
     try {
       console.log('[WebRTC] 🎬 STEP 1: Requesting media permissions...');
       setError(null);
@@ -731,8 +724,8 @@ export function useMeetingWebRTC({
         for (const candidate of candidates) {
           try {
             await pc.addIceCandidate(new RTCIceCandidate(candidate));
-          } catch (_e) {
-            console.warn('[WebRTC] Failed to add queued candidate:', _e);
+          } catch (e) {
+            console.warn('[WebRTC] Failed to add queued candidate:', e);
           }
         }
         pendingCandidates.current.delete(senderId);
@@ -760,8 +753,8 @@ export function useMeetingWebRTC({
           for (const candidate of candidates) {
             try {
               await pc.addIceCandidate(new RTCIceCandidate(candidate));
-            } catch (_e) {
-              console.warn('[WebRTC] Failed to add queued candidate:', _e);
+            } catch (e) {
+              console.warn('[WebRTC] Failed to add queued candidate:', e);
             }
           }
           pendingCandidates.current.delete(senderId);
@@ -898,8 +891,6 @@ export function useMeetingWebRTC({
         console.log('[WebRTC] 📊 Processing', signals.length, 'signals from polling');
 
         for (const signal of signals) {
-          if (!signal.sender_id) continue;
-
           // Process signal - cast signal_data to appropriate type via unknown
           switch (signal.signal_type) {
             case 'join':
@@ -1064,7 +1055,7 @@ export function useMeetingWebRTC({
 
   // Join meeting and set up signaling - STABLE effect that doesn't re-run
   useEffect(() => {
-    if (!meetingId || !enabled) return;
+    if (!meetingId) return;
 
     console.log('[WebRTC] 🔧 Setting up signaling for meeting:', meetingId, '| Participant:', participantId);
 
@@ -1113,7 +1104,7 @@ export function useMeetingWebRTC({
               console.log('[WebRTC] 🧊 ICE-CANDIDATE signal received from:', signal.sender_id);
               await handleIceCandidate(signal.sender_id, signal.signal_data);
               break;
-            case 'leave': {
+            case 'leave':
               console.log('[WebRTC] 👋 LEAVE signal received from:', signal.sender_id);
 
               // Mark as left to prevent reconnection
@@ -1133,7 +1124,6 @@ export function useMeetingWebRTC({
               onParticipantLeft(signal.sender_id);
               toast.info(`${signal.sender_id.slice(0, 8)} left the meeting`, { duration: 2000 });
               break;
-            }
             case 'screen-share-start':
               console.log('[WebRTC] 🖥️ SCREEN-SHARE-START signal received from:', signal.sender_id);
               // Remote user started screen sharing - their video track will be replaced automatically
@@ -1498,7 +1488,7 @@ export function useMeetingWebRTC({
         toast.error('E2E encryption not supported in this browser');
         return;
       }
-
+      
       if (e2eeEnabledRef.current) {
         // Disable
         e2eeEnabledRef.current = false;
@@ -1509,7 +1499,7 @@ export function useMeetingWebRTC({
         // Enable - need to recreate connections with E2EE config
         e2eeEnabledRef.current = true;
         toast.info('Enabling end-to-end encryption...');
-
+        
         // Apply to existing connections
         for (const [peerId, pc] of peerConnections.current) {
           const success = await e2ee.enableEncryption(pc, peerId);

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, CheckCircle, Clock, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DollarSign, CheckCircle, Clock, XCircle, TrendingUp } from "lucide-react";
 import { useEmployeeCommissions, useEmployeeMetrics } from "@/hooks/useEmployeeProfile";
 import { formatCurrency } from "@/lib/revenueCalculations";
 

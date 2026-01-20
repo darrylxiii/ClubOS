@@ -11,12 +11,12 @@ export interface WhatsAppTemplateComponent {
 
 export interface WhatsAppTemplate {
   id: string;
-  template_name: string | null;
-  template_category: string | null;
-  language_code: string | null;
+  template_name: string;
+  template_category: string;
+  language_code: string;
   components: WhatsAppTemplateComponent[] | Record<string, unknown> | unknown;
-  approval_status: string | null;
-  is_active: boolean | null;
+  approval_status: string;
+  is_active: boolean;
 }
 
 export function useWhatsAppTemplates() {

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, Clock, CheckCircle2, Circle, PlayCircle, Pause, Settings, Calendar, Zap, Target, GitBranch, Bot } from "lucide-react";
+import { Sparkles, Clock, CheckCircle2, Circle, PlayCircle, Pause, Settings, Calendar, Zap, Target, GitBranch, Users, Bot } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,10 +16,10 @@ interface PilotTask {
   task_type: string;
   title: string;
   description: string | null;
-  priority_score: number | null;
-  impact_score: number | null;
-  urgency_score: number | null;
-  effort_minutes: number | null;
+  priority_score: number;
+  impact_score: number;
+  urgency_score: number;
+  effort_minutes: number;
   scheduled_start: string | null;
   scheduled_end: string | null;
   ai_recommendation: string | null;
@@ -32,9 +32,9 @@ interface AgentGoal {
   id: string;
   goal_type: string;
   goal_description: string;
-  status: string | null;
-  current_progress: number | null;
-  assigned_agents: string[] | null;
+  status: string;
+  current_progress: number;
+  assigned_agents: string[];
   next_action_description: string | null;
   deadline: string | null;
 }
@@ -44,8 +44,8 @@ interface AgentDelegation {
   parent_agent: string;
   child_agent: string;
   task_description: string;
-  status: string | null;
-  delegated_at: string | null;
+  status: string;
+  delegated_at: string;
 }
 
 const taskTypeConfig: Record<string, { label: string; icon: typeof Target; color: string }> = {
@@ -197,7 +197,7 @@ export const PilotDashboard = () => {
           completed_at: status === "completed" ? new Date().toISOString() : null,
         })
         .eq("id", taskId)
-        .eq("user_id", user?.id ?? '');
+        .eq("user_id", user?.id);
 
       if (error) throw error;
 
@@ -489,7 +489,7 @@ const TaskCard = ({ task, onUpdateStatus }: { task: PilotTask; onUpdateStatus: (
               </div>
             </div>
             <Badge variant="secondary" className="shrink-0">
-              {Math.round((task.priority_score ?? 0) * 10) / 10}
+              {Math.round(task.priority_score * 10) / 10}
             </Badge>
           </div>
 

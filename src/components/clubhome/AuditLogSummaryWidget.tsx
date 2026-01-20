@@ -180,7 +180,7 @@ export const AuditLogSummaryWidget = () => {
                   </div>
                   <div className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
                     <Clock className="h-3 w-3" />
-                    {formatDistanceToNow(new Date(event.created_at ?? new Date()), { addSuffix: false })}
+                    {formatDistanceToNow(new Date(event.created_at), { addSuffix: false })}
                   </div>
                 </div>
               ))}

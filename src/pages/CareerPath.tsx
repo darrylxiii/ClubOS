@@ -17,10 +17,10 @@ interface CareerPath {
   id: string;
   from_role: string;
   to_role: string;
-  avg_years: number | null;
-  salary_range_min: number | null;
-  salary_range_max: number | null;
-  required_skills: string[] | null;
+  avg_years: number;
+  salary_range_min: number;
+  salary_range_max: number;
+  required_skills: string[];
 }
 
 export default function CareerPath() {
@@ -141,10 +141,10 @@ export default function CareerPath() {
             <CardHeader>
               <div className="flex items-start justify-between mb-2">
                 <Badge className="bg-primary/20 text-primary border-primary/30">
-                  {path.avg_years ?? 0} years
+                  {path.avg_years} years
                 </Badge>
                 <Badge variant="outline">
-                  €{Math.round(((path.salary_range_min ?? 0) + (path.salary_range_max ?? 0)) / 2 / 1000)}K avg
+                  €{Math.round((path.salary_range_min + path.salary_range_max) / 2 / 1000)}K avg
                 </Badge>
               </div>
               <CardTitle className="flex items-center gap-2">
@@ -164,7 +164,7 @@ export default function CareerPath() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <DollarSign className="w-4 h-4" />
                 <span>
-                  €{(path.salary_range_min ?? 0).toLocaleString()} - €{(path.salary_range_max ?? 0).toLocaleString()}
+                  €{path.salary_range_min.toLocaleString()} - €{path.salary_range_max.toLocaleString()}
                 </span>
               </div>
 
@@ -172,7 +172,7 @@ export default function CareerPath() {
               <div>
                 <p className="text-sm font-bold mb-2">Required Skills</p>
                 <div className="flex flex-wrap gap-2">
-                  {(path.required_skills ?? []).map((skill, idx) => (
+                  {path.required_skills.map((skill, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs">
                       {skill}
                     </Badge>
@@ -213,7 +213,7 @@ export default function CareerPath() {
                       Master core skills and build a strong technical foundation
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {(selectedPath.required_skills ?? []).slice(0, 2).map((skill, idx) => (
+                      {selectedPath.required_skills.slice(0, 2).map((skill, idx) => (
                         <Badge key={idx} variant="outline" className="text-xs">
                           {skill}
                         </Badge>
@@ -227,12 +227,12 @@ export default function CareerPath() {
                     2
                   </div>
                   <div className="flex-1 pt-1">
-                    <h4 className="font-bold mb-1">Year 1-{Math.ceil((selectedPath.avg_years ?? 0) / 2)}: Growth</h4>
+                    <h4 className="font-bold mb-1">Year 1-{Math.ceil(selectedPath.avg_years / 2)}: Growth</h4>
                     <p className="text-sm text-muted-foreground mb-2">
                       Take on more complex projects and develop leadership skills
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {(selectedPath.required_skills ?? []).slice(2).map((skill, idx) => (
+                      {selectedPath.required_skills.slice(2).map((skill, idx) => (
                         <Badge key={idx} variant="outline" className="text-xs">
                           {skill}
                         </Badge>
@@ -246,7 +246,7 @@ export default function CareerPath() {
                     3
                   </div>
                   <div className="flex-1 pt-1">
-                    <h4 className="font-bold mb-1">Year {Math.ceil((selectedPath.avg_years ?? 0) / 2)}-{selectedPath.avg_years ?? 0}: Transition</h4>
+                    <h4 className="font-bold mb-1">Year {Math.ceil(selectedPath.avg_years / 2)}-{selectedPath.avg_years}: Transition</h4>
                     <p className="text-sm text-muted-foreground">
                       Demonstrate consistent performance and readiness for the next level
                     </p>

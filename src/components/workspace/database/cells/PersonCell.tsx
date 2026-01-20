@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User, X, Search } from 'lucide-react';
+import { User, X, Plus, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -43,8 +43,8 @@ export function PersonCell({ value, onChange, multiple = false }: PersonCellProp
       return data?.map(p => ({
         id: p.id,
         name: p.full_name || p.email || 'Unknown',
-        avatar_url: p.avatar_url ?? undefined,
-        email: p.email ?? undefined
+        avatar_url: p.avatar_url,
+        email: p.email
       })) || [];
     },
   });

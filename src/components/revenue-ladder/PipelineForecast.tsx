@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { 
-  TrendingUp, Calendar, Target, Gauge, Zap, Clock, BarChart3 
+  TrendingUp, Calendar, Target, Gauge, 
+  ArrowRight, Zap, Clock, BarChart3 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';

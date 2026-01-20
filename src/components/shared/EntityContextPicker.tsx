@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -257,7 +257,7 @@ export function EntityContextPicker({
     return (
       <div className="space-y-1">
         {items.map((item) => {
-          const config = entityConfig[item.type as keyof typeof entityConfig];
+          const config = entityConfig[item.type];
           const isSelected = value?.id === item.id && value?.type === item.type;
           
           return (

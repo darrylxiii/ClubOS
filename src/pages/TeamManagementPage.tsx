@@ -63,22 +63,22 @@ export default function TeamManagementPage() {
     mutationFn: async ({ name, description }: { name: string; description: string }) => {
       const { data, error } = await supabase
         .from("freelancer_teams")
-        .insert([{
+        .insert({
           name,
           description,
-          owner_id: user?.id ?? '',
-        }])
+          owner_id: user?.id,
+        })
         .select()
         .single();
       if (error) throw error;
 
       // Add owner as team member
-      await supabase.from("freelancer_team_members").insert([{
+      await supabase.from("freelancer_team_members").insert({
         team_id: data.id,
-        member_id: user?.id ?? '',
+        member_id: user?.id,
         role: "owner",
         revenue_share_percentage: 100,
-      }]);
+      });
 
       return data;
     },
@@ -207,7 +207,7 @@ export default function TeamManagementPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                        {getRoleIcon(membership.role ?? 'member')}
+                            {getRoleIcon(membership.role)}
                             <Badge variant="outline" className="capitalize">{membership.role}</Badge>
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
                               <Percent className="h-3 w-3" />
@@ -261,8 +261,8 @@ export default function TeamManagementPage() {
                     <div>
                       <CardTitle className="text-lg">{membership.team?.name}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
-                        {getRoleIcon(membership.role ?? 'member')}
-                        <Badge variant="outline" className="capitalize">{membership.role ?? 'member'}</Badge>
+                        {getRoleIcon(membership.role)}
+                        <Badge variant="outline" className="capitalize">{membership.role}</Badge>
                       </div>
                     </div>
                   </div>

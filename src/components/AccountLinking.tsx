@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Shield, Mail, Link2, Unlink, Loader2 } from "lucide-react";
-import { GoogleIcon } from "@/components/ui/brand-icons";
+import { FaGoogle } from "react-icons/fa";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +32,7 @@ export const AccountLinking = () => {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) throw error;
-
+      
       if (user?.identities) {
         setIdentities(user.identities);
       }
@@ -54,9 +54,9 @@ export const AccountLinking = () => {
       });
       if (error) throw error;
       toast.success("Redirecting to Google...");
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error("Error linking Google:", error);
-      toast.error((error as Error).message || "Failed to link Google account");
+      toast.error(error.message || "Failed to link Google account");
     }
   };
 
@@ -69,12 +69,12 @@ export const AccountLinking = () => {
     try {
       const { error } = await supabase.auth.unlinkIdentity(identity);
       if (error) throw error;
-
+      
       toast.success(`${provider} account disconnected`);
       await loadIdentities();
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error("Error unlinking identity:", error);
-      toast.error((error as Error).message || "Failed to disconnect account");
+      toast.error(error.message || "Failed to disconnect account");
     }
   };
 
@@ -94,17 +94,17 @@ export const AccountLinking = () => {
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
-
+      
       if (error) throw error;
-
+      
       toast.success("Password set successfully! You can now login with email and password.");
       setShowPasswordDialog(false);
       setNewPassword("");
       setConfirmPassword("");
       await loadIdentities();
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error("Error setting password:", error);
-      toast.error((error as Error).message || "Failed to set password");
+      toast.error(error.message || "Failed to set password");
     } finally {
       setIsSettingPassword(false);
     }
@@ -229,7 +229,7 @@ export const AccountLinking = () => {
         <div className="flex items-center justify-between p-4 border rounded-lg">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-              <GoogleIcon className="w-5 h-5" />
+              <FaGoogle className="w-5 h-5 text-red-500" />
             </div>
             <div>
               <p className="font-semibold">Google</p>

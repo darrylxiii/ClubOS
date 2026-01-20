@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Info } from "lucide-react";
-import { useCommissionTiers } from "@/hooks/useCommissionTiers";
+import { useCommissionTiers, CommissionTier } from "@/hooks/useCommissionTiers";
 import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,

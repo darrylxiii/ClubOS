@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useSystemHealth } from "@/hooks/useSystemHealth";
 import { Activity, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SystemHealthMetrics } from "@/components/admin/system/SystemHealthMetrics";
 import { FunctionHealthTable } from "@/components/admin/system/FunctionHealthTable";
@@ -93,11 +93,11 @@ export default function SystemHealth() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-6">
-            <SystemHealthMetrics health={health ?? null} />
+            <SystemHealthMetrics health={health} />
           </TabsContent>
 
           <TabsContent value="functions" className="mt-6">
-            <FunctionHealthTable functions={functions ?? null} />
+            <FunctionHealthTable functions={functions} />
           </TabsContent>
 
           <TabsContent value="errors" className="mt-6">

@@ -34,8 +34,6 @@ export const AchievementTree = () => {
   }, [user?.id]);
 
   const fetchAchievementTree = async () => {
-    if (!user?.id) return;
-
     try {
       // Fetch all achievements
       const { data: achievements } = await supabase
@@ -53,20 +51,15 @@ export const AchievementTree = () => {
       const { data: unlocked } = await supabase
         .from('user_quantum_achievements')
         .select('achievement_id')
-        .eq('user_id', user.id);
+        .eq('user_id', user?.id);
 
       const unlockedIds = new Set(unlocked?.map((u) => u.achievement_id) || []);
 
       // Build prerequisite map
       const prereqMap = new Map<string, string[]>();
-      prerequisites?.forEach((p: any) => {
-        if (!p.achievement_id) return;
+      prerequisites?.forEach((p) => {
         const existing = prereqMap.get(p.achievement_id) || [];
-        const requiredId = p.required_achievement_id;
-        prereqMap.set(
-          p.achievement_id,
-          requiredId ? [...existing, requiredId] : existing,
-        );
+        prereqMap.set(p.achievement_id, [...existing, p.required_achievement_id]);
       });
 
       // Build achievement objects

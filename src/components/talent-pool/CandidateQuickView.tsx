@@ -24,7 +24,8 @@ import {
   FileText,
   MessageCircle,
 } from 'lucide-react';
-import { TierBadge } from './TierBadge';
+import { cn } from '@/lib/utils';
+import { TierBadge, MoveProbabilityBadge } from './TierBadge';
 import { TalentPoolCandidate } from '@/hooks/useTalentPool';
 import { formatDistanceToNow } from 'date-fns';
 

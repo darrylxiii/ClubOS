@@ -38,7 +38,7 @@ interface CourseModule {
   id: string;
   title: string;
   slug: string;
-  display_order: number | null;
+  display_order: number;
 }
 
 export default function ModuleDetail() {
@@ -102,7 +102,7 @@ export default function ModuleDetail() {
           .maybeSingle();
 
         if (progressData) {
-          setProgress(progressData.progress_percentage ?? 0);
+          setProgress(progressData.progress_percentage);
           setVideoWatchedPercentage(progressData.video_watched_percentage || 0);
           setLastSavedPosition(progressData.video_last_position_seconds || 0);
         }

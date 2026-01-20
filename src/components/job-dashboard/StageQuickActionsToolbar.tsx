@@ -1,8 +1,9 @@
 import { memo, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Mail, Calendar, FileText, Download, Users } from "lucide-react";
+import { Mail, Calendar, FileText, MessageSquare, UserCheck, Download, MoreHorizontal, Zap, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 

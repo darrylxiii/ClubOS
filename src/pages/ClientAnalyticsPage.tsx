@@ -27,7 +27,7 @@ const ClientAnalyticsPage = () => {
       const { data } = await supabase
         .from('project_contracts')
         .select('*')
-        .eq('client_id', user?.id ?? '');
+        .eq('client_id', user?.id);
       return data || [];
     },
     enabled: !!user?.id,

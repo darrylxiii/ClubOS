@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -77,15 +77,10 @@ const PartnerOnboarding = () => {
 
     try {
       // Check if user already has a company
-      if (!user?.id) {
-        toast.error("You must be logged in to create a company");
-        setLoading(false);
-        return;
-      }
       const { data: existingMembership } = await supabase
         .from('company_members')
         .select('company_id, companies!inner(name)')
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
         .maybeSingle();
 
       if (existingMembership) {
@@ -114,19 +109,19 @@ const PartnerOnboarding = () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ company_id: company.id })
-        .eq('id', user.id);
+        .eq('id', user?.id);
 
       if (profileError) throw profileError;
 
       // Add user as company owner
       const { error: memberError } = await supabase
         .from('company_members')
-        .insert([{
-          user_id: user.id,
+        .insert({
+          user_id: user?.id,
           company_id: company.id,
           role: 'owner',
           is_active: true,
-        }]);
+        });
 
       if (memberError) throw memberError;
 

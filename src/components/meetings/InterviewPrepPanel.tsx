@@ -3,7 +3,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { aiService } from "@/services/aiService";
 import { FileText, Target, AlertCircle, MessageCircle, Sparkles, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -39,13 +38,14 @@ export function InterviewPrepPanel({
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  const isAuthorizedRole = ['host', 'interviewer', 'observer'].includes(userRole);
+  // Only show to interviewers
+  if (!['host', 'interviewer', 'observer'].includes(userRole)) {
+    return null;
+  }
 
   useEffect(() => {
-    if (isAuthorizedRole) {
-      loadBrief();
-    }
-  }, [meetingId, isAuthorizedRole]);
+    loadBrief();
+  }, [meetingId]);
 
   const loadBrief = async () => {
     try {
@@ -67,11 +67,6 @@ export function InterviewPrepPanel({
     }
   };
 
-  // Only show to interviewers - moved after hooks
-  if (!isAuthorizedRole) {
-    return null;
-  }
-
   const generateBrief = async () => {
     if (!candidateId || !roleTitle) {
       toast.error("Missing candidate or role information");
@@ -80,13 +75,12 @@ export function InterviewPrepPanel({
 
     setGenerating(true);
     try {
-      const data = await aiService.generateInterviewPrep({
-        meetingId,
-        candidateId,
-        roleTitle,
-        companyName: companyName || 'Company'
+      const { data, error } = await supabase.functions.invoke('generate-interview-prep', {
+        body: { meetingId, candidateId, roleTitle, companyName }
       });
 
+      if (error) throw error;
+      
       setBrief(data.brief as any);
       toast.success("Interview prep brief generated!");
     } catch (error) {

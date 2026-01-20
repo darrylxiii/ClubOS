@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Search,
+  FileText,
+  Calendar,
   MessageSquare,
   Sparkles,
   TrendingUp,

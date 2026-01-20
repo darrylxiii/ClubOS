@@ -1,4 +1,4 @@
-import { LazyCharts } from "@/components/charts/LazyCharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { PipelineHealth } from "@/hooks/useAnalytics";
 
 interface PipelineHealthChartProps {
@@ -67,46 +67,42 @@ export function PipelineHealthChart({ data, isLoading }: PipelineHealthChartProp
       {/* Candidates by Stage */}
       <div>
         <h4 className="text-sm font-medium mb-4">Candidates by Pipeline Stage</h4>
-        <LazyCharts height={300}>
-          {({ ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Cell }) => (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis 
-                  type="number"
-                  className="text-xs"
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={chartData} layout="vertical">
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis 
+              type="number"
+              className="text-xs"
+              tick={{ fill: 'hsl(var(--muted-foreground))' }}
+            />
+            <YAxis 
+              dataKey="status" 
+              type="category"
+              className="text-xs"
+              tick={{ fill: 'hsl(var(--muted-foreground))' }}
+              width={100}
+            />
+            <Tooltip 
+              contentStyle={{
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+              }}
+              formatter={(value: number, name: string, props: any) => [
+                `${value} candidates (${props.payload.avgDays}d avg)`,
+                'Count'
+              ]}
+            />
+            <Bar dataKey="count" name="Candidates">
+              {chartData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={STATUS_COLORS[Object.keys(STATUS_LABELS).find(k => STATUS_LABELS[k] === entry.status) || 'applied']} 
                 />
-                <YAxis 
-                  dataKey="status" 
-                  type="category"
-                  className="text-xs"
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                  width={100}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--background))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                  formatter={(value: number, name: string, props: any) => [
-                    `${value} candidates (${props.payload.avgDays}d avg)`,
-                    'Count'
-                  ]}
-                />
-                <Bar dataKey="count" name="Candidates">
-                  {chartData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={STATUS_COLORS[Object.keys(STATUS_LABELS).find(k => STATUS_LABELS[k] === entry.status) || 'applied']} 
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </LazyCharts>
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Stage Duration Analysis */}

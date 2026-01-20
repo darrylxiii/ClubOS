@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WhatsAppConsentBadge } from "@/components/whatsapp/WhatsAppConsentBadge";
 import {
   Search,
+  Filter,
   Pin,
   Clock,
   MessageSquare,
@@ -22,6 +23,7 @@ import {
   Timer
 } from "lucide-react";
 import { formatDistanceToNow, differenceInHours } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
 import type { WhatsAppConversation, SlaStatus } from "@/hooks/useWhatsAppConversations";
 
 interface WhatsAppConversationListProps {
@@ -88,13 +90,13 @@ export function WhatsAppConversationList({
     // Apply category filter
     switch (filter) {
       case 'unread':
-        filtered = filtered.filter(c => (c.unread_count ?? 0) > 0);
+        filtered = filtered.filter(c => c.unread_count > 0);
         break;
       case 'needs_response':
         filtered = filtered.filter(c => c.last_message_direction === 'inbound');
         break;
       case 'hot_leads':
-        filtered = filtered.filter(c => (c.tags ?? []).some(t => ['interested', 'hot', 'positive'].includes(t)));
+        filtered = filtered.filter(c => c.tags.some(t => ['interested', 'hot', 'positive'].includes(t)));
         break;
       case 'expiring':
         filtered = filtered.filter(c => {
@@ -299,7 +301,7 @@ export function WhatsAppConversationList({
                         <span className="font-semibold text-foreground truncate">
                           {conversation.candidate_name || conversation.candidate_phone}
                         </span>
-                        {getIntentIcon(conversation.tags ?? [])}
+                        {getIntentIcon(conversation.tags)}
                       </div>
                       <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
                         {conversation.last_message_at
@@ -321,7 +323,7 @@ export function WhatsAppConversationList({
                     <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                       <WhatsAppConsentBadge phoneNumber={conversation.candidate_phone} size="sm" />
 
-                      {(conversation.unread_count ?? 0) > 0 && (
+                      {conversation.unread_count > 0 && (
                         <Badge className="bg-[#25d366] text-white h-5 min-w-[20px] px-1.5 text-xs">
                           {conversation.unread_count}
                         </Badge>
@@ -356,7 +358,7 @@ export function WhatsAppConversationList({
                           {windowStatus.label}
                         </Badge>
                       )}
-                      {(conversation.tags ?? []).slice(0, 2).map(tag => (
+                      {conversation.tags.slice(0, 2).map(tag => (
                         <Badge
                           key={tag}
                           variant="secondary"

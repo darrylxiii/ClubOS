@@ -1,21 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Shield, AlertTriangle, Ban, BarChart3, Globe, Monitor, Settings, History } from 'lucide-react';
+import { RefreshCw, Shield, AlertTriangle, Ban, BarChart3, Globe, Monitor, Settings, History, Download } from 'lucide-react';
 import { ThreatOverview } from './ThreatOverview';
 import { ActiveThreatsPanel } from './ActiveThreatsPanel';
-import { Suspense, lazy } from 'react';
+import { BlockedIPsManager } from './BlockedIPsManager';
+import { ThreatAnalytics } from './ThreatAnalytics';
+import { AttackMap } from './AttackMap';
+import { SessionSecurityPanel } from './SessionSecurityPanel';
+import { SecurityControlsPanel } from './SecurityControlsPanel';
+import { ThreatHistory } from './ThreatHistory';
 import { useThreatRealtimeSubscription, useRunThreatScan, useThreatSummary } from '@/hooks/useThreatDetection';
 import { format } from 'date-fns';
-import { Skeleton } from '@/components/ui/skeleton';
-
-// Lazy load non-critical tabs
-const AttackMap = lazy(() => import('./AttackMap').then(module => ({ default: module.AttackMap })));
-const BlockedIPsManager = lazy(() => import('./BlockedIPsManager').then(module => ({ default: module.BlockedIPsManager })));
-const ThreatAnalytics = lazy(() => import('./ThreatAnalytics').then(module => ({ default: module.ThreatAnalytics })));
-const SessionSecurityPanel = lazy(() => import('./SessionSecurityPanel').then(module => ({ default: module.SessionSecurityPanel })));
-const SecurityControlsPanel = lazy(() => import('./SecurityControlsPanel').then(module => ({ default: module.SecurityControlsPanel })));
-const ThreatHistory = lazy(() => import('./ThreatHistory').then(module => ({ default: module.ThreatHistory })));
 
 export function AntiHackingDashboard() {
   useThreatRealtimeSubscription();
@@ -42,8 +38,8 @@ export function AntiHackingDashboard() {
             Real-time threat detection, monitoring, and response • Last scan: {summary ? format(new Date(), 'HH:mm:ss') : 'N/A'}
           </p>
         </div>
-        <Button
-          onClick={() => runScan.mutate()}
+        <Button 
+          onClick={() => runScan.mutate()} 
           disabled={runScan.isPending}
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${runScan.isPending ? 'animate-spin' : ''}`} />
@@ -54,20 +50,19 @@ export function AntiHackingDashboard() {
       {/* Threat Overview */}
       <ThreatOverview />
 
+      {/* Main Content Tabs */}
       <Tabs defaultValue="threats" className="space-y-4">
         <TabsList className="flex-wrap h-auto gap-1 p-1">
           <TabsTrigger value="threats" className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
             Active Threats
+            {totalActiveThreats > 0 && (
+              <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 justify-center text-xs">
+                {totalActiveThreats}
+              </Badge>
+            )}
           </TabsTrigger>
-          <TabsTrigger
-            value="map"
-            className="flex items-center gap-2"
-            onMouseEnter={() => {
-              // Prefetch the component
-              import('./AttackMap');
-            }}
-          >
+          <TabsTrigger value="map" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
             Attack Map
           </TabsTrigger>
@@ -78,18 +73,17 @@ export function AntiHackingDashboard() {
           <TabsTrigger value="blocked" className="flex items-center gap-2">
             <Ban className="h-4 w-4" />
             Blocked IPs
+            {(summary?.blocked_ips_active || 0) > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                {summary?.blocked_ips_active}
+              </Badge>
+            )}
           </TabsTrigger>
           <TabsTrigger value="history" className="flex items-center gap-2">
             <History className="h-4 w-4" />
             History
           </TabsTrigger>
-          <TabsTrigger
-            value="analytics"
-            className="flex items-center gap-2"
-            onMouseEnter={() => {
-              import('./ThreatAnalytics');
-            }}
-          >
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Analytics
           </TabsTrigger>
@@ -104,39 +98,27 @@ export function AntiHackingDashboard() {
         </TabsContent>
 
         <TabsContent value="map">
-          <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-            <AttackMap />
-          </Suspense>
+          <AttackMap />
         </TabsContent>
 
         <TabsContent value="sessions">
-          <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-            <SessionSecurityPanel />
-          </Suspense>
+          <SessionSecurityPanel />
         </TabsContent>
 
         <TabsContent value="blocked">
-          <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-            <BlockedIPsManager />
-          </Suspense>
+          <BlockedIPsManager />
         </TabsContent>
 
         <TabsContent value="history">
-          <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-            <ThreatHistory />
-          </Suspense>
+          <ThreatHistory />
         </TabsContent>
 
         <TabsContent value="analytics">
-          <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-            <ThreatAnalytics />
-          </Suspense>
+          <ThreatAnalytics />
         </TabsContent>
 
         <TabsContent value="settings">
-          <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-            <SecurityControlsPanel />
-          </Suspense>
+          <SecurityControlsPanel />
         </TabsContent>
       </Tabs>
     </div>

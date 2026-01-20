@@ -16,6 +16,7 @@ import {
   AlertCircle, 
   Pause,
   Play,
+  Trash2,
   Sparkles,
   TrendingUp,
   Calendar

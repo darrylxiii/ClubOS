@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  Loader2, DollarSign, Target, ArrowUpRight, ArrowDownRight, Percent,
+  Loader2, TrendingUp, TrendingDown, DollarSign, Users, Target, 
+  Download, Calendar, ArrowUpRight, ArrowDownRight, Percent,
   BarChart3, PieChart, Activity
 } from "lucide-react";
-import { subMonths } from "date-fns";
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
+import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { ARRChart } from "@/components/investor/ARRChart";
 import { CohortAnalysis } from "@/components/investor/CohortAnalysis";
 import { UnitEconomics } from "@/components/investor/UnitEconomics";

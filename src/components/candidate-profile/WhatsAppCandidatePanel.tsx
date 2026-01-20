@@ -57,12 +57,12 @@ export function WhatsAppCandidatePanel({ candidateId, candidatePhone, candidateN
         // Create conversation first if doesn't exist
         const { data: newConversation, error: convError } = await supabase
           .from('whatsapp_conversations')
-          .insert([{
+          .insert({
             candidate_id: candidateId,
-            candidate_phone: candidatePhone ?? '',
-            candidate_name: candidateName ?? '',
+            candidate_phone: candidatePhone,
+            candidate_name: candidateName,
             conversation_status: 'active',
-          }])
+          })
           .select()
           .single();
         
@@ -139,7 +139,7 @@ export function WhatsAppCandidatePanel({ candidateId, candidatePhone, candidateN
                 <MessageSquare className="h-3 w-3 text-green-500" />
               )}
               <span className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(lastMessage.created_at ?? new Date()), { addSuffix: true })}
+                {formatDistanceToNow(new Date(lastMessage.created_at), { addSuffix: true })}
               </span>
             </div>
             <p className="text-sm line-clamp-2">{lastMessage.content}</p>
@@ -150,7 +150,7 @@ export function WhatsAppCandidatePanel({ candidateId, candidatePhone, candidateN
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
             <span>
-              {(conversation.unread_count ?? 0) > 0 
+              {conversation.unread_count > 0 
                 ? `${conversation.unread_count} unread`
                 : 'No unread messages'
               }
@@ -203,7 +203,7 @@ export function WhatsAppCandidatePanel({ candidateId, candidatePhone, candidateN
                         >
                           <p className="line-clamp-2">{msg.content}</p>
                           <p className="text-muted-foreground mt-1">
-                            {format(new Date(msg.created_at ?? new Date()), 'MMM d, HH:mm')}
+                            {format(new Date(msg.created_at), 'MMM d, HH:mm')}
                           </p>
                         </div>
                       ))}

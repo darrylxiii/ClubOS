@@ -33,7 +33,7 @@ export function ReferralPayoutsTable() {
       if (error) throw error;
       
       // Get referrer user IDs and fetch profiles
-      const referrerIds = [...new Set(payoutsData?.map(p => p.referrer_user_id).filter((id): id is string => id !== null) || [])];
+      const referrerIds = [...new Set(payoutsData?.map(p => p.referrer_user_id).filter(Boolean) || [])];
       
       let profileMap = new Map<string, { full_name: string | null; email: string | null }>();
       
@@ -47,7 +47,7 @@ export function ReferralPayoutsTable() {
       }
       
       // Get application IDs to fetch candidate/company info
-      const applicationIds = [...new Set(payoutsData?.map(p => p.application_id).filter((id): id is string => id !== null) || [])];
+      const applicationIds = [...new Set(payoutsData?.map(p => p.application_id).filter(Boolean) || [])];
       
       let applicationMap = new Map<string, { candidate_full_name: string | null; company_name: string | null }>();
       
@@ -62,8 +62,8 @@ export function ReferralPayoutsTable() {
       
       return payoutsData?.map(payout => ({
         ...payout,
-        profile: payout.referrer_user_id ? profileMap.get(payout.referrer_user_id) || null : null,
-        application: payout.application_id ? applicationMap.get(payout.application_id) || null : null,
+        profile: profileMap.get(payout.referrer_user_id) || null,
+        application: applicationMap.get(payout.application_id) || null,
       })) || [];
     },
   });
@@ -74,7 +74,7 @@ export function ReferralPayoutsTable() {
     acc.total += amount;
     if (p.status === 'paid') acc.paid += amount;
     else if (p.status === 'pending') acc.pending += amount;
-    else if (['approved', 'processing'].includes(p.status ?? '')) acc.approved += amount;
+    else if (['approved', 'processing'].includes(p.status)) acc.approved += amount;
     
     return acc;
   }, { 
@@ -161,14 +161,14 @@ export function ReferralPayoutsTable() {
                       {formatCurrency(Number(payout.payout_amount) || 0)}
                     </TableCell>
                     <TableCell>
-                      <Badge className={statusColors[payout.status ?? 'pending'] || ''}>
+                      <Badge className={statusColors[payout.status] || ''}>
                         {payout.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                    {payout.paid_at 
+                      {payout.paid_at 
                         ? format(new Date(payout.paid_at), 'MMM d')
-                        : format(new Date(payout.created_at ?? new Date()), 'MMM d')
+                        : format(new Date(payout.created_at), 'MMM d')
                       }
                     </TableCell>
                   </TableRow>

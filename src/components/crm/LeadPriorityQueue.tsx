@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { 
   Target, 
   Clock, 
+  TrendingUp, 
   Phone, 
   Mail, 
   Calendar,

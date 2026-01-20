@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { aiService } from '@/services/aiService';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Image as ImageIcon,
+  Video,
   BarChart,
   Calendar as CalendarIcon,
   FileText,
@@ -65,15 +65,18 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
   const handleAISuggestion = async () => {
     setLoadingSuggestions(true);
     try {
-      const data = await aiService.generatePost({
-        topic: content,
-        platform: (selectedPlatforms[0] || 'linkedin') as any,
-        tone: 'professional',
-        include_hashtags: true
+      const { data, error } = await supabase.functions.invoke('generate-post-suggestions', {
+        body: { 
+          postType,
+          platform: selectedPlatforms[0] || 'linkedin',
+          currentContent: content
+        }
       });
 
-      if (data?.content) {
-        setAiSuggestions([data.content]);
+      if (error) throw error;
+
+      if (data?.suggestions && data.suggestions.length > 0) {
+        setAiSuggestions(data.suggestions);
         toast.success("AI suggestions generated");
       } else {
         toast.info("No suggestions available. Try again later.");
@@ -347,8 +350,8 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
               <Label>AI Suggestions (click to use)</Label>
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {aiSuggestions.map((suggestion, idx) => (
-                  <Card
-                    key={idx}
+                  <Card 
+                    key={idx} 
                     className="p-3 cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => applySuggestion(suggestion)}
                   >

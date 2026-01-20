@@ -12,6 +12,8 @@ import RealTimeActivityTab from "@/components/admin/activity/RealTimeActivityTab
 import EngagementAnalyticsTab from "@/components/admin/activity/EngagementAnalyticsTab";
 import FrustrationSignalsTab from "@/components/admin/activity/FrustrationSignalsTab";
 import SearchAnalyticsTab from "@/components/admin/activity/SearchAnalyticsTab";
+import { UserSegmentsTab } from "@/components/admin/activity/UserSegmentsTab";
+import { FeatureAnalyticsTab } from "@/components/admin/activity/FeatureAnalyticsTab";
 import { CandidateIntelligenceTab } from "@/components/admin/activity/CandidateIntelligenceTab";
 import { AdminIntelligenceTab } from "@/components/admin/activity/AdminIntelligenceTab";
 import { PredictiveAnalyticsTab } from "@/components/admin/activity/PredictiveAnalyticsTab";

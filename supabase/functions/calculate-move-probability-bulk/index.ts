@@ -1,6 +1,10 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { publicCorsHeaders } from "../_shared/cors-config.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 interface BulkCalculationResult {
   total_candidates: number;
@@ -13,7 +17,7 @@ interface BulkCalculationResult {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: publicCorsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -63,7 +67,7 @@ serve(async (req) => {
             errors: []
           }
         }),
-        { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -128,14 +132,14 @@ serve(async (req) => {
         message: `Processed ${result.processed} candidates`,
         result
       }),
-      { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('[calculate-move-probability-bulk] Error:', error);
     return new Response(
       JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }),
-      { status: 500, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

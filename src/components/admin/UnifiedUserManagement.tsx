@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil, Search, Download, Link as LinkIcon, Building2, Eye, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
+import { UserPlus, Pencil, Search, Download, Link as LinkIcon, Building2, Eye, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -18,10 +18,10 @@ import { useNavigate } from "react-router-dom";
 
 interface UserWithRoles {
   id: string;
-  email: string | null;
+  email: string;
   full_name: string | null;
-  created_at: string | null;
-  email_verified: boolean | null;
+  created_at: string;
+  email_verified: boolean;
   company_id: string | null;
   company_name: string | null;
   company_role: string | null;
@@ -191,7 +191,7 @@ export function UnifiedUserManagement() {
     // Basic search
     if (searchQuery) {
       filtered = filtered.filter(user => 
-        (user.email ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.company_name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -433,16 +433,14 @@ export function UnifiedUserManagement() {
 
   const generateInviteLink = async () => {
     try {
-      const inviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-      const userId = (await supabase.auth.getUser()).data.user?.id;
       const { data, error } = await supabase
         .from('invite_codes')
-        .insert([{
-          code: inviteCode,
-          created_by: userId!,
+        .insert({
+          code: Math.random().toString(36).substring(2, 10).toUpperCase(),
+          created_by: (await supabase.auth.getUser()).data.user?.id,
           created_by_type: 'admin',
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        }])
+        })
         .select()
         .single();
 
@@ -467,7 +465,7 @@ export function UnifiedUserManagement() {
         user.company_name || '',
         user.company_role || '',
         user.email_verified ? 'Yes' : 'No',
-        new Date(user.created_at ?? new Date()).toLocaleDateString()
+        new Date(user.created_at).toLocaleDateString()
       ])
     ].map(row => row.join(',')).join('\n');
 
@@ -709,7 +707,7 @@ export function UnifiedUserManagement() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {new Date(user.created_at ?? new Date()).toLocaleDateString()}
+                        {new Date(user.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">

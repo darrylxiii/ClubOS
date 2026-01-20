@@ -4,6 +4,7 @@
  * Enhanced with Sentry integration for enterprise observability
  */
 
+import { supabase } from "@/integrations/supabase/client";
 import * as Sentry from '@sentry/react';
 
 export interface PerformanceContext {
@@ -28,8 +29,8 @@ export const logPerformanceMetric = async (
     if (Sentry.getClient()) {
       Sentry.setMeasurement(metricName, value, 'millisecond');
     }
-  } catch (_error) {
-    console.error('Failed to log performance metric:', _error);
+  } catch (error) {
+    console.error('Failed to log performance metric:', error);
   }
 };
 
@@ -116,7 +117,7 @@ export const trackCLS = (): void => {
   
   try {
     clsObserver.observe({ type: 'layout-shift', buffered: true });
-  } catch (_e) {
+  } catch (e) {
     // CLS not supported
   }
 };
@@ -140,7 +141,7 @@ export const trackINP = (): void => {
   
   try {
     inpObserver.observe({ type: 'event', buffered: true } as PerformanceObserverInit);
-  } catch (_e) {
+  } catch (e) {
     // INP not supported
   }
 };
@@ -166,7 +167,7 @@ export const trackCoreWebVitals = (): void => {
     
     try {
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-    } catch (_e) {
+    } catch (e) {
       // LCP not supported in this browser
     }
     
@@ -182,7 +183,7 @@ export const trackCoreWebVitals = (): void => {
     
     try {
       fidObserver.observe({ entryTypes: ['first-input'] });
-    } catch (_e) {
+    } catch (e) {
       // FID not supported in this browser
     }
     

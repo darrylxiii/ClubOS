@@ -8,8 +8,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Bot, 
   CheckCircle2, 
+  AlertCircle, 
   Clock,
   Zap,
+  MessageSquare,
   Target,
   Users,
   FileSearch

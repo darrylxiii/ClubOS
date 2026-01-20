@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Sparkles, Check, RefreshCw } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, Sparkles, BookOpen, Check, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { notify } from "@/lib/notify";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,10 +53,6 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
 
     const handleCreate = async () => {
         if (!user || !generatedCourse) return;
-        if (!academyId) {
-            notify.error('Missing academy', { description: 'Please open this from an academy.' });
-            return;
-        }
 
         setLoading(true);
         try {
@@ -66,18 +64,16 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
 
             const { data: course, error: courseError } = await supabase
                 .from("courses")
-                .insert([
-                    {
-                        title: generatedCourse.title,
-                        slug: `${slug}-${Date.now()}`, // Ensure uniqueness
-                        description: generatedCourse.description,
-                        difficulty_level: generatedCourse.difficulty_level,
-                        estimated_hours: generatedCourse.estimated_hours,
-                        academy_id: academyId,
-                        created_by: user.id,
-                        is_published: false,
-                    },
-                ])
+                .insert({
+                    title: generatedCourse.title,
+                    slug: `${slug}-${Date.now()}`, // Ensure uniqueness
+                    description: generatedCourse.description,
+                    difficulty_level: generatedCourse.difficulty_level,
+                    estimated_hours: generatedCourse.estimated_hours,
+                    academy_id: academyId,
+                    created_by: user.id,
+                    is_published: false
+                })
                 .select()
                 .single();
 

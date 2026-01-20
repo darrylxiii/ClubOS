@@ -449,7 +449,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
                 __html: DOMPurify.sanitize(value, {
                   ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'b', 'i'],
                   ALLOWED_ATTR: ['href', 'target', 'rel'],
-                  ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i
+                  ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
                 })
               }}
             />

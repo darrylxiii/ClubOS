@@ -218,8 +218,8 @@ export function useBandwidthTest({
       const mbps = bitsPerSecond / 1_000_000;
 
       return mbps;
-    } catch (_e) {
-      console.warn('[BandwidthTest] Upload measurement failed, using estimate:', _e);
+    } catch (e) {
+      console.warn('[BandwidthTest] Upload measurement failed, using estimate:', e);
       return 1.5; // Fallback estimate
     }
   }, []);

@@ -31,7 +31,7 @@ export default function Post() {
       const { data: postData, error: postError } = await supabase
         .from('posts')
         .select('*')
-        .eq('id', id ?? '')
+        .eq('id', id)
         .single();
 
       if (postError || !postData) {

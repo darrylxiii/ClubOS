@@ -9,12 +9,13 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { 
-  Bot, Brain, Video, Calendar, Clock, Search, 
-  Settings, TrendingUp, Users, MessageSquare, Download, Eye, Sparkles, BarChart3, CheckCircle2, AlertCircle
+  Bot, Brain, Video, Calendar, Clock, Search, Filter, 
+  Settings, TrendingUp, Users, MessageSquare, Download,
+  Play, Eye, Sparkles, BarChart3, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 

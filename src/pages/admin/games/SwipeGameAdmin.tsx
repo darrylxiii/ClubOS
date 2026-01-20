@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { Users, Clock, Search, ArrowLeft, Eye, Target } from "lucide-react";
+import { Play, Users, Clock, Search, ArrowLeft, Eye, Target } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import {

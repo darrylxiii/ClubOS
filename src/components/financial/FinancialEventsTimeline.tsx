@@ -9,6 +9,7 @@ import {
   FileText, 
   CheckCircle, 
   DollarSign, 
+  UserPlus, 
   Gift,
   Clock,
   AlertCircle,
@@ -66,9 +67,9 @@ export function FinancialEventsTimeline() {
           type: 'placement_fee',
           title: 'Placement Fee Created',
           description: `New placement fee generated`,
-          amount: fee.fee_amount ?? undefined,
-          timestamp: fee.created_at ?? new Date().toISOString(),
-          status: fee.status ?? undefined,
+          amount: fee.fee_amount,
+          timestamp: fee.created_at,
+          status: fee.status,
         });
       });
 
@@ -85,9 +86,9 @@ export function FinancialEventsTimeline() {
           type: 'commission',
           title: comm.status === 'paid' ? 'Commission Paid' : 'Commission Created',
           description: `Recruiter commission ${comm.status}`,
-          amount: comm.gross_amount ?? undefined,
-          timestamp: comm.created_at ?? new Date().toISOString(),
-          status: comm.status ?? undefined,
+          amount: comm.gross_amount,
+          timestamp: comm.created_at,
+          status: comm.status,
         });
       });
 
@@ -104,9 +105,9 @@ export function FinancialEventsTimeline() {
           type: 'referral_payout',
           title: payout.status === 'paid' ? 'Payout Completed' : 'Payout Pending',
           description: `Referral reward ${payout.status}`,
-          amount: payout.payout_amount ?? undefined,
-          timestamp: payout.created_at ?? new Date().toISOString(),
-          status: payout.status ?? undefined,
+          amount: payout.payout_amount,
+          timestamp: payout.created_at,
+          status: payout.status,
         });
       });
 
@@ -129,14 +130,14 @@ export function FinancialEventsTimeline() {
         // Only show renewals in next 30 days
         if (renewalDate >= now && renewalDate <= thirtyDaysFromNow) {
           const cost = sub.billing_cycle === 'annually' ? sub.annual_cost : sub.monthly_cost;
-          const urgency = daysUntil <= (sub.cancellation_notice_days ?? 0) ? 'urgent' : 'upcoming';
+          const urgency = daysUntil <= sub.cancellation_notice_days ? 'urgent' : 'upcoming';
           
           allEvents.push({
             id: `renewal-${sub.id}`,
             type: 'subscription_renewal',
             title: urgency === 'urgent' ? 'Renewal Notice Required' : 'Upcoming Renewal',
             description: `${sub.vendor_name} renews in ${daysUntil} days`,
-            amount: cost ?? undefined,
+            amount: cost,
             timestamp: sub.next_renewal_date!,
             status: urgency,
           });

@@ -37,7 +37,7 @@ export const MilestonesGamification = () => {
       const { data: profileData } = await supabase
         .from("profile_analytics")
         .select("*")
-        .eq("user_id", user?.id ?? '')
+        .eq("user_id", user?.id)
         .order("date", { ascending: false })
         .limit(1)
         .single();
@@ -45,7 +45,7 @@ export const MilestonesGamification = () => {
       const { data: engagement } = await supabase
         .from("user_engagement")
         .select("*")
-        .eq("user_id", user?.id ?? '')
+        .eq("user_id", user?.id)
         .single();
 
       const stats = {
@@ -131,7 +131,7 @@ export const MilestonesGamification = () => {
       const { data } = await supabase
         .from("user_engagement")
         .select("current_streak")
-        .eq("user_id", user?.id ?? '')
+        .eq("user_id", user?.id)
         .single();
 
       setStreak(data?.current_streak || 0);

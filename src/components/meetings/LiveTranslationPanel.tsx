@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Languages, Volume2, VolumeX, X } from 'lucide-react';
+import { Languages, Volume2, VolumeX, Settings, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TranslatedSegment {

@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Send, Paperclip, 
+  Send, Paperclip, Image as ImageIcon, FileText, 
   Check, CheckCheck, Loader2, MessageSquare
 } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";

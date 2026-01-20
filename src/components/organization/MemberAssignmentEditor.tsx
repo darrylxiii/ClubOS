@@ -11,6 +11,7 @@ import { useDepartments } from '@/hooks/useDepartments';
 import { EnhancedCompanyMember } from '@/types/organization';
 import { Loader2, Users } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
 
 interface MemberAssignmentEditorProps {
   companyId: string;

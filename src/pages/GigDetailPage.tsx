@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { PageLoader } from "@/components/PageLoader";
 import { 
   Star, Clock, RefreshCw, Check, MessageSquare, 
-  Heart, Share2, ChevronLeft, ChevronRight
+  Heart, Share2, ChevronLeft, ChevronRight, Package
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

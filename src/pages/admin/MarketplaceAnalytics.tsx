@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Users, Briefcase, TrendingUp, ArrowUpRight, Activity } from "lucide-react";
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Line } from "recharts";
-import { format, subDays } from "date-fns";
+import { DollarSign, Users, Briefcase, TrendingUp, ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar } from "recharts";
+import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 
 const MarketplaceAnalytics = () => {
   // Fetch all marketplace data
@@ -63,7 +63,7 @@ const MarketplaceAnalytics = () => {
   const totalGMV = contracts?.reduce((sum, c) => sum + (c.estimated_total || 0), 0) || 0;
   const completedContracts = contracts?.filter(c => c.status === 'completed') || [];
   const completedGMV = completedContracts.reduce((sum, c) => sum + (c.estimated_total || 0), 0);
-
+  
   // Platform take rate (assuming 10%)
   const takeRate = 0.10;
   const platformRevenue = completedGMV * takeRate;
@@ -76,7 +76,7 @@ const MarketplaceAnalytics = () => {
   const totalRevenue = platformRevenue + connectsRevenue;
 
   // User metrics
-  // const totalFreelancers = freelancers?.length || 0;
+  const totalFreelancers = freelancers?.length || 0;
   const activeFreelancers = freelancers?.filter(f => (f as Record<string, unknown>).is_active !== false).length || 0;
   const verifiedFreelancers = freelancers?.filter(f => f.is_verified === true).length || 0;
 
@@ -196,20 +196,20 @@ const MarketplaceAnalytics = () => {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `€${(v / 1000).toFixed(0)}k`} />
+                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `€${(v/1000).toFixed(0)}k`} />
                 <Tooltip formatter={(value) => [`€${value.toLocaleString()}`, '']} />
-                <Area
-                  type="monotone"
-                  dataKey="gmv"
-                  stroke="hsl(var(--primary))"
-                  fill="url(#gmvGradient)"
+                <Area 
+                  type="monotone" 
+                  dataKey="gmv" 
+                  stroke="hsl(var(--primary))" 
+                  fill="url(#gmvGradient)" 
                   strokeWidth={2}
                   name="GMV"
                 />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="hsl(var(--accent))"
+                <Line 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="hsl(var(--accent))" 
                   strokeWidth={2}
                   dot={false}
                   name="Revenue"
@@ -232,7 +232,7 @@ const MarketplaceAnalytics = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryDistribution} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" tickFormatter={(v) => `€${(v / 1000).toFixed(0)}k`} />
+                  <XAxis type="number" tickFormatter={(v) => `€${(v/1000).toFixed(0)}k`} />
                   <YAxis dataKey="category" type="category" tick={{ fontSize: 12 }} width={90} />
                   <Tooltip formatter={(value) => [`€${value.toLocaleString()}`, 'GMV']} />
                   <Bar dataKey="gmv" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
@@ -286,9 +286,9 @@ const MarketplaceAnalytics = () => {
                 <span className="font-medium">{completedContracts.length}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
-                <div
-                  className="bg-green-500 h-2 rounded-full"
-                  style={{ width: `${acceptedProposals > 0 ? (completedContracts.length / acceptedProposals) * 100 : 0}%` }}
+                <div 
+                  className="bg-green-500 h-2 rounded-full" 
+                  style={{ width: `${acceptedProposals > 0 ? (completedContracts.length / acceptedProposals) * 100 : 0}%` }} 
                 />
               </div>
             </div>

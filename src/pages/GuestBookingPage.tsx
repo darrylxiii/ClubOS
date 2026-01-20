@@ -14,6 +14,7 @@ import {
   User, 
   Video, 
   Mail, 
+  MapPin, 
   CalendarX, 
   RefreshCw,
   Loader2,

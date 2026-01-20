@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { 
   FileText, 
   Eye, 
@@ -16,7 +17,7 @@ interface TimelineActivity {
   id: string;
   activity_type: string;
   activity_data: any;
-  created_at: string | null;
+  created_at: string;
 }
 
 export function ActivityTimeline({ userId }: { userId: string }) {
@@ -60,8 +61,8 @@ export function ActivityTimeline({ userId }: { userId: string }) {
 
       if (error) throw error;
       setActivities(data || []);
-    } catch (_error) {
-      console.error('Error fetching activities:', _error);
+    } catch (error) {
+      console.error('Error fetching activities:', error);
     } finally {
       setLoading(false);
     }
@@ -114,7 +115,7 @@ export function ActivityTimeline({ userId }: { userId: string }) {
     const grouped: Record<string, TimelineActivity[]> = {};
     
     activities.forEach(activity => {
-      const dateKey = formatTimeLabel(activity.created_at ?? new Date().toISOString());
+      const dateKey = formatTimeLabel(activity.created_at);
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
       }
@@ -193,7 +194,7 @@ export function ActivityTimeline({ userId }: { userId: string }) {
                         {config.label}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(activity.created_at ?? new Date()), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
                       </p>
                     </div>
                   </div>

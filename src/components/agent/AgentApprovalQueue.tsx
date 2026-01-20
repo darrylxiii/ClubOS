@@ -10,8 +10,10 @@ import {
   XCircle, 
   Clock, 
   Bot,
+  AlertTriangle,
   ChevronDown,
   ChevronUp,
+  Send,
   Calendar,
   MessageSquare,
   FileText

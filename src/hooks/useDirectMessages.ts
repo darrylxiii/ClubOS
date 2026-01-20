@@ -13,7 +13,7 @@ interface DMConversation {
     id: string;
     full_name: string | null;
     avatar_url: string | null;
-  } | null;
+  };
   unread_count?: number;
 }
 
@@ -109,14 +109,12 @@ export function useDirectMessages() {
       }));
 
       // Mark messages as read
-      if (user?.id) {
-        await supabase
-          .from('dm_messages')
-          .update({ is_read: true, read_at: new Date().toISOString() })
-          .eq('conversation_id', conversationId)
-          .neq('sender_id', user.id)
-          .eq('is_read', false);
-      }
+      await supabase
+        .from('dm_messages')
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq('conversation_id', conversationId)
+        .neq('sender_id', user?.id)
+        .eq('is_read', false);
 
     } catch (error) {
       console.error('Error loading messages:', error);

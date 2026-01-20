@@ -78,10 +78,10 @@ export function StoryAnalytics() {
     const totalShares = shares.data?.length || 0;
     const totalSaves = saves.data?.length || 0;
 
-    const completedViews = views.data?.filter((v: { completed: boolean }) => v.completed).length || 0;
+    const completedViews = views.data?.filter(v => v.completed).length || 0;
     const completionRate = totalViews > 0 ? (completedViews / totalViews) * 100 : 0;
 
-    const totalWatchTime = views.data?.reduce((sum: number, v: { watch_duration_seconds?: number }) => sum + (v.watch_duration_seconds || 0), 0) || 0;
+    const totalWatchTime = views.data?.reduce((sum, v) => sum + (v.watch_duration_seconds || 0), 0) || 0;
     const avgWatchTime = totalViews > 0 ? totalWatchTime / totalViews : 0;
 
     setStats({
@@ -95,10 +95,10 @@ export function StoryAnalytics() {
 
     // Per-story data
     const storiesWithStats = stories.map(story => {
-      const storyViews = views.data?.filter((v: { story_id: string }) => v.story_id === story.id).length || 0;
-      const storyReactions = reactions.data?.filter((r: { story_id: string }) => r.story_id === story.id).length || 0;
-      const storyShares = shares.data?.filter((s: { story_id: string }) => s.story_id === story.id).length || 0;
-      const storySaves = saves.data?.filter((s: { story_id: string }) => s.story_id === story.id).length || 0;
+      const storyViews = views.data?.filter(v => v.story_id === story.id).length || 0;
+      const storyReactions = reactions.data?.filter(r => r.story_id === story.id).length || 0;
+      const storyShares = shares.data?.filter(s => s.story_id === story.id).length || 0;
+      const storySaves = saves.data?.filter(s => s.story_id === story.id).length || 0;
 
       return {
         ...story,
@@ -115,19 +115,19 @@ export function StoryAnalytics() {
     // Engagement trend by day
     const dayMap = new Map<string, { views: number; reactions: number; shares: number }>();
     
-    views.data?.forEach((v: { viewed_at: string }) => {
+    views.data?.forEach(v => {
       const day = new Date(v.viewed_at).toLocaleDateString();
       const existing = dayMap.get(day) || { views: 0, reactions: 0, shares: 0 };
       dayMap.set(day, { ...existing, views: existing.views + 1 });
     });
 
-    reactions.data?.forEach((r: { created_at: string }) => {
+    reactions.data?.forEach(r => {
       const day = new Date(r.created_at).toLocaleDateString();
       const existing = dayMap.get(day) || { views: 0, reactions: 0, shares: 0 };
       dayMap.set(day, { ...existing, reactions: existing.reactions + 1 });
     });
 
-    shares.data?.forEach((s: { created_at: string }) => {
+    shares.data?.forEach(s => {
       const day = new Date(s.created_at).toLocaleDateString();
       const existing = dayMap.get(day) || { views: 0, reactions: 0, shares: 0 };
       dayMap.set(day, { ...existing, shares: existing.shares + 1 });

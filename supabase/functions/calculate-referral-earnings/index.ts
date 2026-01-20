@@ -1,6 +1,10 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { publicCorsHeaders } from "../_shared/cors-config.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 interface ApplicationData {
   id: string;
@@ -32,7 +36,7 @@ interface DealStage {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: publicCorsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -74,7 +78,7 @@ serve(async (req) => {
       console.error('Application not found:', appError);
       return new Response(
         JSON.stringify({ error: 'Application not found' }),
-        { status: 404, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -97,7 +101,7 @@ serve(async (req) => {
       console.log('No active referral policies found for this job/company');
       return new Response(
         JSON.stringify({ message: 'No active referral policies' }),
-        { status: 200, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -198,7 +202,7 @@ serve(async (req) => {
         earnings_updated: earningsResults.length,
         results: earningsResults 
       }),
-      { status: 200, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
@@ -206,7 +210,7 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

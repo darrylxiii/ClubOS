@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -257,7 +258,7 @@ export default function ReferralProgram() {
                           {(referral.referred as any)?.full_name || (referral.referred as any)?.email}
                         </p>
                         <p className="text-sm text-muted-foreground capitalize">
-                          {referral.referral_type} • {formatDistanceToNow(new Date(referral.created_at ?? new Date()), { addSuffix: true })}
+                          {referral.referral_type} • {formatDistanceToNow(new Date(referral.created_at), { addSuffix: true })}
                         </p>
                       </div>
                     </div>

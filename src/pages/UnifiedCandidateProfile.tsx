@@ -14,6 +14,7 @@ import { CandidateInternalRatingCard } from "@/components/partner/CandidateInter
 import { CandidateNotesManager } from "@/components/partner/CandidateNotesManager";
 import { CandidateWorkAuthCard } from "@/components/partner/CandidateWorkAuthCard";
 import { PipelineBreakdownCard } from "@/components/candidate-profile/PipelineBreakdownCard";
+import { CandidatePipelineContextBanner } from "@/components/partner/CandidatePipelineContextBanner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useRole } from "@/contexts/RoleContext";
@@ -65,8 +66,6 @@ export default function UnifiedCandidateProfile() {
   }, [candidateId]);
 
   const loadCandidateData = async () => {
-    if (!candidateId) return;
-    
     try {
       // Load candidate and profile
       const { data: candidateData } = await supabase

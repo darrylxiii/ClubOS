@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Flag, Plus, Trash2, Users, Building, Percent } from 'lucide-react';
+import { Flag, Plus, Trash2, Settings, Users, Building, Percent } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';

@@ -8,9 +8,11 @@ import {
   Calendar, 
   Clock, 
   User, 
+  Briefcase, 
   AlertTriangle,
   Timer,
-  Repeat
+  Repeat,
+  Tag
 } from "lucide-react";
 import { format, isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";

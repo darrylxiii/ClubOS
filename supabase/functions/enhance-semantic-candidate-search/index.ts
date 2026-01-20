@@ -1,6 +1,10 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { publicCorsHeaders as corsHeaders } from "../_shared/cors-config.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 interface SearchFilters {
   talent_tiers?: string[];
@@ -311,7 +315,7 @@ function calculateTextRelevance(query: string, candidate: any): number {
   const queryTerms = queryLower.split(/\s+/).filter(t => t.length > 2);
   
   let score = 0;
-  const maxScore = queryTerms.length * 10;
+  let maxScore = queryTerms.length * 10;
 
   const searchableText = [
     candidate.full_name,

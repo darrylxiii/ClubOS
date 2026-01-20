@@ -2,7 +2,8 @@ import { Badge } from "@/components/ui/badge";
 import { 
   AlertTriangle, 
   Clock, 
-  TrendingUp,
+  TrendingUp, 
+  Eye,
   Zap
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";

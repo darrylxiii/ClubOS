@@ -18,7 +18,7 @@ import { useLiveHubPresence } from '@/hooks/useLiveHubPresence';
 import { useUserPresenceExtended } from '@/hooks/useUserPresenceExtended';
 import { useActiveCall } from '@/contexts/ActiveCallContext';
 import { Button } from '@/components/ui/button';
-import { Search, Settings } from 'lucide-react';
+import { Search, Settings, Bell } from 'lucide-react';
 import MobileLiveHubLayout from './MobileLiveHubLayout';
 
 const LiveHubLayout = () => {

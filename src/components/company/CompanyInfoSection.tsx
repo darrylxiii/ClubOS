@@ -1,5 +1,6 @@
 import { Briefcase, MapPin, Users, Calendar, Globe, Linkedin, Twitter, Instagram, Mail, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CompanyLogo } from "@/components/ui/company-logo";
 
 interface Company {
   name?: string | null;

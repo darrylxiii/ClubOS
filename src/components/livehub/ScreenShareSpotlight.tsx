@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { Monitor, X } from 'lucide-react';
+import { Monitor, X, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 

@@ -17,17 +17,17 @@ import { format } from 'date-fns';
 interface Experience {
   id: string;
   company_name: string;
-  position_title: string | null;
-  employment_type: string | null;
-  location: string | null;
-  location_type: string | null;
-  start_date: string | null;
+  position_title: string;
+  employment_type: string;
+  location: string;
+  location_type: string;
+  start_date: string;
   end_date: string | null;
-  is_current: boolean | null;
-  description: string | null;
-  achievements: string[];
-  skills_used: string[];
-  visibility: string | null;
+  is_current: boolean;
+  description: string;
+  achievements: any;
+  skills_used: any;
+  visibility: string;
 }
 
 interface ExperienceSectionProps {
@@ -72,12 +72,7 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
       console.error('Error loading experiences:', error);
       return;
     }
-    const mappedData = (data || []).map((exp: any) => ({
-      ...exp,
-      achievements: Array.isArray(exp.achievements) ? exp.achievements : [],
-      skills_used: Array.isArray(exp.skills_used) ? exp.skills_used : []
-    }));
-    setExperiences(mappedData);
+    setExperiences(data || []);
   };
 
   const handleSave = async () => {
@@ -137,17 +132,17 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
     setEditingId(exp.id);
     setFormData({
       company_name: exp.company_name,
-      position_title: exp.position_title || '',
-      employment_type: exp.employment_type || 'fulltime',
-      location: exp.location || '',
-      location_type: exp.location_type || 'onsite',
-      start_date: exp.start_date || '',
+      position_title: exp.position_title,
+      employment_type: exp.employment_type,
+      location: exp.location,
+      location_type: exp.location_type,
+      start_date: exp.start_date,
       end_date: exp.end_date || '',
-      is_current: exp.is_current || false,
-      description: exp.description || '',
-      achievements: (exp.achievements || []).join('\n'),
-      skills_used: (exp.skills_used || []).join(', '),
-      visibility: exp.visibility || 'public'
+      is_current: exp.is_current,
+      description: exp.description,
+      achievements: exp.achievements.join('\n'),
+      skills_used: exp.skills_used.join(', '),
+      visibility: exp.visibility
     });
     setIsDialogOpen(true);
   };
@@ -364,7 +359,7 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
                 <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    {exp.start_date ? format(new Date(exp.start_date), 'MMM yyyy') : 'N/A'} - {exp.is_current ? 'Present' : exp.end_date ? format(new Date(exp.end_date), 'MMM yyyy') : 'N/A'}
+                    {format(new Date(exp.start_date), 'MMM yyyy')} - {exp.is_current ? 'Present' : exp.end_date ? format(new Date(exp.end_date), 'MMM yyyy') : 'N/A'}
                   </div>
                   {exp.location && (
                     <div className="flex items-center gap-1">
@@ -379,20 +374,20 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
                   <p className="text-sm">{exp.description}</p>
                 )}
 
-                {exp.achievements && exp.achievements.length > 0 && (
+                {exp.achievements.length > 0 && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium">Key Achievements:</p>
                     <ul className="list-disc list-inside space-y-1">
-                      {exp.achievements.map((achievement: string, idx: number) => (
+                      {exp.achievements.map((achievement, idx) => (
                         <li key={idx} className="text-sm text-muted-foreground">{achievement}</li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                {exp.skills_used && exp.skills_used.length > 0 && (
+                {exp.skills_used.length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {exp.skills_used.map((skill: string, idx: number) => (
+                    {exp.skills_used.map((skill, idx) => (
                       <Badge key={idx} variant="secondary">{skill}</Badge>
                     ))}
                   </div>

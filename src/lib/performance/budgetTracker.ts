@@ -162,8 +162,8 @@ export function setupWebVitalsTracking(): void {
     });
     clsObserver.observe({ type: 'layout-shift', buffered: true });
 
-  } catch (webVitalsError) {
-    console.warn('[PerformanceBudget] Failed to setup Web Vitals tracking:', webVitalsError);
+  } catch (e) {
+    console.warn('[PerformanceBudget] Failed to setup Web Vitals tracking:', e);
   }
 }
 

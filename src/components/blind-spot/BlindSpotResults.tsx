@@ -1,9 +1,10 @@
 import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { BlindSpotResult } from '@/types/assessment';
-import { Eye, Lightbulb, AlertTriangle } from 'lucide-react';
+import { Eye, TrendingUp, Lightbulb, AlertTriangle } from 'lucide-react';
 
 interface BlindSpotResultsProps {
   results: BlindSpotResult;

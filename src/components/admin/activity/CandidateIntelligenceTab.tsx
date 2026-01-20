@@ -4,13 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, TrendingUp, Briefcase, Clock, Mail } from 'lucide-react';
+import { Users, TrendingUp, Briefcase, FileText, Clock, Mail } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface CandidateActivity {
   user_id: string;
   full_name: string | null;
-  email: string | null;
+  email: string;
   avatar_url: string | null;
   last_activity_at: string | null;
   total_actions: number;
@@ -179,7 +179,7 @@ export function CandidateIntelligenceTab() {
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={candidate.avatar_url || undefined} />
                           <AvatarFallback>
-                            {candidate.full_name?.charAt(0) || (candidate.email ?? '?').charAt(0).toUpperCase()}
+                            {candidate.full_name?.charAt(0) || candidate.email.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${getStatusColor(candidate.online_status)}`} />

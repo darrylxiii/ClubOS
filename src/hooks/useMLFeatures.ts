@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { aiService } from '@/services/aiService';
+import { supabase } from '@/integrations/supabase/client';
 import type { MLFeatures, FeatureGenerationRequest } from '@/types/ml';
 
 /**
@@ -16,13 +16,16 @@ export function useMLFeatures() {
     setError(null);
 
     try {
-      const data = await aiService.generateMLFeatures(request);
-
-      const functionError = null; // aiService throws on error, so we catch below
+      const { data, error: functionError } = await supabase.functions.invoke(
+        'generate-ml-features',
+        {
+          body: request,
+        }
+      );
 
       if (functionError) throw functionError;
 
-      return data.features as MLFeatures;
+      return data.features;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to generate features');
       setError(error);

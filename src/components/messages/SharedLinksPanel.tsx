@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { LinkItem } from '@/hooks/useConversationMedia';
 

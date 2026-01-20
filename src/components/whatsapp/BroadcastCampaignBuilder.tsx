@@ -12,7 +12,7 @@ import { useToast } from '@/lib/notify';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useWhatsAppBroadcastConsent } from '@/hooks/useWhatsAppBroadcastConsent';
-import { Plus, Send, Clock, CheckCircle, XCircle, Loader2, Shield, AlertTriangle } from 'lucide-react';
+import { Plus, Send, Users, Clock, CheckCircle, XCircle, Loader2, Shield, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Campaign {

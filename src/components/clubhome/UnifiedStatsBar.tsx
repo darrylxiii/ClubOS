@@ -1,6 +1,7 @@
 import { MetricCard } from "@/components/admin/shared/MetricCard";
 import { MetricCardSkeleton } from "@/components/admin/shared/MetricCardSkeleton";
 import { Users, Briefcase, Calendar, MessageSquare, Target, TrendingUp, Building2, AlertCircle } from "lucide-react";
+import { T } from "@/components/T";
 
 interface StatConfig {
   icon: typeof Users;

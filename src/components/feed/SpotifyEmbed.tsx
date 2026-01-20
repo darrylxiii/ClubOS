@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Music } from 'lucide-react';
+import { ExternalLink, Loader2, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SpotifyType, getSpotifyEmbedUrl } from '@/lib/spotifyEmbedUtils';
 

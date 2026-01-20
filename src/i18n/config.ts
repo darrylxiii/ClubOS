@@ -10,18 +10,58 @@ const ALL_NAMESPACES = [
   'meetings', 'messages', 'partner', 'settings'
 ];
 
-// Core namespaces bundled for immediate display (most commonly used)
-const CORE_NAMESPACES = ['common', 'auth', 'onboarding'];
-
-// Lazy-loaded namespaces (admin/power-user features)
-const LAZY_NAMESPACES = [
-  'admin', 'analytics', 'compliance', 'contracts',
-  'candidates', 'jobs', 'meetings', 'messages', 'partner', 'settings'
-];
-
 const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'es', 'zh', 'ar', 'ru'];
 
-import { clearTranslationCache } from './cache';
+// Cache key prefix for localStorage
+const TRANSLATION_CACHE_PREFIX = 'tqc_translations_';
+const CACHE_VERSION = 'v4'; // Bumped version to invalidate old caches
+
+// Get cached translations from localStorage
+export const getCachedTranslations = (language: string, namespace: string): Record<string, any> | null => {
+  try {
+    const key = `${TRANSLATION_CACHE_PREFIX}${CACHE_VERSION}_${language}_${namespace}`;
+    const cached = localStorage.getItem(key);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      // Cache valid for 1 hour
+      if (Date.now() - timestamp < 3600000) {
+        return data;
+      }
+    }
+  } catch (e) {
+    console.warn('[i18n] Cache read error:', e);
+  }
+  return null;
+};
+
+// Save translations to localStorage cache
+export const setCachedTranslations = (language: string, namespace: string, data: Record<string, any>) => {
+  try {
+    const key = `${TRANSLATION_CACHE_PREFIX}${CACHE_VERSION}_${language}_${namespace}`;
+    localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+  } catch (e) {
+    console.warn('[i18n] Cache write error:', e);
+  }
+};
+
+// Clear all translation caches
+export const clearTranslationCache = (language?: string) => {
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(TRANSLATION_CACHE_PREFIX)) {
+        if (!language || key.includes(`_${language}_`)) {
+          keysToRemove.push(key);
+        }
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    console.log(`[i18n] Cleared ${keysToRemove.length} cached translations`);
+  } catch (e) {
+    console.warn('[i18n] Cache clear error:', e);
+  }
+};
 
 // Force reload all translations for a language
 export const forceReloadLanguage = async (language: string): Promise<void> => {
@@ -71,85 +111,45 @@ export const changeLanguageWithReload = async (language: string): Promise<boolea
 };
 
 // =============================================================================
-// BUNDLED ENGLISH FALLBACKS - Only core namespaces bundled for fast initial load
+// BUNDLED ENGLISH FALLBACKS - All 13 namespaces bundled for immediate display
 // =============================================================================
 import commonEn from '@/i18n/locales/en/common.json';
 import authEn from '@/i18n/locales/en/auth.json';
 import onboardingEn from '@/i18n/locales/en/onboarding.json';
+import adminEn from '@/i18n/locales/en/admin.json';
+import analyticsEn from '@/i18n/locales/en/analytics.json';
+import candidatesEn from '@/i18n/locales/en/candidates.json';
+import complianceEn from '@/i18n/locales/en/compliance.json';
+import contractsEn from '@/i18n/locales/en/contracts.json';
+import jobsEn from '@/i18n/locales/en/jobs.json';
+import meetingsEn from '@/i18n/locales/en/meetings.json';
+import messagesEn from '@/i18n/locales/en/messages.json';
+import partnerEn from '@/i18n/locales/en/partner.json';
+import settingsEn from '@/i18n/locales/en/settings.json';
 
-// Bundled Dutch translations (core only)
+// Bundled Dutch translations
 import authNl from '@/i18n/locales/nl/auth.json';
 
-// Core English translations bundled locally - instant fallback
+// All English translations bundled locally - instant fallback
 const bundledResources = {
   en: {
     common: commonEn,
     auth: authEn,
     onboarding: onboardingEn,
+    admin: adminEn,
+    analytics: analyticsEn,
+    candidates: candidatesEn,
+    compliance: complianceEn,
+    contracts: contractsEn,
+    jobs: jobsEn,
+    meetings: meetingsEn,
+    messages: messagesEn,
+    partner: partnerEn,
+    settings: settingsEn,
   },
   nl: {
     auth: authNl,
   }
-};
-
-// Lazy namespace loaders - dynamically import when needed
-const lazyNamespaceLoaders: Record<string, () => Promise<Record<string, any>>> = {
-  admin: () => import('@/i18n/locales/en/admin.json').then(m => m.default),
-  analytics: () => import('@/i18n/locales/en/analytics.json').then(m => m.default),
-  candidates: () => import('@/i18n/locales/en/candidates.json').then(m => m.default),
-  compliance: () => import('@/i18n/locales/en/compliance.json').then(m => m.default),
-  contracts: () => import('@/i18n/locales/en/contracts.json').then(m => m.default),
-  jobs: () => import('@/i18n/locales/en/jobs.json').then(m => m.default),
-  meetings: () => import('@/i18n/locales/en/meetings.json').then(m => m.default),
-  messages: () => import('@/i18n/locales/en/messages.json').then(m => m.default),
-  partner: () => import('@/i18n/locales/en/partner.json').then(m => m.default),
-  settings: () => import('@/i18n/locales/en/settings.json').then(m => m.default),
-};
-
-// Track which namespaces have been loaded
-const loadedNamespaces = new Set<string>(CORE_NAMESPACES);
-
-// Load a lazy namespace on demand
-export const loadNamespace = async (namespace: string): Promise<void> => {
-  if (loadedNamespaces.has(namespace)) return;
-
-  const loader = lazyNamespaceLoaders[namespace];
-  if (!loader) {
-    console.warn(`[i18n] No loader for namespace: ${namespace}`);
-    return;
-  }
-
-  try {
-    const translations = await loader();
-    i18n.addResourceBundle('en', namespace, translations, true, true);
-    loadedNamespaces.add(namespace);
-    console.log(`[i18n] Lazy-loaded namespace: ${namespace}`);
-  } catch (error) {
-    console.error(`[i18n] Failed to load namespace ${namespace}:`, error);
-  }
-};
-
-// Preload namespaces for a specific route
-export const preloadNamespacesForRoute = async (pathname: string): Promise<void> => {
-  const namespacesToLoad: string[] = [];
-
-  if (pathname.startsWith('/admin')) {
-    namespacesToLoad.push('admin', 'analytics', 'compliance');
-  } else if (pathname.startsWith('/jobs') || pathname.startsWith('/roles')) {
-    namespacesToLoad.push('jobs', 'candidates');
-  } else if (pathname.startsWith('/settings')) {
-    namespacesToLoad.push('settings');
-  } else if (pathname.startsWith('/messages') || pathname.startsWith('/communications')) {
-    namespacesToLoad.push('messages');
-  } else if (pathname.startsWith('/meetings') || pathname.startsWith('/calendar')) {
-    namespacesToLoad.push('meetings');
-  } else if (pathname.startsWith('/contracts')) {
-    namespacesToLoad.push('contracts');
-  } else if (pathname.startsWith('/partner')) {
-    namespacesToLoad.push('partner');
-  }
-
-  await Promise.all(namespacesToLoad.map(loadNamespace));
 };
 
 i18n
@@ -157,7 +157,7 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: bundledResources, // Only core bundled namespaces
+    resources: bundledResources, // All bundled namespaces
     fallbackLng: 'en',
     supportedLngs: SUPPORTED_LANGUAGES,
     defaultNS: 'common',
@@ -233,4 +233,4 @@ i18n.on('languageChanged', (lng) => {
 });
 
 export default i18n;
-export { ALL_NAMESPACES, CORE_NAMESPACES, LAZY_NAMESPACES, SUPPORTED_LANGUAGES };
+export { ALL_NAMESPACES, SUPPORTED_LANGUAGES };

@@ -97,7 +97,7 @@ describe('dossierService', () => {
       vi.mocked(supabase.auth.getUser).mockResolvedValue({
         data: { user: null },
         error: null,
-      } as any);
+      });
 
       await expect(createDossierShare('candidate-123')).rejects.toThrow('Not authenticated');
     });

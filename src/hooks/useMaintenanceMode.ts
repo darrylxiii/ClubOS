@@ -48,8 +48,8 @@ export function useMaintenanceMode() {
     try {
       const { error } = await supabase.rpc('toggle_maintenance_mode', {
         p_enabled: enabled,
-        p_message: message || undefined,
-        p_eta: eta?.toISOString() || undefined,
+        p_message: message || null,
+        p_eta: eta?.toISOString() || null,
       });
 
       if (error) throw error;

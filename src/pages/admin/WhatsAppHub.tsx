@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { RoleGate } from '@/components/RoleGate';
 import { useRole } from '@/contexts/RoleContext';
 import { cn } from '@/lib/utils';
@@ -16,6 +16,7 @@ import {
   Home,
   ChevronRight,
   AlertTriangle,
+  Clock,
   PanelRight,
   PanelRightClose
 } from 'lucide-react';
@@ -167,7 +168,7 @@ export default function WhatsAppHub() {
             hasAccount={isConnected}
             hasTemplates={hasTemplates}
             hasConversations={hasConversations}
-            onNavigate={(tab) => handleTabChange(tab as TabId)}
+            onNavigate={handleTabChange}
           />
         </WhatsAppTabErrorBoundary>
       );

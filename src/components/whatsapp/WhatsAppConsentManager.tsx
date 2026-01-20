@@ -21,7 +21,7 @@ import {
   XCircle,
   Loader2
 } from 'lucide-react';
-import { useWhatsAppBroadcastConsent } from '@/hooks/useWhatsAppBroadcastConsent';
+import { useWhatsAppBroadcastConsent, type BroadcastConsent } from '@/hooks/useWhatsAppBroadcastConsent';
 import { format } from 'date-fns';
 
 interface WhatsAppConsentManagerProps {

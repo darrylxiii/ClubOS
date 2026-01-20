@@ -2,8 +2,8 @@
  * KB Search Edge Function
  * Phase 3: Enhanced with validation, logging, and standardized CORS
  */
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
 import { publicCorsHeaders, handleCorsPreFlight } from "../_shared/cors-config.ts";
 import { createFunctionLogger, getClientInfo } from "../_shared/function-logger.ts";

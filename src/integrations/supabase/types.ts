@@ -13667,45 +13667,6 @@ export type Database = {
           },
         ]
       }
-      crm_saved_views: {
-        Row: {
-          columns: string[] | null
-          created_at: string | null
-          entity_type: string
-          filters: Json | null
-          id: string
-          is_shared: boolean | null
-          name: string
-          owner_id: string | null
-          sorting: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          columns?: string[] | null
-          created_at?: string | null
-          entity_type: string
-          filters?: Json | null
-          id?: string
-          is_shared?: boolean | null
-          name: string
-          owner_id?: string | null
-          sorting?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          columns?: string[] | null
-          created_at?: string | null
-          entity_type?: string
-          filters?: Json | null
-          id?: string
-          is_shared?: boolean | null
-          name?: string
-          owner_id?: string | null
-          sorting?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       crm_stage_probabilities: {
         Row: {
           created_at: string | null
@@ -45808,7 +45769,6 @@ export type Database = {
           activity_level: string
           activity_score: number | null
           created_at: string | null
-          id: string | null
           last_action_type: string | null
           last_activity_at: string
           last_login_at: string | null
@@ -45824,7 +45784,6 @@ export type Database = {
           activity_level?: string
           activity_score?: number | null
           created_at?: string | null
-          id?: string | null
           last_action_type?: string | null
           last_activity_at?: string
           last_login_at?: string | null
@@ -45840,7 +45799,6 @@ export type Database = {
           activity_level?: string
           activity_score?: number | null
           created_at?: string | null
-          id?: string | null
           last_action_type?: string | null
           last_activity_at?: string
           last_login_at?: string | null
@@ -51206,22 +51164,6 @@ export type Database = {
       }
     }
     Functions: {
-      admin_add_candidate: {
-        Args: {
-          p_current_company?: string
-          p_current_title?: string
-          p_email?: string
-          p_full_name?: string
-          p_job_id: string
-          p_job_title: string
-          p_linkedin_url?: string
-          p_notes?: string
-          p_phone?: string
-          p_sourced_by?: string
-          p_start_stage_index?: number
-        }
-        Returns: Json
-      }
       aggregate_daily_security_metrics: { Args: never; Returns: undefined }
       archive_expired_documents: { Args: never; Returns: undefined }
       auto_delete_old_audit_logs: { Args: never; Returns: undefined }
@@ -51788,19 +51730,6 @@ export type Database = {
               total_enrollments: number
             }[]
           }
-      get_public_table_counts: {
-        Args: never
-        Returns: {
-          row_count: number
-          table_name: string
-        }[]
-      }
-      get_public_tables: {
-        Args: never
-        Returns: {
-          table_name: string
-        }[]
-      }
       get_realtime_system_health: {
         Args: never
         Returns: {
@@ -51960,7 +51889,6 @@ export type Database = {
         Args: { template_id: string }
         Returns: undefined
       }
-      is_admin_or_strategist: { Args: { _user_id: string }; Returns: boolean }
       is_company_blocked_by_candidate: {
         Args: { _candidate_id: string; _company_email: string }
         Returns: boolean

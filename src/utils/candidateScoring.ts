@@ -19,15 +19,8 @@ export interface CandidateScore {
 }
 
 /**
- * Calculates a composite score for a candidate based on multiple weighted factors.
- * - Match Score (45%): Based on resume/job parsers.
- * - Activity (25%): Recency of interaction.
- * - Completeness (20%): Profile filled status.
- * - Progress (10%): Current stage in the funnel.
- * 
- * @param candidate - The candidate object with scoring attributes.
- * @param maxStageIndex - The total number of stages in the pipeline (default: 5).
- * @returns Object containing the final score, breakdown, and optional AI recommendation.
+ * Calculates a composite score for a candidate based on multiple factors.
+ * This replaces the previous random number generation.
  */
 export function calculateCandidateScore(candidate: ScorableCandidate, maxStageIndex: number = 5): CandidateScore {
     // 1. Base Match Score (from ATS/Resume parse) - Default to 0 if missing

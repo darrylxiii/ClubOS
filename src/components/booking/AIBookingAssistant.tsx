@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, Loader2, Sparkles } from "lucide-react";
+import { MessageCircle, Send, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface Message {

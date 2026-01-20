@@ -7,7 +7,6 @@ import { Plus, Upload, Table2, LayoutGrid, Zap } from 'lucide-react';
 import { InlineLoader } from "@/components/ui/unified-loader";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { aiService } from '@/services/aiService';
 import {
   TalentPoolStats,
   SemanticSearchBar,
@@ -146,9 +145,8 @@ export default function TalentPool() {
     if (!quickViewCandidate) return;
     const toastId = toast.loading('Generating dossier...');
     try {
-      const { error } = await aiService.generateCandidateDossier({
-        candidateId: quickViewCandidate.id,
-        jobId: ''
+      const { error } = await supabase.functions.invoke('generate-candidate-dossier', {
+        body: { candidate_id: quickViewCandidate.id }
       });
       if (error) throw error;
       toast.success('Dossier generated successfully', { id: toastId });

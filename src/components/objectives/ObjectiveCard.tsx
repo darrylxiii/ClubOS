@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, Calendar, CheckCircle, Clock, Flag, TrendingUp, Users, Lock, Unlock } from "lucide-react";
+import { AlertCircle, Calendar, CheckCircle, Clock, Flag, Target, TrendingUp, Users, Lock, Unlock } from "lucide-react";
 import { format, differenceInDays, isPast } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -187,10 +187,10 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
       )}
 
       {/* Task Dependencies Stats */}
-      {((objective.blockingCount ?? 0) > 0 || (objective.blockedByCount ?? 0) > 0) ? (
+      {(objective.blockingCount || objective.blockedByCount) ? (
         <div className="flex items-center gap-3 pt-2 border-t">
           <TooltipProvider>
-            {(objective.blockingCount ?? 0) > 0 && (
+            {objective.blockingCount > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-1.5 cursor-help">
@@ -212,7 +212,7 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
               </Tooltip>
             )}
             
-            {(objective.blockedByCount ?? 0) > 0 && (
+            {objective.blockedByCount > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-1.5 cursor-help">

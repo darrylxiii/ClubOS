@@ -173,7 +173,7 @@ export function ClientDashboard() {
           </div>
         ) : recentProjects && recentProjects.length > 0 ? (
           <div className="space-y-3">
-            {recentProjects.map((project: any) => (
+            {recentProjects.map((project) => (
               <div
                 key={project.id}
                 className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"

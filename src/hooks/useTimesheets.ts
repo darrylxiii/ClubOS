@@ -127,7 +127,7 @@ export function useTimesheets(userId?: string) {
         .rpc('submit_timesheet', {
           p_timesheet_id: timesheetId,
           p_user_notes: notes || null,
-        } as any);
+        });
       
       if (error) throw error;
       if (!data) throw new Error('Failed to submit timesheet');
@@ -183,7 +183,7 @@ export function useTimesheets(userId?: string) {
           p_timesheet_id: timesheetId,
           p_action: action,
           p_comment: comment || null,
-        } as any);
+        });
       
       if (error) throw error;
       if (!data) throw new Error('Failed to process approval');
@@ -238,7 +238,7 @@ export function useTimesheets(userId?: string) {
     }
 
     // Check for missing days
-    const entryDays = new Set(entries.map(e => e.start_time ? format(new Date(e.start_time), 'yyyy-MM-dd') : ''));
+    const entryDays = new Set(entries.map(e => format(new Date(e.start_time), 'yyyy-MM-dd')));
     const start = new Date(timesheet.start_date);
     const end = new Date(timesheet.end_date);
     
@@ -255,8 +255,8 @@ export function useTimesheets(userId?: string) {
     // Check for high hours days
     const hoursByDay: Record<string, number> = {};
     entries.forEach(e => {
-      const day = e.start_time ? format(new Date(e.start_time), 'yyyy-MM-dd') : '';
-      if (day) hoursByDay[day] = (hoursByDay[day] || 0) + (e.duration_seconds || 0) / 3600;
+      const day = format(new Date(e.start_time), 'yyyy-MM-dd');
+      hoursByDay[day] = (hoursByDay[day] || 0) + (e.duration_seconds || 0) / 3600;
     });
 
     Object.entries(hoursByDay).forEach(([date, hours]) => {

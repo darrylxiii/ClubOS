@@ -27,6 +27,7 @@ import {
   Zap,
   Activity,
   AlertTriangle,
+  LineChart,
   Briefcase,
   CreditCard,
   Shield,

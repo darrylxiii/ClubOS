@@ -4,7 +4,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { invokeEdgeFunction } from './edge-function-client';
+import { invokeEdgeFunction, measureResponseTime } from './edge-function-client';
 
 test.describe('CRM Core Functions', () => {
   test.describe('convert-prospect-to-company', () => {

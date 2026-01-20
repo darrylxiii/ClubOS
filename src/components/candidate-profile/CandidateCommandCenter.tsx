@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
+  User, 
   FileText, 
   Video, 
   MessageSquare, 
   Calendar,
   TrendingUp,
   Brain,
+  Clock,
   Mail,
   Phone,
   CheckCircle2,

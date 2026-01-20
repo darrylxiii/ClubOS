@@ -4,25 +4,25 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface Participant {
   id: string;
-  user_id: string | null;
+  user_id: string;
   display_name: string;
-  role: string | null;
-  is_muted: boolean | null;
-  is_video_off: boolean | null;
-  is_screen_sharing: boolean | null;
-  is_hand_raised: boolean | null;
-  is_speaking: boolean | null;
+  role: string;
+  is_muted: boolean;
+  is_video_off: boolean;
+  is_screen_sharing: boolean;
+  is_hand_raised: boolean;
+  is_speaking: boolean;
   stream?: MediaStream;
 }
 
 interface VideoCallSession {
   id: string;
-  conversation_id: string | null;
-  host_id: string | null;
-  title: string | null;
-  meeting_code: string | null;
-  is_recording: boolean | null;
-  status: string | null;
+  conversation_id: string;
+  host_id: string;
+  title: string;
+  meeting_code: string;
+  is_recording: boolean;
+  status: string;
   settings: any;
 }
 
@@ -47,8 +47,8 @@ export function useVideoCall(conversationId: string) {
       .single();
 
     if (existingSession) {
-      setSession(existingSession as VideoCallSession);
-      await joinSession(existingSession.id, existingSession.host_id || '');
+      setSession(existingSession);
+      await joinSession(existingSession.id, existingSession.host_id);
       return existingSession;
     }
 
@@ -74,8 +74,8 @@ export function useVideoCall(conversationId: string) {
 
     if (error) throw error;
 
-    setSession(newSession as VideoCallSession);
-    await joinSession(newSession.id, newSession.host_id || '');
+    setSession(newSession);
+    await joinSession(newSession.id, newSession.host_id);
     return newSession;
   }, [user, conversationId]);
 
@@ -108,7 +108,7 @@ export function useVideoCall(conversationId: string) {
       return;
     }
 
-    setParticipants((data || []) as Participant[]);
+    setParticipants(data || []);
   }, []);
 
   // Subscribe to participant changes

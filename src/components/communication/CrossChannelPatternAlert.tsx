@@ -180,7 +180,7 @@ export function CrossChannelPatternAlert({
               <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
                 <span>
-                  Detected {new Date(pattern.detected_at ?? new Date()).toLocaleDateString()}
+                  Detected {new Date(pattern.detected_at).toLocaleDateString()}
                 </span>
               </div>
             </div>

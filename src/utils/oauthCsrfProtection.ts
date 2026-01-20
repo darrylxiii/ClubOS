@@ -24,8 +24,8 @@ export function generateOAuthState(): string {
     localStorage.setItem(OAUTH_STATE_KEY, state);
     localStorage.setItem(OAUTH_STATE_EXPIRY_KEY, String(Date.now() + STATE_EXPIRY_MS));
     logger.debug('OAuth CSRF state generated and stored', { componentName: 'OAuthCSRF' });
-  } catch (_e) {
-    logger.warn('Failed to store OAuth state in localStorage', { componentName: 'OAuthCSRF', error: _e });
+  } catch (e) {
+    logger.warn('Failed to store OAuth state in localStorage', { componentName: 'OAuthCSRF', error: e });
   }
   
   return state;
@@ -73,8 +73,8 @@ export function clearOAuthState(): void {
   try {
     localStorage.removeItem(OAUTH_STATE_KEY);
     localStorage.removeItem(OAUTH_STATE_EXPIRY_KEY);
-  } catch (_e) {
-    logger.warn('Failed to clear state from localStorage', { componentName: 'OAuthCSRF', error: _e });
+  } catch (e) {
+    logger.warn('Failed to clear state from localStorage', { componentName: 'OAuthCSRF', error: e });
   }
 }
 
@@ -107,7 +107,7 @@ export function hasPendingOAuthFlow(): boolean {
     }
     
     return Date.now() <= parseInt(expiryStr, 10);
-  } catch (_e) {
+  } catch (e) {
     return false;
   }
 }

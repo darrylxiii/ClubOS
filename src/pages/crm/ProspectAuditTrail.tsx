@@ -6,10 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ProspectActivityLog } from '@/components/crm/ProspectActivityLog';
 import { LeadScoreHistory } from '@/components/crm/LeadScoreHistory';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Activity, Search, Users, Edit } from 'lucide-react';
+import { Activity, Search, Users, Clock, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface AuditEntry {

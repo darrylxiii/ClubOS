@@ -12,7 +12,7 @@ import { CheckCircle2, XCircle, Clock, User, Mail, Phone, Briefcase, MapPin, Ext
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OnboardingProgressTracker } from "./OnboardingProgressTracker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MemberApprovalWorkflowDialog } from "./approval/MemberApprovalWorkflowDialog";
@@ -42,9 +42,9 @@ interface MemberRequest {
   } | null;
   reviewed_by?: string | null;
   approver?: {
-    full_name: string | null;
+    full_name: string;
     avatar_url: string | null;
-    email: string | null;
+    email: string;
   };
   activity?: {
     last_login_at: string | null;
@@ -52,31 +52,31 @@ interface MemberRequest {
   notifications?: Array<{
     notification_type: 'email' | 'sms';
     status: 'sent' | 'failed';
-    sent_at: string | null;
+    sent_at: string;
   }>;
   profiles?: {
     onboarding_completed_at?: string | null;
-    onboarding_current_step?: number | null;
+    onboarding_current_step?: number;
     onboarding_partial_data?: any;
     onboarding_last_activity_at?: string | null;
-    phone_verified?: boolean | null;
-    email_verified?: boolean | null;
-    current_title?: string | null;
-    linkedin_url?: string | null;
-    location?: string | null;
-    employment_type_preference?: string | null;
-    notice_period?: string | null;
-    remote_work_preference?: boolean | null;
-    resume_url?: string | null;
-    resume_filename?: string | null;
-    career_preferences?: string | null;
-    current_salary_min?: number | null;
-    current_salary_max?: number | null;
-    desired_salary_min?: number | null;
-    desired_salary_max?: number | null;
-    freelance_hourly_rate_min?: number | null;
-    freelance_hourly_rate_max?: number | null;
-    salary_preference_hidden?: boolean | null;
+    phone_verified?: boolean;
+    email_verified?: boolean;
+    current_title?: string;
+    linkedin_url?: string;
+    location?: string;
+    employment_type_preference?: string;
+    notice_period?: string;
+    remote_work_preference?: boolean;
+    resume_url?: string;
+    resume_filename?: string;
+    career_preferences?: string;
+    current_salary_min?: number;
+    current_salary_max?: number;
+    desired_salary_min?: number;
+    desired_salary_max?: number;
+    freelance_hourly_rate_min?: number;
+    freelance_hourly_rate_max?: number;
+    salary_preference_hidden?: boolean;
     user_roles?: Array<{ role: string }>;
   };
 }
@@ -169,30 +169,17 @@ export const AdminMemberRequests = () => {
 
       // Enrich with approver, activity, notification data, and onboarding progress
       const enrichedRequests = await Promise.all(
-        (requestsData || []).filter(request => request.id).map(async (request) => {
+        (requestsData || []).map(async (request) => {
           const enriched: MemberRequest = { 
-            id: request.id!,
-            name: request.name ?? 'Unknown',
-            email: request.email ?? '',
-            phone: request.phone ?? null,
-            title_or_company: request.title_or_company ?? null,
-            location: request.location ?? null,
-            desired_salary_min: request.desired_salary_min ?? null,
-            desired_salary_max: request.desired_salary_max ?? null,
-            resume_url: request.resume_url ?? null,
-            linkedin_url: request.linkedin_url ?? null,
+            ...request,
             request_type: request.request_type as 'candidate' | 'partner',
             status: request.status as 'pending' | 'approved' | 'declined',
-            created_at: request.created_at ?? new Date().toISOString(),
-            reviewed_at: request.reviewed_at ?? null,
-            decline_reason: request.decline_reason ?? null,
-            additional_data: request.additional_data as MemberRequest['additional_data'] ?? null,
+            additional_data: request.additional_data as MemberRequest['additional_data'],
           };
 
           // Fetch additional data for candidates (including onboarding progress)
           if (request.request_type === 'candidate') {
             const userId = request.id;
-            if (!userId) return enriched;
             
             // Fetch onboarding progress from profiles
             const { data: profileData } = await supabase
@@ -233,7 +220,6 @@ export const AdminMemberRequests = () => {
             if (profileData) {
               enriched.profiles = {
                 ...profileData,
-                onboarding_current_step: profileData.onboarding_current_step ?? undefined,
                 user_roles: userRoles || []
               };
             }
@@ -248,16 +234,12 @@ export const AdminMemberRequests = () => {
               .single();
             
             if (approverData) {
-              enriched.approver = {
-                full_name: approverData.full_name,
-                avatar_url: approverData.avatar_url,
-                email: approverData.email
-              };
+              enriched.approver = approverData;
             }
           }
 
           // Fetch user activity (for approved candidates/partners)
-          if (request.status === 'approved' && request.email) {
+          if (request.status === 'approved') {
             // Get user_id from the request
             let userId = null;
             if (request.request_type === 'candidate') {
@@ -292,7 +274,7 @@ export const AdminMemberRequests = () => {
                 .from('approval_notification_logs')
                 .select('notification_type, status, sent_at')
                 .eq('user_id', userId)
-                .eq('request_type', request.request_type ?? '');
+                .eq('request_type', request.request_type);
               
               if (notificationData) {
                 enriched.notifications = notificationData.map(n => ({
@@ -318,7 +300,7 @@ export const AdminMemberRequests = () => {
   };
 
   const handleReview = async () => {
-    if (!selectedRequest || !selectedRequest.id || !reviewAction) return;
+    if (!selectedRequest || !reviewAction) return;
 
     console.log('[AdminMemberRequests] Starting review process', {
       request: selectedRequest.name,

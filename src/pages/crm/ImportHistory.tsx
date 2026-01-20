@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,7 +23,7 @@ import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 
 interface ImportLog {
   id: string;
-  campaign_id: string | null;
+  campaign_id: string;
   campaign_name?: string;
   file_name: string;
   total_rows: number;
@@ -31,11 +31,11 @@ interface ImportLog {
   failed_rows: number;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   errors?: any;
-  error_message?: string | null;
-  imported_by: string | null;
+  error_message?: string;
+  imported_by: string;
   imported_by_name?: string;
   created_at: string;
-  completed_at?: string | null;
+  completed_at?: string;
 }
 
 export default function ImportHistory() {

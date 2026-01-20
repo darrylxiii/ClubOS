@@ -22,7 +22,7 @@ interface CompanyPost {
   post_type: string;
   created_at: string;
   author: {
-    full_name: string | null;
+    full_name: string;
     avatar_url: string | null;
   };
   likes_count: number;
@@ -53,49 +53,34 @@ export function CompanyLatestActivity({ companyId, isCompanyMember }: CompanyLat
 
       if (error) throw error;
 
-      if (!postsData || postsData.length === 0) {
-        setPosts([]);
-        setLoading(false);
-        return;
-      }
+      // Fetch author profiles separately
+      const authorIds = [...new Set(postsData?.map(p => p.author_id) || [])];
+      const { data: authorsData } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', authorIds);
 
-      // OPTIMIZED: Batch fetch all engagement data in parallel
-      const postIds = postsData.map(p => p.id);
-      const authorIds = [...new Set(postsData.map(p => p.author_id))];
+      const authorsMap = new Map(authorsData?.map(a => [a.id, a]) || []);
 
-      const [authorsData, likesData, commentsData, userLikesData] = await Promise.all([
-        // Fetch all authors
-        supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds),
-        // Batch fetch all like counts
-        supabase.from('company_post_likes').select('post_id').in('post_id', postIds),
-        // Batch fetch all comment counts
-        supabase.from('company_post_comments').select('post_id').in('post_id', postIds),
-        // Fetch user's likes (if logged in)
-        user ? supabase.from('company_post_likes').select('post_id').in('post_id', postIds).eq('user_id', user.id) : Promise.resolve({ data: [] }),
-      ]);
+      const enrichedPosts = await Promise.all(
+        (postsData || []).map(async (post) => {
+          const [likesCount, commentsCount, userLiked] = await Promise.all([
+            supabase.from('company_post_likes').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
+            supabase.from('company_post_comments').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
+            user ? supabase.from('company_post_likes').select('id').eq('post_id', post.id).eq('user_id', user.id).single() : null,
+          ]);
 
-      // Create lookup maps for O(1) access
-      const authorsMap = new Map(authorsData.data?.map(a => [a.id, a]) || []);
-      
-      // Count likes/comments per post
-      const likesCountMap = new Map<string, number>();
-      const commentsCountMap = new Map<string, number>();
-      likesData.data?.forEach(l => likesCountMap.set(l.post_id, (likesCountMap.get(l.post_id) || 0) + 1));
-      commentsData.data?.forEach(c => commentsCountMap.set(c.post_id, (commentsCountMap.get(c.post_id) || 0) + 1));
-      
-      // User liked set
-      const userLikedSet = new Set(userLikesData.data?.map(l => l.post_id) || []);
+          const author = authorsMap.get(post.author_id) || { full_name: 'Unknown', avatar_url: null };
 
-      const enrichedPosts = postsData.map((post) => {
-        const author = authorsMap.get(post.author_id) || { full_name: 'Unknown', avatar_url: null };
-        return {
-          ...post,
-          author,
-          likes_count: likesCountMap.get(post.id) || 0,
-          comments_count: commentsCountMap.get(post.id) || 0,
-          user_has_liked: userLikedSet.has(post.id),
-        };
-      });
+          return {
+            ...post,
+            author,
+            likes_count: likesCount.count || 0,
+            comments_count: commentsCount.count || 0,
+            user_has_liked: !!userLiked?.data,
+          };
+        })
+      );
 
       setPosts(enrichedPosts);
     } catch (error) {

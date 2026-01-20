@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { aiService } from '@/services/aiService';
 
 export interface ReplyIntelligence {
   id: string;
@@ -42,13 +41,13 @@ export function useSmartReplyIntelligence(replyId?: string) {
     queryKey: ['reply-intelligence', replyId],
     queryFn: async () => {
       if (!replyId) return null;
-
+      
       const { data, error } = await supabase
         .from('crm_reply_intelligence')
         .select('*')
         .eq('reply_id', replyId)
         .single();
-
+      
       if (error && error.code !== 'PGRST116') throw error;
       return data as unknown as ReplyIntelligence | null;
     },
@@ -57,12 +56,12 @@ export function useSmartReplyIntelligence(replyId?: string) {
 
   // Analyze a reply with enhanced AI
   const analyzeReplyMutation = useMutation({
-    mutationFn: async ({
-      replyId,
-      prospectId,
-      fromEmail,
-      subject,
-      bodyText
+    mutationFn: async ({ 
+      replyId, 
+      prospectId, 
+      fromEmail, 
+      subject, 
+      bodyText 
     }: {
       replyId: string;
       prospectId?: string;
@@ -79,7 +78,7 @@ export function useSmartReplyIntelligence(replyId?: string) {
           body_text: bodyText
         }
       });
-
+      
       if (error) throw error;
       return data;
     },
@@ -114,16 +113,25 @@ export function useSmartReplyIntelligence(replyId?: string) {
       classification?: string;
       tone?: 'professional' | 'friendly' | 'direct';
     }) => {
-      const data = await aiService.generatePersonalizedFollowUp({
-        context: originalEmail,
-        tone: tone,
-      } as any);
-
+      const { data, error } = await supabase.functions.invoke('generate-personalized-follow-up', {
+        body: {
+          reply_id: replyId,
+          prospect_id: prospectId,
+          original_email: originalEmail,
+          reply_content: replyContent,
+          prospect_name: prospectName,
+          prospect_company: prospectCompany,
+          classification,
+          tone
+        }
+      });
+      
+      if (error) throw error;
       return data;
     },
     onSuccess: (data) => {
-      if ((data as any)?.follow_up) {
-        queryClient.invalidateQueries({ queryKey: ['reply-intelligence'] });
+      if (data?.followUp) {
+        queryClient.invalidateQueries({ queryKey: ['reply-intelligence', replyId] });
       }
     },
     onError: (error: Error) => {
@@ -135,13 +143,13 @@ export function useSmartReplyIntelligence(replyId?: string) {
   // Get BANT score from buying signals
   const getBantScore = (signals: ReplyIntelligence['buying_signals'] | undefined): number => {
     if (!signals) return 0;
-
+    
     let score = 0;
     if (signals.budget?.mentioned) score += 25;
     if (signals.authority?.is_decision_maker) score += 25;
     if (signals.need?.identified) score += 25;
     if (signals.timeline?.mentioned) score += 25;
-
+    
     return score;
   };
 
@@ -164,7 +172,7 @@ export function useSmartReplyIntelligence(replyId?: string) {
     isAnalyzing: analyzeReplyMutation.isPending,
     generateFollowUp: generateFollowUpMutation.mutate,
     isGenerating: generateFollowUpMutation.isPending,
-    generatedFollowUp: (generateFollowUpMutation.data as any)?.follow_up,
+    generatedFollowUp: generateFollowUpMutation.data?.followUp,
     getBantScore,
     getPriorityColor
   };
@@ -180,9 +188,9 @@ export function useReplyIntelligenceStats() {
         .select('intent_score, conversion_probability, follow_up_priority, meeting_interest_level')
         .order('created_at', { ascending: false })
         .limit(100);
-
+      
       if (error) throw error;
-
+      
       // Calculate aggregated stats
       const stats = {
         avgIntentScore: 0,
@@ -192,13 +200,13 @@ export function useReplyIntelligenceStats() {
         highMeetingInterest: 0,
         totalAnalyzed: data?.length || 0
       };
-
+      
       if (data && data.length > 0) {
         let intentSum = 0;
         let convSum = 0;
         let intentCount = 0;
         let convCount = 0;
-
+        
         data.forEach(item => {
           if (item.intent_score !== null) {
             intentSum += item.intent_score;
@@ -216,11 +224,11 @@ export function useReplyIntelligenceStats() {
             stats.highMeetingInterest++;
           }
         });
-
+        
         stats.avgIntentScore = intentCount > 0 ? Math.round(intentSum / intentCount) : 0;
         stats.avgConversionProb = convCount > 0 ? Math.round(convSum / convCount) : 0;
       }
-
+      
       return stats;
     },
     refetchInterval: 60000 // Refresh every minute

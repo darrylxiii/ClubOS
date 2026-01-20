@@ -9,10 +9,10 @@ import { formatDistanceToNow } from "date-fns";
 
 interface ReferralWithPipeline {
   id: string;
-  friendName: string | null;
-  friendEmail: string | null;
-  jobTitle: string | null;
-  companyName: string | null;
+  friendName: string;
+  friendEmail: string;
+  jobTitle: string;
+  companyName: string;
   currentStage: string;
   currentStageIndex: number;
   totalStages: number;

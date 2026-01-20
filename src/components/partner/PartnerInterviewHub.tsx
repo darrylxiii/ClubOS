@@ -8,14 +8,19 @@ import {
   Video, 
   Calendar, 
   CheckCircle2, 
+  Clock, 
+  User, 
   FileText,
   MessageSquare,
   ThumbsUp,
   ThumbsDown,
-  Minus
+  Minus,
+  ChevronRight,
+  Play,
+  ExternalLink
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { format, isToday, isTomorrow } from 'date-fns';
+import { format, formatDistanceToNow, isToday, isTomorrow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
 interface PartnerInterview {
@@ -118,7 +123,7 @@ export const PartnerInterviewHub = ({ companyId }: PartnerInterviewHubProps) => 
       const enrichInterviews = async (interviews: any[]): Promise<PartnerInterview[]> => {
         return Promise.all(
           (interviews || []).map(async (interview) => {
-            let candidate = { id: '', full_name: 'Unknown', avatar_url: undefined as string | undefined, current_title: undefined as string | undefined };
+            let candidate = { id: '', full_name: 'Unknown', avatar_url: undefined, current_title: undefined };
             let job = { id: '', title: 'Unknown Position' };
             let scorecards: any[] = [];
 
@@ -128,7 +133,7 @@ export const PartnerInterviewHub = ({ companyId }: PartnerInterviewHubProps) => 
                 .select('id, full_name, avatar_url, current_title')
                 .eq('id', interview.candidate_id)
                 .single();
-              if (data) candidate = { ...data, avatar_url: data.avatar_url ?? undefined, current_title: data.current_title ?? undefined };
+              if (data) candidate = data;
             }
 
             if (interview.job_id) {

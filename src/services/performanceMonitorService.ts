@@ -215,33 +215,16 @@ export const measureAsync = async <T>(
   }
 };
 
-// OPTIMIZED: Service cleanup for hot reload safety
-let beforeUnloadHandler: (() => void) | null = null;
-let visibilityChangeHandler: (() => void) | null = null;
-
-export const destroyPerformanceMonitor = (): void => {
-  if (flushTimeout) {
-    clearTimeout(flushTimeout);
-    flushTimeout = null;
-  }
-  if (beforeUnloadHandler) {
-    window.removeEventListener('beforeunload', beforeUnloadHandler);
-  }
-  if (visibilityChangeHandler) {
-    document.removeEventListener('visibilitychange', visibilityChangeHandler);
-  }
-  metricsBuffer = [];
-};
-
 // Flush metrics before page unload
 if (typeof window !== 'undefined') {
-  beforeUnloadHandler = () => flushMetrics();
-  visibilityChangeHandler = () => {
+  window.addEventListener('beforeunload', () => {
+    flushMetrics();
+  });
+  
+  // Also flush on visibility change (mobile background)
+  document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
       flushMetrics();
     }
-  };
-  
-  window.addEventListener('beforeunload', beforeUnloadHandler);
-  document.addEventListener('visibilitychange', visibilityChangeHandler);
+  });
 }

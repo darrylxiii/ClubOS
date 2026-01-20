@@ -24,7 +24,7 @@ export default function InvoiceReconciliation() {
   const queryClient = useQueryClient();
 
   // Fetch all invoices with company info
-  const { data: invoices } = useQuery({
+  const { data: invoices, isLoading } = useQuery({
     queryKey: ['reconciliation-invoices', year],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -41,17 +41,17 @@ export default function InvoiceReconciliation() {
         .order('invoice_date', { ascending: false });
 
       if (error) throw error;
-
+      
       // Fetch company names for matched invoices
-      const companyIds = data?.filter(i => i.company_id).map(i => i.company_id).filter((id): id is string => id !== null) || [];
+      const companyIds = data?.filter(i => i.company_id).map(i => i.company_id) || [];
       let companiesMap: Record<string, { id: string; name: string }> = {};
-
+      
       if (companyIds.length > 0) {
         const { data: companies } = await supabase
           .from('companies')
           .select('id, name')
           .in('id', companyIds);
-
+        
         companiesMap = (companies || []).reduce((acc, c) => {
           acc[c.id] = c;
           return acc;
@@ -112,7 +112,7 @@ export default function InvoiceReconciliation() {
 
   const handleExportCSV = () => {
     if (!invoices?.length) return;
-
+    
     const headers = ['Invoice #', 'Contact', 'Company', 'Amount', 'Status', 'Type', 'Date', 'Reconciled'];
     const rows = invoices.map(inv => [
       inv.invoice_number || '',
@@ -124,7 +124,7 @@ export default function InvoiceReconciliation() {
       inv.invoice_date || '',
       inv.reconciliation_status || 'pending',
     ]);
-
+    
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -135,7 +135,7 @@ export default function InvoiceReconciliation() {
     URL.revokeObjectURL(url);
   };
 
-  const filteredInvoices = invoices?.filter(inv =>
+  const filteredInvoices = invoices?.filter(inv => 
     inv.contact_name?.toLowerCase().includes(search.toLowerCase()) ||
     inv.invoice_number?.toLowerCase().includes(search.toLowerCase()) ||
     inv.company?.name?.toLowerCase().includes(search.toLowerCase())
@@ -177,7 +177,7 @@ export default function InvoiceReconciliation() {
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
-          <Button
+          <Button 
             onClick={() => reconcileMutation.mutate()}
             disabled={reconcileMutation.isPending}
           >

@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, XCircle, Lightbulb, Mail, ListTodo, TrendingUp, AlertTriangle, Copy } from "lucide-react";
 import { toast } from "sonner";
 

@@ -54,7 +54,7 @@ const POSTGRES_ERROR_MAP: Record<string, Partial<MappedError>> = {
     errorCategory: 'validation',
     isRetryable: false,
   },
-
+  
   // Class 42 - Syntax Error or Access Rule Violation
   '42501': {
     userMessage: 'You do not have permission to perform this action.',
@@ -67,7 +67,7 @@ const POSTGRES_ERROR_MAP: Record<string, Partial<MappedError>> = {
     errorCategory: 'server',
     isRetryable: false,
   },
-
+  
   // Class 28 - Invalid Authorization
   '28000': {
     userMessage: 'Your session has expired. Please sign in again.',
@@ -80,7 +80,7 @@ const POSTGRES_ERROR_MAP: Record<string, Partial<MappedError>> = {
     errorCategory: 'auth',
     isRetryable: false,
   },
-
+  
   // Class 53 - Insufficient Resources
   '53000': {
     userMessage: 'The server is temporarily overloaded. Please try again.',
@@ -97,7 +97,7 @@ const POSTGRES_ERROR_MAP: Record<string, Partial<MappedError>> = {
     errorCategory: 'server',
     isRetryable: true,
   },
-
+  
   // Class 57 - Operator Intervention
   '57014': {
     userMessage: 'The operation took too long and was cancelled. Please try again.',
@@ -109,7 +109,7 @@ const POSTGRES_ERROR_MAP: Record<string, Partial<MappedError>> = {
     errorCategory: 'server',
     isRetryable: true,
   },
-
+  
   // Class 08 - Connection Exception
   '08000': {
     userMessage: 'Unable to connect to the server. Please check your internet connection.',
@@ -126,7 +126,7 @@ const POSTGRES_ERROR_MAP: Record<string, Partial<MappedError>> = {
     errorCategory: 'network',
     isRetryable: true,
   },
-
+  
   // Supabase-specific codes
   'PGRST301': {
     userMessage: 'Your session has expired. Please sign in again.',
@@ -155,10 +155,7 @@ const RLS_ERROR_PATTERNS = [
 ];
 
 /**
- * Map a Supabase/Postgres error to a user-friendly format.
- * Transforms technical error codes into readable messages and categorizes them.
- * @param error - The raw error object from Supabase/Postgres.
- * @returns MappedError object with user-facing and technical details.
+ * Map a Supabase/Postgres error to a user-friendly format
  */
 export function mapSupabaseError(error: unknown): MappedError {
   // Default error
@@ -168,20 +165,20 @@ export function mapSupabaseError(error: unknown): MappedError {
     isRetryable: false,
     errorCategory: 'unknown',
   };
-
+  
   if (!error) {
     return defaultError;
   }
-
+  
   // Extract error details
   let errorCode: string | undefined;
   let errorMessage = '';
-
+  
   if (typeof error === 'object' && error !== null) {
     const err = error as PostgresError;
     errorCode = err.code;
     errorMessage = err.message || '';
-
+    
     // Check for nested error structure (Supabase format)
     if ('error' in error && typeof (error as any).error === 'object') {
       const nested = (error as any).error;
@@ -191,7 +188,7 @@ export function mapSupabaseError(error: unknown): MappedError {
   } else if (typeof error === 'string') {
     errorMessage = error;
   }
-
+  
   // Check for known error code
   if (errorCode && POSTGRES_ERROR_MAP[errorCode]) {
     const mapped = POSTGRES_ERROR_MAP[errorCode];
@@ -203,7 +200,7 @@ export function mapSupabaseError(error: unknown): MappedError {
       suggestedAction: mapped.suggestedAction,
     };
   }
-
+  
   // Check for RLS errors
   for (const pattern of RLS_ERROR_PATTERNS) {
     if (pattern.pattern.test(errorMessage)) {
@@ -216,11 +213,11 @@ export function mapSupabaseError(error: unknown): MappedError {
       };
     }
   }
-
+  
   // Check for network errors
-  if (errorMessage.toLowerCase().includes('fetch') ||
-    errorMessage.toLowerCase().includes('network') ||
-    errorMessage.toLowerCase().includes('timeout')) {
+  if (errorMessage.toLowerCase().includes('fetch') || 
+      errorMessage.toLowerCase().includes('network') ||
+      errorMessage.toLowerCase().includes('timeout')) {
     return {
       userMessage: 'Network error. Please check your connection and try again.',
       technicalMessage: errorMessage,
@@ -228,12 +225,12 @@ export function mapSupabaseError(error: unknown): MappedError {
       errorCategory: 'network',
     };
   }
-
+  
   // Check for auth errors
   if (errorMessage.toLowerCase().includes('jwt') ||
-    errorMessage.toLowerCase().includes('token') ||
-    errorMessage.toLowerCase().includes('expired') ||
-    errorMessage.toLowerCase().includes('unauthorized')) {
+      errorMessage.toLowerCase().includes('token') ||
+      errorMessage.toLowerCase().includes('expired') ||
+      errorMessage.toLowerCase().includes('unauthorized')) {
     return {
       userMessage: 'Your session has expired. Please sign in again.',
       technicalMessage: errorMessage,
@@ -242,7 +239,7 @@ export function mapSupabaseError(error: unknown): MappedError {
       suggestedAction: 'Please refresh the page and sign in.',
     };
   }
-
+  
   return {
     ...defaultError,
     technicalMessage: errorMessage || 'Unknown error',
@@ -250,11 +247,7 @@ export function mapSupabaseError(error: unknown): MappedError {
 }
 
 /**
- * Handle a Supabase error with automatic toast and logging.
- * Combines mapping, logging, and user notification in one call.
- * @param error - The raw error object.
- * @param options - Configuration including context, custom toast settings, etc.
- * @returns The mapped error object for further use if needed.
+ * Handle a Supabase error with automatic toast and logging
  */
 export function handleSupabaseError(
   error: unknown,
@@ -267,7 +260,7 @@ export function handleSupabaseError(
 ): MappedError {
   const mapped = mapSupabaseError(error);
   const { context, componentName, showToast = true, toastTitle } = options || {};
-
+  
   // Log the error
   standaloneErrorLogger.error(
     context ? `${context}: ${mapped.technicalMessage}` : mapped.technicalMessage,
@@ -279,11 +272,11 @@ export function handleSupabaseError(
       isRetryable: mapped.isRetryable,
     }
   );
-
+  
   // Show toast notification
   if (showToast) {
     const title = toastTitle || (mapped.errorCategory === 'auth' ? 'Authentication Error' : 'Error');
-
+    
     toast.error(title, {
       description: mapped.userMessage,
       action: mapped.suggestedAction ? {
@@ -292,16 +285,12 @@ export function handleSupabaseError(
       } : undefined,
     });
   }
-
+  
   return mapped;
 }
 
 /**
- * Wrap a Supabase query with automatic error handling and retry logic.
- * Designed to replace `const { data, error } = await supabase...` calls with a robust wrapper.
- * @param operation - The async Supabase query function.
- * @param options - Retry settings and error handling options.
- * @returns Object containing data or MappedError.
+ * Wrap a Supabase query with automatic error handling and retry logic
  */
 export async function withSupabaseErrorHandling<T>(
   operation: () => Promise<{ data: T | null; error: PostgresError | null }>,
@@ -314,43 +303,43 @@ export async function withSupabaseErrorHandling<T>(
   }
 ): Promise<{ data: T | null; error: MappedError | null }> {
   const { retries = 2, retryDelay = 1000, ...restOptions } = options || {};
-
+  
   let lastError: unknown = null;
-
+  
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const result = await operation();
-
+      
       if (result.error) {
         const mapped = mapSupabaseError(result.error);
-
+        
         // Retry if retryable and attempts remaining
         if (mapped.isRetryable && attempt < retries) {
           await new Promise(resolve => setTimeout(resolve, retryDelay * (attempt + 1)));
           continue;
         }
-
+        
         handleSupabaseError(result.error, restOptions);
         return { data: null, error: mapped };
       }
-
+      
       return { data: result.data, error: null };
-    } catch (err) {
-      lastError = err;
-
-      const mapped = mapSupabaseError(err);
-
+    } catch (error) {
+      lastError = error;
+      
+      const mapped = mapSupabaseError(error);
+      
       // Retry if retryable and attempts remaining
       if (mapped.isRetryable && attempt < retries) {
         await new Promise(resolve => setTimeout(resolve, retryDelay * (attempt + 1)));
         continue;
       }
-
-      handleSupabaseError(err, restOptions);
+      
+      handleSupabaseError(error, restOptions);
       return { data: null, error: mapped };
     }
   }
-
+  
   // Should never reach here, but just in case
   const finalError = mapSupabaseError(lastError);
   return { data: null, error: finalError };

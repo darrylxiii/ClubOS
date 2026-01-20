@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Bell, Clock, CheckCircle, Calendar, Phone, Mail, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { isToday, isPast, format } from 'date-fns';
+import { formatDistanceToNow, isToday, isPast, format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import type { CRMActivity } from '@/types/crm-activities';

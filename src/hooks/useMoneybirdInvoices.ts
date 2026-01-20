@@ -38,7 +38,7 @@ export function useMoneybirdInvoices(year?: number) {
         .order('invoice_date', { ascending: false });
 
       if (error) throw error;
-      return (data || []).map(i => ({ ...i, currency: i.currency ?? 'EUR' }));
+      return data || [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -46,7 +46,7 @@ export function useMoneybirdInvoices(year?: number) {
 
 export function useInvoiceStatusCounts(year?: number) {
   const { data: invoices } = useMoneybirdInvoices(year);
-
+  
   return invoices?.reduce((acc, inv) => {
     const state = inv.state_normalized || 'unknown';
     if (!acc[state]) {

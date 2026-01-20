@@ -72,8 +72,8 @@ export const StoryShareCard = ({
 
       toast.success('Story forwarded successfully');
       setShowForwardDialog(false);
-    } catch (_error) {
-      console.error('Error forwarding story:', _error);
+    } catch (error) {
+      console.error('Error forwarding story:', error);
       toast.error('Failed to forward story');
     }
   };

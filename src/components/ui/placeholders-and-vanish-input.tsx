@@ -243,7 +243,7 @@ export function PlaceholdersAndVanishInput({
         onChange={(e) => {
           if (!animating) {
             setValue(e.target.value);
-            if (onChange) onChange(e);
+            onChange && onChange(e);
           }
         }}
         onKeyDown={handleKeyDown}

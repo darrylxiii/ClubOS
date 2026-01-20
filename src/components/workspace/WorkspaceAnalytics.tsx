@@ -11,7 +11,8 @@ import {
   TrendingUp, 
   FileText,
   Activity,
-  Loader2
+  Loader2,
+  Users
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 

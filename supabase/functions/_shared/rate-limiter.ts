@@ -3,7 +3,7 @@
  * Uses database table for distributed rate limiting across function invocations
  */
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 export interface RateLimitResult {
   allowed: boolean;

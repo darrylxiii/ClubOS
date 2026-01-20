@@ -87,7 +87,7 @@ export function AssessmentInsightsCard({ candidateId, userId }: AssessmentInsigh
           .eq('id', candidateId)
           .single();
         
-        targetUserId = profile?.user_id ?? undefined;
+        targetUserId = profile?.user_id;
       }
 
       if (!targetUserId) {

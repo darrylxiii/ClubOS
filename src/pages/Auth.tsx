@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Lock, CheckCircle2, AlertTriangle } from "lucide-react";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
-import { GoogleIcon } from "@/components/ui/brand-icons";
+import { FaGoogle } from "react-icons/fa";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
@@ -614,7 +614,7 @@ const Auth = () => {
                   variant="outline"
                   className="w-full h-14 rounded-2xl font-semibold"
                 >
-                  <GoogleIcon className="mr-3 h-5 w-5" />
+                  <FaGoogle className="mr-3 h-5 w-5" />
                   {t('signInWith', { provider: t('oauth.google') })}
                 </Button>
 

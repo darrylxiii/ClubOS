@@ -16,10 +16,9 @@ const getSystemMessageIcon = (type?: string, metadata?: any) => {
       return <Calendar className="h-4 w-4" />;
     case 'call_started':
     case 'call_ended':
-    case 'call_missed': {
+    case 'call_missed':
       const callType = metadata?.call_type;
       return callType === 'video' ? <Video className="h-4 w-4" /> : <Phone className="h-4 w-4" />;
-    }
     case 'participant_joined':
       return <UserPlus className="h-4 w-4" />;
     case 'participant_left':

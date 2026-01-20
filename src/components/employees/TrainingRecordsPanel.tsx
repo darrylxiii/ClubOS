@@ -16,7 +16,8 @@ import {
   Loader2,
   Award,
   AlertTriangle,
-  ExternalLink
+  ExternalLink,
+  CheckCircle2
 } from "lucide-react";
 
 export function TrainingRecordsPanel() {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useCallSignaling } from "@/hooks/useCallSignaling";
 import { IncomingCallBanner } from "./IncomingCallBanner";
 import { notify } from "@/lib/notify";
+import { Database } from "@/integrations/supabase/types";
 
 interface CallNotificationManagerProps {
   conversationId?: string;
@@ -27,7 +28,7 @@ export function CallNotificationManager({
         const callerName = invitation.caller?.full_name || invitation.caller?.email || 'Someone';
         new Notification(`Incoming ${invitation.call_type} call`, {
           body: `${callerName} is calling you`,
-          icon: invitation.caller?.avatar_url ?? undefined,
+          icon: invitation.caller?.avatar_url,
           tag: invitation.id
         });
       }
@@ -94,9 +95,9 @@ export function CallNotificationManager({
     <IncomingCallBanner
       key={activeInvitation.id}
       callerName={callerName}
-      callerAvatar={callerAvatar ?? undefined}
+      callerAvatar={callerAvatar}
       callType={activeInvitation.call_type as 'audio' | 'video'}
-      createdAt={activeInvitation.created_at ?? new Date().toISOString()}
+      createdAt={activeInvitation.created_at}
       onAccept={() => handleAccept(activeInvitation.id, activeInvitation.call_type)}
       onDecline={() => handleDecline(activeInvitation.id)}
     />

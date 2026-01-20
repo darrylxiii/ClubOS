@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Clock, CalendarIcon, Sun, Calendar as CalendarWeek } from 'lucide-react';
-import { addHours, startOfTomorrow, nextMonday } from 'date-fns';
+import { addDays, addHours, startOfTomorrow, nextMonday } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 interface SnoozeDialogProps {

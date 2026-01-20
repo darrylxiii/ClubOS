@@ -16,6 +16,7 @@ import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
 import { useRole } from "@/contexts/RoleContext";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
+import { logger } from "@/lib/logger";
 import { useNavigate } from "react-router-dom";
 import { HorizontalFilters } from "@/components/jobs/HorizontalFilters";
 import type { JobFilters } from "@/components/jobs/JobFilterSidebar";
@@ -74,7 +75,7 @@ const Jobs = () => {
         setUserCurrency(data.preferred_currency as Currency);
       }
       if (data?.club_sync_enabled !== undefined) {
-        setClubSyncEnabled(data.club_sync_enabled ?? false);
+        setClubSyncEnabled(data.club_sync_enabled);
       }
     };
     fetchUserSettings();
@@ -590,7 +591,7 @@ const Jobs = () => {
                     .filter(job => 
                       job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                       job.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                      job.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+                      job.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
                     )
                     .map(job => (
                       <JobCard 
@@ -651,7 +652,7 @@ const Jobs = () => {
                     .filter(job => 
                       job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                       job.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                      job.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+                      job.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
                     )
                     .map(job => (
                       <JobCard 

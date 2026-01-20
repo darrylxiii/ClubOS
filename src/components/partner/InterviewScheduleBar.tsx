@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Calendar, Users } from 'lucide-react';
+import { ScheduleInterviewButton } from './ScheduleInterviewButton';
 
 interface InterviewScheduleBarProps {
   applications: any[];

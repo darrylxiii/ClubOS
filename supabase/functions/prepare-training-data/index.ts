@@ -54,16 +54,13 @@ serve(async (req) => {
       try {
         // Generate features via edge function
         const { data: featureData, error: featureError } = await supabase.functions.invoke(
-          'ai-integration',
+          'generate-ml-features',
           {
             body: {
-              action: 'generate-ml-features',
-              payload: {
-                candidate_id: app.candidate_id,
-                job_id: app.job_id,
-                application_id: app.id,
-                use_cache: true
-              }
+              candidate_id: app.candidate_id,
+              job_id: app.job_id,
+              application_id: app.id,
+              use_cache: true
             }
           }
         );
@@ -97,7 +94,7 @@ serve(async (req) => {
               vec1: candidateData.embedding,
               vec2: jobData.embedding
             });
-
+            
             semanticSimilarity = simData;
             semanticScoresCalculated++;
           }

@@ -12,26 +12,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { 
-  ArrowLeft, Calendar, CheckCircle, Flag, Target, TrendingUp, Users, Activity,
-  Send, MoreVertical, Lock, Unlock
+  ArrowLeft, Calendar, CheckCircle, Clock, Edit, Flag, 
+  MessageSquare, Target, TrendingUp, Users, Activity,
+  Send, MoreVertical, Trash2, Lock, Unlock
 } from "lucide-react";
 import { format, isPast, differenceInDays } from "date-fns";
+import { UnifiedTaskBoard } from "@/components/unified-tasks/UnifiedTaskBoard";
 import { UnifiedTasksList } from "@/components/unified-tasks/UnifiedTasksList";
 
 interface Objective {
   id: string;
   title: string;
   status: string;
-  priority?: string | null;
-  milestone_type?: string | null;
-  due_date?: string | null;
-  hard_deadline?: string | null;
-  completion_percentage?: number | null;
-  description?: string | null;
-  goals?: string | null;
-  start_date?: string | null;
+  priority?: string;
+  milestone_type?: string;
+  due_date?: string;
+  hard_deadline?: string;
+  completion_percentage?: number;
+  description?: string;
+  goals?: string;
+  start_date?: string;
   tags?: string[];
-  owners?: string[] | null;
+  owners?: string[];
   tasks?: Record<string, any>[];
 }
 
@@ -537,7 +539,7 @@ const ObjectiveWorkspace = () => {
           </TabsContent>
 
           <TabsContent value="tasks" className="space-y-6">
-            <UnifiedTasksList objectiveId={id ?? null} onRefresh={loadObjective} aiSchedulingEnabled={false} />
+            <UnifiedTasksList objectiveId={id} onRefresh={loadObjective} aiSchedulingEnabled={false} />
           </TabsContent>
 
           <TabsContent value="comments" className="space-y-6">

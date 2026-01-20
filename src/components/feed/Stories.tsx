@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { EnhancedStoryViewer } from "@/components/social/EnhancedStoryViewer";
@@ -13,10 +14,10 @@ interface Story {
   user_id: string;
   media_url: string;
   media_type: string;
-  created_at: string | null;
+  created_at: string;
   profiles: {
-    full_name: string | null;
-    avatar_url: string | null;
+    full_name: string;
+    avatar_url: string;
   };
 }
 
@@ -52,9 +53,9 @@ export function Stories() {
 
       const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
       
-      const enrichedStories: Story[] = storiesData.map(story => ({
+      const enrichedStories = storiesData.map(story => ({
         ...story,
-        profiles: profilesMap.get(story.user_id) || { full_name: 'Unknown', avatar_url: null }
+        profiles: profilesMap.get(story.user_id) || { full_name: 'Unknown', avatar_url: '' }
       }));
 
       setStories(enrichedStories);
@@ -194,7 +195,7 @@ export function Stories() {
               <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 pointer-events-none" />
               <div className="absolute bottom-2 left-2 right-2 pointer-events-none">
                 <Avatar className="w-6 h-6 border-2 border-white">
-                  <AvatarImage src={story.profiles?.avatar_url ?? undefined} />
+                  <AvatarImage src={story.profiles?.avatar_url} />
                   <AvatarFallback>{story.profiles?.full_name?.[0]}</AvatarFallback>
                 </Avatar>
                 <span className="text-xs text-white font-medium truncate ml-1">
@@ -209,7 +210,7 @@ export function Stories() {
       {/* Enhanced Story Viewer */}
       {viewingStory && (
         <EnhancedStoryViewer
-          stories={stories as any}
+          stories={stories}
           initialIndex={stories.findIndex(s => s.id === viewingStory.id)}
           onClose={() => setViewingStory(null)}
         />

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import {
-  AlertTriangle, Scale, MessageSquare, 
-  Clock, CheckCircle2, Upload, Shield
+  AlertTriangle, FileText, Scale, MessageSquare, 
+  Clock, CheckCircle2, XCircle, Upload, Eye,
+  ArrowRight, Shield
 } from "lucide-react";
 
 interface DisputeCenterProps {
@@ -72,7 +73,6 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
   const { data: disputes, isLoading } = useQuery({
     queryKey: ["contract-disputes", contractId],
     queryFn: async () => {
-      if (!contractId) return [];
       const { data, error } = await supabase
         .from("project_disputes")
         .select(`
@@ -85,13 +85,11 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
       if (error) throw error;
       return data as Dispute[];
     },
-    enabled: !!contractId,
   });
 
   const { data: contract } = useQuery({
     queryKey: ["contract-for-dispute", contractId],
     queryFn: async () => {
-      if (!contractId) return null;
       const { data, error } = await supabase
         .from("freelance_contracts")
         .select("*")
@@ -101,7 +99,6 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
       if (error) throw error;
       return data;
     },
-    enabled: !!contractId,
   });
 
   const createDisputeMutation = useMutation({

@@ -78,8 +78,8 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
           accentColor: data.accent_color ?? defaultSettings.accentColor,
         });
       }
-    } catch (_error) {
-      console.error('Error loading appearance settings:', _error);
+    } catch (error) {
+      console.error('Error loading appearance settings:', error);
     } finally {
       setLoading(false);
     }
@@ -108,8 +108,8 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
         });
 
       if (error) throw error;
-    } catch (_error) {
-      console.error('Error updating appearance settings:', _error);
+    } catch (error) {
+      console.error('Error updating appearance settings:', error);
       notify.error('Failed to save appearance settings');
     }
   };

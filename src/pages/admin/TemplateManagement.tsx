@@ -1,44 +1,31 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Plus,
-  Search,
-  Upload,
-  Layout,
-  FileText,
-  Edit2,
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Plus, 
+  Search, 
+  Upload, 
+  Layout, 
+  FileText, 
+  Edit2, 
   Trash2,
+  Eye,
+  TrendingUp,
   Users,
   Building,
   User,
-  TrendingUp,
-  Loader2,
+  Filter,
 } from 'lucide-react';
 import { useTemplates, Template } from '@/hooks/useTemplates';
+import { TemplateEditor } from '@/components/workspace/TemplateEditor';
 import { NotionImporter } from '@/components/workspace/NotionImporter';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-
-// Lazy load heavy BlockNote-based editor (~200KB deferred)
-const TemplateEditor = lazy(() => 
-  import('@/components/workspace/TemplateEditor').then(m => ({ default: m.TemplateEditor }))
-);
-
-// Loading skeleton for editor
-function EditorLoadingSkeleton() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] bg-card border rounded-lg">
-      <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-      <p className="text-muted-foreground">Loading template editor...</p>
-    </div>
-  );
-}
 
 export default function TemplateManagement() {
   const { templates, isLoading, deleteTemplate } = useTemplates();
@@ -49,11 +36,11 @@ export default function TemplateManagement() {
   const [isCreating, setIsCreating] = useState(false);
 
   const filteredTemplates = templates.filter((template) => {
-    const matchesSearch =
+    const matchesSearch = 
       template.name.toLowerCase().includes(search.toLowerCase()) ||
       template.description?.toLowerCase().includes(search.toLowerCase());
-
-    const matchesVisibility =
+    
+    const matchesVisibility = 
       visibilityFilter === 'all' || template.visibility === visibilityFilter;
 
     return matchesSearch && matchesVisibility;
@@ -79,19 +66,17 @@ export default function TemplateManagement() {
       <AppLayout>
         <RoleGate allowedRoles={['admin', 'strategist']}>
           <div className="container mx-auto px-4 py-6 max-w-7xl">
-            <Suspense fallback={<EditorLoadingSkeleton />}>
-              <TemplateEditor
-                template={editingTemplate || undefined}
-                onSave={() => {
-                  setIsCreating(false);
-                  setEditingTemplate(null);
-                }}
-                onCancel={() => {
-                  setIsCreating(false);
-                  setEditingTemplate(null);
-                }}
-              />
-            </Suspense>
+            <TemplateEditor
+              template={editingTemplate || undefined}
+              onSave={() => {
+                setIsCreating(false);
+                setEditingTemplate(null);
+              }}
+              onCancel={() => {
+                setIsCreating(false);
+                setEditingTemplate(null);
+              }}
+            />
           </div>
         </RoleGate>
       </AppLayout>
@@ -220,7 +205,7 @@ export default function TemplateManagement() {
                 >
                   {/* Cover */}
                   {template.cover_url ? (
-                    <div
+                    <div 
                       className="h-20 bg-cover bg-center"
                       style={{ backgroundImage: `url(${template.cover_url})` }}
                     />
@@ -235,8 +220,8 @@ export default function TemplateManagement() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold truncate">{template.name}</h3>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge
-                            variant="secondary"
+                          <Badge 
+                            variant="secondary" 
                             className={cn(
                               "text-xs",
                               template.visibility === 'system' && "bg-blue-500/20 text-blue-500",

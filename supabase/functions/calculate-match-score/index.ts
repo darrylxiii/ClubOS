@@ -1,8 +1,13 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { verifyRecaptcha, createRecaptchaErrorResponse } from '../_shared/recaptcha-verifier.ts';
 import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
-import { publicCorsHeaders as corsHeaders } from '../_shared/cors-config.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 // Input validation schema
 const requestSchema = z.object({

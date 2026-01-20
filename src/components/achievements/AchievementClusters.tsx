@@ -63,8 +63,6 @@ export const AchievementClusters = ({
   }, [user]);
 
   const fetchAchievements = async () => {
-    if (!user?.id) return;
-
     try {
       const { data: allAchievements } = await supabase
         .from("quantum_achievements")
@@ -75,13 +73,13 @@ export const AchievementClusters = ({
       const { data: userAchievements } = await supabase
         .from("user_quantum_achievements")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", user?.id);
 
       // Fetch progress for locked achievements
       const { data: progressData } = await supabase
         .from("achievement_progress")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", user?.id);
 
       const unlockedMap = new Map(
         userAchievements?.map((ua) => [ua.achievement_id, ua]) || []
@@ -99,12 +97,12 @@ export const AchievementClusters = ({
             id: userAch?.id || achievement.id,
             achievement_id: achievement.id,
             name: achievement.name,
-            description: achievement.description ?? '',
+            description: achievement.description,
             icon_emoji: achievement.icon_emoji,
             rarity: achievement.rarity,
             category: achievement.category,
             unlocked_at: userAch?.unlocked_at || null,
-            animation_effect: achievement.animation_effect ?? '',
+            animation_effect: achievement.animation_effect,
             points: achievement.points,
             is_unlocked: !!userAch,
             progress: progress,
@@ -123,7 +121,7 @@ export const AchievementClusters = ({
     return achievements.filter((achievement) => {
       const matchesSearch = searchQuery
         ? achievement.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (achievement.description ?? '').toLowerCase().includes(searchQuery.toLowerCase())
+          achievement.description.toLowerCase().includes(searchQuery.toLowerCase())
         : true;
 
       const matchesCategory = selectedCategory

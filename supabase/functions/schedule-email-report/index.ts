@@ -87,14 +87,13 @@ serve(async (req) => {
           nextRunAt.setDate(nextRunAt.getDate() + 1);
         }
         break;
-      case 'weekly': {
+      case 'weekly':
         // Next Monday at preferred time
         nextRunAt = new Date(now);
         const daysUntilMonday = (8 - now.getDay()) % 7 || 7;
         nextRunAt.setDate(now.getDate() + daysUntilMonday);
         nextRunAt.setHours(hours, minutes, 0, 0);
         break;
-      }
       case 'monthly':
         // First of next month at preferred time
         nextRunAt = new Date(now.getFullYear(), now.getMonth() + 1, 1, hours, minutes, 0, 0);

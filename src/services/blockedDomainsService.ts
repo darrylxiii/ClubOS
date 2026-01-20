@@ -4,7 +4,7 @@ export interface BlockedDomain {
   id: string;
   company_name: string;
   domain: string;
-  reason?: string | null;
+  reason?: string;
   created_at: string;
 }
 
@@ -15,7 +15,7 @@ export async function getBlockedDomains(): Promise<BlockedDomain[]> {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data || []) as BlockedDomain[];
+  return data || [];
 }
 
 export async function addBlockedDomain(companyName: string, domain: string, reason?: string) {

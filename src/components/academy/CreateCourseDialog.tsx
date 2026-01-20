@@ -22,7 +22,7 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { notify } from "@/lib/notify";
-import { Loader2, Sparkles, Wand2, Brain, CheckCircle2 } from "lucide-react";
+import { Loader2, Sparkles, Wand2, Brain, ChevronRight, CheckCircle2 } from "lucide-react";
 
 interface CreateCourseDialogProps {
   open: boolean;

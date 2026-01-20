@@ -13,14 +13,14 @@ import { formatDistanceToNow } from "date-fns";
 
 interface ChatMessage {
   id: string;
-  user_id: string | null;
+  user_id: string;
   message: string;
-  is_instructor: boolean | null;
-  created_at: string | null;
+  is_instructor: boolean;
+  created_at: string;
   profiles: {
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
+    full_name: string;
+    avatar_url: string;
+  };
 }
 
 interface SharedModuleChatProps {
@@ -212,7 +212,7 @@ export function SharedModuleChat({ moduleId, moduleName }: SharedModuleChatProps
                 }`}
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={msg.profiles?.avatar_url ?? undefined} />
+                  <AvatarImage src={msg.profiles?.avatar_url} />
                   <AvatarFallback>
                     {msg.profiles?.full_name?.[0] || 'U'}
                   </AvatarFallback>
@@ -236,9 +236,9 @@ export function SharedModuleChat({ moduleId, moduleName }: SharedModuleChatProps
                       </Badge>
                     )}
                     <span className="text-xs text-muted-foreground">
-                      {msg.created_at ? formatDistanceToNow(new Date(msg.created_at), {
+                      {formatDistanceToNow(new Date(msg.created_at), {
                         addSuffix: true,
-                      }) : 'just now'}
+                      })}
                     </span>
                   </div>
 

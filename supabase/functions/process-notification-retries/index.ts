@@ -61,7 +61,7 @@ serve(async (req) => {
 
         // Route to appropriate handler based on notification type
         switch (item.notification_type) {
-          case "booking_reminder_email": {
+          case "booking_reminder_email":
             const emailResult = await supabase.functions.invoke("send-booking-reminder-email", {
               body: item.payload,
             });
@@ -71,9 +71,8 @@ serve(async (req) => {
               success = true;
             }
             break;
-          }
 
-          case "booking_reminder_sms": {
+          case "booking_reminder_sms":
             const smsResult = await supabase.functions.invoke("send-booking-sms-reminder", {
               body: item.payload,
             });
@@ -83,9 +82,8 @@ serve(async (req) => {
               success = true;
             }
             break;
-          }
 
-          case "push_notification": {
+          case "push_notification":
             const pushResult = await supabase.functions.invoke("send-push-notification", {
               body: item.payload,
             });
@@ -95,9 +93,8 @@ serve(async (req) => {
               success = true;
             }
             break;
-          }
 
-          case "email": {
+          case "email":
             const genericEmailResult = await supabase.functions.invoke("send-email", {
               body: item.payload,
             });
@@ -107,7 +104,6 @@ serve(async (req) => {
               success = true;
             }
             break;
-          }
 
           default:
             errorMessage = `Unknown notification type: ${item.notification_type}`;

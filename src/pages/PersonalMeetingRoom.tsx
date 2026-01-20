@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, Share2, Settings, BarChart3, Users, Clock, Video, Link2, Mail } from 'lucide-react';
+import { Copy, QrCode, Share2, Settings, BarChart3, Users, Clock, Video, Link2, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -19,10 +19,10 @@ interface PersonalMeetingRoom {
   id: string;
   room_code: string;
   display_name: string;
-  allow_guests: boolean | null;
-  require_approval: boolean | null;
-  total_meetings: number | null;
-  is_active: boolean | null;
+  allow_guests: boolean;
+  require_approval: boolean;
+  total_meetings: number;
+  is_active: boolean;
 }
 
 export default function PersonalMeetingRoom() {
@@ -43,17 +43,17 @@ export default function PersonalMeetingRoom() {
       const { data, error } = await supabase
         .from('personal_meeting_rooms')
         .select('*')
-        .eq('user_id', user?.id ?? '')
+        .eq('user_id', user?.id)
         .maybeSingle();
 
       if (error) throw error;
       
       if (data) {
-        setPmr(data as PersonalMeetingRoom);
+        setPmr(data);
         setCustomName(data.display_name);
         setSettings({
-          allow_guests: data.allow_guests ?? true,
-          require_approval: data.require_approval ?? false,
+          allow_guests: data.allow_guests,
+          require_approval: data.require_approval,
         });
       }
     } catch (error) {

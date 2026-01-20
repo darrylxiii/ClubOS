@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Linkedin, AlertCircle } from "lucide-react";
+import { Linkedin, Upload, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

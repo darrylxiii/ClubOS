@@ -13,9 +13,9 @@ export interface MemberRequest {
   status: 'pending' | 'approved' | 'declined';
   created_at: string;
   profiles?: {
-    current_title?: string | null;
-    linkedin_url?: string | null;
-    location?: string | null;
+    current_title?: string;
+    linkedin_url?: string;
+    location?: string;
   };
 }
 

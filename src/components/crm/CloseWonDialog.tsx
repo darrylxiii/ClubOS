@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Trophy, Sparkles, PartyPopper } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
+
 interface CloseWonDialogProps {
   open: boolean;
   onClose: () => void;
@@ -42,8 +44,7 @@ export function CloseWonDialog({ open, onClose, prospect, onConfirm }: CloseWonD
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const triggerConfetti = async () => {
-    const confetti = (await import('canvas-confetti')).default;
+  const triggerConfetti = () => {
     confetti({
       particleCount: 100,
       spread: 70,

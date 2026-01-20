@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Target, TrendingUp, Clock, CheckCircle, Building } from "lucide-react";
+import { Plus, Target, TrendingUp, Clock, CheckCircle, Building, MapPin, Briefcase, ThumbsUp } from "lucide-react";
 import { TargetCompanyTable } from "@/components/partner/TargetCompanyTable";
 import { TargetCompanyDialog } from "@/components/partner/TargetCompanyDialog";
 import { useTargetCompanies } from "@/hooks/useTargetCompanies";
@@ -25,12 +25,10 @@ const PartnerTargetCompanies = () => {
   useEffect(() => {
     const loadAssignedCompanies = async () => {
       if (role === 'strategist') {
-        const authUser = await supabase.auth.getUser();
-        if (!authUser.data.user?.id) return;
         const { data } = await supabase
           .from('company_members')
           .select('company_id, companies (id, name, logo_url)')
-          .eq('user_id', authUser.data.user.id);
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
         
         if (data) {
           const companies = data.map(cm => (cm as any).companies).filter(Boolean);

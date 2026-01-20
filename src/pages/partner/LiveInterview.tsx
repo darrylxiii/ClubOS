@@ -2,10 +2,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Mic, MicOff, AlertTriangle, CheckCircle, Lightbulb } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { aiService } from "@/services/aiService";
 
 interface AnalysisResult {
     status: 'safe' | 'alert' | 'suggestion';
@@ -63,14 +64,19 @@ const LiveInterview = () => {
 
             try {
                 // Call our Sentinel Brain
-                const data = await aiService.analyzeInterviewStream({
-                    transcript_chunk: chunk,
-                }) as any;
+                const { data, error } = await supabase.functions.invoke('analyze-interview-stream', {
+                    body: {
+                        transcript_chunk: chunk,
+                        // session_id: '...' // We could create a session on mount
+                    }
+                });
+
+                if (error) throw error;
 
                 if (data && data.status !== 'safe') {
                     setAnalysisLog(prev => [{
-                        status: data.status as AnalysisResult['status'],
-                        message: data.message ?? '',
+                        status: data.status,
+                        message: data.message,
                         details: data.details,
                         timestamp: Date.now()
                     }, ...prev]);
@@ -147,7 +153,7 @@ const LiveInterview = () => {
                                 )}
                                 {analysisLog.map((log, i) => (
                                     <div key={i} className={`p-4 rounded-lg border ${log.status === 'alert' ? 'bg-red-50 border-red-200 text-red-900' :
-                                        log.status === 'suggestion' ? 'bg-blue-50 border-blue-200 text-blue-900' : 'bg-gray-50'
+                                            log.status === 'suggestion' ? 'bg-blue-50 border-blue-200 text-blue-900' : 'bg-gray-50'
                                         }`}>
                                         <div className="flex items-start gap-3">
                                             {log.status === 'alert' ? <AlertTriangle className="h-5 w-5 shrink-0 text-red-600" /> : <Lightbulb className="h-5 w-5 shrink-0 text-blue-600" />}

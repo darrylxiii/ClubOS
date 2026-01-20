@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
+import type { InteractionFormData } from '@/types/interaction';
 
 const interactionSchema = z.object({
   company_id: z.string().min(1, 'Company is required'),
@@ -64,8 +65,8 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
         .ilike('name', `%${search}%`)
         .limit(20);
       setCompanies(data || []);
-    } catch (_error) {
-      console.error('Error loading companies:', _error);
+    } catch (error) {
+      console.error('Error loading companies:', error);
     } finally {
       setLoadingCompanies(false);
     }
@@ -81,8 +82,8 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
         .eq('company_id', companyId)
         .order('full_name');
       setStakeholders(data || []);
-    } catch (_error) {
-      console.error('Error loading stakeholders:', _error);
+    } catch (error) {
+      console.error('Error loading stakeholders:', error);
     } finally {
       setLoadingStakeholders(false);
     }

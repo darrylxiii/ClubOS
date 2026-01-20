@@ -13,7 +13,8 @@ import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Briefcase, Target, DollarSign, MapPin, Upload, X, CheckCircle, Phone, LogOut, Loader2 } from "lucide-react";
-import { UnifiedLoader } from "@/components/ui/unified-loader";
+import { UnifiedLoader, InlineLoader } from "@/components/ui/unified-loader";
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import { useCountryDetection } from "@/hooks/useCountryDetection";
 import { useResumeUpload } from "@/hooks/useResumeUpload";
@@ -523,7 +524,7 @@ export default function OAuthOnboarding() {
                   international
                   defaultCountry={(countryCode as any) || "NL"}
                   value={phoneNumber}
-                  onChange={(value) => setPhoneNumber(value ?? "")}
+                  onChange={(value: string) => setPhoneNumber(value || "")}
                   disabled={phoneVerified}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />

@@ -14,30 +14,30 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface Application {
   id: string;
-  full_name: string | null;
-  email: string | null;
-  phone: string | null;
-  location?: string | null;
-  current_title?: string | null;
-  linkedin_url?: string | null;
-  bio?: string | null;
-  resume_url?: string | null;
-  dream_job_title?: string | null;
-  employment_type?: string | null;
-  notice_period?: string | null;
-  current_salary?: number | null;
-  desired_salary_min?: number | null;
-  desired_salary_max?: number | null;
-  freelance_rate?: number | null;
-  remote_preference?: string | null;
-  preferred_locations?: string[] | null;
-  work_radius?: number | null;
-  application_status: string | null;
+  full_name: string;
+  email: string;
+  phone: string;
+  location?: string;
+  current_title?: string;
+  linkedin_url?: string;
+  bio?: string;
+  resume_url?: string;
+  dream_job_title?: string;
+  employment_type?: string;
+  notice_period?: string;
+  current_salary?: number;
+  desired_salary_min?: number;
+  desired_salary_max?: number;
+  freelance_rate?: number;
+  remote_preference?: string;
+  preferred_locations?: string[];
+  work_radius?: number;
+  application_status: string;
   created_at: string;
-  admin_notes?: string | null;
-  reviewed_at?: string | null;
-  reviewed_by?: string | null;
-  rejection_reason?: string | null;
+  admin_notes?: string;
+  reviewed_at?: string;
+  reviewed_by?: string;
+  rejection_reason?: string;
 }
 
 export function AdminApplicationHub() {
@@ -147,9 +147,9 @@ export function AdminApplicationHub() {
         case 'date-asc':
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'name-asc':
-          return (a.full_name ?? '').localeCompare(b.full_name ?? '');
+          return a.full_name.localeCompare(b.full_name);
         case 'name-desc':
-          return (b.full_name ?? '').localeCompare(a.full_name ?? '');
+          return b.full_name.localeCompare(a.full_name);
         default:
           return 0;
       }
@@ -164,10 +164,10 @@ export function AdminApplicationHub() {
     try {
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: selectedApplication.email ?? '',
+        email: selectedApplication.email,
         email_confirm: true,
         user_metadata: {
-          full_name: selectedApplication.full_name ?? ''
+          full_name: selectedApplication.full_name
         }
       });
 

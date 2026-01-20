@@ -1,4 +1,4 @@
-import { LazyCharts } from "@/components/charts/LazyCharts";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { HiringMetrics } from "@/hooks/useAnalytics";
 import { format } from "date-fns";
 
@@ -39,74 +39,66 @@ export function HiringVelocityChart({ data, isLoading }: HiringVelocityChartProp
       {/* Applications & Hires Trend */}
       <div>
         <h4 className="text-sm font-medium mb-4">Applications vs. Hires</h4>
-        <LazyCharts height={300}>
-          {({ ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar }) => (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis 
-                  dataKey="week" 
-                  className="text-xs"
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <YAxis 
-                  className="text-xs"
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--background))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="applications" fill="hsl(var(--primary))" name="Applications" />
-                <Bar dataKey="hires" fill="hsl(var(--chart-2))" name="Hires" />
-                <Bar dataKey="inProgress" fill="hsl(var(--chart-3))" name="In Progress" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </LazyCharts>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis 
+              dataKey="week" 
+              className="text-xs"
+              tick={{ fill: 'hsl(var(--muted-foreground))' }}
+            />
+            <YAxis 
+              className="text-xs"
+              tick={{ fill: 'hsl(var(--muted-foreground))' }}
+            />
+            <Tooltip 
+              contentStyle={{
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+              }}
+            />
+            <Legend />
+            <Bar dataKey="applications" fill="hsl(var(--primary))" name="Applications" />
+            <Bar dataKey="hires" fill="hsl(var(--chart-2))" name="Hires" />
+            <Bar dataKey="inProgress" fill="hsl(var(--chart-3))" name="In Progress" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Time to Hire Trend */}
       <div>
         <h4 className="text-sm font-medium mb-4">Average Time to Hire (Days)</h4>
-        <LazyCharts height={200}>
-          {({ ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line }) => (
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis 
-                  dataKey="week" 
-                  className="text-xs"
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <YAxis 
-                  className="text-xs"
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--background))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="avgTimeToHire" 
-                  stroke="hsl(var(--chart-4))" 
-                  strokeWidth={2}
-                  name="Avg Days to Hire"
-                  dot={{ fill: 'hsl(var(--chart-4))' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </LazyCharts>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis 
+              dataKey="week" 
+              className="text-xs"
+              tick={{ fill: 'hsl(var(--muted-foreground))' }}
+            />
+            <YAxis 
+              className="text-xs"
+              tick={{ fill: 'hsl(var(--muted-foreground))' }}
+            />
+            <Tooltip 
+              contentStyle={{
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+              }}
+            />
+            <Legend />
+            <Line 
+              type="monotone" 
+              dataKey="avgTimeToHire" 
+              stroke="hsl(var(--chart-4))" 
+              strokeWidth={2}
+              name="Avg Days to Hire"
+              dot={{ fill: 'hsl(var(--chart-4))' }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

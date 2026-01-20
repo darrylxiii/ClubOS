@@ -13,13 +13,14 @@ import {
   Bot, 
   Eye,
   CheckCircle2,
+  XCircle,
   AlertTriangle,
   Clock,
   TrendingUp,
   Activity,
   BarChart3
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 
 interface AgentDecision {
   id: string;
@@ -68,7 +69,7 @@ export function AgentGovernanceDashboard() {
       const { data, error } = await supabase
         .from('agent_decision_log')
         .select('*')
-        .eq('user_id', user?.id ?? '')
+        .eq('user_id', user?.id)
         .order('created_at', { ascending: false })
         .limit(50);
       

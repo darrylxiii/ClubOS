@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Building2, Briefcase, Users, History, Plus, TrendingUp, Trophy, Activity, Share2, BarChart3, Link2 } from "lucide-react";
+import { Building2, Briefcase, Users, History, Plus, TrendingUp, Trophy, Zap, Activity, Share2, BarChart3, Link2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/AppLayout";

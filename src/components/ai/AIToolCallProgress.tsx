@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle2, XCircle, Briefcase, CheckSquare, MessageSquare, Calendar } from "lucide-react";
 
 interface ToolCall {

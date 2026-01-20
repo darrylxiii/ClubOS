@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/lib/notify";
-import { FileText, Search, Plus, Clock, CheckCircle2 } from "lucide-react";
+import { FileText, Search, Download, Plus, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,7 +49,7 @@ export default function AuditRequestsPage() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setRequests(((data as any) || []) as AuditRequest[]);
+      setRequests(data || []);
     } catch (error) {
       console.error("Error loading audit requests:", error);
       toast({

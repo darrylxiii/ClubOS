@@ -92,8 +92,8 @@ export function LocationAutocomplete({
             )
           );
         }
-      } catch (_error) {
-        console.error("Error fetching location suggestions:", _error);
+      } catch (error) {
+        console.error("Error fetching location suggestions:", error);
       } finally {
         setLoading(false);
       }

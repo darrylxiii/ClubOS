@@ -39,13 +39,13 @@ const ASSESSMENT_TYPES = [
   { id: 'case_study', name: 'Case Study' },
 ];
 
-export function BulkActionsDialog({
-  open,
-  onClose,
-  type,
+export function BulkActionsDialog({ 
+  open, 
+  onClose, 
+  type, 
   selectedIds,
   stages = [],
-  onSuccess
+  onSuccess 
 }: BulkActionsDialogProps) {
   const [loading, setLoading] = useState(false);
   const [template, setTemplate] = useState('');
@@ -78,12 +78,12 @@ export function BulkActionsDialog({
 
   const handleSubmit = async () => {
     setLoading(true);
-
+    
     try {
       let result;
-
+      
       switch (type) {
-        case 'email': {
+        case 'email':
           if (!template || !subject) {
             toast.error('Please fill in all required fields');
             return;
@@ -91,8 +91,7 @@ export function BulkActionsDialog({
           const emailContent = template === 'custom' ? customMessage : template;
           result = await bulkActionsService.sendBulkEmails(selectedIds, emailContent, subject);
           break;
-        }
-
+          
         case 'assessment':
           if (!assessmentType) {
             toast.error('Please select an assessment type');
@@ -100,7 +99,7 @@ export function BulkActionsDialog({
           }
           result = await bulkActionsService.bulkScheduleAssessments(selectedIds, assessmentType, dueDate);
           break;
-
+          
         case 'stage':
           if (!targetStage) {
             toast.error('Please select a target stage');
@@ -108,11 +107,11 @@ export function BulkActionsDialog({
           }
           result = await bulkActionsService.bulkAdvanceStage(selectedIds, parseInt(targetStage));
           break;
-
+          
         case 'export':
           result = await bulkActionsService.bulkExportCandidates(selectedIds, exportFormat);
           break;
-
+          
         case 'invite':
           result = await bulkActionsService.bulkSendInvitations(selectedIds);
           break;
@@ -163,10 +162,10 @@ export function BulkActionsDialog({
                   </SelectContent>
                 </Select>
               </div>
-
+              
               <div className="space-y-2">
                 <Label htmlFor="subject">Subject Line</Label>
-                <Input
+                <Input 
                   id="subject"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
@@ -268,7 +267,7 @@ export function BulkActionsDialog({
 
           {type === 'invite' && (
             <p className="text-sm text-muted-foreground">
-              Platform invitations will be sent to all {selectedIds.length} selected candidates.
+              Platform invitations will be sent to all {selectedIds.length} selected candidates. 
               They will receive an email with a unique link to create their account.
             </p>
           )}
@@ -281,10 +280,10 @@ export function BulkActionsDialog({
           <Button onClick={handleSubmit} disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {type === 'email' ? 'Send Emails' :
-              type === 'assessment' ? 'Schedule' :
-                type === 'stage' ? 'Move' :
-                  type === 'export' ? 'Export' :
-                    'Send Invitations'}
+             type === 'assessment' ? 'Schedule' :
+             type === 'stage' ? 'Move' :
+             type === 'export' ? 'Export' :
+             'Send Invitations'}
           </Button>
         </DialogFooter>
       </DialogContent>

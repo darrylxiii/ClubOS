@@ -1,8 +1,11 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { publicCorsHeaders } from "../_shared/cors-config.ts";
 
-const corsHeaders = publicCorsHeaders;
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 serve(async (req) => {
     if (req.method === 'OPTIONS') {
@@ -26,7 +29,7 @@ serve(async (req) => {
         }
 
         // Fetch Hierarchical Knowledge Profiles (Voice & Insturctions)
-        const knowledgeContext = {
+        let knowledgeContext = {
             user: null,
             job: null,
             company: null
@@ -152,7 +155,7 @@ Output JSON: { "rewritten": "string", "entities": ["react", "google"] }`
         }
 
         // Merge Vector + Graph candidates
-        const candidates = [...(vectorContext || []), ...graphContext];
+        let candidates = [...(vectorContext || []), ...graphContext];
 
         // 3. Reranking (New Step)
         // Use LLM to pick the top 5 most relevant chunks

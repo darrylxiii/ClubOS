@@ -166,7 +166,7 @@ export function MilestoneManagementModal({
       ladder_id: data.ladder_id,
       default_category: data.default_category,
       suggested_reward_range: data.suggested_reward_min || data.suggested_reward_max
-        ? { min: data.suggested_reward_min ?? undefined, max: data.suggested_reward_max ?? undefined }
+        ? { min: data.suggested_reward_min, max: data.suggested_reward_max }
         : null,
       display_order: data.display_order,
       fiscal_year: isAnnualTrack ? data.fiscal_year : null,
@@ -176,7 +176,7 @@ export function MilestoneManagementModal({
       if (mode === 'edit' && milestone) {
         await updateMilestone({ id: milestone.id, ...input });
       } else {
-        await createMilestone(input as any);
+        await createMilestone(input);
       }
       onOpenChange(false);
     } catch {

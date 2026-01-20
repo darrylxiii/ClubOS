@@ -21,9 +21,9 @@ interface MessageBubbleProps {
   message: Message;
   isCurrentUser: boolean;
   isGroup?: boolean;
-  onReply?: (() => void) | undefined;
-  onEdit?: (() => void) | undefined;
-  onDelete?: (() => void) | undefined;
+  onReply?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 export const MessageBubble = ({

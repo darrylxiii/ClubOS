@@ -31,7 +31,7 @@ export const ViralMapVisualization = () => {
       const { data: userPosts } = await supabase
         .from("unified_posts")
         .select("id, content, created_at")
-        .eq("user_id", user?.id ?? '')
+        .eq("user_id", user?.id)
         .order("created_at", { ascending: false })
         .limit(10);
 
@@ -50,8 +50,7 @@ export const ViralMapVisualization = () => {
           const shareCount = shares?.length || 0;
           const uniqueSharers = new Set(shares?.map((s) => s.shared_by)).size;
           const platforms = shares?.reduce((acc: Record<string, number>, s) => {
-            const key = s.shared_to ?? 'unknown';
-            acc[key] = (acc[key] || 0) + 1;
+            acc[s.shared_to] = (acc[s.shared_to] || 0) + 1;
             return acc;
           }, {});
 

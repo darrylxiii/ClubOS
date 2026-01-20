@@ -13,6 +13,7 @@ import {
   MessageCircle, 
   Mail,
   QrCode,
+  Link2,
   CheckCircle2
 } from 'lucide-react';
 

@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 interface Story {
   id: string;
@@ -51,12 +52,10 @@ export const StoryViewer = ({ stories, initialIndex, onClose }: StoryViewerProps
 
   const recordView = async () => {
     try {
-      const viewerId = (await supabase.auth.getUser()).data.user?.id;
-      if (!viewerId) return;
-      await supabase.from("story_views").insert([{
+      await supabase.from("story_views").insert({
         story_id: currentStory.id,
-        viewer_id: viewerId,
-      }]);
+        viewer_id: (await supabase.auth.getUser()).data.user?.id,
+      });
     } catch (error) {
       console.error("Error recording view:", error);
     }

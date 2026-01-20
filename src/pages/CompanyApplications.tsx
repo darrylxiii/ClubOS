@@ -3,11 +3,14 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
+  Search,
   Filter,
   Download,
+  UserPlus,
   TrendingUp,
   AlertCircle,
   Users,
@@ -18,6 +21,7 @@ import { ApplicationsFilters } from "@/components/partner/ApplicationsFilters";
 import { ApplicationsAnalytics } from "@/components/partner/ApplicationsAnalytics";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function CompanyApplications() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -155,7 +159,7 @@ export default function CompanyApplications() {
         }
 
         // Get recent interactions if we found candidate
-        let interactions: Array<{ id: string; interaction_type: string; created_at: string }> = [];
+        let interactions = [];
         if (candidateData?.id) {
           const { data: interactionsData } = await supabase
             .from("candidate_interactions")

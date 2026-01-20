@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CheckCircle, Circle, ArrowRight, Rocket, Users, Code, DollarSign, Loader2 } from 'lucide-react';
+import { CheckCircle, Circle, Clock, ArrowRight, Rocket, Users, Code, DollarSign, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';

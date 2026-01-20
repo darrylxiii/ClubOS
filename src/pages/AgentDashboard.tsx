@@ -10,13 +10,10 @@ import { LearningInsightsPanel } from "@/components/agent/LearningInsightsPanel"
 import { MemberAgentWidget } from "@/components/agent/MemberAgentWidget";
 import { PartnerAgentWidget } from "@/components/agent/PartnerAgentWidget";
 import { StrategistAgentWidget } from "@/components/agent/StrategistAgentWidget";
-import { TaskDispatcherDialog } from "@/components/agent/TaskDispatcherDialog";
-import { Target, Activity, Shield, Settings, Bot, Users, Brain, BrainCircuit } from "lucide-react";
-import { Button as UIButton } from "@/components/ui/button";
+import { Target, Activity, Shield, Settings, Bot, Users, Brain } from "lucide-react";
 
 export default function AgentDashboard() {
   const [activeTab, setActiveTab] = useState("goals");
-  const [dispatcherOpen, setDispatcherOpen] = useState(false);
 
   return (
     <div className="container mx-auto p-6 space-y-6 max-w-7xl">
@@ -29,13 +26,6 @@ export default function AgentDashboard() {
         <p className="text-muted-foreground">
           Manage your AI agents, track goals, and control autonomy levels
         </p>
-      </div>
-
-      <div className="flex justify-end">
-        <UIButton onClick={() => setDispatcherOpen(true)} className="bg-emerald-600 hover:bg-emerald-500 text-white gap-2 shadow-lg shadow-emerald-500/20">
-          <BrainCircuit className="w-4 h-4" />
-          Dispatch Task
-        </UIButton>
       </div>
 
       {/* Main Tabs */}
@@ -103,11 +93,6 @@ export default function AgentDashboard() {
           <AutonomySettings />
         </TabsContent>
       </Tabs>
-
-      <TaskDispatcherDialog
-        open={dispatcherOpen}
-        onOpenChange={setDispatcherOpen}
-      />
     </div>
   );
 }

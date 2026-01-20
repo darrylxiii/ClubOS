@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import {
-  Plus, Trash2, Zap, ArrowDown, Bell, Tag, Loader2, Brain
+  Plus, Trash2, Zap, ArrowDown,
+  Mail, Bell, UserPlus, Tag, Clock, MessageSquare, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -40,7 +41,6 @@ const TRIGGER_OPTIONS = [
 const ACTION_OPTIONS = [
   { value: 'create_task', label: 'Create Task', icon: Plus },
   { value: 'notify_user', label: 'Notify User', icon: Bell },
-  { value: 'ai_decision', label: 'AI Decision', icon: Brain },
   // Future: { value: 'send_email', label: 'Send Email', icon: Mail },
   // Future: { value: 'update_field', label: 'Update Field', icon: Tag },
 ];
@@ -72,9 +72,9 @@ export function CRMAutomationBuilder() {
         actions: [{ type: 'create_task', config: { subject: 'Follow up', priority: 'high' } }],
         is_active: false
       };
-      const { data: insertData, error: insertError } = await (supabase.from('crm_automations' as any).insert(newAutomation).select().single() as any);
-      if (insertError) throw insertError;
-      return insertData;
+      const { data, error } = await (supabase.from('crm_automations' as any).insert(newAutomation).select().single() as any);
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['crm-automations'] });
@@ -294,24 +294,6 @@ export function CRMAutomationBuilder() {
                                 placeholder="Message"
                                 className="w-48 h-8"
                               />
-                            )}
-                            {action.type === 'ai_decision' && (
-                              <div className="flex flex-col gap-2">
-                                <Input
-                                  value={action.config?.prompt || ''}
-                                  onChange={(e) => {
-                                    const newActions = [...automation.actions];
-                                    newActions[idx].config.prompt = e.target.value;
-                                    updateMutation.mutate({ id: automation.id, updates: { actions: newActions } });
-                                  }}
-                                  placeholder="AI Prompt (e.g. Is email angry?)"
-                                  className="w-64 h-8 border-purple-200 focus:border-purple-400"
-                                />
-                                <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Brain className="h-3 w-3" />
-                                  Splits workflow based on Yes/No
-                                </div>
-                              </div>
                             )}
                           </div>
                         </div>

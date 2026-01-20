@@ -14,6 +14,7 @@ import {
   Clock, 
   Award,
   Eye,
+  Download,
   RefreshCw
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -75,7 +76,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
       const { data, error } = await supabase
         .from('assessment_results')
         .select('*')
-        .eq('user_id', targetUserId ?? '')
+        .eq('user_id', targetUserId)
         .order('completed_at', { ascending: false });
 
       if (error) throw error;
@@ -95,8 +96,8 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
       }));
       
       setResults(mappedResults);
-    } catch (_error) {
-      console.error('Error fetching assessment results:', _error);
+    } catch (error) {
+      console.error('Error fetching assessment results:', error);
     } finally {
       setLoading(false);
     }

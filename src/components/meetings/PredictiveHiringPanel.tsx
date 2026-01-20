@@ -3,10 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, 
-  ChevronDown, RefreshCw, Target, Zap 
+  ChevronDown, RefreshCw, Target, Zap, Users, Briefcase 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

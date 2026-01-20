@@ -26,7 +26,7 @@ interface TargetCompany {
   industry: string | null;
   priority: number | null;
   job_id: string | null;
-  votes: number | null;
+  votes: number;
   company_insider: string | null;
   location: string | null;
   logo_url: string | null;
@@ -35,8 +35,8 @@ interface TargetCompany {
   created_by: string;
   created_at: string;
   enrichment_source?: 'database' | 'clearbit' | 'manual';
-  profiles?: { full_name: string | null } | null;
-  jobs?: { title: string; status: string } | null;
+  profiles?: { full_name: string | null };
+  jobs?: { title: string; status: string };
   target_company_votes?: Array<{ user_id: string; profiles?: { full_name: string | null } }>;
   target_company_comments?: Array<any>;
 }
@@ -203,12 +203,12 @@ export function TargetCompanyTable({
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onVote(company.id, hasVoted ?? false);
+                        onVote(company.id, hasVoted);
                       }}
                       className="gap-1"
                     >
                       <ThumbsUp className="h-3 w-3" />
-                      {company.votes ?? 0}
+                      {company.votes}
                     </Button>
                   </TableCell>
                   <TableCell>

@@ -29,11 +29,6 @@ export interface CalendarEventWithDetection extends UnifiedCalendarEvent {
   hasVideoLink: boolean;
 }
 
-/**
- * Format raw interview type strings into human-readable labels.
- * @param type - Raw interview type string (e.g., 'tqc_intro').
- * @returns Human-readable label (e.g., 'TQC Introduction').
- */
 export function formatInterviewType(type: string): string {
   const types: Record<string, string> = {
     'tqc_intro': 'TQC Introduction',
@@ -44,10 +39,6 @@ export function formatInterviewType(type: string): string {
   return types[type] || type;
 }
 
-/**
- * Get the badge variant based on detection confidence.
- * @param confidence - 'high', 'medium', or 'low'.
- */
 export function getConfidenceBadgeVariant(confidence: string): "default" | "secondary" | "outline" {
   switch (confidence) {
     case 'high':
@@ -61,10 +52,6 @@ export function getConfidenceBadgeVariant(confidence: string): "default" | "seco
   }
 }
 
-/**
- * Get the badge variant based on interview status.
- * @param status - 'confirmed', 'pending_review', etc.
- */
 export function getStatusBadgeVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
   switch (status) {
     case 'confirmed':
@@ -80,12 +67,6 @@ export function getStatusBadgeVariant(status: string): "default" | "secondary" |
   }
 }
 
-/**
- * Enrich a calendar event with detected interview metadata.
- * @param event - The raw calendar event.
- * @param detectedInterviews - Array of detected interviews.
- * @returns The enriched event with linked detection data.
- */
 export function enrichCalendarEventWithDetection(
   event: UnifiedCalendarEvent,
   detectedInterviews: DetectedInterview[]
@@ -99,16 +80,12 @@ export function enrichCalendarEventWithDetection(
     detectedInterview: detection,
     isLinked: !!detection && detection.status !== 'dismissed',
     hasMultipleAttendees: (event.attendees?.length || 0) > 1,
-    hasVideoLink: !!(event.location?.includes('meet.google.com') ||
-      event.location?.includes('zoom.us') ||
-      event.location?.includes('teams.microsoft.com'))
+    hasVideoLink: !!(event.location?.includes('meet.google.com') || 
+                     event.location?.includes('zoom.us') || 
+                     event.location?.includes('teams.microsoft.com'))
   };
 }
 
-/**
- * Get display properties for the interview source badge.
- * @param source - 'booking', 'detected', or 'quantum_club'.
- */
 export function getInterviewSourceBadge(source: 'booking' | 'detected' | 'quantum_club'): {
   label: string;
   variant: "default" | "secondary" | "outline";
@@ -126,12 +103,6 @@ export function getInterviewSourceBadge(source: 'booking' | 'detected' | 'quantu
   }
 }
 
-/**
- * Extract a candidate's email from the event attendees list by cross-referencing applications.
- * @param event - The calendar event.
- * @param applications - List of active applications.
- * @returns The candidate's email if found, otherwise null.
- */
 export function extractCandidateEmailFromEvent(
   event: UnifiedCalendarEvent,
   applications: any[]
@@ -149,12 +120,6 @@ export function extractCandidateEmailFromEvent(
   return null;
 }
 
-/**
- * Suggest a candidate match for an event based on email or name/title matching.
- * @param event - The calendar event.
- * @param applications - List of active applications.
- * @returns Suggestion object with confidence level, or null if no match found.
- */
 export function suggestCandidateFromEvent(
   event: UnifiedCalendarEvent,
   applications: any[]

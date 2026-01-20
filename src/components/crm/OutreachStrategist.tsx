@@ -6,19 +6,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Brain,
-  Send,
-  Sparkles,
-  Target,
-  Mail,
+import { 
+  Brain, 
+  Send, 
+  Sparkles, 
+  Target, 
+  Mail, 
   Clock,
   TrendingUp,
-  Loader2
+  Loader2,
+  MessageSquare
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useMutation } from '@tanstack/react-query';
 import { notify } from '@/lib/notify';
-import { aiService } from '@/services/aiService';
 
 interface Message {
   id: string;
@@ -48,19 +49,22 @@ export function OutreachStrategist() {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      const data = await aiService.generateOutreachStrategy({
-        query: message,
-        context: {
-          previousMessages: messages.slice(-5).map(m => ({ role: m.role, content: m.content }))
+      const { data, error } = await supabase.functions.invoke('generate-outreach-strategy', {
+        body: { 
+          query: message,
+          context: {
+            previousMessages: messages.slice(-5).map(m => ({ role: m.role, content: m.content }))
+          }
         }
       });
+      if (error) throw error;
       return data;
     },
     onSuccess: (data) => {
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: (data as any).response || data.strategy?.messaging_approach || 'Strategy generated.',
+        content: data.response || 'I apologize, but I could not generate a response. Please try again.',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, assistantMessage]);
@@ -130,11 +134,12 @@ export function OutreachStrategist() {
                       </AvatarFallback>
                     </Avatar>
                   )}
-                  <div
-                    className={`max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted/50'
-                      }`}
+                  <div 
+                    className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                      message.role === 'user' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-muted/50'
+                    }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     <p className="text-xs opacity-60 mt-1">
@@ -208,7 +213,7 @@ export function OutreachStrategist() {
                 }
               }}
             />
-            <Button
+            <Button 
               onClick={handleSend}
               disabled={!input.trim() || chatMutation.isPending}
               className="shrink-0"

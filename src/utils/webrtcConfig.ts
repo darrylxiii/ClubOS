@@ -37,7 +37,7 @@ export const validateTURNConfig = async (): Promise<TURNServerHealth> => {
   if (envUrls && envUsername && envCredential) {
     health.isConfigured = true;
     health.isPaidServer = true;
-
+    
     const urls = envUrls.split(',').map((url: string) => url.trim());
     health.servers = urls.length;
 
@@ -51,7 +51,7 @@ export const validateTURNConfig = async (): Promise<TURNServerHealth> => {
     if (health.validationErrors.length === 0) {
       logger.info('[WebRTC Config] ✅ Production TURN servers validated', {
         serverCount: urls.length,
-        urls: urls.map((u: string) => u.split('@')[1] || u) // Hide credentials in logs
+        urls: urls.map(u => u.split('@')[1] || u) // Hide credentials in logs
       });
     }
   } else {
@@ -145,7 +145,7 @@ export const DEFAULT_RTC_CONFIG: RTCConfiguration = {
  * Check if browser supports Insertable Streams for E2E encryption
  */
 export const supportsE2EEncryption = (): boolean => {
-  return typeof RTCRtpSender !== 'undefined' &&
+  return typeof RTCRtpSender !== 'undefined' && 
     'createEncodedStreams' in RTCRtpSender.prototype;
 };
 
@@ -155,14 +155,14 @@ export const supportsE2EEncryption = (): boolean => {
  */
 export const getE2EEConfig = (): RTCConfiguration => {
   const config = { ...DEFAULT_RTC_CONFIG };
-
+  
   // Enable encoded insertable streams for E2EE
   // This is required for the Insertable Streams API
-  // @ts-expect-error - encodedInsertableStreams is not in TypeScript types yet
+  // @ts-ignore - encodedInsertableStreams is not in TypeScript types yet
   config.encodedInsertableStreams = true;
-
+  
   logger.info('[WebRTC Config] 🔒 E2EE configuration enabled with Insertable Streams');
-
+  
   return config;
 };
 
@@ -176,7 +176,7 @@ export const getRTCConfigForConnection = (options?: {
 }): RTCConfiguration => {
   // Start with E2EE config if requested, otherwise default
   const config = options?.enableE2EE ? getE2EEConfig() : { ...DEFAULT_RTC_CONFIG };
-
+  
   if (options?.forceRelay) {
     // Force TURN relay for users behind restrictive firewalls
     config.iceTransportPolicy = 'relay';

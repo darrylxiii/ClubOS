@@ -1,9 +1,10 @@
+import { lazy, Suspense } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { RoleGate } from "@/components/RoleGate";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StageMappingManager } from "@/components/admin/pipeline-settings/StageMappingManager";
 import { DealStageEditor } from "@/components/admin/pipeline-settings/DealStageEditor";
-import { Settings, GitBranch, Layers } from "lucide-react";
+import { Settings, GitBranch, Layers, Loader2 } from "lucide-react";
 
 export default function DealPipelineSettings() {
   return (

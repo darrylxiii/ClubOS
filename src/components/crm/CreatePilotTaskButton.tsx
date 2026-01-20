@@ -27,14 +27,12 @@ interface CreatePilotTaskButtonProps {
   prospect: CRMProspect;
   variant?: 'default' | 'ghost' | 'outline';
   size?: 'default' | 'sm' | 'icon';
-  className?: string;
 }
 
 export function CreatePilotTaskButton({ 
   prospect, 
   variant = 'outline',
   size = 'sm',
-  className,
 }: CreatePilotTaskButtonProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -69,7 +67,7 @@ export function CreatePilotTaskButton({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={variant} size={size} className={className ? `gap-2 ${className}` : "gap-2"}>
+        <Button variant={variant} size={size} className="gap-2">
           <ListTodo className="w-4 h-4" />
           {size !== 'icon' && 'Create Task'}
         </Button>

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Loader2, Percent, Save } from "lucide-react";
@@ -98,7 +99,7 @@ export function PartnerFeeConfig() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {partners?.map((partner: any) => (
+            {partners?.map((partner) => (
               <TableRow key={partner.id}>
                 <TableCell className="font-medium">
                   {partner.company?.name || "Unknown Company"}

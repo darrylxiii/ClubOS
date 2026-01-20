@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface Message {
@@ -22,7 +23,7 @@ export const AICareerChat = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [conversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
@@ -97,15 +98,14 @@ export const AICareerChat = () => {
               assistantMessage += content;
               setMessages([...newMessages, { role: 'assistant', content: assistantMessage }]);
             }
-          } catch (parseErr) {
-            console.error(parseErr);
+          } catch (e) {
             // Incomplete JSON, will try again with next chunk
           }
         }
       }
 
-    } catch (err) {
-      console.error('Error in chat:', err);
+    } catch (error) {
+      console.error('Error in chat:', error);
       toast.error("Failed to get response. Please try again.");
     } finally {
       setIsLoading(false);

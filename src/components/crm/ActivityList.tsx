@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,11 +12,11 @@ import {
   Inbox,
   Plus,
   RefreshCw,
-  Loader2,
 } from 'lucide-react';
 import { useCRMActivities } from '@/hooks/useCRMActivities';
 import { ActivityItem } from './ActivityItem';
 import { ActivityQuickAdd } from './ActivityQuickAdd';
+import type { CRMActivity } from '@/types/crm-activities';
 
 interface ActivityListProps {
   prospectId?: string;
@@ -31,57 +30,38 @@ type FilterType = 'all' | 'due_today' | 'overdue' | 'upcoming' | 'done';
 export function ActivityList({ prospectId, showProspect = true, maxHeight = '400px', className }: ActivityListProps) {
   const [filter, setFilter] = useState<FilterType>('all');
 
-  // Fetch activities with infinite scroll support
-  const {
-    activities,
-    loading,
-    refetch,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage
-  } = useCRMActivities({
+  // Fetch activities based on filter
+  const { activities: allActivities, loading: loadingAll, refetch } = useCRMActivities({ 
     prospectId,
-    limit: 20,
-    // Pass precise filters to the hook
-    dueToday: filter === 'due_today',
-    overdue: filter === 'overdue',
-    upcoming: filter === 'upcoming',
     done: filter === 'done' ? true : filter === 'all' ? undefined : false,
   });
 
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  const rowVirtualizer = useVirtualizer({
-    count: hasNextPage ? activities.length + 1 : activities.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 100,
-    overscan: 5,
+  // Filter locally for better UX
+  const today = new Date().toISOString().split('T')[0];
+  
+  const filteredActivities = allActivities.filter(activity => {
+    switch (filter) {
+      case 'due_today':
+        return activity.due_date === today && !activity.is_done;
+      case 'overdue':
+        return activity.due_date && activity.due_date < today && !activity.is_done;
+      case 'upcoming':
+        return activity.due_date && activity.due_date > today && !activity.is_done;
+      case 'done':
+        return activity.is_done;
+      default:
+        return true;
+    }
   });
 
-  // Infinite Scroll Trigger
-  useEffect(() => {
-    const [lastItem] = [...rowVirtualizer.getVirtualItems()].reverse();
-    if (!lastItem) return;
+  // Calculate counts for badges
+  const overdueCount = allActivities.filter(a => a.due_date && a.due_date < today && !a.is_done).length;
+  const dueTodayCount = allActivities.filter(a => a.due_date === today && !a.is_done).length;
 
-    if (
-      lastItem.index >= activities.length - 1 &&
-      hasNextPage &&
-      !isFetchingNextPage
-    ) {
-      fetchNextPage();
-    }
-  }, [
-    hasNextPage,
-    fetchNextPage,
-    activities.length,
-    isFetchingNextPage,
-    rowVirtualizer.getVirtualItems(),
-  ]);
-
-  const filters: { key: FilterType; label: string; icon: React.ReactNode; color?: string }[] = [
+  const filters: { key: FilterType; label: string; icon: React.ReactNode; count?: number; color?: string }[] = [
     { key: 'all', label: 'All', icon: <Inbox className="w-4 h-4" /> },
-    { key: 'due_today', label: 'Today', icon: <Clock className="w-4 h-4" />, color: 'text-yellow-400' },
-    { key: 'overdue', label: 'Overdue', icon: <AlertTriangle className="w-4 h-4" />, color: 'text-red-400' },
+    { key: 'due_today', label: 'Today', icon: <Clock className="w-4 h-4" />, count: dueTodayCount, color: 'text-yellow-400' },
+    { key: 'overdue', label: 'Overdue', icon: <AlertTriangle className="w-4 h-4" />, count: overdueCount, color: 'text-red-400' },
     { key: 'upcoming', label: 'Upcoming', icon: <Calendar className="w-4 h-4" /> },
     { key: 'done', label: 'Done', icon: <CheckCircle2 className="w-4 h-4" /> },
   ];
@@ -91,7 +71,7 @@ export function ActivityList({ prospectId, showProspect = true, maxHeight = '400
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {filters.map(({ key, label, icon, color }) => (
+          {filters.map(({ key, label, icon, count, color }) => (
             <Button
               key={key}
               variant={filter === key ? 'default' : 'ghost'}
@@ -104,15 +84,23 @@ export function ActivityList({ prospectId, showProspect = true, maxHeight = '400
             >
               {icon}
               {label}
+              {count !== undefined && count > 0 && (
+                <span className={cn(
+                  'ml-1 text-xs px-1.5 py-0.5 rounded-full',
+                  filter === key ? 'bg-primary-foreground/20' : 'bg-muted'
+                )}>
+                  {count}
+                </span>
+              )}
             </Button>
           ))}
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => refetch()} aria-label="Refresh activities">
+          <Button variant="ghost" size="icon" onClick={refetch} aria-label="Refresh activities">
             <RefreshCw className="w-4 h-4" aria-hidden="true" />
           </Button>
-          <ActivityQuickAdd
+          <ActivityQuickAdd 
             prospectId={prospectId}
             onSuccess={refetch}
             trigger={
@@ -126,8 +114,8 @@ export function ActivityList({ prospectId, showProspect = true, maxHeight = '400
       </div>
 
       {/* Activity List */}
-      <ScrollArea viewportRef={parentRef} style={{ maxHeight }} className="pr-2">
-        {loading && activities.length === 0 ? (
+      <ScrollArea style={{ maxHeight }} className="pr-2">
+        {loadingAll ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
               <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-border/30">
@@ -139,7 +127,7 @@ export function ActivityList({ prospectId, showProspect = true, maxHeight = '400
               </div>
             ))}
           </div>
-        ) : activities.length === 0 ? (
+        ) : filteredActivities.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -155,63 +143,37 @@ export function ActivityList({ prospectId, showProspect = true, maxHeight = '400
               )}
             </div>
             <h3 className="font-semibold mb-1">
-              {filter === 'done'
-                ? 'No completed activities'
-                : filter === 'overdue'
-                  ? 'All caught up!'
+              {filter === 'done' 
+                ? 'No completed activities' 
+                : filter === 'overdue' 
+                  ? 'All caught up!' 
                   : 'No activities'}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {filter === 'overdue'
+              {filter === 'overdue' 
                 ? 'You have no overdue activities'
                 : 'Schedule your first activity to get started'}
             </p>
           </motion.div>
         ) : (
-          <div
-            style={{
-              height: `${rowVirtualizer.getTotalSize()}px`,
-              width: '100%',
-              position: 'relative',
-            }}
-          >
-            {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-              const isLoaderRow = virtualItem.index > activities.length - 1;
-              const activity = activities[virtualItem.index];
-
-              return (
-                <div
-                  key={virtualItem.key}
-                  data-index={virtualItem.index}
-                  ref={rowVirtualizer.measureElement}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
+          <AnimatePresence mode="popLayout">
+            <div className="space-y-2">
+              {filteredActivities.map((activity, index) => (
+                <motion.div
+                  key={activity.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  <div style={{ paddingBottom: '8px' }}>
-                    {isLoaderRow ? (
-                      <div className="flex justify-center p-4">
-                        {isFetchingNextPage ? (
-                          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                        ) : hasNextPage ? (
-                          <span className="text-xs text-muted-foreground">Load more</span>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <ActivityItem
-                        activity={activity}
-                        showProspect={showProspect}
-                      />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  <ActivityItem 
+                    activity={activity} 
+                    showProspect={showProspect}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </AnimatePresence>
         )}
       </ScrollArea>
     </div>

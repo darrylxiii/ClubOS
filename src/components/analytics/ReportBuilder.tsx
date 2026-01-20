@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Play, Save } from "lucide-react";
+import { Plus, Play, Save, Trash2 } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { SavedReportsList } from "./SavedReportsList";

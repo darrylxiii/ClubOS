@@ -9,13 +9,6 @@ export interface EventPosition {
   zIndex: number;
 }
 
-/**
- * Calculate the vertical position and height of a single event.
- * @param event - The calendar event.
- * @param hourHeight - Height of one hour in pixels (default: 60).
- * @param dayStartHour - The hour the calendar view starts (default: 8).
- * @returns CSS positioning properties (top, height).
- */
 export function calculateEventPosition(
   event: UnifiedCalendarEvent,
   hourHeight: number = 60,
@@ -38,37 +31,31 @@ export function calculateEventPosition(
   };
 }
 
-/**
- * Group events that overlap in time on a specific date.
- * @param events - List of events.
- * @param date - The specific date to check overlap for.
- * @returns Array of overlapping event groups.
- */
 export function getOverlappingEvents(
   events: UnifiedCalendarEvent[],
   date: Date
 ): UnifiedCalendarEvent[][] {
-  const dayEvents = events.filter(event =>
+  const dayEvents = events.filter(event => 
     isSameDay(startOfDay(event.start), startOfDay(date))
   ).sort((a, b) => a.start.getTime() - b.start.getTime());
 
   const groups: UnifiedCalendarEvent[][] = [];
-
+  
   dayEvents.forEach(event => {
     let placed = false;
-
+    
     for (const group of groups) {
-      const hasOverlap = group.some(e =>
+      const hasOverlap = group.some(e => 
         (event.start < e.end && event.end > e.start)
       );
-
+      
       if (!hasOverlap) {
         group.push(event);
         placed = true;
         break;
       }
     }
-
+    
     if (!placed) {
       groups.push([event]);
     }
@@ -77,13 +64,6 @@ export function getOverlappingEvents(
   return groups;
 }
 
-/**
- * Calculate the visual layout for overlapping events (columns).
- * @param events - List of events.
- * @param hourHeight - Height of one hour in pixels.
- * @param dayStartHour - Start hour.
- * @returns Map of event IDs to their calculated CSS positions.
- */
 export function calculateOverlappingPositions(
   events: UnifiedCalendarEvent[],
   hourHeight: number = 60,
@@ -94,20 +74,20 @@ export function calculateOverlappingPositions(
 
   events.forEach(event => {
     let placed = false;
-
+    
     for (let i = 0; i < columns.length; i++) {
       const column = columns[i];
-      const hasOverlap = column.some(e =>
+      const hasOverlap = column.some(e => 
         (event.start < e.end && event.end > e.start)
       );
-
+      
       if (!hasOverlap) {
         column.push(event);
         placed = true;
         break;
       }
     }
-
+    
     if (!placed) {
       columns.push([event]);
     }
@@ -130,11 +110,6 @@ export function calculateOverlappingPositions(
   return positions;
 }
 
-/**
- * Determine event color based on the source.
- * @param event - The calendar event.
- * @returns CSS color string.
- */
 export function getEventColor(event: UnifiedCalendarEvent): string {
   if (event.source === 'quantum_club') {
     return 'hsl(var(--primary))';
@@ -148,14 +123,9 @@ export function getEventColor(event: UnifiedCalendarEvent): string {
   return 'hsl(var(--muted))';
 }
 
-/**
- * Group events by their start date (ISO string).
- * @param events - List of events.
- * @returns Map of date string to events array.
- */
 export function groupEventsByDate(events: UnifiedCalendarEvent[]): Map<string, UnifiedCalendarEvent[]> {
   const grouped = new Map<string, UnifiedCalendarEvent[]>();
-
+  
   events.forEach(event => {
     const dateKey = startOfDay(event.start).toISOString();
     if (!grouped.has(dateKey)) {

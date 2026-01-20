@@ -8,8 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Square } from "lucide-react";
+import { Square, Pause, ChevronDown } from "lucide-react";
 import { useTimeTracking, formatDuration } from "@/hooks/useTimeTracking";
+import { cn } from "@/lib/utils";
 
 export function RunningTimerHeader() {
   const { runningEntry, projects, stopTimer, switchProject } = useTimeTracking();

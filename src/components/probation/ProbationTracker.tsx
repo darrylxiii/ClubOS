@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -27,11 +27,12 @@ import {
   RefreshCw,
   Bell,
   Calendar,
+  User,
   Building2,
   Loader2,
 } from 'lucide-react';
 import { useProbationAlerts, useAcknowledgeProbationAlert, useUpdateProbationStatus, useProbationStats } from '@/hooks/useProbationAlerts';
-import { format, differenceInDays } from 'date-fns';
+import { formatDistanceToNow, format, differenceInDays } from 'date-fns';
 
 interface ProbationTrackerProps {
   companyId?: string;

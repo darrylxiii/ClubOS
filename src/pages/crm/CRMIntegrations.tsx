@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InstantlyCSVImporter } from "@/components/crm/InstantlyCSVImporter";
 import { CompanyEnrichment } from "@/components/crm/CompanyEnrichment";
 import { EmailContactLookup } from "@/components/crm/EmailContactLookup";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileSpreadsheet, Sparkles, Mail, Plug, CheckCircle2 } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";

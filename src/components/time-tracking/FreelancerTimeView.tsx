@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { DollarSign, Clock, Briefcase, TrendingUp } from "lucide-react";
-import { secondsToHours } from "@/hooks/useTimeTracking";
+import { formatDuration, secondsToHours } from "@/hooks/useTimeTracking";
 
 export function FreelancerTimeView() {
   const { user } = useAuth();

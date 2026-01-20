@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { aiService } from '@/services/aiService';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,10 +10,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Play, Download, Share2, AlertTriangle, Star,
-  CheckCircle2, Clock, User, ArrowLeft,
-  RefreshCw, FileText, Mic, Video, Scissors, Mail, Sparkles
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { 
+  Play, Download, Share2, AlertTriangle, Star, 
+  CheckCircle2, Clock, User, ChevronDown, ArrowLeft,
+  RefreshCw, FileText, Mic, Video, BarChart3, Scissors, Mail, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -24,7 +24,6 @@ import { SpeakingMetricsPanel } from './SpeakingMetricsPanel';
 import { RecordingClipCreator } from './RecordingClipCreator';
 import { GenerateDossierButton } from './GenerateDossierButton';
 import { AIHighlightClips } from './AIHighlightClips';
-import { generateMeetingPDF } from '@/utils/generateMeetingPDF';
 
 export default function RecordingPlaybackPage() {
   const { recordingId } = useParams();
@@ -36,7 +35,7 @@ export default function RecordingPlaybackPage() {
   const [retriggeringAnalysis, setRetriggeringAnalysis] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-
+  
   // Clip creator state
   const [clipDialogOpen, setClipDialogOpen] = useState(false);
   const [clipData, setClipData] = useState({ startMs: 0, endMs: 0, text: '' });
@@ -66,7 +65,7 @@ export default function RecordingPlaybackPage() {
             .select('title, meeting_type, scheduled_start, host_id')
             .eq('id', rec.meeting_id)
             .single();
-
+          
           setRecording({ ...rec, meeting: meetingData });
         } else if (rec.live_channel_id) {
           const { data: channelData } = await supabase
@@ -74,10 +73,10 @@ export default function RecordingPlaybackPage() {
             .select('name, channel_type')
             .eq('id', rec.live_channel_id)
             .single();
-
-          setRecording({
-            ...rec,
-            meeting: {
+          
+          setRecording({ 
+            ...rec, 
+            meeting: { 
               title: channelData?.name || 'Live Hub Recording',
               meeting_type: channelData?.channel_type || 'voice',
               scheduled_start: rec.created_at
@@ -97,11 +96,15 @@ export default function RecordingPlaybackPage() {
 
   const retriggerAnalysis = async () => {
     if (!recording) return;
-
+    
     setRetriggeringAnalysis(true);
     try {
-      await aiService.analyzeRecording({ recordingId: recording.id });
+      const { error } = await supabase.functions.invoke('analyze-meeting-recording-advanced', {
+        body: { recordingId: recording.id }
+      });
 
+      if (error) throw error;
+      
       toast.success('Analysis started - refresh in a few minutes');
       setRecording((prev: any) => ({ ...prev, processing_status: 'processing' }));
     } catch (error) {
@@ -114,7 +117,7 @@ export default function RecordingPlaybackPage() {
 
   const sendSummaryEmail = async () => {
     if (!recording) return;
-
+    
     setSendingEmail(true);
     try {
       const { error } = await supabase.functions.invoke('send-meeting-summary-email', {
@@ -167,7 +170,7 @@ export default function RecordingPlaybackPage() {
       toast.error('No transcript available');
       return;
     }
-
+    
     const blob = new Blob([recording.transcript], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -178,45 +181,6 @@ export default function RecordingPlaybackPage() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success('Transcript downloaded');
-  };
-
-  const handleExportPDF = () => {
-    if (!recording) return;
-
-    // Prepare data
-    const aiSummary = recording.ai_summary || {};
-    const evalData = aiSummary.candidateEvaluation || {};
-    const actionItems = (aiSummary.actionItems || recording.action_items || []).map((item: any) => ({
-      task: item.task,
-      owner: item.owner,
-      deadline: item.deadline,
-      priority: item.priority
-    }));
-
-    const keyMoments = (aiSummary.keyMoments || recording.key_moments || []).map((moment: any) => ({
-      timestamp: moment.timestamp,
-      description: moment.description,
-      type: moment.type
-    }));
-
-    try {
-      generateMeetingPDF({
-        title: recording.title || recording.meeting?.title || 'Meeting Report',
-        date: recording.meeting?.scheduled_start
-          ? format(new Date(recording.meeting.scheduled_start), 'MMMM d, yyyy')
-          : format(new Date(recording.created_at), 'MMMM d, yyyy'),
-        duration: recording.duration_seconds || 0,
-        participants: recording.participants || [],
-        summary: aiSummary.executiveSummary || recording.executive_summary || '',
-        actionItems,
-        keyMoments,
-        transcript: recording.transcript
-      });
-      toast.success('PDF Report Generated');
-    } catch (error) {
-      console.error('PDF Generation Error:', error);
-      toast.error('Failed to generate PDF');
-    }
   };
 
   if (loading) {
@@ -263,7 +227,7 @@ export default function RecordingPlaybackPage() {
   const sourceType = recording.source_type === 'live_hub' ? 'Live Hub' : 'TQC Meeting';
   const transcriptJson = recording.transcript_json || null;
   const speakingMetrics = recording.speaking_metrics || null;
-
+  
   // Build participants for metrics panel
   const participants = (recording.participants || []).map((name: string, idx: number) => ({
     id: `participant-${idx}`,
@@ -295,7 +259,7 @@ export default function RecordingPlaybackPage() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <GenerateDossierButton
+              <GenerateDossierButton 
                 recordingId={recording.id}
                 meetingId={recording.meeting_id}
               />
@@ -307,17 +271,17 @@ export default function RecordingPlaybackPage() {
                 <FileText className="h-4 w-4 mr-2" />
                 Export Transcript
               </Button>
-              <Button onClick={handleExportPDF} variant="outline" size="sm">
+              <Button onClick={() => toast.info('PDF export coming soon')} variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 Export PDF
               </Button>
             </div>
           </div>
-
+          
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              {recording.meeting?.scheduled_start
+              {recording.meeting?.scheduled_start 
                 ? format(new Date(recording.meeting.scheduled_start), 'MMM d, yyyy')
                 : format(new Date(recording.created_at), 'MMM d, yyyy')}
             </span>
@@ -346,8 +310,8 @@ export default function RecordingPlaybackPage() {
                       <p className="text-muted-foreground text-center">
                         Video playback failed. The file may be corrupted or in an unsupported format.
                       </p>
-                      <Button
-                        variant="outline"
+                      <Button 
+                        variant="outline" 
                         onClick={() => {
                           const a = document.createElement('a');
                           a.href = recording.recording_url;
@@ -360,10 +324,10 @@ export default function RecordingPlaybackPage() {
                       </Button>
                     </div>
                   ) : (
-                    <video
+                    <video 
                       ref={videoRef}
-                      src={recording.recording_url}
-                      controls
+                      src={recording.recording_url} 
+                      controls 
                       className="w-full rounded-lg"
                       onTimeUpdate={(e) => setCurrentTimeMs(e.currentTarget.currentTime * 1000)}
                       onError={() => setVideoError(true)}
@@ -384,8 +348,8 @@ export default function RecordingPlaybackPage() {
                 <AlertTitle>Analysis Pending</AlertTitle>
                 <AlertDescription className="flex items-center justify-between">
                   <span>AI analysis has not started yet.</span>
-                  <Button
-                    size="sm"
+                  <Button 
+                    size="sm" 
                     onClick={retriggerAnalysis}
                     disabled={retriggeringAnalysis}
                   >
@@ -551,7 +515,7 @@ export default function RecordingPlaybackPage() {
                       <ScrollArea className="h-96">
                         <div className="space-y-3">
                           {(analysis.keyMoments || recording.key_moments).map((moment: any, idx: number) => (
-                            <div
+                            <div 
                               key={idx}
                               className="flex gap-3 p-3 hover:bg-muted/50 cursor-pointer rounded-lg border"
                               onClick={() => moment.timestamp_ms && handleSeek(moment.timestamp_ms)}
@@ -566,8 +530,8 @@ export default function RecordingPlaybackPage() {
                                   </blockquote>
                                 )}
                               </div>
-                              <Button
-                                variant="ghost"
+                              <Button 
+                                variant="ghost" 
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -610,12 +574,13 @@ export default function RecordingPlaybackPage() {
                             </div>
                             <div className="flex items-center gap-1 mb-2">
                               {[1, 2, 3, 4, 5].map((i) => (
-                                <Star
+                                <Star 
                                   key={i}
-                                  className={`h-4 w-4 ${i <= (skill.rating || 0)
-                                    ? 'fill-primary text-primary'
-                                    : 'text-muted'
-                                    }`}
+                                  className={`h-4 w-4 ${
+                                    i <= (skill.rating || 0)
+                                      ? 'fill-primary text-primary' 
+                                      : 'text-muted'
+                                  }`}
                                 />
                               ))}
                             </div>
@@ -632,8 +597,8 @@ export default function RecordingPlaybackPage() {
 
               {/* Speaking Metrics Tab */}
               <TabsContent value="metrics" className="space-y-4">
-                <SpeakingMetricsPanel
-                  metrics={speakingMetrics}
+                <SpeakingMetricsPanel 
+                  metrics={speakingMetrics} 
                   participants={participants}
                 />
               </TabsContent>
@@ -713,18 +678,18 @@ export default function RecordingPlaybackPage() {
                 <CardTitle className="text-base">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
                   size="sm"
                   onClick={() => setClipDialogOpen(true)}
                 >
                   <Scissors className="h-4 w-4 mr-2" />
                   Create Clip
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
                   size="sm"
                   onClick={sendSummaryEmail}
                   disabled={sendingEmail || !recording.ai_summary}
@@ -732,9 +697,9 @@ export default function RecordingPlaybackPage() {
                   <Mail className="h-4 w-4 mr-2" />
                   Email Summary
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
                   size="sm"
                   onClick={() => toast.info('Coming soon')}
                 >

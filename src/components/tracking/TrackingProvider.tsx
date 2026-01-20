@@ -25,7 +25,7 @@ export function TrackingProvider({ children, enabled = true, sampleRate = 1 }: T
           });
           observer.observe({ entryTypes: ['paint', 'largest-contentful-paint', 'first-input'] });
           return () => observer.disconnect();
-        } catch (_e) {
+        } catch (e) {
           // Observer not supported
         }
       }

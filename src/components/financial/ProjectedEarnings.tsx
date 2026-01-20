@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,8 +50,8 @@ export function ProjectedEarnings() {
     },
   });
 
-  const totalProjected = projections?.reduce((sum: number, p: any) => sum + Number(p.projected_fee_amount), 0) || 0;
-  const highConfidence = projections?.filter((p: any) => p.confidence_score >= 0.7).reduce((sum: number, p: any) => sum + Number(p.projected_fee_amount), 0) || 0;
+  const totalProjected = projections?.reduce((sum, p) => sum + Number(p.projected_fee_amount), 0) || 0;
+  const highConfidence = projections?.filter(p => p.confidence_score >= 0.7).reduce((sum, p) => sum + Number(p.projected_fee_amount), 0) || 0;
 
   const getConfidenceBadge = (score: number) => {
     if (score >= 0.8) return <Badge variant="default">High</Badge>;
@@ -141,7 +142,7 @@ export function ProjectedEarnings() {
                   </TableCell>
                 </TableRow>
               ) : (
-                projections?.map((projection: any) => (
+                projections?.map((projection) => (
                   <TableRow key={projection.id}>
                     <TableCell className="font-medium">
                       {projection.candidate?.full_name || projection.candidate?.email || "Unknown"}

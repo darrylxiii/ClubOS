@@ -32,8 +32,8 @@ const getSharedAudioContext = async (): Promise<AudioContext> => {
     try {
       await sharedAudioContext.resume();
       console.log('[RemoteAudio] Resumed shared AudioContext');
-    } catch (_e) {
-      console.warn('[RemoteAudio] Could not resume AudioContext:', _e);
+    } catch (e) {
+      console.warn('[RemoteAudio] Could not resume AudioContext:', e);
     }
   }
   
@@ -106,7 +106,7 @@ export function RemoteAudioPlayer({
     if (sourceNodeRef.current) {
       try {
         sourceNodeRef.current.disconnect();
-      } catch (_e) {
+      } catch (e) {
         // Ignore disconnect errors
       }
       sourceNodeRef.current = null;
@@ -115,7 +115,7 @@ export function RemoteAudioPlayer({
     if (gainNodeRef.current) {
       try {
         gainNodeRef.current.disconnect();
-      } catch (_e) {
+      } catch (e) {
         // Ignore disconnect errors
       }
       gainNodeRef.current = null;
@@ -124,7 +124,7 @@ export function RemoteAudioPlayer({
     if (analyzerRef.current) {
       try {
         analyzerRef.current.disconnect();
-      } catch (_e) {
+      } catch (e) {
         // Ignore disconnect errors  
       }
       analyzerRef.current = null;
@@ -392,8 +392,8 @@ export function RemoteAudioPlayer({
           await audioRef.current.play();
           setIsPlaying(true);
           console.log(`[RemoteAudio] Started playing after user interaction for ${userId}`);
-        } catch (_e) {
-          console.warn(`[RemoteAudio] Still cannot play after interaction for ${userId}:`, _e);
+        } catch (e) {
+          console.warn(`[RemoteAudio] Still cannot play after interaction for ${userId}:`, e);
         }
       }
       
@@ -401,7 +401,7 @@ export function RemoteAudioPlayer({
       if (sharedAudioContext?.state === 'suspended') {
         try {
           await sharedAudioContext.resume();
-        } catch (_e) {
+        } catch (e) {
           // Ignore
         }
       }
@@ -429,8 +429,8 @@ export function RemoteAudioPlayer({
           try {
             await sharedAudioContext.resume();
             console.log(`[RemoteAudio] Resumed AudioContext on visibility change`);
-          } catch (_e) {
-            console.warn(`[RemoteAudio] Could not resume AudioContext:`, _e);
+          } catch (e) {
+            console.warn(`[RemoteAudio] Could not resume AudioContext:`, e);
           }
         }
         
@@ -439,7 +439,7 @@ export function RemoteAudioPlayer({
           try {
             await audioRef.current.play();
             setIsPlaying(true);
-          } catch (_e) {
+          } catch (e) {
             // Ignore
           }
         }

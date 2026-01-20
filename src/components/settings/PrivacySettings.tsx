@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Shield, Ban, X } from 'lucide-react';
+import { Shield, Ban, X, AlertTriangle } from 'lucide-react';
 import { StealthModeToggle } from '@/components/StealthModeToggle';
 import { CompanySearch } from '@/components/CompanySearch';
 

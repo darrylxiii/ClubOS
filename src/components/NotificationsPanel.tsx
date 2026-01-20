@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { NotificationCard } from './NotificationCard';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +19,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { T } from '@/components/T';
 
-interface AppNotification {
+interface Notification {
   id: string;
   user_id: string;
   title: string;
@@ -28,7 +29,7 @@ interface AppNotification {
   is_read: boolean;
   is_archived: boolean;
   action_url: string | null;
-  metadata: unknown;
+  metadata: any;
   created_at: string;
   read_at: string | null;
 }
@@ -37,7 +38,7 @@ export const NotificationsPanel = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
 
@@ -69,14 +70,7 @@ export const NotificationsPanel = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-
-      const normalized: AppNotification[] = (data || []).map((n: any) => ({
-        ...n,
-        category: n.category ?? 'general',
-        is_archived: n.is_archived ?? false,
-      }));
-
-      setNotifications(normalized);
+      setNotifications(data || []);
     } catch (error) {
       console.error('Error loading notifications:', error);
       toast.error('Failed to load notifications');
@@ -99,14 +93,8 @@ export const NotificationsPanel = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          const next: AppNotification = {
-            ...(payload.new as any),
-            category: (payload.new as any).category ?? 'general',
-            is_archived: (payload.new as any).is_archived ?? false,
-          };
-
-          setNotifications((prev) => [next, ...prev]);
-          toast.info(next.title);
+          setNotifications(prev => [payload.new as Notification, ...prev]);
+          toast.info((payload.new as any).title);
         }
       )
       .subscribe();
@@ -214,7 +202,7 @@ export const NotificationsPanel = () => {
     }
   };
 
-  const handleNotificationClick = async (notification: AppNotification) => {
+  const handleNotificationClick = async (notification: Notification) => {
     if (!notification.is_read) {
       await markAsRead(notification.id);
     }
@@ -231,10 +219,10 @@ export const NotificationsPanel = () => {
 
   const groupedNotifications = useMemo(() => {
     const groups = {
-      today: [] as AppNotification[],
-      yesterday: [] as AppNotification[],
-      thisWeek: [] as AppNotification[],
-      older: [] as AppNotification[]
+      today: [] as Notification[],
+      yesterday: [] as Notification[],
+      thisWeek: [] as Notification[],
+      older: [] as Notification[]
     };
 
     notifications.forEach(n => {
@@ -375,15 +363,15 @@ function VirtualizedNotificationList({
   deleteNotification,
   handleNotificationClick,
 }: {
-  groupedNotifications: Record<string, AppNotification[]>;
+  groupedNotifications: Record<string, Notification[]>;
   markAsRead: (id: string) => Promise<void>;
   archiveNotification: (id: string) => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
-  handleNotificationClick: (notification: AppNotification) => Promise<void>;
+  handleNotificationClick: (notification: Notification) => Promise<void>;
 }) {
   // Flatten notifications for virtualization
   const flatItems = useMemo(() => {
-    const items: Array<{ type: 'header'; period: string; count: number } | { type: 'notification'; notification: AppNotification }> = [];
+    const items: Array<{ type: 'header'; period: string; count: number } | { type: 'notification'; notification: Notification }> = [];
     
     Object.entries(groupedNotifications).forEach(([period, notifications]) => {
       if (notifications.length > 0) {

@@ -3,22 +3,22 @@
  * Centralizes all status definitions across domains for consistent styling and behavior
  */
 
-import {
-  CheckCircle, XCircle, Clock, AlertCircle, Archive,
+import { 
+  CheckCircle, XCircle, Clock, AlertCircle, Archive, 
   FileEdit, Loader2, CloudOff, Ban, ShieldAlert, Eye,
-  Send, ThumbsUp, Briefcase, Star,
-  Package, DollarSign, Mail, Video
+  Send, Users, ThumbsUp, ThumbsDown, Briefcase, Star,
+  Package, DollarSign, Mail, Phone, Video
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 // ============= Status Domain Types =============
 
-export type StatusDomain =
-  | "application"
-  | "job"
-  | "sync"
-  | "account"
-  | "asset"
+export type StatusDomain = 
+  | "application" 
+  | "job" 
+  | "sync" 
+  | "account" 
+  | "asset" 
   | "invoice"
   | "booking"
   | "referral";
@@ -34,12 +34,12 @@ export interface StatusConfig {
 
 // ============= Application Status =============
 
-export type ApplicationStatus =
-  | "applied"
-  | "screening"
-  | "interview"
-  | "offer"
-  | "rejected"
+export type ApplicationStatus = 
+  | "applied" 
+  | "screening" 
+  | "interview" 
+  | "offer" 
+  | "rejected" 
   | "hired"
   | "withdrawn";
 
@@ -335,7 +335,7 @@ export function deriveSyncStatus(options: {
   isPending?: boolean;
 }): SyncStatus {
   const { isSyncing, isConnected = true, hasError, isPending } = options;
-
+  
   if (!isConnected) return "offline";
   if (isSyncing) return "syncing";
   if (hasError) return "error";
@@ -348,7 +348,7 @@ export function deriveSyncStatus(options: {
  */
 export function normalizeApplicationStatus(status: string): ApplicationStatus {
   const normalized = status.toLowerCase().replace(/[_-]/g, "");
-
+  
   const mapping: Record<string, ApplicationStatus> = {
     applied: "applied",
     new: "applied",
@@ -365,13 +365,13 @@ export function normalizeApplicationStatus(status: string): ApplicationStatus {
     withdrawn: "withdrawn",
     cancelled: "withdrawn",
   };
-
+  
   return mapping[normalized] || "applied";
 }
 
 export function normalizeJobStatus(status: string): JobStatus {
   const normalized = status.toLowerCase();
-
+  
   const mapping: Record<string, JobStatus> = {
     draft: "draft",
     published: "published",
@@ -382,6 +382,6 @@ export function normalizeJobStatus(status: string): JobStatus {
     archived: "archived",
     inactive: "archived",
   };
-
+  
   return mapping[normalized] || "draft";
 }

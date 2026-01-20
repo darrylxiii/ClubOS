@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, Plus, Settings, Trash2, Copy, ExternalLink, BarChart3, AlertCircle } from "lucide-react";
+import { Calendar, Clock, Link2, Plus, Settings, Trash2, Copy, ExternalLink, BarChart3, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -34,14 +34,14 @@ interface BookingLink {
   title: string;
   description: string | null;
   duration_minutes: number;
-  buffer_before_minutes: number | null;
-  buffer_after_minutes: number | null;
-  advance_booking_days: number | null;
-  min_notice_hours: number | null;
-  is_active: boolean | null;
+  buffer_before_minutes: number;
+  buffer_after_minutes: number;
+  advance_booking_days: number;
+  min_notice_hours: number;
+  is_active: boolean;
   color: string;
   primary_calendar_id: string | null;
-  enable_club_ai: boolean | null;
+  enable_club_ai: boolean;
   created_at: string;
 }
 
@@ -49,7 +49,7 @@ interface CalendarConnection {
   id: string;
   provider: string;
   email: string;
-  is_active: boolean | null;
+  is_active: boolean;
 }
 
 interface BookingStats {
@@ -120,7 +120,7 @@ export default function BookingManagement() {
       toast.error("Failed to load booking links");
       return;
     }
-    setBookingLinks((data || []) as unknown as BookingLink[]);
+    setBookingLinks(data || []);
   };
 
   const loadCalendars = async () => {
@@ -134,7 +134,7 @@ export default function BookingManagement() {
       toast.error("Failed to load calendar connections");
       return;
     }
-    setCalendars((data || []) as unknown as CalendarConnection[]);
+    setCalendars(data || []);
   };
 
   const loadStats = async () => {
@@ -268,12 +268,12 @@ export default function BookingManagement() {
       title: link.title,
       description: link.description || "",
       duration_minutes: link.duration_minutes,
-      buffer_before_minutes: link.buffer_before_minutes ?? 0,
-      buffer_after_minutes: link.buffer_after_minutes ?? 0,
-      advance_booking_days: link.advance_booking_days ?? 30,
-      min_notice_hours: link.min_notice_hours ?? 24,
+      buffer_before_minutes: link.buffer_before_minutes,
+      buffer_after_minutes: link.buffer_after_minutes,
+      advance_booking_days: link.advance_booking_days,
+      min_notice_hours: link.min_notice_hours,
       color: link.color,
-      enable_club_ai: link.enable_club_ai ?? false,
+      enable_club_ai: link.enable_club_ai,
       primary_calendar_id: link.primary_calendar_id || ""
     });
   };
@@ -539,8 +539,8 @@ export default function BookingManagement() {
                     </div>
                     <div className="mt-4">
                       <Switch
-                        checked={link.is_active ?? false}
-                        onCheckedChange={() => toggleLinkStatus(link.id, link.is_active ?? false)}
+                        checked={link.is_active}
+                        onCheckedChange={() => toggleLinkStatus(link.id, link.is_active)}
                       />
                       <span className="ml-2 text-sm">
                         {link.is_active ? "Accepting bookings" : "Paused"}

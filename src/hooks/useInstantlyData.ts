@@ -49,7 +49,7 @@ export interface InstantlyLead {
 // ... (rest of file)
 
 // ... inside fetchLeads
-const query = supabase
+let query = supabase
   .from('crm_prospects')
   .select('id, email, first_name, last_name, company_name, stage, lead_score, deal_value, currency, instantly_lead_id, last_opened_at, last_clicked_at, last_replied_at, bounced_at, is_interested, campaign_id, created_at')
   .not('instantly_lead_id', 'is', null)

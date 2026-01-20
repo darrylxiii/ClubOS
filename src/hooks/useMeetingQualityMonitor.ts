@@ -58,7 +58,7 @@ export function useMeetingQualityMonitor({
     let totalJitter = 0;
     let totalBitrate = 0;
     let totalVideoBitrate = 0;
-    const connectionStates: string[] = [];
+    let connectionStates: string[] = [];
     let codec: string | undefined;
     let turnUsed = false;
     let count = 0;

@@ -11,8 +11,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Download, Share2, AlertTriangle, Star, 
-  CheckCircle2, Clock, User, ChevronDown, ArrowLeft
+import { 
+  Play, Download, Share2, AlertTriangle, Star, 
+  CheckCircle2, Clock, User, Briefcase, ChevronDown, ArrowLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

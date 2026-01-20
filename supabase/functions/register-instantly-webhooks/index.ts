@@ -1,14 +1,17 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { 
   listWebhooks, 
   createWebhook, 
-  deleteWebhook,
+  deleteWebhook, 
+  INSTANTLY_WEBHOOK_EVENTS,
   type InstantlyWebhookEvent 
 } from "../_shared/instantly-client.ts";
-import { publicCorsHeaders } from "../_shared/cors-config.ts";
 
-const corsHeaders = publicCorsHeaders;
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {

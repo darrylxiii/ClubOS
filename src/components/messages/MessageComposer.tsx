@@ -9,6 +9,7 @@ import {
   Music,
 } from "lucide-react";
 import { useState, useRef, KeyboardEvent } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { notify } from "@/lib/notify";
 import { EnhancedEmojiPicker } from "./EnhancedEmojiPicker";
 import { GifPicker } from "./GifPicker";

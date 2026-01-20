@@ -1,10 +1,9 @@
-import { memo, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   FileText, Download, ExternalLink, Link as LinkIcon, 
-  Plus, Github, Globe 
+  Plus, Linkedin, Github, Globe 
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
@@ -16,19 +15,12 @@ interface Props {
   onAddLink?: () => void;
 }
 
-// OPTIMIZED: Cap animation delay to prevent slow rendering on large lists
-const MAX_STAGGER_ITEMS = 8;
-const getAnimationDelay = (idx: number) => Math.min(idx, MAX_STAGGER_ITEMS) * 0.05;
-
-/**
- * OPTIMIZED: Memoized PortfolioGrid with capped stagger animations
- */
-export const PortfolioGrid = memo(function PortfolioGrid({ candidate, portfolioItems = [], canEdit, onAddLink }: Props) {
-  // OPTIMIZED: Memoize links array
-  const links = useMemo(() => [
+export const PortfolioGrid = ({ candidate, portfolioItems = [], canEdit, onAddLink }: Props) => {
+  // Remove LinkedIn from links (it's now in hero section as primary/secondary action)
+  const links = [
     { icon: Github, label: 'GitHub', url: candidate.github_url, color: 'text-foreground' },
     { icon: Globe, label: 'Portfolio', url: candidate.portfolio_url, color: 'text-purple-500' },
-  ].filter(link => link.url), [candidate.github_url, candidate.portfolio_url]);
+  ].filter(link => link.url);
 
   // Parse custom links from JSONB field
   const customLinks = candidate.candidate_links || [];
@@ -92,7 +84,7 @@ export const PortfolioGrid = memo(function PortfolioGrid({ candidate, portfolioI
                   rel="noopener noreferrer"
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: getAnimationDelay(idx) }}
+                  transition={{ delay: idx * 0.05 }}
                   whileHover={{ scale: 1.02 }}
                   className={`${candidateProfileTokens.glass.strong} rounded-xl p-4 flex items-center gap-3 transition-all hover:shadow-md`}
                 >
@@ -109,7 +101,7 @@ export const PortfolioGrid = memo(function PortfolioGrid({ candidate, portfolioI
                   rel="noopener noreferrer"
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: getAnimationDelay(links.length + idx) }}
+                  transition={{ delay: (links.length + idx) * 0.05 }}
                   whileHover={{ scale: 1.02 }}
                   className={`${candidateProfileTokens.glass.strong} rounded-xl p-4 flex items-center gap-3 transition-all hover:shadow-md`}
                 >
@@ -149,19 +141,15 @@ export const PortfolioGrid = memo(function PortfolioGrid({ candidate, portfolioI
                   key={item.id}
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: getAnimationDelay(idx) }}
+                  transition={{ delay: idx * 0.1 }}
                   className={`${candidateProfileTokens.glass.strong} rounded-xl overflow-hidden hover:shadow-lg transition-all`}
-                  style={{ contentVisibility: idx > 6 ? 'auto' : 'visible' }}
                 >
                   {item.thumbnail_url && (
                     <div className="aspect-video bg-muted">
                       <img
                         src={item.thumbnail_url}
                         alt={item.title}
-                        width={400}
-                        height={225}
                         className="w-full h-full object-cover"
-                        loading="lazy"
                       />
                     </div>
                   )}
@@ -196,4 +184,4 @@ export const PortfolioGrid = memo(function PortfolioGrid({ candidate, portfolioI
       )}
     </div>
   );
-});
+};

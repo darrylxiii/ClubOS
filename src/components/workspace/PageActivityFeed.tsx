@@ -94,9 +94,9 @@ export function PageActivityFeed({ pageId, open, onOpenChange }: PageActivityFee
                           </Badge>
                         </div>
                         
-                        {typeof (activity.activity_data as Record<string, unknown> | null)?.description === 'string' && (
+                        {activity.activity_data?.description && (
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            {(activity.activity_data as Record<string, string>).description}
+                            {String(activity.activity_data.description)}
                           </p>
                         )}
                         

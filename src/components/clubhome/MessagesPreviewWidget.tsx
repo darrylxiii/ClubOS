@@ -16,8 +16,8 @@ interface Message {
   content: string;
   created_at: string;
   sender_name: string;
-  sender_avatar: string | null | undefined;
-  is_read: boolean | null;
+  sender_avatar: string | null;
+  is_read: boolean;
 }
 
 export const MessagesPreviewWidget = () => {

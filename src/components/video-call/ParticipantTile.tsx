@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, memo } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, VideoOff, Hand, Monitor } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, Hand, Monitor, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScreenShareOverlay } from './ScreenShareOverlay';
 import { SpeakingBadge } from '@/components/shared/AudioLevelIndicator';

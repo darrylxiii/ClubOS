@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useMilestoneHistory } from '@/hooks/useMilestoneHistory';
+import { useMilestoneHistory, TimelineEvent } from '@/hooks/useMilestoneHistory';
 
 interface HistoricalTimelineProps {
   className?: string;

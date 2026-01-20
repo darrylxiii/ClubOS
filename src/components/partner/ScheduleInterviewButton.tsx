@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Calendar } from 'lucide-react';
+import { Calendar, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { CreateInterviewDialog } from './CreateInterviewDialog';
 import { T } from '@/components/T';

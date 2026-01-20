@@ -10,7 +10,6 @@ import { TrendingUp, Target, Lightbulb, ArrowRight, RefreshCw, Brain } from 'luc
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
-import { aiService } from '@/services/aiService';
 
 interface CareerInsights {
   skillGapAnalysis: Array<{ skill: string; current: number; required: number }>;
@@ -56,18 +55,20 @@ export default function CareerInsightsDashboard() {
     setGenerating(true);
     try {
       // Call the edge function for AI-powered insights
-      const result = await aiService.generateCareerInsights({
-        userId: user?.id ?? ''
-      }) as any;
+      const { data, error } = await supabase.functions.invoke('generate-career-insights', {
+        body: { userId: user?.id }
+      });
 
-      if (result?.error) throw new Error(result.error);
-      const insightsData = result?.insights || result;
-      if (insightsData) {
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
         setInsights({
-          skillGapAnalysis: insightsData.skill_gap_analysis || [],
-          marketPosition: insightsData.market_position || { percentile: 0, salaryRange: { min: 0, max: 0 }, demandLevel: 'unknown' },
-          careerTrends: insightsData.career_trends || [],
-          nextActions: insightsData.next_actions || [],
+          skillGapAnalysis: data.skill_gap_analysis || [],
+          marketPosition: data.market_position || { percentile: 0, salaryRange: { min: 0, max: 0 }, demandLevel: 'unknown' },
+          careerTrends: data.career_trends || [],
+          nextActions: data.next_actions || [],
         });
         toast.success('Career insights generated successfully');
       }

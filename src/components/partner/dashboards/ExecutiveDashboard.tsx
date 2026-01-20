@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExecutiveBriefingCard } from "@/components/intelligence/ExecutiveBriefingCard";
 import { supabase } from "@/integrations/supabase/client";
+import { TrendingUp, Users, Clock, Target } from "lucide-react";
 
 interface ExecutiveDashboardProps {
   jobId: string;

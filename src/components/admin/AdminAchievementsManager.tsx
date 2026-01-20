@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/lib/notify";
-import { Award, Plus, Trash2, Edit, UserPlus, Building2, Search, Filter, Eye, EyeOff, Users, Activity, Sparkles } from "lucide-react";
+import { Award, Plus, Trash2, Edit, UserPlus, Building2, Search, Filter, Eye, EyeOff, Users, TrendingUp, Calendar, Activity, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import * as LucideIcons from "lucide-react";
@@ -34,29 +34,27 @@ interface CompanyAchievement {
 interface QuantumAchievement {
   id: string;
   name: string;
-  description: string | null;
+  description: string;
   icon_emoji: string;
   category: string;
   rarity: string;
-  points: number | null;
-  is_active: boolean | null;
-  is_deprecated: boolean | null;
+  points: number;
+  is_active: boolean;
+  is_deprecated: boolean;
   unlock_criteria: any;
-  animation_effect?: string | null;
-  animation_type?: string | null;
   unlock_count?: number;
   created_at?: string;
 }
 
 interface Earner {
   id: string;
-  user_id?: string | null;
-  earned_company_id?: string | null;
+  user_id?: string;
+  earned_company_id?: string;
   earned_at?: string;
   unlocked_at?: string;
-  user_name?: string | null;
-  company_name?: string | null;
-  granted_by?: string | null;
+  user_name?: string;
+  company_name?: string;
+  granted_by?: string;
 }
 
 export const AdminAchievementsManager = () => {
@@ -560,9 +558,9 @@ export const AdminAchievementsManager = () => {
     setSelectedQuantumAchievement(achievement);
     setEditQuantumForm({
       name: achievement.name,
-      description: achievement.description ?? '',
+      description: achievement.description,
       icon_emoji: achievement.icon_emoji,
-      points: achievement.points ?? 0,
+      points: achievement.points
     });
     setEditQuantumDialogOpen(true);
   };
@@ -597,11 +595,11 @@ export const AdminAchievementsManager = () => {
 
   const filteredQuantumAchievements = quantumAchievements.filter(a => {
     const matchesSearch = a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (a.description ?? '').toLowerCase().includes(searchQuery.toLowerCase());
-
+                         a.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
     const matchesCategory = filterCategory === 'all' || a.category === filterCategory;
     const matchesRarity = filterRarity === 'all' || a.rarity === filterRarity;
-
+    
     return matchesSearch && matchesCategory && matchesRarity;
   });
 
@@ -1046,7 +1044,7 @@ export const AdminAchievementsManager = () => {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleToggleQuantumActive(achievement.id, achievement.is_active ?? false)}
+                            onClick={() => handleToggleQuantumActive(achievement.id, achievement.is_active)}
                           >
                             {achievement.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                           </Button>

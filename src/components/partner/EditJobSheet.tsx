@@ -16,6 +16,7 @@ import {
   Loader2, 
   Upload, 
   Save, 
+  Eye, 
   Briefcase,
   Settings,
   FileStack,
@@ -37,6 +38,7 @@ import { stealthJobAuditService } from "@/services/stealthJobAuditService";
 import { JobStatusManager } from "@/components/jobs/JobStatusManager";
 import { JobStatus } from "@/components/jobs/JobStatusBadge";
 import { EnhancedLocationAutocomplete, type LocationResult } from "@/components/ui/enhanced-location-autocomplete";
+import { LocationMapCard } from "@/components/ui/location-map-card";
 import { PipelineTypeSelector } from "@/components/jobs/PipelineTypeSelector";
 import { JobFeeConfiguration, type FeeConfiguration } from "@/components/jobs/JobFeeConfiguration";
 
@@ -163,14 +165,14 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
       }
 
       // Only set tools if they've actually changed (compare IDs)
-      const newRequiredIds = requiredToolsData.map((t: { id: string }) => t.id).sort().join(',');
-      const currentRequiredIds = requiredTools.map((t: { id: string }) => t.id).sort().join(',');
+      const newRequiredIds = requiredToolsData.map(t => t.id).sort().join(',');
+      const currentRequiredIds = requiredTools.map(t => t.id).sort().join(',');
       if (newRequiredIds !== currentRequiredIds) {
         setRequiredTools(requiredToolsData);
       }
 
-      const newNiceToHaveIds = niceToHaveToolsData.map((t: { id: string }) => t.id).sort().join(',');
-      const currentNiceToHaveIds = niceToHaveTools.map((t: { id: string }) => t.id).sort().join(',');
+      const newNiceToHaveIds = niceToHaveToolsData.map(t => t.id).sort().join(',');
+      const currentNiceToHaveIds = niceToHaveTools.map(t => t.id).sort().join(',');
       if (newNiceToHaveIds !== currentNiceToHaveIds) {
         setNiceToHaveTools(niceToHaveToolsData);
       }
@@ -454,11 +456,10 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
         
         // Add new viewers
         if (stealthViewerIds.length > 0) {
-          if (!user?.id) throw new Error('User not authenticated');
           const viewerInserts = stealthViewerIds.map(viewerId => ({
             job_id: job.id,
             user_id: viewerId,
-            granted_by: user.id,
+            granted_by: user?.id,
           }));
           await supabase.from('job_stealth_viewers').insert(viewerInserts);
         }
