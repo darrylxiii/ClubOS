@@ -29,7 +29,7 @@ export const logPerformanceMetric = async (
       Sentry.setMeasurement(metricName, value, 'millisecond');
     }
   } catch (_error) {
-    console.error('Failed to log performance metric:', error);
+    console.error('Failed to log performance metric:', _error);
   }
 };
 

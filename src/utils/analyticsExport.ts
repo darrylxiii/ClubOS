@@ -363,7 +363,7 @@ async function logExport(exportType: string, dataScope: string) {
       metadata: { timestamp: new Date().toISOString() }
     });
   } catch (_error) {
-    console.error('Failed to log export:', error);
+    console.error('Failed to log export:', _error);
   }
 }
 
@@ -449,7 +449,7 @@ export async function cancelScheduledReport(reportId: string): Promise<boolean> 
 
     return !error;
   } catch (_error) {
-    console.error('Failed to cancel scheduled report:', error);
+    console.error('Failed to cancel scheduled report:', _error);
     return false;
   }
 }
@@ -468,7 +468,7 @@ export async function getScheduledReports(): Promise<any[]> {
     if (error) throw error;
     return data || [];
   } catch (_error) {
-    console.error('Failed to get scheduled reports:', error);
+    console.error('Failed to get scheduled reports:', _error);
     return [];
   }
 }

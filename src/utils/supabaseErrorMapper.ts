@@ -335,10 +335,10 @@ export async function withSupabaseErrorHandling<T>(
       }
 
       return { data: result.data, error: null };
-    } catch (_error) {
-      lastError = error;
+    } catch (err) {
+      lastError = err;
 
-      const mapped = mapSupabaseError(error);
+      const mapped = mapSupabaseError(err);
 
       // Retry if retryable and attempts remaining
       if (mapped.isRetryable && attempt < retries) {
@@ -346,7 +346,7 @@ export async function withSupabaseErrorHandling<T>(
         continue;
       }
 
-      handleSupabaseError(error, restOptions);
+      handleSupabaseError(err, restOptions);
       return { data: null, error: mapped };
     }
   }

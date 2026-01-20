@@ -38,10 +38,12 @@ export const memberApprovalService = {
 
         if (applications) {
           applicationsMap = applications.reduce((acc, app) => {
-            if (!acc[app.candidate_id]) {
-              acc[app.candidate_id] = [];
+            const candId = app.candidate_id;
+            if (!candId) return acc;
+            if (!acc[candId]) {
+              acc[candId] = [];
             }
-            acc[app.candidate_id].push({
+            acc[candId].push({
               job_id: app.job_id,
               job_title: app.position,
               company_name: app.company_name,
@@ -52,17 +54,19 @@ export const memberApprovalService = {
         }
       }
 
-      return (data || []).map(item => ({
-        candidate_id: item.candidate_id,
-        candidate_name: item.candidate_name,
-        candidate_email: item.candidate_email,
-        candidate_created_at: item.candidate_created_at,
-        profile_id: item.profile_id,
-        profile_name: item.profile_name,
-        confidence_score: item.confidence_score,
-        match_type: item.match_type as 'email_match' | 'partial_link' | 'manual',
-        existing_applications: applicationsMap[item.candidate_id] || [],
-      }));
+      return (data || [])
+        .filter(item => item.candidate_id !== null)
+        .map(item => ({
+          candidate_id: item.candidate_id!,
+          candidate_name: item.candidate_name || '',
+          candidate_email: item.candidate_email || '',
+          candidate_created_at: item.candidate_created_at || '',
+          profile_id: item.profile_id || '',
+          profile_name: item.profile_name || '',
+          confidence_score: item.confidence_score ?? 0,
+          match_type: item.match_type as 'email_match' | 'partial_link' | 'manual',
+          existing_applications: applicationsMap[item.candidate_id!] || [],
+        }));
     } catch (error) {
       console.error('Error fetching merge suggestions:', error);
       return [];
