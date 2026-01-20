@@ -131,7 +131,8 @@ export default function JobAnalyticsIndex() {
                   <p className="text-sm text-muted-foreground">New This Month</p>
                 </div>
                 <p className="text-2xl font-bold">
-                  {jobs?.filter(j => {
+                  {jobs?.filter((j: any) => {
+                    if (!j?.created_at) return false;
                     const created = new Date(j.created_at);
                     const now = new Date();
                     return created.getMonth() === now.getMonth() &&

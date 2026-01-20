@@ -167,7 +167,7 @@ export default function WhatsAppHub() {
             hasAccount={isConnected}
             hasTemplates={hasTemplates}
             hasConversations={hasConversations}
-            onNavigate={handleTabChange}
+            onNavigate={(tab) => handleTabChange(tab as TabId)}
           />
         </WhatsAppTabErrorBoundary>
       );

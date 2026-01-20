@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/dialog";
 
 const SourcingHub = () => {
+    const sb = supabase as any; // recruitment_* tables are not in generated client types
+
     const navigate = useNavigate();
     const [jobs, setJobs] = useState<any[]>([]);
     const [selectedJob, setSelectedJob] = useState<string | null>(null);
@@ -39,7 +41,7 @@ const SourcingHub = () => {
 
     const fetchJobs = async () => {
         try {
-            const { data, error } = await supabase.from('jobs').select('id, title, company_name');
+            const { data, error } = await sb.from('jobs').select('id, title, company_name');
             if (error) throw error;
             setJobs(data || []);
             if (data && data.length > 0) setSelectedJob(data[0].id);
@@ -55,18 +57,18 @@ const SourcingHub = () => {
         if (!selectedJob) return;
 
         // 1. Get Active Config
-        const { data: configData } = await supabase
+        const { data: configData } = await sb
             .from('recruitment_project_configs')
             .select('*')
             .eq('job_id', selectedJob)
             .eq('is_active', true)
-            .single();
+            .maybeSingle();
 
         setConfig(configData);
 
         // 2. Get Search Queue
         if (configData) {
-            const { data: queueData } = await supabase
+            const { data: queueData } = await sb
                 .from('recruitment_search_queue')
                 .select('*')
                 .eq('project_config_id', configData.id)
@@ -127,7 +129,7 @@ const SourcingHub = () => {
 
         try {
             // Check if active one exists
-            const { data: existing } = await supabase
+            const { data: existing } = await sb
                 .from('recruitment_presentations')
                 .select('access_token')
                 .eq('job_id', selectedJob)
@@ -140,7 +142,7 @@ const SourcingHub = () => {
             if (!token) {
                 // Create new
                 token = crypto.randomUUID();
-                const { error } = await supabase
+                const { error } = await sb
                     .from('recruitment_presentations')
                     .insert({
                         job_id: selectedJob,

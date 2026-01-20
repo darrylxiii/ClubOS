@@ -22,9 +22,9 @@ interface ExportResult {
   error?: string;
 }
 
-// Increased page size for faster exports; each part still uploads after PAGES_PER_PART pages
-const PAGE_SIZE = 5_000;        // Fetch 5k rows at a time (Supabase allows up to ~50k with range)
-const PAGES_PER_PART = 1;       // Upload immediately after each page (5k rows per CSV part)
+// PostgREST enforces a max rows-per-request cap (often 1,000). Always paginate safely.
+const PAGE_SIZE = 1_000;        // Fetch 1k rows at a time (safe with server caps)
+const PAGES_PER_PART = 1;       // Upload immediately after each page (1k rows per CSV part)
 const MAX_TABLES_PER_CALL = 5;  // Process fewer tables per call
 const MAX_RUNTIME_MS = 55_000;  // Increase to 55s (edge functions have 60s limit)
 
@@ -206,9 +206,12 @@ serve(async (req) => {
 
         console.log(`Table ${tableName}: expecting ${expectedCount ?? '?'} rows`);
 
-        for (let offset = 0; ; offset += PAGE_SIZE) {
-          // Use explicit ordering to guarantee consistent pagination
-          // Order by primary key (most tables have 'id', fallback to 'created_at' or first column)
+        let offset = 0;
+        for (;;) {
+          // Use explicit ordering to guarantee consistent pagination.
+          // IMPORTANT: PostgREST may cap max rows per request (often 1,000), so:
+          // - never assume `data.length < PAGE_SIZE` means end
+          // - advance offset by the number of rows actually returned
           const { data, error } = await supabaseAdmin
             .from(tableName)
             .select('*')
@@ -232,6 +235,8 @@ serve(async (req) => {
               pagesInCurrentPart += 1;
 
               if (pagesInCurrentPart >= PAGES_PER_PART) await uploadPart();
+
+              offset += fallbackData.length;
               continue;
             }
             throw new Error(error.message);
@@ -253,10 +258,7 @@ serve(async (req) => {
             await uploadPart();
           }
 
-          // If we got fewer rows than requested, we've reached the end
-          if (data.length < PAGE_SIZE) {
-            break;
-          }
+          offset += data.length;
         }
 
         // flush remaining

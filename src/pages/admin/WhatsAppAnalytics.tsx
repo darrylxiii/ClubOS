@@ -51,7 +51,8 @@ export default function WhatsAppAnalytics() {
   // Generate chart data
   const chartData = Array.from({ length: 7 }, (_, i) => {
     const date = subDays(new Date(), 6 - i);
-    const dayMessages = analytics?.messages.filter(m => 
+    const dayMessages = analytics?.messages.filter((m) =>
+      m?.created_at &&
       format(new Date(m.created_at), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
     ) || [];
     return {

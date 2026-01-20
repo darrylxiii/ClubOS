@@ -146,9 +146,12 @@ export default function LanguageManager() {
 
       if (language.autoGenerate) {
         setIsGenerating(true);
-        const { data, error: genError } = await aiService.generateAllTranslations({
-          generateAll: true
+        const res: any = await aiService.generateAllTranslations({
+          generateAll: true,
         });
+
+        const genError = res?.error;
+        const data = res?.data ?? res;
 
         if (genError) {
           console.error('Generation error:', genError);
@@ -196,11 +199,11 @@ export default function LanguageManager() {
   const handleRetranslateLowQuality = async (langCode: string) => {
     setRetranslatingLang(langCode);
     try {
-      const { error } = await aiService.generateAllTranslations({
-        generateAll: true
+      const res: any = await aiService.generateAllTranslations({
+        generateAll: true,
       });
 
-      if (error) throw error;
+      if (res?.error) throw res.error;
 
       toast.success(`Retranslation started for ${langCode}`);
       queryClient.invalidateQueries({ queryKey: ['translation-coverage-detailed'] });

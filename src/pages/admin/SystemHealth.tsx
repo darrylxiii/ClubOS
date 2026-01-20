@@ -93,11 +93,11 @@ export default function SystemHealth() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-6">
-            <SystemHealthMetrics health={health} />
+            <SystemHealthMetrics health={health ?? null} />
           </TabsContent>
 
           <TabsContent value="functions" className="mt-6">
-            <FunctionHealthTable functions={functions} />
+            <FunctionHealthTable functions={functions ?? null} />
           </TabsContent>
 
           <TabsContent value="errors" className="mt-6">
