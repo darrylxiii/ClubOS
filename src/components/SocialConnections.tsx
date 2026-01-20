@@ -33,8 +33,8 @@ interface SocialConnectionsProps {
     appleMusicPlaylists: Playlist[];
   };
   onUpdate: () => void;
-  onConnectSocial: (provider: string) => void;
-  onDisconnectSocial: (platform: string) => void;
+  onConnectSocial: (provider: 'github' | 'instagram' | 'linkedin_oidc' | 'twitter') => void;
+  onDisconnectSocial: (platform: 'github' | 'instagram' | 'linkedin' | 'twitter') => void;
 }
 
 export function SocialConnections({

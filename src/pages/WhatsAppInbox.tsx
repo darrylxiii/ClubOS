@@ -36,10 +36,10 @@ export default function WhatsAppInbox() {
 
   // Mark as read when selecting conversation
   useEffect(() => {
-    if (selectedConversationId && selectedConversation?.unread_count > 0) {
+    if (selectedConversationId && (selectedConversation?.unread_count ?? 0) > 0) {
       markAsRead(selectedConversationId);
     }
-  }, [selectedConversationId]);
+  }, [selectedConversationId, markAsRead]);
 
   // Fetch insights/score when conversation changes
   useEffect(() => {
