@@ -104,7 +104,7 @@ export const memberApprovalService = {
 
       const { data, error } = await supabase
         .from('candidate_profiles')
-        .insert(insertData)
+        .insert([insertData])
         .select('id')
         .single();
 
@@ -156,7 +156,7 @@ export const memberApprovalService = {
       // Create new candidate profile
       const { data: newCandidate, error: createError } = await supabase
         .from('candidate_profiles')
-        .insert({
+        .insert([{
           user_id: requestId,
           full_name: profile.full_name || 'Unknown',
           email: profile.email,
@@ -166,7 +166,7 @@ export const memberApprovalService = {
           desired_locations: profile.location ? [profile.location] : null,
           source_channel: 'member_approval',
           created_by: adminId,
-        })
+        }])
         .select('id')
         .single();
 
