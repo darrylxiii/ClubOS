@@ -179,8 +179,8 @@ export const mergeService = {
       ];
 
       mergeableFields.forEach(field => {
-        const candidateValue = candidate[field];
-        const profileValue = profile[field];
+        const candidateValue = (candidate as Record<string, unknown>)[field];
+        const profileValue = (profile as Record<string, unknown>)[field];
 
         // Null-safe comparison
         if (candidateValue && !profileValue) {

@@ -76,12 +76,12 @@ export const trackEvent = async (
       p_user_id: userId,
       p_session_id: sessionId,
       p_event_type: eventType,
-      p_event_category: options?.eventCategory ?? null,
-      p_action_data: options?.actionData ? JSON.parse(JSON.stringify(options.actionData)) : null,
+      p_event_category: options?.eventCategory ?? undefined,
+      p_action_data: options?.actionData ? JSON.parse(JSON.stringify(options.actionData)) : undefined,
       p_page_path: options?.pagePath || window.location.pathname,
-      p_referrer: options?.referrer || document.referrer || null,
+      p_referrer: options?.referrer || document.referrer || undefined,
       p_device_type: deviceType,
-      p_duration_seconds: options?.durationSeconds ?? null,
+      p_duration_seconds: options?.durationSeconds ?? undefined,
     });
   } catch (error) {
     console.error('Error tracking event:', error);

@@ -145,13 +145,13 @@ export async function withRetry<T>(
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       return await operation();
-    } catch (_error) {
+    } catch (err) {
       if (onError) {
-        onError(error, attempt);
+        onError(err as Error, attempt);
       }
 
       if (attempt === retries) {
-        throw error;
+        throw err;
       }
 
       // Wait before retry
@@ -175,7 +175,7 @@ export async function safeAsync<T>(
   try {
     return await operation();
   } catch (_error) {
-    console.error('Safe async operation failed:', error);
+    console.error('Safe async operation failed:', _error);
     return fallback;
   }
 }

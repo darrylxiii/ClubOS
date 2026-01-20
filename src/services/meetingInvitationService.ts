@@ -198,7 +198,7 @@ export async function resendInvitation(invitationId: string): Promise<boolean> {
     const { data: inviterProfile } = await supabase
       .from('profiles')
       .select('full_name')
-      .eq('id', user?.id)
+      .eq('id', user?.id || '')
       .single();
 
     const inviterName = inviterProfile?.full_name || user?.email || 'Someone';
