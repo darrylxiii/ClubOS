@@ -1,6 +1,7 @@
 // Signal IMMEDIATELY that the script is executing (before any imports)
 // This allows index.html to detect script loading vs script failure
 (window as unknown as any).__APP_BOOTING__ = true;
+(window as unknown as any).__MAIN_LOADED__ = true;
 
 import "./index.css";
 import "./i18n/config";

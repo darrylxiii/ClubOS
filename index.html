@@ -224,6 +224,23 @@
         window.__APP_BOOTED__ = false;
         window.__APP_BOOTING__ = false;
         window.__BOOT_START__ = Date.now();
+        window.__BUILD_ID__ = '2026-01-20T23:10Z'; // Updated on each deploy
+        window.__MAIN_LOADED__ = false;
+        
+        // Capture first fatal error for diagnostics
+        window.__BOOT_ERROR__ = null;
+        window.addEventListener('error', function(e) {
+          if (!window.__BOOT_ERROR__ && e.error) {
+            window.__BOOT_ERROR__ = e.error.message || String(e.error);
+            console.error('[Boot] Captured error:', window.__BOOT_ERROR__);
+          }
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+          if (!window.__BOOT_ERROR__) {
+            window.__BOOT_ERROR__ = e.reason?.message || String(e.reason);
+            console.error('[Boot] Captured rejection:', window.__BOOT_ERROR__);
+          }
+        });
         
         async function resetCache() {
           var btn = event && event.target;
@@ -266,12 +283,40 @@
           if (errorDiv) errorDiv.style.display = 'block';
           if (spinner) spinner.style.display = 'none';
           if (message && msgEl) msgEl.textContent = message;
-          if (detail && detailEl) {
-            detailEl.textContent = detail;
+          
+          // Enhanced diagnostics
+          var diagnostics = [
+            'Build: ' + (window.__BUILD_ID__ || 'unknown'),
+            'Main loaded: ' + (window.__MAIN_LOADED__ ? 'yes' : 'no'),
+            'Booting: ' + (window.__APP_BOOTING__ ? 'yes' : 'no'),
+            'Booted: ' + (window.__APP_BOOTED__ ? 'yes' : 'no')
+          ];
+          if (window.__BOOT_ERROR__) {
+            diagnostics.push('Error: ' + window.__BOOT_ERROR__);
+          }
+          var fullDetail = (detail || '') + '\n' + diagnostics.join(' | ');
+          
+          if (detailEl) {
+            detailEl.textContent = fullDetail;
             detailEl.style.display = 'block';
           }
         }
         window.showBootError = showBootError;
+        
+        // Auto-recovery: If build ID changed, clear caches automatically
+        try {
+          var lastBuild = localStorage.getItem('__last_build_id__');
+          if (lastBuild && lastBuild !== window.__BUILD_ID__) {
+            console.log('[Boot] Build ID changed from', lastBuild, 'to', window.__BUILD_ID__, '- clearing caches');
+            // Clear caches in background (don't block boot)
+            if ('caches' in window) {
+              caches.keys().then(function(keys) {
+                keys.forEach(function(k) { caches.delete(k); });
+              });
+            }
+          }
+          localStorage.setItem('__last_build_id__', window.__BUILD_ID__);
+        } catch(e) {}
         
         // Boot timeout - show error if app doesn't start within 8 seconds
         setTimeout(function() {

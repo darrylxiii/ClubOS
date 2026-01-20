@@ -96,7 +96,7 @@ export default defineConfig(({ mode, command }) => ({
 
         // Runtime caching strategies
         runtimeCaching: [
-          // CRITICAL: Document navigations use NetworkFirst
+          // CRITICAL: Document navigations use NetworkFirst with SHORT cache
           // This ensures fresh index.html on every page load
           {
             urlPattern: ({ request }) => request.destination === 'document',
@@ -104,10 +104,10 @@ export default defineConfig(({ mode, command }) => ({
             options: {
               cacheName: 'html-cache',
               expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 // 1 day fallback
+                maxEntries: 5,
+                maxAgeSeconds: 60 // Only 1 minute cache - prevents stale HTML
               },
-              networkTimeoutSeconds: 3,
+              networkTimeoutSeconds: 5, // Wait up to 5s for network before cache fallback
               cacheableResponse: {
                 statuses: [0, 200]
               }
