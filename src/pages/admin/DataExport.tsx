@@ -71,18 +71,47 @@ export default function DataExport() {
 
   const { trackDataExport } = useAdminTracking();
 
-  const { data: allTables = [], isLoading: tablesLoading, refetch: refetchTables } = useQuery({
-    queryKey: ['public-tables'],
+  const { data: tableData = [], isLoading: tablesLoading, refetch: refetchTables } = useQuery({
+    queryKey: ['public-tables-with-counts'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_public_tables');
-      if (error) throw error;
-      return (data as { table_name: string }[]).map((t) => t.table_name).sort();
+      const { data, error } = await supabase.rpc('get_public_table_counts');
+      if (error) {
+        // Fallback to just table names if counts RPC doesn't exist
+        const { data: tables, error: tablesError } = await supabase.rpc('get_public_tables');
+        if (tablesError) throw tablesError;
+        return (tables as { table_name: string }[]).map((t) => ({ 
+          table_name: t.table_name, 
+          row_count: -1 // Unknown
+        })).sort((a, b) => a.table_name.localeCompare(b.table_name));
+      }
+      return (data as { table_name: string; row_count: number }[])
+        .sort((a, b) => a.table_name.localeCompare(b.table_name));
     },
   });
+
+  const allTables = useMemo(() => tableData.map((t) => t.table_name), [tableData]);
+  
+  const tableRowCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    tableData.forEach((t) => { counts[t.table_name] = t.row_count; });
+    return counts;
+  }, [tableData]);
 
   const filteredTables = useMemo(
     () => allTables.filter((t) => t.toLowerCase().includes(searchQuery.toLowerCase())),
     [allTables, searchQuery],
+  );
+
+  const handleDeselectEmpty = () => {
+    const nonEmpty = new Set(
+      Array.from(selectedTables).filter((t) => tableRowCounts[t] !== 0)
+    );
+    setSelectedTables(nonEmpty);
+  };
+
+  const emptyTableCount = useMemo(
+    () => Array.from(selectedTables).filter((t) => tableRowCounts[t] === 0).length,
+    [selectedTables, tableRowCounts]
   );
 
   const exportMutation = useMutation({
@@ -329,27 +358,45 @@ export default function DataExport() {
               <Button variant="outline" onClick={handleSelectAll} disabled={isBusy}>
                 {selectedTables.size === filteredTables.length ? 'Deselect All' : 'Select All'}
               </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleDeselectEmpty} 
+                disabled={isBusy || emptyTableCount === 0}
+              >
+                Deselect Empty ({emptyTableCount})
+              </Button>
             </div>
 
             <ScrollArea className="h-[400px] rounded-md border p-4">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {filteredTables.map((table) => (
-                  <div
-                    key={table}
-                    className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
-                      selectedTables.has(table)
-                        ? 'bg-primary/10 border-primary'
-                        : 'hover:bg-muted'
-                    }`}
-                    onClick={() => handleToggleTable(table)}
-                  >
-                    <Checkbox
-                      checked={selectedTables.has(table)}
-                      onCheckedChange={() => handleToggleTable(table)}
-                    />
-                    <span className="text-sm font-mono truncate">{table}</span>
-                  </div>
-                ))}
+                {filteredTables.map((table) => {
+                  const rowCount = tableRowCounts[table] ?? -1;
+                  const isEmpty = rowCount === 0;
+                  return (
+                    <div
+                      key={table}
+                      className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
+                        selectedTables.has(table)
+                          ? 'bg-primary/10 border-primary'
+                          : isEmpty
+                            ? 'bg-muted/50 opacity-60 hover:bg-muted'
+                            : 'hover:bg-muted'
+                      }`}
+                      onClick={() => handleToggleTable(table)}
+                    >
+                      <Checkbox
+                        checked={selectedTables.has(table)}
+                        onCheckedChange={() => handleToggleTable(table)}
+                      />
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-sm font-mono truncate">{table}</span>
+                        <span className={`text-xs ${isEmpty ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+                          {rowCount === -1 ? '?' : rowCount.toLocaleString()} rows
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </ScrollArea>
 
