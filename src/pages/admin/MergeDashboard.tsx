@@ -12,7 +12,7 @@ import { MergeSuggestionsTable } from "@/components/admin/merge/MergeSuggestions
 import { MergeHistoryTable } from "@/components/admin/merge/MergeHistoryTable";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
-import { SectionLoader } from "@/components/ui/unified-loader";
+import { Loader2 } from "lucide-react";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { supabase } from "@/integrations/supabase/client";
 import { notify } from "@/lib/notify";
@@ -33,7 +33,7 @@ const MergeDashboard = () => {
       .select('setting_value')
       .eq('setting_key', 'auto_merge_enabled')
       .single();
-
+      
     if (data) {
       setAutoMergeEnabled(data.setting_value === true);
     }
@@ -42,24 +42,24 @@ const MergeDashboard = () => {
 
   const toggleAutoMerge = async (enabled: boolean) => {
     const { data: { user } } = await supabase.auth.getUser();
-
+    
     const { error } = await supabase
       .from('system_settings')
-      .update({
+      .update({ 
         setting_value: enabled,
         updated_by: user?.id,
         updated_at: new Date().toISOString()
       })
       .eq('setting_key', 'auto_merge_enabled');
-
+      
     if (error) {
       notify.error("Failed to update setting", { description: error.message });
     } else {
       setAutoMergeEnabled(enabled);
       notify.success(
         enabled ? "Auto-merge enabled" : "Auto-merge disabled",
-        {
-          description: enabled
+        { 
+          description: enabled 
             ? "New signups will automatically merge with existing candidate profiles"
             : "New signups will create separate accounts for manual review"
         }
@@ -71,7 +71,7 @@ const MergeDashboard = () => {
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
-          <SectionLoader />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </AppLayout>
     );
@@ -87,14 +87,14 @@ const MergeDashboard = () => {
         <OceanBackgroundVideo />
 
         <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12">
-          <Breadcrumb
+          <Breadcrumb 
             items={[
               { label: 'Home', path: '/home' },
               { label: 'Admin', path: '/admin' },
               { label: 'Merge Dashboard' }
             ]}
           />
-
+          
           <div className="space-y-4 mb-12">
             <div className="flex items-center gap-2">
               <Link2 className="w-8 h-8" />
@@ -132,12 +132,12 @@ const MergeDashboard = () => {
                 <AlertDescription>
                   {autoMergeEnabled ? (
                     <>
-                      ✅ <strong>Auto-merge is ON</strong>: When candidates sign up with an email matching an existing candidate profile,
+                      ✅ <strong>Auto-merge is ON</strong>: When candidates sign up with an email matching an existing candidate profile, 
                       the profiles will automatically merge. This is the recommended setting for normal operations.
                     </>
                   ) : (
                     <>
-                      ⚠️ <strong>Auto-merge is OFF</strong>: Candidates can create accounts even if their email matches an existing profile.
+                      ⚠️ <strong>Auto-merge is OFF</strong>: Candidates can create accounts even if their email matches an existing profile. 
                       You'll need to manually merge profiles via the dashboard. Use this during troubleshooting or when testing.
                     </>
                   )}

@@ -46,7 +46,7 @@ serve(async (req) => {
       // Mark as needing manual transcription or use existing raw_content
       await supabase
         .from("external_context_imports")
-        .update({
+        .update({ 
           transcription_status: importRecord.raw_content ? "completed" : "pending_manual",
         })
         .eq("id", import_id);
@@ -57,7 +57,7 @@ serve(async (req) => {
       const messages = parseWhatsAppExport(importRecord.raw_content);
       await supabase
         .from("external_context_imports")
-        .update({
+        .update({ 
           parsed_content: { messages, message_count: messages.length },
         })
         .eq("id", import_id);
@@ -69,12 +69,12 @@ serve(async (req) => {
       .update({ processing_status: "analyzing", analysis_status: "in_progress" })
       .eq("id", import_id);
 
-    const contentToAnalyze = importRecord.raw_content ||
+    const contentToAnalyze = importRecord.raw_content || 
       (importRecord.parsed_content?.messages?.map((m: any) => `${m.sender}: ${m.content}`).join("\n"));
 
     if (contentToAnalyze) {
       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
+      
       if (LOVABLE_API_KEY) {
         try {
           const analysisPrompt = `Analyze this ${importRecord.content_type.replace("_", " ")} content and extract:
@@ -112,12 +112,12 @@ Respond in this exact JSON format:
           if (aiResponse.ok) {
             const aiData = await aiResponse.json();
             const responseText = aiData.choices?.[0]?.message?.content || "";
-
+            
             // Parse JSON from response
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const analysis = JSON.parse(jsonMatch[0]);
-
+              
               await supabase
                 .from("external_context_imports")
                 .update({
@@ -155,9 +155,6 @@ Respond in this exact JSON format:
         source_platform: importRecord.source_platform,
         duration_minutes: importRecord.duration_minutes,
         participants: importRecord.participants,
-        linked_meeting_id: importRecord.metadata?.linked_meeting_id,
-        linked_company_id: importRecord.metadata?.linked_company_id,
-        linked_job_id: importRecord.metadata?.linked_job_id,
         secondary_entity: importRecord.secondary_entity_type ? {
           type: importRecord.secondary_entity_type,
           id: importRecord.secondary_entity_id,
@@ -205,68 +202,12 @@ Respond in this exact JSON format:
     // Step 7: Mark as completed
     await supabase
       .from("external_context_imports")
-      .update({
+      .update({ 
         processing_status: "completed",
         analysis_status: "completed",
         updated_at: new Date().toISOString(),
       })
       .eq("id", import_id);
-
-    // Step 8: Generate and Store Embeddings for RAG
-    if (importRecord.ai_summary) {
-      try {
-        const embeddingContent = `Import: ${importRecord.title}
-Type: ${importRecord.content_type}
-Summary: ${importRecord.ai_summary}
-Topics: ${(importRecord.key_topics || []).join(", ")}
-Action Items: ${(actionItems || []).join(", ")}`;
-
-        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        if (LOVABLE_API_KEY) {
-          const embeddingResp = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              model: "text-embedding-3-small",
-              input: embeddingContent,
-              encoding_format: "float"
-            })
-          });
-
-          if (embeddingResp.ok) {
-            const embeddingData = await embeddingResp.json();
-            const embedding = embeddingData.data[0].embedding;
-
-            await supabase.from("intelligence_embeddings").insert({
-              entity_type: importRecord.entity_type,
-              entity_id: importRecord.entity_id,
-              content: embeddingContent,
-              embedding: embedding,
-              metadata: {
-                source: "external_import",
-                import_id: import_id,
-                title: importRecord.title,
-                original_date: importRecord.original_date,
-                job_id: importRecord.metadata?.linked_job_id || (importRecord.secondary_entity_type === 'job' ? importRecord.secondary_entity_id : undefined),
-                company_id: importRecord.metadata?.linked_company_id || (importRecord.secondary_entity_type === 'company' ? importRecord.secondary_entity_id : undefined),
-                meeting_id: importRecord.metadata?.linked_meeting_id,
-                secondary_entity_type: importRecord.secondary_entity_type,
-                secondary_entity_id: importRecord.secondary_entity_id
-              }
-            });
-            console.log("Successfully generated and stored embedding for import");
-          } else {
-            console.error("Failed to generate embedding:", await embeddingResp.text());
-          }
-        }
-      } catch (embedError) {
-        console.error("Embedding generation error:", embedError);
-        // Don't fail the whole process if embedding fails, just log it
-      }
-    }
 
     // Log to activity feed
     await supabase.from("activity_feed").insert({
@@ -302,10 +243,10 @@ Action Items: ${(actionItems || []).join(", ")}`;
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, supabaseKey);
-
+      
       await supabase
         .from("external_context_imports")
-        .update({
+        .update({ 
           processing_status: "failed",
           error_message: error.message,
         })
@@ -325,10 +266,10 @@ Action Items: ${(actionItems || []).join(", ")}`;
 function parseWhatsAppExport(content: string): Array<{ timestamp: string; sender: string; content: string }> {
   const messages: Array<{ timestamp: string; sender: string; content: string }> = [];
   const lines = content.split("\n");
-
+  
   // Common WhatsApp export format: [DD/MM/YYYY, HH:MM:SS] Sender: Message
   const regex = /\[?(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s*(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[AP]M)?)\]?\s*-?\s*([^:]+):\s*(.+)/i;
-
+  
   for (const line of lines) {
     const match = line.match(regex);
     if (match) {
@@ -339,7 +280,7 @@ function parseWhatsAppExport(content: string): Array<{ timestamp: string; sender
       });
     }
   }
-
+  
   return messages;
 }
 

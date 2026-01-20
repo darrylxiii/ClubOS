@@ -1,17 +1,18 @@
 import { format, formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Clock, MessageSquare, AlertTriangle, CheckCircle, XCircle, Phone, Mail, User, Building2, Users } from 'lucide-react';
+import { TrendingUp, TrendingDown, Clock, MessageSquare, AlertTriangle, CheckCircle, XCircle, Phone, Mail } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { RelationshipHealthItem } from '@/hooks/useRelationshipHealth';
+import { Database } from '@/integrations/supabase/types';
+
+type RelationshipScore = Database['public']['Tables']['communication_relationship_scores']['Row'];
 
 interface RelationshipHealthCardProps {
-  relationship: RelationshipHealthItem;
-  entityName?: string; // Optional override
+  relationship: RelationshipScore;
+  entityName?: string;
   onViewDetails?: () => void;
   onSendMessage?: (channel: 'whatsapp' | 'email' | 'phone') => void;
   onGenerateInsights?: () => void;
@@ -24,15 +25,6 @@ const riskConfig = {
   critical: { color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/30', label: 'Critical', icon: XCircle }
 };
 
-const entityIcons = {
-  candidate: User,
-  company: Building2,
-  prospect: Users,
-  internal: User,
-  partner: Users,
-  stakeholder: Users
-};
-
 export function RelationshipHealthCard({
   relationship,
   entityName,
@@ -42,14 +34,9 @@ export function RelationshipHealthCard({
 }: RelationshipHealthCardProps) {
   const risk = riskConfig[relationship.risk_level as keyof typeof riskConfig] || riskConfig.medium;
   const RiskIcon = risk.icon;
-  const EntityIcon = entityIcons[relationship.entity_type as keyof typeof entityIcons] || User;
-
   const engagementPercent = Math.min(100, Math.max(0, (relationship.engagement_score || 0) * 10));
   const responseRate = Math.round((relationship.response_rate || 0) * 100);
   const avgSentiment = relationship.avg_sentiment || 0;
-
-  // Prefer prop override, then hook-resolved name, then fallback
-  const displayName = entityName || relationship.entity_name || 'Unknown Entity';
 
   return (
     <motion.div
@@ -65,38 +52,26 @@ export function RelationshipHealthCard({
       )}>
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10">
-                {relationship.entity_avatar ? (
-                  <img src={relationship.entity_avatar} alt={displayName} className="h-full w-full object-cover" />
-                ) : (
-                  <AvatarFallback className={cn("bg-primary/10", risk.bg)}>
-                    <EntityIcon className={cn("h-5 w-5", risk.color)} />
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              <div className="min-w-0 flex-1">
-                <CardTitle className="text-base truncate" title={displayName}>
-                  {displayName}
+            <div className="flex items-center gap-2">
+              <div className={cn("p-2 rounded-lg", risk.bg)}>
+                <RiskIcon className={cn("h-5 w-5", risk.color)} />
+              </div>
+              <div>
+                <CardTitle className="text-base">
+                  {entityName || `${relationship.entity_type} - ${relationship.entity_id.slice(0, 8)}`}
                 </CardTitle>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="capitalize">{relationship.entity_type}</span>
-                  {relationship.entity_email && (
-                    <>
-                      <span>•</span>
-                      <span className="truncate max-w-[150px]" title={relationship.entity_email}>{relationship.entity_email}</span>
-                    </>
-                  )}
-                </div>
+                <p className="text-xs text-muted-foreground capitalize">
+                  {relationship.entity_type}
+                </p>
               </div>
             </div>
-            <Badge variant="outline" className={cn(risk.bg, risk.color, "border-0 shrink-0")}>
+            <Badge variant="outline" className={cn(risk.bg, risk.color, "border-0")}>
               {risk.label}
             </Badge>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-4 pt-2">
+        <CardContent className="space-y-4">
           {/* Engagement Score */}
           <div>
             <div className="flex items-center justify-between text-sm mb-1">

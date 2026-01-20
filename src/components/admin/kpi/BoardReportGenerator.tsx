@@ -27,6 +27,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { jsPDF } from 'jspdf';
 import type { UnifiedKPI, DomainHealth } from '@/hooks/useUnifiedKPIs';
 
 interface BoardReportGeneratorProps {
@@ -103,9 +104,6 @@ Overall trajectory is ${overallHealth >= 75 ? 'positive' : overallHealth >= 50 ?
     setIsGenerating(true);
     
     try {
-      // Dynamic import to reduce build memory
-      const { jsPDF } = await import('jspdf');
-      
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       let yPos = 20;

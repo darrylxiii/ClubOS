@@ -15,9 +15,9 @@ import { MilestoneCommentsDrawer } from "@/components/contracts/MilestoneComment
 import { ContractDocumentUpload } from "@/components/contracts/ContractDocumentUpload";
 import { ContractDocumentsList } from "@/components/contracts/ContractDocumentsList";
 import { ProjectContract, ProjectMilestone } from "@/types/projects";
-import {
-  ArrowLeft,
-  FileText,
+import { 
+  ArrowLeft, 
+  FileText, 
   Download,
   AlertTriangle,
   MessageCircle,
@@ -29,7 +29,6 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { UnifiedLoader, SectionLoader } from "@/components/ui/unified-loader";
 import { AppLayout } from "@/components/AppLayout";
 
 export default function ContractDetailPage() {
@@ -81,7 +80,7 @@ export default function ContractDetailPage() {
     try {
       const { error } = await supabase
         .from('project_milestones' as any)
-        .update({
+        .update({ 
           status: 'in_progress',
           started_at: new Date().toISOString()
         })
@@ -98,7 +97,7 @@ export default function ContractDetailPage() {
     try {
       const { error } = await supabase
         .from('project_milestones' as any)
-        .update({
+        .update({ 
           status: 'submitted',
           submitted_at: new Date().toISOString()
         })
@@ -115,20 +114,20 @@ export default function ContractDetailPage() {
     try {
       const { error } = await supabase
         .from('project_milestones' as any)
-        .update({
+        .update({ 
           status: 'approved',
           approved_at: new Date().toISOString()
         })
         .eq('id', milestoneId);
 
       if (error) throw error;
-
+      
       // Trigger payment release via edge function
       try {
         const { error: paymentError } = await supabase.functions.invoke('release-milestone-payment', {
           body: { milestoneId, contractId },
         });
-
+        
         if (paymentError) {
           console.error('Payment release error:', paymentError);
           toast.warning("Milestone approved, but payment release failed. Please contact support.");
@@ -172,7 +171,7 @@ export default function ContractDetailPage() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[50vh]">
-          <SectionLoader />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       </AppLayout>
     );
@@ -192,8 +191,8 @@ export default function ContractDetailPage() {
     <AppLayout>
       <div className="max-w-7xl mx-auto p-6">
         {/* Back button */}
-        <Button
-          variant="ghost"
+        <Button 
+          variant="ghost" 
           onClick={() => navigate('/contracts')}
           className="mb-6"
         >
@@ -209,7 +208,7 @@ export default function ContractDetailPage() {
                 Contract #{contract.id.slice(0, 8)}
               </h1>
               <Badge className={`${getStatusColor(contract.contract_status)} border`}>
-                {contract.contract_status.split('_').map(w =>
+                {contract.contract_status.split('_').map(w => 
                   w.charAt(0).toUpperCase() + w.slice(1)
                 ).join(' ')}
               </Badge>
@@ -322,7 +321,7 @@ export default function ContractDetailPage() {
                   <h3 className="text-lg font-semibold text-foreground mb-4">
                     Milestone Progress
                   </h3>
-                  <MilestoneTimeline
+                  <MilestoneTimeline 
                     milestones={milestones}
                     view={userView}
                     onStartMilestone={handleStartMilestone}
@@ -337,7 +336,7 @@ export default function ContractDetailPage() {
 
               <div className="space-y-6">
                 {/* Payment schedule */}
-                <PaymentSchedule
+                <PaymentSchedule 
                   contract={contract}
                   milestones={milestones}
                   view={userView}
@@ -381,7 +380,7 @@ export default function ContractDetailPage() {
           </TabsContent>
 
           <TabsContent value="milestones">
-            <MilestoneTimeline
+            <MilestoneTimeline 
               milestones={milestones}
               view={userView}
               onStartMilestone={handleStartMilestone}
@@ -394,7 +393,7 @@ export default function ContractDetailPage() {
           </TabsContent>
 
           <TabsContent value="payments">
-            <PaymentSchedule
+            <PaymentSchedule 
               contract={contract}
               milestones={milestones}
               view={userView}

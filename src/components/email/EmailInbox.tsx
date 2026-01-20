@@ -51,9 +51,6 @@ export function EmailInbox() {
     archiveEmail,
     deleteEmail,
     snoozeEmail,
-    loadMore,
-    hasMore,
-    loadingMore,
   } = useEmails(filter);
 
   // Check if user has email connections
@@ -96,13 +93,13 @@ export function EmailInbox() {
   // Filter by priority tab when in inbox view
   const displayedEmails = useMemo(() => {
     if (filter !== "inbox") return filteredEmails;
-
+    
     // Show all emails when "all" tab is active
     if (priorityTab === "all") return filteredEmails;
 
     return filteredEmails.filter((email) => {
       const inboxType = email.inbox_type === 'primary' ? 'fyi' : (email.inbox_type || "fyi");
-
+      
       switch (priorityTab) {
         case "important":
           return inboxType === "important";
@@ -135,7 +132,7 @@ export function EmailInbox() {
 
   // Keyboard shortcuts
   const selectedIndex = displayedEmails.findIndex((e) => e.id === selectedEmail?.id);
-
+  
   useKeyboardShortcuts([
     {
       key: EMAIL_SHORTCUTS.COMPOSE.key,
@@ -199,7 +196,7 @@ export function EmailInbox() {
   const handleEmailSelect = (email: Email) => {
     console.log('[EmailInbox] Email selected:', email.id, 'Current filter:', filter);
     setSelectedEmail(email);
-
+    
     // Mark as read only if in inbox and unread
     if (!email.is_read && filter === "inbox") {
       setTimeout(() => markAsRead(email.id), 100);
@@ -228,7 +225,7 @@ export function EmailInbox() {
             .select("*")
             .eq("id", selectedEmail.id)
             .single();
-
+          
           if (data && !error) {
             setSelectedEmail(data);
           } else {
@@ -244,11 +241,11 @@ export function EmailInbox() {
 
   const handleSnooze = () => {
     if (!selectedEmail) return;
-
+    
     // Snooze for 3 hours
     const snoozeUntil = new Date();
     snoozeUntil.setHours(snoozeUntil.getHours() + 3);
-
+    
     snoozeEmail(selectedEmail.id, snoozeUntil);
     notify.success("Email snoozed", { description: "This email will reappear in 3 hours" });
     setSelectedEmail(null);
@@ -256,10 +253,10 @@ export function EmailInbox() {
 
   const handleArchive = async () => {
     if (!selectedEmail) return;
-
+    
     const emailToArchive = selectedEmail;
     setSelectedEmail(null);
-
+    
     await executeWithUndo({
       description: "Email archived",
       execute: async () => {
@@ -277,10 +274,10 @@ export function EmailInbox() {
 
   const handleDelete = async () => {
     if (!selectedEmail) return;
-
+    
     const emailToDelete = selectedEmail;
     setSelectedEmail(null);
-
+    
     await executeWithUndo({
       description: "Email moved to trash",
       execute: async () => {
@@ -376,7 +373,7 @@ export function EmailInbox() {
                 {isInitialSync ? "Initial sync in progress..." : "Syncing your emails..."}
               </h3>
               <p className="text-sm text-muted-foreground mt-2">
-                {isInitialSync
+                {isInitialSync 
                   ? "Fetching your last 90 days of emails. This may take 30-60 seconds."
                   : "This may take a moment. We're fetching your latest emails."}
               </p>
@@ -400,7 +397,7 @@ export function EmailInbox() {
         >
           <Menu className="h-5 w-5" />
         </Button>
-
+        
         <AdvancedSearchInput
           value={searchQuery}
           onChange={setSearchQuery}
@@ -510,9 +507,6 @@ export function EmailInbox() {
             onMarkAsRead={markAsRead}
             onMarkAsUnread={markAsUnread}
             loading={loading}
-            hasMore={hasMore}
-            onLoadMore={loadMore}
-            loadingMore={loadingMore}
           />
         </div>
 
@@ -557,9 +551,9 @@ export function EmailInbox() {
         replyTo={
           selectedEmail
             ? {
-              email: selectedEmail.from_email,
-              subject: selectedEmail.subject,
-            }
+                email: selectedEmail.from_email,
+                subject: selectedEmail.subject,
+              }
             : undefined
         }
       />

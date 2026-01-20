@@ -7,8 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, Briefcase, Building2, ArrowLeft } from "lucide-react";
-import { InlineLoader } from "@/components/ui/unified-loader";
+import { Loader2, Send, Briefcase, Building2, ArrowLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Message {
@@ -106,7 +105,7 @@ export default function InterviewPrepChat() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-
+      
       const response = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
@@ -299,10 +298,11 @@ export default function InterviewPrepChat() {
                       className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted/50'
-                          }`}
+                        className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                          message.role === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted/50'
+                        }`}
                       >
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                       </div>
@@ -311,7 +311,7 @@ export default function InterviewPrepChat() {
                   {isLoading && messages[messages.length - 1]?.role === 'user' && (
                     <div className="flex justify-start">
                       <div className="bg-muted/50 rounded-2xl px-4 py-3">
-                        <InlineLoader />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       </div>
                     </div>
                   )}
@@ -340,7 +340,7 @@ export default function InterviewPrepChat() {
                     className="h-[60px] w-[60px] flex-shrink-0"
                   >
                     {isLoading ? (
-                      <InlineLoader />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       <Send className="h-5 w-5" />
                     )}

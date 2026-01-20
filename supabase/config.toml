@@ -941,7 +941,11 @@ verify_jwt = false
 [functions.elevenlabs-scribe-token]
 verify_jwt = false
 
-
+# =============================================================================
+# Meeting Transcript Compilation (JWT Required)
+# =============================================================================
+[functions.compile-meeting-transcript]
+verify_jwt = true
 
 # =============================================================================
 # Enterprise Video Calling (TURN + SFU)
@@ -1082,5 +1086,3 @@ verify_jwt = true
 
 [functions.process-external-import]
 verify_jwt = true
-
-

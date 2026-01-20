@@ -1,7 +1,7 @@
 
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Loader2 } from "lucide-react";
+import { Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";
@@ -28,7 +28,7 @@ import { EmployeeCommissionSettings } from "@/components/admin/revenue/EmployeeC
 import { BackfillRunner } from "@/components/admin/revenue/BackfillRunner";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate, useNavigate } from "react-router-dom";
-import { UnifiedLoader } from "@/components/ui/unified-loader";
+import { Loader2 } from "lucide-react";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 
 const Admin = () => {

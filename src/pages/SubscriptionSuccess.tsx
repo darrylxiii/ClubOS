@@ -3,8 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
-import { SectionLoader } from "@/components/ui/unified-loader";
+import { CheckCircle, Loader2 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 
 export default function SubscriptionSuccess() {
@@ -29,7 +28,7 @@ export default function SubscriptionSuccess() {
           <CardHeader className="text-center pb-4">
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               {loading ? (
-                <SectionLoader />
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
               ) : (
                 <CheckCircle className="w-8 h-8 text-primary" />
               )}

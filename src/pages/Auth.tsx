@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Lock, CheckCircle2, AlertTriangle } from "lucide-react";
-import { UnifiedLoader } from "@/components/ui/unified-loader";
+import { Lock, CheckCircle2, Loader2, AlertTriangle } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { z } from "zod";
@@ -60,7 +59,7 @@ const Auth = () => {
       const error = params.get('error');
       const errorDescription = params.get('error_description');
       const state = params.get('state');
-
+      
       // Handle OAuth errors first
       if (error) {
         logger.error('OAuth error', new Error(errorDescription || error), { componentName: 'Auth', error });
@@ -69,14 +68,14 @@ const Auth = () => {
         clearOAuthState();
         return;
       }
-
+      
       // If we have a state parameter, this is an OAuth callback
       if (state) {
         logger.debug('OAuth callback detected with state', { componentName: 'Auth' });
-
+        
         // Check if Supabase already has a valid session (OAuth succeeded)
         const { data: { session: existingSession } } = await supabase.auth.getSession();
-
+        
         if (existingSession?.user) {
           // User is authenticated - OAuth worked, clear state and let auth flow continue
           logger.debug('OAuth succeeded - session found', { componentName: 'Auth' });
@@ -84,7 +83,7 @@ const Auth = () => {
           window.history.replaceState({}, '', '/auth');
           return;
         }
-
+        
         // No session yet - validate CSRF state but don't block if it fails
         // (Session check above is the real security, state is defense-in-depth)
         const isValid = validateOAuthState(state);
@@ -93,12 +92,12 @@ const Auth = () => {
         } else {
           logger.debug('OAuth CSRF validation passed', { componentName: 'Auth' });
         }
-
+        
         // Clean up URL
         window.history.replaceState({}, '', '/auth');
       }
     };
-
+    
     handleOAuthCallback();
   }, []);
 
@@ -155,9 +154,9 @@ const Auth = () => {
       const { data, error } = await supabase.functions.invoke('validate-invite-code', {
         body: { code }
       });
-
+      
       if (error) throw error;
-
+      
       if (data?.valid) {
         setInviteValid(true);
         setInviteInfo({ referrerName: data.referrerName });
@@ -176,7 +175,7 @@ const Auth = () => {
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+    
     try {
       emailSchema.parse(email);
       if (!isLogin) {
@@ -186,7 +185,7 @@ const Auth = () => {
           return;
         }
       }
-
+      
       if (isLogin) {
         // Check for account lockout before attempting login
         const lockoutStatus = await checkLockout(email);
@@ -196,15 +195,15 @@ const Auth = () => {
           return;
         }
         setLockoutMessage(null);
-
+        
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
-
+        
         if (error) {
           await recordAttempt(email, false);
-
+          
           if (error.message.includes("Invalid login credentials")) {
             toast.error(t('errors.invalidCredentials'));
           } else if (error.message.includes("Email not confirmed")) {
@@ -215,7 +214,7 @@ const Auth = () => {
           }
           return;
         }
-
+        
         // Record successful attempt (clears failed attempts)
         await recordAttempt(email, true);
 
@@ -226,7 +225,7 @@ const Auth = () => {
             const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
               factorId: verifiedFactor.id
             });
-
+            
             if (challengeError) {
               toast.error(t('errors.failed2FA'));
               return;
@@ -248,7 +247,7 @@ const Auth = () => {
           toast.error(t('errors.fullNameRequired'));
           return;
         }
-
+        
         const redirectUrl = `${window.location.origin}/`;
         const { data: authData, error } = await supabase.auth.signUp({
           email,
@@ -258,7 +257,7 @@ const Auth = () => {
             data: { full_name: fullName }
           }
         });
-
+        
         if (error) {
           if (error.message.includes("already registered")) {
             toast.error(t('errors.alreadyRegistered'));
@@ -290,14 +289,14 @@ const Auth = () => {
       if (inviteCode) {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
-
+      
       // Generate CSRF state parameter
       const state = generateOAuthState();
-
-      const redirectUrl = inviteCode
+      
+      const redirectUrl = inviteCode 
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
-
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -322,14 +321,14 @@ const Auth = () => {
       if (inviteCode) {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
-
+      
       // Generate CSRF state parameter
       const state = generateOAuthState();
-
-      const redirectUrl = inviteCode
+      
+      const redirectUrl = inviteCode 
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
-
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
@@ -350,14 +349,14 @@ const Auth = () => {
       if (inviteCode) {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
-
+      
       // Generate CSRF state parameter
       const state = generateOAuthState();
-
-      const redirectUrl = inviteCode
+      
+      const redirectUrl = inviteCode 
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
-
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
@@ -379,16 +378,16 @@ const Auth = () => {
       toast.error(t('verification.validCode'));
       return;
     }
-
+    
     setVerificationLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('verify-email-code', {
         body: { email, code: emailVerificationCode }
       });
-
+      
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-
+      
       toast.success(t('messages.emailVerified'));
       setNeedsEmailVerification(false);
       setEmailVerificationCode("");
@@ -405,13 +404,13 @@ const Auth = () => {
       toast.error(t('verification.validCode'));
       return;
     }
-
+    
     if (!mfaFactorId || !mfaChallengeId) {
       toast.error(t('mfa.noChallengeFound'));
       setMfaRequired(false);
       return;
     }
-
+    
     setVerificationLoading(true);
     try {
       const { data, error } = await supabase.auth.mfa.verify({
@@ -419,9 +418,9 @@ const Auth = () => {
         challengeId: mfaChallengeId,
         code: mfaCode
       });
-
+      
       if (error) throw error;
-
+      
       if (data) {
         setMfaRequired(false);
         navigate("/home");
@@ -435,7 +434,11 @@ const Auth = () => {
   };
 
   if (loading) {
-    return <UnifiedLoader variant="page" showBranding />;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-2xl font-black uppercase tracking-tight animate-pulse">{tCommon('actions.loading')}</div>
+      </div>
+    );
   }
 
   return (
@@ -463,7 +466,7 @@ const Auth = () => {
                 <p className="text-sm font-bold text-success">{t('invite.valid')}</p>
               </div>
               <p className="text-xs text-foreground/80">
-                {inviteInfo.referrerName
+                {inviteInfo.referrerName 
                   ? t('invite.invitedBy', { name: inviteInfo.referrerName })
                   : t('invite.invitedByMember')}
               </p>
@@ -551,7 +554,7 @@ const Auth = () => {
                   </AlertDescription>
                 </Alert>
               )}
-
+              
               {!isLogin && (
                 <Input
                   type="text"
@@ -625,7 +628,7 @@ const Auth = () => {
                   className="w-full h-14 rounded-2xl font-semibold"
                 >
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                   </svg>
                   {t('signInWith', { provider: t('oauth.apple') })}
                 </Button>
@@ -637,19 +640,19 @@ const Auth = () => {
                   className="w-full h-14 rounded-2xl font-semibold"
                 >
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                   </svg>
                   {t('signInWith', { provider: t('oauth.linkedin') })}
                 </Button>
               </div>
 
               <div className="text-center pt-2">
-                <Link
-                  to="/onboarding"
-                  className="text-foreground/80 hover:text-foreground text-sm"
-                >
-                  Request Access
-                </Link>
+            <Link
+              to="/onboarding"
+              className="text-foreground/80 hover:text-foreground text-sm"
+            >
+              Request Access
+            </Link>
               </div>
 
               {isLogin && (

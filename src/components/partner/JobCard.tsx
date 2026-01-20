@@ -19,39 +19,7 @@ interface JobCardProps {
   onEditPipeline: (jobId: string) => void;
 }
 
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Sparkles, Loader2 } from "lucide-react";
-
 export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) => {
-  const [isRecruiting, setIsRecruiting] = useState(false);
-
-  const handleAutoRecruit = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsRecruiting(true);
-    try {
-      toast.info("Headhunter Agent activated... analyzing job requirements.");
-      const { data, error } = await supabase.functions.invoke('run-headhunter-agent', {
-        body: { jobId: job.id } // The function fetches open jobs, but we could pass ID to be specific
-      });
-
-      if (error) throw error;
-
-      if (data?.matches_found > 0) {
-        toast.success(`Agent found ${data.matches_found} potential candidates!`, {
-          description: `Saved ${data.matches_saved} matches for review.`
-        });
-      } else {
-        toast.info("Agent finished search but found no new strong matches.");
-      }
-    } catch (err: any) {
-      toast.error(`Agent failed: ${err.message}`);
-    } finally {
-      setIsRecruiting(false);
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -91,8 +59,8 @@ export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) 
               job.status === 'published'
                 ? 'default'
                 : job.status === 'draft'
-                  ? 'secondary'
-                  : 'outline'
+                ? 'secondary'
+                : 'outline'
             }
             className="shrink-0"
           >
@@ -128,17 +96,6 @@ export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) 
             <Edit className="w-4 h-4 mr-2" />
             Edit Pipeline
           </Button>
-          {job.status === 'open' && (
-            <Button
-              variant="secondary"
-              onClick={handleAutoRecruit}
-              disabled={isRecruiting}
-              className="w-full sm:w-auto bg-purple-100 text-purple-700 hover:bg-purple-200 border-purple-200 border"
-            >
-              {isRecruiting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-              Auto-Recruit
-            </Button>
-          )}
         </div>
       </CardContent>
     </Card>

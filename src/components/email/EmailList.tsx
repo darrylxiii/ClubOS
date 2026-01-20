@@ -17,9 +17,6 @@ interface EmailListProps {
   onMarkAsRead: (emailId: string) => void;
   onMarkAsUnread: (emailId: string) => void;
   loading?: boolean;
-  hasMore?: boolean;
-  onLoadMore?: () => void;
-  loadingMore?: boolean;
 }
 
 export function EmailList({
@@ -32,9 +29,6 @@ export function EmailList({
   onMarkAsRead,
   onMarkAsUnread,
   loading = false,
-  hasMore,
-  onLoadMore,
-  loadingMore
 }: EmailListProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -77,10 +71,10 @@ export function EmailList({
     }
 
     // Show result toast
-    const actionLabel = action === "read" ? "marked as read" :
-      action === "unread" ? "marked as unread" :
-        action === "archive" ? "archived" : "deleted";
-
+    const actionLabel = action === "read" ? "marked as read" : 
+                       action === "unread" ? "marked as unread" :
+                       action === "archive" ? "archived" : "deleted";
+    
     if (failCount === 0) {
       notify.success(`${successCount} email${successCount !== 1 ? 's' : ''} ${actionLabel}`);
       setSelectedIds(new Set());
@@ -172,9 +166,6 @@ export function EmailList({
           onEmailSelect={onEmailSelect}
           onToggleCheck={toggleSelection}
           onToggleStar={onToggleStar}
-          hasMore={hasMore}
-          onLoadMore={onLoadMore}
-          loadingMore={loadingMore}
         />
       )}
     </div>

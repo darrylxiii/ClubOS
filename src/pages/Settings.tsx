@@ -23,7 +23,6 @@ import { TimeTrackingSettings } from "@/components/settings/TimeTrackingSettings
 import { APIIntegrationSettings } from "@/components/settings/APIIntegrationSettings";
 import { CommunicationSettings } from "@/components/settings/CommunicationSettings";
 import { useTranslation } from 'react-i18next';
-import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledgeProfile";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -31,7 +30,7 @@ const Settings = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
-
+  
   // Listen for language changes from banner switcher
   useEffect(() => {
     const handleLanguageChange = (event: CustomEvent<string>) => {
@@ -39,7 +38,7 @@ const Settings = () => {
       console.log('[Settings] Language changed via event to:', newLang);
       setPreferredLanguage(newLang);
     };
-
+    
     window.addEventListener('languageChange', handleLanguageChange as EventListener);
     return () => {
       window.removeEventListener('languageChange', handleLanguageChange as EventListener);
@@ -48,7 +47,7 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
-
+  
   // Profile states
   const [fullName, setFullName] = useState("");
   const [currentTitle, setCurrentTitle] = useState("");
@@ -130,13 +129,13 @@ const Settings = () => {
     if (urlParams.get('code')) {
       return 'connections';
     }
-
+    
     // Check if OAuth set a return tab
     const oauthReturnTab = localStorage.getItem('oauth_return_tab');
     if (oauthReturnTab) {
       return oauthReturnTab;
     }
-
+    
     const tabParam = urlParams.get('tab');
     if (tabParam && ['profile', 'compensation', 'freelance', 'connections', 'calendar', 'notifications', 'privacy', 'security', 'preferences', 'time-tracking', 'api', 'communication'].includes(tabParam)) {
       return tabParam;
@@ -163,7 +162,7 @@ const Settings = () => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
-
+    
     saveTimeoutRef.current = setTimeout(() => {
       saveProfile();
     }, 1000);
@@ -177,7 +176,7 @@ const Settings = () => {
 
   const loadProfile = async () => {
     if (!user) return;
-
+    
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -199,7 +198,7 @@ const Settings = () => {
         setLinkedinUrl(data.linkedin_url || '');
         setPreferredWorkLocations((data.preferred_work_locations as string[]) || []);
         setRemoteWorkPreference(data.remote_work_preference || false);
-
+        
         // Compensation
         setEmploymentType((data.employment_type_preference as 'fulltime' | 'freelance' | 'both') || 'fulltime');
         setCurrentSalaryRange([
@@ -237,7 +236,7 @@ const Settings = () => {
 
         // Currency
         setPreferredCurrency((data.preferred_currency as 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH') || 'EUR');
-
+        
         // New preferences
         const userLanguage = data.preferred_language || 'en';
         setPreferredLanguage(userLanguage);
@@ -256,24 +255,24 @@ const Settings = () => {
           setSocialConnections(prev => ({ ...prev, linkedin: true }));
         }
         if (data.instagram_connected && data.instagram_username) {
-          setSocialConnections(prev => ({
-            ...prev,
+          setSocialConnections(prev => ({ 
+            ...prev, 
             instagram: true,
-            instagramUsername: data.instagram_username
+            instagramUsername: data.instagram_username 
           }));
         }
         if (data.twitter_connected && data.twitter_username) {
-          setSocialConnections(prev => ({
-            ...prev,
+          setSocialConnections(prev => ({ 
+            ...prev, 
             twitter: true,
-            twitterUsername: data.twitter_username
+            twitterUsername: data.twitter_username 
           }));
         }
         if (data.github_connected && data.github_username) {
-          setSocialConnections(prev => ({
-            ...prev,
+          setSocialConnections(prev => ({ 
+            ...prev, 
             github: true,
-            githubUsername: data.github_username
+            githubUsername: data.github_username 
           }));
         }
 
@@ -358,7 +357,7 @@ const Settings = () => {
         .eq('id', user.id);
 
       if (error) throw error;
-
+      
       toast.success('Settings saved successfully');
     } catch (error: any) {
       console.error('Error saving profile:', error);
@@ -374,9 +373,9 @@ const Settings = () => {
 
   const handleExportData = async () => {
     if (!user) return;
-
+    
     toast.success('Preparing your data export...');
-
+    
     try {
       const { error } = await supabase
         .from('profile_data_exports')
@@ -386,7 +385,7 @@ const Settings = () => {
         });
 
       if (error) throw error;
-
+      
       toast.success("Data export requested. You'll receive an email when ready.");
     } catch (error: any) {
       console.error('Error requesting export:', error);
@@ -420,18 +419,18 @@ const Settings = () => {
   const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram' | 'github') => {
     try {
       const redirectTo = `${window.location.origin}/settings`;
-
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as any,
         options: {
           redirectTo,
-          scopes: provider === 'linkedin_oidc' ? 'openid profile email' :
-            provider === 'github' ? 'read:user user:email' : undefined,
+          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : 
+                  provider === 'github' ? 'read:user user:email' : undefined,
         }
       });
 
       if (error) throw error;
-
+      
       toast.success(`Redirecting to ${provider} login...`);
     } catch (error) {
       console.error(`${provider} connection error:`, error);
@@ -442,7 +441,7 @@ const Settings = () => {
   const handleDisconnectSocial = async (platform: 'linkedin' | 'instagram' | 'twitter' | 'github') => {
     try {
       const updates: any = {};
-
+      
       if (platform === 'linkedin') {
         updates.linkedin_connected = false;
         updates.linkedin_profile_data = null;
@@ -484,17 +483,17 @@ const Settings = () => {
 
   const handleCurrencyChange = async (currency: 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH') => {
     setPreferredCurrency(currency);
-
+    
     if (!user) return;
-
+    
     try {
       const { error } = await supabase
         .from('profiles')
         .update({ preferred_currency: currency })
         .eq('id', user.id);
-
+      
       if (error) throw error;
-
+      
       toast.success(`Currency preference updated to ${currency}`);
     } catch (error) {
       console.error('Error updating currency:', error);
@@ -534,12 +533,7 @@ const Settings = () => {
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="flex flex-wrap gap-1 h-auto p-1">
-
-
-            {/* ... (in TabList) */}
-
             <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="ai-persona">My AI Persona</TabsTrigger>
             <TabsTrigger value="compensation">Compensation</TabsTrigger>
             <TabsTrigger value="freelance">Freelance</TabsTrigger>
             <TabsTrigger value="time-tracking">Time Tracking</TabsTrigger>
@@ -582,17 +576,6 @@ const Settings = () => {
               onAvatarChange={(url) => setProfile({ ...profile, avatar_url: url })}
               saving={saving}
             />
-          </TabsContent>
-
-          <TabsContent value="ai-persona" className="space-y-4">
-            {profile && (
-              <EntityKnowledgeProfile
-                entityId={profile.id}
-                entityType="user"
-                title="My AI Persona"
-                description="Teach the AI your personal communication style and preferences."
-              />
-            )}
           </TabsContent>
 
           <TabsContent value="compensation" className="space-y-4">
@@ -672,7 +655,7 @@ const Settings = () => {
 
           <TabsContent value="security" className="space-y-4">
             <SecuritySettings />
-
+            
             {/* Documents Section */}
             <Card>
               <CardHeader>
@@ -698,10 +681,10 @@ const Settings = () => {
               preferredCurrency={preferredCurrency}
               onCurrencyChange={handleCurrencyChange}
               preferredLanguage={preferredLanguage}
-              onLanguageChange={async (lang) => {
-                setPreferredLanguage(lang);
+              onLanguageChange={async (lang) => { 
+                setPreferredLanguage(lang); 
                 await i18n.changeLanguage(lang);
-                debouncedSave();
+                debouncedSave(); 
               }}
               jobAlertFrequency={jobAlertFrequency}
               onJobAlertFrequencyChange={(freq) => { setJobAlertFrequency(freq); debouncedSave(); }}
@@ -719,9 +702,9 @@ const Settings = () => {
           </TabsContent>
         </Tabs>
       </div>
-
-      <ResumeUploadModal
-        open={resumeModalOpen}
+      
+      <ResumeUploadModal 
+        open={resumeModalOpen} 
         onOpenChange={setResumeModalOpen}
         onUploadComplete={() => {
           toast.success('Document uploaded successfully');

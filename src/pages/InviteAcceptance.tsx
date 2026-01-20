@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MinimalHeader } from "@/components/MinimalHeader";
-import { CheckCircle2, AlertCircle, Briefcase, User } from "lucide-react";
-import { UnifiedLoader } from "@/components/ui/unified-loader";
+import { Loader2, CheckCircle2, AlertCircle, Briefcase, User } from "lucide-react";
 import { toast } from "sonner";
 
 export default function InviteAcceptance() {
@@ -62,7 +61,7 @@ export default function InviteAcceptance() {
       if (candidate?.email) {
         sessionStorage.setItem('expected_invitation_email', candidate.email);
       }
-
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -82,7 +81,9 @@ export default function InviteAcceptance() {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <MinimalHeader showBackButton={false} />
-        <UnifiedLoader variant="page" showBranding />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
@@ -115,99 +116,99 @@ export default function InviteAcceptance() {
     <div className="min-h-screen flex flex-col bg-background">
       <MinimalHeader showBackButton={false} />
       <div className="flex-1 flex items-center justify-center p-4">
-        <Card className="max-w-2xl w-full">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-8 h-8 text-primary" />
-            </div>
-            <CardTitle className="text-2xl">Welcome to The Quantum Club</CardTitle>
-            <CardDescription>
-              You've been invited to join our exclusive talent platform
-            </CardDescription>
-          </CardHeader>
+      <Card className="max-w-2xl w-full">
+        <CardHeader className="text-center">
+          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <CheckCircle2 className="w-8 h-8 text-primary" />
+          </div>
+          <CardTitle className="text-2xl">Welcome to The Quantum Club</CardTitle>
+          <CardDescription>
+            You've been invited to join our exclusive talent platform
+          </CardDescription>
+        </CardHeader>
 
-          <CardContent className="space-y-6">
-            <Card className="bg-muted/30">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
-                    <User className="w-8 h-8 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-lg">{candidate?.full_name}</h3>
-                    {candidate?.current_title && (
-                      <p className="text-sm text-muted-foreground">
-                        {candidate.current_title}
-                        {candidate.current_company && ` at ${candidate.current_company}`}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-2">{candidate?.email}</p>
-                  </div>
+        <CardContent className="space-y-6">
+          <Card className="bg-muted/30">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                  <User className="w-8 h-8 text-primary" />
                 </div>
-              </CardContent>
-            </Card>
-
-            {invitation?.job_context && invitation.job_context.length > 0 && (
-              <div>
-                <p className="text-sm font-medium mb-2">Relevant Opportunities:</p>
-                <div className="space-y-2">
-                  {invitation.job_context.map((job: any, idx: number) => (
-                    <Card key={idx}>
-                      <CardContent className="py-3 px-4 flex items-center gap-2">
-                        <Briefcase className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">{job.job_title}</span>
-                      </CardContent>
-                    </Card>
-                  ))}
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg">{candidate?.full_name}</h3>
+                  {candidate?.current_title && (
+                    <p className="text-sm text-muted-foreground">
+                      {candidate.current_title}
+                      {candidate.current_company && ` at ${candidate.current_company}`}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">{candidate?.email}</p>
                 </div>
               </div>
-            )}
+            </CardContent>
+          </Card>
 
-            {invitation?.message_template && (
-              <Card className="bg-muted/30">
-                <CardContent className="pt-6">
-                  <p className="text-sm whitespace-pre-wrap">{invitation.message_template}</p>
-                </CardContent>
-              </Card>
-            )}
-
-            <div className="space-y-3">
-              <p className="text-sm text-center text-muted-foreground">
-                Create your account to get started
-              </p>
-
-              <Button
-                className="w-full"
-                size="lg"
-                onClick={() => handleSignUp('google')}
-              >
-                Continue with Google
-              </Button>
-
-              <Button
-                className="w-full"
-                size="lg"
-                variant="outline"
-                onClick={() => handleSignUp('linkedin')}
-              >
-                Continue with LinkedIn
-              </Button>
-
-              <Button
-                className="w-full"
-                size="lg"
-                variant="outline"
-                onClick={() => handleSignUp('apple')}
-              >
-                Continue with Apple
-              </Button>
+          {invitation?.job_context && invitation.job_context.length > 0 && (
+            <div>
+              <p className="text-sm font-medium mb-2">Relevant Opportunities:</p>
+              <div className="space-y-2">
+                {invitation.job_context.map((job: any, idx: number) => (
+                  <Card key={idx}>
+                    <CardContent className="py-3 px-4 flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">{job.job_title}</span>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
+          )}
 
-            <p className="text-xs text-center text-muted-foreground">
-              By signing up, you agree to our Terms of Service and Privacy Policy
+          {invitation?.message_template && (
+            <Card className="bg-muted/30">
+              <CardContent className="pt-6">
+                <p className="text-sm whitespace-pre-wrap">{invitation.message_template}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="space-y-3">
+            <p className="text-sm text-center text-muted-foreground">
+              Create your account to get started
             </p>
-          </CardContent>
-        </Card>
+            
+            <Button 
+              className="w-full" 
+              size="lg"
+              onClick={() => handleSignUp('google')}
+            >
+              Continue with Google
+            </Button>
+
+            <Button 
+              className="w-full" 
+              size="lg" 
+              variant="outline"
+              onClick={() => handleSignUp('linkedin')}
+            >
+              Continue with LinkedIn
+            </Button>
+
+            <Button 
+              className="w-full" 
+              size="lg" 
+              variant="outline"
+              onClick={() => handleSignUp('apple')}
+            >
+              Continue with Apple
+            </Button>
+          </div>
+
+          <p className="text-xs text-center text-muted-foreground">
+            By signing up, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </CardContent>
+      </Card>
       </div>
     </div>
   );

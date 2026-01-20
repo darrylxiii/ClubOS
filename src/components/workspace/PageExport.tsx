@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Download, FileText, FileCode, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { WorkspacePage } from '@/hooks/useWorkspacePages';
+import jsPDF from 'jspdf';
 
 interface PageExportProps {
   page: WorkspacePage;
@@ -148,9 +149,6 @@ export function PageExport({ page }: PageExportProps) {
   const exportToPDF = async () => {
     setExporting('pdf');
     try {
-      // Dynamic import to reduce build memory
-      const { default: jsPDF } = await import('jspdf');
-      
       const doc = new jsPDF();
       
       // Title

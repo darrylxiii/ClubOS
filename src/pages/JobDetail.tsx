@@ -22,8 +22,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { canManageJob } from "@/utils/jobNavigation";
 import { trackJobView, trackJobSave } from "@/services/analyticsTracking";
 import { toast } from "sonner";
-import { UnifiedLoader } from "@/components/ui/unified-loader";
-import { ArrowLeft, Settings, Activity, Edit, ExternalLink } from "lucide-react";
+import { ArrowLeft, Settings, Loader2, Activity, Edit, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function JobDetail() {
@@ -51,7 +50,7 @@ export default function JobDetail() {
     if (jobId) {
       loadJobDetails();
       checkUserStatus();
-
+      
       // Phase 3: Track job view
       if (user) {
         trackJobView(user.id, jobId);
@@ -201,7 +200,7 @@ export default function JobDetail() {
         { name: 'Interview', order: 2 },
         { name: 'Offer', order: 3 }
       ];
-
+      
       // Convert pipeline stages to application stages format
       const applicationStages = pipelineStages.map((stage: any, index: number) => ({
         id: stage.id || `stage-${index}`,
@@ -255,9 +254,9 @@ export default function JobDetail() {
           .delete()
           .eq('user_id', user.id)
           .eq('job_id', jobId);
-
+        
         if (error) throw error;
-
+        
         setIsSaved(false);
         toast.info('Job removed from saved jobs');
         trackJobSave(user.id, jobId!, false);
@@ -266,9 +265,9 @@ export default function JobDetail() {
         const { error } = await supabase
           .from('saved_jobs')
           .insert({ user_id: user.id, job_id: jobId });
-
+        
         if (error) throw error;
-
+        
         setIsSaved(true);
         toast.success('Job saved successfully!');
         trackJobSave(user.id, jobId!, true);
@@ -281,7 +280,7 @@ export default function JobDetail() {
 
   const handleShare = async () => {
     const url = window.location.href;
-
+    
     if (navigator.share) {
       try {
         await navigator.share({
@@ -305,7 +304,9 @@ export default function JobDetail() {
   if (loading) {
     return (
       <AppLayout>
-        <UnifiedLoader variant="page" showBranding />
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
+        </div>
       </AppLayout>
     );
   }
@@ -328,7 +329,7 @@ export default function JobDetail() {
   return (
     <AppLayout>
       <OceanBackgroundVideo />
-
+      
       <div className="relative z-10 min-h-screen">
         {/* Top Navigation */}
         <div className="container mx-auto px-6 py-6 max-w-6xl">
@@ -423,18 +424,18 @@ export default function JobDetail() {
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6 mt-6">
               <AboutRoleSection description={job.description} />
-
-              <JobDescriptionViewer
+              
+              <JobDescriptionViewer 
                 documentUrl={job.job_description_url}
                 jobTitle={job.title}
                 companyName={job.companies?.name || "Company"}
               />
-
+              
               <ToolsShowcase
                 requiredTools={job.job_tools?.filter((jt: any) => jt.is_required).map((jt: any) => jt.tools_and_skills) || []}
                 niceToHaveTools={job.job_tools?.filter((jt: any) => !jt.is_required).map((jt: any) => jt.tools_and_skills) || []}
               />
-
+              
               {job.responsibilities && job.responsibilities.length > 0 && (
                 <Card className="border-2">
                   <CardHeader>
@@ -488,13 +489,13 @@ export default function JobDetail() {
 
             {/* Details Tab */}
             <TabsContent value="details" className="space-y-6 mt-6">
-              <SkillMatrix
+              <SkillMatrix 
                 mustHaveSkills={job.requirements}
                 niceToHaveSkills={job.nice_to_have}
               />
               <ResponsibilityGrid responsibilities={job.responsibilities} />
               <BenefitsShowcase benefits={job.benefits} />
-              <ApplicationTimeline
+              <ApplicationTimeline 
                 jobPipelineStages={job.pipeline_stages}
                 currentStage={isApplied ? 0 : undefined}
               />

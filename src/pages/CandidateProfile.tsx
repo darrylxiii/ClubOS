@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { SectionLoader } from "@/components/ui/unified-loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/contexts/RoleContext";
@@ -178,7 +177,7 @@ export default function CandidateProfile() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
-          <SectionLoader />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </AppLayout>
     );
@@ -346,13 +345,13 @@ export default function CandidateProfile() {
             {isTeamView && (
               <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4">
                 {/* Talent Pool Tags */}
-                <TalentPoolTags
-                  candidateId={id!}
-                  initialTags={candidate.tags || []}
+                <TalentPoolTags 
+                  candidateId={id!} 
+                  initialTags={candidate.tags || []} 
                   onTagsChange={() => loadCandidate()}
                   size="sm"
                 />
-
+                
                 {candidate.profile_completeness !== null && candidate.profile_completeness !== undefined && (
                   <Badge variant="outline" className="gap-1 text-xs sm:text-sm">
                     <Target className="w-3 h-3 flex-shrink-0" />

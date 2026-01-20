@@ -46,12 +46,11 @@ import { InterviewerDashboard } from "@/components/partner/dashboards/Interviewe
 import { ObserverDashboard } from "@/components/partner/dashboards/ObserverDashboard";
 import { ManualInterviewEntryDialog } from "@/components/partner/ManualInterviewEntryDialog";
 import { CalendarInterviewLinker } from "@/components/partner/CalendarInterviewLinker";
-import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledgeProfile";
-import {
-  JobDashboardSidebar,
-  InlineActivityFeed,
-  CollapsibleSection,
-  CandidatesAtRiskPanel,
+import { 
+  JobDashboardSidebar, 
+  InlineActivityFeed, 
+  CollapsibleSection, 
+  CandidatesAtRiskPanel, 
   QuickResponseTimeTracker,
   PipelineVelocityTracker,
   CandidateLeaderboard,
@@ -95,11 +94,11 @@ export default function JobDashboard() {
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
-
+  
+  const closeJobWon = useCloseJobWon();
   const closeJobLost = useCloseJobLost();
   const archiveJob = useArchiveJob();
   const deleteJob = useDeleteJob();
-  const [showBrainConfig, setShowBrainConfig] = useState(false);
   const [showCalendarLinker, setShowCalendarLinker] = useState(false);
   const [editingStage, setEditingStage] = useState<any>(null);
   const [editingStageIndex, setEditingStageIndex] = useState<number | null>(null);
@@ -243,7 +242,7 @@ export default function JobDashboard() {
 
       if (error) throw error;
       setJob(data);
-
+      
       // Log job view (once per session to avoid spam)
       const sessionKey = `job_view_logged_${jobId}`;
       if (!sessionStorage.getItem(sessionKey)) {
@@ -265,18 +264,18 @@ export default function JobDashboard() {
           sessionStorage.setItem(sessionKey, 'true');
         }
       }
-
+      
       // Fetch applications for metrics
       const stages = Array.isArray(data.pipeline_stages) ? data.pipeline_stages : [];
       await fetchApplicationsForMetrics(stages);
-
+      
       // Fetch rejected count
       const { count } = await supabase
         .from('applications')
         .select('*', { count: 'exact', head: true })
         .eq('job_id', jobId)
         .eq('status', 'rejected');
-
+      
       setRejectedCount(count || 0);
     } catch (error) {
       console.error('Error fetching job:', error);
@@ -296,12 +295,12 @@ export default function JobDashboard() {
         .neq('status', 'rejected');
 
       if (error) throw error;
-
+      
       // Enrich with candidate profile data through candidate_interactions
       const enrichedApps = await Promise.all((data || []).map(async (app) => {
         let profileData = null;
         let linkedUserId = app.user_id;
-
+        
         // First try to get candidate_profile through candidate_interactions
         const { data: interaction } = await supabase
           .from('candidate_interactions')
@@ -320,20 +319,20 @@ export default function JobDashboard() {
           `)
           .eq('application_id', app.id)
           .maybeSingle();
-
+        
         if (interaction?.candidate_profiles) {
           profileData = interaction.candidate_profiles;
           // Use linked user_id from candidate_profile if available
           if (profileData.user_id) {
             linkedUserId = profileData.user_id;
-
+            
             // If candidate_profile is linked to user, get user's latest avatar
             const { data: userProfile } = await supabase
               .from('profiles')
               .select('avatar_url')
               .eq('id', profileData.user_id)
               .maybeSingle();
-
+            
             if (userProfile?.avatar_url) {
               profileData.avatar_url = userProfile.avatar_url;
             }
@@ -347,7 +346,7 @@ export default function JobDashboard() {
             .maybeSingle();
           profileData = userProfile;
         }
-
+        
         return {
           ...app,
           candidate_id: interaction?.candidate_id || null, // Add candidate_id from interactions
@@ -363,29 +362,29 @@ export default function JobDashboard() {
           is_linked_user: !!profileData?.user_id, // Flag to show linked status
         };
       }));
-
+      
       setApplications(enrichedApps);
-
+      
       // Calculate metrics
       const stageBreakdown: { [key: number]: number } = {};
       const stageDurations: { [key: number]: number[] } = {};
-
+      
       stages.forEach(stage => {
         stageBreakdown[stage.order] = 0;
         stageDurations[stage.order] = [];
       });
-
+      
       enrichedApps.forEach(app => {
         if (app.current_stage_index !== undefined) {
           stageBreakdown[app.current_stage_index]++;
-
+          
           // Calculate days in current stage
           const appliedDate = new Date(app.updated_at || app.applied_at);
           const daysSince = Math.floor((Date.now() - appliedDate.getTime()) / (1000 * 60 * 60 * 24));
           stageDurations[app.current_stage_index].push(daysSince);
         }
       });
-
+      
       // Calculate average days per stage
       const avgDaysInStage: { [key: number]: number } = {};
       Object.keys(stageDurations).forEach(key => {
@@ -394,7 +393,7 @@ export default function JobDashboard() {
           ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
           : 0;
       });
-
+      
       // Calculate conversion rates
       const conversionRates: { [key: string]: number } = {};
       for (let i = 0; i < stages.length - 1; i++) {
@@ -403,19 +402,19 @@ export default function JobDashboard() {
         const totalPassed = enrichedApps.filter(app => app.current_stage_index > i).length;
         conversionRates[`${i}-${i + 1}`] = current > 0 ? Math.round((totalPassed / (current + totalPassed)) * 100) : 0;
       }
-
+      
       // Find last activity
-      const lastApp = enrichedApps.sort((a, b) =>
+      const lastApp = enrichedApps.sort((a, b) => 
         new Date(b.updated_at || b.applied_at).getTime() - new Date(a.updated_at || a.applied_at).getTime()
       )[0];
-
-      const lastActivity = lastApp
+      
+      const lastActivity = lastApp 
         ? `${Math.floor((Date.now() - new Date(lastApp.updated_at || lastApp.applied_at).getTime()) / (1000 * 60 * 60))}h ago`
         : 'No activity yet';
-
+      
       // Mock "needs club check" - in production, filter by club_check_status field
       const needsClubCheck = Math.min(enrichedApps.filter(app => app.current_stage_index === 0).length, 3);
-
+      
       setMetrics({
         totalApplicants: enrichedApps.length,
         stageBreakdown,
@@ -471,35 +470,21 @@ export default function JobDashboard() {
           />
         )}
 
-        <Dialog open={showBrainConfig} onOpenChange={setShowBrainConfig}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Job Context Configuration</DialogTitle>
-            </DialogHeader>
-            <EntityKnowledgeProfile
-              entityId={jobId!}
-              entityType="job"
-              title="Job Knowledge & Voice"
-              description="Tailor the AI's understanding of this specific role."
-            />
-          </DialogContent>
-        </Dialog>
-
         {/* Premium Header with Glass Morphism */}
         <div className="relative overflow-hidden rounded-2xl border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl p-6 md:p-8 shadow-[var(--shadow-glass-lg)]">
           <div className="absolute inset-0 bg-gradient-to-r from-muted/10 via-transparent to-muted/10" />
-
+          
           <div className="relative flex flex-col md:flex-row items-start justify-between gap-4">
             <div className="space-y-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/jobs')}
-                className="mb-2 hover:bg-muted/20 transition-all duration-300"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Jobs
-              </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/jobs')}
+          className="mb-2 hover:bg-muted/20 transition-all duration-300"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Jobs
+        </Button>
               <div className="flex items-center gap-4">
                 {job.companies?.logo_url && (
                   <div className="relative group">
@@ -523,23 +508,13 @@ export default function JobDashboard() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowBrainConfig(true)}
-                className="h-9 gap-2 border-border/30 hover:border-border/50 hover:bg-muted/10 transition-all"
-              >
-                <Brain className="w-4 h-4" />
-                Job Context
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
                 onClick={() => setEditDialogOpen(true)}
                 className="h-9 gap-2 border-border/30 hover:border-border/50 hover:bg-muted/10 transition-all"
               >
                 <Edit className="w-4 h-4" />
                 Edit Job
               </Button>
-
+              
               {/* Job Actions Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -560,7 +535,7 @@ export default function JobDashboard() {
                     Archive Job
                   </DropdownMenuItem>
                   {(job.status === 'draft' || role === 'admin') && (
-                    <DropdownMenuItem
+                    <DropdownMenuItem 
                       onClick={() => setShowDeleteDialog(true)}
                       className="text-destructive"
                     >
@@ -570,14 +545,14 @@ export default function JobDashboard() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              <Badge
+              
+              <Badge 
                 variant={job.status === 'published' ? 'default' : 'secondary'}
                 className="h-8 px-4 text-sm font-bold animate-pulse"
               >
                 {job.status}
               </Badge>
-
+              
               {/* Continuous Pipeline Badge */}
               <ContinuousPipelineBadge
                 isContinuous={job.is_continuous}
@@ -591,7 +566,7 @@ export default function JobDashboard() {
         </div>
 
         {/* Quick Actions Bar */}
-        <QuickActionsBar
+        <QuickActionsBar 
           jobId={job.id}
           jobTitle={job.title}
           candidateCount={metrics?.totalApplicants || 0}
@@ -653,206 +628,206 @@ export default function JobDashboard() {
             )}
 
             {/* Enhanced Pipeline Breakdown */}
-            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)] transition-all duration-300">
-              <CardHeader>
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-black uppercase">Pipeline Breakdown</CardTitle>
-                    <div className="flex gap-2">
-                      <PipelineDisplaySettings
-                        jobId={job.id}
-                        settings={displaySettings}
-                        onSettingsChange={setDisplaySettings}
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowAddStage(true)}
-                        className="gap-2"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add Stage
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          toast.success("Pipeline template saved");
-                        }}
-                        className="gap-2"
-                      >
-                        <Save className="w-4 h-4" />
-                        Save as Template
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Icon Legend */}
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-background/40 backdrop-blur-sm rounded-lg p-3 border border-border/20">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4" />
-                      <span>Your Company</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      <span>Quantum Club Elite</span>
-                    </div>
-                    <div className="h-4 w-px bg-border" />
-                    <div className="flex items-center gap-2">
-                      <Video className="w-4 h-4" />
-                      <span>Online</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      <span>In-Person</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      <span>Hybrid</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <ClipboardList className="w-4 h-4" />
-                      <span>Assessment</span>
-                    </div>
+          <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)] transition-all duration-300">
+            <CardHeader>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-black uppercase">Pipeline Breakdown</CardTitle>
+                  <div className="flex gap-2">
+                  <PipelineDisplaySettings
+                    jobId={job.id}
+                    settings={displaySettings}
+                    onSettingsChange={setDisplaySettings}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAddStage(true)}
+                    className="gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Stage
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      toast.success("Pipeline template saved");
+                    }}
+                    className="gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    Save as Template
+                  </Button>
                   </div>
                 </div>
+
+                {/* Icon Legend */}
+                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-background/40 backdrop-blur-sm rounded-lg p-3 border border-border/20">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    <span>Your Company</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Quantum Club Elite</span>
+                  </div>
+                  <div className="h-4 w-px bg-border" />
+            <div className="flex items-center gap-2">
+              <Video className="w-4 h-4" />
+              <span>Online</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              <span>In-Person</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              <span>Hybrid</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ClipboardList className="w-4 h-4" />
+              <span>Assessment</span>
+            </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <DndContext
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+                sensors={sensors}
+              >
+                <SortableContext
+                  items={stages.map((_, i) => `stage-${i}`)}
+                  strategy={verticalListSortingStrategy}
+                >
+                   <div className="space-y-3 md:space-y-4">
+                     {stages.sort((a, b) => a.order - b.order).map((stage, index) => {
+                       const count = metrics?.stageBreakdown[stage.order] || 0;
+                       const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
+                       const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
+                       const stageApplications = applications.filter(app => app.current_stage_index === stage.order);
+                       
+                       // Stage health indicator
+                       const stageHealth = avgDays > 14 ? 'red' : avgDays > 7 ? 'yellow' : 'green';
+                       
+                        return (
+                         <ExpandablePipelineStage
+                           key={`stage-${index}`}
+                           stage={stage}
+                           stageIndex={stage.order}
+                           candidateCount={count}
+                           avgDays={avgDays}
+                           conversionRate={nextConversion}
+                           applications={stageApplications}
+                           jobId={jobId!}
+                           isExpanded={expandedStageIndices.has(stage.order)}
+                           onToggleExpand={() => toggleStageExpansion(stage.order)}
+                           displaySettings={displaySettings}
+                           totalStages={stages.length}
+                          onEdit={(updatedStage) => {
+                            // Save inline edits
+                            const updatedStages = [...stages];
+                            updatedStages[index] = { ...updatedStage, order: index };
+                            
+                            supabase
+                              .from('jobs')
+                              .update({ pipeline_stages: updatedStages })
+                              .eq('id', jobId)
+                              .then(({ error }) => {
+                                if (!error) {
+                                  fetchJobDetails();
+                                  toast.success("Stage updated successfully");
+                                } else {
+                                  toast.error("Failed to update stage");
+                                }
+                              });
+                          }}
+                          onDuplicate={async () => {
+                            const duplicatedStage = {
+                              ...stage,
+                              name: `${stage.name} (Copy)`,
+                              order: stages.length
+                            };
+                            const updatedStages = [...stages, duplicatedStage];
+                            
+                            const { error } = await supabase
+                              .from('jobs')
+                              .update({ pipeline_stages: updatedStages })
+                              .eq('id', jobId);
+
+                            if (!error) {
+                              await fetchJobDetails();
+                              toast.success("Stage duplicated successfully");
+                            } else {
+                              toast.error("Failed to duplicate stage");
+                            }
+                          }}
+                          onDelete={async () => {
+                            const updatedStages = stages
+                              .filter((_, i) => i !== index)
+                              .map((s, i) => ({ ...s, order: i }));
+                            
+                            const { error } = await supabase
+                              .from('jobs')
+                              .update({ pipeline_stages: updatedStages })
+                              .eq('id', jobId);
+
+                            if (!error) {
+                              await fetchJobDetails();
+                              toast.success("Stage deleted successfully");
+                            } else {
+                              toast.error("Failed to delete stage");
+                            }
+                          }}
+                          onAdvanceCandidate={(candidate) => {
+                            setSelectedCandidateForAction({ candidate, action: 'advance' });
+                          }}
+                          onRejectCandidate={(candidate) => {
+                            setSelectedCandidateForAction({ candidate, action: 'decline' });
+                          }}
+                          onViewProfile={(candidate) => {
+                            const candidateId = (candidate as any).candidate_id || (candidate as any).user_id;
+                            if (!candidateId) {
+                              toast.error('Unable to load candidate profile');
+                              return;
+                            }
+                            navigate(`/candidate/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(stage.name)}&stageIndex=${stage.order || 0}`);
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </CardContent>
+          </Card>
+
+          {/* Team & Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <TeamActivityCard jobId={job.id} />
+
+            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)] transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="font-black uppercase text-sm flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                  Next Actions Required
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <DndContext
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                  sensors={sensors}
-                >
-                  <SortableContext
-                    items={stages.map((_, i) => `stage-${i}`)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    <div className="space-y-3 md:space-y-4">
-                      {stages.sort((a, b) => a.order - b.order).map((stage, index) => {
-                        const count = metrics?.stageBreakdown[stage.order] || 0;
-                        const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
-                        const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
-                        const stageApplications = applications.filter(app => app.current_stage_index === stage.order);
-
-                        // Stage health indicator
-                        const stageHealth = avgDays > 14 ? 'red' : avgDays > 7 ? 'yellow' : 'green';
-
-                        return (
-                          <ExpandablePipelineStage
-                            key={`stage-${index}`}
-                            stage={stage}
-                            stageIndex={stage.order}
-                            candidateCount={count}
-                            avgDays={avgDays}
-                            conversionRate={nextConversion}
-                            applications={stageApplications}
-                            jobId={jobId!}
-                            isExpanded={expandedStageIndices.has(stage.order)}
-                            onToggleExpand={() => toggleStageExpansion(stage.order)}
-                            displaySettings={displaySettings}
-                            totalStages={stages.length}
-                            onEdit={(updatedStage) => {
-                              // Save inline edits
-                              const updatedStages = [...stages];
-                              updatedStages[index] = { ...updatedStage, order: index };
-
-                              supabase
-                                .from('jobs')
-                                .update({ pipeline_stages: updatedStages })
-                                .eq('id', jobId)
-                                .then(({ error }) => {
-                                  if (!error) {
-                                    fetchJobDetails();
-                                    toast.success("Stage updated successfully");
-                                  } else {
-                                    toast.error("Failed to update stage");
-                                  }
-                                });
-                            }}
-                            onDuplicate={async () => {
-                              const duplicatedStage = {
-                                ...stage,
-                                name: `${stage.name} (Copy)`,
-                                order: stages.length
-                              };
-                              const updatedStages = [...stages, duplicatedStage];
-
-                              const { error } = await supabase
-                                .from('jobs')
-                                .update({ pipeline_stages: updatedStages })
-                                .eq('id', jobId);
-
-                              if (!error) {
-                                await fetchJobDetails();
-                                toast.success("Stage duplicated successfully");
-                              } else {
-                                toast.error("Failed to duplicate stage");
-                              }
-                            }}
-                            onDelete={async () => {
-                              const updatedStages = stages
-                                .filter((_, i) => i !== index)
-                                .map((s, i) => ({ ...s, order: i }));
-
-                              const { error } = await supabase
-                                .from('jobs')
-                                .update({ pipeline_stages: updatedStages })
-                                .eq('id', jobId);
-
-                              if (!error) {
-                                await fetchJobDetails();
-                                toast.success("Stage deleted successfully");
-                              } else {
-                                toast.error("Failed to delete stage");
-                              }
-                            }}
-                            onAdvanceCandidate={(candidate) => {
-                              setSelectedCandidateForAction({ candidate, action: 'advance' });
-                            }}
-                            onRejectCandidate={(candidate) => {
-                              setSelectedCandidateForAction({ candidate, action: 'decline' });
-                            }}
-                            onViewProfile={(candidate) => {
-                              const candidateId = (candidate as any).candidate_id || (candidate as any).user_id;
-                              if (!candidateId) {
-                                toast.error('Unable to load candidate profile');
-                                return;
-                              }
-                              navigate(`/candidate/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(stage.name)}&stageIndex=${stage.order || 0}`);
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  </SortableContext>
-                </DndContext>
+                <p className="text-sm">
+                  {metrics?.needsClubCheck ? (
+                    <span className="font-bold">
+                      {metrics.needsClubCheck} candidate{metrics.needsClubCheck !== 1 ? 's' : ''} need Club Check
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">All candidates reviewed</span>
+                  )}
+                </p>
               </CardContent>
             </Card>
-
-            {/* Team & Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <TeamActivityCard jobId={job.id} />
-
-              <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)] transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="font-black uppercase text-sm flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-muted-foreground" />
-                    Next Actions Required
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm">
-                    {metrics?.needsClubCheck ? (
-                      <span className="font-bold">
-                        {metrics.needsClubCheck} candidate{metrics.needsClubCheck !== 1 ? 's' : ''} need Club Check
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">All candidates reviewed</span>
-                    )}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+          </div>
 
           </main>
 
@@ -891,10 +866,10 @@ export default function JobDashboard() {
           <TabsContent value="overview" className="space-y-6 mt-6">
             {/* Predictive Analytics Widget */}
             <PredictiveAnalyticsDashboard jobId={job.id} />
-
+            
             {/* ML Insights Widget */}
             <MLInsightsWidget jobId={job.id} />
-
+            
             {/* Candidate Intelligence Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left: Top Candidates Dossiers */}
@@ -924,7 +899,7 @@ export default function JobDashboard() {
                   )}
                 </CardContent>
               </Card>
-
+              
               {/* Right: Executive Briefings */}
               <Card className="border-2 border-border/40 backdrop-blur-xl bg-gradient-to-br from-card/90 to-card/60">
                 <CardHeader>
@@ -959,7 +934,7 @@ export default function JobDashboard() {
           <TabsContent value="my-view" className="mt-6">
             {jobRole === 'hiring_manager' && <HiringManagerDashboard jobId={job.id} />}
             {jobRole === 'founder_reviewer' && <ExecutiveDashboard jobId={job.id} />}
-            {['technical_interviewer', 'behavioral_interviewer', 'panel_member'].includes(jobRole || '') &&
+            {['technical_interviewer', 'behavioral_interviewer', 'panel_member'].includes(jobRole || '') && 
               <InterviewerDashboard jobId={job.id} />
             }
             {jobRole === 'observer' && <ObserverDashboard jobId={job.id} />}
@@ -1004,12 +979,12 @@ export default function JobDashboard() {
           } else {
             updatedStages = [...stages, newStage];
           }
-
+          
           const { error } = await supabase
             .from('jobs')
             .update({ pipeline_stages: updatedStages })
             .eq('id', jobId);
-
+          
           if (!error) {
             await fetchJobDetails();
             return { success: true };
@@ -1056,7 +1031,7 @@ export default function JobDashboard() {
       )}
 
       {/* Manual Interview Entry Dialog */}
-      <ManualInterviewEntryDialog
+      <ManualInterviewEntryDialog 
         open={showManualInterview}
         onOpenChange={setShowManualInterview}
         jobId={jobId}

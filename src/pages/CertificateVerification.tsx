@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MinimalHeader } from '@/components/MinimalHeader';
-import { SectionLoader } from '@/components/ui/unified-loader';
 import { Award, CheckCircle, Download, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -58,7 +57,7 @@ export default function CertificateVerification() {
       <div className="min-h-screen flex flex-col">
         <MinimalHeader backPath="/" />
         <div className="flex-1 flex items-center justify-center">
-          <SectionLoader />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       </div>
     );
@@ -87,64 +86,64 @@ export default function CertificateVerification() {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/20">
       <MinimalHeader backPath="/" />
       <div className="flex-1 flex items-center justify-center p-4">
-        <Card className="max-w-2xl w-full p-8 md:p-12">
-          <div className="text-center space-y-6">
-            <div className="flex justify-center">
-              <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
-                <Award className="w-16 h-16 text-primary" />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center gap-2 text-primary">
-              <CheckCircle className="w-5 h-5" />
-              <span className="font-semibold">Verified Certificate</span>
-            </div>
-
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Certificate of Completion</h1>
-              <p className="text-xl text-muted-foreground">{certificate.courses?.title}</p>
-            </div>
-
-            <div className="grid gap-4 py-6 border-y border-border">
-              <div>
-                <p className="text-sm text-muted-foreground">Certificate Number</p>
-                <p className="font-mono text-lg">{certificate.certificate_number}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Issued On</p>
-                <p className="text-lg">{format(new Date(certificate.issued_at), 'MMMM d, yyyy')}</p>
-              </div>
-              {certificate.metadata?.skills && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Skills Demonstrated</p>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {certificate.metadata.skills.map((skill: string, i: number) => (
-                      <span
-                        key={i}
-                        className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                This certificate verifies that the holder has successfully completed the course requirements.
-              </p>
-
-              {certificate.pdf_url && (
-                <Button className="w-full" size="lg">
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Certificate
-                </Button>
-              )}
+      <Card className="max-w-2xl w-full p-8 md:p-12">
+        <div className="text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+              <Award className="w-16 h-16 text-primary" />
             </div>
           </div>
-        </Card>
+
+          <div className="flex items-center justify-center gap-2 text-primary">
+            <CheckCircle className="w-5 h-5" />
+            <span className="font-semibold">Verified Certificate</span>
+          </div>
+
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Certificate of Completion</h1>
+            <p className="text-xl text-muted-foreground">{certificate.courses?.title}</p>
+          </div>
+
+          <div className="grid gap-4 py-6 border-y border-border">
+            <div>
+              <p className="text-sm text-muted-foreground">Certificate Number</p>
+              <p className="font-mono text-lg">{certificate.certificate_number}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Issued On</p>
+              <p className="text-lg">{format(new Date(certificate.issued_at), 'MMMM d, yyyy')}</p>
+            </div>
+            {certificate.metadata?.skills && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Skills Demonstrated</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {certificate.metadata.skills.map((skill: string, i: number) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              This certificate verifies that the holder has successfully completed the course requirements.
+            </p>
+            
+            {certificate.pdf_url && (
+              <Button className="w-full" size="lg">
+                <Download className="w-4 h-4 mr-2" />
+                Download Certificate
+              </Button>
+            )}
+          </div>
+        </div>
+      </Card>
       </div>
     </div>
   );

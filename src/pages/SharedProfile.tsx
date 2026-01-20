@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, ExternalLink } from "lucide-react";
 import EnhancedProfile from "./EnhancedProfile";
-import { SectionLoader } from "@/components/ui/unified-loader";
+import { toast } from "sonner";
 
 export default function SharedProfile() {
   const { token } = useParams<{ token: string }>();
@@ -52,7 +52,7 @@ export default function SharedProfile() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle">
         <div className="text-center space-y-4">
-          <SectionLoader />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="text-muted-foreground">Loading shared profile...</p>
         </div>
       </div>
@@ -99,7 +99,7 @@ export default function SharedProfile() {
           </Button>
         </p>
       </div>
-
+      
       <EnhancedProfile viewingUserId={userId} isSharedView={true} />
     </div>
   );

@@ -1,19 +1,18 @@
-import { useState, useMemo, useRef } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-// import { ScrollArea } from "@/components/ui/scroll-area"; // Removed for virtual list
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WhatsAppConsentBadge } from "@/components/whatsapp/WhatsAppConsentBadge";
-import {
-  Search,
-  Filter,
-  Pin,
-  Clock,
-  MessageSquare,
+import { 
+  Search, 
+  Filter, 
+  Pin, 
+  Clock, 
+  MessageSquare, 
   User,
   Flame,
   HelpCircle,
@@ -36,9 +35,9 @@ interface WhatsAppConversationListProps {
 
 type FilterType = 'all' | 'unread' | 'needs_response' | 'hot_leads' | 'expiring';
 
-export function WhatsAppConversationList({
-  conversations,
-  selectedId,
+export function WhatsAppConversationList({ 
+  conversations, 
+  selectedId, 
   onSelect,
   loading,
   sortBySla = false
@@ -76,17 +75,17 @@ export function WhatsAppConversationList({
 
   const filteredConversations = useMemo(() => {
     let filtered = conversations;
-
+    
     // Apply search filter
     if (search) {
       const searchLower = search.toLowerCase();
-      filtered = filtered.filter(c =>
+      filtered = filtered.filter(c => 
         c.candidate_name?.toLowerCase().includes(searchLower) ||
         c.candidate_phone.includes(search) ||
         c.last_message_preview?.toLowerCase().includes(searchLower)
       );
     }
-
+    
     // Apply category filter
     switch (filter) {
       case 'unread':
@@ -106,33 +105,24 @@ export function WhatsAppConversationList({
         });
         break;
     }
-
+    
     // Sort: pinned first, then by SLA urgency or last message
     return filtered.sort((a, b) => {
       if (a.is_pinned && !b.is_pinned) return -1;
       if (!a.is_pinned && b.is_pinned) return 1;
-
+      
       // Sort by SLA urgency if enabled
       if (sortBySla) {
         const aWait = a.slaStatus?.waitMinutes || 0;
         const bWait = b.slaStatus?.waitMinutes || 0;
         if (aWait !== bWait) return bWait - aWait;
       }
-
+      
       const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
       const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
       return bTime - aTime;
     });
   }, [conversations, search, filter, sortBySla]);
-
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  const virtualizer = useVirtualizer({
-    count: filteredConversations.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 92, // Approximate height of a conversation item
-    overscan: 5,
-  });
 
   const filterButtons: { key: FilterType; label: string; icon: React.ReactNode }[] = [
     { key: 'all', label: 'All', icon: <MessageSquare className="w-3.5 h-3.5" /> },
@@ -166,17 +156,6 @@ export function WhatsAppConversationList({
     );
   }
 
-  /* import useVirtualizer and useRef at top - doing it in separate chunk or assuming imports exist if possible? No I need to import them. */
-  // I will assume I can update imports in one go.
-
-  /* 
-     Wait, I need to know where imports are.
-     Lines 1-27 are imports.
-     Lines 38 starts component.
-     
-     I will do a multi-replace.
-  */
-
   return (
     <div className="min-h-[600px] h-full flex flex-col bg-card/50">
       {/* Search & Filters */}
@@ -200,7 +179,7 @@ export function WhatsAppConversationList({
             </Button>
           )}
         </div>
-
+        
         <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
           {filterButtons.map(btn => (
             <Button
@@ -220,67 +199,57 @@ export function WhatsAppConversationList({
         </div>
       </div>
 
-      {/* Virtual Conversation List */}
-      <div
-        ref={parentRef}
-        className="flex-1 overflow-auto bg-background/50"
-      >
-        {filteredConversations.length === 0 ? (
-          <div className="p-8 text-center h-full flex flex-col items-center justify-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#25d366]/20 to-[#128c7e]/20 flex items-center justify-center">
-              <MessageSquare className="w-8 h-8 text-[#25d366]" />
-            </div>
-            <p className="font-semibold text-foreground mb-1">No conversations yet</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              {filter !== 'all' ? 'Try adjusting your filters' : 'Import chats or wait for incoming messages'}
-            </p>
-            {filter !== 'all' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFilter('all')}
-                className="text-xs"
-              >
-                Clear Filters
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-              width: "100%",
-              position: "relative",
-            }}
-          >
-            {virtualizer.getVirtualItems().map((virtualRow) => {
-              const conversation = filteredConversations[virtualRow.index];
+      {/* Conversation List */}
+      <ScrollArea className="flex-1">
+        <AnimatePresence mode="popLayout">
+          {filteredConversations.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="p-8 text-center"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#25d366]/20 to-[#128c7e]/20 flex items-center justify-center">
+                <MessageSquare className="w-8 h-8 text-[#25d366]" />
+              </div>
+              <p className="font-semibold text-foreground mb-1">No conversations yet</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {filter !== 'all' ? 'Try adjusting your filters' : 'Import chats or wait for incoming messages'}
+              </p>
+              {filter !== 'all' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFilter('all')}
+                  className="text-xs"
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </motion.div>
+          ) : (
+            filteredConversations.map((conversation, index) => {
               const windowStatus = getWindowStatus(conversation.messaging_window_expires_at);
               const isSelected = selectedId === conversation.id;
-
+              
               return (
-                <div
+                <motion.div
                   key={conversation.id}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: `${virtualRow.size}px`,
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: index * 0.03 }}
                   onClick={() => onSelect(conversation.id)}
                   className={cn(
                     "flex items-center gap-3 p-4 cursor-pointer border-b border-border/50 transition-all border-l-2",
-                    isSelected
-                      ? "bg-[#25d366]/10 border-l-[#25d366]"
+                    isSelected 
+                      ? "bg-[#25d366]/10 border-l-[#25d366]" 
                       : conversation.slaStatus
                         ? getSlaLevelColor(conversation.slaStatus)
                         : "border-l-transparent hover:bg-muted/50"
                   )}
                 >
                   {/* Avatar */}
-                  <div className="relative flex-shrink-0">
+                  <div className="relative">
                     <Avatar className="w-12 h-12 border-2 border-background">
                       <AvatarImage src={conversation.profile_picture_url || undefined} />
                       <AvatarFallback className="bg-gradient-to-br from-[#25d366] to-[#128c7e] text-white">
@@ -303,13 +272,13 @@ export function WhatsAppConversationList({
                         </span>
                         {getIntentIcon(conversation.tags)}
                       </div>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
-                        {conversation.last_message_at
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {conversation.last_message_at 
                           ? formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: false })
                           : ''}
                       </span>
                     </div>
-
+                    
                     <div className="flex items-center gap-2 mt-0.5">
                       <p className="text-sm text-muted-foreground truncate flex-1">
                         {conversation.last_message_direction === 'outbound' && (
@@ -321,19 +290,20 @@ export function WhatsAppConversationList({
 
                     {/* Tags, SLA & Status */}
                     <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                      {/* Consent Badge */}
                       <WhatsAppConsentBadge phoneNumber={conversation.candidate_phone} size="sm" />
-
+                      
                       {conversation.unread_count > 0 && (
                         <Badge className="bg-[#25d366] text-white h-5 min-w-[20px] px-1.5 text-xs">
                           {conversation.unread_count}
                         </Badge>
                       )}
-
+                      {/* SLA Status Badge */}
                       {conversation.slaStatus && (
-                        <Badge
-                          variant="outline"
+                        <Badge 
+                          variant="outline" 
                           className={cn(
-                            "h-5 text-xs",
+                            "h-5 text-xs animate-pulse",
                             conversation.slaStatus.level === 'critical' && "border-red-600 text-red-600 bg-red-600/10",
                             conversation.slaStatus.level === 'overdue' && "border-red-500 text-red-500 bg-red-500/10",
                             conversation.slaStatus.level === 'warning' && "border-amber-500 text-amber-500 bg-amber-500/10",
@@ -345,8 +315,8 @@ export function WhatsAppConversationList({
                         </Badge>
                       )}
                       {windowStatus && windowStatus.status !== 'ok' && (
-                        <Badge
-                          variant="outline"
+                        <Badge 
+                          variant="outline" 
                           className={cn(
                             "h-5 text-xs",
                             windowStatus.status === 'expired' && "border-red-500 text-red-500",
@@ -359,9 +329,9 @@ export function WhatsAppConversationList({
                         </Badge>
                       )}
                       {conversation.tags.slice(0, 2).map(tag => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
+                        <Badge 
+                          key={tag} 
+                          variant="secondary" 
                           className="h-5 text-xs bg-muted/50"
                         >
                           {tag}
@@ -369,12 +339,12 @@ export function WhatsAppConversationList({
                       ))}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
-            })}
-          </div>
-        )}
-      </div>
+            })
+          )}
+        </AnimatePresence>
+      </ScrollArea>
     </div>
   );
 }

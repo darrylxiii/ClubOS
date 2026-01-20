@@ -96,18 +96,6 @@ export function useInstantlyData() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
-  const [error, setError] = useState<Error | null>(null);
-
-  // ... (fetchCampaigns, fetchLeads, etc. - skipping them in replacement chunk if possible) -> Actually I need to insert state near other states.
-
-  // let's do multi-replace or careful single replace.
-  // I'll replace lines 98-99 to add error state.
-  // Then replace loadData catch block.
-  // Then replace return object.
-
-  // Wait, I can't do logic in comments.
-  // I'll use multi_replace.
-
 
   const fetchCampaigns = useCallback(async (): Promise<InstantlyCampaign[]> => {
     const { data, error } = await supabase
@@ -225,9 +213,8 @@ export function useInstantlyData() {
       if (lastSync && lastSync.created_at) {
         setLastSyncedAt(lastSync.created_at);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error loading Instantly data:', error);
-      setError(error);
     } finally {
       setLoading(false);
     }
@@ -290,7 +277,6 @@ export function useInstantlyData() {
     syncLogs,
     loading,
     syncing,
-    error,
     lastSyncedAt,
     syncCampaigns,
     syncLeads,

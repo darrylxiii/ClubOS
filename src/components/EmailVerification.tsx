@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2, XCircle, Mail } from 'lucide-react';
-import { InlineLoader } from '@/components/ui/unified-loader';
+import { CheckCircle2, XCircle, Loader2, Mail } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
 import type { EmailVerificationProps } from '@/types/verification';
@@ -82,7 +81,10 @@ export const EmailVerification = ({
               className="bg-red-600 hover:bg-red-700 text-white whitespace-nowrap"
             >
               {isSendingOtp ? (
-                <InlineLoader text="Sending..." className="text-white" />
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Sending...
+                </>
               ) : (
                 'Verify'
               )}
@@ -160,7 +162,10 @@ export const EmailVerification = ({
               className="bg-accent text-background hover:bg-accent/90"
             >
               {isVerifying ? (
-                <InlineLoader text="Verifying..." />
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Verifying...
+                </>
               ) : (
                 'Verify'
               )}

@@ -10,9 +10,6 @@ interface VirtualEmailListProps {
   onEmailSelect: (email: Email) => void;
   onToggleCheck: (emailId: string) => void;
   onToggleStar: (emailId: string, starred: boolean) => void;
-  hasMore?: boolean;
-  onLoadMore?: () => void;
-  loadingMore?: boolean;
 }
 
 export function VirtualEmailList({
@@ -22,9 +19,6 @@ export function VirtualEmailList({
   onEmailSelect,
   onToggleCheck,
   onToggleStar,
-  hasMore,
-  onLoadMore,
-  loadingMore
 }: VirtualEmailListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -36,20 +30,12 @@ export function VirtualEmailList({
     getItemKey: (index) => emails[index]?.id || index,
   });
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    if (scrollHeight - scrollTop - clientHeight < 500 && hasMore && !loadingMore && onLoadMore) {
-      onLoadMore();
-    }
-  };
-
   return (
     <div
       ref={parentRef}
-      onScroll={handleScroll}
       className="flex-1 overflow-auto scroll-smooth"
-      style={{
-        height: "100%",
+      style={{ 
+        height: "100%", 
         overflow: "auto",
         WebkitOverflowScrolling: "touch",
       }}
@@ -89,11 +75,6 @@ export function VirtualEmailList({
           );
         })}
       </div>
-      {loadingMore && (
-        <div className="py-4 flex justify-center">
-          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
     </div>
   );
 }

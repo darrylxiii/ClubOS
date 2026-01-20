@@ -9,8 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Video, Calendar, Clock, Building2, Upload, Search, Filter, Play, Download, Trash2, Plus, AlertCircle, Settings, Sparkles, Eye } from "lucide-react";
-import { InlineLoader } from "@/components/ui/unified-loader";
+import { Video, Calendar, Clock, Building2, Upload, Search, Filter, Play, Download, Trash2, Plus, AlertCircle, Settings, Sparkles, Loader2, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -70,7 +69,7 @@ const MeetingHistory = () => {
 
   useEffect(() => {
     loadRecordings();
-
+    
     // Check if calendar is connected
     const savedCalendars = localStorage.getItem('connected_calendars');
     if (savedCalendars) {
@@ -144,13 +143,13 @@ const MeetingHistory = () => {
 
     try {
       setUploadProgress(10);
-
+      
       // Upload file to storage
       const fileExt = uploadFile.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
+      
       setUploadProgress(30);
-
+      
       const { error: uploadError } = await supabase.storage
         .from('meeting-recordings')
         .upload(fileName, uploadFile);
@@ -297,10 +296,10 @@ const MeetingHistory = () => {
             <AlertTitle className="text-lg font-bold">Calendar Integration Not Connected</AlertTitle>
             <AlertDescription className="mt-2 space-y-3">
               <p className="text-muted-foreground">
-                Connect your calendar to automatically capture all online meetings here.
+                Connect your calendar to automatically capture all online meetings here. 
                 Once linked, all interview meetings will be automatically recorded and saved to this repository.
               </p>
-              <Button
+              <Button 
                 onClick={() => navigate("/profile")}
                 variant="default"
                 size="sm"
@@ -542,7 +541,7 @@ const MeetingHistory = () => {
                       {recording.description}
                     </p>
                   )}
-
+                  
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
@@ -612,7 +611,7 @@ const MeetingHistory = () => {
                       </Button>
                     ) : recording.analysis_status === 'processing' || analyzingRecording === recording.id ? (
                       <Button size="sm" variant="secondary" className="w-full" disabled>
-                        <InlineLoader />
+                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
                         Analyzing...
                       </Button>
                     ) : recording.analysis_status === 'failed' ? (
@@ -637,7 +636,7 @@ const MeetingHistory = () => {
                         Analyze with AI
                       </Button>
                     )}
-
+                    
                     <Button
                       size="sm"
                       variant="ghost"

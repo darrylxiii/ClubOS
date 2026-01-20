@@ -9,8 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { migrateToast as toast } from "@/lib/notify";
-import { Gift, Users, Building2, TrendingUp, Copy, Check, Euro, Clock } from "lucide-react";
-import { InlineLoader } from "@/components/ui/unified-loader";
+import { Loader2, Gift, Users, Building2, TrendingUp, Copy, Check, Euro, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 export default function ReferralProgram() {
@@ -235,7 +234,7 @@ export default function ReferralProgram() {
           <CardContent>
             {referralsLoading ? (
               <div className="flex items-center justify-center py-8">
-                <InlineLoader />
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
             ) : myReferrals && myReferrals.length > 0 ? (
               <div className="space-y-4">
@@ -245,8 +244,9 @@ export default function ReferralProgram() {
                     className="flex items-center justify-between p-4 border rounded-lg"
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${referral.referral_type === 'company' ? 'bg-blue-500/10' : 'bg-green-500/10'
-                        }`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        referral.referral_type === 'company' ? 'bg-blue-500/10' : 'bg-green-500/10'
+                      }`}>
                         {referral.referral_type === 'company' ? (
                           <Building2 className="w-5 h-5 text-blue-500" />
                         ) : (

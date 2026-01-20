@@ -1,5 +1,5 @@
-// Dynamic imports for jsPDF to reduce build memory pressure
-type JsPDFType = import('jspdf').jsPDF;
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface PDFExportOptions {
   title: string;
@@ -19,7 +19,7 @@ const BRAND_COLORS = {
 /**
  * Generate a branded PDF header
  */
-function addHeader(doc: JsPDFType, options: PDFExportOptions) {
+function addHeader(doc: jsPDF, options: PDFExportOptions) {
   const pageWidth = doc.internal.pageSize.getWidth();
   
   // Header background
@@ -51,7 +51,7 @@ function addHeader(doc: JsPDFType, options: PDFExportOptions) {
 /**
  * Add page footer with page numbers
  */
-function addFooter(doc: JsPDFType) {
+function addFooter(doc: jsPDF) {
   const pageCount = doc.getNumberOfPages();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -77,18 +77,12 @@ function addFooter(doc: JsPDFType) {
 /**
  * Export data to a branded PDF with tables
  */
-export async function exportTableToPDF(
+export function exportTableToPDF(
   data: Record<string, any>[],
   columns: { header: string; key: string }[],
   filename: string,
   options: PDFExportOptions
 ) {
-  // Dynamic import to reduce build memory
-  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
-    import('jspdf'),
-    import('jspdf-autotable')
-  ]);
-
   const doc = new jsPDF({
     orientation: options.orientation || 'portrait',
     unit: 'mm',
@@ -138,7 +132,7 @@ export async function exportTableToPDF(
 /**
  * Export a detailed report to PDF
  */
-export async function exportReportToPDF(
+export function exportReportToPDF(
   reportData: {
     sections: Array<{
       title: string;
@@ -149,12 +143,6 @@ export async function exportReportToPDF(
   filename: string,
   options: PDFExportOptions
 ) {
-  // Dynamic import to reduce build memory
-  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
-    import('jspdf'),
-    import('jspdf-autotable')
-  ]);
-
   const doc = new jsPDF({
     orientation: options.orientation || 'portrait',
     unit: 'mm',
@@ -262,7 +250,7 @@ export async function exportReportToPDF(
 /**
  * Export candidate list to PDF
  */
-export async function exportCandidatesToPDF(
+export function exportCandidatesToPDF(
   candidates: Array<{
     name: string;
     email: string;
@@ -274,7 +262,7 @@ export async function exportCandidatesToPDF(
   filename: string,
   jobTitle?: string
 ) {
-  await exportTableToPDF(
+  exportTableToPDF(
     candidates,
     [
       { header: 'Name', key: 'name' },
@@ -296,7 +284,7 @@ export async function exportCandidatesToPDF(
 /**
  * Export KPI data to PDF
  */
-export async function exportKPIsToPDF(
+export function exportKPIsToPDF(
   kpis: Array<{
     name: string;
     value: string | number;
@@ -307,7 +295,7 @@ export async function exportKPIsToPDF(
   filename: string,
   title: string
 ) {
-  await exportTableToPDF(
+  exportTableToPDF(
     kpis.map(kpi => ({
       ...kpi,
       status: kpi.status === 'on_track' ? '✓ On Track' : 
@@ -332,7 +320,7 @@ export async function exportKPIsToPDF(
 /**
  * Export meeting transcript/notes to PDF
  */
-export async function exportMeetingToPDF(
+export function exportMeetingToPDF(
   meeting: {
     title: string;
     date: string;
@@ -392,7 +380,7 @@ export async function exportMeetingToPDF(
     });
   }
 
-  await exportReportToPDF(
+  exportReportToPDF(
     { sections },
     filename,
     { title: meeting.title, subtitle: meeting.date }

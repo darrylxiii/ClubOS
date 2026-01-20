@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from '@/lib/notify';
-import { SectionLoader } from "@/components/ui/unified-loader";
 import {
   ArrowLeft,
   Sparkles,
@@ -54,7 +53,7 @@ export default function ProjectApplyPage() {
         .select("*")
         .eq("id", user.id)
         .maybeSingle();
-
+      
       if (error) throw error;
       return data;
     },
@@ -154,7 +153,7 @@ export default function ProjectApplyPage() {
   if (!project) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <SectionLoader />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }

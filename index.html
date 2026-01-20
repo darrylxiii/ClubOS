@@ -1,5 +1,4 @@
 <!doctype html>
-<!-- BUILD_SENTINEL: 2026-01-20T23:55Z -->
 <html lang="en">
   <head>
     <!-- Google Tag Manager - Deferred to improve initial page load -->
@@ -206,11 +205,6 @@
               Try Again
             </button>
           </div>
-          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;">
-            <button onclick="copyDiagnostics()" style="padding:8px 16px;background:transparent;color:hsl(0 0% 50%);border:1px solid hsl(0 0% 80%);border-radius:6px;font-weight:500;cursor:pointer;font-size:12px;">
-              Copy Diagnostics
-            </button>
-          </div>
           <p style="color:hsl(0 0% 50%);font-size:12px;margin:0;">
             If the problem persists, try opening in an <a href="javascript:void(0)" onclick="alert('Open a new private/incognito window and visit: ' + location.href)" style="color:hsl(220 70% 50%);text-decoration:underline;">incognito window</a>
           </p>
@@ -227,70 +221,10 @@
     <!-- Emergency cache reset (inline for reliability) -->
     <script>
       (function() {
-        // === BOOT STATE ===
         window.__APP_BOOTED__ = false;
         window.__APP_BOOTING__ = false;
         window.__BOOT_START__ = Date.now();
-        window.__BUILD_ID__ = '2026-01-20T23:55Z'; // Updated on each deploy
-        window.__MAIN_LOADED__ = false;
-        window.__SCRIPT_ERROR__ = false;
-        window.__FAILED_SCRIPT_URL__ = null;
-        window.__BOOT_ERROR__ = null;
-        window.__LAST_PROGRESS__ = Date.now(); // Track resource loading progress
         
-        // === TIMEOUTS - Raised to prevent false positives on slow connections ===
-        var EARLY_WARNING_MS = 8000;   // Log warning only (8s)
-        var RECOVERY_CHECK_MS = 15000; // Check if we should recover (15s)
-        var HARD_STOP_MS = 30000;      // Show error UI, no more reloads (30s)
-        
-        // === RELOAD LOOP PROTECTION ===
-        // Use sessionStorage (resets on tab close) to track recovery attempts
-        var RECOVERY_KEY = '__boot_recovery_count__';
-        var MAX_RECOVERY_ATTEMPTS = 2;
-        var recoveryCount = 0;
-        try {
-          recoveryCount = parseInt(sessionStorage.getItem(RECOVERY_KEY) || '0', 10);
-        } catch(e) {}
-        window.__RECOVERY_COUNT__ = recoveryCount;
-        
-        // Capture entry script URL immediately for diagnostics
-        window.__ENTRY_SCRIPT_URL__ = null;
-        setTimeout(function() {
-          var el = document.querySelector('script[type="module"][src]');
-          if (el) window.__ENTRY_SCRIPT_URL__ = el.src;
-        }, 0);
-        
-        // === PROGRESS TRACKING ===
-        // Monitor resource loading to detect "stuck" vs "still loading"
-        var resourceCount = 0;
-        try {
-          var observer = new PerformanceObserver(function(list) {
-            var entries = list.getEntries();
-            if (entries.length > 0) {
-              resourceCount += entries.length;
-              window.__LAST_PROGRESS__ = Date.now();
-            }
-          });
-          observer.observe({ type: 'resource', buffered: true });
-        } catch(e) {
-          console.warn('[Boot] PerformanceObserver not supported');
-        }
-        
-        // === ERROR CAPTURE ===
-        window.addEventListener('error', function(e) {
-          if (!window.__BOOT_ERROR__ && e.error) {
-            window.__BOOT_ERROR__ = e.error.message || String(e.error);
-            console.error('[Boot] Captured error:', window.__BOOT_ERROR__);
-          }
-        });
-        window.addEventListener('unhandledrejection', function(e) {
-          if (!window.__BOOT_ERROR__) {
-            window.__BOOT_ERROR__ = e.reason?.message || String(e.reason);
-            console.error('[Boot] Captured rejection:', window.__BOOT_ERROR__);
-          }
-        });
-        
-        // === CORE CACHE RESET ===
         async function resetCache() {
           var btn = event && event.target;
           if (btn) {
@@ -310,122 +244,20 @@
               await Promise.all(keys.map(function(k) { return caches.delete(k); }));
               console.log('[Recovery] Deleted', keys.length, 'cache(s)');
             }
-            // Clear recovery state
-            ['pwa-update-dismissed', 'pwa-install-dismissed', '__last_build_id__'].forEach(function(k) {
+            // Clear PWA storage
+            ['pwa-update-dismissed', 'pwa-install-dismissed'].forEach(function(k) {
               try { localStorage.removeItem(k); } catch(e) {}
             });
-            try { sessionStorage.removeItem(RECOVERY_KEY); } catch(e) {}
             console.log('[Recovery] Cache cleared. Reloading...');
           } catch (e) {
             console.error('[Recovery] Failed:', e);
           }
-          // Clean reload to origin (no query params, no hash)
+          // Clean reload without query params (avoids SW issues)
           location.replace(location.origin + location.pathname);
         }
         window.resetCache = resetCache;
         
-        // === CONDITIONAL RECOVERY ===
-        // Only auto-recover if we CONFIRM the script is missing (404) or truly stuck
-        async function attemptRecovery(reason) {
-          // Increment and save recovery count
-          recoveryCount++;
-          try { sessionStorage.setItem(RECOVERY_KEY, String(recoveryCount)); } catch(e) {}
-          
-          console.log('[Recovery] Attempt #' + recoveryCount + ' - ' + reason);
-          
-          // If we've exceeded max attempts, stop and show error UI
-          if (recoveryCount > MAX_RECOVERY_ATTEMPTS) {
-            console.error('[Recovery] Max attempts exceeded, showing error UI');
-            showBootError(
-              'Failed to load after multiple attempts.',
-              reason + ' | Attempts: ' + recoveryCount
-            );
-            return;
-          }
-          
-          // Check if entry script actually 404'd
-          var scriptUrl = window.__ENTRY_SCRIPT_URL__ || window.__FAILED_SCRIPT_URL__;
-          if (scriptUrl) {
-            var status = await checkScriptStatus(scriptUrl);
-            console.log('[Recovery] Script status:', status, scriptUrl.split('/').pop());
-            
-            // Only do aggressive recovery if 404/410 (missing bundle)
-            if (status === 404 || status === 410) {
-              console.log('[Recovery] Script 404 - clearing caches');
-              try {
-                if ('serviceWorker' in navigator) {
-                  var regs = await navigator.serviceWorker.getRegistrations();
-                  await Promise.all(regs.map(function(r) { return r.unregister(); }));
-                }
-                if ('caches' in window) {
-                  var keys = await caches.keys();
-                  await Promise.all(keys.map(function(k) { return caches.delete(k); }));
-                }
-              } catch(e) {
-                console.warn('[Recovery] Cache clear failed:', e);
-              }
-            }
-            // If status is 200, script exists but maybe slow - light reload only
-            else if (status === 200) {
-              console.log('[Recovery] Script exists (200) but app not booted - light reload');
-            }
-          }
-          
-          // Reload with cache-busting query param
-          var newUrl = location.origin + location.pathname + '?_cb=' + Date.now();
-          console.log('[Recovery] Redirecting to:', newUrl);
-          setTimeout(function() { location.replace(newUrl); }, 100);
-        }
-        
-        // === DIAGNOSTICS ===
-        async function checkScriptStatus(url) {
-          try {
-            // Use GET with no-store to avoid cached responses
-            var res = await fetch(url, { method: 'GET', cache: 'no-store' });
-            return res.status;
-          } catch (e) {
-            return 0; // Network error
-          }
-        }
-        
-        function getResourceDiagnostics() {
-          try {
-            var entries = performance.getEntriesByType('resource');
-            var jsEntries = entries.filter(function(e) { 
-              return e.initiatorType === 'script' || e.name.endsWith('.js'); 
-            }).slice(-5);
-            return jsEntries.map(function(e) { 
-              return e.name.split('/').pop().substring(0, 30); 
-            }).join(', ');
-          } catch (e) {
-            return 'unavailable';
-          }
-        }
-        
-        function copyDiagnostics() {
-          var text = [
-            'Build: ' + window.__BUILD_ID__,
-            'Entry: ' + (window.__ENTRY_SCRIPT_URL__ || 'unknown'),
-            'Main: ' + window.__MAIN_LOADED__,
-            'Booting: ' + window.__APP_BOOTING__,
-            'Booted: ' + window.__APP_BOOTED__,
-            'ScriptErr: ' + window.__SCRIPT_ERROR__,
-            'Error: ' + (window.__BOOT_ERROR__ || 'none'),
-            'Recovery: ' + window.__RECOVERY_COUNT__,
-            'Resources: ' + resourceCount,
-            'URL: ' + location.href,
-            'UA: ' + navigator.userAgent
-          ].join('\n');
-          try {
-            navigator.clipboard.writeText(text);
-            alert('Diagnostics copied!');
-          } catch(e) {
-            prompt('Copy this:', text);
-          }
-        }
-        window.copyDiagnostics = copyDiagnostics;
-        
-        async function showBootError(message, detail) {
+        function showBootError(message, detail) {
           var errorDiv = document.getElementById('boot-error');
           var spinner = document.getElementById('boot-spinner');
           var msgEl = document.getElementById('boot-error-msg');
@@ -434,116 +266,28 @@
           if (errorDiv) errorDiv.style.display = 'block';
           if (spinner) spinner.style.display = 'none';
           if (message && msgEl) msgEl.textContent = message;
-          
-          // Build diagnostics
-          var diagnostics = [
-            'Build: ' + (window.__BUILD_ID__ || 'unknown'),
-            'Main: ' + (window.__MAIN_LOADED__ ? 'yes' : 'no'),
-            'Booting: ' + (window.__APP_BOOTING__ ? 'yes' : 'no'),
-            'Booted: ' + (window.__APP_BOOTED__ ? 'yes' : 'no'),
-            'Recovery: #' + window.__RECOVERY_COUNT__,
-            'Resources: ' + resourceCount
-          ];
-          
-          // Check entry script status
-          var scriptUrl = window.__ENTRY_SCRIPT_URL__ || window.__FAILED_SCRIPT_URL__;
-          if (scriptUrl) {
-            var status = await checkScriptStatus(scriptUrl);
-            diagnostics.push('Script: ' + scriptUrl.split('/').pop());
-            diagnostics.push('Status: ' + (status || 'ERR'));
-          }
-          
-          if (window.__BOOT_ERROR__) {
-            diagnostics.push('Error: ' + window.__BOOT_ERROR__);
-          }
-          
-          var fullDetail = (detail || '') + '\n' + diagnostics.join(' | ');
-          
-          if (detailEl) {
-            detailEl.textContent = fullDetail;
+          if (detail && detailEl) {
+            detailEl.textContent = detail;
             detailEl.style.display = 'block';
           }
         }
         window.showBootError = showBootError;
         
-        // === SCRIPT ERROR HANDLER ===
-        window.handleScriptError = function(e) {
-          window.__SCRIPT_ERROR__ = true;
-          
-          var scriptUrl = (e && e.target && e.target.src) || window.__ENTRY_SCRIPT_URL__;
-          window.__FAILED_SCRIPT_URL__ = scriptUrl;
-          
-          console.error('[Boot] Script failed to load:', scriptUrl);
-          
-          // Attempt recovery (with loop protection)
-          attemptRecovery('Script load failed: ' + (scriptUrl ? scriptUrl.split('/').pop() : 'unknown'));
-        };
-        
-        // === BUILD ID CHANGE AUTO-RECOVERY ===
-        try {
-          var lastBuild = localStorage.getItem('__last_build_id__');
-          if (lastBuild && lastBuild !== window.__BUILD_ID__) {
-            console.log('[Boot] Build changed:', lastBuild, '->', window.__BUILD_ID__);
-            // Clear caches immediately (don't wait for issues)
-            if ('caches' in window) {
-              caches.keys().then(function(keys) {
-                keys.forEach(function(k) { caches.delete(k); });
-              });
-            }
-            // Unregister SW immediately
-            if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.getRegistrations().then(function(regs) {
-                regs.forEach(function(r) { r.unregister(); });
-              });
-            }
-          }
-          localStorage.setItem('__last_build_id__', window.__BUILD_ID__);
-        } catch(e) {}
-        
-        // === EARLY WARNING (8s) - log only, no action ===
+        // Boot timeout - show error if app doesn't start within 15 seconds
         setTimeout(function() {
-          if (!window.__MAIN_LOADED__ && !window.__SCRIPT_ERROR__) {
-            console.warn('[Boot] Main not loaded after 8s. Entry:', window.__ENTRY_SCRIPT_URL__, 'Resources:', resourceCount);
+          if (!window.__APP_BOOTED__) {
+            var elapsed = ((Date.now() - window.__BOOT_START__) / 1000).toFixed(1);
+            console.error('[Recovery] App did not boot within 15 seconds');
+            showBootError(
+              'Application failed to initialize.',
+              'Boot timeout after ' + elapsed + 's. Try resetting the cache.'
+            );
           }
-        }, EARLY_WARNING_MS);
-        
-        // === RECOVERY CHECK (15s) - conditional recovery ===
-        setTimeout(function() {
-          if (window.__APP_BOOTED__ || window.__SCRIPT_ERROR__) return;
-          
-          var elapsed = ((Date.now() - window.__BOOT_START__) / 1000).toFixed(1);
-          var timeSinceProgress = Date.now() - window.__LAST_PROGRESS__;
-          
-          console.log('[Boot] Recovery check at ' + elapsed + 's. Resources:', resourceCount, 'Progress gap:', timeSinceProgress + 'ms');
-          
-          // Only attempt recovery if:
-          // 1. Main script never started executing, AND
-          // 2. No resource progress in last 5 seconds (truly stuck, not slow)
-          if (!window.__MAIN_LOADED__ && timeSinceProgress > 5000) {
-            console.warn('[Boot] No progress in 5s, attempting recovery');
-            attemptRecovery('No progress after ' + elapsed + 's');
-          } else if (!window.__MAIN_LOADED__) {
-            console.log('[Boot] Still loading (resources active), waiting...');
-          }
-        }, RECOVERY_CHECK_MS);
-        
-        // === HARD STOP (30s) - show error, NO more reloads ===
-        setTimeout(function() {
-          if (window.__APP_BOOTED__ || window.__SCRIPT_ERROR__) return;
-          
-          var elapsed = ((Date.now() - window.__BOOT_START__) / 1000).toFixed(1);
-          console.error('[Boot] Hard stop after ' + elapsed + 's');
-          
-          // Don't attempt recovery - show error UI only
-          showBootError(
-            'Application failed to load',
-            'Timeout after ' + elapsed + 's. Resources loaded: ' + resourceCount
-          );
-        }, HARD_STOP_MS);
+        }, 15000);
       })();
     </script>
     
     <!-- Standard Vite entry - transformed at build time to hashed bundle -->
-    <script type="module" src="/src/main.tsx" onerror="handleScriptError(event)"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

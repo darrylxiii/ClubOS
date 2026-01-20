@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SectionLoader } from "@/components/ui/unified-loader";
 import { Users, Plus, Settings, Mail, Percent, Crown, Shield, User } from "lucide-react";
 import { toast } from "sonner";
 
@@ -162,9 +161,7 @@ export default function TeamManagementPage() {
           Teams I Own
         </h2>
 
-        {isLoading ? (
-          <SectionLoader text="Loading your teams..." className="min-h-[200px]" />
-        ) : myTeams && myTeams.length > 0 ? (
+        {myTeams && myTeams.length > 0 ? (
           <div className="grid md:grid-cols-2 gap-6">
             {myTeams.map((team) => (
               <Card key={team.id} className="hover:shadow-lg transition-shadow">

@@ -9,9 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Brain, Zap, TestTube, Save, RotateCcw, ChevronDown, CheckCircle2, AlertCircle, XCircle, TrendingUp, Clock } from "lucide-react";
+import { Brain, Zap, TestTube, Save, RotateCcw, Loader2, ChevronDown, CheckCircle2, AlertCircle, XCircle, TrendingUp, Clock } from "lucide-react";
 import { InlineLoadingSkeleton } from "@/components/LoadingSkeletons";
-import { SectionLoader, InlineLoader } from "@/components/ui/unified-loader";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
@@ -42,7 +41,7 @@ const AIConfiguration = () => {
   const [testResult, setTestResult] = useState<any>(null);
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
-
+  
   // Real testing mode state
   const [testMode, setTestMode] = useState<'hypothetical' | 'real'>('hypothetical');
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>('');
@@ -88,7 +87,7 @@ const AIConfiguration = () => {
         .not('full_name', 'is', null)
         .order('created_at', { ascending: false })
         .limit(50);
-
+      
       if (candidatesError) throw candidatesError;
 
       // Fetch jobs with company information
@@ -105,7 +104,7 @@ const AIConfiguration = () => {
         `)
         .order('created_at', { ascending: false })
         .limit(50);
-
+      
       if (jobsError) throw jobsError;
 
       setCandidates(candidatesData || []);
@@ -131,7 +130,7 @@ const AIConfiguration = () => {
       try {
         // Parse test profile to extract structured data
         const profileData = {
-          current_title: testProfile.includes('Developer') || testProfile.includes('Engineer')
+          current_title: testProfile.includes('Developer') || testProfile.includes('Engineer') 
             ? testProfile.split('\n')[0] : 'Professional',
           location: testProfile.match(/in ([A-Za-z\s]+)/)?.[1] || 'Not specified',
           career_preferences: testProfile,
@@ -172,7 +171,7 @@ const AIConfiguration = () => {
       setTesting(true);
       try {
         const selectedJob = jobs.find(j => j.id === selectedJobId);
-
+        
         const { data, error } = await supabase.functions.invoke('calculate-match-score', {
           body: {
             test_mode: false,
@@ -197,11 +196,11 @@ const AIConfiguration = () => {
     }
   };
 
-  const totalWeight =
-    config.skillsWeight +
-    config.experienceWeight +
-    config.locationWeight +
-    config.salaryWeight +
+  const totalWeight = 
+    config.skillsWeight + 
+    config.experienceWeight + 
+    config.locationWeight + 
+    config.salaryWeight + 
     config.cultureWeight;
 
   const isWeightValid = totalWeight === 100;
@@ -349,11 +348,11 @@ const AIConfiguration = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <Tabs value={testMode} onValueChange={(v) => setTestMode(v as 'hypothetical' | 'real')}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="hypothetical">Hypothetical Test</TabsTrigger>
-                <TabsTrigger value="real">Real Data Test</TabsTrigger>
-              </TabsList>
-
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="hypothetical">Hypothetical Test</TabsTrigger>
+              <TabsTrigger value="real">Real Data Test</TabsTrigger>
+            </TabsList>
+              
               {/* Hypothetical Tab */}
               <TabsContent value="hypothetical" className="space-y-4">
                 <div className="space-y-2">
@@ -376,84 +375,90 @@ const AIConfiguration = () => {
                   />
                 </div>
               </TabsContent>
-
+              
               {/* Real Data Tab */}
-              <TabsContent value="real" className="space-y-4">
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-sm text-muted-foreground">
-                    {candidates.length} candidates, {jobs.length} jobs loaded
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={fetchRealData}
-                    disabled={loadingData}
-                  >
-                    {loadingData ? (
-                      <InlineLoader text="Loading..." />
-                    ) : 'Refresh Data'}
-                  </Button>
-                </div>
+            <TabsContent value="real" className="space-y-4">
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm text-muted-foreground">
+                  {candidates.length} candidates, {jobs.length} jobs loaded
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={fetchRealData}
+                  disabled={loadingData}
+                >
+                  {loadingData ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      Loading...
+                    </>
+                  ) : 'Refresh Data'}
+                </Button>
+              </div>
 
-                {loadingData ? (
-                  <SectionLoader text="Loading real data..." className="py-8" />
-                ) : (
-                  <>
-                    <div className="space-y-2">
-                      <Label>Select Candidate</Label>
-                      <Select value={selectedCandidateId} onValueChange={setSelectedCandidateId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose a candidate..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {candidates.map(c => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.full_name}
-                              {c.current_title && ` • ${c.current_title}`}
-                              {c.location && ` • ${c.location}`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Select Job</Label>
-                      <Select value={selectedJobId} onValueChange={setSelectedJobId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose a job..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {jobs.map(j => (
-                            <SelectItem key={j.id} value={j.id}>
-                              {j.title}
-                              {j.companies?.name && ` • ${j.companies.name}`}
-                              {j.location && ` • ${j.location}`}
-                              <span className="text-xs text-muted-foreground ml-2">
-                                ({j.status})
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
-              </TabsContent>
+              {loadingData ? (
+                <InlineLoadingSkeleton />
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label>Select Candidate</Label>
+                    <Select value={selectedCandidateId} onValueChange={setSelectedCandidateId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a candidate..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {candidates.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.full_name}
+                            {c.current_title && ` • ${c.current_title}`}
+                            {c.location && ` • ${c.location}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Select Job</Label>
+                    <Select value={selectedJobId} onValueChange={setSelectedJobId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a job..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {jobs.map(j => (
+                          <SelectItem key={j.id} value={j.id}>
+                            {j.title}
+                            {j.companies?.name && ` • ${j.companies.name}`}
+                            {j.location && ` • ${j.location}`}
+                            <span className="text-xs text-muted-foreground ml-2">
+                              ({j.status})
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+            </TabsContent>
             </Tabs>
-
-            <Button
-              onClick={handleTest}
-              disabled={testing || (testMode === 'real' && loadingData)}
+            
+            <Button 
+              onClick={handleTest} 
+              disabled={testing || (testMode === 'real' && loadingData)} 
               className="w-full relative"
             >
               {testing ? (
-                <InlineLoader text="Analyzing match factors..." />
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Analyzing match factors...
+                </>
               ) : (
                 'Calculate Match Score'
               )}
             </Button>
-
+            
             {testResult && (
               <Card className="border-2">
                 <CardHeader className="pb-3">
@@ -464,18 +469,19 @@ const AIConfiguration = () => {
                     </Badge>
                   </div>
                 </CardHeader>
-
+                
                 <CardContent className="space-y-4">
                   {/* Overall Score Display */}
                   <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Overall Match Score</p>
                       <div className="flex items-center gap-2">
-                        <span className={`text-4xl font-bold ${testResult.overall_score >= 85 ? 'text-green-600' :
+                        <span className={`text-4xl font-bold ${
+                          testResult.overall_score >= 85 ? 'text-green-600' :
                           testResult.overall_score >= 70 ? 'text-yellow-600' :
-                            testResult.overall_score >= 50 ? 'text-orange-600' :
-                              'text-red-600'
-                          }`}>
+                          testResult.overall_score >= 50 ? 'text-orange-600' :
+                          'text-red-600'
+                        }`}>
                           {testResult.overall_score}%
                         </span>
                         {testResult.overall_score >= config.matchThreshold ? (
@@ -485,8 +491,8 @@ const AIConfiguration = () => {
                         )}
                       </div>
                       <p className="text-sm mt-1">
-                        {testResult.overall_score >= config.matchThreshold
-                          ? '✅ High Match'
+                        {testResult.overall_score >= config.matchThreshold 
+                          ? '✅ High Match' 
                           : `⚠️ Below ${config.matchThreshold}% threshold`
                         }
                       </p>
@@ -494,18 +500,19 @@ const AIConfiguration = () => {
                   </div>
 
                   {/* Expandable Detailed Reasoning */}
-                  <Collapsible
-                    open={showReasoningDetails}
+                  <Collapsible 
+                    open={showReasoningDetails} 
                     onOpenChange={setShowReasoningDetails}
                   >
                     <CollapsibleTrigger asChild>
                       <Button variant="outline" className="w-full justify-between">
                         <span>View Detailed Reasoning</span>
-                        <ChevronDown className={`h-4 w-4 transition-transform ${showReasoningDetails ? 'rotate-180' : ''
-                          }`} />
+                        <ChevronDown className={`h-4 w-4 transition-transform ${
+                          showReasoningDetails ? 'rotate-180' : ''
+                        }`} />
                       </Button>
                     </CollapsibleTrigger>
-
+                    
                     <CollapsibleContent className="space-y-4 mt-4">
                       {/* Club Match Factors */}
                       {testResult.club_match_factors?.length > 0 && (
@@ -520,8 +527,8 @@ const AIConfiguration = () => {
                                 <span className="font-medium text-sm">{factor.factor}</span>
                                 <Badge variant={
                                   factor.score >= 8 ? 'default' :
-                                    factor.score >= 5 ? 'secondary' :
-                                      'destructive'
+                                  factor.score >= 5 ? 'secondary' :
+                                  'destructive'
                                 }>
                                   {factor.score}/10
                                 </Badge>

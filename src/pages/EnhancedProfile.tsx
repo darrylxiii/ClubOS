@@ -26,7 +26,6 @@ import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { SectionLoader } from "@/components/ui/unified-loader";
 import { toast } from "sonner";
 
 interface EnhancedProfileProps {
@@ -43,7 +42,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [slugDialogOpen, setSlugDialogOpen] = useState(false);
-
+  
   // Determine which user's profile to show
   const profileUserId = viewingUserId || user?.id;
   const isOwnProfile = !isSharedView && user?.id === profileUserId;
@@ -55,7 +54,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
 
   const loadProfile = async () => {
     if (!profileUserId) return;
-
+    
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -72,9 +71,9 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
 
   const handleExportData = async () => {
     if (!user || !isOwnProfile) return;
-
+    
     toast.success('Preparing your data export...');
-
+    
     const { error } = await supabase
       .from('profile_data_exports')
       .insert({
@@ -86,7 +85,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
       toast.error('Failed to request data export');
       return;
     }
-
+    
     toast.success('Data export requested. You\'ll receive an email when ready.');
   };
 
@@ -94,7 +93,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
-          <SectionLoader />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </AppLayout>
     );
@@ -132,7 +131,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
             {/* Upload button in bottom right - only for own profile */}
             {isOwnProfile && (
               <div className="absolute bottom-4 right-4">
-                <ProfileHeaderUpload
+                <ProfileHeaderUpload 
                   currentMediaUrl={profile?.header_media_url}
                   currentMediaType={profile?.header_media_type}
                   onUploadComplete={loadProfile}
@@ -170,24 +169,24 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
                 </div>
                 {isOwnProfile && (
                   <div className="flex flex-col gap-2">
-                    <Button
-                      variant="outline"
+                    <Button 
+                      variant="outline" 
                       size="sm"
                       onClick={() => navigate(`/profile/${profile?.profile_slug || user?.id}`)}
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       Preview
                     </Button>
-                    <Button
-                      variant="outline"
+                    <Button 
+                      variant="outline" 
                       size="sm"
                       onClick={() => setShareDialogOpen(true)}
                     >
                       <Share2 className="w-4 h-4 mr-2" />
                       Share
                     </Button>
-                    <Button
-                      variant="outline"
+                    <Button 
+                      variant="outline" 
                       size="sm"
                       onClick={() => setSlugDialogOpen(true)}
                     >
@@ -197,7 +196,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
                   </div>
                 )}
               </div>
-
+                
               <div className="flex flex-wrap gap-2">
                 {profile?.location && (
                   <Badge variant="secondary">{profile.location}</Badge>
@@ -215,7 +214,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
         </Card>
 
         {/* Profile Stats */}
-        <ProfileStats
+        <ProfileStats 
           stats={{
             profileViews: profile?.profile_views || 0,
             connections: profile?.connection_count || 0,
@@ -226,9 +225,9 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
         />
 
         {/* Freelance Info - Show if user is open to freelance work */}
-        <FreelanceInfoSection
-          profile={profile}
-          isOwnProfile={isOwnProfile}
+        <FreelanceInfoSection 
+          profile={profile} 
+          isOwnProfile={isOwnProfile} 
         />
 
         {/* Quick Actions - Only for own profile */}
@@ -327,13 +326,13 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
               <Alert className="border-orange-500 bg-orange-50 dark:bg-orange-950/20">
                 <Shield className="h-4 w-4 text-orange-600" />
                 <AlertDescription className="text-orange-900 dark:text-orange-200">
-                  🔒 Admin View: You are viewing {profile?.full_name || 'this user'}'s complete settings and private data.
+                  🔒 Admin View: You are viewing {profile?.full_name || 'this user'}'s complete settings and private data. 
                   This information is GDPR protected and must be handled accordingly.
                 </AlertDescription>
               </Alert>
-
-              <UserSettingsViewer
-                userId={profileUserId!}
+              
+              <UserSettingsViewer 
+                userId={profileUserId!} 
                 userName={profile?.full_name || profile?.email || 'User'}
                 source="admin_user_profile"
               />

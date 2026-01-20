@@ -328,7 +328,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Brain,
       items: [
         { name: "Global Analytics", icon: BarChart3, path: "/admin/global-analytics" },
-        { name: "RAG Analytics", icon: Brain, path: "/admin/rag-analytics", badge: "New" },
         { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
         { name: "Communication Intelligence", icon: Brain, path: "/communication-intelligence" },
         { name: "Hiring Intelligence", icon: Brain, path: "/hiring-intelligence" },

@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import * as fabric from 'fabric';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Eraser, Pen, Trash2, Undo, Redo, Download, Save, Upload, Loader2 } from 'lucide-react';
+import { Eraser, Pen, Trash2, Undo, Redo, Download, Save, Upload } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useWhiteboardPersistence } from '@/hooks/useWhiteboardPersistence';
 import { toast } from 'sonner';
-
-// Types for dynamic fabric import
-type FabricCanvas = import('fabric').Canvas;
 
 interface WhiteboardProps {
     channelId: string;
@@ -16,16 +14,14 @@ interface WhiteboardProps {
 
 export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const fabricCanvasRef = useRef<FabricCanvas | null>(null);
+    const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
     const [color, setColor] = useState('#000000');
     const [brushSize, setBrushSize] = useState(3);
     const [isEraser, setIsEraser] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [fabricLoaded, setFabricLoaded] = useState(false);
     const isRemoteUpdate = useRef(false);
     const undoStack = useRef<string[]>([]);
     const redoStack = useRef<string[]>([]);
-    const fabricModuleRef = useRef<typeof import('fabric') | null>(null);
 
     const persistence = useWhiteboardPersistence({
         channelId,
@@ -37,13 +33,8 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
         if (!canvasRef.current) return;
 
         const initCanvas = async () => {
-            // Dynamic import of fabric to reduce build memory
-            const fabricModule = await import('fabric');
-            fabricModuleRef.current = fabricModule;
-            setFabricLoaded(true);
-
             // Initialize Fabric Canvas
-            const canvas = new fabricModule.Canvas(canvasRef.current!, {
+            const canvas = new fabric.Canvas(canvasRef.current!, {
                 isDrawingMode: true,
                 width: 800,
                 height: 600,
@@ -125,7 +116,7 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
 
                 if (type === 'draw') {
                     isRemoteUpdate.current = true;
-                    fabricModule.util.enlivenObjects([data], {
+                    fabric.util.enlivenObjects([data], {
                         reviver: (err: any, objects: any) => {
                             if (!err && objects.length > 0) {
                                 objects.forEach((obj: any) => {
@@ -181,7 +172,7 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
         }
     }, [color, brushSize, isEraser]);
 
-    const pushToUndoStack = (canvas: FabricCanvas) => {
+    const pushToUndoStack = (canvas: fabric.Canvas) => {
         const json = JSON.stringify(canvas.toJSON());
         undoStack.current.push(json);
         redoStack.current = []; // Clear redo stack on new action
@@ -306,7 +297,7 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
         return (
             <div className="flex items-center justify-center h-full w-full bg-muted">
                 <div className="text-center">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                     <p className="text-sm text-muted-foreground">Loading whiteboard...</p>
                 </div>
             </div>

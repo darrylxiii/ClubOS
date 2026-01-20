@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { XCircle } from "lucide-react";
-import { UnifiedLoader } from "@/components/ui/unified-loader";
+import { Loader2, XCircle } from "lucide-react";
 
 export default function ResetPasswordMagicLink() {
   const [searchParams] = useSearchParams();
@@ -66,7 +65,10 @@ export default function ResetPasswordMagicLink() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-background/95">
-      <UnifiedLoader variant="page" showBranding text="Verifying reset link..." />
+      <div className="flex items-center gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-foreground">Verifying reset link...</p>
+      </div>
     </div>
   );
 }
