@@ -42,39 +42,61 @@ export function MilestoneCommentsDrawer({
   useEffect(() => {
     if (open && milestoneId) {
       loadComments();
+      
+      // Subscribe to real-time updates for live collaboration
+      const channel = supabase
+        .channel(`milestone-comments-${milestoneId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'milestone_comments',
+            filter: `milestone_id=eq.${milestoneId}`
+          },
+          async (payload) => {
+            // Fetch the new comment with profile data
+            const { data } = await supabase
+              .from('milestone_comments')
+              .select(`
+                *,
+                profiles:user_id(full_name, avatar_url)
+              `)
+              .eq('id', payload.new.id)
+              .single();
+            
+            if (data) {
+              setComments(prev => [...prev, data as unknown as Comment]);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [open, milestoneId]);
 
   const loadComments = async () => {
     setIsLoading(true);
     try {
-      // Note: milestone_comments table needs to be created via migration
-      // For now, we'll try to load and handle gracefully if table doesn't exist
       const { data, error } = await supabase
-        .from("milestone_comments" as any)
+        .from('milestone_comments')
         .select(`
           *,
           profiles:user_id(full_name, avatar_url)
         `)
-        .eq("milestone_id", milestoneId)
-        .order("created_at", { ascending: true });
+        .eq('milestone_id', milestoneId)
+        .order('created_at', { ascending: true });
 
       if (error) {
-        // If table doesn't exist, show empty state
-        if (error.code === '42P01' || error.message.includes('does not exist')) {
-          logger.warn('milestone_comments table not found', { componentName: 'MilestoneCommentsDrawer' });
-          setComments([]);
-          return;
-        }
         throw error;
       }
       setComments(data && Array.isArray(data) ? data as unknown as Comment[] : []);
     } catch (error: any) {
       console.error("Error loading comments:", error);
-      // Don't show error toast if table doesn't exist
-      if (!error.message?.includes('does not exist')) {
-        toast.error("Failed to load comments");
-      }
+      toast.error("Failed to load comments");
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +108,7 @@ export function MilestoneCommentsDrawer({
     setIsSubmitting(true);
     try {
       const { error } = await supabase
-        .from("milestone_comments" as any)
+        .from('milestone_comments')
         .insert({
           milestone_id: milestoneId,
           user_id: user.id,
@@ -94,15 +116,11 @@ export function MilestoneCommentsDrawer({
         });
 
       if (error) {
-        if (error.code === '42P01' || error.message.includes('does not exist')) {
-          toast.error("Comments feature requires database migration. Please contact support.");
-          return;
-        }
         throw error;
       }
 
       setNewComment("");
-      await loadComments();
+      // Comments will be added via real-time subscription
       toast.success("Comment added");
     } catch (error: any) {
       console.error("Error adding comment:", error);

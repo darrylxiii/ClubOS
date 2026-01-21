@@ -68,12 +68,19 @@ export function ActivityTimeline({ userId }: { userId: string }) {
     }
   };
 
-  const getActivityConfig = (type: string) => {
-    const configs: Record<string, { icon: any; label: string; color: string }> = {
+  const getActivityConfig = (type: string, data?: any) => {
+    const configs: Record<string, { icon: any; label: string; color: string; getDescription?: (d: any) => string }> = {
       application_submitted: {
         icon: FileText,
         label: 'Application submitted',
-        color: 'text-primary'
+        color: 'text-primary',
+        getDescription: (d) => d?.job_title ? `Applied to ${d.job_title}` : 'Submitted a new application'
+      },
+      application_status_changed: {
+        icon: TrendingUp,
+        label: 'Application updated',
+        color: 'text-success',
+        getDescription: (d) => d?.status ? `Status changed to ${d.status}` : 'Application status updated'
       },
       application_stage_changed: {
         icon: TrendingUp,
@@ -83,12 +90,14 @@ export function ActivityTimeline({ userId }: { userId: string }) {
       profile_viewed: {
         icon: Eye,
         label: 'Profile viewed',
-        color: 'text-primary'
+        color: 'text-primary',
+        getDescription: (d) => d?.viewer_company ? `Viewed by ${d.viewer_company}` : 'Your profile was viewed'
       },
       match_created: {
         icon: TrendingUp,
         label: 'New job match',
-        color: 'text-success'
+        color: 'text-success',
+        getDescription: (d) => d?.match_score ? `${d.match_score}% match found` : 'A new opportunity matches your profile'
       },
       profile_updated: {
         icon: UserPlus,
@@ -99,9 +108,58 @@ export function ActivityTimeline({ userId }: { userId: string }) {
         icon: CheckCircle,
         label: 'Task completed',
         color: 'text-success'
+      },
+      assessment_completed: {
+        icon: CheckCircle,
+        label: 'Assessment completed',
+        color: 'text-success',
+        getDescription: (d) => d?.assessment_name || 'Completed an assessment'
+      },
+      interview_scheduled: {
+        icon: UserPlus,
+        label: 'Interview scheduled',
+        color: 'text-primary',
+        getDescription: (d) => d?.scheduled_at ? `Interview at ${new Date(d.scheduled_at).toLocaleDateString()}` : 'Interview booked'
+      },
+      interview_completed: {
+        icon: CheckCircle,
+        label: 'Interview completed',
+        color: 'text-success'
+      },
+      referral_sent: {
+        icon: UserPlus,
+        label: 'Referral sent',
+        color: 'text-primary'
+      },
+      referral_hired: {
+        icon: CheckCircle,
+        label: 'Referral hired',
+        color: 'text-success',
+        getDescription: () => 'Your referral was hired! Reward unlocked.'
+      },
+      comment_added: {
+        icon: FileText,
+        label: 'Comment added',
+        color: 'text-muted-foreground'
+      },
+      payment_released: {
+        icon: CheckCircle,
+        label: 'Payment released',
+        color: 'text-success',
+        getDescription: (d) => d?.amount ? `€${d.amount} released` : 'Payment released for milestone'
+      },
+      offer_received: {
+        icon: TrendingUp,
+        label: 'Offer received',
+        color: 'text-success',
+        getDescription: (d) => d?.company_name ? `Offer from ${d.company_name}` : 'You received a job offer!'
       }
     };
-    return configs[type] || { icon: ActivityIcon, label: type, color: 'text-muted-foreground' };
+    const config = configs[type] || { icon: ActivityIcon, label: type.replace(/_/g, ' '), color: 'text-muted-foreground' };
+    return {
+      ...config,
+      description: config.getDescription?.(data) || null
+    };
   };
 
   const formatTimeLabel = (date: string) => {
@@ -177,7 +235,7 @@ export function ActivityTimeline({ userId }: { userId: string }) {
             </h4>
             <div className="space-y-3 pl-4 border-l-2 border-border/30">
               {dateActivities.map((activity) => {
-                const config = getActivityConfig(activity.activity_type);
+                const config = getActivityConfig(activity.activity_type, activity.activity_data);
                 const Icon = config.icon;
                 
                 return (
@@ -193,6 +251,11 @@ export function ActivityTimeline({ userId }: { userId: string }) {
                       <p className="text-sm font-medium mb-1">
                         {config.label}
                       </p>
+                      {config.description && (
+                        <p className="text-xs text-foreground/80 mb-1">
+                          {config.description}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
                       </p>

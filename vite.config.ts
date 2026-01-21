@@ -190,26 +190,34 @@ export default defineConfig(({ mode, command }) => ({
   },
   build: {
     modulePreload: false,
-    minify: false, // Disable minification entirely to reduce memory
+    minify: false,
     cssMinify: false,
     reportCompressedSize: false,
     sourcemap: false,
-    chunkSizeWarningLimit: 5000,
-    target: 'esnext', // Less transformation = less memory
-    cssCodeSplit: true,
-    
-    // CRITICAL: Reduce memory during rendering phase
-    assetsInlineLimit: 0, // Don't inline assets
+    chunkSizeWarningLimit: 10000,
+    target: 'esnext',
+    cssCodeSplit: false, // Single CSS file = less memory
+    assetsInlineLimit: 0,
 
     rollupOptions: {
-      // CRITICAL: Reduce parallelism to lower peak memory
-      maxParallelFileOps: 2,
+      maxParallelFileOps: 1, // Minimum parallelism
+      treeshake: mode === 'production',
       
-      // Reduce tree-shaking overhead
-      treeshake: mode === 'production' ? true : false,
+      // CRITICAL: Mark heavy dependencies as external in dev mode
+      // They won't be bundled, reducing memory significantly
+      ...(mode === 'development' ? {
+        external: [
+          'mermaid',
+          '@mediapipe/selfie_segmentation',
+          '@mediapipe/camera_utils',
+          'fabric',
+          'katex',
+        ],
+      } : {}),
       
       output: {
-        // CRITICAL: Simpler chunking strategy for dev builds
+        // CRITICAL: NO manual chunks in dev mode - let Rollup decide
+        // The chunk assignment function itself causes memory bloat
         ...(mode === 'production' ? {
           manualChunks: (id: string) => {
             if (!id.includes('node_modules')) return undefined;
@@ -228,10 +236,7 @@ export default defineConfig(({ mode, command }) => ({
             }
           },
         } : {
-          // Dev mode: single vendor chunk only
-          manualChunks: {
-            vendor: ['react', 'react-dom', 'react-router-dom'],
-          },
+          // Dev mode: NO manualChunks at all - simplest possible output
         }),
       },
     },
