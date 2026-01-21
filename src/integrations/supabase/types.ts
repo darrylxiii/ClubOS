@@ -3244,6 +3244,9 @@ export type Database = {
           is_latest: boolean | null
           results_data: Json
           score: number | null
+          share_expires_at: string | null
+          shared_at: string | null
+          shared_link_token: string | null
           time_spent_seconds: number | null
           updated_at: string
           user_id: string
@@ -3260,6 +3263,9 @@ export type Database = {
           is_latest?: boolean | null
           results_data?: Json
           score?: number | null
+          share_expires_at?: string | null
+          shared_at?: string | null
+          shared_link_token?: string | null
           time_spent_seconds?: number | null
           updated_at?: string
           user_id: string
@@ -3276,6 +3282,9 @@ export type Database = {
           is_latest?: boolean | null
           results_data?: Json
           score?: number | null
+          share_expires_at?: string | null
+          shared_at?: string | null
+          shared_link_token?: string | null
           time_spent_seconds?: number | null
           updated_at?: string
           user_id?: string
@@ -27896,6 +27905,41 @@ export type Database = {
             columns: ["milestone_id"]
             isOneToOne: false
             referencedRelation: "revenue_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      milestone_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          milestone_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          milestone_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          milestone_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestone_comments_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestones"
             referencedColumns: ["id"]
           },
         ]
