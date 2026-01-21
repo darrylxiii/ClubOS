@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { DynamicChart } from "@/components/charts/DynamicChart";
 import { TrendingUp, Users, Clock, Target } from "lucide-react";
 
 interface PartnerAnalyticsProps {
@@ -108,8 +108,6 @@ export const PartnerAnalytics = ({ companyId }: PartnerAnalyticsProps) => {
     }
   };
 
-  const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
-
   if (loading) {
     return <div className="animate-pulse space-y-4">
       <div className="h-64 bg-muted rounded"></div>
@@ -173,15 +171,17 @@ export const PartnerAnalytics = ({ companyId }: PartnerAnalyticsProps) => {
               <CardDescription>Current distribution across pipeline stages</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={analytics.pipelineHealth}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" />
-                </BarChart>
-              </ResponsiveContainer>
+              <DynamicChart
+                type="bar"
+                data={analytics.pipelineHealth}
+                height={300}
+                config={{
+                  bars: [{ dataKey: 'count', fill: 'hsl(var(--primary))' }],
+                  xAxisDataKey: 'name',
+                  showGrid: true,
+                  showTooltip: true,
+                }}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -193,15 +193,17 @@ export const PartnerAnalytics = ({ companyId }: PartnerAnalyticsProps) => {
               <CardDescription>Percentage of candidates advancing between stages</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={analytics.conversionRates}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="stage" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="rate" fill="hsl(var(--secondary))" />
-                </BarChart>
-              </ResponsiveContainer>
+              <DynamicChart
+                type="bar"
+                data={analytics.conversionRates}
+                height={300}
+                config={{
+                  bars: [{ dataKey: 'rate', fill: 'hsl(var(--secondary))' }],
+                  xAxisDataKey: 'stage',
+                  showGrid: true,
+                  showTooltip: true,
+                }}
+              />
             </CardContent>
           </Card>
         </TabsContent>

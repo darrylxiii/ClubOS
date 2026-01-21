@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCandidateAnalytics } from "@/hooks/useCandidateAnalytics";
 import { useAuth as useSupabaseAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
+import { DynamicChart } from "@/components/charts/DynamicChart";
 import { Eye, FileText, Briefcase, Award, TrendingUp, Users, Download, Search, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { exportToCSV } from "@/utils/analyticsExport";
@@ -53,13 +53,11 @@ export default function CandidateAnalytics() {
 
   if (!data) return null;
 
-  const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
-
   const interviewRadarData = [
-    { skill: 'Rating', value: data.interviewPerformance.avgRating * 20 },
-    { skill: 'Technical', value: data.interviewPerformance.avgTechnicalScore * 20 },
-    { skill: 'Culture Fit', value: data.interviewPerformance.avgCulturalFit * 20 },
-    { skill: 'Communication', value: data.interviewPerformance.avgCommunication * 20 },
+    { category: 'Rating', value: data.interviewPerformance.avgRating * 20 },
+    { category: 'Technical', value: data.interviewPerformance.avgTechnicalScore * 20 },
+    { category: 'Culture Fit', value: data.interviewPerformance.avgCulturalFit * 20 },
+    { category: 'Communication', value: data.interviewPerformance.avgCommunication * 20 },
   ];
 
   return (
@@ -157,15 +155,17 @@ export default function CandidateAnalytics() {
                   <CardDescription>Daily profile views over the last 30 days</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={data.profileViews.trend}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="views" stroke="hsl(var(--primary))" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <DynamicChart
+                    type="line"
+                    data={data.profileViews.trend}
+                    height={300}
+                    config={{
+                      lines: [{ dataKey: 'views', stroke: 'hsl(var(--primary))', strokeWidth: 2 }],
+                      xAxisDataKey: 'date',
+                      showGrid: true,
+                      showTooltip: true,
+                    }}
+                  />
                 </CardContent>
               </Card>
 
@@ -222,15 +222,17 @@ export default function CandidateAnalytics() {
                   <CardDescription>Your application activity over time</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={data.applicationMetrics.timeline}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="applications" stroke="hsl(var(--primary))" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <DynamicChart
+                    type="line"
+                    data={data.applicationMetrics.timeline}
+                    height={300}
+                    config={{
+                      lines: [{ dataKey: 'applications', stroke: 'hsl(var(--primary))', strokeWidth: 2 }],
+                      xAxisDataKey: 'date',
+                      showGrid: true,
+                      showTooltip: true,
+                    }}
+                  />
                 </CardContent>
               </Card>
 
@@ -240,15 +242,17 @@ export default function CandidateAnalytics() {
                   <CardDescription>Current distribution of your applications</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={data.applicationMetrics.byStage}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="stage" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="hsl(var(--primary))" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <DynamicChart
+                    type="bar"
+                    data={data.applicationMetrics.byStage}
+                    height={300}
+                    config={{
+                      bars: [{ dataKey: 'count', fill: 'hsl(var(--primary))' }],
+                      xAxisDataKey: 'stage',
+                      showGrid: true,
+                      showTooltip: true,
+                    }}
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -262,14 +266,15 @@ export default function CandidateAnalytics() {
                   <CardDescription>Your average scores across different dimensions</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RadarChart data={interviewRadarData}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="skill" />
-                      <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                      <Radar name="Score" dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
-                    </RadarChart>
-                  </ResponsiveContainer>
+                  <DynamicChart
+                    type="radar"
+                    data={interviewRadarData}
+                    height={300}
+                    config={{
+                      radars: [{ dataKey: 'value', name: 'Score', stroke: 'hsl(var(--primary))', fill: 'hsl(var(--primary))', fillOpacity: 0.6 }],
+                      angleAxisKey: 'category',
+                    }}
+                  />
                 </CardContent>
               </Card>
 
