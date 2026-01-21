@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LazyBarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Bar } from '@/components/charts/LazyCharts';
 import { RecruiterPerformance } from "@/hooks/useAnalytics";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -48,7 +48,7 @@ export function RecruiterPerformanceChart({ data, isLoading }: RecruiterPerforma
       <div>
         <h4 className="text-sm font-medium mb-4">Recruiter Activity Overview</h4>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={recruiterData}>
+          <LazyBarChart data={recruiterData}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis 
               dataKey="name" 
@@ -73,7 +73,7 @@ export function RecruiterPerformanceChart({ data, isLoading }: RecruiterPerforma
             <Bar dataKey="reviews" fill="hsl(var(--chart-1))" name="Reviews" />
             <Bar dataKey="interviews" fill="hsl(var(--chart-2))" name="Interviews" />
             <Bar dataKey="hires" fill="hsl(var(--chart-3))" name="Hires" />
-          </BarChart>
+          </LazyBarChart>
         </ResponsiveContainer>
       </div>
 
