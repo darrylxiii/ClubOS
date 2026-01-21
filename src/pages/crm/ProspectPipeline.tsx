@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { 
-  Search, 
-  Upload, 
+import {
+  Search,
+  Upload,
   Plus,
   RefreshCw,
   Keyboard,
@@ -43,6 +43,7 @@ import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 import { CRMKeyboardShortcutsDialog } from '@/components/crm/CRMKeyboardShortcutsDialog';
 import { BulkActionsBar } from '@/components/crm/BulkActionsBar';
 import { SyncStatusBadge } from '@/components/crm/SyncStatusBadge';
+import { InlineLoader } from '@/components/ui/unified-loader';
 import {
   Select,
   SelectContent,
@@ -252,20 +253,20 @@ function ProspectPipelineContent() {
   const handleSyncFromInstantly = async () => {
     setSyncingInstantly(true);
     toast.info('Starting sync from Instantly…');
-    
+
     // Create abort controller for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
     }, SYNC_TIMEOUT_MS);
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('sync-instantly-leads', {
         body: { direction: 'instantly_to_crm', mode: 'hot' }, // Use hot mode for speed
       });
 
       clearTimeout(timeoutId);
-      
+
       if (error) throw error;
 
       // Parse response correctly - edge function returns data.stats.instantly_imported
@@ -273,10 +274,10 @@ function ProspectPipelineContent() {
       const imported = stats.instantly_imported || 0;
       const updated = stats.instantly_updated || 0;
       const errorCount = stats.errors || 0;
-      
+
       // Always refetch after sync to show any updates
       await Promise.all([refetch(), refetchSyncLog()]);
-      
+
       if (imported > 0 || updated > 0) {
         toast.success(`Synced: ${imported} new • ${updated} updated${errorCount > 0 ? ` • ${errorCount} errors` : ''}`);
       } else if (errorCount > 0) {
@@ -288,7 +289,7 @@ function ProspectPipelineContent() {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      
+
       // Check if it was a timeout
       if (error?.name === 'AbortError' || controller.signal.aborted) {
         toast.info('Sync is still running in the background. Results will appear after refresh.');
@@ -325,8 +326,8 @@ function ProspectPipelineContent() {
                 )}
               </p>
             </div>
-            <SyncStatusBadge 
-              isSyncing={syncingInstantly} 
+            <SyncStatusBadge
+              isSyncing={syncingInstantly}
               lastSync={lastSyncLog}
               syncErrors={getSyncErrors(lastSyncLog)}
             />
@@ -360,9 +361,9 @@ function ProspectPipelineContent() {
             {/* Advanced Filters Popover */}
             <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className={hasActiveFilters ? 'border-primary' : ''}
                 >
                   <Filter className="w-4 h-4 mr-2" />
@@ -385,7 +386,7 @@ function ProspectPipelineContent() {
                       </Button>
                     )}
                   </div>
-                  
+
                   {/* Owner Filter */}
                   <div className="space-y-2">
                     <Label>Owner</Label>
@@ -422,8 +423,8 @@ function ProspectPipelineContent() {
                     />
                   </div>
 
-                  <Button 
-                    className="w-full" 
+                  <Button
+                    className="w-full"
                     size="sm"
                     onClick={() => setFiltersOpen(false)}
                   >
@@ -435,15 +436,15 @@ function ProspectPipelineContent() {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleSyncFromInstantly}
                   disabled={syncingInstantly}
                   className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-purple-500/30 hover:border-purple-500/50"
                 >
                   {syncingInstantly ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <InlineLoader />
                       Syncing…
                     </>
                   ) : (
@@ -571,9 +572,9 @@ function ProspectPipelineContent() {
         defaultStage={addProspectStage}
       />
 
-      <CRMKeyboardShortcutsDialog 
-        open={showHelp} 
-        onOpenChange={setShowHelp} 
+      <CRMKeyboardShortcutsDialog
+        open={showHelp}
+        onOpenChange={setShowHelp}
       />
     </div>
   );

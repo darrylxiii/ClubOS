@@ -3,7 +3,8 @@ import { AppLayout } from '@/components/AppLayout';
 import { DashboardHeader } from '@/components/admin/shared/DashboardHeader';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Upload, Table2, LayoutGrid, Zap, Loader2 } from 'lucide-react';
+import { Plus, Upload, Table2, LayoutGrid, Zap } from 'lucide-react';
+import { InlineLoader } from "@/components/ui/unified-loader";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -48,7 +49,7 @@ export default function TalentPool() {
   const handleBulkCalculate = useCallback(async () => {
     setIsBulkCalculating(true);
     const toastId = toast.loading('Calculating move probabilities...');
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('calculate-move-probability-bulk', {
         body: { force_recalculate: false }
@@ -172,21 +173,21 @@ export default function TalentPool() {
           isRefreshing={isLoading}
           actions={
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleBulkCalculate}
                 disabled={isBulkCalculating}
               >
                 {isBulkCalculating ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <InlineLoader />
                 ) : (
                   <Zap className="h-4 w-4 mr-2" />
                 )}
                 Calculate Probabilities
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setImportDialogOpen(true)}
               >

@@ -19,7 +19,7 @@ import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { useApplications } from "@/hooks/useApplications";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2 } from "lucide-react";
+import { InlineLoader } from "@/components/ui/unified-loader";
 import { RejectedApplicationsTab } from "@/components/candidate/RejectedApplicationsTab";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileApplicationPipeline } from "@/components/applications/MobileApplicationPipeline";
@@ -100,84 +100,84 @@ export default function Applications() {
         <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-right-2 duration-300">
           <div className="frosted-glass p-3 rounded-lg border border-border/20 shadow-lg">
             <div className="flex items-center gap-2 text-sm">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <InlineLoader className="text-muted-foreground" />
               <span className="text-muted-foreground font-medium">Updating...</span>
             </div>
           </div>
         </div>
       )}
-      
+
       <div className="container mx-auto px-4 py-8 space-y-6">
-          {/* Header */}
-          <div>
-            <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
-              My Applications
-            </h1>
-            <p className="text-muted-foreground">
-              Track your application progress and prepare for each stage
-            </p>
-          </div>
-
-          <Tabs defaultValue="active" className="w-full">
-            <TabsList className="grid w-full max-w-2xl grid-cols-3 h-auto min-h-[44px]">
-              <TabsTrigger value="active" className="min-h-[44px] text-xs sm:text-sm">
-                <span className="hidden sm:inline">Active ({activeApplications.length})</span>
-                <span className="sm:hidden">Active</span>
-              </TabsTrigger>
-              <TabsTrigger value="rejected" className="min-h-[44px] text-xs sm:text-sm">
-                <span className="hidden sm:inline">Rejected ({rejectedApplications.length})</span>
-                <span className="sm:hidden">Rejected</span>
-              </TabsTrigger>
-              <TabsTrigger value="archived" className="min-h-[44px] text-xs sm:text-sm">
-                <span className="hidden sm:inline">Archived ({archivedApplications.length})</span>
-                <span className="sm:hidden">Archived</span>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="active" className="space-y-6 mt-6">
-              {activeApplications.length === 0 ? (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <p className="text-muted-foreground text-sm sm:text-base">
-                      No active applications yet. Start applying to jobs to see them here!
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : isMobile ? (
-                <MobileApplicationPipeline
-                  applications={activeApplications}
-                  onSelectApplication={(app) => window.location.href = `/applications/${app.id}`}
-                />
-              ) : (
-                activeApplications.map((application) => (
-                  <ApplicationCard key={application.id} application={application} />
-                ))
-              )}
-            </TabsContent>
-
-            <TabsContent value="rejected" className="space-y-6 mt-6">
-              <RejectedApplicationsTab applications={rejectedApplications} />
-            </TabsContent>
-
-            <TabsContent value="archived" className="space-y-6 mt-6">
-              {archivedApplications.length === 0 ? (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <p className="text-muted-foreground">No archived applications</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                archivedApplications.map((application) => (
-                  <ApplicationCard key={application.id} application={application} />
-                ))
-              )}
-            </TabsContent>
-          </Tabs>
+        {/* Header */}
+        <div>
+          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
+            My Applications
+          </h1>
+          <p className="text-muted-foreground">
+            Track your application progress and prepare for each stage
+          </p>
         </div>
-        <AIPageCopilot 
-          currentPage="/applications" 
-          contextData={{ applicationsCount: activeApplications.length }}
-        />
+
+        <Tabs defaultValue="active" className="w-full">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3 h-auto min-h-[44px]">
+            <TabsTrigger value="active" className="min-h-[44px] text-xs sm:text-sm">
+              <span className="hidden sm:inline">Active ({activeApplications.length})</span>
+              <span className="sm:hidden">Active</span>
+            </TabsTrigger>
+            <TabsTrigger value="rejected" className="min-h-[44px] text-xs sm:text-sm">
+              <span className="hidden sm:inline">Rejected ({rejectedApplications.length})</span>
+              <span className="sm:hidden">Rejected</span>
+            </TabsTrigger>
+            <TabsTrigger value="archived" className="min-h-[44px] text-xs sm:text-sm">
+              <span className="hidden sm:inline">Archived ({archivedApplications.length})</span>
+              <span className="sm:hidden">Archived</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="active" className="space-y-6 mt-6">
+            {activeApplications.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground text-sm sm:text-base">
+                    No active applications yet. Start applying to jobs to see them here!
+                  </p>
+                </CardContent>
+              </Card>
+            ) : isMobile ? (
+              <MobileApplicationPipeline
+                applications={activeApplications}
+                onSelectApplication={(app) => window.location.href = `/applications/${app.id}`}
+              />
+            ) : (
+              activeApplications.map((application) => (
+                <ApplicationCard key={application.id} application={application} />
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="rejected" className="space-y-6 mt-6">
+            <RejectedApplicationsTab applications={rejectedApplications} />
+          </TabsContent>
+
+          <TabsContent value="archived" className="space-y-6 mt-6">
+            {archivedApplications.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">No archived applications</p>
+                </CardContent>
+              </Card>
+            ) : (
+              archivedApplications.map((application) => (
+                <ApplicationCard key={application.id} application={application} />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+      <AIPageCopilot
+        currentPage="/applications"
+        contextData={{ applicationsCount: activeApplications.length }}
+      />
     </AppLayout>
   );
 }
@@ -194,15 +194,15 @@ function ApplicationCard({ application }: { application: Application }) {
   const currentStage = application.stages[application.current_stage_index];
   const nextStage = application.stages[application.current_stage_index + 1];
   const daysInProcess = Math.ceil((Date.now() - new Date(application.applied_at).getTime()) / (1000 * 60 * 60 * 24));
-  
+
   return (
-    <Card 
+    <Card
       className="border-border/20 bg-card/30 backdrop-blur-[var(--blur-glass)] transition-all hover:bg-card/40 group"
     >
       {/* Header with quick actions */}
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-          <div 
+          <div
             className="flex items-start gap-3 sm:gap-4 flex-1 cursor-pointer w-full"
             onClick={() => navigate(`/applications/${application.id}`)}
           >
@@ -217,29 +217,29 @@ function ApplicationCard({ application }: { application: Application }) {
                 {application.job?.title || application.position}
               </CardTitle>
               <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 flex-1 min-w-[200px]">
-            {application.job?.companies?.name || application.company_name}
-          </div>
-          {application.job?.location && (
-            <div className="flex items-center gap-1.5">
-              <MapPin className="w-3 h-3" />
-              <span className="hidden sm:inline">{application.job.location}</span>
-              <span className="sm:hidden">{application.job.location.split(',')[0]}</span>
-            </div>
-          )}
-          {formatSalaryRange() && (
-            <div className="flex items-center gap-1.5">
-              <DollarSign className="w-3 h-3" />
-              <span className="hidden md:inline">{formatSalaryRange()}</span>
-            </div>
-          )}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 flex-1 min-w-[200px]">
+                  {application.job?.companies?.name || application.company_name}
+                </div>
+                {application.job?.location && (
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3 h-3" />
+                    <span className="hidden sm:inline">{application.job.location}</span>
+                    <span className="sm:hidden">{application.job.location.split(',')[0]}</span>
+                  </div>
+                )}
+                {formatSalaryRange() && (
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign className="w-3 h-3" />
+                    <span className="hidden md:inline">{formatSalaryRange()}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-            <Button 
-              size="icon" 
+            <Button
+              size="icon"
               variant="ghost"
               className="min-h-[44px] min-w-[44px]"
               onClick={async (e) => {
@@ -255,8 +255,8 @@ function ApplicationCard({ application }: { application: Application }) {
             >
               <Share2 className="w-4 h-4" />
             </Button>
-            <Button 
-              size="icon" 
+            <Button
+              size="icon"
               variant="ghost"
               className="min-h-[44px] min-w-[44px]"
               onClick={(e) => {
@@ -283,7 +283,7 @@ function ApplicationCard({ application }: { application: Application }) {
         {/* Top Row: 2 Cards - Mobile First Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Strategist Contact Card */}
-          <StrategistContactCard 
+          <StrategistContactCard
             strategist={application.talent_strategist}
             lastContact="2 hours ago"
           />
@@ -335,26 +335,26 @@ function ApplicationCard({ application }: { application: Application }) {
             <span className="text-[10px] font-normal normal-case opacity-60">(Swipe to see all stages →)</span>
           </h3>
           <div className="relative">
-            <div 
+            <div
               className="flex items-center justify-start gap-2 overflow-x-scroll pb-2 scrollbar-hide"
               style={{ touchAction: 'pan-x' }}
               onMouseDown={(e) => {
                 const ele = e.currentTarget;
                 const startX = e.pageX - ele.offsetLeft;
                 const scrollLeft = ele.scrollLeft;
-                
+
                 const handleMouseMove = (e: MouseEvent) => {
                   const x = e.pageX - ele.offsetLeft;
                   const walk = (x - startX) * 2;
                   ele.scrollLeft = scrollLeft - walk;
                 };
-                
+
                 const handleMouseUp = () => {
                   document.removeEventListener('mousemove', handleMouseMove);
                   document.removeEventListener('mouseup', handleMouseUp);
                   ele.style.cursor = 'grab';
                 };
-                
+
                 ele.style.cursor = 'grabbing';
                 document.addEventListener('mousemove', handleMouseMove);
                 document.addEventListener('mouseup', handleMouseUp);
@@ -363,18 +363,18 @@ function ApplicationCard({ application }: { application: Application }) {
                 const ele = e.currentTarget;
                 const startX = e.touches[0].pageX - ele.offsetLeft;
                 const scrollLeft = ele.scrollLeft;
-                
+
                 const handleTouchMove = (e: TouchEvent) => {
                   const x = e.touches[0].pageX - ele.offsetLeft;
                   const walk = (x - startX) * 2;
                   ele.scrollLeft = scrollLeft - walk;
                 };
-                
+
                 const handleTouchEnd = () => {
                   document.removeEventListener('touchmove', handleTouchMove);
                   document.removeEventListener('touchend', handleTouchEnd);
                 };
-                
+
                 document.addEventListener('touchmove', handleTouchMove);
                 document.addEventListener('touchend', handleTouchEnd);
               }}
@@ -382,7 +382,7 @@ function ApplicationCard({ application }: { application: Application }) {
               {application.stages.map((stage: PipelineStageData, index: number) => {
                 const isCurrent = index === application.current_stage_index;
                 const isCompleted = index < application.current_stage_index;
-                
+
                 return (
                   <div key={stage.id} className="flex items-center flex-shrink-0">
                     <div className="flex flex-col items-center min-w-[80px]">

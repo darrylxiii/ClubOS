@@ -33,6 +33,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/lib/notify';
 import { useRole } from '@/contexts/RoleContext';
 import { formatDistanceToNow, subDays, startOfDay, format } from 'date-fns';
+import { SectionLoader } from '@/components/ui/unified-loader';
 import { 
   Search, 
   Filter, 
@@ -982,7 +983,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
               <CardContent className="pt-6">
                 {loading ? (
                   <div className="flex justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <SectionLoader />
                   </div>
                 ) : filteredFeedback.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">

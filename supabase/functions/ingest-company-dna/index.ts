@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
@@ -6,6 +5,36 @@ const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Simple text splitter function
+function splitText(text: string, chunkSize: number = 800, overlap: number = 200): string[] {
+    if (text.length <= chunkSize) return [text];
+
+    const chunks: string[] = [];
+    let start = 0;
+
+    while (start < text.length) {
+        let end = start + chunkSize;
+
+        // Try to break at a period or newline if possible within the last 100 chars of the chunk
+        if (end < text.length) {
+            const lastPeriod = text.lastIndexOf('.', end);
+            const lastNewline = text.lastIndexOf('\n', end);
+            const breakPoint = Math.max(lastPeriod, lastNewline);
+
+            if (breakPoint > start + chunkSize - 200) {
+                end = breakPoint + 1;
+            }
+        }
+
+        chunks.push(text.substring(start, end).trim());
+
+        // Move start for next chunk (minus overlap)
+        start = end - overlap;
+    }
+
+    return chunks;
+}
 
 serve(async (req) => {
     if (req.method === 'OPTIONS') {
@@ -39,98 +68,118 @@ serve(async (req) => {
             throw new Error(`Failed to fetch company: ${companyError?.message}`);
         }
 
-        // 2. Format Chunks for Embedding
-        // We break data into logical "facts" that the agent can retrieve independently.
+        // 2. Format Chunks for Embedding (Advanced)
         const chunks = [];
 
-        // Chunk A: Mission & Vision
+        // Chunk A: Identity (Mission + Vision)
         if (company.mission || company.vision) {
+            const identityText = `Company Identity for ${company.name}.\nMission: ${company.mission || 'N/A'}\nVision: ${company.vision || 'N/A'}`;
             chunks.push({
-                content: `Company Mission for ${company.name}: ${company.mission || ''}. Vision: ${company.vision || ''}`,
-                metadata: { type: 'mission_vision', source: 'company_profile' }
+                content: identityText,
+                metadata: { type: 'identity', source: 'company_profile', company_name: company.name }
             });
         }
 
-        // Chunk B: Values
+        // Chunk B: Core Values
         if (company.values) {
-            // Assuming values is JSON array or object
-            const valuesText = JSON.stringify(company.values);
-            chunks.push({
-                content: `Core Values at ${company.name}: ${valuesText}`,
-                metadata: { type: 'core_values', source: 'company_profile' }
+            const valuesStr = Array.isArray(company.values)
+                ? company.values.map((v: any) => `${v.title || v}: ${v.description || ''}`).join('\n')
+                : JSON.stringify(company.values);
+
+            const valueChunks = splitText(`Core Values of ${company.name}:\n${valuesStr}`, 1000, 200);
+            valueChunks.forEach((txt, idx) => {
+                chunks.push({
+                    content: txt,
+                    metadata: { type: 'core_values', source: 'company_profile', chunk_index: idx }
+                });
             });
         }
 
         // Chunk C: Tech Stack
         if (company.tech_stack) {
-            const techText = JSON.stringify(company.tech_stack);
+            const techStr = Array.isArray(company.tech_stack) ? company.tech_stack.join(', ') : JSON.stringify(company.tech_stack);
             chunks.push({
-                content: `Technology Stack used at ${company.name}: ${techText}`,
+                content: `Technology Stack used at ${company.name}: ${techStr}`,
                 metadata: { type: 'tech_stack', source: 'company_profile' }
             });
         }
 
-        // Chunk D: Culture & Benefits
-        if (company.culture_highlights || company.benefits) {
-            const cultureText = `Culture: ${JSON.stringify(company.culture_highlights)}. Benefits: ${JSON.stringify(company.benefits)}`;
-            chunks.push({
-                content: `Work Culture and Benefits at ${company.name}: ${cultureText}`,
-                metadata: { type: 'culture_benefits', source: 'company_profile' }
+        // Chunk D: Culture
+        if (company.culture_highlights) {
+            const cultureStr = Array.isArray(company.culture_highlights) ? company.culture_highlights.join('\n') : String(company.culture_highlights);
+            const cultureChunks = splitText(`Work Culture at ${company.name}:\n${cultureStr}`, 800, 200);
+
+            cultureChunks.forEach((txt, idx) => {
+                chunks.push({
+                    content: txt,
+                    metadata: { type: 'culture', source: 'company_profile', chunk_index: idx }
+                });
+            });
+        }
+
+        // Chunk E: Benefits
+        if (company.benefits) {
+            const benefitsStr = Array.isArray(company.benefits) ? company.benefits.join('\n') : String(company.benefits);
+            const benefitChunks = splitText(`Employee Benefits at ${company.name}:\n${benefitsStr}`, 800, 200);
+
+            benefitChunks.forEach((txt, idx) => {
+                chunks.push({
+                    content: txt,
+                    metadata: { type: 'benefits', source: 'company_profile', chunk_index: idx }
+                });
             });
         }
 
         console.log(`[ingest-company-dna] Generated ${chunks.length} chunks for ${company.name}`);
 
-        // 3. Generate Embeddings & Upsert
-        const results = [];
+        // 3. Delete old embeddings to avoid staleness
+        await supabase
+            .from('intelligence_embeddings')
+            .delete()
+            .eq('entity_id', company_id)
+            .eq('entity_type', 'company_dna');
 
-        for (const chunk of chunks) {
-            // Generate Embedding via Lovable/OpenAI
-            const embeddingResp = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${lovableApiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: 'text-embedding-3-small',
-                    input: chunk.content,
-                    encoding_format: 'float'
-                })
-            });
+        const results: Array<{ content: string; status: string; error?: string }> = [];
 
-            if (!embeddingResp.ok) {
-                console.error(`Failed to embed chunk: ${chunk.metadata.type}`, await embeddingResp.text());
-                continue;
-            }
+        // 4. Process in batches
+        for (let i = 0; i < chunks.length; i += 5) {
+            const batch = chunks.slice(i, i + 5);
+            await Promise.all(batch.map(async (chunk) => {
+                try {
+                    const embeddingResp = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${lovableApiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: 'text-embedding-3-small',
+                            input: chunk.content,
+                            encoding_format: 'float'
+                        })
+                    });
 
-            const embeddingData = await embeddingResp.json();
-            const embedding = embeddingData.data[0].embedding;
+                    if (!embeddingResp.ok) throw new Error(await embeddingResp.text());
 
-            // Upsert into intelligence_embeddings
-            // Note: We assume 'embedding' column exists even if types.ts missed it
-            const { error: upsertError } = await supabase
-                .from('intelligence_embeddings')
-                .upsert({
-                    entity_id: company_id,
-                    entity_type: 'company_dna', // grouping type
-                    content: chunk.content,
-                    metadata: chunk.metadata,
-                    embedding: embedding // explicit untyped insert
-                }, { onConflict: 'entity_id, entity_type, content' }) // simplified conflict handling logic
-            // Real implementation might need a unique ID or better conflict strategy
-            // For now, we'll rely on the DB generating a new ID if we don't provide one, 
-            // but to avoid duplicates we might need to delete old 'company_dna' for this ID first?
-            // Let's keep it simple: insert new records. 
-            // Better: Delete old 'company_dna' records for this company first to ensure freshness.
+                    const embeddingData = await embeddingResp.json();
 
-            results.push({ type: chunk.metadata.type, status: upsertError ? 'error' : 'success' });
+                    const { error } = await supabase
+                        .from('intelligence_embeddings')
+                        .insert({
+                            entity_id: company_id,
+                            entity_type: 'company_dna',
+                            content: chunk.content,
+                            metadata: chunk.metadata,
+                            embedding: embeddingData.data[0].embedding
+                        });
+
+                    results.push({ content: chunk.content.substring(0, 50), status: error ? 'error' : 'success' });
+                } catch (e: any) {
+                    console.error("Embedding error", e);
+                    results.push({ content: chunk.content.substring(0, 50), status: 'error', error: e.message });
+                }
+            }));
         }
-
-        // Clean up old embeddings?? 
-        // Ideally we should delete *before* inserting new ones to avoid staleness, 
-        // but we need to be careful not to delete history if we want that.
-        // For "Current Context" (DNA), we usually want the latest version.
 
         return new Response(
             JSON.stringify({ success: true, processed: results }),

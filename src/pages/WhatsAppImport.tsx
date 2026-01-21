@@ -9,14 +9,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { Upload, FileText, Users, Calendar, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { Upload, FileText, Users, Calendar, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { SectionLoader, InlineLoader } from "@/components/ui/unified-loader";
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 
 export default function WhatsAppImport() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -43,7 +44,7 @@ export default function WhatsAppImport() {
     reader.onload = (event) => {
       const content = event.target?.result as string;
       const lines = content.split('\n').slice(0, 10);
-      
+
       // Parse a few messages for preview
       const messages: any[] = [];
       for (const line of lines) {
@@ -304,7 +305,7 @@ export default function WhatsAppImport() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <SectionLoader />
                   <div className="flex-1">
                     <p className="font-medium">Analyzing messages</p>
                     <p className="text-sm text-muted-foreground">

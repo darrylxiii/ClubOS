@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionLoader } from "@/components/ui/unified-loader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -100,6 +101,10 @@ export default function ConnectsStorePage() {
     setPurchasingPackage(packageId);
     purchaseMutation.mutate(packageId);
   };
+
+  if (profileLoading) {
+    return <SectionLoader text="Loading Store..." className="min-h-[60vh]" />;
+  }
 
   return (
     <div className="container max-w-6xl py-8 space-y-8">

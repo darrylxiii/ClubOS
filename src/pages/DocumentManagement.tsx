@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Upload, FileText, Download, Trash2, Star, Eye, 
-  Loader2, CheckCircle, XCircle, File, AlertTriangle
+import {
+  Upload, FileText, Download, Trash2, Star, Eye,
+  CheckCircle, XCircle, File, AlertTriangle
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InlineLoader, SectionLoader } from "@/components/ui/unified-loader";
 import { logger } from "@/lib/logger";
 import {
   AlertDialog,
@@ -100,7 +101,7 @@ const DocumentManagement = () => {
       // Upload to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('resumes')
         .upload(fileName, file);
@@ -231,7 +232,7 @@ const DocumentManagement = () => {
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-8 space-y-6">
-        <Breadcrumb 
+        <Breadcrumb
           items={[
             { label: 'Home', path: '/home' },
             { label: 'Profile', path: '/profile' },
@@ -246,7 +247,7 @@ const DocumentManagement = () => {
               Upload and manage your resumes, CVs, and certificates
             </p>
           </div>
-          
+
           <div>
             <input
               ref={fileInputRef}
@@ -262,7 +263,7 @@ const DocumentManagement = () => {
             >
               {uploading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <InlineLoader />
                   Uploading...
                 </>
               ) : (
@@ -278,7 +279,7 @@ const DocumentManagement = () => {
         <Alert>
           <CheckCircle className="h-4 w-4" />
           <AlertDescription>
-            Accepted formats: PDF, DOC, DOCX, TXT • Maximum file size: 10MB • 
+            Accepted formats: PDF, DOC, DOCX, TXT • Maximum file size: 10MB •
             Your primary document will be used for job applications.
           </AlertDescription>
         </Alert>
@@ -316,7 +317,7 @@ const DocumentManagement = () => {
                     </Badge>
                   </div>
                 )}
-                
+
                 <CardHeader>
                   <div className="flex items-start gap-4">
                     <div className="mt-1">{getFileIcon(doc.mime_type)}</div>

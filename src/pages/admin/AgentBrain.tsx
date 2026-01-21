@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Brain, Database, RefreshCw, Eye } from "lucide-react";
+import { Brain, Database, RefreshCw, Eye } from "lucide-react";
+import { SectionLoader, InlineLoader } from "@/components/ui/unified-loader";
 import { toast } from 'sonner';
 import {
     Table,
@@ -33,16 +34,26 @@ interface Embedding {
     created_at: string;
 }
 
+interface ThoughtProcess {
+    original_query: string;
+    optimized_query: string;
+    candidate_count: number;
+    final_count: number;
+    strategy: string;
+}
+
 /* Sub-component for Testing Retrieval */
 function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCompany: string | null, companyName?: string }) {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<any[]>([]);
+    const [thoughtProcess, setThoughtProcess] = useState<ThoughtProcess | null>(null);
     const [isSearching, setIsSearching] = useState(false);
 
     const handleSearch = async () => {
         if (!query.trim()) return;
         setIsSearching(true);
         setResults([]);
+        setThoughtProcess(null);
 
         try {
             const { data, error } = await supabase.functions.invoke("retrieve-context", {
@@ -51,6 +62,7 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
 
             if (error) throw error;
             setResults(data?.matches || []);
+            setThoughtProcess(data?.thought_process || null);
 
         } catch (err: any) {
             toast.error(`Search failed: ${err.message}`);
@@ -62,9 +74,9 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
     return (
         <Card className="h-full border-purple-100 flex flex-col">
             <CardHeader>
-                <CardTitle className="text-lg">Test Agent Recall</CardTitle>
+                <CardTitle className="text-lg">Test Agent Recall & Logic</CardTitle>
                 <CardDescription>
-                    Ask questions to see what the agent retrieves from the Universal Context.
+                    Test the RAG pipeline: Query Expansion → Hybrid Search → Reranking.
                     {companyName && <span className="block text-purple-600 font-medium mt-1">Focusing on: {companyName}</span>}
                 </CardDescription>
             </CardHeader>
@@ -77,11 +89,34 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     />
                     <Button onClick={handleSearch} disabled={isSearching || !query}>
-                        {isSearching ? <Loader2 className="animate-spin" /> : <Send className="h-4 w-4" />}
+                        {isSearching ? <InlineLoader /> : <Send className="h-4 w-4" />}
                     </Button>
                 </div>
 
                 <ScrollArea className="flex-1 bg-muted rounded-md border p-4">
+                    {thoughtProcess && (
+                        <div className="mb-4 p-3 bg-purple-50 border border-purple-100 rounded-lg text-xs space-y-2">
+                            <div className="font-semibold text-purple-800 flex items-center gap-2">
+                                <Brain className="h-3 w-3" /> Agent Thought Process
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <span className="text-muted-foreground">Strategy:</span> {thoughtProcess.strategy}
+                                </div>
+                                <div>
+                                    <span className="text-muted-foreground">Original:</span> "{thoughtProcess.original_query}"
+                                </div>
+                                <div className="col-span-2">
+                                    <span className="text-muted-foreground">Optimized Query:</span>
+                                    <span className="font-mono text-purple-700 ml-1">"{thoughtProcess.optimized_query}"</span>
+                                </div>
+                                <div>
+                                    <span className="text-muted-foreground">Candidates:</span> {thoughtProcess.candidate_count} → {thoughtProcess.final_count}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {results.length === 0 ? (
                         <div className="text-center text-muted-foreground mt-10">
                             {isSearching ? "Thinking..." : "Results will appear here"}
@@ -208,7 +243,7 @@ export default function AgentBrain() {
                     </CardHeader>
                     <CardContent className="flex-1 overflow-auto">
                         {isLoading ? (
-                            <div className="flex justify-center p-4"><Loader2 className="animate-spin text-purple-500" /></div>
+                            <SectionLoader text="Loading Companies..." className="min-h-[100px]" />
                         ) : (
                             <div className="space-y-2">
                                 {companies.map((c) => (
@@ -244,7 +279,7 @@ export default function AgentBrain() {
                                     size="sm"
                                 >
                                     {isIngesting ? (
-                                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Ingesting DNA...</>
+                                        <InlineLoader text="Ingesting DNA..." />
                                     ) : (
                                         <><RefreshCw className="mr-2 h-4 w-4" /> Re-Ingest Context</>
                                     )}

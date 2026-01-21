@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGate } from "@/components/RoleGate";
 import { useRole } from "@/contexts/RoleContext";
-import { Loader2 } from "lucide-react";
+import { SectionLoader } from "@/components/ui/unified-loader";
 import { usePartnerInvoices } from "@/hooks/useFinancialData";
 import { BillingDetailsForm } from "@/components/financial/BillingDetailsForm";
 import { PartnerInvoicesView } from "@/components/financial/PartnerInvoicesView";
@@ -56,7 +56,7 @@ export default function PartnerBilling() {
                 <CardContent>
                   {isLoading ? (
                     <div className="flex items-center justify-center p-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      <SectionLoader />
                     </div>
                   ) : (
                     <PartnerInvoicesView invoices={invoices || []} />

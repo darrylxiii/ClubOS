@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Download, Filter, Users, Grid3x3, Table as TableIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 import { adminCandidateService } from "@/services/adminCandidateService";
 import { UnifiedCandidateCard } from "@/components/admin/UnifiedCandidateCard";
 import { CandidatesTable } from "@/components/admin/CandidatesTable";
@@ -16,7 +17,7 @@ import { BulkActionsToolbar } from "@/components/admin/BulkActionsToolbar";
 import { MergeStatusDashboard } from "@/components/admin/MergeStatusDashboard";
 import { ActivitySettingsDialog, getActivityThresholds, ActivityThresholds } from "@/components/admin/ActivitySettingsDialog";
 import { ArchivedCandidatesView } from "@/components/admin/ArchivedCandidatesView";
-import { toast } from "sonner";
+import { SectionLoader } from "@/components/ui/unified-loader";
 
 export default function AdminCandidates() {
   const [candidates, setCandidates] = useState<any[]>([]);
@@ -288,7 +289,7 @@ export default function AdminCandidates() {
           <ArchivedCandidatesView />
         ) : loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <SectionLoader />
           </div>
         ) : (
           <>

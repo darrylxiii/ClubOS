@@ -6,11 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  ArrowLeft, Globe, Linkedin, Twitter, Instagram, 
-  Settings, Eye, Share2, Image as ImageIcon, Building2, 
+import {
+  ArrowLeft, Globe, Linkedin, Twitter, Instagram,
+  Settings, Eye, Share2, Image as ImageIcon, Building2,
   MapPin, Users, Calendar, Briefcase, Heart, Star, Mail, Sparkles, Target, Newspaper, Brain, BarChart3, Wallet
 } from "lucide-react";
+import { SectionLoader } from "@/components/ui/unified-loader";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,6 +34,9 @@ import { NewsArticleCard } from "@/components/company/NewsArticleCard";
 import { AddNewsArticleDialog } from "@/components/company/AddNewsArticleDialog";
 import { CompanyIntelligenceSummary } from "@/components/intelligence/CompanyIntelligenceSummary";
 import { CompanyMLInsights } from "@/components/intelligence/CompanyMLInsights";
+import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledgeProfile";
+
+
 import { CompanyFinancialsTab } from "@/components/companies/CompanyFinancialsTab";
 
 interface Company {
@@ -88,7 +92,7 @@ export default function CompanyPage() {
 
   const isAdmin = currentRole === 'admin';
   const isPartner = currentRole === 'partner';
-  
+
   // Show targets tab only to admins or company members (partners/recruiters)
   const canAccessTargets = isAdmin || isCompanyMember;
 
@@ -138,7 +142,7 @@ export default function CompanyPage() {
         .maybeSingle();
 
       if (error) throw error;
-      
+
       if (data) {
         setCompany({
           ...data,
@@ -175,7 +179,7 @@ export default function CompanyPage() {
 
   const loadNewsArticles = async () => {
     if (!company) return;
-    
+
     setNewsLoading(true);
     try {
       const { data, error } = await supabase
@@ -201,7 +205,7 @@ export default function CompanyPage() {
     try {
       // Build queries based on user role - admins and company members see all jobs including drafts
       const isInternalUser = isAdmin || isCompanyMember;
-      
+
       const [followersRes, jobsRes, jobsDataRes, targetsRes] = await Promise.all([
         supabase.from("company_followers").select("id", { count: 'exact', head: true }).eq("company_id", company.id),
         isInternalUser
@@ -312,7 +316,7 @@ export default function CompanyPage() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-[100dvh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <SectionLoader />
         </div>
       </AppLayout>
     );
@@ -397,7 +401,7 @@ export default function CompanyPage() {
           {/* Avatar positioned to overlap header and content */}
           <div className="absolute top-64 left-6 transform -translate-y-1/2 z-10">
             <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
-              <AvatarImage 
+              <AvatarImage
                 src={company.logo_url || undefined}
                 className="object-contain w-full h-full"
                 alt={company.name}
@@ -632,6 +636,25 @@ export default function CompanyPage() {
                 </CardContent>
               </Card>
             )}
+            {/* Brand Voice & Knowledge */}
+            {(isAdmin || isCompanyMember) && (
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-bold">Brand Voice & Knowledge</h2>
+                      <p className="text-muted-foreground text-sm">Configure how the AI represents this company.</p>
+                    </div>
+                  </div>
+                  <EntityKnowledgeProfile 
+                    entityId={company.id} 
+                    entityType="company"
+                    title="Brand Brain Configuration"
+                    description="Instructions and knowledge sources for the RAG engine."
+                  />
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="jobs" className="space-y-6 mt-6">
@@ -656,7 +679,7 @@ export default function CompanyPage() {
               <Card>
                 <CardContent className="p-6">
                   <p className="text-muted-foreground text-center py-12">
-                    {(isAdmin || isCompanyMember) 
+                    {(isAdmin || isCompanyMember)
                       ? "No jobs posted yet. Create your first job to start hiring!"
                       : "No open positions at the moment. Check back soon!"}
                   </p>
@@ -679,7 +702,7 @@ export default function CompanyPage() {
                         Draft
                       </Badge>
                     )}
-                    <JobCard 
+                    <JobCard
                       id={job.id}
                       title={job.title}
                       company={company.name}
@@ -689,7 +712,7 @@ export default function CompanyPage() {
                       type={job.employment_type || "Full-time"}
                       postedDate={new Date(job.created_at).toLocaleDateString()}
                       tags={[]}
-                      salary={job.salary_min && job.salary_max 
+                      salary={job.salary_min && job.salary_max
                         ? `${job.currency} ${job.salary_min.toLocaleString()} - ${job.salary_max.toLocaleString()}`
                         : undefined}
                       onApply={() => {
@@ -864,7 +887,7 @@ export default function CompanyPage() {
               setEditDialogOpen(false);
             }}
           />
-          
+
           {/* Create Job Dialog */}
           <CreateJobDialog
             open={createJobDialogOpen}

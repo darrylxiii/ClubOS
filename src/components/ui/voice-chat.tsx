@@ -121,7 +121,7 @@ export function VoiceChat({
         onClick={() => !isExpanded && setIsExpanded(true)}
         className={cn(
           "relative bg-eclipse shadow-xl shadow-black/10 border border-border/30 overflow-hidden",
-          "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          "transition-all duration-500",
           !isExpanded && "cursor-pointer hover:shadow-2xl hover:shadow-black/15",
           className
         )}
@@ -129,6 +129,7 @@ export function VoiceChat({
           width: isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH,
           height: isExpanded ? EXPANDED_HEIGHT : 60,
           borderRadius: isExpanded ? 24 : 999,
+          transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)',
         }}
       >
         {/* Audio Wave Icon */}
@@ -184,11 +185,12 @@ export function VoiceChat({
           return (
             <div
               key={participant.id}
-              className="absolute transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              className="absolute transition-all duration-500"
               style={{
                 transform: `translate(${pos.x}px, ${pos.y}px) scale(${pos.scale})`,
                 opacity: pos.opacity,
                 transitionDelay: `${delay}ms`,
+                transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)',
               }}
             >
               <div className="flex flex-col items-center">

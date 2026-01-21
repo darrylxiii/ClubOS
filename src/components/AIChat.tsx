@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { InlineLoader } from "@/components/ui/unified-loader";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -28,9 +29,9 @@ export const AIChat = () => {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
+
       const { data, error } = await supabase.functions.invoke("chat-ollama", {
-        body: { 
+        body: {
           messages: [...messages, userMessage],
           model: "llama2"
         },
@@ -84,9 +85,8 @@ export const AIChat = () => {
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex gap-3 ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"
+                }`}
             >
               {message.role === "assistant" && (
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -94,11 +94,10 @@ export const AIChat = () => {
                 </div>
               )}
               <div
-                className={`rounded-lg px-4 py-2 max-w-[80%] ${
-                  message.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted"
-                }`}
+                className={`rounded-lg px-4 py-2 max-w-[80%] ${message.role === "user"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted"
+                  }`}
               >
                 {message.content}
               </div>
@@ -114,12 +113,8 @@ export const AIChat = () => {
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Bot className="w-4 h-4 text-primary animate-pulse" />
               </div>
-              <div className="rounded-lg px-4 py-2 bg-muted">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce delay-100" />
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce delay-200" />
-                </div>
+              <div className="rounded-lg px-4 py-2 bg-muted flex items-center">
+                <InlineLoader text="Thinking..." />
               </div>
             </div>
           )}
@@ -142,7 +137,7 @@ export const AIChat = () => {
             className="flex-1"
           />
           <Button type="submit" disabled={isLoading || !input.trim()}>
-            <Send className="w-4 h-4" />
+            {isLoading ? <InlineLoader /> : <Send className="w-4 h-4" />}
           </Button>
         </form>
       </div>

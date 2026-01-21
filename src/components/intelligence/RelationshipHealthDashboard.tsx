@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useRelationshipHealth, RiskFilter } from '@/hooks/useRelationshipHealth';
+import { useRelationshipHealth, RiskFilter, RelationshipHealthItem } from '@/hooks/useRelationshipHealth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,9 +28,7 @@ import {
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Database } from '@/integrations/supabase/types';
-
-type RelationshipScoreRow = Database['public']['Tables']['communication_relationship_scores']['Row'];
+// Database import removed as we use the interface from hook now
 
 const riskColors: Record<string, string> = {
   low: 'bg-green-500/10 text-green-600 border-green-200',
@@ -55,6 +53,9 @@ const entityIcons = {
   candidate: User,
   company: Building2,
   prospect: Users,
+  internal: User,
+  partner: Users,
+  stakeholder: Users
 };
 
 export function RelationshipHealthDashboard() {
@@ -64,18 +65,18 @@ export function RelationshipHealthDashboard() {
   const entityTypeFilter = entityFilter === 'all' ? undefined : entityFilter;
   const { relationships, loading, stats, refetch, recalculateScore } = useRelationshipHealth(entityTypeFilter, riskFilter);
 
-  const criticalRelationships = relationships.filter(r => 
+  const criticalRelationships = relationships.filter(r =>
     r.risk_level === 'critical' || r.risk_level === 'high'
   );
 
   // Calculate derived stats
-  const avgHealthScore = relationships.length > 0 
+  const avgHealthScore = relationships.length > 0
     ? Math.round(relationships.reduce((sum, r) => sum + (r.health_score || 0), 0) / relationships.length)
     : 0;
 
   const decliningCount = relationships.filter(r => r.sentiment_trend === 'declining').length;
 
-  const RelationshipCard = ({ relationship }: { relationship: RelationshipScoreRow }) => {
+  const RelationshipCard = ({ relationship }: { relationship: RelationshipHealthItem }) => {
     const TrendIcon = trendIcons[relationship.sentiment_trend as keyof typeof trendIcons] || Minus;
     const EntityIcon = entityIcons[relationship.entity_type as keyof typeof entityIcons] || User;
 
@@ -84,21 +85,30 @@ export function RelationshipHealthDashboard() {
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <Avatar className="h-10 w-10">
-              <AvatarFallback className="bg-primary/10">
-                <EntityIcon className="h-5 w-5 text-primary" />
-              </AvatarFallback>
+              {relationship.entity_avatar ? (
+                <img src={relationship.entity_avatar} alt={relationship.entity_name} className="h-full w-full object-cover" />
+              ) : (
+                <AvatarFallback className="bg-primary/10">
+                  <EntityIcon className="h-5 w-5 text-primary" />
+                </AvatarFallback>
+              )}
             </Avatar>
-            
+
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-medium capitalize">{relationship.entity_type}</span>
+                <span className="font-medium truncate" title={relationship.entity_name || relationship.entity_id}>
+                  {relationship.entity_name || 'Unknown'}
+                  {relationship.entity_email && <span className="ml-1 text-muted-foreground font-normal text-xs">({relationship.entity_email})</span>}
+                </span>
                 <Badge variant="outline" className={cn("text-xs", riskColors[relationship.risk_level || 'low'])}>
                   {relationship.risk_level}
                 </Badge>
                 <TrendIcon className={cn("h-4 w-4 ml-auto", trendColors[relationship.sentiment_trend || 'stable'])} />
               </div>
-              
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+
+              <p className="text-xs text-muted-foreground capitalize">{relationship.entity_type}</p>
+
+              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   {relationship.days_since_contact ?? 0} days ago
@@ -216,6 +226,9 @@ export function RelationshipHealthDashboard() {
                   <SelectItem value="candidate">Candidates</SelectItem>
                   <SelectItem value="company">Companies</SelectItem>
                   <SelectItem value="prospect">Prospects</SelectItem>
+                  <SelectItem value="internal">Internal</SelectItem>
+                  <SelectItem value="partner">Partners</SelectItem>
+                  <SelectItem value="stakeholder">Stakeholders</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={riskFilter} onValueChange={(v) => setRiskFilter(v as RiskFilter)}>

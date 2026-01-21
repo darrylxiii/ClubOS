@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface ConversationInsight {
+export interface ConversationInsight {
   summary: string;
   keyTopics: string[];
   sentiment: 'positive' | 'neutral' | 'negative';
@@ -191,13 +191,13 @@ export function WhatsAppAIInsights({
             <div className={cn(
               "p-3 rounded-lg text-center",
               insights.engagementLevel === 'high' ? 'bg-emerald-500/10' :
-              insights.engagementLevel === 'medium' ? 'bg-amber-500/10' : 'bg-red-500/10'
+                insights.engagementLevel === 'medium' ? 'bg-amber-500/10' : 'bg-red-500/10'
             )}>
               <div className="flex justify-center mb-1">
                 <MessageSquare className={cn(
                   "w-4 h-4",
                   insights.engagementLevel === 'high' ? 'text-emerald-500' :
-                  insights.engagementLevel === 'medium' ? 'text-amber-500' : 'text-red-500'
+                    insights.engagementLevel === 'medium' ? 'text-amber-500' : 'text-red-500'
                 )} />
               </div>
               <p className="text-xs font-medium capitalize">{insights.engagementLevel}</p>
@@ -281,7 +281,7 @@ export function WhatsAppAIInsights({
                       </ul>
                     </div>
                   )}
-                  
+
                   {insights.objections.length > 0 && (
                     <div>
                       <p className="text-xs font-medium text-amber-500 mb-1.5">
@@ -327,7 +327,7 @@ export function WhatsAppAIInsights({
                   className="space-y-2"
                 >
                   {insights.actionItems.map((item, i) => (
-                    <div 
+                    <div
                       key={i}
                       className={cn(
                         "flex items-start gap-2 p-2 rounded-lg border",

@@ -16,7 +16,7 @@ export function useUnifiedCommunications(entityType?: string, entityId?: string)
       let query = supabase
         .from('unified_communications')
         .select('*')
-        .order('occurred_at', { ascending: false });
+        .order('original_timestamp', { ascending: false });
 
       if (entityType && entityId) {
         query = query
@@ -62,7 +62,7 @@ export function useUnifiedCommunications(entityType?: string, entityId?: string)
         .select('*')
         .eq('entity_type', type as UnifiedCommunicationRow['entity_type'])
         .eq('entity_id', id)
-        .order('occurred_at', { ascending: false });
+        .order('original_timestamp', { ascending: false });
 
       if (error) throw error;
       return data || [];
@@ -78,7 +78,7 @@ export function useUnifiedCommunications(entityType?: string, entityId?: string)
         .from('unified_communications')
         .select('*')
         .not('key_moment_type', 'is', null)
-        .order('occurred_at', { ascending: false });
+        .order('original_timestamp', { ascending: false });
 
       if (type && id) {
         query = query
