@@ -95,19 +95,19 @@ export default function CreateContractPage() {
       // Create the contract
       const { data: contract, error: contractError } = await supabase
         .from('project_contracts')
-        .insert([{
+        .insert({
           freelancer_id: selectedFreelancer,
           client_id: user?.id,
           company_id: profile.company_id,
-          project_title: projectTitle || 'Untitled Contract',
-          project_description: projectDescription,
-          estimated_total: parseFloat(totalBudget) || 0,
+          contract_type: contractType,
+          total_budget: parseFloat(totalBudget) || 0,
           start_date: startDate || null,
           end_date: endDate || null,
-          status: 'pending_signature',
-          contract_terms: contractType, // Store contract type in terms for now
+          contract_status: 'pending_signature',
+          escrow_status: 'pending',
+          contract_terms: projectDescription,
           version: 1
-        }])
+        })
         .select()
         .single();
 
