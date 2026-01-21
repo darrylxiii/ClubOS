@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHistoricalTrends } from "@/hooks/useTeamAnalytics";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { DynamicChart } from "@/components/charts/DynamicChart";
 import { TrendingUp, Loader2 } from "lucide-react";
 
 interface HistoricalTrendsChartProps {
@@ -41,67 +41,26 @@ export function HistoricalTrendsChart({ userId, months = 6 }: HistoricalTrendsCh
             No historical data available
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={trends}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
-              <XAxis 
-                dataKey="month" 
-                tick={{ fontSize: 12 }}
-                className="text-muted-foreground"
-              />
-              <YAxis 
-                yAxisId="left"
-                tick={{ fontSize: 12 }}
-                className="text-muted-foreground"
-              />
-              <YAxis 
-                yAxisId="right"
-                orientation="right"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
-                className="text-muted-foreground"
-              />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-                formatter={(value: number, name: string) => {
-                  if (name === 'revenue') return [`€${value.toLocaleString()}`, 'Revenue'];
-                  return [value, name === 'candidates_sourced' ? 'Candidates Sourced' : 'Placements'];
-                }}
-              />
-              <Legend />
-              <Line
-                yAxisId="left"
-                type="monotone"
-                dataKey="candidates_sourced"
-                name="Candidates Sourced"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2}
-                dot={{ fill: 'hsl(var(--primary))' }}
-              />
-              <Line
-                yAxisId="left"
-                type="monotone"
-                dataKey="placements"
-                name="Placements"
-                stroke="#22c55e"
-                strokeWidth={2}
-                dot={{ fill: '#22c55e' }}
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="revenue"
-                name="Revenue"
-                stroke="#f59e0b"
-                strokeWidth={2}
-                dot={{ fill: '#f59e0b' }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <DynamicChart
+            type="line"
+            data={trends}
+            height={300}
+            config={{
+              xAxisKey: 'month',
+              lines: [
+                { dataKey: 'candidates_sourced', stroke: 'hsl(var(--primary))', name: 'Candidates Sourced' },
+                { dataKey: 'placements', stroke: '#22c55e', name: 'Placements' },
+                { dataKey: 'revenue', stroke: '#f59e0b', name: 'Revenue', yAxisId: 'right' },
+              ],
+              legend: true,
+              tooltip: {
+                formatter: (value: number, name: string) => {
+                  if (name === 'Revenue') return [`€${value.toLocaleString()}`, 'Revenue'];
+                  return [value, name];
+                },
+              },
+            }}
+          />
         )}
       </CardContent>
     </Card>

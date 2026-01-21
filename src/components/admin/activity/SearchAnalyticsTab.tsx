@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, TrendingUp, AlertCircle, Clock } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { DynamicChart } from "@/components/charts/DynamicChart";
 
 export default function SearchAnalyticsTab() {
   const { data: searchData } = useQuery({
@@ -120,15 +120,15 @@ export default function SearchAnalyticsTab() {
           <CardDescription>Most frequently searched terms</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={searchData?.topQueries?.slice(0, 10) || []}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="query" angle={-45} textAnchor="end" height={100} />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="hsl(var(--primary))" name="Searches" />
-            </BarChart>
-          </ResponsiveContainer>
+          <DynamicChart
+            type="bar"
+            data={searchData?.topQueries?.slice(0, 10) || []}
+            height={300}
+            config={{
+              xAxisKey: 'query',
+              bars: [{ dataKey: 'count', fill: 'hsl(var(--primary))', name: 'Searches' }],
+            }}
+          />
         </CardContent>
       </Card>
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { TrendingUp } from 'lucide-react';
 
 interface TrajectoryDataPoint {
@@ -71,26 +71,6 @@ export function RelationshipTrajectoryChart({
     return points;
   }, [data, currentHealth, trajectory]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const isPredicted = payload[0].payload.predicted;
-      return (
-        <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg">
-          <p className="text-sm font-medium mb-1">
-            {label} {isPredicted && <span className="text-muted-foreground">(Predicted)</span>}
-          </p>
-          <p className="text-sm text-green-400">
-            Health: {Math.round(payload[0].value)}%
-          </p>
-          <p className="text-sm text-blue-400">
-            Engagement: {Math.round(payload[1].value)}%
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
       <CardHeader className="pb-2">
@@ -101,48 +81,19 @@ export function RelationshipTrajectoryChart({
       </CardHeader>
       <CardContent>
         <div className="h-[200px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="healthGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="engagementGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
-                tickLine={false}
-              />
-              <YAxis 
-                domain={[0, 100]}
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
-                tickLine={false}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Area
-                type="monotone"
-                dataKey="health_score"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2}
-                fill="url(#healthGradient)"
-              />
-              <Area
-                type="monotone"
-                dataKey="engagement"
-                stroke="hsl(142, 76%, 36%)"
-                strokeWidth={2}
-                fill="url(#engagementGradient)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <DynamicChart
+            type="area"
+            data={chartData}
+            height={200}
+            config={{
+              xAxisKey: 'date',
+              areas: [
+                { dataKey: 'health_score', stroke: 'hsl(var(--primary))', fill: 'hsl(var(--primary))', fillOpacity: 0.3, name: 'Health Score' },
+                { dataKey: 'engagement', stroke: 'hsl(142, 76%, 36%)', fill: 'hsl(142, 76%, 36%)', fillOpacity: 0.3, name: 'Engagement' },
+              ],
+              yAxisDomain: [0, 100],
+            }}
+          />
         </div>
         <div className="flex items-center justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
