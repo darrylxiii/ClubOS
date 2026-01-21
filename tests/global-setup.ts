@@ -34,7 +34,7 @@ async function globalSetup(config: FullConfig) {
       
       await context.close();
       console.log(`✓ Created auth state for ${role}`);
-    } catch (error) {
+    } catch {
       console.log(`⚠ Could not create auth state for ${role} - tests will use unauthenticated flow`);
     }
   }

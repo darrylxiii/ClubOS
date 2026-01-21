@@ -5,6 +5,14 @@ import { test, expect } from '@playwright/test';
  * Measures response times and performance metrics for API endpoints
  */
 
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
 test.describe('API Performance', () => {
   const SUPABASE_URL = 'https://dpjucecmoyfzrduhlctt.supabase.co';
   const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwanVjZWNtb3lmenJkdWhsY3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0Mjc2MTAsImV4cCI6MjA3NTAwMzYxMH0.hdX709NlaXPUE4ohWtd3LBuAOqPKCBhVep694LC6tRw';
@@ -49,7 +57,7 @@ test.describe('API Performance', () => {
             'Content-Type': 'application/json',
           },
         });
-      } catch (error) {
+      } catch {
         // Network errors acceptable in test environment
       }
       
@@ -67,7 +75,7 @@ test.describe('API Performance', () => {
             'Content-Type': 'application/json',
           },
         });
-      } catch (error) {
+      } catch {
         // Network errors acceptable
       }
       
@@ -218,8 +226,9 @@ test.describe('API Performance', () => {
         await page.waitForLoadState('networkidle');
         
         const metrics = await page.evaluate(() => {
-          if ((performance as any).memory) {
-            return (performance as any).memory.usedJSHeapSize;
+          const perf = performance as PerformanceWithMemory;
+          if (perf.memory) {
+            return perf.memory.usedJSHeapSize;
           }
           return 0;
         });

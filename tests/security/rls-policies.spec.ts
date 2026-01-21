@@ -67,7 +67,7 @@ test.describe('RLS Policy Verification', () => {
             // RLS should filter to empty for unauthenticated requests
             expect(Array.isArray(data) ? data.length : 0).toBe(0);
           }
-        } catch (error) {
+        } catch {
           // Network errors are acceptable in test environment
         }
       }
