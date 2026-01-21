@@ -4,12 +4,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { 
-  invokeEdgeFunction, 
-  expectStatus, 
-  measureResponseTime,
-  testRateLimit 
-} from './edge-function-client';
+import { invokeEdgeFunction, measureResponseTime } from './edge-function-client';
 
 test.describe('Public Edge Functions', () => {
   test.describe('validate-invite-code', () => {

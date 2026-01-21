@@ -1,5 +1,18 @@
 import { test, expect } from '@playwright/test';
 
+interface BundleMetric {
+  url: string;
+  size: string | undefined;
+}
+
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
 test.describe('Performance Tests', () => {
   test('should load home page within 3 seconds', async ({ page }) => {
     const startTime = Date.now();
@@ -21,7 +34,7 @@ test.describe('Performance Tests', () => {
       return new Promise((resolve) => {
         new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          const lastEntry = entries[entries.length - 1];
+          const lastEntry = entries[entries.length - 1] as PerformanceEntry & { renderTime?: number; loadTime?: number };
           resolve(lastEntry.renderTime || lastEntry.loadTime);
         }).observe({ entryTypes: ['largest-contentful-paint'] });
         
@@ -36,7 +49,7 @@ test.describe('Performance Tests', () => {
   });
 
   test('should not have excessive JavaScript bundle size', async ({ page }) => {
-    const metrics: any = [];
+    const metrics: BundleMetric[] = [];
     
     page.on('response', response => {
       if (response.url().includes('.js') && response.status() === 200) {
@@ -51,7 +64,7 @@ test.describe('Performance Tests', () => {
     await page.waitForLoadState('networkidle');
 
     // Total JS should ideally be under 500KB
-    const totalSize = metrics.reduce((sum: number, m: any) => {
+    const totalSize = metrics.reduce((sum: number, m: BundleMetric) => {
       const size = parseInt(m.size || '0', 10);
       return sum + size;
     }, 0);
@@ -66,9 +79,6 @@ test.describe('Performance Tests', () => {
 
   test('should render content progressively', async ({ page }) => {
     await page.goto('/jobs');
-    
-    // Check that skeleton/loading states appear first
-    const loadingState = page.locator('[data-loading="true"]');
     
     // Wait a bit for initial render
     await page.waitForTimeout(100);
@@ -160,8 +170,9 @@ test.describe('Performance Tests', () => {
     
     // Check JS heap size (basic check)
     const metrics = await page.evaluate(() => {
-      if ('memory' in performance) {
-        return (performance as any).memory.usedJSHeapSize;
+      const perf = performance as PerformanceWithMemory;
+      if (perf.memory) {
+        return perf.memory.usedJSHeapSize;
       }
       return 0;
     });

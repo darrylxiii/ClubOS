@@ -27,4 +27,12 @@ export default tseslint.config(
       "@typescript-eslint/explicit-function-return-type": "off", // Enable in Phase 2
     },
   },
+  // Relaxed rules for test files
+  {
+    files: ["tests/**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
 );

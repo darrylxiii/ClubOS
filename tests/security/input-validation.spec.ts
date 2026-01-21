@@ -5,6 +5,10 @@ import { test, expect } from '@playwright/test';
  * Tests for XSS, SQL Injection, and other input-based attacks
  */
 
+interface WindowWithXSS extends Window {
+  __xssTriggered?: boolean;
+}
+
 test.describe('Input Validation Security', () => {
   test.describe('XSS Prevention', () => {
     const xssPayloads = [
@@ -64,7 +68,7 @@ test.describe('Input Validation Security', () => {
       
       // The page should load without executing the script
       const dialogTriggered = await page.evaluate(() => {
-        return (window as any).__xssTriggered === true;
+        return (window as unknown as WindowWithXSS).__xssTriggered === true;
       });
       
       expect(dialogTriggered).toBeFalsy();
@@ -96,10 +100,6 @@ test.describe('Input Validation Security', () => {
         
         await submitButton.click();
         await page.waitForTimeout(1000);
-        
-        // Should show validation error, not crash
-        const hasError = await page.locator('[role="alert"], .error, [class*="error"]').count() > 0 ||
-                         await page.locator('text=/invalid|error/i').count() > 0;
         
         // Page should still be functional
         expect(await page.url()).toContain('/auth');
@@ -222,18 +222,10 @@ test.describe('Input Validation Security', () => {
       await page.goto('/auth');
       await page.waitForLoadState('networkidle');
 
-      // Check for CSRF token in form or meta tag
-      const csrfToken = await page.evaluate(() => {
-        const metaToken = document.querySelector('meta[name="csrf-token"]');
-        const inputToken = document.querySelector('input[name="_token"], input[name="csrf"]');
-        return metaToken || inputToken;
-      });
-
       // Modern SPAs may handle CSRF differently (via auth headers)
       // This test verifies the form doesn't have obvious vulnerabilities
       const form = page.locator('form').first();
       if (await form.isVisible()) {
-        const action = await form.getAttribute('action');
         // Forms should not use GET for sensitive data
         const method = await form.getAttribute('method');
         if (method) {
