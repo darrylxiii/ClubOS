@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Shield, AlertTriangle, AlertCircle, Info, CheckCircle } from 'lucide-react';
-import { LazyPieChart, Pie, Cell, Tooltip, ResponsiveContainer } from '@/components/charts/LazyCharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -79,10 +79,10 @@ export default function SecurityEventDashboard() {
   };
 
   const severityData = [
-    { name: 'Critical', value: stats.critical, color: SEVERITY_COLORS.critical },
-    { name: 'High', value: stats.high, color: SEVERITY_COLORS.high },
-    { name: 'Medium', value: stats.medium, color: SEVERITY_COLORS.medium },
-    { name: 'Low', value: stats.low, color: SEVERITY_COLORS.low },
+    { name: 'Critical', value: stats.critical },
+    { name: 'High', value: stats.high },
+    { name: 'Medium', value: stats.medium },
+    { name: 'Low', value: stats.low },
   ].filter(s => s.value > 0);
 
   if (loading) {
@@ -150,23 +150,25 @@ export default function SecurityEventDashboard() {
             </CardHeader>
             <CardContent>
               {severityData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={250}>
-                  <LazyPieChart>
-                    <Pie
-                      data={severityData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="value"
-                      label={({ name, value }) => `${name}: ${value}`}
-                    >
-                      {severityData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </LazyPieChart>
-                </ResponsiveContainer>
+                <DynamicChart
+                  type="pie"
+                  data={severityData}
+                  height={250}
+                  config={{
+                    pie: {
+                      dataKey: 'value',
+                      nameKey: 'name',
+                      outerRadius: 80,
+                      colors: [
+                        SEVERITY_COLORS.critical,
+                        SEVERITY_COLORS.high,
+                        SEVERITY_COLORS.medium,
+                        SEVERITY_COLORS.low,
+                      ],
+                    },
+                    showTooltip: true,
+                  }}
+                />
               ) : (
                 <div className="h-[250px] flex flex-col items-center justify-center text-center px-4">
                   <Shield className="h-12 w-12 text-muted-foreground/30 mb-3" />

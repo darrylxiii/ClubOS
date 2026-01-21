@@ -1,4 +1,4 @@
-import { LazyBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from '@/components/charts/LazyCharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { PipelineHealth } from "@/hooks/useAnalytics";
 
 interface PipelineHealthChartProps {
@@ -67,42 +67,17 @@ export function PipelineHealthChart({ data, isLoading }: PipelineHealthChartProp
       {/* Candidates by Stage */}
       <div>
         <h4 className="text-sm font-medium mb-4">Candidates by Pipeline Stage</h4>
-        <ResponsiveContainer width="100%" height={300}>
-          <LazyBarChart data={chartData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
-              type="number"
-              className="text-xs"
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
-            />
-            <YAxis 
-              dataKey="status" 
-              type="category"
-              className="text-xs"
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
-              width={100}
-            />
-            <Tooltip 
-              contentStyle={{
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-              formatter={(value: number, name: string, props: any) => [
-                `${value} candidates (${props.payload.avgDays}d avg)`,
-                'Count'
-              ]}
-            />
-            <Bar dataKey="count" name="Candidates">
-              {chartData.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={STATUS_COLORS[Object.keys(STATUS_LABELS).find(k => STATUS_LABELS[k] === entry.status) || 'applied']} 
-                />
-              ))}
-            </Bar>
-          </LazyBarChart>
-        </ResponsiveContainer>
+        <DynamicChart
+          type="bar"
+          data={chartData}
+          height={300}
+          config={{
+            bars: [{ dataKey: 'count', fill: 'hsl(var(--chart-1))', name: 'Candidates' }],
+            xAxisDataKey: 'status',
+            showGrid: true,
+            showTooltip: true,
+          }}
+        />
       </div>
 
       {/* Stage Duration Analysis */}
