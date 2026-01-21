@@ -1,6 +1,6 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { usePaymentAging } from '@/hooks/useMoneybirdFinancials';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 
 interface PaymentAgingChartProps {
   year?: number;
@@ -60,6 +60,8 @@ export function PaymentAgingChart({ year }: PaymentAgingChartProps) {
     );
   }
 
+  const colors = chartData.map(d => d.color);
+
   return (
     <Card>
       <CardHeader>
@@ -69,34 +71,26 @@ export function PaymentAgingChart({ year }: PaymentAgingChartProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={200}>
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={40}
-              outerRadius={70}
-              paddingAngle={2}
-              dataKey="value"
-            >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip 
-              formatter={(value: number) => formatCurrency(value)}
-              contentStyle={{
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-            />
-            <Legend 
-              formatter={(value) => <span className="text-xs">{value}</span>}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        <DynamicChart
+          type="pie"
+          data={chartData}
+          height={200}
+          config={{
+            pies: [{
+              dataKey: 'value',
+              nameKey: 'name',
+              cx: '50%',
+              cy: '50%',
+              innerRadius: 40,
+              outerRadius: 70,
+              colors,
+            }],
+            legend: true,
+            tooltip: {
+              formatter: (value: number) => formatCurrency(value),
+            },
+          }}
+        />
 
         <div className="mt-4 space-y-2">
           {chartData.map((item) => (

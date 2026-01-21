@@ -1,8 +1,8 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from 'recharts';
 import { useMoneybirdFinancials, useSyncMoneybirdFinancials } from '@/hooks/useMoneybirdFinancials';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 
 interface RevenueOverviewChartProps {
   year?: number;
@@ -74,54 +74,29 @@ export function RevenueOverviewChart({ year }: RevenueOverviewChartProps) {
         </Button>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <ComposedChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-          <XAxis 
-            dataKey="month" 
-            className="text-xs"
-            tick={{ fill: 'hsl(var(--muted-foreground))' }}
-          />
-          <YAxis 
-            className="text-xs"
-            tick={{ fill: 'hsl(var(--muted-foreground))' }}
-            tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
-          />
-          <Tooltip 
-            contentStyle={{
-              backgroundColor: 'hsl(var(--background))',
-              border: '1px solid hsl(var(--border))',
-              borderRadius: '8px',
-            }}
-            formatter={(value: number, name: string) => [
+      <DynamicChart
+        type="composed"
+        data={chartData}
+        height={300}
+        config={{
+          xAxisKey: 'month',
+          bars: [
+            { dataKey: 'paid', fill: 'hsl(var(--primary))', name: 'Collected' },
+            { dataKey: 'outstanding', fill: 'hsl(var(--muted-foreground) / 0.3)', name: 'Outstanding', stackId: 'stack' },
+          ],
+          lines: [
+            { dataKey: 'revenue', stroke: 'hsl(var(--chart-2))', name: 'Total Invoiced' },
+          ],
+          yAxisFormatter: (value: number) => `€${(value / 1000).toFixed(0)}k`,
+          legend: true,
+          tooltip: {
+            formatter: (value: number, name: string) => [
               `€${value.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
               name === 'paid' ? 'Collected' : name === 'revenue' ? 'Invoiced' : 'Outstanding'
-            ]}
-          />
-          <Legend />
-          <Bar 
-            dataKey="paid" 
-            fill="hsl(var(--primary))" 
-            name="Collected"
-            radius={[4, 4, 0, 0]}
-          />
-          <Bar 
-            dataKey="outstanding" 
-            fill="hsl(var(--muted-foreground) / 0.3)" 
-            name="Outstanding"
-            radius={[4, 4, 0, 0]}
-            stackId="stack"
-          />
-          <Line 
-            type="monotone" 
-            dataKey="revenue" 
-            stroke="hsl(var(--chart-2))" 
-            strokeWidth={2}
-            dot={{ fill: 'hsl(var(--chart-2))' }}
-            name="Total Invoiced"
-          />
-        </ComposedChart>
-      </ResponsiveContainer>
+            ],
+          },
+        }}
+      />
     </div>
   );
 }

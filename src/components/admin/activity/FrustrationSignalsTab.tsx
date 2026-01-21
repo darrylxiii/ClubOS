@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, MousePointer, XCircle, AlertCircle, Wifi } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { DynamicChart } from "@/components/charts/DynamicChart";
 
 export default function FrustrationSignalsTab() {
   const { data: frustrationData } = useQuery({
@@ -99,15 +99,15 @@ export default function FrustrationSignalsTab() {
           <CardDescription>Distribution of user frustration incidents</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={frustrationData?.signalsByType || []}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="type" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="hsl(var(--destructive))" />
-            </BarChart>
-          </ResponsiveContainer>
+          <DynamicChart
+            type="bar"
+            data={frustrationData?.signalsByType || []}
+            height={300}
+            config={{
+              xAxisKey: 'type',
+              bars: [{ dataKey: 'count', fill: 'hsl(var(--destructive))' }],
+            }}
+          />
         </CardContent>
       </Card>
 

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { DynamicChart } from "@/components/charts/DynamicChart";
 import { Loader2, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 
@@ -60,61 +60,24 @@ export function ARRChart({ data, isLoading }: ARRChartProps) {
             No revenue data available yet
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={350}>
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="arrGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="mrrGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis 
-                tickFormatter={(value) => `€${(value / 100000).toFixed(0)}k`}
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip 
-                formatter={(value: any) => [formatCurrency(value), '']}
-                labelFormatter={(label) => `Period: ${label}`}
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-              />
-              <Legend />
-              <Area 
-                type="monotone" 
-                dataKey="arrFormatted" 
-                stroke="hsl(var(--primary))" 
-                fillOpacity={1}
-                fill="url(#arrGradient)"
-                name="ARR"
-                strokeWidth={2}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="mrrFormatted" 
-                stroke="hsl(var(--chart-2))" 
-                fillOpacity={1}
-                fill="url(#mrrGradient)"
-                name="MRR"
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <DynamicChart
+            type="area"
+            data={chartData}
+            height={350}
+            config={{
+              xAxisKey: 'date',
+              areas: [
+                { dataKey: 'arrFormatted', stroke: 'hsl(var(--primary))', fill: 'hsl(var(--primary))', fillOpacity: 0.3, name: 'ARR' },
+                { dataKey: 'mrrFormatted', stroke: 'hsl(var(--chart-2))', fill: 'hsl(var(--chart-2))', fillOpacity: 0.3, name: 'MRR' },
+              ],
+              yAxisFormatter: (value: number) => `€${(value / 100000).toFixed(0)}k`,
+              tooltip: {
+                formatter: (value: any) => [formatCurrency(value), ''],
+                labelFormatter: (label: string) => `Period: ${label}`,
+              },
+              legend: true,
+            }}
+          />
         )}
       </CardContent>
     </Card>

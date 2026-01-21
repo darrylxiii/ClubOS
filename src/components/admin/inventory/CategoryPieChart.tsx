@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Sector } from 'recharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { CATEGORY_LABELS } from '@/hooks/useInventoryCategories';
 import type { InventoryStats } from '@/hooks/useInventoryStats';
 
@@ -23,7 +23,6 @@ const formatCurrency = (v: number) => new Intl.NumberFormat('nl-NL', { style: 'c
 
 export function CategoryPieChart({ stats, onCategoryClick }: CategoryPieChartProps) {
   const [viewMode, setViewMode] = useState<'count' | 'value'>('count');
-  const [activeIndex, setActiveIndex] = useState<number | undefined>();
 
   const countData = Object.entries(stats.assetsByCategory).map(([key, count]) => ({
     name: CATEGORY_LABELS[key] || key,
@@ -41,45 +40,9 @@ export function CategoryPieChart({ stats, onCategoryClick }: CategoryPieChartPro
   const data = viewMode === 'count' ? countData : valueData;
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
-  const renderActiveShape = (props: any) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
-
-    return (
-      <g>
-        <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius + 10}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-        />
-        <Sector
-          cx={cx}
-          cy={cy}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          innerRadius={outerRadius + 14}
-          outerRadius={outerRadius + 18}
-          fill={fill}
-        />
-        <text x={cx} y={cy - 10} textAnchor="middle" className="fill-foreground text-sm font-medium">
-          {payload.name}
-        </text>
-        <text x={cx} y={cy + 15} textAnchor="middle" className="fill-muted-foreground text-xs">
-          {viewMode === 'count' ? `${payload.value} assets` : formatCurrency(payload.value)}
-        </text>
-        <text x={cx} y={cy + 32} textAnchor="middle" className="fill-muted-foreground text-xs">
-          ({(percent * 100).toFixed(1)}%)
-        </text>
-      </g>
-    );
-  };
-
-  const handleClick = (data: any) => {
-    if (onCategoryClick && data?.key) {
-      onCategoryClick(data.key);
+  const handleClick = (clickData: any) => {
+    if (onCategoryClick && clickData?.key) {
+      onCategoryClick(clickData.key);
     }
   };
 
@@ -102,31 +65,26 @@ export function CategoryPieChart({ stats, onCategoryClick }: CategoryPieChartPro
             No assets to display
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={90}
-                dataKey="value"
-                activeIndex={activeIndex}
-                activeShape={renderActiveShape}
-                onMouseEnter={(_, index) => setActiveIndex(index)}
-                onMouseLeave={() => setActiveIndex(undefined)}
-                onClick={(_, index) => handleClick(data[index])}
-                style={{ cursor: onCategoryClick ? 'pointer' : 'default' }}
-              >
-                {data.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value: number) => viewMode === 'count' ? `${value} assets` : formatCurrency(value)}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          <DynamicChart
+            type="pie"
+            data={data}
+            height={300}
+            config={{
+              pies: [{
+                dataKey: 'value',
+                nameKey: 'name',
+                cx: '50%',
+                cy: '50%',
+                innerRadius: 60,
+                outerRadius: 90,
+                colors: COLORS,
+                onClick: (_, index) => handleClick(data[index]),
+              }],
+              tooltip: {
+                formatter: (value: number) => viewMode === 'count' ? `${value} assets` : formatCurrency(value),
+              },
+            }}
+          />
         )}
 
         {/* Legend */}

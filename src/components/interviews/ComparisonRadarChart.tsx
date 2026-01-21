@@ -1,4 +1,4 @@
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, Tooltip } from "recharts";
+import { DynamicChart } from "@/components/charts/DynamicChart";
 
 interface CandidateData {
   id: string;
@@ -42,41 +42,26 @@ export function ComparisonRadarChart({ candidates }: ComparisonRadarChartProps) 
     return point;
   });
 
+  const radars = candidates.map((candidate, idx) => ({
+    dataKey: candidate.name,
+    name: candidate.name,
+    stroke: COLORS[idx % COLORS.length],
+    fill: COLORS[idx % COLORS.length],
+    fillOpacity: 0.2,
+  }));
+
   return (
     <div className="h-[400px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-          <PolarGrid stroke="hsl(var(--border))" />
-          <PolarAngleAxis 
-            dataKey="category" 
-            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-          />
-          <PolarRadiusAxis 
-            angle={30} 
-            domain={[0, 100]} 
-            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
-          />
-          {candidates.map((candidate, idx) => (
-            <Radar
-              key={candidate.id}
-              name={candidate.name}
-              dataKey={candidate.name}
-              stroke={COLORS[idx % COLORS.length]}
-              fill={COLORS[idx % COLORS.length]}
-              fillOpacity={0.2}
-              strokeWidth={2}
-            />
-          ))}
-          <Legend />
-          <Tooltip 
-            contentStyle={{ 
-              backgroundColor: "hsl(var(--card))", 
-              border: "1px solid hsl(var(--border))",
-              borderRadius: "8px"
-            }}
-          />
-        </RadarChart>
-      </ResponsiveContainer>
+      <DynamicChart
+        type="radar"
+        data={data}
+        height={400}
+        config={{
+          angleAxisKey: 'category',
+          radars,
+          legend: true,
+        }}
+      />
     </div>
   );
 }
