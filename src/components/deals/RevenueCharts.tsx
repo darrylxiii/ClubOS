@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { DynamicChart } from "@/components/charts/DynamicChart";
 import { Loader2 } from "lucide-react";
 
 export function RevenueCharts() {
@@ -84,75 +84,46 @@ export function RevenueCharts() {
       {/* Revenue Trend */}
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
         <h3 className="text-lg font-semibold mb-4 text-foreground">Revenue Trend</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={revenueData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis 
-              dataKey="month" 
-              stroke="hsl(var(--muted-foreground))"
-              style={{ fontSize: '12px' }}
-            />
-            <YAxis 
-              stroke="hsl(var(--muted-foreground))"
-              style={{ fontSize: '12px' }}
-              tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-              formatter={(value: number) => [`€${value.toLocaleString()}`, '']}
-            />
-            <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="realized" 
-              stroke="hsl(var(--primary))" 
-              strokeWidth={2}
-              name="Realized Revenue"
-            />
-            <Line 
-              type="monotone" 
-              dataKey="projected" 
-              stroke="hsl(var(--success))" 
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              name="Projected Revenue"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <DynamicChart
+          type="line"
+          data={revenueData || []}
+          height={300}
+          config={{
+            lines: [
+              { dataKey: 'realized', stroke: 'hsl(var(--primary))', strokeWidth: 2, name: 'Realized Revenue' },
+              { dataKey: 'projected', stroke: 'hsl(var(--success))', strokeWidth: 2, name: 'Projected Revenue' },
+            ],
+            xAxisDataKey: 'month',
+            showGrid: true,
+            showTooltip: true,
+            legend: true,
+            yAxisFormatter: (value) => `€${(value / 1000).toFixed(0)}k`,
+            tooltip: {
+              formatter: (value: number) => `€${value.toLocaleString()}`,
+            },
+          }}
+        />
       </Card>
 
       {/* Pipeline Velocity */}
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
         <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Velocity</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={pipelineVelocity}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis 
-              dataKey="month" 
-              stroke="hsl(var(--muted-foreground))"
-              style={{ fontSize: '12px' }}
-            />
-            <YAxis 
-              stroke="hsl(var(--muted-foreground))"
-              style={{ fontSize: '12px' }}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-            />
-            <Legend />
-            <Bar dataKey="entered" fill="hsl(var(--primary))" name="Deals Entered" />
-            <Bar dataKey="won" fill="hsl(var(--success))" name="Deals Won" />
-            <Bar dataKey="lost" fill="hsl(var(--destructive))" name="Deals Lost" />
-          </BarChart>
-        </ResponsiveContainer>
+        <DynamicChart
+          type="bar"
+          data={pipelineVelocity || []}
+          height={300}
+          config={{
+            bars: [
+              { dataKey: 'entered', fill: 'hsl(var(--primary))', name: 'Deals Entered' },
+              { dataKey: 'won', fill: 'hsl(var(--success))', name: 'Deals Won' },
+              { dataKey: 'lost', fill: 'hsl(var(--destructive))', name: 'Deals Lost' },
+            ],
+            xAxisDataKey: 'month',
+            showGrid: true,
+            showTooltip: true,
+            legend: true,
+          }}
+        />
       </Card>
     </div>
   );

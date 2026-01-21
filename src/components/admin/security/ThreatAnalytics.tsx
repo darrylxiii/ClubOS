@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { useThreatEvents, useThreatSummary } from '@/hooks/useThreatDetection';
 import { TrendingUp, PieChart as PieIcon, BarChart3 } from 'lucide-react';
 import { format, subDays, startOfDay, eachDayOfInterval } from 'date-fns';
@@ -25,7 +25,7 @@ export function ThreatAnalytics() {
   // Attack types for pie chart
   const attackTypesData = Object.entries(summary?.attacks_by_type || {}).map(([type, count]) => ({
     name: type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-    value: count
+    value: count as number
   }));
 
   // Threats over time (last 7 days)
@@ -52,10 +52,10 @@ export function ThreatAnalytics() {
 
   // Severity breakdown for bar chart
   const severityData = [
-    { severity: 'Critical', count: threats?.filter(t => t.severity === 'critical').length || 0, fill: '#ef4444' },
-    { severity: 'High', count: threats?.filter(t => t.severity === 'high').length || 0, fill: '#f97316' },
-    { severity: 'Medium', count: threats?.filter(t => t.severity === 'medium').length || 0, fill: '#eab308' },
-    { severity: 'Low', count: threats?.filter(t => t.severity === 'low').length || 0, fill: '#3b82f6' },
+    { severity: 'Critical', count: threats?.filter(t => t.severity === 'critical').length || 0 },
+    { severity: 'High', count: threats?.filter(t => t.severity === 'high').length || 0 },
+    { severity: 'Medium', count: threats?.filter(t => t.severity === 'medium').length || 0 },
+    { severity: 'Low', count: threats?.filter(t => t.severity === 'low').length || 0 },
   ];
 
   return (
@@ -69,28 +69,17 @@ export function ThreatAnalytics() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={threatsOverTime}>
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="threats" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={2}
-                  dot={{ fill: 'hsl(var(--primary))' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <DynamicChart
+            type="line"
+            data={threatsOverTime}
+            height={250}
+            config={{
+              lines: [{ dataKey: 'threats', stroke: 'hsl(var(--primary))', strokeWidth: 2 }],
+              xAxisDataKey: 'date',
+              showGrid: false,
+              showTooltip: true,
+            }}
+          />
         </CardContent>
       </Card>
 
@@ -103,40 +92,28 @@ export function ThreatAnalytics() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px]">
-            {attackTypesData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={attackTypesData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    labelLine={false}
-                  >
-                    {attackTypesData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
-                No attack data to display
-              </div>
-            )}
-          </div>
+          {attackTypesData.length > 0 ? (
+            <DynamicChart
+              type="pie"
+              data={attackTypesData}
+              height={250}
+              config={{
+                pies: [{
+                  dataKey: 'value',
+                  nameKey: 'name',
+                  innerRadius: 60,
+                  outerRadius: 80,
+                  paddingAngle: 5,
+                  colors: COLORS,
+                }],
+                showTooltip: true,
+              }}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+              No attack data to display
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -149,26 +126,17 @@ export function ThreatAnalytics() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={severityData} layout="vertical">
-                <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis type="category" dataKey="severity" tick={{ fontSize: 12 }} width={80} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                />
-                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                  {severityData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <DynamicChart
+            type="bar"
+            data={severityData}
+            height={200}
+            config={{
+              bars: [{ dataKey: 'count', fill: 'hsl(var(--primary))' }],
+              xAxisDataKey: 'severity',
+              showGrid: false,
+              showTooltip: true,
+            }}
+          />
         </CardContent>
       </Card>
     </div>

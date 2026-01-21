@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { DynamicChart } from "@/components/charts/DynamicChart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import type { SecurityMetricsHistory } from "@/types/security";
@@ -54,9 +54,9 @@ export const SecurityTrendsChart = () => {
 
   const chartData = trendsData.map(item => ({
     date: format(new Date(item.metric_date), 'MMM dd'),
-    rlsPolicies: item.total_rls_policies,
     failedAuth: item.failed_auth_attempts,
     rateLimits: item.rate_limit_rejections,
+    rlsPolicies: item.total_rls_policies,
     coverage: item.total_tables > 0 
       ? Math.round((item.tables_with_rls / item.total_tables) * 100)
       : 0
@@ -69,60 +69,23 @@ export const SecurityTrendsChart = () => {
         <CardDescription>Historical security metrics and patterns</CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
-              dataKey="date" 
-              className="text-xs"
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
-            />
-            <YAxis 
-              className="text-xs"
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px'
-              }}
-            />
-            <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="failedAuth" 
-              stroke="#ef4444" 
-              strokeWidth={2}
-              name="Failed Auth"
-              dot={{ fill: '#ef4444', r: 3 }}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="rateLimits" 
-              stroke="#f97316" 
-              strokeWidth={2}
-              name="Rate Limits"
-              dot={{ fill: '#f97316', r: 3 }}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="rlsPolicies" 
-              stroke="#3b82f6" 
-              strokeWidth={2}
-              name="RLS Policies"
-              dot={{ fill: '#3b82f6', r: 3 }}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="coverage" 
-              stroke="#22c55e" 
-              strokeWidth={2}
-              name="Coverage %"
-              dot={{ fill: '#22c55e', r: 3 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <DynamicChart
+          type="line"
+          data={chartData}
+          height={400}
+          config={{
+            lines: [
+              { dataKey: 'failedAuth', stroke: '#ef4444', strokeWidth: 2, name: 'Failed Auth' },
+              { dataKey: 'rateLimits', stroke: '#f97316', strokeWidth: 2, name: 'Rate Limits' },
+              { dataKey: 'rlsPolicies', stroke: '#3b82f6', strokeWidth: 2, name: 'RLS Policies' },
+              { dataKey: 'coverage', stroke: '#22c55e', strokeWidth: 2, name: 'Coverage %' },
+            ],
+            xAxisDataKey: 'date',
+            showGrid: true,
+            showTooltip: true,
+            legend: true,
+          }}
+        />
       </CardContent>
     </Card>
   );
