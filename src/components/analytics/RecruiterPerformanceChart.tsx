@@ -59,7 +59,7 @@ export function RecruiterPerformanceChart({ data, isLoading }: RecruiterPerforma
             xAxisDataKey: 'name',
             showGrid: true,
             showTooltip: true,
-            showLegend: true,
+            legend: true,
           }}
         />
       </div>
