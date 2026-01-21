@@ -11541,6 +11541,228 @@ export type Database = {
           },
         ]
       }
+      contract_approval_requests: {
+        Row: {
+          approvers_completed: string[] | null
+          approvers_required: string[] | null
+          completed_at: string | null
+          contract_id: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          milestone_id: string | null
+          request_type: string
+          rule_id: string | null
+          status: string | null
+        }
+        Insert: {
+          approvers_completed?: string[] | null
+          approvers_required?: string[] | null
+          completed_at?: string | null
+          contract_id: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          milestone_id?: string | null
+          request_type: string
+          rule_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          approvers_completed?: string[] | null
+          approvers_required?: string[] | null
+          completed_at?: string | null
+          contract_id?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          milestone_id?: string | null
+          request_type?: string
+          rule_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_approval_requests_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "project_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_approval_requests_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_approval_requests_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "contract_approval_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_approval_rules: {
+        Row: {
+          approval_type: string | null
+          company_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          required_approvers: string[] | null
+          rule_name: string
+          threshold_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          approval_type?: string | null
+          company_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          required_approvers?: string[] | null
+          rule_name: string
+          threshold_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          approval_type?: string | null
+          company_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          required_approvers?: string[] | null
+          rule_name?: string
+          threshold_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_approval_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_approval_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_change_orders: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          budget_impact: number | null
+          contract_id: string
+          created_at: string | null
+          id: string
+          justification: string | null
+          rejection_reason: string | null
+          requested_by: string
+          scope_change: string | null
+          status: string | null
+          timeline_impact_days: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          budget_impact?: number | null
+          contract_id: string
+          created_at?: string | null
+          id?: string
+          justification?: string | null
+          rejection_reason?: string | null
+          requested_by: string
+          scope_change?: string | null
+          status?: string | null
+          timeline_impact_days?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          budget_impact?: number | null
+          contract_id?: string
+          created_at?: string | null
+          id?: string
+          justification?: string | null
+          rejection_reason?: string | null
+          requested_by?: string
+          scope_change?: string | null
+          status?: string | null
+          timeline_impact_days?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_change_orders_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "project_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_deadline_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          contract_id: string | null
+          created_at: string | null
+          id: string
+          milestone_id: string | null
+          sent_at: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          contract_id?: string | null
+          created_at?: string | null
+          id?: string
+          milestone_id?: string | null
+          sent_at?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          contract_id?: string | null
+          created_at?: string | null
+          id?: string
+          milestone_id?: string | null
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_deadline_alerts_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "project_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_deadline_alerts_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_documents: {
         Row: {
           contract_id: string
@@ -11592,6 +11814,74 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_invoices: {
+        Row: {
+          amount: number
+          contract_id: string
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          due_date: string | null
+          id: string
+          invoice_number: string
+          milestone_ids: string[] | null
+          moneybird_invoice_id: string | null
+          notes: string | null
+          paid_at: string | null
+          pdf_url: string | null
+          status: string | null
+          tax_amount: number | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          contract_id: string
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          milestone_ids?: string[] | null
+          moneybird_invoice_id?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          pdf_url?: string | null
+          status?: string | null
+          tax_amount?: number | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          contract_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          milestone_ids?: string[] | null
+          moneybird_invoice_id?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          pdf_url?: string | null
+          status?: string | null
+          tax_amount?: number | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_invoices_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "project_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_renewals: {
         Row: {
           contract_id: string
@@ -11641,6 +11931,7 @@ export type Database = {
       }
       contract_templates: {
         Row: {
+          category: string | null
           content: string
           created_at: string | null
           created_by: string | null
@@ -11653,6 +11944,7 @@ export type Database = {
           variables: Json | null
         }
         Insert: {
+          category?: string | null
           content: string
           created_at?: string | null
           created_by?: string | null
@@ -11665,6 +11957,7 @@ export type Database = {
           variables?: Json | null
         }
         Update: {
+          category?: string | null
           content?: string
           created_at?: string | null
           created_by?: string | null
@@ -35186,6 +35479,7 @@ export type Database = {
           freelancer_id: string | null
           hourly_rate: number
           id: string
+          parent_contract_id: string | null
           payment_terms: string | null
           platform_fee_percentage: number | null
           project_description: string | null
@@ -35194,6 +35488,8 @@ export type Database = {
           status: string
           total_hours_budget: number | null
           updated_at: string
+          version: number | null
+          wizard_draft_data: Json | null
         }
         Insert: {
           client_id?: string | null
@@ -35206,6 +35502,7 @@ export type Database = {
           freelancer_id?: string | null
           hourly_rate?: number
           id?: string
+          parent_contract_id?: string | null
           payment_terms?: string | null
           platform_fee_percentage?: number | null
           project_description?: string | null
@@ -35214,6 +35511,8 @@ export type Database = {
           status?: string
           total_hours_budget?: number | null
           updated_at?: string
+          version?: number | null
+          wizard_draft_data?: Json | null
         }
         Update: {
           client_id?: string | null
@@ -35226,6 +35525,7 @@ export type Database = {
           freelancer_id?: string | null
           hourly_rate?: number
           id?: string
+          parent_contract_id?: string | null
           payment_terms?: string | null
           platform_fee_percentage?: number | null
           project_description?: string | null
@@ -35234,6 +35534,8 @@ export type Database = {
           status?: string
           total_hours_budget?: number | null
           updated_at?: string
+          version?: number | null
+          wizard_draft_data?: Json | null
         }
         Relationships: [
           {
@@ -35290,6 +35592,13 @@ export type Database = {
             columns: ["freelancer_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_contracts_parent_contract_id_fkey"
+            columns: ["parent_contract_id"]
+            isOneToOne: false
+            referencedRelation: "project_contracts"
             referencedColumns: ["id"]
           },
         ]

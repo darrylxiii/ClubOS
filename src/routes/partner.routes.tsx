@@ -19,6 +19,8 @@ const BillingDashboard = lazy(() => import("@/pages/partner/BillingDashboard"));
 const SLADashboard = lazy(() => import("@/pages/partner/SLADashboard"));
 const IntegrationsManagement = lazy(() => import("@/pages/partner/IntegrationsManagement"));
 const LiveInterview = lazy(() => import("@/pages/partner/LiveInterview"));
+const PartnerContractsPage = lazy(() => import("@/pages/partner/PartnerContractsPage"));
+const CreateContractPage = lazy(() => import("@/pages/partner/CreateContractPage"));
 
 export const partnerRoutes = (
   <>
@@ -185,6 +187,30 @@ export const partnerRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <IntegrationsManagement />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/partner/contracts"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PartnerContractsPage />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/partner/contracts/new"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <CreateContractPage />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
