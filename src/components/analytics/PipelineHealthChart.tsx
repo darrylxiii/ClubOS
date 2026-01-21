@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { LazyBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from '@/components/charts/LazyCharts';
 import { PipelineHealth } from "@/hooks/useAnalytics";
 
 interface PipelineHealthChartProps {
@@ -68,7 +68,7 @@ export function PipelineHealthChart({ data, isLoading }: PipelineHealthChartProp
       <div>
         <h4 className="text-sm font-medium mb-4">Candidates by Pipeline Stage</h4>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData} layout="vertical">
+          <LazyBarChart data={chartData} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis 
               type="number"
@@ -101,7 +101,7 @@ export function PipelineHealthChart({ data, isLoading }: PipelineHealthChartProp
                 />
               ))}
             </Bar>
-          </BarChart>
+          </LazyBarChart>
         </ResponsiveContainer>
       </div>
 

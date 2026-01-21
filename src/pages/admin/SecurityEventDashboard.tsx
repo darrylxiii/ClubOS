@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Shield, AlertTriangle, AlertCircle, Info, CheckCircle } from 'lucide-react';
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LazyPieChart, Pie, Cell, Tooltip, ResponsiveContainer } from '@/components/charts/LazyCharts';
 import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -151,7 +151,7 @@ export default function SecurityEventDashboard() {
             <CardContent>
               {severityData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
+                  <LazyPieChart>
                     <Pie
                       data={severityData}
                       cx="50%"
@@ -165,7 +165,7 @@ export default function SecurityEventDashboard() {
                       ))}
                     </Pie>
                     <Tooltip />
-                  </PieChart>
+                  </LazyPieChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="h-[250px] flex flex-col items-center justify-center text-center px-4">

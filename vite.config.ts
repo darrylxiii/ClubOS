@@ -189,50 +189,41 @@ export default defineConfig(({ mode, command }) => ({
     },
   },
   build: {
-    modulePreload: false, // Disable to reduce memory
-    // Development-mode builds (build:dev) should be cheap on memory.
+    modulePreload: false,
     minify: mode === 'development' ? false : 'esbuild',
     cssMinify: mode === 'development' ? false : true,
     reportCompressedSize: false,
-
-    // Disable sourcemaps to reduce memory usage
     sourcemap: false,
-
-    // Reduce chunk size warnings threshold
     chunkSizeWarningLimit: 3000,
+    target: 'es2020',
+    // CRITICAL: Enable CSS code split in dev to reduce single-chunk memory pressure
+    cssCodeSplit: mode === 'development',
 
-    // CRITICAL: Limit concurrent operations to reduce memory pressure
     rollupOptions: {
-      // Limit the number of concurrent module transforms
-      maxParallelFileOps: 5,
+      maxParallelFileOps: 3,
       
       output: {
-        // Simpler chunking - isolate only the heaviest libs
-        manualChunks: (id) => {
-          if (!id.includes('node_modules')) return undefined;
-          
-          // Heavy libraries - isolate into their own chunks
-          if (id.includes('recharts') || id.includes('d3-')) return 'charts';
-          if (id.includes('@blocknote')) return 'blocknote';
-          if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
-          if (id.includes('livekit') || id.includes('@livekit')) return 'livekit';
-          if (id.includes('framer-motion')) return 'motion';
-          if (id.includes('@radix-ui')) return 'radix';
-          if (id.includes('@supabase')) return 'supabase';
-          if (id.includes('mermaid')) return 'mermaid';
-          if (id.includes('fabric')) return 'fabric';
-          if (id.includes('jspdf')) return 'pdf';
-          
-          // Core React vendor
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
-            return 'react-vendor';
-          }
-        },
+        // CRITICAL: Disable manualChunks in dev mode to prevent OOM
+        // The chunk assignment function itself causes memory bloat on large graphs
+        ...(mode === 'production' ? {
+          manualChunks: (id: string) => {
+            if (!id.includes('node_modules')) return undefined;
+            if (id.includes('recharts') || id.includes('d3-')) return 'charts';
+            if (id.includes('@blocknote')) return 'blocknote';
+            if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
+            if (id.includes('livekit') || id.includes('@livekit')) return 'livekit';
+            if (id.includes('framer-motion')) return 'motion';
+            if (id.includes('@radix-ui')) return 'radix';
+            if (id.includes('@supabase')) return 'supabase';
+            if (id.includes('mermaid')) return 'mermaid';
+            if (id.includes('fabric')) return 'fabric';
+            if (id.includes('jspdf')) return 'pdf';
+            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+              return 'react-vendor';
+            }
+          },
+        } : {}),
       },
     },
-    // Target modern browsers for smaller bundles
-    target: 'esnext',
-    // Disable CSS code splitting to reduce memory
-    cssCodeSplit: false,
   },
 }));

@@ -10,7 +10,7 @@ import {
   Download, Calendar, ArrowUpRight, ArrowDownRight, Percent,
   BarChart3, PieChart, Activity
 } from "lucide-react";
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
+// Recharts removed - charts are in sub-components that lazy load
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { ARRChart } from "@/components/investor/ARRChart";
 import { CohortAnalysis } from "@/components/investor/CohortAnalysis";
