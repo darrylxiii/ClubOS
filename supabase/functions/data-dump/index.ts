@@ -178,6 +178,52 @@ async function getOrderingKey(
   };
 }
 
+function isStatementTimeout(msg: string) {
+  const m = msg.toLowerCase();
+  return m.includes('statement timeout') || m.includes('canceling statement due to statement timeout');
+}
+
+async function fetchPageWithRetries(args: {
+  supabaseAdmin: any;
+  schema: string;
+  table: string;
+  orderBy: string;
+  mode: 'keyset' | 'offset';
+  lastKey: string | number | null;
+  offset: number;
+  pageSizes: number[];
+}): Promise<{ rows: Record<string, unknown>[]; usedPageSize: number } | { error: string }> {
+  for (const size of args.pageSizes) {
+    let query = args.supabaseAdmin
+      .schema(args.schema)
+      .from(args.table)
+      .select('*')
+      .order(args.orderBy as any, { ascending: true });
+
+    if (args.mode === 'keyset' && args.lastKey !== null && args.lastKey !== undefined) {
+      query = query.gt(args.orderBy as any, args.lastKey as any);
+    }
+
+    if (args.mode === 'offset') {
+      query = query.range(args.offset, args.offset + size - 1);
+    } else {
+      query = query.limit(size);
+    }
+
+    const { data, error } = await query;
+    if (!error) {
+      return { rows: ((data || []) as Record<string, unknown>[]), usedPageSize: size };
+    }
+
+    // If it isn't a timeout, don't keep retrying with smaller pages.
+    if (!isStatementTimeout(error.message)) {
+      return { error: error.message };
+    }
+  }
+
+  return { error: 'statement timeout (after retries)' };
+}
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req, true);
 
@@ -243,7 +289,16 @@ serve(async (req) => {
       const schema = t.schema_name;
       const table = t.table_name;
 
-      const columns = await getTableColumns(supabaseAdmin, schema, table);
+      let columns: string[] = [];
+      let ordering: OrderingKeyResp = { key_column: null, strategy: 'none' };
+      try {
+        columns = await getTableColumns(supabaseAdmin, schema, table);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Unknown error';
+        warnings.push(`Skipped ${schema}.${table}: failed to read columns (${msg})`);
+        continue;
+      }
+
       if (columns.length === 0) {
         const emptyPath = `${prefix}/${schema}.${table}/part-${pad4(0)}.sql`;
         await uploadText(supabaseAdmin, bucket, emptyPath, `-- ${schema}.${table}: (no columns/rows)\n`);
@@ -257,7 +312,14 @@ serve(async (req) => {
         continue;
       }
 
-      const ordering = await getOrderingKey(supabaseAdmin, schema, table);
+      try {
+        ordering = await getOrderingKey(supabaseAdmin, schema, table);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Unknown error';
+        warnings.push(`Ordering metadata failed for ${schema}.${table}: ${msg}. Falling back to OFFSET.`);
+        ordering = { key_column: null, strategy: 'none' };
+      }
+
       const canKeyset = !!ordering.key_column && columns.includes(ordering.key_column);
 
       // Resume state per table
@@ -332,30 +394,25 @@ serve(async (req) => {
           );
         }
 
-        let query = supabaseAdmin
-          .schema(schema)
-          .from(table)
-          .select('*')
-          .order(orderBy as any, { ascending: true });
+        const attempt = await fetchPageWithRetries({
+          supabaseAdmin,
+          schema,
+          table,
+          orderBy,
+          mode,
+          lastKey,
+          offset,
+          pageSizes: [perTablePageSize, 300, 100],
+        });
 
-        if (mode === 'keyset' && lastKey !== null && lastKey !== undefined) {
-          query = query.gt(orderBy as any, lastKey as any);
-        }
-
-        if (mode === 'offset') {
-          query = query.range(offset, offset + perTablePageSize - 1);
-        } else {
-          query = query.limit(perTablePageSize);
-        }
-
-        const { data: rows, error: pageError } = await query;
-        if (pageError) {
+        if ('error' in attempt) {
           const where = mode === 'offset' ? `offset ${offset}` : `lastKey ${String(lastKey)}`;
-          warnings.push(`Failed ${schema}.${table} @ ${where}: ${pageError.message}`);
+          warnings.push(`Skipped ${schema}.${table} @ ${where}: ${attempt.error}`);
           break;
         }
 
-        const pageRows = (rows || []) as Record<string, unknown>[];
+        const pageRows = attempt.rows;
+        const usedPageSize = attempt.usedPageSize;
         if (pageRows.length === 0) {
           // If offset was 0, ensure we still write a small file marking empty table.
           if (mode === 'offset' ? offset === 0 : partIndex === 0) {
@@ -399,7 +456,7 @@ serve(async (req) => {
         }
 
         partIndex += 1;
-        if (pageRows.length < perTablePageSize) {
+        if (pageRows.length < usedPageSize) {
           break;
         }
       }
