@@ -45,19 +45,130 @@ async function fetchDumpText(functionName: 'schema-dump' | 'data-dump') {
   return text;
 }
 
+type ExportFile = {
+  path: string;
+  signedUrl: string;
+  kind: 'preamble' | 'table-part' | 'epilogue';
+  table?: { schema: string; name: string };
+  partIndex?: number;
+};
+
+type ExportResponse = {
+  exportId: string;
+  createdAt: string;
+  expiresInSeconds: number;
+  files: ExportFile[];
+  warnings: string[];
+  resumeCursor: { tableIndex: number; offset: number } | null;
+  done: boolean;
+};
+
+async function callDataDump(payload: {
+  exportId?: string;
+  createdAt?: string;
+  resumeCursor?: ExportResponse['resumeCursor'];
+}) {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('Not authenticated');
+
+  const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const res = await fetch(`${baseUrl}/functions/v1/data-dump`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(text || `Request failed (${res.status})`);
+  }
+  return JSON.parse(text) as ExportResponse;
+}
+
+async function downloadJsonFile(filename: string, data: unknown) {
+  const content = JSON.stringify(data, null, 2);
+  const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function AdminExports() {
   const [busy, setBusy] = useState<'schema' | 'data' | null>(null);
+  const [lastDataExport, setLastDataExport] = useState<{
+    exportId: string;
+    createdAt: string;
+    expiresInSeconds: number;
+    files: ExportFile[];
+    warnings: string[];
+  } | null>(null);
 
   const handleDownload = useCallback(async (kind: 'schema' | 'data') => {
     try {
       setBusy(kind);
-      const fn = kind === 'schema' ? 'schema-dump' : 'data-dump';
-      const filename = kind === 'schema' ? 'schema.sql' : 'data.sql';
 
-      const dumpText = await fetchDumpText(fn);
-      await downloadTextFile(filename, dumpText);
+      if (kind === 'schema') {
+        const dumpText = await fetchDumpText('schema-dump');
+        await downloadTextFile('schema.sql', dumpText);
+        notify.success('Download ready', { description: 'schema.sql downloaded' });
+        return;
+      }
 
-      notify.success('Download ready', { description: `${filename} downloaded` });
+      // Data export: batch across multiple function calls and return a manifest.
+      setLastDataExport(null);
+      let exportId: string | undefined;
+      let createdAt: string | undefined;
+      let resumeCursor: ExportResponse['resumeCursor'] = null;
+      let allFiles: ExportFile[] = [];
+      let allWarnings: string[] = [];
+      let expiresInSeconds = 0;
+
+      // Keep calling until done.
+      // Note: Each backend call has its own runtime limit; this loop allows large exports.
+      for (;;) {
+        const resp = await callDataDump({ exportId, createdAt, resumeCursor });
+        exportId = resp.exportId;
+        createdAt = resp.createdAt;
+        expiresInSeconds = resp.expiresInSeconds;
+        allFiles = allFiles.concat(resp.files);
+        allWarnings = allWarnings.concat(resp.warnings);
+        resumeCursor = resp.resumeCursor;
+
+        if (resp.done) break;
+      }
+
+      const manifest = {
+        exportId: exportId!,
+        createdAt: createdAt!,
+        expiresInSeconds,
+        runOrderNotes: [
+          '1) Run schema.sql first.',
+          '2) Then run files below in order: preamble → table parts → epilogue.',
+          '3) Signed URLs expire; download the files promptly.',
+        ],
+        files: allFiles,
+        warnings: allWarnings,
+      };
+
+      await downloadJsonFile(`export-${exportId}.manifest.json`, manifest);
+      setLastDataExport({
+        exportId: exportId!,
+        createdAt: createdAt!,
+        expiresInSeconds,
+        files: allFiles,
+        warnings: allWarnings,
+      });
+
+      notify.success('Export ready', { description: 'Manifest downloaded' });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       notify.error('Export failed', { description: message });
@@ -65,6 +176,31 @@ export default function AdminExports() {
       setBusy(null);
     }
   }, []);
+
+  const handleDownloadAllParts = useCallback(async () => {
+    if (!lastDataExport) return;
+
+    try {
+      setBusy('data');
+      // Download sequentially to avoid browser throttling.
+      for (const f of lastDataExport.files) {
+        const a = document.createElement('a');
+        a.href = f.signedUrl;
+        a.download = f.path.split('/').pop() || 'export.sql';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        // Small delay to avoid popup blockers / throttling.
+        await new Promise((r) => setTimeout(r, 150));
+      }
+      notify.success('Downloads started', { description: 'All parts queued' });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      notify.error('Download failed', { description: message });
+    } finally {
+      setBusy(null);
+    }
+  }, [lastDataExport]);
 
   return (
     <AppLayout>
@@ -91,9 +227,41 @@ export default function AdminExports() {
                   onClick={() => handleDownload('data')}
                   disabled={busy !== null}
                 >
-                  {busy === 'data' ? 'Generating…' : 'Download data.sql'}
+                  {busy === 'data' ? 'Generating…' : 'Generate data export (manifest)'}
                 </Button>
               </div>
+
+              {lastDataExport && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Export {lastDataExport.exportId} ready. URLs expire in ~{Math.round(
+                      lastDataExport.expiresInSeconds / 60,
+                    )}m.
+                  </p>
+                  {lastDataExport.warnings.length > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      <p className="font-medium text-foreground">Warnings</p>
+                      <ul className="list-disc pl-5">
+                        {lastDataExport.warnings.slice(0, 8).map((w, i) => (
+                          <li key={i}>{w}</li>
+                        ))}
+                        {lastDataExport.warnings.length > 8 && (
+                          <li>…and {lastDataExport.warnings.length - 8} more (see manifest)</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                  <div>
+                    <Button
+                      variant="outline"
+                      onClick={handleDownloadAllParts}
+                      disabled={busy !== null}
+                    >
+                      Download all SQL parts
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
