@@ -7,10 +7,21 @@ import { getCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
 
 type TableRef = { schema_name: string; table_name: string };
 
-type ResumeCursor = {
-  tableIndex: number;
-  offset: number;
-};
+type ResumeCursor =
+  | {
+      tableIndex: number;
+      mode: 'keyset';
+      keyColumn: string;
+      lastKey: string | number | null;
+      partIndex: number;
+    }
+  | {
+      tableIndex: number;
+      mode: 'offset';
+      offset: number;
+      partIndex: number;
+      orderBy: string;
+    };
 
 type ExportFile = {
   path: string;
@@ -29,6 +40,8 @@ type ExportResponse = {
   resumeCursor: ResumeCursor | null;
   done: boolean;
 };
+
+type OrderingKeyResp = { key_column: string | null; strategy: string };
 
 function pad4(n: number) {
   return String(n).padStart(4, '0');
@@ -139,6 +152,32 @@ function buildInsertStatements(
   return lines.join('\n') + '\n';
 }
 
+async function getTableColumns(supabaseAdmin: any, schema: string, table: string): Promise<string[]> {
+  const { data, error } = await supabaseAdmin.rpc('tqc__table_columns', {
+    p_schema: schema,
+    p_table: table,
+  });
+  if (error) throw new Error(error.message);
+  return Array.isArray(data) ? (data as string[]) : [];
+}
+
+async function getOrderingKey(
+  supabaseAdmin: any,
+  schema: string,
+  table: string,
+): Promise<OrderingKeyResp> {
+  const { data, error } = await supabaseAdmin.rpc('tqc__table_ordering_key', {
+    p_schema: schema,
+    p_table: table,
+  });
+  if (error) throw new Error(error.message);
+  const row = (Array.isArray(data) ? data[0] : data) as any;
+  return {
+    key_column: (row?.key_column ?? null) as string | null,
+    strategy: String(row?.strategy ?? 'none'),
+  };
+}
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req, true);
 
@@ -169,6 +208,7 @@ serve(async (req) => {
 
     const expiresInSeconds = 60 * 60; // 1 hour
     const pageSize = 1000;
+    const fallbackPageSize = 200;
     const watchdogMs = 55_000;
 
     const supabaseAdmin = createClient(
@@ -197,31 +237,14 @@ serve(async (req) => {
     }
 
     let tableIndex = resumeCursor?.tableIndex ?? 0;
-    let offset = resumeCursor?.offset ?? 0;
 
     for (; tableIndex < tableList.length; tableIndex += 1) {
       const t = tableList[tableIndex];
       const schema = t.schema_name;
       const table = t.table_name;
 
-      // Infer columns and choose ordering.
-      // NOTE: We only use the first row to infer keys; if table is empty, we still export a marker.
-      const { data: sampleRows, error: sampleError } = await supabaseAdmin
-        .schema(schema)
-        .from(table)
-        .select('*')
-        .limit(1);
-      if (sampleError) {
-        warnings.push(`Skipped ${schema}.${table}: ${sampleError.message}`);
-        offset = 0;
-        continue;
-      }
-
-      const sample = (sampleRows?.[0] as Record<string, unknown> | undefined) ?? undefined;
-      const columns = sample ? Object.keys(sample) : [];
-      const orderBy = columns.includes('id') ? 'id' : columns[0];
-      if (!orderBy) {
-        // Empty table with no columns returned (rare). Still proceed.
+      const columns = await getTableColumns(supabaseAdmin, schema, table);
+      if (columns.length === 0) {
         const emptyPath = `${prefix}/${schema}.${table}/part-${pad4(0)}.sql`;
         await uploadText(supabaseAdmin, bucket, emptyPath, `-- ${schema}.${table}: (no columns/rows)\n`);
         files.push({
@@ -231,14 +254,50 @@ serve(async (req) => {
           table: { schema, name: table },
           partIndex: 0,
         });
-        offset = 0;
         continue;
       }
-      if (!columns.includes('id')) {
-        warnings.push(`Ordering ${schema}.${table} by '${orderBy}' (no id column detected).`);
+
+      const ordering = await getOrderingKey(supabaseAdmin, schema, table);
+      const canKeyset = !!ordering.key_column && columns.includes(ordering.key_column);
+
+      // Resume state per table
+      let partIndex = 0;
+      let lastKey: string | number | null = null;
+      let offset = 0;
+      let mode: 'keyset' | 'offset' = canKeyset ? 'keyset' : 'offset';
+      let orderBy = canKeyset ? ordering.key_column! : (columns.includes('id') ? 'id' : columns[0]);
+
+      if (resumeCursor && resumeCursor.tableIndex === tableIndex) {
+        if (resumeCursor.mode === 'keyset') {
+          mode = 'keyset';
+          orderBy = resumeCursor.keyColumn;
+          lastKey = resumeCursor.lastKey;
+          partIndex = resumeCursor.partIndex;
+        } else {
+          mode = 'offset';
+          orderBy = resumeCursor.orderBy;
+          offset = resumeCursor.offset;
+          partIndex = resumeCursor.partIndex;
+        }
       }
 
-      let partIndex = Math.floor(offset / pageSize);
+      if (mode === 'offset' && !orderBy) {
+        warnings.push(`Skipped ${schema}.${table}: could not determine ordering column`);
+        continue;
+      }
+
+      if (mode === 'offset') {
+        warnings.push(
+          `Exporting ${schema}.${table} using OFFSET pagination (may be slow for large tables).`,
+        );
+      } else {
+        console.log(
+          `[data-dump] ${exportId} ${schema}.${table} keyset orderBy=${orderBy} strategy=${ordering.strategy}`,
+        );
+      }
+
+      const perTablePageSize = mode === 'offset' ? fallbackPageSize : pageSize;
+
       for (;;) {
         if (Date.now() - startTime > watchdogMs) {
           return new Response(
@@ -248,7 +307,22 @@ serve(async (req) => {
               expiresInSeconds,
               files,
               warnings,
-              resumeCursor: { tableIndex, offset },
+              resumeCursor:
+                mode === 'keyset'
+                  ? {
+                      tableIndex,
+                      mode: 'keyset',
+                      keyColumn: orderBy,
+                      lastKey,
+                      partIndex,
+                    }
+                  : {
+                      tableIndex,
+                      mode: 'offset',
+                      orderBy,
+                      offset,
+                      partIndex,
+                    },
               done: false,
             } satisfies ExportResponse),
             {
@@ -258,23 +332,33 @@ serve(async (req) => {
           );
         }
 
-        const query = supabaseAdmin
+        let query = supabaseAdmin
           .schema(schema)
           .from(table)
           .select('*')
-          .order(orderBy as any, { ascending: true })
-          .range(offset, offset + pageSize - 1);
+          .order(orderBy as any, { ascending: true });
+
+        if (mode === 'keyset' && lastKey !== null && lastKey !== undefined) {
+          query = query.gt(orderBy as any, lastKey as any);
+        }
+
+        if (mode === 'offset') {
+          query = query.range(offset, offset + perTablePageSize - 1);
+        } else {
+          query = query.limit(perTablePageSize);
+        }
 
         const { data: rows, error: pageError } = await query;
         if (pageError) {
-          warnings.push(`Failed ${schema}.${table} @ offset ${offset}: ${pageError.message}`);
+          const where = mode === 'offset' ? `offset ${offset}` : `lastKey ${String(lastKey)}`;
+          warnings.push(`Failed ${schema}.${table} @ ${where}: ${pageError.message}`);
           break;
         }
 
         const pageRows = (rows || []) as Record<string, unknown>[];
         if (pageRows.length === 0) {
           // If offset was 0, ensure we still write a small file marking empty table.
-          if (offset === 0) {
+          if (mode === 'offset' ? offset === 0 : partIndex === 0) {
             const emptyPath = `${prefix}/${schema}.${table}/part-${pad4(0)}.sql`;
             await uploadText(supabaseAdmin, bucket, emptyPath, `-- ${schema}.${table}: (no rows)\n`);
             files.push({
@@ -299,15 +383,28 @@ serve(async (req) => {
           partIndex,
         });
 
-        offset += pageRows.length;
+        // Advance cursor
+        if (mode === 'offset') {
+          offset += pageRows.length;
+        } else {
+          const lk = pageRows[pageRows.length - 1]?.[orderBy];
+          if (lk === null || lk === undefined) {
+            warnings.push(
+              `Keyset cursor for ${schema}.${table} has null/undefined key '${orderBy}'. Falling back to OFFSET next run.`,
+            );
+            // Fall back to offset from scratch is expensive; instead stop here so UI can retry.
+            break;
+          }
+          lastKey = lk as any;
+        }
+
         partIndex += 1;
-        if (pageRows.length < pageSize) {
+        if (pageRows.length < perTablePageSize) {
           break;
         }
       }
 
-      // Next table
-      offset = 0;
+      // Next table resets happen naturally by reinitializing loop vars.
     }
 
     // Upload epilogue only on completion.

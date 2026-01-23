@@ -59,7 +59,22 @@ type ExportResponse = {
   expiresInSeconds: number;
   files: ExportFile[];
   warnings: string[];
-  resumeCursor: { tableIndex: number; offset: number } | null;
+  resumeCursor:
+    | {
+        tableIndex: number;
+        mode: 'keyset';
+        keyColumn: string;
+        lastKey: string | number | null;
+        partIndex: number;
+      }
+    | {
+        tableIndex: number;
+        mode: 'offset';
+        orderBy: string;
+        offset: number;
+        partIndex: number;
+      }
+    | null;
   done: boolean;
 };
 

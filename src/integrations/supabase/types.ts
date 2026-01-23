@@ -52564,6 +52564,10 @@ export type Database = {
         Args: { p_enabled: boolean; p_eta?: string; p_message?: string }
         Returns: boolean
       }
+      tqc__assert_user_schema: {
+        Args: { p_schema: string }
+        Returns: undefined
+      }
       tqc__list_user_schemas: {
         Args: never
         Returns: {
@@ -52575,6 +52579,17 @@ export type Database = {
         Returns: {
           schema_name: string
           table_name: string
+        }[]
+      }
+      tqc__table_columns: {
+        Args: { p_schema: string; p_table: string }
+        Returns: string[]
+      }
+      tqc__table_ordering_key: {
+        Args: { p_schema: string; p_table: string }
+        Returns: {
+          key_column: string
+          strategy: string
         }[]
       }
       tqc_generate_data_dump: { Args: never; Returns: string }
