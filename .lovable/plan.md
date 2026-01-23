@@ -1,105 +1,83 @@
 
-## Goal
-1) Fix the production build crash (`JavaScript heap out of memory`) so the app reliably publishes again.
-2) Provide a “one-time” way to download `schema.sql` and `data.sql` from inside the app (no navigation needed), while keeping admin-only security.
+Goal: Make the two export buttons on `/admin/exports` reliably download `schema.sql` and `data.sql` without backend errors.
 
-## What’s actually causing the build OOM (root cause)
-Your generated backend type file is enormous:
+What’s happening (step-by-step diagnosis)
 
-- `src/integrations/supabase/types.ts` ≈ **53,228 lines**
+1) Error: `permission denied for schema cron`
+- Your SQL dump generator is enumerating “user schemas” via `public.tqc__list_user_schemas()`.
+- That helper currently excludes only a small set of reserved schemas (`pg_catalog`, `information_schema`, `auth`, `storage`, `realtime`, `supabase_functions`, `vault`).
+- Your database also contains additional system/extension schemas: `cron`, `extensions`, `net`, `graphql`, `graphql_public`, etc. (we confirmed `cron` exists).
+- Because `cron` is not excluded, the dump function tries to read/emit objects from it, and hits permission errors.
 
-That’s not automatically fatal, but it becomes fatal when it gets pulled into the **runtime bundle**.
+2) Error: `column reference "schema_name" is ambiguous`
+- In the newer migration version of `tqc_generate_schema_dump()`, there are plpgsql variables named `schema_name` and `table_name`.
+- Inside SQL statements within PL/pgSQL, unqualified identifiers like `schema_name` can conflict between:
+  - the PL/pgSQL variable `schema_name`, and
+  - a selected column named `schema_name` (e.g. from `tqc__list_user_schemas()` / `tqc__list_user_tables()`).
+- This produces Postgres’s “ambiguous” error and aborts the function.
 
-I found multiple places where `Database` / `Json` are imported from that file **as a normal import** (not type-only). If Vite/Rollup treats those imports as runtime, it tries to include that massive file in the JS build graph, which can explode memory during chunk rendering.
+Key principle for the fix:
+- Treat “which schemas/tables are included” as a strict allowlist.
+- Avoid PL/pgSQL variable names that collide with common column names like `schema_name`, `table_name`, `id`, etc.
 
-### Offending imports found (examples)
-These should be type-only imports, but currently they are runtime imports in several files:
-- `src/types/database.ts` (currently: `import { Database } from '@/integrations/supabase/types';`)
-- `src/hooks/useCommunicationWorkflows.ts`
-- `src/hooks/useUnifiedCommunications.ts`
-- `src/hooks/useCrossChannelPatterns.ts`
-- `src/hooks/useGlobalCallSignaling.ts`
-- `src/hooks/useCallSignaling.ts`
-- `src/components/messages/CallNotificationManager.tsx`
-- plus several that import `Json` similarly (security/workspace automation hooks)
+Proposed implementation (what I will change when you switch back to default mode)
 
-Even one runtime import can keep the whole file in the runtime graph.
+A) Fix schema selection (eliminate the `cron` permission error)
+1. Update `public.tqc__list_user_schemas()` to exclude additional system schemas:
+   - Add: `cron`, `extensions`, `net`, `graphql`, `graphql_public`
+   - Keep existing excludes: `pg_catalog`, `information_schema`, `auth`, `storage`, `realtime`, `supabase_functions`, `vault`
+   - Keep excluding `pg_toast%` and `pg_temp%`
+2. Optionally (recommended): exclude any schema starting with `supabase_` if present, to future-proof.
+3. Ensure `tqc__list_user_tables()` relies only on the updated `tqc__list_user_schemas()`.
 
-## Fix strategy (high confidence, minimal risk)
-### A) Stop bundling `types.ts` into runtime
-1. Convert all imports of `Database` and `Json` from:
-   - `import { Database } from '@/integrations/supabase/types'`
-   - `import { Json } from '@/integrations/supabase/types'`
-   to:
-   - `import type { Database } from '@/integrations/supabase/types'`
-   - `import type { Json } from '@/integrations/supabase/types'`
+Result: dump functions never touch `cron` (or other extension schemas), so permissions don’t matter.
 
-2. In “types aggregator” files (especially `src/types/database.ts` and `src/types/api.ts`), ensure they only re-export types:
-   - Use `export type ...` everywhere
-   - Avoid any value-level exports that might force the module to become “runtime relevant”
+B) Fix the “schema_name is ambiguous” error (naming + qualification)
+1. Update `public.tqc_generate_schema_dump()`:
+   - Rename loop target variables to something that cannot collide, e.g.:
+     - `v_schema_name text;`
+     - `v_table_name text;`
+   - Use `FOR v_schema_name, v_table_name IN SELECT ...` for looping over tables.
+   - In every SQL statement that currently contains `SELECT schema_name FROM public.tqc__list_user_schemas()`, qualify the column via an alias:
+     - `SELECT s.schema_name FROM public.tqc__list_user_schemas() s`
+   - Same for any `tqc__list_user_tables()` usage if referenced in subqueries.
 
-3. Quick verification pass:
-   - Re-run a codebase search for `from '@/integrations/supabase/types'` and ensure every import is `import type`.
-   - Ensure there is no `export { Database }` (non-type) re-export anywhere.
+2. Update `public.tqc_generate_data_dump()` similarly (even if it’s not currently failing):
+   - Rename loop target variables to `v_schema_name`, `v_table_name`.
+   - Qualify references to helper-function columns with aliases where used in subqueries.
 
-**Expected outcome:** `src/integrations/supabase/types.ts` becomes “type-only” to the compiler and should not be emitted into the runtime bundle, drastically reducing memory usage during build.
+Result: Postgres can no longer confuse PL/pgSQL variables with result columns.
 
-### B) Secondary build stabilizers (only if needed after A)
-If the build is still heavy after the type-only fix:
-1. Make sure other large subsystems are lazy-loaded (already good in many places: mermaid/katex/jspdf/mediapipe are dynamic).
-2. Consider lazy-loading the BlockNote editor entry routes if it’s part of the main route graph (it currently has multiple direct imports of `@blocknote/*`).
-3. Revisit `vite.config.ts` only if necessary (it already has many memory-saver settings applied).
+C) Deliver as a database migration (safe + auditable)
+1. Create a new migration that:
+   - `CREATE OR REPLACE FUNCTION public.tqc__list_user_schemas() ...`
+   - `CREATE OR REPLACE FUNCTION public.tqc__list_user_tables() ...` (if needed, or keep as-is if it already defers to schemas helper)
+   - `CREATE OR REPLACE FUNCTION public.tqc_generate_schema_dump() ...`
+   - `CREATE OR REPLACE FUNCTION public.tqc_generate_data_dump() ...`
+   - Re-apply the existing `REVOKE` statements at the end (keep them locked down).
 
-## “One-time export” UX (no navigation required)
-You said you don’t need navigation because it’s probably used once. We can do this without adding anything to menus.
+D) Verification steps (how we’ll confirm it’s fixed)
+1. From `/admin/exports`, click:
+   - “Download schema.sql” → should download a non-empty file; no 500.
+   - “Download data.sql” → should download a non-empty file; no 500.
+2. Confirm schema.sql does NOT include `CREATE SCHEMA cron;` or any `cron.` objects.
+3. If there’s still an error:
+   - Inspect backend logs for the exact SQL statement failing and iterate once more (typically another schema to exclude, or another ambiguous identifier to qualify).
 
-### Approach
-Create an **admin-only hidden route** (not linked in nav):
-- Example: `/admin/exports` (or `/admin/db-export`)
-- Must follow your architecture requirement: wrap in `AppLayout` and `RoleGate`.
+Edge cases & safety notes
+- These dump functions read from system catalogs and information_schema; that’s fine, but only for schemas we explicitly include.
+- Excluding extension/system schemas is correct because this export is intended for your app’s data, not managed infrastructure schemas.
+- No changes are required in the UI buttons; they’re correctly calling the backend function and passing auth.
 
-On that page:
-- Two buttons:
-  - Download `schema.sql`
-  - Download `data.sql`
-- Each calls the backend functions using the authenticated client (so the Authorization header is included automatically).
-- It creates a Blob and triggers a browser download.
+Scope control (explicit de-scope)
+- We will not attempt to export extension definitions or scheduled jobs (cron) as part of these downloads.
+- We will not change permissions broadly; we’ll just avoid touching schemas that raise permission errors.
 
-No separate backend login is needed; the app session provides the token.
+Acceptance criteria
+- Clicking “Download schema.sql” and “Download data.sql” from `/admin/exports` succeeds.
+- No “permission denied for schema cron”.
+- No “column reference schema_name is ambiguous”.
+- Exports contain only application-relevant schemas/tables.
 
-### Security posture
-- The backend functions remain admin-only server-side.
-- The UI route is admin-gated.
-- No token in URL, no public links, nothing “leaky”.
-
-## Backend function routing clarification
-The “working” endpoints are accessed as:
-- `https://<backend-base-url>/functions/v1/schema-dump`
-- `https://<backend-base-url>/functions/v1/data-dump`
-
-But direct address-bar use will still 401 because no Authorization header is sent; the in-app button call is the correct “clickable” flow.
-
-## Sequencing (fastest path to unbreak production)
-1) Fix type-only imports (this is the build blocker).
-2) Confirm production build passes.
-3) Add the hidden admin export page to trigger downloads.
-4) Optionally harden function config alignment (verify_jwt settings) if needed for consistency, but the in-app invoke should work regardless as long as headers are present.
-
-## Acceptance criteria
-### Build
-- Production build completes without OOM.
-- `types.ts` is not pulled into runtime chunks (practical sign: build completes; and bundle size does not balloon).
-
-### Export
-- As admin, visiting the hidden route shows two buttons.
-- Clicking each downloads a non-empty `.sql` file.
-- Non-admin users can’t access it.
-
-## De-scope (keeps this tight)
-- No navigation links or menu items.
-- No public “shareable” export URLs.
-- No additional export formats (CSV/JSON) right now.
-
-## Notes / constraints I will follow
-- I will not edit auto-generated backend client/types files directly (they are meant to be generated).
-- Admin pages will be wrapped with `AppLayout` and `RoleGate` as required.
+Next action once you approve this plan
+- I will implement the migration changes described above, then re-test the buttons on `/admin/exports`.
