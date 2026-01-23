@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Json } from '@/integrations/supabase/types';
+import type { Json } from '@/integrations/supabase/types';
 
 export type TriggerType = 'row_created' | 'row_updated' | 'row_deleted' | 'field_changed' | 'scheduled';
 export type ActionType = 'send_notification' | 'update_field' | 'create_page' | 'call_webhook' | 'send_email';

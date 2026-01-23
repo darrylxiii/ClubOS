@@ -6,7 +6,7 @@
  * and join relationships used throughout the application.
  */
 
-import { Database } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 
 // Base types from Supabase
 export type Tables = Database['public']['Tables'];

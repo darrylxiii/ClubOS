@@ -6,7 +6,7 @@
  */
 
 import { User, Session } from '@supabase/supabase-js';
-import { Database } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 
 // ============= Base API Types =============
 
