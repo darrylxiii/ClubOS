@@ -1,153 +1,144 @@
 
 <context>
-You are on `/admin/exports`. `schema.sql` downloads, but the data export fails with:
+You’re seeing Vercel errors like:
+- “404: NOT_FOUND … ID: fra1::…”
+- And it happens on refresh / deep links (React Router routes), while the Lovable preview works.
 
-{"error":"canceling statement due to statement timeout","code":"INTERNAL_ERROR",...}
-
-We already moved away from a single monolithic `tqc_generate_data_dump()` by implementing a chunked “manifest + SQL parts” approach in the backend function `data-dump`. That was the right direction, but we’re still hitting a database statement timeout inside one of the per-page table reads.
+You also note:
+- bytqc.com (on Vercel) loads.
+- thequantumclub.app “does not even load” because it’s still pointed at Lovable’s hosting/DNS.
 </context>
 
-<what-this-error-means>
-“canceling statement due to statement timeout” is coming from the database canceling a single SELECT query that runs too long. In our current `data-dump` implementation, that can still happen because:
+<step-by-step diagnosis (what is happening and why)>
+1) The “404: NOT_FOUND … fra1::…” error is Vercel’s standard response when it cannot find a matching file for the requested path.
+   - In a Vite + React Router SPA, routes like `/auth`, `/home`, `/admin/exports`, etc. are not real files.
+   - They must be rewritten to `/index.html` so the client router can take over.
+   - Without a rewrite, refreshing `/auth` on Vercel becomes “try to serve /auth as a file” → 404.
 
-1) We paginate using OFFSET/range (`.range(offset, offset + pageSize - 1)`).
-   - OFFSET pagination gets slower and slower as offset grows (the database still has to walk/skip the earlier rows).
-   - On tables with 500k+ rows, offsets like 200k/400k can cross the timeout threshold even with pageSize=1000.
+2) Lovable preview typically serves the SPA in a way that already falls back to `index.html` for unknown routes, so React Router works even without extra config.
+   - That’s why it “works in preview” but breaks on Vercel.
 
-2) If the chosen order column is not indexed (or we fall back to `columns[0]`), `ORDER BY <non-indexed>` forces a big sort.
-   - Big sort + OFFSET is the worst-case combination.
+3) thequantumclub.app not loading is a separate issue from React Router:
+   - That domain’s DNS is still pointing to Lovable (or otherwise not pointed at Vercel), so requests never reach your Vercel deployment.
+   - Until DNS is moved, no amount of Vercel config will affect thequantumclub.app.
 
-So, even though the export is chunked and resumable, the *query strategy* is still capable of timing out on large tables.
-</what-this-error-means>
+Conclusion:
+- Vercel 404s on deep links are a routing rewrite issue (SPA fallback).
+- thequantumclub.app not loading is a DNS/domain routing issue (it’s still tied to Lovable hosting records).
+</step-by-step diagnosis>
 
-<goal>
-Make `/admin/exports` “Generate data export (manifest)” complete reliably for very large datasets by ensuring each page query is fast and index-friendly.
-</goal>
+<goals>
+1) Make Vercel serve `index.html` for all non-asset routes so React Router works everywhere (including refresh and direct links).
+2) Move `thequantumclub.app` DNS at Spaceship to Vercel so the domain actually points to the working Vercel deployment.
+3) Avoid introducing new caching/boot-loop issues (especially with the PWA service worker).
+</goals>
 
-<solution-overview>
-We’ll replace offset-based pagination with index-friendly keyset pagination wherever possible, and we’ll stop guessing ordering from “first column”. Concretely:
+<implementation plan (code + configuration)>
+<phase id="1" name="Add SPA rewrite configuration for Vercel">
+Action:
+- Add a `vercel.json` file at the project root that rewrites all routes to `/index.html`.
 
-- Determine each table’s best stable ordering key (prefer Primary Key, then a single-column unique index, then `id` if present).
-- Paginate with “last seen key” (keyset pagination) instead of OFFSET.
-- Keep OFFSET pagination only as a last-resort fallback, and treat those tables as “may be slow”; optionally export them with smaller page sizes or skip with a warning if they repeatedly time out.
+Recommended config (simple and reliable for SPAs):
+- Rewrite everything except actual static files to `/index.html`.
 
-This is the holistic fix: it addresses the real cause (slow queries) instead of adding more retries/timeouts.
-</solution-overview>
+Acceptance:
+- Visiting `/auth` directly on Vercel loads the app (no Vercel 404).
+- Refreshing `/home` or any protected route no longer yields “404: NOT_FOUND”.
+</phase>
 
-<step-by-step implementation plan>
-<step id="1" title="Inspect current data-dump behavior and identify which table/page is timing out">
-1. Add lightweight server-side instrumentation in `supabase/functions/data-dump/index.ts`:
-   - log: exportId, schema.table, chosen order key, pagination mode (keyset vs offset), pageSize, page number, elapsed ms.
-2. When you click “Generate data export (manifest)” again, we’ll read backend logs to see the exact table/page where the timeout occurs.
-   - This avoids guessing and lets us confirm the problematic table(s) and whether it’s offset growth or non-indexed order.
+<phase id="2" name="Confirm Vercel build settings match Vite output">
+In Vercel project settings:
+- Framework preset: Vite (or “Other” but configured correctly)
+- Build command: `npm run build`
+- Output directory: `dist`
 
-Acceptance: we can point to a specific `schema.table` + page at failure.
-</step>
+Acceptance:
+- Deploy completes cleanly and serves the correct `dist/index.html` + `/assets/*`.
+</phase>
 
-<step id="2" title="Add backend SQL helper(s) to discover primary key / stable ordering columns">
-Because the backend function can’t efficiently infer PK/indexes via PostgREST, we’ll add database helper functions (via migration) that safely read from pg_catalog and return metadata. For example:
+<phase id="3" name="Ensure environment variables are set in Vercel">
+In Vercel project Environment Variables (Production + Preview):
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_PROJECT_ID`
+- Any other VITE_* values you rely on (e.g. PostHog key if used)
 
-- `public.tqc__table_ordering_key(p_schema text, p_table text)`
-  - returns: `{ key_columns text[], strategy text }`
-  - strategy example: `primary_key`, `unique_index`, `id_column`, `none`
+Why:
+- Your frontend constructs backend-function URLs using `import.meta.env.VITE_SUPABASE_URL` (e.g. `/functions/v1/data-dump`).
+- If these are missing or wrong in Vercel, you’ll see runtime failures that you might not see in Lovable preview.
 
-- `public.tqc__table_columns(p_schema text, p_table text)`
-  - returns: ordered list of columns so we don’t rely on “sample row keys” (which fails for empty tables and can reorder unpredictably).
+Acceptance:
+- Auth works.
+- Admin exports page can call backend functions (even if export itself is still being tuned).
+</phase>
 
-Security posture:
-- These functions are read-only.
-- Mark them `SECURITY DEFINER` and only expose them to admin/service-role paths we already use for exports.
-- Keep schema allowlisting (only application schemas) consistent with your earlier fixes.
+<phase id="4" name="Point thequantumclub.app to Vercel (Spaceship DNS)">
+This is the key to making thequantumclub.app load from Vercel.
 
-Acceptance: from the backend function we can reliably fetch the ordering key and columns for each table.
-</step>
+On Spaceship DNS for `thequantumclub.app`:
+- Apex/root (`@`) A record → `76.76.21.21` (Vercel)
+- `www` CNAME → `cname.vercel-dns.com`
 
-<step id="3" title="Upgrade data-dump pagination to keyset (fast for 500k+ rows)">
-Modify `supabase/functions/data-dump/index.ts`:
+Also:
+- Remove/replace any conflicting A/AAAA/CNAME records for `@` or `www` that currently point to Lovable/old infrastructure.
+- Keep all email records (MX, SPF, DKIM, DMARC) intact.
 
-A) Change ResumeCursor to support keyset:
-- Current: `{ tableIndex, offset }`
-- New: `{ tableIndex, mode: 'keyset'|'offset', lastKey?: string|number|null, offset?: number }`
-  - For now we’ll support single-column keysets (most tables). Composite PKs can fall back to offset with warnings.
+Acceptance:
+- In Vercel, domain verification passes.
+- `https://thequantumclub.app` loads your Vercel deployment.
+- Optional: `www.thequantumclub.app` redirects to the primary host (configured in Vercel).
 
-B) For tables with a single stable key (PK/unique/id):
-- Query:
-  - first page: `.order(key).limit(pageSize)`
-  - next pages: `.gt(key, lastKey).order(key).limit(pageSize)`
-- Track `lastKey` from the last row of each page.
+Note:
+- You do not need to move to Cloudflare for this. Spaceship is fine as DNS host as long as it supports these records.
+- Cloudflare is optional if you want WAF/bot protection/advanced redirects, but it adds another layer (and mistakes there can cause “it works in one place but not another”).
+</phase>
 
-C) For tables without a usable key:
-- Fallback to offset pagination but:
-  - use smaller page sizes (e.g. 200)
-  - add explicit warning in manifest (“non-keyset table; may be slower”)
-  - add retry-on-timeout (see next step)
+<phase id="5" name="PWA/service worker sanity check (prevent ghost caching bugs)">
+Because your Vite config enables PWA only in production builds, Vercel will run with a service worker while Lovable preview may not.
 
-Why this works:
-- Keyset queries stay O(pageSize) instead of getting slower with big offsets.
-- The database can use an index on the key (PK/unique) and avoid huge sorts.
+We’ll validate:
+- `sw.js` is being served correctly
+- There isn’t an old service worker from the Lovable domain affecting the Vercel domain (should be isolated by origin, but we confirm)
+- Asset caching strategy isn’t causing stale HTML/assets mismatch on Vercel
 
-Acceptance: export proceeds through very large tables without query slowdown over time.
-</step>
+Acceptance:
+- No boot loops
+- No “stale build” behavior after redeploys
+- Updates behave predictably
+</phase>
+</implementation plan>
 
-<step id="4" title="Add automatic timeout-aware retries and a “skip table” safety valve">
-Even with keyset, a few tables can be pathological (wide rows, heavy RLS/view complexity, missing indexes).
+<verification checklist (what you will test after changes)>
+1) On Vercel domain (bytqc.com):
+   - Open `/auth` directly in a new tab (should load).
+   - Refresh on `/auth` and `/home` (should not 404).
+2) In Vercel project settings:
+   - Confirm `dist` output is served and `/assets/*` loads.
+3) After DNS switch:
+   - `thequantumclub.app` loads the same as bytqc.com.
+   - HTTPS certificate is active on `thequantumclub.app`.
+4) Optional but recommended:
+   - Test one deep protected route directly (e.g. `/admin/exports`) after login.
+</verification checklist>
 
-We’ll add:
-1. Retry logic for a page read that fails with statement timeout:
-   - retry up to 2 times
-   - reduce pageSize on retry (e.g., 1000 → 300 → 100)
-2. If it still times out:
-   - record a warning: “Skipped table schema.table due to repeated timeouts”
-   - continue to next table
-   - keep export “done: true” but with warnings
+<clarifications / decisions>
+- Stay on Spaceship DNS for now. Move to Cloudflare only if you specifically want:
+  - WAF / bot protection
+  - Advanced redirects/rules
+  - CDN caching controls
+  - DDoS mitigation controls beyond defaults
 
-This is “fail open for export completeness, fail closed for correctness”: you’ll always get an export artifact + a precise list of what was skipped, rather than a hard stop.
+If later you choose Cloudflare:
+- You’d keep Spaceship as registrar, but change nameservers to Cloudflare and recreate DNS records there.
+</clarifications / decisions>
 
-Acceptance: export completes even if 1–2 tables are problematic, and you have a clear actionable warning list.
-</step>
+<what I need from you to proceed cleanly>
+1) Confirm: Is the Vercel project already set to serve a SPA (Vite) with output directory `dist`?
+2) Confirm: Do you want `thequantumclub.app` to be the primary domain, with `www` redirecting to it?
+3) If you can paste one URL that 404s on Vercel (e.g. `https://bytqc.com/auth`), I’ll tailor the rewrite rule to your exact structure (though the standard SPA rewrite will almost certainly solve it).
+</what I need from you to proceed cleanly>
 
-<step id="5" title="Make the UI show progress and surface warnings as first-class output">
-Update `src/pages/admin/AdminExports.tsx` UX:
-
-- While looping calls:
-  - show progress text: “Generating… table X/Y”
-  - show “Current exportId”
-- On completion:
-  - show a summary line: “N files, W warnings, expires in ~Xm”
-  - keep the “Download all SQL parts” button
-- On failure:
-  - show a more actionable error if the response is JSON (extract `.error` fields) rather than dumping raw text.
-
-Acceptance: the UI communicates what’s happening during multi-call exports, reduces perceived “hangs”, and makes warnings obvious.
-</step>
-
-<step id="6" title="Verification checklist (practical, no guesswork)">
-1. Start export on `/admin/exports`.
-2. Confirm we see backend logs identifying:
-   - ordering key choice per table
-   - keyset vs offset mode
-   - per-page timings
-3. Confirm export completes without statement timeouts on large tables.
-4. Spot-check:
-   - A known large table generates many parts without slowing down over time.
-   - Manifest includes warnings only when appropriate (no key, skipped, etc.).
-</step>
-</step-by-step implementation plan>
-
-<risk-management>
-- Keyset pagination requires a stable, monotonic ordering column. PK/unique keys qualify.
-- UUID ordering is lexicographic; it is stable and index-friendly. It may not reflect creation order, but export correctness does not require chronological order—only deterministic coverage.
-- Composite PK tables will be treated carefully (fallback mode + warnings). If you want perfect handling, we can extend keyset to composite keys later.
-</risk-management>
-
-<explicit-de-scope (keeps this reliable and shippable)>
-- We will not attempt perfect type fidelity for every PostgreSQL-specific type in SQL literals in this iteration (we keep your current safe JSON-string fallback).
-- We will not implement composite-key keyset pagination in v1 unless we find it’s required by your schema.
-- We will not change database statement_timeout settings globally; we’ll make queries fast enough to stay under limits.
-</explicit-de-scope>
-
-<acceptance-criteria>
-- “Generate data export (manifest)” completes reliably on a large (500k+ row) dataset.
-- No fatal “canceling statement due to statement timeout” interrupts the export.
-- If any tables cannot be exported, the manifest includes explicit warnings naming them and why.
-</acceptance-criteria>
+<de-scope (to keep this fast and safe)>
+- We are not changing application logic yet.
+- This is strictly deployment correctness: SPA rewrites + domain DNS pointing + env parity.
+</de-scope>
