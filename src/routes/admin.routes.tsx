@@ -53,6 +53,7 @@ const MarketplaceAnalytics = lazy(() => import("@/pages/admin/MarketplaceAnalyti
 const ExpenseTrackingPage = lazy(() => import("@/pages/admin/ExpenseTracking"));
 const ClosedJobs = lazy(() => import("@/pages/admin/ClosedJobs"));
 const RevenueLadderPage = lazy(() => import("@/pages/admin/RevenueLadderPage"));
+const AdminExports = lazy(() => import("@/pages/admin/AdminExports"));
 
 // Enterprise Management
 const EnterpriseDashboard = lazy(() => import("@/pages/admin/EnterpriseDashboard"));
@@ -788,5 +789,8 @@ export const adminRoutes = (
 
     {/* Archived Candidates */}
     <Route path="/archived-candidates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ArchivedCandidates /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* Hidden one-time exports (no navigation) */}
+    <Route path="/admin/exports" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AdminExports /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );
