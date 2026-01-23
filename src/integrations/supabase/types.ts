@@ -52564,6 +52564,21 @@ export type Database = {
         Args: { p_enabled: boolean; p_eta?: string; p_message?: string }
         Returns: boolean
       }
+      tqc__list_user_schemas: {
+        Args: never
+        Returns: {
+          schema_name: string
+        }[]
+      }
+      tqc__list_user_tables: {
+        Args: never
+        Returns: {
+          schema_name: string
+          table_name: string
+        }[]
+      }
+      tqc_generate_data_dump: { Args: never; Returns: string }
+      tqc_generate_schema_dump: { Args: never; Returns: string }
       track_share_link_view: { Args: { _token: string }; Returns: string }
       track_slot_view: {
         Args: {
