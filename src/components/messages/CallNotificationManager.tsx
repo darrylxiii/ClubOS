@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useCallSignaling } from "@/hooks/useCallSignaling";
 import { IncomingCallBanner } from "./IncomingCallBanner";
 import { notify } from "@/lib/notify";
-import { Database } from "@/integrations/supabase/types";
 
 interface CallNotificationManagerProps {
   conversationId?: string;

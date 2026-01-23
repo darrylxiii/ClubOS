@@ -17,7 +17,7 @@ import {
   WhitelistedIP
 } from '@/hooks/useSecurityConfig';
 import { formatDistanceToNow } from 'date-fns';
-import { Json } from '@/integrations/supabase/types';
+import type { Json } from '@/integrations/supabase/types';
 
 interface ThresholdConfig {
   attempts: number;

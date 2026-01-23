@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
-import { Database } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 
 type WorkflowRow = Database['public']['Tables']['communication_workflows']['Row'];
 type WorkflowInsert = Database['public']['Tables']['communication_workflows']['Insert'];
