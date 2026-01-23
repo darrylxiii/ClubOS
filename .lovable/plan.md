@@ -1,172 +1,153 @@
 
 <context>
-You now have `schema.sql` downloading successfully.
+You are on `/admin/exports`. `schema.sql` downloads, but the data export fails with:
 
-`data.sql` still fails with:
-- `{"error":"canceling statement due to statement timeout" ...}`
+{"error":"canceling statement due to statement timeout","code":"INTERNAL_ERROR",...}
 
-You also confirmed:
-- Export format preference: **Manifest + SQL parts (recommended)**
-- Export scope: **Full database (app tables)**
-- Expected size: **Large (500k+ rows)**
-
-This is the correct direction: a single monolithic `data.sql` generated inside the database will eventually hit timeouts and/or memory limits as the dataset grows. We should switch to a paged, resumable export that uploads parts to private storage and returns signed URLs (manifest).
+We already moved away from a single monolithic `tqc_generate_data_dump()` by implementing a chunked “manifest + SQL parts” approach in the backend function `data-dump`. That was the right direction, but we’re still hitting a database statement timeout inside one of the per-page table reads.
 </context>
 
-<root-cause step-by-step="true">
-1) The `/admin/exports` “Download data.sql” button currently calls the backend `data-dump` function.
-2) `data-dump` calls the database RPC `tqc_generate_data_dump()`.
-3) `tqc_generate_data_dump()` loops every table and runs (per table) something equivalent to:
-   - `SELECT string_agg(...) FROM <table>`
-4) For large tables this becomes a long-running statement that:
-   - scans a lot of rows,
-   - builds a huge text blob in memory,
-   - and frequently exceeds the database’s `statement_timeout`.
-5) Even if we raise timeouts, this approach remains fragile:
-   - response body becomes extremely large,
-   - browser `res.text()` loads everything into memory (risking a crash),
-   - and any transient hiccup ruins the entire export.
+<what-this-error-means>
+“canceling statement due to statement timeout” is coming from the database canceling a single SELECT query that runs too long. In our current `data-dump` implementation, that can still happen because:
 
-Therefore the fix is architectural: stop generating “all data” as one DB statement; instead export in chunks and store artifacts as files.
-</root-cause>
+1) We paginate using OFFSET/range (`.range(offset, offset + pageSize - 1)`).
+   - OFFSET pagination gets slower and slower as offset grows (the database still has to walk/skip the earlier rows).
+   - On tables with 500k+ rows, offsets like 200k/400k can cross the timeout threshold even with pageSize=1000.
+
+2) If the chosen order column is not indexed (or we fall back to `columns[0]`), `ORDER BY <non-indexed>` forces a big sort.
+   - Big sort + OFFSET is the worst-case combination.
+
+So, even though the export is chunked and resumable, the *query strategy* is still capable of timing out on large tables.
+</what-this-error-means>
+
+<goal>
+Make `/admin/exports` “Generate data export (manifest)” complete reliably for very large datasets by ensuring each page query is fast and index-friendly.
+</goal>
 
 <solution-overview>
-We will keep `schema.sql` as-is (it’s working and is relatively bounded), and replace the data export pipeline with a robust “manifest + SQL parts” system:
+We’ll replace offset-based pagination with index-friendly keyset pagination wherever possible, and we’ll stop guessing ordering from “first column”. Concretely:
 
-- Backend function `data-dump` will:
-  - enumerate tables,
-  - export rows in pages (e.g., 1,000 rows per page),
-  - write multiple `.sql` part files to a private storage bucket,
-  - and return a JSON manifest containing signed URLs + execution order.
-- Frontend `/admin/exports` will:
-  - call the backend function,
-  - download the manifest (and optionally auto-download all parts),
-  - and show clear “run order” instructions.
+- Determine each table’s best stable ordering key (prefer Primary Key, then a single-column unique index, then `id` if present).
+- Paginate with “last seen key” (keyset pagination) instead of OFFSET.
+- Keep OFFSET pagination only as a last-resort fallback, and treat those tables as “may be slow”; optionally export them with smaller page sizes or skip with a warning if they repeatedly time out.
 
-This eliminates database statement timeout and client memory issues.
+This is the holistic fix: it addresses the real cause (slow queries) instead of adding more retries/timeouts.
 </solution-overview>
 
-<implementation-plan>
-<phase id="1" name="Backend storage for admin exports">
-1. Create a dedicated private storage bucket: `admin-exports` (or reuse `data-room`, but `admin-exports` is cleaner).
-2. Add storage policies mirroring the existing `data-room` approach:
-   - Admins (and `super_admin` if that role exists) can INSERT/SELECT/DELETE objects in `admin-exports`.
-3. (Optional but recommended) Add a small retention policy mechanism later (e.g., auto-purge exports older than 7 days). For now we’ll use short-lived signed URLs and store in a predictable folder path.
+<step-by-step implementation plan>
+<step id="1" title="Inspect current data-dump behavior and identify which table/page is timing out">
+1. Add lightweight server-side instrumentation in `supabase/functions/data-dump/index.ts`:
+   - log: exportId, schema.table, chosen order key, pagination mode (keyset vs offset), pageSize, page number, elapsed ms.
+2. When you click “Generate data export (manifest)” again, we’ll read backend logs to see the exact table/page where the timeout occurs.
+   - This avoids guessing and lets us confirm the problematic table(s) and whether it’s offset growth or non-indexed order.
 
-Deliverable: a migration that inserts the bucket + policies (no destructive changes).
-</phase>
+Acceptance: we can point to a specific `schema.table` + page at failure.
+</step>
 
-<phase id="2" name="Replace data export generation with chunking + manifest">
-We will update `supabase/functions/data-dump/index.ts` (backend function) so it no longer calls `tqc_generate_data_dump()`.
+<step id="2" title="Add backend SQL helper(s) to discover primary key / stable ordering columns">
+Because the backend function can’t efficiently infer PK/indexes via PostgREST, we’ll add database helper functions (via migration) that safely read from pg_catalog and return metadata. For example:
 
-New behavior:
-1. Authenticate + `requireRole(['admin'])` (keep current security).
-2. Determine export job settings:
-   - `pageSize = 1000` rows
-   - `maxTablesPerRun = 5` (or time-based watchdog)
-   - signed URL expiry e.g. 1 hour (3600s)
-3. Get the table list:
-   - call the existing RPC `tqc__list_user_tables()` (already filters system schemas).
-   - (Optional optimization) also fetch `pg_stat_user_tables` row estimates via a small new SQL helper so we can skip empty tables quickly or prioritize big tables last.
-4. Export preamble (one small file):
-   - `BEGIN;`
-   - `ALTER TABLE ... DISABLE TRIGGER ALL;` for all user tables
-   - `-- metadata` (timestamp, pageSize, etc.)
-5. For each table (bounded by watchdog):
-   - Export in pages:
-     - fetch rows 0..999, 1000..1999, etc.
-     - use deterministic ordering:
-       - prefer `order('id')` if `id` exists
-       - otherwise `order(<first_column>)`
-       - fallback: no order but warn in manifest (still works, but less stable)
-   - Convert each row into SQL INSERT statements:
-     - Use proper literal escaping (quotes, newlines)
-     - Preserve `NULL` vs strings
-     - Prefer `INSERT INTO schema.table (col1, ...) VALUES (...);`
-     - (If identity columns exist) keep `OVERRIDING SYSTEM VALUE` like you had before
-   - Write each page to a separate file:
-     - `admin-exports/sql/<timestamp>/<schema>.<table>/part-0001.sql`
-     - This keeps each artifact small and avoids memory spikes.
-6. Export epilogue (one small file):
-   - `ALTER TABLE ... ENABLE TRIGGER ALL;`
-   - `COMMIT;`
-7. Generate signed URLs for all produced files and return a manifest JSON:
-   - `manifest.json` includes:
-     - export id
-     - created_at
-     - list of files in the exact order to run:
-       1) `schema.sql` (already downloaded separately)
-       2) `data-preamble.sql`
-       3) `table parts...`
-       4) `data-epilogue.sql`
-     - warnings (if any tables had no stable ordering)
-     - counts (tables exported, parts generated)
-8. Timeout safety:
-   - Implement a 50–55s watchdog inside the backend function.
-   - If we run out of time:
-     - return a *partial* manifest + a `resumeCursor` telling the UI what table/page to continue from.
-   - The UI can call the same backend function again with `resumeCursor` until complete, then it finalizes a single manifest.
+- `public.tqc__table_ordering_key(p_schema text, p_table text)`
+  - returns: `{ key_columns text[], strategy text }`
+  - strategy example: `primary_key`, `unique_index`, `id_column`, `none`
 
-This design is resilient under:
-- large row counts,
-- large number of tables,
-- strict statement timeouts,
-- browser memory constraints.
-</phase>
+- `public.tqc__table_columns(p_schema text, p_table text)`
+  - returns: ordered list of columns so we don’t rely on “sample row keys” (which fails for empty tables and can reorder unpredictably).
 
-<phase id="3" name="Update /admin/exports UI to handle manifest exports">
-Update `src/pages/admin/AdminExports.tsx`:
+Security posture:
+- These functions are read-only.
+- Mark them `SECURITY DEFINER` and only expose them to admin/service-role paths we already use for exports.
+- Keep schema allowlisting (only application schemas) consistent with your earlier fixes.
 
-1. Keep “Download schema.sql” as it is (plain text download).
-2. Change “Download data.sql” to “Generate data export” and implement:
-   - Call backend `data-dump` and parse JSON (not `res.text()`).
-   - Show a small progress state:
-     - “Generating… (batch 1/…)”
-     - (If resumable) automatically call follow-up batches until complete.
-   - When complete:
-     - Automatically download `manifest.json`
-     - Provide a “Download all parts” button that downloads each signed URL sequentially (with small delays to avoid browser popup blockers).
-     - Display minimal instructions:
-       - “Run schema.sql first”
-       - “Then run files in manifest order”
-       - “Signed URLs expire in X minutes”
+Acceptance: from the backend function we can reliably fetch the ordering key and columns for each table.
+</step>
 
-This makes the button “work” even on very large datasets without freezing the browser.
-</phase>
+<step id="3" title="Upgrade data-dump pagination to keyset (fast for 500k+ rows)">
+Modify `supabase/functions/data-dump/index.ts`:
 
-<phase id="4" name="Verification checklist (end-to-end)">
-1. Open `/admin/exports`.
-2. Click “Download schema.sql”:
-   - must download, non-empty.
-3. Click “Generate data export”:
-   - should succeed without statement timeouts.
-   - should download `manifest.json`.
-   - should provide signed URLs (openable in browser).
+A) Change ResumeCursor to support keyset:
+- Current: `{ tableIndex, offset }`
+- New: `{ tableIndex, mode: 'keyset'|'offset', lastKey?: string|number|null, offset?: number }`
+  - For now we’ll support single-column keysets (most tables). Composite PKs can fall back to offset with warnings.
+
+B) For tables with a single stable key (PK/unique/id):
+- Query:
+  - first page: `.order(key).limit(pageSize)`
+  - next pages: `.gt(key, lastKey).order(key).limit(pageSize)`
+- Track `lastKey` from the last row of each page.
+
+C) For tables without a usable key:
+- Fallback to offset pagination but:
+  - use smaller page sizes (e.g. 200)
+  - add explicit warning in manifest (“non-keyset table; may be slower”)
+  - add retry-on-timeout (see next step)
+
+Why this works:
+- Keyset queries stay O(pageSize) instead of getting slower with big offsets.
+- The database can use an index on the key (PK/unique) and avoid huge sorts.
+
+Acceptance: export proceeds through very large tables without query slowdown over time.
+</step>
+
+<step id="4" title="Add automatic timeout-aware retries and a “skip table” safety valve">
+Even with keyset, a few tables can be pathological (wide rows, heavy RLS/view complexity, missing indexes).
+
+We’ll add:
+1. Retry logic for a page read that fails with statement timeout:
+   - retry up to 2 times
+   - reduce pageSize on retry (e.g., 1000 → 300 → 100)
+2. If it still times out:
+   - record a warning: “Skipped table schema.table due to repeated timeouts”
+   - continue to next table
+   - keep export “done: true” but with warnings
+
+This is “fail open for export completeness, fail closed for correctness”: you’ll always get an export artifact + a precise list of what was skipped, rather than a hard stop.
+
+Acceptance: export completes even if 1–2 tables are problematic, and you have a clear actionable warning list.
+</step>
+
+<step id="5" title="Make the UI show progress and surface warnings as first-class output">
+Update `src/pages/admin/AdminExports.tsx` UX:
+
+- While looping calls:
+  - show progress text: “Generating… table X/Y”
+  - show “Current exportId”
+- On completion:
+  - show a summary line: “N files, W warnings, expires in ~Xm”
+  - keep the “Download all SQL parts” button
+- On failure:
+  - show a more actionable error if the response is JSON (extract `.error` fields) rather than dumping raw text.
+
+Acceptance: the UI communicates what’s happening during multi-call exports, reduces perceived “hangs”, and makes warnings obvious.
+</step>
+
+<step id="6" title="Verification checklist (practical, no guesswork)">
+1. Start export on `/admin/exports`.
+2. Confirm we see backend logs identifying:
+   - ordering key choice per table
+   - keyset vs offset mode
+   - per-page timings
+3. Confirm export completes without statement timeouts on large tables.
 4. Spot-check:
-   - at least one large table produces multiple parts.
-   - empty tables produce either no part or a small “-- (no rows)” file quickly.
-5. Optional import test (best practice):
-   - Run schema.sql into an empty database
-   - Run data export parts in manifest order
-   - Validate row counts for a few critical tables.
+   - A known large table generates many parts without slowing down over time.
+   - Manifest includes warnings only when appropriate (no key, skipped, etc.).
+</step>
+</step-by-step implementation plan>
 
-If anything still times out, the watchdog/batching knobs to tune are:
-- `maxTablesPerRun` (lower it)
-- `pageSize` (lower it)
-- add “skip empty tables” optimization (using `pg_stat_user_tables`)
-</phase>
-</implementation-plan>
+<risk-management>
+- Keyset pagination requires a stable, monotonic ordering column. PK/unique keys qualify.
+- UUID ordering is lexicographic; it is stable and index-friendly. It may not reflect creation order, but export correctness does not require chronological order—only deterministic coverage.
+- Composite PK tables will be treated carefully (fallback mode + warnings). If you want perfect handling, we can extend keyset to composite keys later.
+</risk-management>
 
-<notes>
-- We will NOT try to “just increase timeouts” because that’s a brittle fix and will still break for larger dumps and/or crash the browser.
-- This aligns with your enterprise posture: privacy-first, reliable, and audit-friendly.
-- Security: exports remain private, access is via short-lived signed URLs, and generation is admin-gated server-side.
-</notes>
+<explicit-de-scope (keeps this reliable and shippable)>
+- We will not attempt perfect type fidelity for every PostgreSQL-specific type in SQL literals in this iteration (we keep your current safe JSON-string fallback).
+- We will not implement composite-key keyset pagination in v1 unless we find it’s required by your schema.
+- We will not change database statement_timeout settings globally; we’ll make queries fast enough to stay under limits.
+</explicit-de-scope>
 
 <acceptance-criteria>
-- `/admin/exports` data export no longer triggers:
-  - “canceling statement due to statement timeout”
-  - “cannot pass more than 100 arguments”
-- Data export succeeds for large datasets by producing a manifest + multiple SQL part files.
-- No secrets exposed client-side; only signed URLs returned.
+- “Generate data export (manifest)” completes reliably on a large (500k+ row) dataset.
+- No fatal “canceling statement due to statement timeout” interrupts the export.
+- If any tables cannot be exported, the manifest includes explicit warnings naming them and why.
 </acceptance-criteria>
