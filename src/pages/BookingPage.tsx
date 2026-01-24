@@ -82,14 +82,31 @@ export default function BookingPage() {
 
   const loadBookingLink = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('get-booking-page', {
+      const response = await supabase.functions.invoke('get-booking-page', {
         body: { slug },
       });
 
-      if (error) throw error;
+      // Handle edge function errors
+      if (response.error) {
+        console.error("Edge function error:", response.error);
+        toast.error('Failed to load booking page');
+        setLoading(false);
+        return;
+      }
+
+      const data = response.data;
+      
+      // Check if we got error in the response body
+      if (data?.error) {
+        console.error("Booking page error:", data.error);
+        toast.error(data.error === 'Booking link not found' ? 'Booking link not found' : 'Failed to load booking page');
+        setLoading(false);
+        return;
+      }
+
       if (!data?.bookingLink) {
         toast.error('Booking link not found');
-        navigate('/');
+        setLoading(false);
         return;
       }
 
@@ -100,7 +117,6 @@ export default function BookingPage() {
     } catch (error: any) {
       console.error("Error loading booking link:", error);
       toast.error("Failed to load booking page");
-      navigate("/");
     } finally {
       setLoading(false);
     }
