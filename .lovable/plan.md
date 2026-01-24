@@ -1,195 +1,132 @@
 
 <context>
-You confirmed:
-- Booking pages are working again.
-- Google Calendar is the provider.
-- The connect flow “succeeds” but Scheduling still says it’s not connected.
-- Canonical domain for booking + OAuth redirects is bytqc.com (Vercel).
-- Calendar connections should be per-host (per booking link owner).
-You also want a full audit of all API keys/secrets to see what is configured and what is actually working.
+You’re seeing: “Failed to load available times: Failed to send a request to the Edge Function” when visiting `/book/darryl`.
+
+Key observations gathered:
+- It fails on both Vercel and Lovable domains.
+- `/scheduling` works (and doesn’t call the availability function), but public `/book/:slug` fails.
+- The backend function `get-available-slots` is configured as public (`verify_jwt = false`) in `supabase/config.toml`.
+- A direct backend invocation of `get-available-slots` succeeds (HTTP 200) and returns JSON. So the function is deployed and reachable from the backend side; the failure is browser-side (request not successfully made or blocked).
 </context>
 
-<what-I-found (root causes + current state)>
-1) There are two different “calendar connection” implementations in the codebase:
-   A) New/real implementation (correct):
-   - /settings → ConnectionsSettings
-   - On OAuth callback it inserts a row into database table calendar_connections (provider/email/access_token/refresh_token/token_expires_at/is_active)
-   - Scheduling reads from calendar_connections and will only show “connected” if rows exist.
+<likely-root-cause>
+Because the function works when called directly, the error is almost certainly a browser-level fetch failure that `supabase.functions.invoke()` surfaces as “Failed to send a request…”. The most common causes in this situation are:
+1) CORS/preflight failing (often because the request is getting rejected before your function code runs, which means no CORS headers are returned)
+2) A service worker / PWA caching layer interfering with calls to `/functions/v1/*` (stale cache, blocked fetch, offline fallback)
+3) Environment mismatch where the browser is using a wrong backend URL (less likely because authenticated pages work, but we will confirm on the booking page specifically)
+4) Client-side request timeout / aborted fetch (less likely but we will add explicit timeouts + retries and make errors actionable)
 
-   B) Legacy implementation (incorrect / misleading):
-   - /user-settings → UserSettings page
-   - On OAuth callback it saves “connected calendars” only to localStorage (not the database)
-   - Scheduling cannot see localStorage, so it keeps showing “No calendar connected”.
-   - This matches your symptom: “Connect but not shown”.
+Given the evidence (public route only, and the function works from backend), the plan focuses on making public booking availability calls:
+- observable (we can see exactly which URL it tries to hit and the response status)
+- resilient (retries + timeouts)
+- immune to service worker issues (exclude functions calls from SW caching)
+</likely-root-cause>
 
-2) Your backend secrets already include the key pairs needed for Google and Microsoft OAuth:
-- GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are present.
-So this is not primarily an “API keys missing” problem; it’s primarily “wrong connection flow / data not saved where Scheduling expects”.
+<scope>
+Fix: Public booking page availability loading for `/book/:slug`.
+Non-goals: Reworking the scheduling product, changing database schema, or changing calendar logic in `get-available-slots` unless logs show a server-side issue.
+</scope>
 
-3) Your database currently has active Google calendar connections (3 rows, all is_active=true, error_count=0). That means at least one connection flow has worked historically. If your specific user still sees “not connected”, it’s likely they connected using the legacy /user-settings flow or they’re logged in as a different account than the one that owns those 3 connections.
-
-4) Because your canonical domain is now bytqc.com, Google OAuth must allow redirect URIs for bytqc.com (and whichever callback path we use). If a user tries to connect from a domain not listed in Google’s allowed redirect URIs, it will fail with redirect_uri_mismatch (you’d usually see an explicit error). You’re not seeing that, but we’ll still treat domain parity as a must-have in the audit.
-</what-I-found>
-
-<goals>
-A) Fix Google Calendar connection so that when you connect it, Scheduling reliably shows it as connected and availability uses it.
-B) Remove/retire the legacy calendar connection path so we don’t “lose” connections into localStorage again.
-C) Add an “Integrations / API Keys Health” audit surface that tells you:
-   - Which integrations are configured (secret exists)
-   - Which are actually functioning (recent successful call, token refresh, or provider ping)
-   - What needs attention (missing secret, invalid key, OAuth redirect mismatch, token revoked, etc.)
-D) Keep this privacy-first: never expose secret values; only show status and last check timestamps.
-</goals>
-
-<plan-overview>
-We will deliver this in two tracks:
-1) Calendar connection correctness (user-facing fix)
-2) Integration health audit (admin-facing diagnostics)
-</plan-overview>
-
-<track-1-calendar-fix>
-<step id="1" title="Make /user-settings stop being a trap for calendar connections">
-- Audit routing/navigation to see who links to /user-settings.
-- Implement one of these (preferred first):
-  Option A (preferred): Redirect /user-settings → /settings (preserving query params), so OAuth callbacks land on the page that actually writes to calendar_connections.
-  Option B: Keep /user-settings but update its OAuth callback handler to use the same DB insert logic as ConnectionsSettings (calendar_connections), and then remove localStorage storage for calendars.
+<implementation-plan>
+<phase id="1" name="Reproduce + capture the real browser failure (no guesswork)">
+1. Add diagnostic logging (dev-only) in `UnifiedDateTimeSelector.tsx` around the `supabase.functions.invoke("get-available-slots")` call:
+   - log the resolved backend URL (from `import.meta.env.VITE_SUPABASE_URL`)
+   - log whether we have a publishable key present
+   - log the exact payload sent
+   - when errors occur, log:
+     - error name/type (FunctionsHttpError vs fetch error)
+     - error message
+     - any status code/body if available
+2. Add a “debug hint” in the toast for public booking pages:
+   - “Availability service unreachable. Please refresh. If it persists, contact support.”
+   - (In admin/dev mode, include a short code like AVAIL_NET_01 so we can correlate logs.)
 
 Acceptance criteria:
-- After connecting Google Calendar, Scheduling shows “Calendar Connected” immediately.
-- No future connections are stored only in localStorage.
-</step>
+- When the issue happens, we can definitively see whether it’s:
+  - a CORS block
+  - a network error
+  - an auth preflight failure
+  - a wrong URL / missing env
+  - a service worker interception
+</phase>
 
-<step id="2" title="Add a safe migration path for anyone who previously connected via /user-settings">
-- Detect “legacy connected calendars” in localStorage (connected_calendars) when the user visits /settings or /scheduling.
-- Show a discreet banner: “We found a legacy calendar connection on this device. Reconnect to enable conflict checking.”
-- Provide a single CTA that starts the proper /settings connection flow (not an auto-migration, because localStorage lacks refresh_token and we must avoid fabricating credentials).
+<phase id="2" name="Make availability calls robust (timeouts + retries + fallback transport)">
+1. Implement a small helper (e.g. `src/services/availability.ts`) for public availability calls:
+   - primary attempt: `supabase.functions.invoke("get-available-slots")`
+   - if it fails with a network-level error:
+     - fallback: direct `fetch(`${VITE_SUPABASE_URL}/functions/v1/get-available-slots`)` using headers:
+       - `Content-Type: application/json`
+       - `apikey: VITE_SUPABASE_PUBLISHABLE_KEY`
+       - (No Authorization for public booking pages)
+   - wrap both with:
+     - 5s timeout via `AbortController`
+     - retry (2 attempts) with small jitter (e.g. 250ms then 750ms)
+2. Replace the direct invoke usage in `UnifiedDateTimeSelector` (and any other booking-time availability checks) to use the helper.
 
-Acceptance criteria:
-- Users who “thought they were connected” get a clear recovery path without confusion.
-</step>
-
-<step id="3" title="Ensure Scheduling checks the right host calendar for each booking link">
-- Confirm booking link ownership mapping: booking_links.user_id should be the host’s user id.
-- Confirm get-available-slots uses that host user_id when fetching calendar_connections.
-- If any code currently uses the logged-in viewer’s user id instead of the booking link owner (common bug in public booking pages), correct it.
-
-Acceptance criteria:
-- /book/:slug checks conflicts against the booking link owner’s connected Google Calendar.
-</step>
-
-<step id="4" title="Tighten UX: show the exact reason a calendar isn’t considered connected">
-In Scheduling and Connections:
-- If calendar_connections has rows but is_active=false, show “Disconnected (token revoked). Reconnect.”
-- If rows exist but token_expires_at is past and refresh failed, show “Token expired. Reconnect.”
-- If no rows exist, show “No calendar connected.”
+Why this helps:
+- If `supabase-js` is failing in some browser context, the fallback transport often still works.
+- If the issue is transient (edge POP hiccup), retries recover instantly.
+- We get consistent, richer error handling.
 
 Acceptance criteria:
-- The app never silently fails; it always shows the “why” and one next best action.
-</step>
+- `/book/darryl` reliably loads times (or shows “No available times” if that is the truth), without “Failed to send request”.
+- If the backend is actually unreachable, users see a clean message and we log a clear failure reason.
+</phase>
 
-<step id="5" title="Domain correctness for OAuth (bytqc.com canonical)">
-- Ensure the redirectUri used for calendar auth is exactly:
-  - https://bytqc.com/settings (production)
-  - plus any preview/staging domains you still use for testing, if applicable
-- Provide a checklist inside the app (admin-only) that prints the exact redirect URIs your app will request (without guessing).
-
-Acceptance criteria:
-- Connecting on bytqc.com works consistently for all users.
-</step>
-</track-1-calendar-fix>
-
-<track-2-integration-health-audit>
-<step id="6" title="Inventory: produce a formal Integration Matrix from secrets + code usage">
-We will generate an internal “integration registry” (in code) listing:
-- Integration name (Google Calendar, Microsoft Calendar, Email, SMS, LiveKit, Stripe, ElevenLabs, PostHog, reCAPTCHA, etc.)
-- Required secrets (names only)
-- Where it’s used (backend function(s) / frontend module)
-- What a “health check” means (e.g., token refresh + /userinfo for Google, send test email for email provider, etc.)
-- Whether it is user-scoped (OAuth tokens in DB) or system-scoped (single API key)
-
-Output surfaces:
-- Admin diagnostics page: “Integrations Health”
-- Optional: a markdown doc inside repo for maintainers
+<phase id="3" name="Prevent PWA/service worker from interfering with /functions/v1 calls">
+1. Inspect the current PWA configuration (Vite PWA / Workbox settings) and confirm whether runtime caching includes `*/functions/v1/*`.
+2. Update the service worker config to explicitly:
+   - NetworkOnly for `**/functions/v1/**` (do not cache)
+   - or exclude that pattern from runtime caching routes entirely
+3. Add a one-time “SW cache bust” strategy (if needed):
+   - bump SW version
+   - ensure clients activate the new SW quickly
 
 Acceptance criteria:
-- One place answers “what do we use, where, and what needs to be configured”.
-</step>
+- Availability calls are not cached/offlined by the service worker.
+- Redeploys don’t create “stale booking pages” or broken availability calls.
+</phase>
 
-<step id="7" title="Build an admin-only healthcheck backend function">
-Create a backend function (admin-protected) that returns a status report per integration:
-- configured: boolean (secret exists)
-- last_success_at / last_error_at
-- current_status: ok | degraded | failing | not_configured
-- actionable_message (human readable, calm tone)
-- for user-scoped integrations (calendar/email OAuth): counts of active connections and counts of inactive/revoked
-
-Checks (non-destructive):
-- Google Calendar: sample 1–3 recent active connections → attempt refresh if needed → call a lightweight endpoint (userinfo or calendarList with maxResults=1) → record ok/error.
-- Microsoft Calendar: similar lightweight /me or calendar list.
-- Resend/email provider: do not send email by default; instead validate key presence + optionally offer “Send test email” button that requires confirmation.
-- Twilio: validate key presence + optionally “Send test SMS” button requiring explicit target number and confirmation.
-- LiveKit: validate key presence + optionally mint a token (no external call needed).
-- Stripe: validate key presence + optionally fetch account info via server-side call (safe).
-- PostHog: frontend-only; validate env presence and optionally call /decide endpoint.
-- reCAPTCHA: detect currently disabled mismatch and show remediation steps.
+<phase id="4" name="Backend-side hardening (only if logs indicate it)">
+If browser logs show calls reach the function but return error:
+1. Add structured logging inside `get-available-slots` for:
+   - input validation failures
+   - booking link lookup
+   - calendar_connections count
+   - internal calendar API invocation errors (google-calendar-events)
+2. Ensure every response path returns JSON + CORS headers (already mostly true, but we confirm every early return).
 
 Acceptance criteria:
-- One click gives a truthful readout: configured vs actually working.
-- No secrets are exposed in responses.
-</step>
+- If anything fails server-side, the browser receives a real JSON error (not a blocked response), and we can see the exact failure in backend logs.
+</phase>
+</implementation-plan>
 
-<step id="8" title="Add an ‘Integrations Health’ admin UI in-app">
-- New page under Settings (Admin-only): /settings/integrations-health
-- Table view with:
-  - Integration
-  - Status badge (Ok/Degraded/Failing/Not configured)
-  - “Details” drawer: last error snippet, what to fix, link to connect flow (for calendar)
-  - Actions:
-    - “Run checks”
-    - “Reconnect Google Calendar” (deep link to /settings with the correct tab)
-    - Optional: “Send test email/SMS” (guarded)
+<testing-plan>
+1. Public test:
+   - open `/book/darryl` in an incognito window
+   - verify month availability indicators load
+   - select a date -> time slots load without errors
+2. Regression:
+   - ensure `/scheduling` still works and doesn’t slow down
+3. Cross-domain:
+   - verify on both bytqc.com and the Lovable published domain
+4. Network resilience:
+   - simulate slow network (or just rely on timeout) and confirm retries/fallback behave and don’t spam the UI
+</testing-plan>
 
-Acceptance criteria:
-- You can diagnose 90% of integration issues without logs.
-- Fits TQC luxury/discreet UI standards (minimal, precise, no clutter).
-</step>
+<notes-on-your-question-about-creating-booking-links>
+Your “Calendly-like” booking link builder is `/scheduling`.
+That page already includes a “New Booking Link” button and stores records in `booking_links` which power `/book/:slug`.
 
-<step id="9" title="Logging + audit trail (privacy-first)">
-- Record each health check run in audit_logs:
-  - who ran it, when, which integration, result, error code (no secrets)
-- If an integration fails due to token revoked/invalid_grant, mark the relevant calendar_connection is_active=false with last_error, token_expired_at.
+If you want a more discoverable entry point later, we can add:
+- a prominent “Create booking link” CTA in the main sidebar header or command palette
+- a dedicated “Booking Links” section inside Settings
+(Out of scope for the immediate availability failure fix.)
+</notes-on-your-question-about-creating-booking-links>
 
-Acceptance criteria:
-- You have an audit trail suitable for enterprise operations.
-</step>
-</track-2-integration-health-audit>
-
-<testing-and-verification>
-We will verify end-to-end on bytqc.com:
-1) Login as a host user.
-2) Go to /settings → connect Google Calendar.
-3) Confirm a row appears in calendar_connections for that user (is_active=true).
-4) Go to /scheduling → CalendarConnectionStatus shows connected.
-5) Open /book/:slug for that host → available slots reflect real agenda conflicts (no double-bookings).
-6) Run Integrations Health check → Google Calendar shows OK with a recent timestamp.
-</testing-and-verification>
-
-<risks-and-mitigations>
-- Risk: Some users still rely on /user-settings for other settings.
-  Mitigation: redirect only calendar-related flows first, or keep /user-settings but remove calendar section and point to /settings.
-- Risk: OAuth redirect mismatch for bytqc.com.
-  Mitigation: diagnostics page shows exact redirect URI strings and error guidance; we standardize to /settings for calendar callback.
-- Risk: RLS blocks reading calendar_connections.
-  Mitigation: verify RLS policies for calendar_connections allow authenticated users to select their own rows; ensure admin diagnostics uses server-side permissions safely.
-</risks-and-mitigations>
-
-<what-I-need-from-you (minimal)>
-Nothing else required right now; you already answered the key questions (provider, where it breaks, canonical domain, per-host model). During implementation, I may ask for:
-- One host account email that you expect to be connected (to compare with calendar_connections rows), but only if needed for debugging.
-</what-I-need-from-you>
-
-<de-scope (to keep this controlled)>
-- No new calendar providers (Google only for this fix).
-- No new scheduling UX features beyond connection reliability + diagnostics.
-- No sending real test emails/SMS unless you explicitly trigger it from the admin UI.
-</de-scope>
+<expected-outcome>
+After these changes:
+- Public booking pages will stop failing with “Failed to send a request…”
+- When availability truly can’t be fetched, the UI will degrade gracefully and we’ll have definitive logs to fix any deeper cause.
+- No service worker caching surprises for booking availability.
+</expected-outcome>
