@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Clock, Calendar as CalendarIcon, Loader2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
-import { normalizeTimeFormat } from "@/lib/timezoneUtils";
+import { formatInTimeZone } from "date-fns-tz";
 import { motion, AnimatePresence } from "framer-motion";
 import { TimezoneWarning } from "@/components/booking/TimezoneWarning";
 import { logger } from "@/lib/logger";
@@ -17,7 +17,6 @@ import { getAvailableSlots } from "@/services/availability";
 interface TimeSlot {
   start: string;
   end: string;
-  date: string;
 }
 
 interface AvailabilityInfo {
@@ -33,7 +32,7 @@ interface UnifiedDateTimeSelectorProps {
     user_id: string;
     duration_minutes: number;
   };
-  onDateTimeSelected: (date: Date, time: string) => void;
+  onDateTimeSelected: (date: Date, slot: TimeSlot) => void;
   hostTimezone?: string;
 }
 
@@ -66,23 +65,37 @@ export function UnifiedDateTimeSelector({
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
 
-      if (data?.slots) {
-        // Count slots per date
-        const slotsByDate = new Map<string, number>();
+      const newAvailabilityMap = new Map<string, AvailabilityInfo>();
 
-        data.slots.forEach((slot: any) => {
-          if (typeof slot === 'string' && slot.includes(' - ')) {
-            const [_, dateStr] = slot.split(" - ");
-            slotsByDate.set(dateStr, (slotsByDate.get(dateStr) || 0) + 1);
-          }
+      // Prefer backend-provided summary when available.
+      if (Array.isArray((data as any)?.availabilitySummary)) {
+        (data as any).availabilitySummary.forEach((s: any) => {
+          if (!s?.date || typeof s.date !== 'string') return;
+          const count = typeof s.count === 'number' ? s.count : 0;
+          const status = (s.status as AvailabilityInfo['status']) || 'none';
+          newAvailabilityMap.set(s.date, {
+            date: new Date(s.date),
+            slotCount: count,
+            status,
+          });
         });
+        setAvailabilityMap(newAvailabilityMap);
+        return;
+      }
 
-        // Create availability map with status
-        const newAvailabilityMap = new Map<string, AvailabilityInfo>();
+      // Fallback: derive by date from slot objects.
+      if (Array.isArray((data as any)?.slots)) {
+        const slotsByDate = new Map<string, number>();
+        (data as any).slots.forEach((slot: any) => {
+          if (!slot || typeof slot !== 'object') return;
+          if (typeof slot.start !== 'string') return;
+          const dateStr = slot.start.split('T')[0];
+          if (!dateStr) return;
+          slotsByDate.set(dateStr, (slotsByDate.get(dateStr) || 0) + 1);
+        });
 
         slotsByDate.forEach((count, dateStr) => {
           let status: 'many' | 'few' | 'limited' | 'none';
-
           if (count >= 10) status = 'many';
           else if (count >= 4) status = 'few';
           else if (count >= 1) status = 'limited';
@@ -91,7 +104,7 @@ export function UnifiedDateTimeSelector({
           newAvailabilityMap.set(dateStr, {
             date: new Date(dateStr),
             slotCount: count,
-            status
+            status,
           });
         });
 
@@ -200,17 +213,15 @@ export function UnifiedDateTimeSelector({
     setSelectedSlot(slot);
     trackSlotView(slot.start);
     trackStep("time_select");
-    // Normalize time to 12-hour AM/PM format for BookingForm
-    const normalizedTime = normalizeTimeFormat(slot.start);
-    onDateTimeSelected(selectedDate!, normalizedTime);
+    onDateTimeSelected(selectedDate!, slot);
   };
 
-  const formatTimeOnly = (time: string) => {
+  const formatTimeOnly = (isoStart: string) => {
     try {
-      return normalizeTimeFormat(time);
+      return formatInTimeZone(isoStart, guestTimezone, 'h:mm a');
     } catch (error) {
-      logger.error('Error formatting time', error as Error, { componentName: 'UnifiedDateTimeSelector', time });
-      return time;
+      logger.error('Error formatting time', error as Error, { componentName: 'UnifiedDateTimeSelector', isoStart });
+      return isoStart;
     }
   };
 
