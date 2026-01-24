@@ -17,6 +17,8 @@ import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import confetti from 'canvas-confetti';
+import { formatInTimeZone } from "date-fns-tz";
+import { getAvailableSlots } from "@/services/availability";
 
 interface BookingLink {
   id: string;
@@ -35,12 +37,19 @@ interface BookingLink {
   allow_guest_platform_choice?: boolean;
   available_platforms?: string[];
   video_platform?: string;
+  host_display_mode?: 'full' | 'discreet' | 'avatar_only' | 'name_only';
 }
 
 interface Profile {
   full_name: string | null;
   avatar_url: string | null;
   work_timezone: string | null;
+  display_mode?: 'full' | 'discreet' | 'avatar_only' | 'name_only';
+}
+
+interface SelectedSlot {
+  start: string;
+  end: string;
 }
 
 type BookingStep = "datetime" | "details" | "confirmation";
@@ -55,7 +64,7 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<BookingStep>("datetime");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [timezone, setTimezone] = useState<string>(
     Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -73,45 +82,21 @@ export default function BookingPage() {
 
   const loadBookingLink = async () => {
     try {
-      const { data: linkData, error: linkError } = await supabase
-        .from("booking_links")
-        .select("*")
-        .eq("slug", slug)
-        .eq("is_active", true)
-        .single();
+      const { data, error } = await supabase.functions.invoke('get-booking-page', {
+        body: { slug },
+      });
 
-      if (linkError) throw linkError;
-
-      if (!linkData) {
-        toast.error("Booking link not found");
-        navigate("/");
+      if (error) throw error;
+      if (!data?.bookingLink) {
+        toast.error('Booking link not found');
+        navigate('/');
         return;
       }
 
-      setBookingLink(linkData);
-
-      // Load profile with timezone
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("full_name, avatar_url, work_timezone")
-        .eq("id", linkData.user_id)
-        .single();
-
-      if (!profileError && profileData) {
-        setProfile(profileData);
-        setHostTimezone(profileData.work_timezone);
-      }
-
-      // Check if host has Google Calendar connected
-      const { data: calendarData } = await supabase
-        .from("calendar_connections")
-        .select("id")
-        .eq("user_id", linkData.user_id)
-        .eq("provider", "google")
-        .eq("is_active", true)
-        .limit(1);
-
-      setHasGoogleCalendar(!!calendarData && calendarData.length > 0);
+      setBookingLink(data.bookingLink as BookingLink);
+      setProfile((data.host ?? null) as Profile | null);
+      setHostTimezone((data.host?.work_timezone ?? null) as string | null);
+      setHasGoogleCalendar(!!data.hasGoogleCalendar);
     } catch (error: any) {
       console.error("Error loading booking link:", error);
       toast.error("Failed to load booking page");
@@ -121,9 +106,31 @@ export default function BookingPage() {
     }
   };
 
-  const handleDateTimeSelect = (date: Date, time: string) => {
+  const resolveSlotFromLabel = async (date: Date, timeLabel: string) => {
+    const dateStr = date.toISOString().split('T')[0];
+    if (!dateStr) return null;
+
+    const data = await getAvailableSlots({
+      bookingLinkSlug: slug || '',
+      dateRange: { start: dateStr, end: dateStr },
+      timezone,
+    });
+
+    const slots = Array.isArray((data as any)?.slots) ? (data as any).slots : [];
+    const match = slots.find((s: any) => {
+      if (!s || typeof s !== 'object') return false;
+      if (typeof s.start !== 'string') return false;
+      const label = formatInTimeZone(s.start, timezone, 'h:mm a');
+      return label === timeLabel;
+    });
+
+    if (!match) return null;
+    return { start: match.start as string, end: match.end as string } as SelectedSlot;
+  };
+
+  const handleDateTimeSelect = (date: Date, slot: SelectedSlot) => {
     setSelectedDate(date);
-    setSelectedTime(time);
+    setSelectedSlot(slot);
     setStep("details");
   };
 
@@ -143,7 +150,7 @@ export default function BookingPage() {
   const handleBack = () => {
     if (step === "details") {
       setStep("datetime");
-      setSelectedTime(null);
+      setSelectedSlot(null);
     }
   };
 
@@ -173,7 +180,7 @@ export default function BookingPage() {
               <AvatarImage src={profile?.avatar_url || ""} />
               <AvatarFallback>{profile?.full_name?.[0] || "Q"}</AvatarFallback>
             </Avatar>
-            <h1 className="text-3xl font-bold mb-2">{profile?.full_name || "Quantum Club Member"}</h1>
+            <h1 className="text-3xl font-bold mb-2">{profile?.full_name || "The Quantum Club"}</h1>
           </div>
 
           <Card className="mx-auto" style={{ borderTopColor: bookingLink.color, borderTopWidth: 4 }}>
@@ -201,9 +208,11 @@ export default function BookingPage() {
                         })}
                       </span>
                     )}
-                    {selectedTime && (
+                    {selectedSlot && (
                       <span className="font-medium text-foreground">
-                        {selectedTime}
+                        {selectedSlot
+                          ? formatInTimeZone(selectedSlot.start, timezone, 'h:mm a')
+                          : null}
                       </span>
                     )}
                   </div>
@@ -242,11 +251,20 @@ export default function BookingPage() {
                     {showAIAssistant ? (
                       <AIBookingAssistant
                         bookingLink={bookingLink}
-                        onBookingScheduled={(date, time) => {
-                          setSelectedDate(date);
-                          setSelectedTime(time);
-                          setStep("details");
-                          setShowAIAssistant(false);
+                        onBookingScheduled={async (date, timeLabel) => {
+                          try {
+                            const slot = await resolveSlotFromLabel(date, timeLabel);
+                            if (!slot) {
+                              toast.error('That time is no longer available. Please choose again.');
+                              return;
+                            }
+                            setSelectedDate(date);
+                            setSelectedSlot(slot);
+                            setStep('details');
+                            setShowAIAssistant(false);
+                          } catch {
+                            toast.error('Unable to confirm that time. Please pick from the calendar.');
+                          }
                         }}
                       />
                     ) : (
@@ -259,7 +277,7 @@ export default function BookingPage() {
                   </motion.div>
                 )}
 
-                {step === "details" && selectedDate && selectedTime && (
+                {step === "details" && selectedDate && selectedSlot && (
                   <motion.div
                     key="details"
                     initial={{ opacity: 0, x: 20 }}
@@ -273,7 +291,7 @@ export default function BookingPage() {
                         host_timezone: hostTimezone || undefined,
                       }}
                       selectedDate={selectedDate}
-                      selectedTime={selectedTime}
+                      selectedSlot={selectedSlot}
                       onComplete={handleBookingComplete}
                       hasGoogleCalendar={hasGoogleCalendar}
                     />

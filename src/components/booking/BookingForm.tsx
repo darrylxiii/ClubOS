@@ -7,10 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Calendar, Clock, CheckCircle2 } from "lucide-react";
-import { format, parse } from "date-fns";
-import { getUserTimezone, parseUserTimeSelection, createBookingTime, normalizeTimeFormat, detectTimeFormat } from "@/lib/timezoneUtils";
+import { format } from "date-fns";
+import { getUserTimezone } from "@/lib/timezoneUtils";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
-import { parseISO, setHours, setMinutes } from "date-fns";
 import { RECAPTCHA_ENABLED } from "@/config/recaptcha";
 import { bookingFormSchema, type BookingFormData } from "@/lib/bookingSchemas";
 import { z } from "zod";
@@ -34,7 +33,7 @@ interface BookingFormProps {
     host_timezone?: string;
   };
   selectedDate: Date;
-  selectedTime: string;
+  selectedSlot: { start: string; end: string };
   onComplete: (bookingId: string) => void;
   hasGoogleCalendar?: boolean;
 }
@@ -42,7 +41,7 @@ interface BookingFormProps {
 export function BookingForm({
   bookingLink,
   selectedDate,
-  selectedTime,
+  selectedSlot,
   onComplete,
   hasGoogleCalendar = false,
 }: BookingFormProps) {
@@ -93,7 +92,7 @@ export function BookingForm({
       }
     }
 
-    if (!selectedDate || !selectedTime) {
+    if (!selectedDate || !selectedSlot?.start || !selectedSlot?.end) {
       toast.error("Please select a date and time");
       return;
     }
@@ -112,35 +111,18 @@ export function BookingForm({
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
 
-      if (verification.slots) {
-        // Normalize selected time to 12-hour format
-        const normalizedSelectedTime = normalizeTimeFormat(selectedTime);
-
-        console.log('[BookingForm] Verifying slot availability:', {
-          selectedTime,
-          normalizedSelectedTime,
-          totalSlots: verification.slots.length
-        });
-
-        // Check if slot is still available by comparing normalized times
-        const isStillAvailable = (verification.slots as string[]).some((slot: string) => {
-          // Extract time portion from slot format "09:00 - 2025-11-13"
-          const slotTimePart = slot.split(" - ")[0];
-          // Normalize slot time to 12-hour format for comparison
-          const normalizedSlotTime = normalizeTimeFormat(slotTimePart);
-
-          console.log('[BookingForm] Comparing:', {
-            slotTimePart,
-            normalizedSlotTime,
-            normalizedSelectedTime,
-            match: normalizedSlotTime === normalizedSelectedTime
-          });
-
-          return normalizedSlotTime === normalizedSelectedTime;
+      if (Array.isArray((verification as any).slots)) {
+        const selectedStart = selectedSlot.start;
+        const isStillAvailable = (verification as any).slots.some((slot: any) => {
+          if (!slot || typeof slot !== 'object') return false;
+          return slot.start === selectedStart;
         });
 
         if (!isStillAvailable) {
-          logger.warn('Slot no longer available', { componentName: 'BookingForm', slot: normalizedSelectedTime });
+          logger.warn('Slot no longer available', {
+            componentName: 'BookingForm',
+            slotStart: selectedSlot.start,
+          });
           toast.error("This time slot was just booked. Please select another time.");
           setLoading(false);
           return;
@@ -174,40 +156,9 @@ export function BookingForm({
 
       setLoadingStage("Processing booking...");
 
-      // Parse and validate selected time with timezone utils
       const userTimezone = getUserTimezone();
-
-      console.log('[BookingForm] Parsing selected time:', {
-        selectedDate: format(selectedDate, 'yyyy-MM-dd'),
-        selectedTime,
-        userTimezone
-      });
-
-      const parsedTime = parseUserTimeSelection(selectedDate, selectedTime, userTimezone);
-
-      if (!parsedTime) {
-        console.error('[BookingForm] Failed to parse time:', {
-          original: selectedTime,
-          timezone: userTimezone,
-          detectedFormat: detectTimeFormat(selectedTime)
-        });
-        toast.error("Invalid time format. Please select a time slot again.");
-        setLoading(false);
-        return;
-      }
-
-      console.log('[BookingForm] Time parsed successfully:', {
-        hours: parsedTime.hours,
-        minutes: parsedTime.minutes
-      });
-
-      const { scheduledStart, scheduledEnd } = createBookingTime(
-        selectedDate,
-        parsedTime.hours,
-        parsedTime.minutes,
-        bookingLink.duration_minutes,
-        userTimezone
-      );
+      const scheduledStart = selectedSlot.start;
+      const scheduledEnd = selectedSlot.end;
 
       const headers: Record<string, string> = {};
       if (RECAPTCHA_ENABLED && recaptchaToken) {
@@ -304,7 +255,7 @@ export function BookingForm({
           </span>
           <span className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            {selectedTime}
+            {format(new Date(selectedSlot.start), "h:mm a")}
           </span>
         </div>
       </div>
