@@ -1,132 +1,98 @@
 
 <context>
-You’re seeing: “Failed to load available times: Failed to send a request to the Edge Function” when visiting `/book/darryl`.
+You report that booking pages used to render, but availability wasn’t showing. After the recent changes, the booking page still opens, but now all booking links show:
+“Failed to load available times: Failed to fetch”.
 
-Key observations gathered:
-- It fails on both Vercel and Lovable domains.
-- `/scheduling` works (and doesn’t call the availability function), but public `/book/:slug` fails.
-- The backend function `get-available-slots` is configured as public (`verify_jwt = false`) in `supabase/config.toml`.
-- A direct backend invocation of `get-available-slots` succeeds (HTTP 200) and returns JSON. So the function is deployed and reachable from the backend side; the failure is browser-side (request not successfully made or blocked).
+So the booking page itself is not failing to load; the availability fetch is failing consistently on all /book/:slug pages.
 </context>
 
-<likely-root-cause>
-Because the function works when called directly, the error is almost certainly a browser-level fetch failure that `supabase.functions.invoke()` surfaces as “Failed to send a request…”. The most common causes in this situation are:
-1) CORS/preflight failing (often because the request is getting rejected before your function code runs, which means no CORS headers are returned)
-2) A service worker / PWA caching layer interfering with calls to `/functions/v1/*` (stale cache, blocked fetch, offline fallback)
-3) Environment mismatch where the browser is using a wrong backend URL (less likely because authenticated pages work, but we will confirm on the booking page specifically)
-4) Client-side request timeout / aborted fetch (less likely but we will add explicit timeouts + retries and make errors actionable)
+<what-i-found>
+1) The public booking pages load available times via `getAvailableSlots()` in `src/services/availability.ts`.
+2) When `supabase.functions.invoke('get-available-slots')` fails with a network-ish error, we fall back to a direct `fetch()`:
+   `POST ${VITE_SUPABASE_URL}/functions/v1/get-available-slots`
+   with headers currently:
+   - Content-Type
+   - apikey
 
-Given the evidence (public route only, and the function works from backend), the plan focuses on making public booking availability calls:
-- observable (we can see exactly which URL it tries to hit and the response status)
-- resilient (retries + timeouts)
-- immune to service worker issues (exclude functions calls from SW caching)
-</likely-root-cause>
+3) For the backend functions gateway, many setups require BOTH:
+   - `apikey: <anon/publishable key>`
+   - `Authorization: Bearer <anon/publishable key or user token>`
+   
+If `Authorization` is missing, the gateway can reject the request before your function runs and may not include CORS headers. In browsers, that surfaces as:
+- `TypeError: Failed to fetch`
+(because the browser blocks reading the response due to CORS).
 
-<scope>
-Fix: Public booking page availability loading for `/book/:slug`.
-Non-goals: Reworking the scheduling product, changing database schema, or changing calendar logic in `get-available-slots` unless logs show a server-side issue.
-</scope>
+This fits your symptom exactly: “Failed to fetch” across all booking links.
+</what-i-found>
 
-<implementation-plan>
-<phase id="1" name="Reproduce + capture the real browser failure (no guesswork)">
-1. Add diagnostic logging (dev-only) in `UnifiedDateTimeSelector.tsx` around the `supabase.functions.invoke("get-available-slots")` call:
-   - log the resolved backend URL (from `import.meta.env.VITE_SUPABASE_URL`)
-   - log whether we have a publishable key present
-   - log the exact payload sent
-   - when errors occur, log:
-     - error name/type (FunctionsHttpError vs fetch error)
-     - error message
-     - any status code/body if available
-2. Add a “debug hint” in the toast for public booking pages:
-   - “Availability service unreachable. Please refresh. If it persists, contact support.”
-   - (In admin/dev mode, include a short code like AVAIL_NET_01 so we can correlate logs.)
+<goal>
+Make `/book/:slug` reliably load available times again (minimum: restore prior behavior), while keeping the resiliency improvements (timeout/retries/fallback) so we don’t regress back to “Failed to send a request”.
+</goal>
 
-Acceptance criteria:
-- When the issue happens, we can definitively see whether it’s:
-  - a CORS block
-  - a network error
-  - an auth preflight failure
-  - a wrong URL / missing env
-  - a service worker interception
-</phase>
+<implementation_plan>
+<step id="1" title="Fix direct-fetch fallback headers so the browser request is authorized + CORS-safe">
+Update `src/services/availability.ts` in `fetchGetAvailableSlotsDirect()` to include:
+- `Authorization: Bearer ${VITE_SUPABASE_PUBLISHABLE_KEY}`
 
-<phase id="2" name="Make availability calls robust (timeouts + retries + fallback transport)">
-1. Implement a small helper (e.g. `src/services/availability.ts`) for public availability calls:
-   - primary attempt: `supabase.functions.invoke("get-available-slots")`
-   - if it fails with a network-level error:
-     - fallback: direct `fetch(`${VITE_SUPABASE_URL}/functions/v1/get-available-slots`)` using headers:
-       - `Content-Type: application/json`
-       - `apikey: VITE_SUPABASE_PUBLISHABLE_KEY`
-       - (No Authorization for public booking pages)
-   - wrap both with:
-     - 5s timeout via `AbortController`
-     - retry (2 attempts) with small jitter (e.g. 250ms then 750ms)
-2. Replace the direct invoke usage in `UnifiedDateTimeSelector` (and any other booking-time availability checks) to use the helper.
+Keep:
+- `apikey: ${VITE_SUPABASE_PUBLISHABLE_KEY}`
+- `Content-Type: application/json`
 
-Why this helps:
-- If `supabase-js` is failing in some browser context, the fallback transport often still works.
-- If the issue is transient (edge POP hiccup), retries recover instantly.
-- We get consistent, richer error handling.
+Why:
+- This makes the fallback call behave like the SDK call.
+- Prevents the gateway from rejecting the request without CORS headers (the common cause of browser “Failed to fetch”).
 
-Acceptance criteria:
-- `/book/darryl` reliably loads times (or shows “No available times” if that is the truth), without “Failed to send request”.
-- If the backend is actually unreachable, users see a clean message and we log a clear failure reason.
-</phase>
+Acceptance:
+- On `/book/:slug`, selecting a date no longer shows “Failed to fetch”.
+</step>
 
-<phase id="3" name="Prevent PWA/service worker from interfering with /functions/v1 calls">
-1. Inspect the current PWA configuration (Vite PWA / Workbox settings) and confirm whether runtime caching includes `*/functions/v1/*`.
-2. Update the service worker config to explicitly:
-   - NetworkOnly for `**/functions/v1/**` (do not cache)
-   - or exclude that pattern from runtime caching routes entirely
-3. Add a one-time “SW cache bust” strategy (if needed):
-   - bump SW version
-   - ensure clients activate the new SW quickly
+<step id="2" title="Improve error observability without spamming users">
+Add structured logging (dev + production-safe) around availability failures:
+- Log which transport failed: invoke vs direct fetch
+- Log whether it was timeout, CORS-like failure (TypeError), or HTTP error code (e.g., 401/403)
 
-Acceptance criteria:
-- Availability calls are not cached/offlined by the service worker.
-- Redeploys don’t create “stale booking pages” or broken availability calls.
-</phase>
+Update user-facing toast copy to be calmer and more useful:
+- “Availability temporarily unreachable. Please refresh.”
+And (dev/admin only) include a short debug code.
 
-<phase id="4" name="Backend-side hardening (only if logs indicate it)">
-If browser logs show calls reach the function but return error:
-1. Add structured logging inside `get-available-slots` for:
-   - input validation failures
-   - booking link lookup
-   - calendar_connections count
-   - internal calendar API invocation errors (google-calendar-events)
-2. Ensure every response path returns JSON + CORS headers (already mostly true, but we confirm every early return).
+Acceptance:
+- If something fails again, we can distinguish:
+  - gateway auth/CORS rejection
+  - function runtime error
+  - network timeout
+</step>
 
-Acceptance criteria:
-- If anything fails server-side, the browser receives a real JSON error (not a blocked response), and we can see the exact failure in backend logs.
-</phase>
-</implementation-plan>
+<step id="3" title="Verify end-to-end on public booking routes">
+Test flows:
+1) Open `/book/darryl` in a fresh session (incognito).
+2) Select a date; confirm times load.
+3) Confirm the request in network panel is:
+   - POST `/functions/v1/get-available-slots`
+   - Returns 200 with JSON `{ slots: [...] }`
+4) Repeat for at least one other booking slug to confirm “all booking links” are fixed.
 
-<testing-plan>
-1. Public test:
-   - open `/book/darryl` in an incognito window
-   - verify month availability indicators load
-   - select a date -> time slots load without errors
-2. Regression:
-   - ensure `/scheduling` still works and doesn’t slow down
-3. Cross-domain:
-   - verify on both bytqc.com and the Lovable published domain
-4. Network resilience:
-   - simulate slow network (or just rely on timeout) and confirm retries/fallback behave and don’t spam the UI
-</testing-plan>
+Acceptance:
+- Booking pages render and load available times again across all slugs.
+</step>
 
-<notes-on-your-question-about-creating-booking-links>
-Your “Calendly-like” booking link builder is `/scheduling`.
-That page already includes a “New Booking Link” button and stores records in `booking_links` which power `/book/:slug`.
+<step id="4" title="(If still failing) Confirm gateway + function CORS behavior for 401/403 paths">
+If we still see “Failed to fetch” after Step 1:
+- Inspect whether the function endpoint is responding with missing CORS headers on auth failures.
+- If necessary, adjust the backend function configuration/handlers so CORS headers are present even for error responses (though usually the header fix is sufficient).
 
-If you want a more discoverable entry point later, we can add:
-- a prominent “Create booking link” CTA in the main sidebar header or command palette
-- a dedicated “Booking Links” section inside Settings
-(Out of scope for the immediate availability failure fix.)
-</notes-on-your-question-about-creating-booking-links>
+Acceptance:
+- Even in error states, browser receives a readable JSON error rather than opaque “Failed to fetch”.
+</step>
+</implementation_plan>
 
-<expected-outcome>
-After these changes:
-- Public booking pages will stop failing with “Failed to send a request…”
-- When availability truly can’t be fetched, the UI will degrade gracefully and we’ll have definitive logs to fix any deeper cause.
-- No service worker caching surprises for booking availability.
-</expected-outcome>
+<scope_control>
+- No database schema changes.
+- No changes to scheduling page (/scheduling).
+- Focus only on public booking availability transport stability.
+</scope_control>
+
+<expected_outcome>
+- Public booking pages stop showing “Failed to fetch”.
+- Availability loads again (or correctly shows “No available times” when true).
+- We keep the resilience improvements (timeouts + retries + fallback) without breaking public access.
+</expected_outcome>
