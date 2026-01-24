@@ -1,143 +1,110 @@
 
-# Automatic Time Format Detection with Toggle Switch
+# Fix Booking Page Time Formatting + Add Time Format Toggle
 
-## Overview
+## Problem Identified
 
-Implement an intelligent time format system that automatically detects whether to display times in 12-hour (AM/PM) or 24-hour format, with a manual toggle so users can override the auto-detected preference.
+The booking page at `/book/:slug` is displaying raw ISO timestamps (`2026-01-27T09:00:00.000Z`) instead of formatted times (`9:00 AM – 9:30 AM`). Analysis reveals:
 
----
+1. **Root Cause**: The `formatInTimeZone` function from `date-fns-tz` is throwing an error, and both the primary catch block fallback AND the nested fallback are failing, causing the raw ISO string to be returned
+2. **Likely Trigger**: The `date-fns-tz` library has module loading issues in certain preview environments, or the function signature has compatibility issues with the installed versions
 
-## Detection Priority Chain
+## Solution Strategy
 
-```text
-1. Logged-in user        -> Use saved preference from user_preferences table
-2. System/Browser locale -> Use Intl API to detect system format
-3. Country detection     -> Use IP geolocation (already have useCountryDetection hook)
-4. Default fallback      -> 12-hour for US/UK/etc, 24-hour for Europe
-```
+Replace the fragile `date-fns-tz` formatting with a more robust approach that uses native browser APIs (`Intl.DateTimeFormat`) as the primary formatter, with `date-fns-tz` as an optional enhancement for complex timezone conversions.
 
 ---
 
-## Implementation Phases
+## Phase 1: Fix Time Slot Formatting (Critical)
 
-### Phase 1: Core Time Format Detection Hook
+### Changes to `src/components/booking/UnifiedDateTimeSelector.tsx`
 
-Create a new hook `useTimeFormatPreference` that implements the full detection chain:
-
-**File**: `src/hooks/useTimeFormatPreference.ts`
-
-Features:
-- Check if user is authenticated and has a saved preference
-- Detect system preference using `Intl.DateTimeFormat().resolvedOptions().hourCycle`
-- Fall back to country-based defaults using existing `useCountryDetection`
-- Provide a toggle function that persists the choice
-
-**Country-to-Format Mapping**:
-| Region | Countries | Default Format |
-|--------|-----------|----------------|
-| 12-hour | US, CA, AU, PH, MY, IN, PK, EG, SA, KR | AM/PM |
-| 24-hour | NL, DE, FR, ES, IT, BE, AT, CH, PL, CZ, RU, JP, CN, BR | HH:MM |
-
-### Phase 2: Database Schema Update
-
-Add `time_format` column to `user_preferences` table:
-
-```sql
-ALTER TABLE user_preferences
-ADD COLUMN IF NOT EXISTS time_format TEXT DEFAULT NULL
-  CHECK (time_format IN ('12h', '24h', NULL));
-```
-
-- `NULL` means "auto-detect" (respect system/country)
-- `'12h'` means always use AM/PM
-- `'24h'` means always use 24-hour format
-
-### Phase 3: Time Format Context Provider
-
-Create a context provider that makes the time format preference available app-wide:
-
-**File**: `src/contexts/TimeFormatContext.tsx`
-
-```typescript
-interface TimeFormatContextValue {
-  format: '12h' | '24h';
-  isAuto: boolean;
-  source: 'user' | 'system' | 'country' | 'default';
-  setFormat: (format: '12h' | '24h' | 'auto') => void;
-}
-```
-
-This context will:
-- Load user preference if logged in
-- Detect system preference for anonymous users
-- Fall back to country-based detection
-- Persist changes to localStorage (anonymous) or database (authenticated)
-
-### Phase 4: Update Time Formatting Utilities
-
-Modify `src/lib/timezoneUtils.ts` to accept format parameter:
-
-```typescript
-export function formatTimeSlot(
-  isoStart: string,
-  isoEnd: string,
-  timezone: string,
-  format: '12h' | '24h' = '12h'
-): string {
-  const pattern = format === '24h' ? 'HH:mm' : 'h:mm a';
-  const start = formatInTimeZone(isoStart, timezone, pattern);
-  const end = formatInTimeZone(isoEnd, timezone, pattern);
-  return `${start} - ${end}`;
-}
-```
-
-### Phase 5: Toggle Component for Booking Pages
-
-Create a compact toggle switch component:
-
-**File**: `src/components/booking/TimeFormatToggle.tsx`
-
-Design:
-```text
-┌─────────────────────────────────────┐
-│  🕐  9:00 AM  |  09:00              │
-│      ○────●   (toggle switch)       │
-└─────────────────────────────────────┘
-```
-
-Features:
-- Shows current format with visual preview
-- Toggle between 12h and 24h
-- Saves to localStorage for anonymous users
-- Saves to database for authenticated users
-- Subtle, non-intrusive design matching TQC aesthetic
-
-### Phase 6: Update Booking Components
-
-**UnifiedDateTimeSelector.tsx**:
-- Import and use `useTimeFormatPreference`
-- Pass format to `formatSlotDisplay`
-- Update both guest and host timezone displays
-
-**BookingPage.tsx**:
-- Add `TimeFormatToggle` component near timezone selector
-- Pass format to all time display functions
-
-### Phase 7: Settings Page Integration
-
-Update `PreferencesSettings.tsx` to include time format toggle:
+Replace the current `formatSlotDisplay` function with a more robust implementation:
 
 ```text
-┌─────────────────────────────────────┐
-│ Time Format                         │
-│                                     │
-│ ○ Auto-detect (based on location)   │
-│ ○ 12-hour (9:00 AM)                │
-│ ○ 24-hour (09:00)                  │
-│                                     │
-│ Current: Using system preference    │
-└─────────────────────────────────────┘
+Strategy:
+1. Use native Intl.DateTimeFormat as primary formatter (always available, never fails)
+2. Wrap date parsing in additional safety checks
+3. Format time ranges with proper locale detection
+4. Add the time format toggle component
 ```
+
+Key changes:
+- Create a `safeFormatTime` helper that uses `Intl.DateTimeFormat` with the guest's timezone
+- Accept a format parameter (`'12h'` or `'24h'`) for the time format toggle
+- Display start-end ranges as requested: `9:00 AM – 9:30 AM`
+- Add secondary line for host timezone when different
+
+### New Formatting Logic
+
+```typescript
+const safeFormatTime = (isoString: string, timezone: string, use24h: boolean = false): string => {
+  try {
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return isoString;
+    
+    // Use native Intl.DateTimeFormat - always available, always works
+    return new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: !use24h,
+      timeZone: timezone,
+    }).format(date);
+  } catch {
+    // Ultimate fallback - just show local time
+    try {
+      return new Date(isoString).toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: !use24h,
+      });
+    } catch {
+      return isoString;
+    }
+  }
+};
+```
+
+---
+
+## Phase 2: Add Time Format Toggle
+
+### New File: `src/hooks/useTimeFormatPreference.ts`
+
+Implements the detection chain:
+1. **Logged-in user**: Check `user_preferences` table for saved preference
+2. **System detection**: Use `Intl.DateTimeFormat().resolvedOptions().hourCycle`
+3. **Country fallback**: Use existing `useCountryDetection` hook
+4. **Default**: 12-hour for US/UK/etc, 24-hour for Europe
+
+### New File: `src/components/booking/TimeFormatToggle.tsx`
+
+A compact toggle switch displayed near the timezone selector:
+- Shows preview of both formats
+- Persists choice to `localStorage` for anonymous users
+- Persists to database for authenticated users
+- Subtle design matching TQC aesthetic
+
+### Country Mapping Constants
+
+```typescript
+const TWELVE_HOUR_COUNTRIES = [
+  'US', 'CA', 'AU', 'NZ', 'PH', 'MY', 'IN', 'PK', 'BD', 'EG', 'SA', 'AE', 'KR', 'CO', 'MX'
+];
+// All other countries default to 24-hour
+```
+
+---
+
+## Phase 3: Integration
+
+### Update `UnifiedDateTimeSelector.tsx`
+- Import and use `useTimeFormatPreference` hook
+- Pass format to the new `safeFormatTime` helper
+- Add `TimeFormatToggle` component in the header area
+
+### Update `BookingPage.tsx`
+- Wrap with time format context if needed
+- Ensure toggle persists across page refreshes
 
 ---
 
@@ -145,98 +112,67 @@ Update `PreferencesSettings.tsx` to include time format toggle:
 
 | File | Purpose |
 |------|---------|
-| `src/hooks/useTimeFormatPreference.ts` | Main detection hook with priority chain |
-| `src/contexts/TimeFormatContext.tsx` | App-wide context provider |
-| `src/components/booking/TimeFormatToggle.tsx` | Compact toggle for booking pages |
-| `src/lib/timeFormatConstants.ts` | Country-to-format mapping constants |
+| `src/hooks/useTimeFormatPreference.ts` | Time format detection and persistence hook |
+| `src/components/booking/TimeFormatToggle.tsx` | Compact 12h/24h toggle switch |
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/lib/timezoneUtils.ts` | Add format parameter to formatting functions |
-| `src/components/booking/UnifiedDateTimeSelector.tsx` | Use time format preference |
-| `src/pages/BookingPage.tsx` | Add toggle component |
-| `src/components/settings/PreferencesSettings.tsx` | Add time format setting |
-| `src/App.tsx` | Wrap with TimeFormatProvider |
+| `src/components/booking/UnifiedDateTimeSelector.tsx` | Replace `formatSlotDisplay` with robust native formatting, add toggle |
+| `src/pages/BookingPage.tsx` | Minor layout adjustments for toggle placement |
 
 ---
 
-## Technical Details
+## Technical Implementation Details
 
-### System Detection Logic
+### Robust Time Formatting (No External Dependencies)
 
-```typescript
-function detectSystemTimeFormat(): '12h' | '24h' | null {
-  try {
-    const locale = navigator.language || 'en-US';
-    const options = Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions();
-    
-    // hourCycle: 'h11', 'h12' = 12-hour; 'h23', 'h24' = 24-hour
-    if (options.hourCycle === 'h11' || options.hourCycle === 'h12') {
-      return '12h';
-    }
-    if (options.hourCycle === 'h23' || options.hourCycle === 'h24') {
-      return '24h';
-    }
-    return null; // Couldn't determine
-  } catch {
-    return null;
-  }
-}
+The new approach uses `Intl.DateTimeFormat` which:
+- Is built into all modern browsers
+- Handles timezone conversion natively via the `timeZone` option
+- Supports both 12-hour and 24-hour formats via `hour12`
+- Never throws on valid Date objects
+
+### Time Format Detection Priority
+
+```text
+1. Authenticated user preference (from database)
+     ↓ if not set
+2. Local storage preference (for returning guests)
+     ↓ if not set
+3. System locale detection (Intl.DateTimeFormat().resolvedOptions().hourCycle)
+     ↓ if not available
+4. Country-based default (IP geolocation already available)
+     ↓ if unknown
+5. Default to 12-hour format
 ```
 
-### Country-Based Fallback
+### UI Display Format
 
-```typescript
-const TWELVE_HOUR_COUNTRIES = [
-  'US', 'CA', 'AU', 'NZ', 'PH', 'MY', 'IN', 'PK', 'BD', 'EG', 'SA', 'AE', 'KR', 'CO', 'MX'
-];
-
-function getCountryDefaultFormat(countryCode: string): '12h' | '24h' {
-  return TWELVE_HOUR_COUNTRIES.includes(countryCode) ? '12h' : '24h';
-}
+Time slots will display as:
+```text
+┌─────────────────────────────────────┐
+│ ⏰  9:00 AM – 9:30 AM               │
+│     15:00 – 15:30 (host timezone)   │
+└─────────────────────────────────────┘
 ```
 
-### LocalStorage Keys for Anonymous Users
-
-```typescript
-const STORAGE_KEYS = {
-  TIME_FORMAT: 'tqc_time_format_preference',
-  TIME_FORMAT_SOURCE: 'tqc_time_format_source',
-};
+Toggle component:
+```text
+┌──────────────────────────────────────────────┐
+│  Clock format:  [ 9:00 AM ] | [ 09:00 ]      │
+└──────────────────────────────────────────────┘
 ```
 
 ---
 
-## UI/UX Considerations
+## Expected Outcome
 
-1. **Non-intrusive toggle**: Small icon-based toggle near timezone selector
-2. **Instant feedback**: Time slots update immediately on toggle
-3. **Persistence**: Choice remembered across sessions
-4. **Clear indication**: Show which detection method is being used
-5. **Accessibility**: Toggle is keyboard accessible and has proper ARIA labels
-
----
-
-## Expected Behavior Examples
-
-**Scenario 1**: Anonymous user in Netherlands
-- System locale: nl-NL (24-hour)
-- Display: 09:00 - 09:30
-- Can toggle to: 9:00 AM - 9:30 AM
-
-**Scenario 2**: Anonymous user in USA
-- System locale: en-US (12-hour)
-- Display: 9:00 AM - 9:30 AM
-- Can toggle to: 09:00 - 09:30
-
-**Scenario 3**: Logged-in user with saved preference
-- User preference: 24-hour
-- Display: 09:00 - 09:30 (regardless of location)
-
-**Scenario 4**: User with VPN (location mismatch)
-- System locale: en-US (12-hour)
-- IP location: Netherlands
-- Priority: System locale wins (12-hour)
-- Can toggle to 24-hour if preferred
+After implementation:
+1. Time slots always display correctly formatted (no more raw ISO strings)
+2. Format shown as start-end range: `9:00 AM – 9:30 AM` or `09:00 – 09:30`
+3. Automatic detection of preferred format based on user's system/locale
+4. Toggle switch for manual override
+5. Preference persists across sessions
+6. Dual timezone display when guest and host are in different timezones
