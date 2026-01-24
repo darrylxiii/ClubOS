@@ -25,18 +25,55 @@ const FALLBACK_PUBLISHABLE_KEY =
  */
 export function isPlaceholderEnvironment(): boolean {
   const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || '';
-  // Empty, placeholder, or missing config
+  // Empty, placeholder, or missing config - all mean we use direct fetch with fallbacks
   return !url || url.includes('placeholder') || url.includes('localhost');
 }
 
 /**
- * Native fetch reference captured before any instrumentation (OTel, etc.).
- * Use this for critical public paths that must bypass any fetch wrappers.
+ * Native XMLHttpRequest-based fetch that completely bypasses any fetch instrumentation.
+ * This is critical for public booking paths that must work even when OTel/other
+ * instrumentation breaks the global fetch.
  */
-export const nativeFetch: typeof fetch =
-  typeof globalThis !== 'undefined' && globalThis.fetch
-    ? globalThis.fetch.bind(globalThis)
-    : fetch;
+export function nativeFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(options.method || 'GET', url, true);
+
+    // Set headers
+    const headers = options.headers as Record<string, string> | undefined;
+    if (headers) {
+      Object.entries(headers).forEach(([key, value]) => {
+        xhr.setRequestHeader(key, value);
+      });
+    }
+
+    xhr.onload = () => {
+      const responseHeaders = new Headers();
+      xhr.getAllResponseHeaders()
+        .trim()
+        .split(/[\r\n]+/)
+        .forEach((line) => {
+          const parts = line.split(': ');
+          const header = parts.shift();
+          const value = parts.join(': ');
+          if (header) responseHeaders.append(header, value);
+        });
+
+      resolve(
+        new Response(xhr.responseText, {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          headers: responseHeaders,
+        })
+      );
+    };
+
+    xhr.onerror = () => reject(new Error('Network request failed'));
+    xhr.ontimeout = () => reject(new Error('Network request timeout'));
+
+    xhr.send(options.body as string | undefined);
+  });
+}
 
 export function getBackendConfig(): BackendConfig {
   const envBaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || '';
