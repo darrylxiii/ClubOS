@@ -4254,6 +4254,7 @@ export type Database = {
           enable_club_ai: boolean | null
           expires_at: string | null
           google_meet_settings: Json | null
+          host_display_mode: string
           id: string
           is_active: boolean
           max_bookings_per_day: number | null
@@ -4295,6 +4296,7 @@ export type Database = {
           enable_club_ai?: boolean | null
           expires_at?: string | null
           google_meet_settings?: Json | null
+          host_display_mode?: string
           id?: string
           is_active?: boolean
           max_bookings_per_day?: number | null
@@ -4336,6 +4338,7 @@ export type Database = {
           enable_club_ai?: boolean | null
           expires_at?: string | null
           google_meet_settings?: Json | null
+          host_display_mode?: string
           id?: string
           is_active?: boolean
           max_bookings_per_day?: number | null
@@ -4367,6 +4370,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      booking_rate_limits: {
+        Row: {
+          action: string
+          booking_link_id: string | null
+          created_at: string
+          guest_email: string | null
+          id: string
+          ip_hash: string
+        }
+        Insert: {
+          action: string
+          booking_link_id?: string | null
+          created_at?: string
+          guest_email?: string | null
+          id?: string
+          ip_hash: string
+        }
+        Update: {
+          action?: string
+          booking_link_id?: string | null
+          created_at?: string
+          guest_email?: string | null
+          id?: string
+          ip_hash?: string
+        }
+        Relationships: []
       }
       booking_reminder_logs: {
         Row: {
@@ -5030,6 +5060,8 @@ export type Database = {
       calendar_connections: {
         Row: {
           access_token: string
+          calendar_ids: string[] | null
+          calendar_ids_synced_at: string | null
           created_at: string | null
           email: string
           error_count: number | null
@@ -5046,6 +5078,8 @@ export type Database = {
         }
         Insert: {
           access_token: string
+          calendar_ids?: string[] | null
+          calendar_ids_synced_at?: string | null
           created_at?: string | null
           email: string
           error_count?: number | null
@@ -5062,6 +5096,8 @@ export type Database = {
         }
         Update: {
           access_token?: string
+          calendar_ids?: string[] | null
+          calendar_ids_synced_at?: string | null
           created_at?: string | null
           email?: string
           error_count?: number | null
