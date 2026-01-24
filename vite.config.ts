@@ -96,6 +96,15 @@ export default defineConfig(({ mode, command }) => ({
         
         // Runtime caching strategies
         runtimeCaching: [
+          // CRITICAL: Never cache backend function calls
+          // Public booking pages rely on these being fresh and reachable.
+          {
+            urlPattern: /^https:\/\/dpjucecmoyfzrduhlctt\.supabase\.co\/functions\/v1\/.*/i,
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'functions-cache-bypass',
+            },
+          },
           // CRITICAL: Document navigations use NetworkFirst
           // This ensures fresh index.html on every page load
           {
