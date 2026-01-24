@@ -1,6 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { 
+  Heading, Paragraph, Spacer, Card, Button, InfoRow 
+} from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -48,7 +53,6 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Processing email reminder for booking: ${booking.id} to ${email}`);
 
     // Fetch additional booking details if needed
-    let bookingDetails = booking;
     let hostName = "Your Host";
     let meetingTitle = "Your Meeting";
 
@@ -86,74 +90,59 @@ const handler = async (req: Request): Promise<Response> => {
       hour12: true,
     });
 
-    const appUrl = Deno.env.get("APP_URL") || "https://thequantumclub.com";
+    const appUrl = getEmailAppUrl();
     const manageUrl = `${appUrl}/bookings/${booking.id}`;
 
-    // Generate email HTML
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Meeting Reminder</title>
-      </head>
-      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
-        <div style="background: linear-gradient(135deg, #0E0E10 0%, #1a1a1a 100%); padding: 40px 30px; border-radius: 16px 16px 0 0; text-align: center;">
-          <h1 style="color: #C9A24E; margin: 0; font-size: 24px; font-weight: 600;">
-            ⏰ Meeting Reminder
-          </h1>
-        </div>
-        
-        <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-          <p style="font-size: 16px; color: #333;">Hi ${name},</p>
-          
-          <p style="font-size: 16px; color: #333;">
-            This is a friendly reminder about your upcoming meeting:
-          </p>
-          
-          <div style="background: #f8f8f8; border-left: 4px solid #C9A24E; padding: 20px; margin: 24px 0; border-radius: 0 8px 8px 0;">
-            <h2 style="margin: 0 0 12px 0; color: #1a1a1a; font-size: 20px;">${meetingTitle}</h2>
-            <p style="margin: 8px 0; color: #666;">
-              <strong>With:</strong> ${hostName}
-            </p>
-            <p style="margin: 8px 0; color: #666;">
-              <strong>When:</strong> ${formattedDate}
-            </p>
-            <p style="margin: 8px 0; color: #666;">
-              <strong>Time:</strong> ${formattedTime} - ${formattedEndTime}
-            </p>
-          </div>
-          
-          ${booking.notes ? `
-          <div style="background: #fff9e6; border-left: 4px solid #f5a623; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;">
-            <p style="margin: 0; color: #666; font-size: 14px;">
-              <strong>Notes:</strong> ${booking.notes}
-            </p>
-          </div>
-          ` : ''}
-          
-          <div style="text-align: center; margin: 32px 0;">
-            <a href="${manageUrl}" style="display: inline-block; background: linear-gradient(135deg, #C9A24E 0%, #a8863c 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-              View Booking Details
-            </a>
-          </div>
-          
-          <p style="font-size: 14px; color: #888; margin-top: 32px; text-align: center;">
-            Need to make changes? <a href="${manageUrl}" style="color: #C9A24E;">Manage your booking</a>
-          </p>
-        </div>
-        
-        <div style="text-align: center; padding: 24px; color: #888; font-size: 12px;">
-          <p style="margin: 0;">The Quantum Club</p>
-        </div>
-      </body>
-      </html>
+    // Build email content using components
+    const emailContent = `
+      ${Heading({ text: '⏰ Meeting Reminder', level: 1 })}
+      ${Spacer(16)}
+      ${Paragraph(`Hi ${name},`, 'primary')}
+      ${Spacer(8)}
+      ${Paragraph('This is a friendly reminder about your upcoming meeting:', 'secondary')}
+      ${Spacer(24)}
+      
+      ${Card({
+        variant: 'highlight',
+        content: `
+          <h2 style="margin: 0 0 16px 0; font-size: 20px; color: ${EMAIL_COLORS.ivory};">${meetingTitle}</h2>
+          ${InfoRow({ icon: '👤', label: 'With', value: hostName })}
+          ${InfoRow({ icon: '📅', label: 'When', value: formattedDate })}
+          ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} - ${formattedEndTime}` })}
+        `
+      })}
+      
+      ${booking.notes ? `
+        ${Spacer(16)}
+        ${Card({
+          variant: 'default',
+          content: `<p style="margin: 0; font-size: 14px;"><strong>Notes:</strong> ${booking.notes}</p>`
+        })}
+      ` : ''}
+      
+      ${Spacer(32)}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            ${Button({ url: manageUrl, text: 'View Booking Details', variant: 'primary' })}
+          </td>
+        </tr>
+      </table>
+      
+      ${Spacer(24)}
+      ${Paragraph(`Need to make changes? <a href="${manageUrl}" style="color: ${EMAIL_COLORS.gold}; text-decoration: none;">Manage your booking</a>`, 'muted')}
     `;
+
+    const htmlContent = baseEmailTemplate({
+      preheader: `Reminder: ${meetingTitle} with ${hostName} - ${formattedDate}`,
+      content: emailContent,
+      showHeader: true,
+      showFooter: true,
+    });
 
     // Send the email
     const emailResponse = await resend.emails.send({
-      from: "The Quantum Club <reminders@thequantumclub.com>",
+      from: EMAIL_SENDERS.reminders,
       to: [email],
       subject: `Reminder: ${meetingTitle} with ${hostName} - ${formattedDate}`,
       html: htmlContent,

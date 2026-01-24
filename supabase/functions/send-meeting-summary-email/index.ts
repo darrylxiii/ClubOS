@@ -1,5 +1,10 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { 
+  Heading, Paragraph, Spacer, Card, Button, StatusBadge 
+} from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -57,21 +62,136 @@ serve(async (req) => {
     }
 
     const analysis = recording.ai_summary;
-    const appUrl = Deno.env.get('APP_URL') || 'https://app.thequantumclub.com';
+    const appUrl = getEmailAppUrl();
     const recordingUrl = `${appUrl}/recording/${recordingId}`;
+    const duration = Math.round(recording.duration_seconds / 60);
 
-    // Generate email HTML
-    const emailHtml = generateSummaryEmailHtml({
-      hostName: hostProfile.first_name || 'there',
-      meetingTitle: recording.title || 'Meeting Recording',
-      duration: Math.round(recording.duration_seconds / 60),
-      executiveSummary: analysis.executiveSummary || 'Analysis pending',
-      recommendation: analysis.decisionGuidance?.recommendation || 'pending',
-      overallFit: analysis.candidateEvaluation?.overallFit || 'pending',
-      actionItems: analysis.actionItems || [],
-      keyMoments: analysis.keyMoments?.slice(0, 3) || [],
-      recordingUrl,
-      appUrl
+    // Generate status colors
+    const getRecommendationStatus = (rec: string) => {
+      if (rec.includes('yes')) return 'confirmed';
+      if (rec.includes('no')) return 'declined';
+      return 'pending';
+    };
+
+    // Build action items HTML
+    const actionItems = analysis.actionItems || [];
+    const getPriorityLabel = (priority: string) => {
+      if (priority === 'urgent') return `<span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #fef2f2; color: #dc2626;">urgent</span>`;
+      if (priority === 'high') return `<span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #fff7ed; color: #ea580c;">high</span>`;
+      return `<span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #f3f4f6; color: #374151;">normal</span>`;
+    };
+    
+    const actionItemsHtml = actionItems.slice(0, 5).map((item: any) => `
+      <tr>
+        <td style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+          ${getPriorityLabel(item.priority)}
+        </td>
+        <td style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); color: ${EMAIL_COLORS.ivory};">${item.task}</td>
+        <td style="padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); color: ${EMAIL_COLORS.textMuted};">${item.owner}</td>
+      </tr>
+    `).join('');
+
+    // Build key moments HTML
+    const keyMoments = analysis.keyMoments?.slice(0, 3) || [];
+    const keyMomentsHtml = keyMoments.map((moment: any) => `
+      <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 8px;">
+        <div style="margin-bottom: 4px;">
+          <span style="font-weight: 600; color: ${EMAIL_COLORS.ivory};">${moment.type.replace('_', ' ')}</span>
+          <span style="color: ${EMAIL_COLORS.textMuted}; font-size: 12px; margin-left: 8px;">@${moment.timestamp}</span>
+        </div>
+        <p style="margin: 0; color: ${EMAIL_COLORS.textSecondary}; font-size: 14px;">${moment.description}</p>
+      </div>
+    `).join('');
+
+    // Build email content
+    const emailContent = `
+      ${Heading({ text: '📊 Meeting Summary', level: 1 })}
+      ${Spacer(8)}
+      ${Paragraph('Powered by Club AI', 'muted')}
+      ${Spacer(24)}
+      
+      ${Paragraph(`Hi ${hostProfile.first_name || 'there'},`, 'primary')}
+      ${Spacer(8)}
+      ${Paragraph(`Your meeting recording <strong>"${recording.title || 'Meeting Recording'}"</strong> (${duration} min) has been analyzed. Here's your AI-powered summary:`, 'secondary')}
+      ${Spacer(24)}
+      
+      <!-- Quick Stats -->
+      <table role="presentation" width="100%" style="margin-bottom: 24px;">
+        <tr>
+          <td width="50%" style="padding-right: 8px;">
+            ${Card({
+              variant: 'default',
+              content: `
+                <p style="margin: 0 0 4px 0; color: ${EMAIL_COLORS.textMuted}; font-size: 12px;">Overall Fit</p>
+                <p style="margin: 0; font-size: 20px; font-weight: bold; text-transform: capitalize; color: ${EMAIL_COLORS.gold};">
+                  ${analysis.candidateEvaluation?.overallFit || 'pending'}
+                </p>
+              `
+            })}
+          </td>
+          <td width="50%" style="padding-left: 8px;">
+            ${Card({
+              variant: 'default',
+              content: `
+                <p style="margin: 0 0 4px 0; color: ${EMAIL_COLORS.textMuted}; font-size: 12px;">Recommendation</p>
+                <p style="margin: 0; font-size: 20px; font-weight: bold; text-transform: capitalize; color: ${EMAIL_COLORS.gold};">
+                  ${(analysis.decisionGuidance?.recommendation || 'pending').replace('_', ' ')}
+                </p>
+              `
+            })}
+          </td>
+        </tr>
+      </table>
+      
+      <!-- Executive Summary -->
+      ${Card({
+        variant: 'highlight',
+        content: `
+          <h3 style="margin: 0 0 8px 0; color: ${EMAIL_COLORS.gold}; font-size: 14px;">Executive Summary</h3>
+          <p style="margin: 0; color: ${EMAIL_COLORS.ivory}; font-size: 14px; line-height: 1.6;">
+            ${analysis.executiveSummary || 'Analysis pending'}
+          </p>
+        `
+      })}
+      
+      ${actionItems.length > 0 ? `
+        ${Spacer(24)}
+        <h3 style="margin: 0 0 12px 0; color: ${EMAIL_COLORS.ivory}; font-size: 16px;">📋 Action Items</h3>
+        <table width="100%" style="border-collapse: collapse; font-size: 14px;">
+          <thead>
+            <tr style="background: rgba(255,255,255,0.05);">
+              <th style="padding: 8px 12px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1); color: ${EMAIL_COLORS.textSecondary};">Priority</th>
+              <th style="padding: 8px 12px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1); color: ${EMAIL_COLORS.textSecondary};">Task</th>
+              <th style="padding: 8px 12px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1); color: ${EMAIL_COLORS.textSecondary};">Owner</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${actionItemsHtml}
+          </tbody>
+        </table>
+      ` : ''}
+      
+      ${keyMoments.length > 0 ? `
+        ${Spacer(24)}
+        <h3 style="margin: 0 0 12px 0; color: ${EMAIL_COLORS.ivory}; font-size: 16px;">⭐ Key Moments</h3>
+        ${keyMomentsHtml}
+      ` : ''}
+      
+      ${Spacer(32)}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            ${Button({ url: recordingUrl, text: 'View Full Analysis →', variant: 'primary' })}
+          </td>
+        </tr>
+      </table>
+    `;
+
+    const htmlContent = baseEmailTemplate({
+      preheader: `AI analysis complete for: ${recording.title || 'your recording'}`,
+      content: emailContent,
+      showHeader: true,
+      showFooter: true,
     });
 
     // If Resend API key is configured, send email
@@ -83,10 +203,10 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Club AI <notifications@thequantumclub.com>',
+          from: EMAIL_SENDERS.clubAI,
           to: hostProfile.email,
           subject: `📊 Meeting Summary: ${recording.title || 'Your Recording'}`,
-          html: emailHtml,
+          html: htmlContent,
         }),
       });
 
@@ -133,143 +253,3 @@ serve(async (req) => {
     );
   }
 });
-
-interface SummaryEmailData {
-  hostName: string;
-  meetingTitle: string;
-  duration: number;
-  executiveSummary: string;
-  recommendation: string;
-  overallFit: string;
-  actionItems: Array<{ task: string; owner: string; priority: string }>;
-  keyMoments: Array<{ type: string; description: string; timestamp: string }>;
-  recordingUrl: string;
-  appUrl: string;
-}
-
-function generateSummaryEmailHtml(data: SummaryEmailData): string {
-  const getRecommendationColor = (rec: string) => {
-    if (rec.includes('yes')) return '#22c55e';
-    if (rec.includes('no')) return '#ef4444';
-    return '#eab308';
-  };
-
-  const getFitColor = (fit: string) => {
-    switch (fit) {
-      case 'excellent': return '#22c55e';
-      case 'good': return '#3b82f6';
-      case 'fair': return '#eab308';
-      case 'poor': return '#ef4444';
-      default: return '#6b7280';
-    }
-  };
-
-  const actionItemsHtml = data.actionItems.slice(0, 5).map(item => `
-    <tr>
-      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">
-        <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: ${item.priority === 'urgent' ? '#fef2f2' : item.priority === 'high' ? '#fff7ed' : '#f3f4f6'}; color: ${item.priority === 'urgent' ? '#dc2626' : item.priority === 'high' ? '#ea580c' : '#374151'};">${item.priority}</span>
-      </td>
-      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">${item.task}</td>
-      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">${item.owner}</td>
-    </tr>
-  `).join('');
-
-  const keyMomentsHtml = data.keyMoments.map(moment => `
-    <div style="padding: 12px; background: #f9fafb; border-radius: 8px; margin-bottom: 8px;">
-      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-        <span style="font-weight: 600; color: #374151;">${moment.type.replace('_', ' ')}</span>
-        <span style="color: #9ca3af; font-size: 12px;">@${moment.timestamp}</span>
-      </div>
-      <p style="margin: 0; color: #6b7280; font-size: 14px;">${moment.description}</p>
-    </div>
-  `).join('');
-
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meeting Summary</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f4f6;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-    <!-- Header -->
-    <div style="background: linear-gradient(135deg, #0E0E10, #1a1a1d); padding: 32px; border-radius: 12px 12px 0 0; text-align: center;">
-      <h1 style="color: #C9A24E; margin: 0 0 8px 0; font-size: 24px;">📊 Meeting Summary</h1>
-      <p style="color: #e5e7eb; margin: 0; font-size: 14px;">Powered by Club AI</p>
-    </div>
-
-    <!-- Content -->
-    <div style="background: white; padding: 32px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-      <p style="color: #374151; margin: 0 0 24px 0;">Hi ${data.hostName},</p>
-      
-      <p style="color: #6b7280; margin: 0 0 24px 0;">
-        Your meeting recording <strong>"${data.meetingTitle}"</strong> (${data.duration} min) has been analyzed. Here's your AI-powered summary:
-      </p>
-
-      <!-- Quick Stats -->
-      <div style="display: flex; gap: 16px; margin-bottom: 24px;">
-        <div style="flex: 1; background: #f9fafb; padding: 16px; border-radius: 8px; text-align: center;">
-          <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px;">Overall Fit</p>
-          <p style="margin: 0; font-size: 20px; font-weight: bold; color: ${getFitColor(data.overallFit)}; text-transform: capitalize;">${data.overallFit}</p>
-        </div>
-        <div style="flex: 1; background: #f9fafb; padding: 16px; border-radius: 8px; text-align: center;">
-          <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px;">Recommendation</p>
-          <p style="margin: 0; font-size: 20px; font-weight: bold; color: ${getRecommendationColor(data.recommendation)}; text-transform: capitalize;">${data.recommendation.replace('_', ' ')}</p>
-        </div>
-      </div>
-
-      <!-- Executive Summary -->
-      <div style="background: #fffbeb; border-left: 4px solid #C9A24E; padding: 16px; border-radius: 4px; margin-bottom: 24px;">
-        <h3 style="margin: 0 0 8px 0; color: #92400e; font-size: 14px;">Executive Summary</h3>
-        <p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.6;">${data.executiveSummary}</p>
-      </div>
-
-      <!-- Action Items -->
-      ${data.actionItems.length > 0 ? `
-      <div style="margin-bottom: 24px;">
-        <h3 style="margin: 0 0 12px 0; color: #374151; font-size: 16px;">📋 Action Items</h3>
-        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-          <thead>
-            <tr style="background: #f9fafb;">
-              <th style="padding: 8px 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Priority</th>
-              <th style="padding: 8px 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Task</th>
-              <th style="padding: 8px 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Owner</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${actionItemsHtml}
-          </tbody>
-        </table>
-      </div>
-      ` : ''}
-
-      <!-- Key Moments -->
-      ${data.keyMoments.length > 0 ? `
-      <div style="margin-bottom: 24px;">
-        <h3 style="margin: 0 0 12px 0; color: #374151; font-size: 16px;">⭐ Key Moments</h3>
-        ${keyMomentsHtml}
-      </div>
-      ` : ''}
-
-      <!-- CTA -->
-      <div style="text-align: center; margin-top: 32px;">
-        <a href="${data.recordingUrl}" style="display: inline-block; background: linear-gradient(135deg, #C9A24E, #b8924a); color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">
-          View Full Analysis →
-        </a>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <div style="text-align: center; padding: 24px; color: #9ca3af; font-size: 12px;">
-      <p style="margin: 0 0 8px 0;">The Quantum Club</p>
-      <p style="margin: 0;">
-        <a href="${data.appUrl}/settings?tab=notifications" style="color: #6b7280;">Notification preferences</a>
-      </p>
-    </div>
-  </div>
-</body>
-</html>
-  `.trim();
-}

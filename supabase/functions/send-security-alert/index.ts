@@ -1,6 +1,9 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
 import { Resend } from 'https://esm.sh/resend@2.0.0';
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Heading, Paragraph, Spacer, Card, AlertBox, InfoRow } from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -75,12 +78,12 @@ serve(async (req) => {
 
     const resend = new Resend(resendApiKey);
 
-    // Build email content
-    const severityColors: Record<string, string> = {
-      low: '#3b82f6',
-      medium: '#eab308',
-      high: '#f97316',
-      critical: '#ef4444'
+    // Map severity to AlertBox type
+    const alertTypeMap: Record<string, 'info' | 'success' | 'warning' | 'error'> = {
+      low: 'info',
+      medium: 'warning',
+      high: 'warning',
+      critical: 'error'
     };
 
     const severityEmoji: Record<string, string> = {
@@ -90,60 +93,58 @@ serve(async (req) => {
       critical: '🚨'
     };
 
+    const appUrl = getEmailAppUrl();
+
+    // Build actions list
     const actionsHtml = body.actions_taken?.length 
-      ? `<h3>Actions Taken:</h3><ul>${body.actions_taken.map(a => `<li>${a}</li>`).join('')}</ul>`
+      ? `<ul style="margin: 8px 0 0 0; padding-left: 20px;">${body.actions_taken.map(a => `<li style="margin-bottom: 4px;">${a}</li>`).join('')}</ul>`
       : '';
 
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: ${severityColors[body.severity]}; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-          .content { background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; }
-          .severity-badge { display: inline-block; padding: 4px 12px; border-radius: 4px; background: rgba(255,255,255,0.2); font-weight: 600; text-transform: uppercase; }
-          .detail-row { margin: 10px 0; padding: 10px; background: white; border-radius: 4px; }
-          .label { font-weight: 600; color: #666; }
-          h3 { margin-top: 20px; color: #333; }
-          ul { margin: 10px 0; padding-left: 20px; }
-          li { margin: 5px 0; }
-          .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>${severityEmoji[body.severity]} Security Alert</h1>
-            <span class="severity-badge">${body.severity.toUpperCase()}</span>
+    // Build email content
+    const emailContent = `
+      ${AlertBox({
+        type: alertTypeMap[body.severity],
+        title: `${severityEmoji[body.severity]} Security Alert - ${body.severity.toUpperCase()}`,
+        message: body.threat_type,
+      })}
+      
+      ${Spacer(24)}
+      
+      ${Card({
+        variant: 'default',
+        content: `
+          ${InfoRow({ icon: '🔍', label: 'Threat Type', value: body.threat_type })}
+          ${body.ip_address ? InfoRow({ icon: '🌐', label: 'IP Address', value: body.ip_address }) : ''}
+          ${InfoRow({ icon: '🕐', label: 'Time', value: new Date().toISOString() })}
+          <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <p style="margin: 0 0 8px 0; font-weight: 600; color: ${EMAIL_COLORS.ivory};">Details:</p>
+            <p style="margin: 0; color: ${EMAIL_COLORS.textSecondary};">${body.details}</p>
           </div>
-          <div class="content">
-            <div class="detail-row">
-              <span class="label">Threat Type:</span> ${body.threat_type}
+          ${body.actions_taken?.length ? `
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+              <p style="margin: 0 0 8px 0; font-weight: 600; color: ${EMAIL_COLORS.ivory};">Actions Taken:</p>
+              ${actionsHtml}
             </div>
-            ${body.ip_address ? `<div class="detail-row"><span class="label">IP Address:</span> ${body.ip_address}</div>` : ''}
-            <div class="detail-row">
-              <span class="label">Details:</span> ${body.details}
-            </div>
-            <div class="detail-row">
-              <span class="label">Time:</span> ${new Date().toISOString()}
-            </div>
-            ${actionsHtml}
-            <div class="footer">
-              <p>This is an automated security alert from The Quantum Club platform.</p>
-              <p>Review the threat in the <a href="${Deno.env.get('APP_URL') || 'https://app.thequantumclub.com'}/admin/anti-hacking">Security Dashboard</a>.</p>
-            </div>
-          </div>
-        </div>
-      </body>
-      </html>
+          ` : ''}
+        `
+      })}
+      
+      ${Spacer(24)}
+      ${Paragraph(`Review the threat in the <a href="${appUrl}/admin/anti-hacking" style="color: ${EMAIL_COLORS.gold}; text-decoration: none;">Security Dashboard</a>.`, 'secondary')}
+      ${Spacer(16)}
+      ${Paragraph('This is an automated security alert from The Quantum Club platform.', 'muted')}
     `;
+
+    const htmlContent = baseEmailTemplate({
+      preheader: `[${body.severity.toUpperCase()}] Security Alert: ${body.threat_type}`,
+      content: emailContent,
+      showHeader: true,
+      showFooter: true,
+    });
 
     // Send email
     const emailResult = await resend.emails.send({
-      from: 'Security <security@thequantumclub.com>',
+      from: EMAIL_SENDERS.security,
       to: [config.email],
       subject: `${severityEmoji[body.severity]} [${body.severity.toUpperCase()}] Security Alert: ${body.threat_type}`,
       html: htmlContent

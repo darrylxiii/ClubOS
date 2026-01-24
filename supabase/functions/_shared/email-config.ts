@@ -22,6 +22,8 @@ export const EMAIL_SENDERS = {
   referrals: 'The Quantum Club <invites@thequantumclub.nl>',
   system: 'The Quantum Club <noreply@thequantumclub.nl>',
   security: 'The Quantum Club <security@thequantumclub.nl>',
+  reminders: 'The Quantum Club <reminders@thequantumclub.nl>',
+  clubAI: 'Club AI <ai@thequantumclub.nl>',
 } as const;
 
 // Brand colors for emails (use solid colors for maximum compatibility)

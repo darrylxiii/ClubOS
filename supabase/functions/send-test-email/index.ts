@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Heading, Paragraph, Spacer, Card, AlertBox } from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS } from "../_shared/email-config.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -51,65 +54,49 @@ serve(async (req) => {
       meetingLink: 'https://meet.example.com/test-meeting',
     };
 
-    // Build email content using template
+    // Build email content using template components
     const contentData = template.content_template;
     const steps = contentData.candidateNextSteps || contentData.partnerNextSteps || [];
-    const stepsHtml = steps.map((step: string) => `<li>${step}</li>`).join('');
+    const stepsHtml = steps.length > 0 
+      ? `<ul style="margin: 10px 0 0 0; padding-left: 20px;">${steps.map((step: string) => `<li style="margin-bottom: 8px;">${step}</li>`).join('')}</ul>`
+      : '';
 
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #0E0E10 0%, #1a1a1d 100%); color: #F5F4EF; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #fff; padding: 40px 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
-            .button { display: inline-block; background: #C9A24E; color: #fff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-top: 20px; }
-            .highlight { background: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0; }
-            .test-banner { background: #fef3c7; border: 2px solid #f59e0b; padding: 12px; text-align: center; font-weight: 600; color: #92400e; }
-          </style>
-        </head>
-        <body>
-          <div class="test-banner">
-            🧪 TEST EMAIL - Template: ${template.name}
-          </div>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0; font-size: 32px;">${contentData.heading || template.name}</h1>
-            </div>
-            <div class="content">
-              <p>Dear ${sampleData.fullName},</p>
-              <p>${contentData.intro || 'Email content goes here'}</p>
-              
-              ${stepsHtml ? `
-                <div class="highlight">
-                  <p style="margin: 0;"><strong>What's Next:</strong></p>
-                  <ul style="margin: 10px 0 0 0; padding-left: 20px;">${stepsHtml}</ul>
-                </div>
-              ` : ''}
-              
-              ${contentData.ctaText ? `
-                <div style="text-align: center;">
-                  <a href="${contentData.ctaUrl || '#'}" class="button">
-                    ${contentData.ctaText}
-                  </a>
-                </div>
-              ` : ''}
-              
-              ${contentData.showReason ? `
-                <p style="color: #999; margin-top: 20px;">
-                  <strong>Reason:</strong> ${sampleData.declineReason}
-                </p>
-              ` : ''}
-              
-              <p style="margin-top: 30px;">Best regards,<br>The Quantum Club Team</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const emailContent = `
+      ${AlertBox({
+        type: 'warning',
+        title: '🧪 Test Email',
+        message: `This is a test of the "${template.name}" template`,
+      })}
+      ${Spacer(24)}
+      ${Heading({ text: contentData.heading || template.name, level: 1 })}
+      ${Spacer(16)}
+      ${Paragraph(`Dear ${sampleData.fullName},`, 'primary')}
+      ${Spacer(8)}
+      ${Paragraph(contentData.intro || 'Email content goes here', 'secondary')}
+      ${stepsHtml ? `
+        ${Spacer(24)}
+        ${Card({
+          variant: 'highlight',
+          content: `
+            <p style="margin: 0 0 8px 0;"><strong>What's Next:</strong></p>
+            ${stepsHtml}
+          `
+        })}
+      ` : ''}
+      ${contentData.showReason ? `
+        ${Spacer(16)}
+        ${Paragraph(`<strong>Reason:</strong> ${sampleData.declineReason}`, 'muted')}
+      ` : ''}
+      ${Spacer(32)}
+      ${Paragraph('Best regards,<br>The Quantum Club Team', 'secondary')}
     `;
+
+    const htmlContent = baseEmailTemplate({
+      preheader: `[TEST] ${template.subject_template}`,
+      content: emailContent,
+      showHeader: true,
+      showFooter: true,
+    });
 
     // Send via Resend API
     const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -119,7 +106,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "The Quantum Club <onboarding@resend.dev>",
+        from: EMAIL_SENDERS.system,
         to: [testEmail],
         subject: `[TEST] ${template.subject_template}`,
         html: htmlContent,

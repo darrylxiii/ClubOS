@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Button, Card, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS, getEmailAppUrl } from "../_shared/email-config.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -158,7 +159,7 @@ serve(async (req: Request) => {
       ` : ''}
       ${Paragraph('You received this email because you have notifications enabled in your settings.', 'muted')}
       ${Spacer(16)}
-      ${Paragraph(`<a href="${Deno.env.get('APP_URL') || 'https://app.thequantumclub.com'}/settings" style="color: #C9A24E; text-decoration: none;">Manage notification preferences</a>`, 'muted')}
+      ${Paragraph(`<a href="${getEmailAppUrl()}/settings" style="color: #C9A24E; text-decoration: none;">Manage notification preferences</a>`, 'muted')}
     `;
 
     const html = baseEmailTemplate({
@@ -176,7 +177,7 @@ serve(async (req: Request) => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "The Quantum Club <notifications@thequantumclub.com>",
+        from: EMAIL_SENDERS.notifications,
         to: [userEmail],
         subject: title,
         html,
