@@ -1,144 +1,195 @@
 
 <context>
-You’re seeing Vercel errors like:
-- “404: NOT_FOUND … ID: fra1::…”
-- And it happens on refresh / deep links (React Router routes), while the Lovable preview works.
-
-You also note:
-- bytqc.com (on Vercel) loads.
-- thequantumclub.app “does not even load” because it’s still pointed at Lovable’s hosting/DNS.
+You confirmed:
+- Booking pages are working again.
+- Google Calendar is the provider.
+- The connect flow “succeeds” but Scheduling still says it’s not connected.
+- Canonical domain for booking + OAuth redirects is bytqc.com (Vercel).
+- Calendar connections should be per-host (per booking link owner).
+You also want a full audit of all API keys/secrets to see what is configured and what is actually working.
 </context>
 
-<step-by-step diagnosis (what is happening and why)>
-1) The “404: NOT_FOUND … fra1::…” error is Vercel’s standard response when it cannot find a matching file for the requested path.
-   - In a Vite + React Router SPA, routes like `/auth`, `/home`, `/admin/exports`, etc. are not real files.
-   - They must be rewritten to `/index.html` so the client router can take over.
-   - Without a rewrite, refreshing `/auth` on Vercel becomes “try to serve /auth as a file” → 404.
+<what-I-found (root causes + current state)>
+1) There are two different “calendar connection” implementations in the codebase:
+   A) New/real implementation (correct):
+   - /settings → ConnectionsSettings
+   - On OAuth callback it inserts a row into database table calendar_connections (provider/email/access_token/refresh_token/token_expires_at/is_active)
+   - Scheduling reads from calendar_connections and will only show “connected” if rows exist.
 
-2) Lovable preview typically serves the SPA in a way that already falls back to `index.html` for unknown routes, so React Router works even without extra config.
-   - That’s why it “works in preview” but breaks on Vercel.
+   B) Legacy implementation (incorrect / misleading):
+   - /user-settings → UserSettings page
+   - On OAuth callback it saves “connected calendars” only to localStorage (not the database)
+   - Scheduling cannot see localStorage, so it keeps showing “No calendar connected”.
+   - This matches your symptom: “Connect but not shown”.
 
-3) thequantumclub.app not loading is a separate issue from React Router:
-   - That domain’s DNS is still pointing to Lovable (or otherwise not pointed at Vercel), so requests never reach your Vercel deployment.
-   - Until DNS is moved, no amount of Vercel config will affect thequantumclub.app.
+2) Your backend secrets already include the key pairs needed for Google and Microsoft OAuth:
+- GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are present.
+So this is not primarily an “API keys missing” problem; it’s primarily “wrong connection flow / data not saved where Scheduling expects”.
 
-Conclusion:
-- Vercel 404s on deep links are a routing rewrite issue (SPA fallback).
-- thequantumclub.app not loading is a DNS/domain routing issue (it’s still tied to Lovable hosting records).
-</step-by-step diagnosis>
+3) Your database currently has active Google calendar connections (3 rows, all is_active=true, error_count=0). That means at least one connection flow has worked historically. If your specific user still sees “not connected”, it’s likely they connected using the legacy /user-settings flow or they’re logged in as a different account than the one that owns those 3 connections.
+
+4) Because your canonical domain is now bytqc.com, Google OAuth must allow redirect URIs for bytqc.com (and whichever callback path we use). If a user tries to connect from a domain not listed in Google’s allowed redirect URIs, it will fail with redirect_uri_mismatch (you’d usually see an explicit error). You’re not seeing that, but we’ll still treat domain parity as a must-have in the audit.
+</what-I-found>
 
 <goals>
-1) Make Vercel serve `index.html` for all non-asset routes so React Router works everywhere (including refresh and direct links).
-2) Move `thequantumclub.app` DNS at Spaceship to Vercel so the domain actually points to the working Vercel deployment.
-3) Avoid introducing new caching/boot-loop issues (especially with the PWA service worker).
+A) Fix Google Calendar connection so that when you connect it, Scheduling reliably shows it as connected and availability uses it.
+B) Remove/retire the legacy calendar connection path so we don’t “lose” connections into localStorage again.
+C) Add an “Integrations / API Keys Health” audit surface that tells you:
+   - Which integrations are configured (secret exists)
+   - Which are actually functioning (recent successful call, token refresh, or provider ping)
+   - What needs attention (missing secret, invalid key, OAuth redirect mismatch, token revoked, etc.)
+D) Keep this privacy-first: never expose secret values; only show status and last check timestamps.
 </goals>
 
-<implementation plan (code + configuration)>
-<phase id="1" name="Add SPA rewrite configuration for Vercel">
-Action:
-- Add a `vercel.json` file at the project root that rewrites all routes to `/index.html`.
+<plan-overview>
+We will deliver this in two tracks:
+1) Calendar connection correctness (user-facing fix)
+2) Integration health audit (admin-facing diagnostics)
+</plan-overview>
 
-Recommended config (simple and reliable for SPAs):
-- Rewrite everything except actual static files to `/index.html`.
+<track-1-calendar-fix>
+<step id="1" title="Make /user-settings stop being a trap for calendar connections">
+- Audit routing/navigation to see who links to /user-settings.
+- Implement one of these (preferred first):
+  Option A (preferred): Redirect /user-settings → /settings (preserving query params), so OAuth callbacks land on the page that actually writes to calendar_connections.
+  Option B: Keep /user-settings but update its OAuth callback handler to use the same DB insert logic as ConnectionsSettings (calendar_connections), and then remove localStorage storage for calendars.
 
-Acceptance:
-- Visiting `/auth` directly on Vercel loads the app (no Vercel 404).
-- Refreshing `/home` or any protected route no longer yields “404: NOT_FOUND”.
-</phase>
+Acceptance criteria:
+- After connecting Google Calendar, Scheduling shows “Calendar Connected” immediately.
+- No future connections are stored only in localStorage.
+</step>
 
-<phase id="2" name="Confirm Vercel build settings match Vite output">
-In Vercel project settings:
-- Framework preset: Vite (or “Other” but configured correctly)
-- Build command: `npm run build`
-- Output directory: `dist`
+<step id="2" title="Add a safe migration path for anyone who previously connected via /user-settings">
+- Detect “legacy connected calendars” in localStorage (connected_calendars) when the user visits /settings or /scheduling.
+- Show a discreet banner: “We found a legacy calendar connection on this device. Reconnect to enable conflict checking.”
+- Provide a single CTA that starts the proper /settings connection flow (not an auto-migration, because localStorage lacks refresh_token and we must avoid fabricating credentials).
 
-Acceptance:
-- Deploy completes cleanly and serves the correct `dist/index.html` + `/assets/*`.
-</phase>
+Acceptance criteria:
+- Users who “thought they were connected” get a clear recovery path without confusion.
+</step>
 
-<phase id="3" name="Ensure environment variables are set in Vercel">
-In Vercel project Environment Variables (Production + Preview):
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `VITE_SUPABASE_PROJECT_ID`
-- Any other VITE_* values you rely on (e.g. PostHog key if used)
+<step id="3" title="Ensure Scheduling checks the right host calendar for each booking link">
+- Confirm booking link ownership mapping: booking_links.user_id should be the host’s user id.
+- Confirm get-available-slots uses that host user_id when fetching calendar_connections.
+- If any code currently uses the logged-in viewer’s user id instead of the booking link owner (common bug in public booking pages), correct it.
 
-Why:
-- Your frontend constructs backend-function URLs using `import.meta.env.VITE_SUPABASE_URL` (e.g. `/functions/v1/data-dump`).
-- If these are missing or wrong in Vercel, you’ll see runtime failures that you might not see in Lovable preview.
+Acceptance criteria:
+- /book/:slug checks conflicts against the booking link owner’s connected Google Calendar.
+</step>
 
-Acceptance:
-- Auth works.
-- Admin exports page can call backend functions (even if export itself is still being tuned).
-</phase>
+<step id="4" title="Tighten UX: show the exact reason a calendar isn’t considered connected">
+In Scheduling and Connections:
+- If calendar_connections has rows but is_active=false, show “Disconnected (token revoked). Reconnect.”
+- If rows exist but token_expires_at is past and refresh failed, show “Token expired. Reconnect.”
+- If no rows exist, show “No calendar connected.”
 
-<phase id="4" name="Point thequantumclub.app to Vercel (Spaceship DNS)">
-This is the key to making thequantumclub.app load from Vercel.
+Acceptance criteria:
+- The app never silently fails; it always shows the “why” and one next best action.
+</step>
 
-On Spaceship DNS for `thequantumclub.app`:
-- Apex/root (`@`) A record → `76.76.21.21` (Vercel)
-- `www` CNAME → `cname.vercel-dns.com`
+<step id="5" title="Domain correctness for OAuth (bytqc.com canonical)">
+- Ensure the redirectUri used for calendar auth is exactly:
+  - https://bytqc.com/settings (production)
+  - plus any preview/staging domains you still use for testing, if applicable
+- Provide a checklist inside the app (admin-only) that prints the exact redirect URIs your app will request (without guessing).
 
-Also:
-- Remove/replace any conflicting A/AAAA/CNAME records for `@` or `www` that currently point to Lovable/old infrastructure.
-- Keep all email records (MX, SPF, DKIM, DMARC) intact.
+Acceptance criteria:
+- Connecting on bytqc.com works consistently for all users.
+</step>
+</track-1-calendar-fix>
 
-Acceptance:
-- In Vercel, domain verification passes.
-- `https://thequantumclub.app` loads your Vercel deployment.
-- Optional: `www.thequantumclub.app` redirects to the primary host (configured in Vercel).
+<track-2-integration-health-audit>
+<step id="6" title="Inventory: produce a formal Integration Matrix from secrets + code usage">
+We will generate an internal “integration registry” (in code) listing:
+- Integration name (Google Calendar, Microsoft Calendar, Email, SMS, LiveKit, Stripe, ElevenLabs, PostHog, reCAPTCHA, etc.)
+- Required secrets (names only)
+- Where it’s used (backend function(s) / frontend module)
+- What a “health check” means (e.g., token refresh + /userinfo for Google, send test email for email provider, etc.)
+- Whether it is user-scoped (OAuth tokens in DB) or system-scoped (single API key)
 
-Note:
-- You do not need to move to Cloudflare for this. Spaceship is fine as DNS host as long as it supports these records.
-- Cloudflare is optional if you want WAF/bot protection/advanced redirects, but it adds another layer (and mistakes there can cause “it works in one place but not another”).
-</phase>
+Output surfaces:
+- Admin diagnostics page: “Integrations Health”
+- Optional: a markdown doc inside repo for maintainers
 
-<phase id="5" name="PWA/service worker sanity check (prevent ghost caching bugs)">
-Because your Vite config enables PWA only in production builds, Vercel will run with a service worker while Lovable preview may not.
+Acceptance criteria:
+- One place answers “what do we use, where, and what needs to be configured”.
+</step>
 
-We’ll validate:
-- `sw.js` is being served correctly
-- There isn’t an old service worker from the Lovable domain affecting the Vercel domain (should be isolated by origin, but we confirm)
-- Asset caching strategy isn’t causing stale HTML/assets mismatch on Vercel
+<step id="7" title="Build an admin-only healthcheck backend function">
+Create a backend function (admin-protected) that returns a status report per integration:
+- configured: boolean (secret exists)
+- last_success_at / last_error_at
+- current_status: ok | degraded | failing | not_configured
+- actionable_message (human readable, calm tone)
+- for user-scoped integrations (calendar/email OAuth): counts of active connections and counts of inactive/revoked
 
-Acceptance:
-- No boot loops
-- No “stale build” behavior after redeploys
-- Updates behave predictably
-</phase>
-</implementation plan>
+Checks (non-destructive):
+- Google Calendar: sample 1–3 recent active connections → attempt refresh if needed → call a lightweight endpoint (userinfo or calendarList with maxResults=1) → record ok/error.
+- Microsoft Calendar: similar lightweight /me or calendar list.
+- Resend/email provider: do not send email by default; instead validate key presence + optionally offer “Send test email” button that requires confirmation.
+- Twilio: validate key presence + optionally “Send test SMS” button requiring explicit target number and confirmation.
+- LiveKit: validate key presence + optionally mint a token (no external call needed).
+- Stripe: validate key presence + optionally fetch account info via server-side call (safe).
+- PostHog: frontend-only; validate env presence and optionally call /decide endpoint.
+- reCAPTCHA: detect currently disabled mismatch and show remediation steps.
 
-<verification checklist (what you will test after changes)>
-1) On Vercel domain (bytqc.com):
-   - Open `/auth` directly in a new tab (should load).
-   - Refresh on `/auth` and `/home` (should not 404).
-2) In Vercel project settings:
-   - Confirm `dist` output is served and `/assets/*` loads.
-3) After DNS switch:
-   - `thequantumclub.app` loads the same as bytqc.com.
-   - HTTPS certificate is active on `thequantumclub.app`.
-4) Optional but recommended:
-   - Test one deep protected route directly (e.g. `/admin/exports`) after login.
-</verification checklist>
+Acceptance criteria:
+- One click gives a truthful readout: configured vs actually working.
+- No secrets are exposed in responses.
+</step>
 
-<clarifications / decisions>
-- Stay on Spaceship DNS for now. Move to Cloudflare only if you specifically want:
-  - WAF / bot protection
-  - Advanced redirects/rules
-  - CDN caching controls
-  - DDoS mitigation controls beyond defaults
+<step id="8" title="Add an ‘Integrations Health’ admin UI in-app">
+- New page under Settings (Admin-only): /settings/integrations-health
+- Table view with:
+  - Integration
+  - Status badge (Ok/Degraded/Failing/Not configured)
+  - “Details” drawer: last error snippet, what to fix, link to connect flow (for calendar)
+  - Actions:
+    - “Run checks”
+    - “Reconnect Google Calendar” (deep link to /settings with the correct tab)
+    - Optional: “Send test email/SMS” (guarded)
 
-If later you choose Cloudflare:
-- You’d keep Spaceship as registrar, but change nameservers to Cloudflare and recreate DNS records there.
-</clarifications / decisions>
+Acceptance criteria:
+- You can diagnose 90% of integration issues without logs.
+- Fits TQC luxury/discreet UI standards (minimal, precise, no clutter).
+</step>
 
-<what I need from you to proceed cleanly>
-1) Confirm: Is the Vercel project already set to serve a SPA (Vite) with output directory `dist`?
-2) Confirm: Do you want `thequantumclub.app` to be the primary domain, with `www` redirecting to it?
-3) If you can paste one URL that 404s on Vercel (e.g. `https://bytqc.com/auth`), I’ll tailor the rewrite rule to your exact structure (though the standard SPA rewrite will almost certainly solve it).
-</what I need from you to proceed cleanly>
+<step id="9" title="Logging + audit trail (privacy-first)">
+- Record each health check run in audit_logs:
+  - who ran it, when, which integration, result, error code (no secrets)
+- If an integration fails due to token revoked/invalid_grant, mark the relevant calendar_connection is_active=false with last_error, token_expired_at.
 
-<de-scope (to keep this fast and safe)>
-- We are not changing application logic yet.
-- This is strictly deployment correctness: SPA rewrites + domain DNS pointing + env parity.
+Acceptance criteria:
+- You have an audit trail suitable for enterprise operations.
+</step>
+</track-2-integration-health-audit>
+
+<testing-and-verification>
+We will verify end-to-end on bytqc.com:
+1) Login as a host user.
+2) Go to /settings → connect Google Calendar.
+3) Confirm a row appears in calendar_connections for that user (is_active=true).
+4) Go to /scheduling → CalendarConnectionStatus shows connected.
+5) Open /book/:slug for that host → available slots reflect real agenda conflicts (no double-bookings).
+6) Run Integrations Health check → Google Calendar shows OK with a recent timestamp.
+</testing-and-verification>
+
+<risks-and-mitigations>
+- Risk: Some users still rely on /user-settings for other settings.
+  Mitigation: redirect only calendar-related flows first, or keep /user-settings but remove calendar section and point to /settings.
+- Risk: OAuth redirect mismatch for bytqc.com.
+  Mitigation: diagnostics page shows exact redirect URI strings and error guidance; we standardize to /settings for calendar callback.
+- Risk: RLS blocks reading calendar_connections.
+  Mitigation: verify RLS policies for calendar_connections allow authenticated users to select their own rows; ensure admin diagnostics uses server-side permissions safely.
+</risks-and-mitigations>
+
+<what-I-need-from-you (minimal)>
+Nothing else required right now; you already answered the key questions (provider, where it breaks, canonical domain, per-host model). During implementation, I may ask for:
+- One host account email that you expect to be connected (to compare with calendar_connections rows), but only if needed for debugging.
+</what-I-need-from-you>
+
+<de-scope (to keep this controlled)>
+- No new calendar providers (Google only for this fix).
+- No new scheduling UX features beyond connection reliability + diagnostics.
+- No sending real test emails/SMS unless you explicitly trigger it from the admin UI.
 </de-scope>
