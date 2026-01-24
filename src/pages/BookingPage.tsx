@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Calendar, Clock, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +18,7 @@ import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import confetti from 'canvas-confetti';
 import { formatInTimeZone } from "date-fns-tz";
 import { getAvailableSlots } from "@/services/availability";
+import { getBookingPage } from "@/services/booking-page";
 
 interface BookingLink {
   id: string;
@@ -72,6 +72,7 @@ export default function BookingPage() {
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [hasGoogleCalendar, setHasGoogleCalendar] = useState(false);
   const [hostTimezone, setHostTimezone] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Phase 7: Analytics tracking
   const analytics = useBookingAnalytics(bookingLink?.id || "");
@@ -82,31 +83,17 @@ export default function BookingPage() {
 
   const loadBookingLink = async () => {
     try {
-      const response = await supabase.functions.invoke('get-booking-page', {
-        body: { slug },
-      });
+      setLoadError(null);
 
-      // Handle edge function errors
-      if (response.error) {
-        console.error("Edge function error:", response.error);
-        toast.error('Failed to load booking page');
-        setLoading(false);
+      if (!slug) {
+        setLoadError('Missing booking link');
         return;
       }
 
-      const data = response.data;
-      
-      // Check if we got error in the response body
-      if (data?.error) {
-        console.error("Booking page error:", data.error);
-        toast.error(data.error === 'Booking link not found' ? 'Booking link not found' : 'Failed to load booking page');
-        setLoading(false);
-        return;
-      }
+      const data = await getBookingPage(slug);
 
       if (!data?.bookingLink) {
-        toast.error('Booking link not found');
-        setLoading(false);
+        setLoadError('Booking link not found');
         return;
       }
 
@@ -116,7 +103,8 @@ export default function BookingPage() {
       setHasGoogleCalendar(!!data.hasGoogleCalendar);
     } catch (error: any) {
       console.error("Error loading booking link:", error);
-      toast.error("Failed to load booking page");
+      // Avoid toasts during boot; they can cause render-phase update warnings.
+      setLoadError('Failed to load booking page');
     } finally {
       setLoading(false);
     }
@@ -182,7 +170,22 @@ export default function BookingPage() {
   }
 
   if (!bookingLink) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Booking page unavailable</CardTitle>
+            <CardDescription>
+              {loadError || 'This booking link could not be loaded.'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex gap-2">
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+            <Button variant="outline" onClick={() => navigate('/auth')}>Go to login</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const pageContent = (
