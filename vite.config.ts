@@ -99,7 +99,8 @@ export default defineConfig(({ mode, command }) => ({
           // CRITICAL: Never cache backend function calls
           // Public booking pages rely on these being fresh and reachable.
           {
-            urlPattern: /^https:\/\/dpjucecmoyfzrduhlctt\.supabase\.co\/functions\/v1\/.*/i,
+            // NOTE: Do not hardcode a single hostname; preview/published environments can differ.
+            urlPattern: /^https:\/\/.*\.supabase\.co\/functions\/v1\/.*/i,
             handler: 'NetworkOnly',
             options: {
               cacheName: 'functions-cache-bypass',
@@ -162,7 +163,7 @@ export default defineConfig(({ mode, command }) => ({
             }
           },
           {
-            urlPattern: /^https:\/\/dpjucecmoyfzrduhlctt\.supabase\.co\/rest\/v1\/.*/i,
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',

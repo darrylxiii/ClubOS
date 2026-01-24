@@ -57,13 +57,35 @@ async function invokeGetAvailableSlots(body: AvailabilityRequest): Promise<Avail
   return data as AvailabilityResponse;
 }
 
-async function fetchGetAvailableSlotsDirect(body: AvailabilityRequest): Promise<AvailabilityResponse> {
-  const baseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-  const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+function resolveBackendConfig(): { baseUrl: string; publishableKey: string; usedFallbackUrl: boolean } {
+  const envBaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  const envKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+
+  // In Lovable preview builds, VITE_* can sometimes be unavailable at runtime.
+  // The client still knows its configured URL, so we can safely fall back to it.
+  const clientUrl = (supabase as unknown as { supabaseUrl?: string }).supabaseUrl;
+
+  const baseUrl = envBaseUrl || clientUrl;
+  const publishableKey = envKey;
 
   if (!baseUrl || !publishableKey) {
-    throw new Error('availability_missing_backend_env');
+    const reason = !baseUrl && !publishableKey
+      ? 'missing_url_and_key'
+      : !baseUrl
+        ? 'missing_url'
+        : 'missing_key';
+    throw new Error(`availability_missing_backend_config:${reason}`);
   }
+
+  return {
+    baseUrl,
+    publishableKey,
+    usedFallbackUrl: !envBaseUrl && !!clientUrl,
+  };
+}
+
+async function fetchGetAvailableSlotsDirect(body: AvailabilityRequest): Promise<AvailabilityResponse> {
+  const { baseUrl, publishableKey } = resolveBackendConfig();
 
   const res = await fetch(`${baseUrl}/functions/v1/get-available-slots`, {
     method: 'POST',
