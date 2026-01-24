@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +18,7 @@ import { GuestPlatformSelector } from "./GuestPlatformSelector";
 import { TimezoneWarning } from "./TimezoneWarning";
 import { logger } from "@/lib/logger";
 import { getAvailableSlots } from "@/services/availability";
+import { createBooking } from "@/services/booking";
 
 interface BookingFormProps {
   bookingLink: {
@@ -160,15 +160,10 @@ export function BookingForm({
       const scheduledStart = selectedSlot.start;
       const scheduledEnd = selectedSlot.end;
 
-      const headers: Record<string, string> = {};
-      if (RECAPTCHA_ENABLED && recaptchaToken) {
-        headers["x-recaptcha-token"] = recaptchaToken;
-      }
-
       setLoadingStage("Creating your booking...");
-      const { data, error } = await supabase.functions.invoke("create-booking", {
-        headers,
-        body: {
+      
+      const data = await createBooking(
+        {
           bookingLinkSlug: bookingLink.slug,
           guestName: formData.name,
           guestEmail: formData.email,
@@ -181,9 +176,8 @@ export function BookingForm({
           guestSelectedPlatform: bookingLink.allow_guest_platform_choice ? selectedVideoPlatform : undefined,
           smsReminders: formData.smsReminders || false,
         },
-      });
-
-      if (error) throw error;
+        RECAPTCHA_ENABLED && recaptchaToken ? { recaptchaToken } : {}
+      );
 
       setLoadingStage("Confirmed!");
       trackStep("confirmation"); // Phase 7: Track successful booking
