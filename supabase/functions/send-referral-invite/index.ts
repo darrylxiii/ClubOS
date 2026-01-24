@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { Button, Card, Heading, Paragraph, Spacer, InfoRow } from "../_shared/email-templates/components.ts";
+import { Button, Card, Heading, Paragraph, Spacer, InfoRow, StatusBadge } from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -27,14 +28,15 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { inviteCode, friendEmail, friendName, jobTitle, companyName, referrerName }: ReferralInviteRequest = await req.json();
 
-    const appUrl = Deno.env.get("SUPABASE_URL")?.replace("https://", "https://") || "http://localhost:5173";
+    const appUrl = getEmailAppUrl();
     const inviteLink = `${appUrl}/auth?invite=${inviteCode}`;
 
     const emailContent = `
-      ${Heading({ text: `${referrerName} thinks you'd be perfect for this role!`, level: 1 })}
+      ${StatusBadge({ status: 'new', text: 'YOU\'VE BEEN REFERRED' })}
+      ${Heading({ text: `${referrerName} thinks you'd be perfect for this role!`, level: 1, align: 'center' })}
       ${Spacer(24)}
       ${Paragraph(`Hi ${friendName},`, 'primary')}
-      ${Spacer(16)}
+      ${Spacer(8)}
       ${Paragraph(`<strong>${referrerName}</strong> believes you'd be a great fit for an exciting opportunity at <strong>${companyName}</strong>.`, 'secondary')}
       ${Spacer(32)}
       ${Card({
@@ -76,9 +78,9 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "The Quantum Club <onboarding@resend.dev>",
+        from: EMAIL_SENDERS.referrals,
         to: [friendEmail],
-        subject: `${referrerName} thinks you'd be perfect for ${jobTitle} at ${companyName}!`,
+        subject: `🎯 ${referrerName} thinks you'd be perfect for ${jobTitle} at ${companyName}!`,
         html,
       }),
     });

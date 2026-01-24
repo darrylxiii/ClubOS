@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { Button, Card, Heading, Paragraph, Spacer, InfoRow } from "../_shared/email-templates/components.ts";
+import { 
+  Button, Card, Heading, Paragraph, Spacer, InfoRow, 
+  VideoCallCard, StatusBadge, CalendarButtons, AlertBox, SchemaEvent 
+} from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, SUPPORT_EMAIL, getEmailAppUrl } from "../_shared/email-config.ts";
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
@@ -31,6 +35,7 @@ serve(async (req) => {
     // Initialize Supabase client to fetch owner profile
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const appUrl = getEmailAppUrl();
     
     const response = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${bookingLink.user_id}&select=email,full_name`, {
       headers: {
@@ -65,15 +70,48 @@ serve(async (req) => {
     })}`;
 
     const confirmationMessage = bookingLink.confirmation_message || 
-      `Your meeting has been scheduled for ${formattedDate} at ${formattedTime}.`;
+      `Your meeting with ${ownerProfile?.full_name || 'your host'} has been confirmed.`;
 
-    // Build attendee list for calendar invite
+    // Determine video platform and meeting link
+    const activePlatform = booking.active_video_platform;
+    let meetingLink = '';
+    let platformName = '';
+    let platformType: 'google_meet' | 'zoom' | 'club_meetings' | 'teams' | 'generic' = 'generic';
+    let meetingInstructions = '';
+    let hasMeetingLink = false;
+
+    if (activePlatform === 'google_meet' && booking.google_meet_hangout_link) {
+      meetingLink = booking.google_meet_hangout_link;
+      platformName = 'Google Meet';
+      platformType = 'google_meet';
+      meetingInstructions = 'Join via Google Meet. The link will also be in your calendar invite.';
+      hasMeetingLink = true;
+    } else if (activePlatform === 'quantum_club' && booking.quantum_meeting_link) {
+      meetingLink = booking.quantum_meeting_link;
+      platformName = 'Club Meetings';
+      platformType = 'club_meetings';
+      meetingInstructions = 'Join via The Quantum Club for full-featured video calls with AI intelligence.';
+      hasMeetingLink = true;
+    } else if (booking.video_meeting_link) {
+      meetingLink = booking.video_meeting_link;
+      platformName = 'Video Conference';
+      platformType = 'generic';
+      meetingInstructions = 'Join the meeting using the link below.';
+      hasMeetingLink = true;
+    }
+
+    // Build meeting location for ICS and calendar
+    const meetingLocation = hasMeetingLink ? meetingLink : '';
+    const enhancedDescription = hasMeetingLink 
+      ? `${bookingLink.description || 'Meeting scheduled via The Quantum Club'}\n\nJoin ${platformName}: ${meetingLink}`
+      : bookingLink.description || 'Meeting scheduled via The Quantum Club';
+
+    // Generate .ics calendar file content
     const attendeesList = [
       `ATTENDEE;CN=${ownerProfile?.full_name || 'Host'};ROLE=REQ-PARTICIPANT:MAILTO:${ownerProfile?.email}`,
       `ATTENDEE;CN=${booking.guest_name};RSVP=TRUE:MAILTO:${booking.guest_email}`,
     ];
 
-    // Add additional guests if any
     if (booking.guests && Array.isArray(booking.guests)) {
       booking.guests.forEach((guest: any) => {
         if (guest.email) {
@@ -82,66 +120,21 @@ serve(async (req) => {
       });
     }
 
-    // Generate .ics calendar file content (will be enhanced after platform determination)
-    // Placeholder - will be built after we know the meeting platform
-
-    // Determine video platform and meeting link
-    const activePlatform = booking.active_video_platform;
-    let meetingLink = '';
-    let platformName = '';
-    let meetingInstructions = '';
-    let hasMeetingLink = false;
-
-    if (activePlatform === 'google_meet' && booking.google_meet_hangout_link) {
-      meetingLink = booking.google_meet_hangout_link;
-      platformName = 'Google Meet';
-      meetingInstructions = 'Join via Google Meet using the link below or from your calendar invite.';
-      hasMeetingLink = true;
-    } else if (activePlatform === 'quantum_club' && booking.quantum_meeting_link) {
-      meetingLink = booking.quantum_meeting_link;
-      platformName = 'TQC Meetings';
-      meetingInstructions = 'Join via The Quantum Club platform for full-featured video calls with AI intelligence.';
-      hasMeetingLink = true;
-    } else if (booking.video_meeting_link) {
-      // Fallback to generic video_meeting_link
-      meetingLink = booking.video_meeting_link;
-      platformName = 'Video Conference';
-      meetingInstructions = 'Join the meeting using the link below.';
-      hasMeetingLink = true;
-    }
-
-    // Build meeting location and enhanced description for ICS file
-    let meetingLocation = '';
-    let enhancedDescription = bookingLink.description || 'Meeting scheduled via Quantum Club';
-
-    if (hasMeetingLink) {
-      meetingLocation = meetingLink; // LOCATION field for calendar apps
-      
-      // Enhanced DESCRIPTION with clickable meeting link
-      enhancedDescription = `${bookingLink.description || 'Meeting scheduled via Quantum Club'}
-
-Join ${platformName}:
-${meetingLink}
-
-${meetingInstructions}`;
-    }
-
-    // Generate .ics calendar file content
     const icsContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//Quantum Club//Booking System//EN',
+      'PRODID:-//The Quantum Club//Booking System//EN',
       'CALSCALE:GREGORIAN',
       'METHOD:REQUEST',
       'BEGIN:VEVENT',
       `DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
       `DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
       `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-      `UID:${booking.id}@quantumclub.com`,
+      `UID:${booking.id}@thequantumclub.com`,
       `SUMMARY:${bookingLink.title}`,
       `DESCRIPTION:${enhancedDescription.replace(/\n/g, '\\n')}`,
       ...(meetingLocation ? [`LOCATION:${meetingLocation}`] : []),
-      `ORGANIZER;CN=${ownerProfile?.full_name || 'Quantum Club'}:MAILTO:${ownerProfile?.email || 'no-reply@quantumclub.com'}`,
+      `ORGANIZER;CN=${ownerProfile?.full_name || 'The Quantum Club'}:MAILTO:${ownerProfile?.email || 'noreply@thequantumclub.nl'}`,
       ...attendeesList,
       'STATUS:CONFIRMED',
       'SEQUENCE:0',
@@ -149,32 +142,27 @@ ${meetingInstructions}`;
       'END:VCALENDAR'
     ].join('\r\n');
 
-    // Generate Add to Calendar URLs with meeting links
-    const googleCalDescription = hasMeetingLink 
-      ? `${bookingLink.description || ''}\n\nJoin ${platformName}:\n${meetingLink}`
-      : bookingLink.description || '';
-    
-    const outlookCalBody = hasMeetingLink
-      ? `${bookingLink.description || ''}\n\nJoin ${platformName}:\n${meetingLink}`
-      : bookingLink.description || '';
+    // Generate Schema.org markup for Gmail rich previews
+    const schemaMarkup = SchemaEvent({
+      name: bookingLink.title,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      location: meetingLocation,
+      description: bookingLink.description,
+      organizerName: ownerProfile?.full_name || 'The Quantum Club',
+      organizerEmail: ownerProfile?.email,
+      attendees: [
+        { name: booking.guest_name, email: booking.guest_email },
+      ],
+    });
 
-    const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(bookingLink.title)}&dates=${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(googleCalDescription)}&location=${encodeURIComponent(meetingLocation || '')}`;
-    const outlookCalUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(bookingLink.title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${encodeURIComponent(outlookCalBody)}&location=${encodeURIComponent(meetingLocation || '')}`;
-
+    // Build the email content with new professional components
     const emailContent = `
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-        <tr>
-          <td align="center" style="padding-bottom: 32px;">
-            <div style="display: inline-block; padding: 12px 32px; background: linear-gradient(135deg, rgba(201, 162, 78, 0.1) 0%, rgba(201, 162, 78, 0.05) 100%); border-radius: 100px; border: 1px solid rgba(201, 162, 78, 0.3);">
-              <span style="color: #C9A24E; font-size: 14px; font-weight: 600; letter-spacing: 0.5px;">✓ BOOKING CONFIRMED</span>
-            </div>
-          </td>
-        </tr>
-      </table>
-      ${Heading({ text: bookingLink.title, level: 1 })}
+      ${StatusBadge({ status: 'confirmed', text: 'BOOKING CONFIRMED' })}
+      ${Heading({ text: bookingLink.title, level: 1, align: 'center' })}
       ${Spacer(24)}
       ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
-      ${Spacer(16)}
+      ${Spacer(8)}
       ${Paragraph(confirmationMessage, 'secondary')}
       ${Spacer(32)}
       ${Card({
@@ -182,81 +170,43 @@ ${meetingInstructions}`;
         content: `
           ${Heading({ text: 'Meeting Details', level: 2 })}
           ${Spacer(16)}
+          ${InfoRow({ icon: '👤', label: 'Host', value: ownerProfile?.full_name || 'Your Host' })}
           ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
           ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} (${booking.timezone})` })}
+          ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${bookingLink.duration_minutes} minutes` })}
           ${bookingLink.description ? InfoRow({ icon: '📝', label: 'Description', value: bookingLink.description }) : ''}
           ${booking.notes ? InfoRow({ icon: '💬', label: 'Your Notes', value: booking.notes }) : ''}
-          ${hasMeetingLink ? InfoRow({ icon: '📹', label: 'Video Platform', value: platformName }) : ''}
         `
       })}
-      ${Spacer(32)}
-      ${hasMeetingLink ? `
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%); border-radius: 16px; padding: 24px; border: 1px solid rgba(99, 102, 241, 0.2); margin-bottom: 32px;">
-          <tr>
-            <td align="center">
-              <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #1e293b;">
-                📹 ${platformName}
-              </p>
-              <p style="margin: 0 0 20px 0; font-size: 14px; color: #64748b;">
-                ${meetingInstructions}
-              </p>
-              ${Button({ url: meetingLink, text: 'Join Meeting', variant: 'primary' })}
-            </td>
-          </tr>
-        </table>
-      ` : ''}
-      ${hasMeetingLink ? `
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 24px;">
-          <tr>
-            <td align="center">
-              <p class="text-secondary" style="margin: 0; font-size: 14px; line-height: 20px;">
-                💡 <strong>Tip:</strong> This meeting will be automatically added to your calendar from the email attachment, or you can manually add it below.
-              </p>
-            </td>
-          </tr>
-        </table>
-      ` : ''}
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, rgba(201, 162, 78, 0.05) 0%, rgba(201, 162, 78, 0.02) 100%); border-radius: 16px; padding: 32px; border: 1px solid rgba(201, 162, 78, 0.15);">
-        <tr>
-          <td align="center">
-            <p class="text-primary" style="margin: 0 0 24px 0; font-size: 18px; font-weight: 600;">
-              📅 Add to Your Calendar
-            </p>
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-              <tr>
-                <td align="center">
-                  ${Button({ url: googleCalUrl, text: 'Google Calendar', variant: 'primary' })}
-                </td>
-              </tr>
-              <tr><td style="height: 16px;"></td></tr>
-              <tr>
-                <td align="center">
-                  ${Button({ url: outlookCalUrl, text: 'Outlook Calendar', variant: 'secondary' })}
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-      ${Spacer(32)}
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: rgba(201, 162, 78, 0.05); border-left: 4px solid #C9A24E; border-radius: 8px; padding: 20px;">
-        <tr>
-          <td>
-            <p class="text-secondary" style="margin: 0; font-size: 14px; line-height: 20px;">
-              <strong>Need to make changes?</strong><br>
-              If you need to cancel or reschedule, please contact us as soon as possible at 
-              <a href="mailto:support@thequantumclub.nl" style="color: #C9A24E; text-decoration: none;">support@thequantumclub.nl</a>
-            </p>
-          </td>
-        </tr>
-      </table>
+      ${Spacer(24)}
+      ${hasMeetingLink ? VideoCallCard({
+        platform: platformType,
+        platformName: platformName,
+        joinUrl: meetingLink,
+        instructions: meetingInstructions,
+      }) : ''}
+      ${Spacer(24)}
+      ${CalendarButtons({
+        title: bookingLink.title,
+        startDate: startDate,
+        endDate: endDate,
+        description: enhancedDescription,
+        location: meetingLocation,
+      })}
+      ${Spacer(24)}
+      ${AlertBox({
+        type: 'info',
+        title: 'Need to make changes?',
+        message: `If you need to cancel or reschedule, please contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color: ${EMAIL_COLORS.gold}; text-decoration: none;">${SUPPORT_EMAIL}</a>`,
+      })}
     `;
 
     const emailHtml = baseEmailTemplate({
-      preheader: `Meeting confirmed for ${formattedDate} at ${formattedTime}`,
+      preheader: `Meeting confirmed: ${bookingLink.title} • ${formattedDate} at ${formattedTime}`,
       content: emailContent,
       showHeader: true,
       showFooter: true,
+      schemaMarkup: schemaMarkup,
     });
 
     // Send email to GUEST
@@ -268,9 +218,9 @@ ${meetingInstructions}`;
         Authorization: `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: "Quantum Club <onboarding@resend.dev>",
+        from: EMAIL_SENDERS.bookings,
         to: [booking.guest_email],
-        subject: `Meeting Confirmed: ${bookingLink.title}`,
+        subject: `✓ Confirmed: ${bookingLink.title} - ${formattedDate}`,
         html: emailHtml,
         attachments: [
           {
@@ -289,16 +239,16 @@ ${meetingInstructions}`;
     if (booking.guests && Array.isArray(booking.guests) && booking.guests.length > 0) {
       for (const guest of booking.guests) {
         if (guest.email) {
-          const additionalGuestEmailResponse = await fetch("https://api.resend.com/emails", {
+          await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${resendApiKey}`,
             },
             body: JSON.stringify({
-              from: "Quantum Club <onboarding@resend.dev>",
+              from: EMAIL_SENDERS.bookings,
               to: [guest.email],
-              subject: `Meeting Invitation: ${bookingLink.title}`,
+              subject: `You're invited: ${bookingLink.title} - ${formattedDate}`,
               html: emailHtml,
               attachments: [
                 {
@@ -309,8 +259,7 @@ ${meetingInstructions}`;
               ],
             }),
           });
-          const additionalGuestResult = await additionalGuestEmailResponse.json();
-          console.log(`Additional guest email sent to ${guest.email}:`, additionalGuestResult);
+          console.log(`Additional guest email sent to ${guest.email}`);
         }
       }
     }
@@ -318,77 +267,62 @@ ${meetingInstructions}`;
     // Send email to OWNER (booking link creator)
     if (ownerProfile?.email) {
       const ownerEmailContent = `
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-          <tr>
-            <td align="center" style="padding-bottom: 32px;">
-              <div style="display: inline-block; padding: 12px 32px; background: linear-gradient(135deg, rgba(201, 162, 78, 0.1) 0%, rgba(201, 162, 78, 0.05) 100%); border-radius: 100px; border: 1px solid rgba(201, 162, 78, 0.3);">
-                <span style="color: #C9A24E; font-size: 14px; font-weight: 600; letter-spacing: 0.5px;">✓ NEW BOOKING</span>
-              </div>
-            </td>
-          </tr>
-        </table>
-        ${Heading({ text: `New Booking: ${bookingLink.title}`, level: 1 })}
+        ${StatusBadge({ status: 'new', text: 'NEW BOOKING' })}
+        ${Heading({ text: `New Booking: ${bookingLink.title}`, level: 1, align: 'center' })}
         ${Spacer(24)}
         ${Paragraph(`Hi ${ownerProfile.full_name || 'there'},`, 'primary')}
-        ${Spacer(16)}
-        ${Paragraph(`You have a new booking from ${booking.guest_name}.`, 'secondary')}
+        ${Spacer(8)}
+        ${Paragraph(`You have a new booking from <strong>${booking.guest_name}</strong>.`, 'secondary')}
         ${Spacer(32)}
         ${Card({
           variant: 'highlight',
           content: `
-            ${Heading({ text: 'Meeting Details', level: 2 })}
+            ${Heading({ text: 'Booking Details', level: 2 })}
             ${Spacer(16)}
             ${InfoRow({ icon: '👤', label: 'Guest', value: booking.guest_name })}
             ${InfoRow({ icon: '📧', label: 'Email', value: booking.guest_email })}
             ${booking.guest_phone ? InfoRow({ icon: '📱', label: 'Phone', value: booking.guest_phone }) : ''}
             ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
             ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} (${booking.timezone})` })}
-            ${bookingLink.description ? InfoRow({ icon: '📝', label: 'Description', value: bookingLink.description }) : ''}
+            ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${bookingLink.duration_minutes} minutes` })}
             ${booking.notes ? InfoRow({ icon: '💬', label: 'Guest Notes', value: booking.notes }) : ''}
           `
         })}
-        ${Spacer(32)}
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, rgba(201, 162, 78, 0.05) 0%, rgba(201, 162, 78, 0.02) 100%); border-radius: 16px; padding: 32px; border: 1px solid rgba(201, 162, 78, 0.15);">
-          <tr>
-            <td align="center">
-              <p class="text-primary" style="margin: 0 0 24px 0; font-size: 18px; font-weight: 600;">
-                📅 Add to Your Calendar
-              </p>
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                <tr>
-                  <td align="center">
-                    ${Button({ url: googleCalUrl, text: 'Google Calendar', variant: 'primary' })}
-                  </td>
-                </tr>
-                <tr><td style="height: 16px;"></td></tr>
-                <tr>
-                  <td align="center">
-                    ${Button({ url: outlookCalUrl, text: 'Outlook Calendar', variant: 'secondary' })}
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
+        ${Spacer(24)}
+        ${hasMeetingLink ? VideoCallCard({
+          platform: platformType,
+          platformName: platformName,
+          joinUrl: meetingLink,
+          instructions: 'Click below to join when the meeting starts.',
+        }) : ''}
+        ${Spacer(24)}
+        ${CalendarButtons({
+          title: bookingLink.title,
+          startDate: startDate,
+          endDate: endDate,
+          description: enhancedDescription,
+          location: meetingLocation,
+        })}
       `;
 
       const ownerEmailHtml = baseEmailTemplate({
-        preheader: `New booking from ${booking.guest_name} on ${formattedDate}`,
+        preheader: `New booking from ${booking.guest_name} • ${formattedDate} at ${formattedTime}`,
         content: ownerEmailContent,
         showHeader: true,
         showFooter: true,
+        schemaMarkup: schemaMarkup,
       });
 
-      const ownerEmailResponse = await fetch("https://api.resend.com/emails", {
+      await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${resendApiKey}`,
         },
         body: JSON.stringify({
-          from: "Quantum Club <onboarding@resend.dev>",
+          from: EMAIL_SENDERS.bookings,
           to: [ownerProfile.email],
-          subject: `New Booking: ${booking.guest_name} - ${bookingLink.title}`,
+          subject: `📅 New Booking: ${booking.guest_name} - ${bookingLink.title}`,
           html: ownerEmailHtml,
           attachments: [
             {
@@ -400,19 +334,24 @@ ${meetingInstructions}`;
         }),
       });
 
-      const ownerEmailResult = await ownerEmailResponse.json();
-      console.log("Owner confirmation email sent:", ownerEmailResult);
+      console.log("Owner confirmation email sent");
     }
 
     return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: true, message: "Confirmation emails sent" }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   } catch (error: any) {
-    console.error("Error sending confirmation email:", error);
+    console.error("Error sending booking confirmation:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 });

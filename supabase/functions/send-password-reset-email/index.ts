@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { Button, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
+import { Button, Heading, Paragraph, Spacer, CodeBox, Card, InfoRow, Divider, AlertBox } from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -39,70 +40,58 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Sending password reset email to:', email);
 
     const emailContent = `
-      ${Heading({ text: 'Password Reset Request', level: 1 })}
+      ${Heading({ text: 'Reset Your Password', level: 1, align: 'center' })}
       ${Spacer(24)}
       ${Paragraph(`Hi ${userName},`, 'secondary')}
-      ${Spacer(16)}
+      ${Spacer(8)}
       ${Paragraph('We received a request to reset your password for The Quantum Club.', 'secondary')}
       ${Spacer(32)}
       
-      <!-- Primary CTA: Magic Link Button -->
-      ${Button({ 
-        url: magicLink, 
-        text: 'Reset Password', 
-        variant: 'primary' 
+      <!-- Primary CTA -->
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            ${Button({ 
+              url: magicLink, 
+              text: 'Reset Password', 
+              variant: 'primary' 
+            })}
+          </td>
+        </tr>
+      </table>
+      ${Spacer(32)}
+      
+      ${Divider({ spacing: 'medium' })}
+      ${Spacer(8)}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            <span style="font-size: 13px; color: ${EMAIL_COLORS.textMuted};">OR ENTER THIS CODE</span>
+          </td>
+        </tr>
+      </table>
+      ${Spacer(24)}
+      
+      ${CodeBox({ code: otpCode, label: '6-Digit Code' })}
+      ${Spacer(16)}
+      
+      ${AlertBox({
+        type: 'warning',
+        message: `This code expires in <strong>${expiresInMinutes} minutes</strong>.`,
       })}
       ${Spacer(32)}
       
-      <!-- Divider -->
-      <div style="text-align: center; margin: 32px 0;">
-        <div style="display: inline-block; padding: 0 16px; color: #666; font-size: 14px; position: relative;">
-          <span style="background: #0E0E10; padding: 0 12px; position: relative; z-index: 1;">OR</span>
-          <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.1); z-index: 0;"></div>
-        </div>
-      </div>
-      ${Spacer(32)}
-      
-      <!-- OTP Code Display -->
-      ${Paragraph('Enter this 6-digit code:', 'muted')}
-      ${Spacer(16)}
-      <div style="
-        background: rgba(255,255,255,0.03);
-        border: 2px dashed rgba(201,162,78,0.3);
-        border-radius: 12px;
-        padding: 32px 24px;
-        text-align: center;
-        margin: 24px 0;
-      ">
-        <div style="
-          font-family: 'Courier New', monospace;
-          font-size: 40px;
-          letter-spacing: 12px;
-          font-weight: bold;
-          color: #C9A24E;
-          margin: 0;
-          text-align: center;
-        ">${otpCode}</div>
-      </div>
-      ${Spacer(16)}
-      ${Paragraph('Code expires in ' + expiresInMinutes + ' minutes', 'muted')}
-      ${Spacer(32)}
-      
-      ${Paragraph('If you didn\'t request this, you can safely ignore this email.', 'muted')}
+      ${Paragraph('If you didn\'t request this, you can safely ignore this email. Your password won\'t change.', 'muted')}
       ${Spacer(24)}
       
-      <!-- Footer Metadata -->
-      <div style="
-        margin-top: 32px; 
-        padding-top: 24px; 
-        border-top: 1px solid rgba(255,255,255,0.1);
-      ">
-        ${Paragraph('Request details:', 'muted')}
-        ${Spacer(16)}
-        ${Paragraph('IP: ' + ipAddress, 'muted')}
-        ${Spacer(16)}
-        ${Paragraph('Device: ' + deviceInfo.substring(0, 100), 'muted')}
-      </div>
+      ${Card({
+        variant: 'default',
+        content: `
+          <p style="font-size: 12px; color: ${EMAIL_COLORS.textMuted}; margin: 0 0 8px 0;">Request details:</p>
+          ${InfoRow({ label: 'IP Address', value: ipAddress })}
+          ${InfoRow({ label: 'Device', value: deviceInfo.substring(0, 60) + '...' })}
+        `
+      })}
     `;
 
     const html = baseEmailTemplate({
@@ -119,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "The Quantum Club <onboarding@resend.dev>",
+        from: EMAIL_SENDERS.security,
         to: [email],
         subject: "🔐 Reset Your Password - The Quantum Club",
         html,
