@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getBackendConfig } from '@/config/backend';
 
 type ISODate = string;
 
@@ -58,29 +59,12 @@ async function invokeGetAvailableSlots(body: AvailabilityRequest): Promise<Avail
 }
 
 function resolveBackendConfig(): { baseUrl: string; publishableKey: string; usedFallbackUrl: boolean } {
-  const envBaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-  const envKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
-
-  // In Lovable preview builds, VITE_* can sometimes be unavailable at runtime.
-  // The client still knows its configured URL, so we can safely fall back to it.
-  const clientUrl = (supabase as unknown as { supabaseUrl?: string }).supabaseUrl;
-
-  const baseUrl = envBaseUrl || clientUrl;
-  const publishableKey = envKey;
-
-  if (!baseUrl || !publishableKey) {
-    const reason = !baseUrl && !publishableKey
-      ? 'missing_url_and_key'
-      : !baseUrl
-        ? 'missing_url'
-        : 'missing_key';
-    throw new Error(`availability_missing_backend_config:${reason}`);
-  }
-
+  // Central resolver; in some previews env can be missing and the client uses placeholders.
+  const cfg = getBackendConfig();
   return {
-    baseUrl,
-    publishableKey,
-    usedFallbackUrl: !envBaseUrl && !!clientUrl,
+    baseUrl: cfg.baseUrl,
+    publishableKey: cfg.publishableKey,
+    usedFallbackUrl: !import.meta.env.VITE_SUPABASE_URL,
   };
 }
 

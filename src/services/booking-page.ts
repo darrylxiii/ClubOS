@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getBackendConfig } from '@/config/backend';
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -35,19 +36,8 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
 }
 
 function resolveBackendConfig(): { baseUrl: string; publishableKey: string } {
-  const envBaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-  const envKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
-
-  // In preview builds, VITE_* can occasionally be unavailable at runtime.
-  const clientUrl = (supabase as unknown as { supabaseUrl?: string }).supabaseUrl;
-  const baseUrl = envBaseUrl || clientUrl;
-  const publishableKey = envKey;
-
-  if (!baseUrl || !publishableKey) {
-    throw new Error('booking_page_missing_backend_config');
-  }
-
-  return { baseUrl, publishableKey };
+  // Use a single central resolver to avoid relying on a placeholder client in preview.
+  return getBackendConfig();
 }
 
 export type HostDisplayMode = 'full' | 'discreet' | 'avatar_only' | 'name_only';
