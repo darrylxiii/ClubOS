@@ -71,3 +71,77 @@ export function formatSlotWithDualTimezone(
 
   return { primary, secondary: null };
 }
+
+/**
+ * Format a date to ISO-like string in a specific timezone using native APIs
+ */
+export function formatDateForTimezone(date: Date, timezone: string): string {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(date);
+    const get = (type: string) => parts.find(p => p.type === type)?.value || '';
+    return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`;
+  } catch {
+    return date.toISOString();
+  }
+}
+
+/**
+ * Get start and end of day boundaries for a date in a timezone
+ */
+export function getDateRangeForTimezone(date: Date, timezone: string) {
+  try {
+    // Format date as YYYY-MM-DD in target timezone
+    const dateStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+    
+    return {
+      start: dateStr,
+      end: dateStr,
+    };
+  } catch {
+    const fallback = date.toISOString().split('T')[0];
+    return { start: fallback, end: fallback };
+  }
+}
+
+/**
+ * Format a Date object for display as time only (e.g., "9:00 AM" or "09:00")
+ */
+export function formatTimeFromDate(
+  date: Date,
+  timezone: string,
+  format: TimeFormat = '12h'
+): string {
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: format === '12h',
+      timeZone: timezone,
+    }).format(date);
+  } catch {
+    // Fallback without timezone
+    const hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    if (format === '24h') {
+      return `${hours.toString().padStart(2, '0')}:${minutes}`;
+    }
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    return `${displayHour}:${minutes} ${period}`;
+  }
+}
