@@ -69,7 +69,10 @@ async function fetchGetAvailableSlotsDirect(body: AvailabilityRequest): Promise<
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      // Some gateways require both headers; missing Authorization often surfaces as
+      // a browser-level "Failed to fetch" due to CORS on 401/403 responses.
       apikey: publishableKey,
+      Authorization: `Bearer ${publishableKey}`,
     },
     body: JSON.stringify(body),
   });
