@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { getBackendConfig } from '@/config/backend';
+import { getBackendConfig, isPlaceholderEnvironment, nativeFetch } from '@/config/backend';
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -23,7 +23,6 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    // If promise doesn't support AbortController, we still get a hard timeout via race.
     return await Promise.race([
       promise,
       new Promise<T>((_, reject) =>
@@ -36,8 +35,40 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
 }
 
 function resolveBackendConfig(): { baseUrl: string; publishableKey: string } {
-  // Use a single central resolver to avoid relying on a placeholder client in preview.
   return getBackendConfig();
+}
+
+// Cache key for sessionStorage
+const CACHE_KEY_PREFIX = 'tqc_booking_page_';
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+interface CachedBookingPage {
+  data: BookingPageResponse;
+  timestamp: number;
+}
+
+function getCachedBookingPage(slug: string): BookingPageResponse | null {
+  try {
+    const cached = sessionStorage.getItem(`${CACHE_KEY_PREFIX}${slug}`);
+    if (!cached) return null;
+    const parsed: CachedBookingPage = JSON.parse(cached);
+    if (Date.now() - parsed.timestamp > CACHE_TTL_MS) {
+      sessionStorage.removeItem(`${CACHE_KEY_PREFIX}${slug}`);
+      return null;
+    }
+    return parsed.data;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedBookingPage(slug: string, data: BookingPageResponse): void {
+  try {
+    const cached: CachedBookingPage = { data, timestamp: Date.now() };
+    sessionStorage.setItem(`${CACHE_KEY_PREFIX}${slug}`, JSON.stringify(cached));
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 export type HostDisplayMode = 'full' | 'discreet' | 'avatar_only' | 'name_only';
@@ -87,7 +118,8 @@ async function invokeGetBookingPage(slug: string): Promise<BookingPageResponse> 
 async function fetchGetBookingPageDirect(slug: string): Promise<BookingPageResponse> {
   const { baseUrl, publishableKey } = resolveBackendConfig();
 
-  const res = await fetch(`${baseUrl}/functions/v1/get-booking-page`, {
+  // Use nativeFetch to bypass any instrumentation (OTel, etc.)
+  const res = await nativeFetch(`${baseUrl}/functions/v1/get-booking-page`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -107,22 +139,48 @@ async function fetchGetBookingPageDirect(slug: string): Promise<BookingPageRespo
 
 /**
  * Public booking page bootstrap.
- * Primary: supabase.functions.invoke
- * Fallback: direct fetch to /functions/v1/get-booking-page
+ * 
+ * Auto-detect strategy:
+ * - If environment is placeholder/preview, skip invoke and use direct fetch only
+ * - Otherwise: Primary supabase.functions.invoke, fallback to direct fetch
+ * 
+ * Includes caching (5 min) and retry logic for resilience.
  */
 export async function getBookingPage(slug: string): Promise<BookingPageResponse> {
-  const attempts = [250, 750];
+  // Check cache first
+  const cached = getCachedBookingPage(slug);
+  if (cached) {
+    return cached;
+  }
+
+  const isPlaceholder = isPlaceholderEnvironment();
+  const attempts = [500, 1500]; // Slightly longer delays for cold starts
   let lastError: unknown;
 
   for (let i = 0; i < attempts.length + 1; i++) {
     try {
-      return await withTimeout(invokeGetBookingPage(slug), 5000);
+      let result: BookingPageResponse;
+
+      if (isPlaceholder) {
+        // Skip invoke entirely in placeholder environments - go straight to direct fetch
+        result = await withTimeout(fetchGetBookingPageDirect(slug), 8000);
+      } else {
+        // Normal path: try invoke first
+        result = await withTimeout(invokeGetBookingPage(slug), 5000);
+      }
+
+      // Cache successful response
+      setCachedBookingPage(slug, result);
+      return result;
     } catch (err: unknown) {
       lastError = err;
 
-      if (isNetworkishError(err)) {
+      // If not placeholder and it's a network error, try direct fetch as fallback
+      if (!isPlaceholder && isNetworkishError(err)) {
         try {
-          return await withTimeout(fetchGetBookingPageDirect(slug), 5000);
+          const result = await withTimeout(fetchGetBookingPageDirect(slug), 8000);
+          setCachedBookingPage(slug, result);
+          return result;
         } catch (fallbackErr: unknown) {
           lastError = fallbackErr;
         }

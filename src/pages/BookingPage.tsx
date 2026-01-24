@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Calendar, Clock, ArrowLeft, Sparkles } from "lucide-react";
+import { Calendar, Clock, ArrowLeft, Sparkles, RefreshCw, WifiOff, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,7 +53,44 @@ interface SelectedSlot {
 }
 
 type BookingStep = "datetime" | "details" | "confirmation";
-type ViewMode = "day" | "week";
+
+type ErrorType = 'network' | 'not_found' | 'inactive' | 'unknown';
+
+function classifyError(error: any): ErrorType {
+  const message = String(error?.message || '').toLowerCase();
+  if (message.includes('network') || message.includes('fetch') || message.includes('cors') || message.includes('timeout')) {
+    return 'network';
+  }
+  if (message.includes('not found') || message.includes('404') || message.includes('inactive')) {
+    return 'not_found';
+  }
+  return 'unknown';
+}
+
+function getErrorMessage(errorType: ErrorType): { title: string; description: string } {
+  switch (errorType) {
+    case 'network':
+      return {
+        title: 'Connection error',
+        description: 'Unable to reach the scheduling service. Please check your internet connection and try again.',
+      };
+    case 'not_found':
+      return {
+        title: 'Booking link not found',
+        description: 'This booking link doesn\'t exist or has been deactivated.',
+      };
+    case 'inactive':
+      return {
+        title: 'Booking link inactive',
+        description: 'This booking link is currently not accepting new bookings.',
+      };
+    default:
+      return {
+        title: 'Booking page unavailable',
+        description: 'Something went wrong loading this booking page. Please try again.',
+      };
+  }
+}
 
 export default function BookingPage() {
   const { slug } = useParams();
@@ -62,6 +99,7 @@ export default function BookingPage() {
   const [bookingLink, setBookingLink] = useState<BookingLink | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const [step, setStep] = useState<BookingStep>("datetime");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
@@ -72,28 +110,30 @@ export default function BookingPage() {
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [hasGoogleCalendar, setHasGoogleCalendar] = useState(false);
   const [hostTimezone, setHostTimezone] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<ErrorType | null>(null);
 
   // Phase 7: Analytics tracking
   const analytics = useBookingAnalytics(bookingLink?.id || "");
 
-  useEffect(() => {
-    loadBookingLink();
-  }, [slug]);
-
-  const loadBookingLink = async () => {
+  const loadBookingLink = useCallback(async () => {
     try {
       setLoadError(null);
+      setLoading(true);
 
       if (!slug) {
-        setLoadError('Missing booking link');
+        setLoadError('not_found');
         return;
       }
 
       const data = await getBookingPage(slug);
 
       if (!data?.bookingLink) {
-        setLoadError('Booking link not found');
+        setLoadError('not_found');
+        return;
+      }
+
+      if (!data.bookingLink.is_active) {
+        setLoadError('inactive');
         return;
       }
 
@@ -103,11 +143,19 @@ export default function BookingPage() {
       setHasGoogleCalendar(!!data.hasGoogleCalendar);
     } catch (error: any) {
       console.error("Error loading booking link:", error);
-      // Avoid toasts during boot; they can cause render-phase update warnings.
-      setLoadError('Failed to load booking page');
+      setLoadError(classifyError(error));
     } finally {
       setLoading(false);
     }
+  }, [slug]);
+
+  useEffect(() => {
+    loadBookingLink();
+  }, [loadBookingLink]);
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    loadBookingLink();
   };
 
   const resolveSlotFromLabel = async (date: Date, timeLabel: string) => {
@@ -162,26 +210,56 @@ export default function BookingPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading booking page...</p>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            {retryCount > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap"
+              >
+                <span className="text-xs text-muted-foreground bg-background px-2 py-0.5 rounded-full">
+                  Attempt {retryCount + 1}
+                </span>
+              </motion.div>
+            )}
+          </div>
+          <p className="mt-6 text-muted-foreground">
+            {retryCount > 0 ? 'Reconnecting...' : 'Loading booking page...'}
+          </p>
         </div>
       </div>
     );
   }
 
-  if (!bookingLink) {
+  if (loadError || !bookingLink) {
+    const errorInfo = getErrorMessage(loadError || 'unknown');
+    const isNetworkError = loadError === 'network';
+    
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Booking page unavailable</CardTitle>
-            <CardDescription>
-              {loadError || 'This booking link could not be loaded.'}
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+              {isNetworkError ? (
+                <WifiOff className="h-6 w-6 text-muted-foreground" />
+              ) : (
+                <AlertCircle className="h-6 w-6 text-muted-foreground" />
+              )}
+            </div>
+            <CardTitle>{errorInfo.title}</CardTitle>
+            <CardDescription className="mt-2">
+              {errorInfo.description}
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex gap-2">
-            <Button onClick={() => window.location.reload()}>Retry</Button>
-            <Button variant="outline" onClick={() => navigate('/auth')}>Go to login</Button>
+          <CardContent className="flex flex-col gap-3">
+            <Button onClick={handleRetry} className="w-full">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Try again
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/')} className="w-full">
+              Go to homepage
+            </Button>
           </CardContent>
         </Card>
       </div>

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Clock, Calendar as CalendarIcon, Loader2, Lock } from "lucide-react";
+import { Clock, Calendar as CalendarIcon, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import { formatInTimeZone } from "date-fns-tz";
@@ -49,6 +49,45 @@ export function UnifiedDateTimeSelector({
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [availabilityMap, setAvailabilityMap] = useState<Map<string, AvailabilityInfo>>(new Map());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+
+  const showDualTimezone = hostTimezone && hostTimezone !== guestTimezone;
+
+  // Format a time range with optional secondary timezone
+  const formatSlotDisplay = (slot: TimeSlot) => {
+    try {
+      const startDate = new Date(slot.start);
+      const endDate = new Date(slot.end);
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return { primary: slot.start, secondary: null };
+      }
+
+      const guestStart = formatInTimeZone(startDate, guestTimezone, 'h:mm a');
+      const guestEnd = formatInTimeZone(endDate, guestTimezone, 'h:mm a');
+      const primary = `${guestStart} – ${guestEnd}`;
+
+      if (showDualTimezone && hostTimezone) {
+        const hostStart = formatInTimeZone(startDate, hostTimezone, 'h:mm a');
+        const hostEnd = formatInTimeZone(endDate, hostTimezone, 'h:mm a');
+        return {
+          primary,
+          secondary: `${hostStart} – ${hostEnd} (host)`,
+        };
+      }
+
+      return { primary, secondary: null };
+    } catch (error) {
+      logger.error('Error formatting slot display', error as Error, { componentName: 'UnifiedDateTimeSelector' });
+      // Fallback to simple format
+      try {
+        const start = new Date(slot.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+        const end = new Date(slot.end).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+        return { primary: `${start} – ${end}`, secondary: null };
+      } catch {
+        return { primary: slot.start, secondary: null };
+      }
+    }
+  };
 
   // Load availability indicators for the current month
   const loadMonthAvailability = async (monthDate: Date) => {
@@ -209,27 +248,6 @@ export function UnifiedDateTimeSelector({
     onDateTimeSelected(selectedDate!, slot);
   };
 
-  const formatTimeOnly = (isoStart: string) => {
-    try {
-      // Parse the ISO string to a Date object first
-      const date = new Date(isoStart);
-      if (isNaN(date.getTime())) {
-        logger.error('Invalid date string', new Error('Invalid date'), { componentName: 'UnifiedDateTimeSelector', isoStart });
-        return isoStart;
-      }
-      return formatInTimeZone(date, guestTimezone, 'h:mm a');
-    } catch (error) {
-      logger.error('Error formatting time', error as Error, { componentName: 'UnifiedDateTimeSelector', isoStart, guestTimezone });
-      // Fallback: parse and format locally
-      try {
-        const date = new Date(isoStart);
-        return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-      } catch {
-        return isoStart;
-      }
-    }
-  };
-
   return (
     <div className="space-y-6">
       <style>{`
@@ -355,10 +373,10 @@ export function UnifiedDateTimeSelector({
             </div>
 
             {/* Timezone Warning */}
-            {hostTimezone && hostTimezone !== guestTimezone && (
+            {showDualTimezone && (
               <TimezoneWarning 
                 guestTimezone={guestTimezone} 
-                hostTimezone={hostTimezone} 
+                hostTimezone={hostTimezone!} 
               />
             )}
           </div>
@@ -374,7 +392,7 @@ export function UnifiedDateTimeSelector({
               </div>
               {selectedDate && (
                 <span className="text-xs text-muted-foreground font-medium">
-                  {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                  {guestTimezone}
                 </span>
               )}
             </div>
@@ -391,7 +409,7 @@ export function UnifiedDateTimeSelector({
             {selectedDate && loading && (
               <div className="space-y-2">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+                  <Skeleton key={i} className="h-14 w-full" />
                 ))}
               </div>
             )}
@@ -409,28 +427,44 @@ export function UnifiedDateTimeSelector({
             {selectedDate && !loading && availableSlots.length > 0 && (
               <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
                 <AnimatePresence mode="popLayout">
-                  {availableSlots.map((slot, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Button
-                        variant={selectedSlot?.start === slot.start ? "default" : "outline"}
-                        className={cn(
-                          "w-full justify-start text-left h-12 transition-all font-medium",
-                          selectedSlot?.start === slot.start
-                            ? "ring-2 ring-primary bg-primary text-primary-foreground shadow-md scale-[1.02]"
-                            : "hover:bg-accent hover:text-accent-foreground border-border/60 hover:scale-[1.01]"
-                        )}
-                        onClick={() => handleTimeSelect(slot)}
+                  {availableSlots.map((slot, index) => {
+                    const { primary, secondary } = formatSlotDisplay(slot);
+                    return (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
                       >
-                        <Clock className="mr-2 h-4 w-4" />
-                        <span className="text-base">{formatTimeOnly(slot.start)}</span>
-                      </Button>
-                    </motion.div>
-                  ))}
+                        <Button
+                          variant={selectedSlot?.start === slot.start ? "default" : "outline"}
+                          className={cn(
+                            "w-full justify-start text-left transition-all font-medium",
+                            secondary ? "h-auto py-3" : "h-12",
+                            selectedSlot?.start === slot.start
+                              ? "ring-2 ring-primary bg-primary text-primary-foreground shadow-md scale-[1.02]"
+                              : "hover:bg-accent hover:text-accent-foreground border-border/60 hover:scale-[1.01]"
+                          )}
+                          onClick={() => handleTimeSelect(slot)}
+                        >
+                          <Clock className="mr-2 h-4 w-4 flex-shrink-0" />
+                          <div className="flex flex-col items-start">
+                            <span className="text-base">{primary}</span>
+                            {secondary && (
+                              <span className={cn(
+                                "text-xs",
+                                selectedSlot?.start === slot.start 
+                                  ? "text-primary-foreground/70" 
+                                  : "text-muted-foreground"
+                              )}>
+                                {secondary}
+                              </span>
+                            )}
+                          </div>
+                        </Button>
+                      </motion.div>
+                    );
+                  })}
                 </AnimatePresence>
               </div>
             )}

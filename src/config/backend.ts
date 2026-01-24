@@ -19,6 +19,25 @@ const FALLBACK_BASE_URL = `https://${FALLBACK_PROJECT_ID}.supabase.co`;
 const FALLBACK_PUBLISHABLE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwanVjZWNtb3lmenJkdWhsY3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0Mjc2MTAsImV4cCI6MjA3NTAwMzYxMH0.hdX709NlaXPUE4ohWtd3LBuAOqPKCBhVep694LC6tRw';
 
+/**
+ * Detects if the environment is missing proper Supabase config (placeholder/preview mode).
+ * When true, services should skip supabase.functions.invoke and use direct fetch.
+ */
+export function isPlaceholderEnvironment(): boolean {
+  const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || '';
+  // Empty, placeholder, or missing config
+  return !url || url.includes('placeholder') || url.includes('localhost');
+}
+
+/**
+ * Native fetch reference captured before any instrumentation (OTel, etc.).
+ * Use this for critical public paths that must bypass any fetch wrappers.
+ */
+export const nativeFetch: typeof fetch =
+  typeof globalThis !== 'undefined' && globalThis.fetch
+    ? globalThis.fetch.bind(globalThis)
+    : fetch;
+
 export function getBackendConfig(): BackendConfig {
   const envBaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || '';
   const envKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) || '';
