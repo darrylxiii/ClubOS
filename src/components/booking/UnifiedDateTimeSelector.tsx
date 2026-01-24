@@ -8,11 +8,13 @@ import { toast } from "sonner";
 import { Clock, Calendar as CalendarIcon, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
-import { formatInTimeZone } from "date-fns-tz";
 import { motion, AnimatePresence } from "framer-motion";
 import { TimezoneWarning } from "@/components/booking/TimezoneWarning";
+import { TimeFormatToggle } from "@/components/booking/TimeFormatToggle";
 import { logger } from "@/lib/logger";
 import { getAvailableSlots } from "@/services/availability";
+import { useTimeFormatPreference } from "@/hooks/useTimeFormatPreference";
+import { formatSlotWithDualTimezone } from "@/lib/safeTimeFormat";
 
 interface TimeSlot {
   start: string;
@@ -43,6 +45,7 @@ export function UnifiedDateTimeSelector({
 }: UnifiedDateTimeSelectorProps) {
   const { trackStep, trackSlotView } = useBookingAnalytics(bookingLink.id);
   const guestTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const { format: timeFormat, toggleFormat } = useTimeFormatPreference();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -52,41 +55,15 @@ export function UnifiedDateTimeSelector({
 
   const showDualTimezone = hostTimezone && hostTimezone !== guestTimezone;
 
-  // Format a time range with optional secondary timezone
+  // Format a time range using robust native formatting
   const formatSlotDisplay = (slot: TimeSlot) => {
-    try {
-      const startDate = new Date(slot.start);
-      const endDate = new Date(slot.end);
-      
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        return { primary: slot.start, secondary: null };
-      }
-
-      const guestStart = formatInTimeZone(startDate, guestTimezone, 'h:mm a');
-      const guestEnd = formatInTimeZone(endDate, guestTimezone, 'h:mm a');
-      const primary = `${guestStart} – ${guestEnd}`;
-
-      if (showDualTimezone && hostTimezone) {
-        const hostStart = formatInTimeZone(startDate, hostTimezone, 'h:mm a');
-        const hostEnd = formatInTimeZone(endDate, hostTimezone, 'h:mm a');
-        return {
-          primary,
-          secondary: `${hostStart} – ${hostEnd} (host)`,
-        };
-      }
-
-      return { primary, secondary: null };
-    } catch (error) {
-      logger.error('Error formatting slot display', error as Error, { componentName: 'UnifiedDateTimeSelector' });
-      // Fallback to simple format
-      try {
-        const start = new Date(slot.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-        const end = new Date(slot.end).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-        return { primary: `${start} – ${end}`, secondary: null };
-      } catch {
-        return { primary: slot.start, secondary: null };
-      }
-    }
+    return formatSlotWithDualTimezone(
+      slot.start,
+      slot.end,
+      guestTimezone,
+      hostTimezone,
+      timeFormat
+    );
   };
 
   // Load availability indicators for the current month
@@ -385,16 +362,19 @@ export function UnifiedDateTimeSelector({
         {/* Time Slots Section - Right Side (60%) */}
         <Card className="p-6 lg:col-span-3 bg-card/95 backdrop-blur">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <Clock className="h-4 w-4 text-primary" />
                 <span>Select a Time</span>
               </div>
-              {selectedDate && (
-                <span className="text-xs text-muted-foreground font-medium">
-                  {guestTimezone}
-                </span>
-              )}
+              <div className="flex items-center gap-3">
+                <TimeFormatToggle format={timeFormat} onToggle={toggleFormat} />
+                {selectedDate && (
+                  <span className="text-xs text-muted-foreground font-medium">
+                    {guestTimezone}
+                  </span>
+                )}
+              </div>
             </div>
 
             {!selectedDate && (

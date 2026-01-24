@@ -16,9 +16,10 @@ import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import confetti from 'canvas-confetti';
-import { formatInTimeZone } from "date-fns-tz";
 import { getAvailableSlots } from "@/services/availability";
 import { getBookingPage } from "@/services/booking-page";
+import { safeFormatTime } from "@/lib/safeTimeFormat";
+import { useTimeFormatPreference } from "@/hooks/useTimeFormatPreference";
 
 interface BookingLink {
   id: string;
@@ -172,7 +173,7 @@ export default function BookingPage() {
     const match = slots.find((s: any) => {
       if (!s || typeof s !== 'object') return false;
       if (typeof s.start !== 'string') return false;
-      const label = formatInTimeZone(s.start, timezone, 'h:mm a');
+      const label = safeFormatTime(s.start, timezone, '12h');
       return label === timeLabel;
     });
 
@@ -306,9 +307,7 @@ export default function BookingPage() {
                     )}
                     {selectedSlot && (
                       <span className="font-medium text-foreground">
-                        {selectedSlot
-                          ? formatInTimeZone(selectedSlot.start, timezone, 'h:mm a')
-                          : null}
+                        {safeFormatTime(selectedSlot.start, timezone, '12h')}
                       </span>
                     )}
                   </div>
