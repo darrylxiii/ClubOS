@@ -15,23 +15,34 @@ serve(async (req) => {
   }
 
   try {
-    // Verify reCAPTCHA (fail-closed when secret is configured)
+    // Verify reCAPTCHA (fail-closed when secret is configured, with preview grace)
     const recaptchaSecretConfigured = !!Deno.env.get('RECAPTCHA_SECRET_KEY');
     const recaptchaToken = req.headers.get("x-recaptcha-token");
 
+    // Detect if this is a preview/development environment
+    const origin = req.headers.get('origin') || req.headers.get('referer') || '';
+    const isPreviewEnvironment = origin.includes('lovableproject.com') || 
+                                 origin.includes('lovable.app') ||
+                                 origin.includes('localhost');
+
     if (recaptchaSecretConfigured) {
-      if (!recaptchaToken) {
+      if (recaptchaToken) {
+        // Token provided - validate it
+        const recaptchaResult = await verifyRecaptcha(recaptchaToken, "create_booking", 0.5);
+        if (!recaptchaResult.success) {
+          return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
+        }
+        console.log("[Booking] reCAPTCHA verified, score:", recaptchaResult.score);
+      } else if (isPreviewEnvironment) {
+        // No token in preview - allow with warning
+        console.warn('[Booking] reCAPTCHA token missing in preview environment - allowing request');
+      } else {
+        // No token in production - block
         return new Response(
           JSON.stringify({ error: 'reCAPTCHA token missing' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
       }
-
-      const recaptchaResult = await verifyRecaptcha(recaptchaToken, "create_booking", 0.5);
-      if (!recaptchaResult.success) {
-        return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
-      }
-      console.log("[Booking] reCAPTCHA verified, score:", recaptchaResult.score);
     } else {
       console.log('[Booking] RECAPTCHA_SECRET_KEY not set; skipping verification');
     }
