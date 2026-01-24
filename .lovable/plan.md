@@ -1,95 +1,150 @@
 
-# Fix reCAPTCHA Configuration Mismatch
+
+# Fix Booking Confirmation Database Trigger Error
 
 ## Problem Identified
 
-The booking fails with "reCAPTCHA token missing" due to a configuration mismatch:
+The booking confirmation fails with the error:
+```
+record "new" has no field "scheduled_at"
+```
 
-| Component | Status | Result |
-|-----------|--------|--------|
-| Backend (`RECAPTCHA_SECRET_KEY`) | Configured | Enforces token validation |
-| Frontend (`VITE_RECAPTCHA_SITE_KEY`) | Not configured | Skips token generation |
+### Root Cause Analysis
 
-The frontend check `RECAPTCHA_ENABLED` evaluates to `false` because the site key is missing, so no token is generated. But the backend sees its secret key is configured and enforces validation, returning a 403 error.
+A database trigger `trg_activity_bookings` fires on every `INSERT` or `UPDATE` to the `bookings` table. The trigger calls `log_user_activity()` which has **two critical bugs**:
 
----
+| Bug | Location | Issue |
+|-----|----------|-------|
+| 1. Wrong column name | Line 104 | References `NEW.scheduled_at` but column is `scheduled_start` |
+| 2. Identity mismatch | Line 96 | Uses `NEW.candidate_id` which may be `NULL` for non-interview bookings |
 
-## Solution Options
-
-### Option A: Add Frontend Site Key (Recommended)
-
-Add the `VITE_RECAPTCHA_SITE_KEY` environment variable so the frontend can generate tokens that the backend validates.
-
-**Steps:**
-1. Get the reCAPTCHA v3 site key from Google reCAPTCHA admin console (the one paired with your secret key)
-2. Add it to the project's environment variables
-
-### Option B: Disable Backend Enforcement (Quick Fix)
-
-Remove the `RECAPTCHA_SECRET_KEY` from the backend secrets, which will make the edge function skip reCAPTCHA validation entirely.
-
-**Impact:** Reduces bot protection on the booking endpoint
-
-### Option C: Make Backend Validation Optional
-
-Modify the edge function to gracefully handle missing tokens when in development/preview environments instead of enforcing "fail-closed" behavior.
-
----
-
-## Recommended Implementation (Option C - Hybrid Approach)
-
-Make the edge function more resilient by checking for placeholder/preview environments and only strictly enforcing reCAPTCHA in production:
-
-### Changes to `supabase/functions/create-booking/index.ts`
-
-Update the reCAPTCHA enforcement logic:
+### Bookings Table Schema (Verified)
 
 ```text
-Current behavior (lines 22-28):
-- If RECAPTCHA_SECRET_KEY exists AND no token → 403 error
-
-New behavior:
-- If RECAPTCHA_SECRET_KEY exists:
-  - If token provided → validate it
-  - If no token AND in preview/development → log warning, continue
-  - If no token AND in production → 403 error
+scheduled_start     TIMESTAMPTZ  ← Correct column name
+scheduled_end       TIMESTAMPTZ
+user_id            UUID         ← Host user
+candidate_id       UUID         ← May be NULL for general bookings
 ```
 
-### Implementation
+### Current Buggy Trigger Code
 
-```typescript
-// Verify reCAPTCHA (fail-closed when secret is configured, with preview grace)
-const recaptchaSecretConfigured = !!Deno.env.get('RECAPTCHA_SECRET_KEY');
-const recaptchaToken = req.headers.get("x-recaptcha-token");
+```sql
+-- supabase/migrations/20260121020842_...sql (lines 95-106)
+ELSIF TG_TABLE_NAME = 'bookings' THEN
+  target_user_id := NEW.candidate_id;          -- BUG: May be NULL
+  activity_type_name := CASE 
+    WHEN TG_OP = 'INSERT' THEN 'interview_scheduled'
+    WHEN TG_OP = 'UPDATE' AND NEW.status = 'completed' THEN 'interview_completed'
+    ELSE NULL
+  END;
+  activity_data := jsonb_build_object(
+    'booking_id', NEW.id,
+    'scheduled_at', NEW.scheduled_at,           -- BUG: Column doesn't exist
+    'status', NEW.status
+  );
+```
 
-// Detect if this is a preview/development environment
-const host = req.headers.get('origin') || req.headers.get('referer') || '';
-const isPreviewEnvironment = host.includes('lovableproject.com') || 
-                             host.includes('lovable.app') ||
-                             host.includes('localhost');
+---
 
-if (recaptchaSecretConfigured) {
-  if (recaptchaToken) {
-    // Token provided - validate it
-    const recaptchaResult = await verifyRecaptcha(recaptchaToken, "create_booking", 0.5);
-    if (!recaptchaResult.success) {
-      return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
-    }
-    console.log("[Booking] reCAPTCHA verified, score:", recaptchaResult.score);
-  } else if (isPreviewEnvironment) {
-    // No token in preview - allow with warning
-    console.warn('[Booking] reCAPTCHA token missing in preview environment - allowing request');
-  } else {
-    // No token in production - block
-    return new Response(
-      JSON.stringify({ error: 'reCAPTCHA token missing' }),
-      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+## Solution: Fix the `log_user_activity()` Function
+
+### Database Migration Required
+
+Create a new migration to fix the trigger function with correct column references:
+
+```sql
+-- Fix log_user_activity() function for bookings table
+CREATE OR REPLACE FUNCTION public.log_user_activity()
+RETURNS TRIGGER AS $$
+DECLARE
+  target_user_id UUID;
+  activity_type_name TEXT;
+  activity_data JSONB;
+BEGIN
+  -- Determine user_id based on table
+  IF TG_TABLE_NAME = 'applications' THEN
+    target_user_id := NEW.candidate_id;
+    activity_type_name := CASE 
+      WHEN TG_OP = 'INSERT' THEN 'application_submitted'
+      WHEN TG_OP = 'UPDATE' AND NEW.status != OLD.status THEN 'application_status_changed'
+      ELSE NULL
+    END;
+    activity_data := jsonb_build_object(
+      'job_id', NEW.job_id,
+      'status', NEW.status,
+      'action', TG_OP
     );
-  }
-} else {
-  console.log('[Booking] RECAPTCHA_SECRET_KEY not set; skipping verification');
-}
+  ELSIF TG_TABLE_NAME = 'assessment_results' THEN
+    target_user_id := NEW.user_id;
+    activity_type_name := 'assessment_completed';
+    activity_data := jsonb_build_object(
+      'assessment_id', NEW.assessment_id,
+      'assessment_name', NEW.assessment_name,
+      'score', NEW.score
+    );
+  ELSIF TG_TABLE_NAME = 'bookings' THEN
+    -- FIX 1: Use candidate_id if available, otherwise fall back to user_id (host)
+    -- For interview bookings, candidate_id should be set
+    -- For general bookings, use user_id as the activity owner
+    target_user_id := COALESCE(NEW.candidate_id, NEW.user_id);
+    
+    activity_type_name := CASE 
+      WHEN TG_OP = 'INSERT' THEN 
+        CASE WHEN NEW.candidate_id IS NOT NULL THEN 'interview_scheduled' ELSE 'booking_created' END
+      WHEN TG_OP = 'UPDATE' AND NEW.status = 'completed' THEN 'interview_completed'
+      WHEN TG_OP = 'UPDATE' AND NEW.status = 'cancelled' THEN 'booking_cancelled'
+      ELSE NULL
+    END;
+    
+    -- FIX 2: Use scheduled_start instead of scheduled_at
+    activity_data := jsonb_build_object(
+      'booking_id', NEW.id,
+      'scheduled_start', NEW.scheduled_start,
+      'scheduled_end', NEW.scheduled_end,
+      'status', NEW.status,
+      'guest_name', NEW.guest_name
+    );
+  ELSIF TG_TABLE_NAME = 'milestone_comments' THEN
+    target_user_id := NEW.user_id;
+    activity_type_name := 'comment_added';
+    activity_data := jsonb_build_object(
+      'milestone_id', NEW.milestone_id,
+      'comment_id', NEW.id
+    );
+  END IF;
+
+  -- Only insert if we have a valid activity type AND user_id
+  IF activity_type_name IS NOT NULL AND target_user_id IS NOT NULL THEN
+    INSERT INTO public.activity_timeline (user_id, activity_type, activity_data, created_at)
+    VALUES (target_user_id, activity_type_name, activity_data, now());
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 ```
+
+---
+
+## Implementation Details
+
+### Fixes Applied
+
+| Issue | Before | After |
+|-------|--------|-------|
+| Column reference | `NEW.scheduled_at` (doesn't exist) | `NEW.scheduled_start` |
+| Identity fallback | `NEW.candidate_id` (may be NULL) | `COALESCE(NEW.candidate_id, NEW.user_id)` |
+| Activity data | Only booking_id, scheduled_at, status | booking_id, scheduled_start, scheduled_end, status, guest_name |
+| Activity types | Only interview_scheduled, interview_completed | Added booking_created, booking_cancelled |
+
+### Why This Fix Works
+
+1. **Column Name Fix**: The `bookings` table uses `scheduled_start` and `scheduled_end` columns (verified from schema). The trigger was referencing a non-existent `scheduled_at` column.
+
+2. **Identity Fallback**: For general booking links (non-interview), `candidate_id` is `NULL`. Using `COALESCE()` ensures we always have a valid `user_id` to log activity against.
+
+3. **Richer Activity Data**: Including more fields in `activity_data` makes the timeline more useful for UI display.
 
 ---
 
@@ -97,28 +152,53 @@ if (recaptchaSecretConfigured) {
 
 | File | Changes |
 |------|---------|
-| `supabase/functions/create-booking/index.ts` | Add preview environment detection, graceful fallback for missing tokens |
+| Database Migration (new) | Fix `log_user_activity()` function with correct column references |
 
 ---
 
-## Expected Outcome
+## Verification Checklist
 
-After implementation:
-1. Booking works in preview/development without requiring frontend reCAPTCHA configuration
-2. Production deployments with proper `VITE_RECAPTCHA_SITE_KEY` still get full reCAPTCHA protection
-3. No code changes required to the frontend
-4. Edge function remains secure in production while being testable in preview
+After applying the fix:
+- [ ] `/book/:slug` page loads without errors
+- [ ] Selecting a time slot works correctly
+- [ ] Clicking "Confirm Booking" creates the booking successfully
+- [ ] No "scheduled_at" errors in console/logs
+- [ ] Activity timeline correctly logs booking events
+- [ ] Both interview bookings (with candidate_id) and general bookings (without) work
 
 ---
 
-## Alternative: Quick Fix
+## Technical Notes
 
-If you prefer to just make bookings work immediately without code changes:
+### Database Trigger Execution Flow
 
-**Option 1:** Add the site key
-- Go to Google reCAPTCHA admin console
-- Find the site key paired with your secret key
-- Add `VITE_RECAPTCHA_SITE_KEY` to your environment variables
+```text
+INSERT INTO bookings (...)
+    │
+    ▼
+AFTER INSERT TRIGGER: trg_activity_bookings
+    │
+    ▼
+FUNCTION: log_user_activity()
+    │
+    ├─→ Builds activity_data using NEW.scheduled_at  ← ERROR HERE
+    │
+    └─→ Postgres error: record "new" has no field "scheduled_at"
+```
 
-**Option 2:** Remove backend enforcement
-- Remove the `RECAPTCHA_SECRET_KEY` secret to disable validation entirely
+### After Fix
+
+```text
+INSERT INTO bookings (...)
+    │
+    ▼
+AFTER INSERT TRIGGER: trg_activity_bookings
+    │
+    ▼
+FUNCTION: log_user_activity()
+    │
+    ├─→ Builds activity_data using NEW.scheduled_start  ← CORRECT
+    │
+    └─→ INSERT INTO activity_timeline (...)  ← SUCCESS
+```
+
