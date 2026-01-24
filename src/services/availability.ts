@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { getBackendConfig } from '@/config/backend';
+import { getBackendConfig, isPlaceholderEnvironment, nativeFetch } from '@/config/backend';
 
 type ISODate = string;
 
@@ -28,7 +28,8 @@ function isNetworkishError(err: unknown): boolean {
     m.includes('failed to fetch') ||
     m.includes('network') ||
     m.includes('fetch') ||
-    m.includes('cors')
+    m.includes('cors') ||
+    m.includes('timeout')
   );
 }
 
@@ -37,7 +38,6 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    // If promise doesn't support AbortController, we still get a hard timeout via race.
     return await Promise.race([
       promise,
       new Promise<T>((_, reject) =>
@@ -58,25 +58,18 @@ async function invokeGetAvailableSlots(body: AvailabilityRequest): Promise<Avail
   return data as AvailabilityResponse;
 }
 
-function resolveBackendConfig(): { baseUrl: string; publishableKey: string; usedFallbackUrl: boolean } {
-  // Central resolver; in some previews env can be missing and the client uses placeholders.
-  const cfg = getBackendConfig();
-  return {
-    baseUrl: cfg.baseUrl,
-    publishableKey: cfg.publishableKey,
-    usedFallbackUrl: !import.meta.env.VITE_SUPABASE_URL,
-  };
+function resolveBackendConfig(): { baseUrl: string; publishableKey: string } {
+  return getBackendConfig();
 }
 
 async function fetchGetAvailableSlotsDirect(body: AvailabilityRequest): Promise<AvailabilityResponse> {
   const { baseUrl, publishableKey } = resolveBackendConfig();
 
-  const res = await fetch(`${baseUrl}/functions/v1/get-available-slots`, {
+  // Use nativeFetch to bypass any instrumentation (OTel, etc.)
+  const res = await nativeFetch(`${baseUrl}/functions/v1/get-available-slots`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      // Some gateways require both headers; missing Authorization often surfaces as
-      // a browser-level "Failed to fetch" due to CORS on 401/403 responses.
       apikey: publishableKey,
       Authorization: `Bearer ${publishableKey}`,
     },
@@ -95,26 +88,35 @@ async function fetchGetAvailableSlotsDirect(body: AvailabilityRequest): Promise<
 /**
  * Fetches availability for public booking pages.
  *
- * Primary: supabase.functions.invoke
- * Fallback: direct fetch to /functions/v1/get-available-slots
+ * Auto-detect strategy:
+ * - If environment is placeholder/preview, skip invoke and use direct fetch only
+ * - Otherwise: Primary supabase.functions.invoke, fallback to direct fetch
  *
  * Includes a short timeout + retry to avoid transient edge/network hiccups.
  */
 export async function getAvailableSlots(request: AvailabilityRequest): Promise<AvailabilityResponse> {
-  const attempts = [250, 750];
+  const isPlaceholder = isPlaceholderEnvironment();
+  const attempts = [500, 1500];
   let lastError: unknown;
 
   for (let i = 0; i < attempts.length + 1; i++) {
     try {
+      if (isPlaceholder) {
+        // Skip invoke entirely in placeholder environments - go straight to direct fetch
+        const result = await withTimeout(fetchGetAvailableSlotsDirect(request), 8000);
+        return result;
+      }
+
+      // Normal path: try invoke first
       const result = await withTimeout(invokeGetAvailableSlots(request), 5000);
       return result;
     } catch (err: unknown) {
       lastError = err;
 
-      // Only fallback on "couldn't reach backend" class errors.
-      if (isNetworkishError(err)) {
+      // If not placeholder and it's a network error, try direct fetch as fallback
+      if (!isPlaceholder && isNetworkishError(err)) {
         try {
-          const result = await withTimeout(fetchGetAvailableSlotsDirect(request), 5000);
+          const result = await withTimeout(fetchGetAvailableSlotsDirect(request), 8000);
           return result;
         } catch (fallbackErr: unknown) {
           lastError = fallbackErr;
