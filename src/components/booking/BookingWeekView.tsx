@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { format, addDays, startOfWeek, isSameDay, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useSwipeable } from "react-swipeable";
+import { safeFormatTime } from "@/lib/safeTimeFormat";
 
 interface BookingWeekViewProps {
   bookingLink: {
@@ -93,7 +94,8 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
   };
 
   const handleSlotClick = (slot: TimeSlot) => {
-    const timeStr = format(parseISO(slot.start), "h:mm a");
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const timeStr = safeFormatTime(slot.start, userTimezone, '12h');
     setSelectedSlot(slot.start);
     onTimeSelect(slot.date, timeStr);
   };
@@ -151,11 +153,16 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
           {/* Time column */}
           <div className="space-y-2">
             <div className="h-12 border-b" />
-            {hours.map((hour) => (
-              <div key={hour} className="h-16 text-xs text-muted-foreground">
-                {format(new Date().setHours(hour, 0), "h:mm a")}
-              </div>
-            ))}
+            {hours.map((hour) => {
+              const tempDate = new Date();
+              tempDate.setHours(hour, 0, 0, 0);
+              const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+              return (
+                <div key={hour} className="h-16 text-xs text-muted-foreground">
+                  {safeFormatTime(tempDate.toISOString(), userTimezone, '12h')}
+                </div>
+              );
+            })}
           </div>
 
           {/* Day columns */}
@@ -192,6 +199,7 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
                     <div key={hour} className="h-16 relative">
                       {hourSlots.map((slot, idx) => {
                         const isSelected = selectedSlot === slot.start;
+                        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                         return (
                           <Button
                             key={idx}
@@ -200,7 +208,7 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
                             className="w-full min-h-[44px] text-xs mb-1 touch-manipulation"
                             onClick={() => handleSlotClick(slot)}
                           >
-                            {format(parseISO(slot.start), "h:mm")}
+                            {safeFormatTime(slot.start, userTimezone, '12h').replace(/\s?(AM|PM)/i, '')}
                           </Button>
                         );
                       })}

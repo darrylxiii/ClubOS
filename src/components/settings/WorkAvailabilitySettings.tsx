@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Globe, Clock, Zap, Calendar } from "lucide-react";
 import { getUserTimezone } from "@/lib/timezoneUtils";
 import { format, parse } from "date-fns";
-import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { formatTimeFromDate } from "@/lib/safeTimeFormat";
 
 interface WorkAvailabilitySettingsProps {
   workTimezone: string;
@@ -97,7 +97,7 @@ export function WorkAvailabilitySettings({
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const formatted = formatInTimeZone(now, localTimezone, "h:mm a");
+      const formatted = formatTimeFromDate(now, localTimezone, '12h');
       setCurrentTime(formatted);
     };
     updateTime();
@@ -169,8 +169,8 @@ export function WorkAvailabilitySettings({
       const endTime = new Date(now);
       endTime.setHours(localEndHour, 0, 0, 0);
 
-      const refStartTime = formatInTimeZone(startTime, localReference, "h:mm a");
-      const refEndTime = formatInTimeZone(endTime, localReference, "h:mm a");
+      const refStartTime = formatTimeFromDate(startTime, localReference, '12h');
+      const refEndTime = formatTimeFromDate(endTime, localReference, '12h');
 
       // Calculate flexibility range
       const flexStartEarly = new Date(startTime);
@@ -185,8 +185,8 @@ export function WorkAvailabilitySettings({
       return {
         start: refStartTime,
         end: refEndTime,
-        flexStart: `${formatInTimeZone(flexStartEarly, localReference, "h:mm a")} - ${formatInTimeZone(flexStartLate, localReference, "h:mm a")}`,
-        flexEnd: `${formatInTimeZone(flexEndEarly, localReference, "h:mm a")} - ${formatInTimeZone(flexEndLate, localReference, "h:mm a")}`,
+        flexStart: `${formatTimeFromDate(flexStartEarly, localReference, '12h')} - ${formatTimeFromDate(flexStartLate, localReference, '12h')}`,
+        flexEnd: `${formatTimeFromDate(flexEndEarly, localReference, '12h')} - ${formatTimeFromDate(flexEndLate, localReference, '12h')}`,
       };
     } catch (error) {
       console.error("Error calculating preview:", error);

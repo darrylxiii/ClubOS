@@ -1,11 +1,11 @@
 /**
  * Centralized timezone handling for The Quantum Club booking system
- * Ensures consistency across client and edge functions
+ * Uses native Intl.DateTimeFormat APIs for maximum reliability
  */
 
-import { format, parseISO } from 'date-fns';
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns';
 import { logger } from '@/lib/logger';
+import { safeFormatTime, formatTimeRange } from '@/lib/safeTimeFormat';
 
 /**
  * Type aliases for time string formats
@@ -29,11 +29,27 @@ export function getUserTimezone(): string {
 }
 
 /**
- * Format a date to ISO string for a specific timezone
+ * Format a date to ISO-like string for a specific timezone using native APIs
  * Use this when sending dates to edge functions
  */
 export function formatDateForTimezone(date: Date, timezone: string): string {
-  return formatInTimeZone(date, timezone, "yyyy-MM-dd'T'HH:mm:ssXXX");
+  try {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(date);
+    const get = (type: string) => parts.find(p => p.type === type)?.value || '';
+    return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`;
+  } catch {
+    return date.toISOString();
+  }
 }
 
 /**
@@ -41,29 +57,31 @@ export function formatDateForTimezone(date: Date, timezone: string): string {
  * Ensures start/end are properly bounded in the target timezone
  */
 export function getDateRangeForTimezone(date: Date, timezone: string) {
-  const zonedDate = toZonedTime(date, timezone);
-  
-  // Start of day in target timezone
-  const startOfDay = new Date(zonedDate);
-  startOfDay.setHours(0, 0, 0, 0);
-  
-  // End of day in target timezone
-  const endOfDay = new Date(zonedDate);
-  endOfDay.setHours(23, 59, 59, 999);
-  
-  return {
-    start: format(startOfDay, 'yyyy-MM-dd'),
-    end: format(endOfDay, 'yyyy-MM-dd'),
-  };
+  try {
+    // Format date as YYYY-MM-DD in target timezone
+    const dateStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+    
+    return {
+      start: dateStr,
+      end: dateStr,
+    };
+  } catch {
+    const fallback = date.toISOString().split('T')[0];
+    return { start: fallback, end: fallback };
+  }
 }
 
 /**
  * Format time slot for display in user's timezone
+ * Uses robust native formatting from safeTimeFormat
  */
 export function formatTimeSlot(isoStart: string, isoEnd: string, timezone: string): string {
-  const start = formatInTimeZone(isoStart, timezone, 'h:mm a');
-  const end = formatInTimeZone(isoEnd, timezone, 'h:mm a');
-  return `${start} - ${end}`;
+  return formatTimeRange(isoStart, isoEnd, timezone, '12h');
 }
 
 /**
@@ -85,15 +103,15 @@ export function detectTimeFormat(timeStr: string): 'am-pm' | '24-hour' | 'invali
  * Always returns 12-hour AM/PM format for consistency
  */
 export function normalizeTimeFormat(timeStr: string): string {
-  const format = detectTimeFormat(timeStr);
+  const fmt = detectTimeFormat(timeStr);
   
   // Already in correct format
-  if (format === 'am-pm') {
+  if (fmt === 'am-pm') {
     return timeStr;
   }
   
   // Convert 24-hour to 12-hour format
-  if (format === '24-hour') {
+  if (fmt === '24-hour') {
     const [hoursStr, minutesStr] = timeStr.split(':');
     let hours = parseInt(hoursStr, 10);
     const minutes = minutesStr;
@@ -117,7 +135,7 @@ export function normalizeTimeFormat(timeStr: string): string {
 
 /**
  * Parse user-selected time string (e.g., "9:00 AM") and combine with date
- * Returns ISO string in the specified timezone
+ * Returns parsed time components
  */
 export function parseUserTimeSelection(
   date: Date,
@@ -151,6 +169,7 @@ export function parseUserTimeSelection(
 
 /**
  * Create booking time with proper timezone handling
+ * Uses native APIs for timezone conversion
  */
 export function createBookingTime(
   date: Date,
@@ -159,8 +178,8 @@ export function createBookingTime(
   durationMinutes: number,
   timezone: string
 ): { scheduledStart: string; scheduledEnd: string } {
-  // Create time in user's timezone
-  const zonedDate = toZonedTime(date, timezone);
+  // Create time in user's timezone using native conversion
+  const zonedDate = toTimezone(date, timezone);
   zonedDate.setHours(hours, minutes, 0, 0);
   
   const startTime = zonedDate;
@@ -171,3 +190,23 @@ export function createBookingTime(
     scheduledEnd: endTime.toISOString(),
   };
 }
+
+/**
+ * Convert a date to a specific timezone using native APIs
+ * Returns a Date object representing the time in that timezone
+ */
+export function toTimezone(date: Date, timezone: string): Date {
+  try {
+    // Get the time string in the target timezone
+    const tzString = date.toLocaleString('en-US', { timeZone: timezone });
+    return new Date(tzString);
+  } catch {
+    return date;
+  }
+}
+
+/**
+ * Format time for display using native APIs
+ * Re-export from safeTimeFormat for convenience
+ */
+export { safeFormatTime, formatTimeRange } from '@/lib/safeTimeFormat';

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
-import { formatInTimeZone } from "date-fns-tz";
+import { safeFormatTime } from "@/lib/safeTimeFormat";
 import { 
   Calendar, 
   Clock, 
@@ -230,8 +230,8 @@ export default function GuestBookingPage() {
                   {format(parseISO(booking.scheduled_start), "EEEE, MMMM d, yyyy")}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {formatInTimeZone(parseISO(booking.scheduled_start), guestTimezone, "h:mm a")} - 
-                  {formatInTimeZone(parseISO(booking.scheduled_end), guestTimezone, " h:mm a")}
+                  {safeFormatTime(booking.scheduled_start, guestTimezone, '12h')} – 
+                  {safeFormatTime(booking.scheduled_end, guestTimezone, '12h')}
                   <span className="ml-1">({guestTimezone.replace(/_/g, " ")})</span>
                 </p>
               </div>
