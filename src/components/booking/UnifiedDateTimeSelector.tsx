@@ -152,33 +152,26 @@ export function UnifiedDateTimeSelector({
         throw new Error(`Expected slots to be an array, got ${typeof data.slots}`);
       }
 
-      const slots = data.slots.map((slot: any, index: number) => {
+      const slots = (data.slots as unknown[])
+        .map((slot: unknown) => {
+          if (!slot || typeof slot !== 'object') return null;
+          const s = slot as { start?: unknown; end?: unknown };
+          if (typeof s.start !== 'string') return null;
 
-        // Handle string format "HH:MM - YYYY-MM-DD"
-        if (typeof slot === 'string') {
-          const parts = slot.split(" - ");
-          if (parts.length !== 2) {
-            logger.warn('Invalid slot format', { componentName: 'UnifiedDateTimeSelector', slot });
-            return null;
+          // End is required for booking; be defensive for any older payloads.
+          if (typeof s.end !== 'string' || !s.end) {
+            try {
+              const startMs = new Date(s.start).getTime();
+              if (!Number.isFinite(startMs)) return null;
+              const endIso = new Date(startMs + bookingLink.duration_minutes * 60 * 1000).toISOString();
+              return { start: s.start, end: endIso } satisfies TimeSlot;
+            } catch {
+              return null;
+            }
           }
-          const [time, slotDate] = parts;
-          return {
-            start: time,
-            end: "",
-            date: slotDate,
-          };
-        } else if (typeof slot === 'object' && slot.start) {
-          // Fallback for object format
-          return {
-            start: slot.start,
-            end: slot.end || "",
-            date: slot.date || dateStr,
-          };
-        } else {
-          logger.warn('Unknown slot format', { componentName: 'UnifiedDateTimeSelector', slot });
-          return null;
-        }
-      }).filter(Boolean); // Remove null entries
+          return { start: s.start, end: s.end } satisfies TimeSlot;
+        })
+        .filter(Boolean) as TimeSlot[];
 
       setAvailableSlots(slots);
 

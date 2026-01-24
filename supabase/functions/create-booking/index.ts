@@ -15,16 +15,25 @@ serve(async (req) => {
   }
 
   try {
-    // Verify reCAPTCHA if token provided
+    // Verify reCAPTCHA (fail-closed when secret is configured)
+    const recaptchaSecretConfigured = !!Deno.env.get('RECAPTCHA_SECRET_KEY');
     const recaptchaToken = req.headers.get("x-recaptcha-token");
-    if (recaptchaToken) {
+
+    if (recaptchaSecretConfigured) {
+      if (!recaptchaToken) {
+        return new Response(
+          JSON.stringify({ error: 'reCAPTCHA token missing' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
       const recaptchaResult = await verifyRecaptcha(recaptchaToken, "create_booking", 0.5);
       if (!recaptchaResult.success) {
         return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
       }
       console.log("[Booking] reCAPTCHA verified, score:", recaptchaResult.score);
     } else {
-      console.log("[Booking] reCAPTCHA not configured, skipping verification");
+      console.log('[Booking] RECAPTCHA_SECRET_KEY not set; skipping verification');
     }
 
     // Validate input
@@ -116,6 +125,13 @@ serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Availability settings (used for "check all calendars")
+    const { data: availabilitySettings } = await supabaseClient
+      .from('booking_availability_settings')
+      .select('check_all_calendars')
+      .eq('user_id', bookingLink.user_id)
+      .single();
 
     // PHASE 3: Try to acquire advisory lock for this time slot
     // This prevents race conditions when multiple users try to book the same slot
@@ -261,6 +277,10 @@ serve(async (req) => {
             setTimeout(() => reject(new Error('Calendar check timeout')), 8000)
           );
           
+          const calendarsToCheck = availabilitySettings?.check_all_calendars && Array.isArray(calendar.calendar_ids) && calendar.calendar_ids.length > 0
+            ? calendar.calendar_ids
+            : ['primary'];
+
           const apiPromise = supabaseClient.functions.invoke(
             functionName,
             {
@@ -270,7 +290,7 @@ serve(async (req) => {
                 accessToken: accessToken,
                 timeMin: scheduledStart,
                 timeMax: scheduledEnd,
-                calendars: ['primary']
+                calendars: calendarsToCheck,
               }
             }
           );
