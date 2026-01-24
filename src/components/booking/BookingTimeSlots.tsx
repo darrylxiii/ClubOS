@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Clock, Loader2, RefreshCw, Bell, Users } from "lucide-react";
@@ -11,6 +10,7 @@ import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import { WaitlistForm } from "./WaitlistForm";
 import { TimezoneWarning } from "./TimezoneWarning";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getAvailableSlots } from "@/services/availability";
 
 interface BookingTimeSlotsProps {
   bookingLink: {
@@ -76,21 +76,27 @@ export function BookingTimeSlots({
       const dateRange = getDateRangeForTimezone(selectedDate, userTimezone);
 
       setLoadingStage("Checking availability...");
-      const { data, error } = await supabase.functions.invoke("get-available-slots", {
-        body: {
-          bookingLinkSlug: bookingLink.slug,
-          dateRange,
-          timezone: userTimezone,
-        },
+      const data = await getAvailableSlots({
+        bookingLinkSlug: bookingLink.slug,
+        dateRange,
+        timezone: userTimezone,
       });
 
-      if (error) {
-        console.error("Slots API error:", error);
-        throw new Error(error.message || "Failed to fetch slots");
-      }
-
       setLoadingStage("Loading times...");
-      setSlots(data.slots || []);
+      const normalizedSlots: TimeSlot[] = Array.isArray(data.slots)
+        ? (data.slots
+            .map((slot: unknown) => {
+              if (!slot || typeof slot !== 'object') return null;
+              const s = slot as { start?: unknown; end?: unknown };
+              if (typeof s.start !== 'string') return null;
+              return {
+                start: s.start,
+                end: typeof s.end === 'string' ? s.end : '',
+              };
+            })
+            .filter(Boolean) as TimeSlot[])
+        : [];
+      setSlots(normalizedSlots);
     } catch (error: unknown) {
       console.error("Error loading slots:", error);
       

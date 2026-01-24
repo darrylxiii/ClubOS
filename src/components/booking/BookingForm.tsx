@@ -19,6 +19,7 @@ import { GuestEmailInput } from "./GuestEmailInput";
 import { GuestPlatformSelector } from "./GuestPlatformSelector";
 import { TimezoneWarning } from "./TimezoneWarning";
 import { logger } from "@/lib/logger";
+import { getAvailableSlots } from "@/services/availability";
 
 interface BookingFormProps {
   bookingLink: {
@@ -102,29 +103,27 @@ export function BookingForm({
 
     // Phase 4: Client-side validation - verify slot is still available
     try {
-      const verification = await supabase.functions.invoke("get-available-slots", {
-        body: {
-          bookingLinkSlug: bookingLink.slug,
-          dateRange: {
-            start: format(selectedDate, "yyyy-MM-dd"),
-            end: format(selectedDate, "yyyy-MM-dd"),
-          },
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      const verification = await getAvailableSlots({
+        bookingLinkSlug: bookingLink.slug,
+        dateRange: {
+          start: format(selectedDate, 'yyyy-MM-dd'),
+          end: format(selectedDate, 'yyyy-MM-dd'),
         },
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
 
-      if (verification.data?.slots) {
+      if (verification.slots) {
         // Normalize selected time to 12-hour format
         const normalizedSelectedTime = normalizeTimeFormat(selectedTime);
 
         console.log('[BookingForm] Verifying slot availability:', {
           selectedTime,
           normalizedSelectedTime,
-          totalSlots: verification.data.slots.length
+          totalSlots: verification.slots.length
         });
 
         // Check if slot is still available by comparing normalized times
-        const isStillAvailable = verification.data.slots.some((slot: string) => {
+        const isStillAvailable = (verification.slots as string[]).some((slot: string) => {
           // Extract time portion from slot format "09:00 - 2025-11-13"
           const slotTimePart = slot.split(" - ")[0];
           // Normalize slot time to 12-hour format for comparison

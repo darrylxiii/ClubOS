@@ -4,7 +4,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Clock, Calendar as CalendarIcon, Loader2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,6 +12,7 @@ import { normalizeTimeFormat } from "@/lib/timezoneUtils";
 import { motion, AnimatePresence } from "framer-motion";
 import { TimezoneWarning } from "@/components/booking/TimezoneWarning";
 import { logger } from "@/lib/logger";
+import { getAvailableSlots } from "@/services/availability";
 
 interface TimeSlot {
   start: string;
@@ -60,18 +60,13 @@ export function UnifiedDateTimeSelector({
       const startStr = format(startOfMonth, "yyyy-MM-dd");
       const endStr = format(endOfMonth, "yyyy-MM-dd");
 
-      const { data, error } = await supabase.functions.invoke("get-available-slots", {
-        body: {
-          bookingLinkSlug: bookingLink.slug,
-          dateRange: {
-            start: startStr,
-            end: endStr,
-          },
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
+      const data = await getAvailableSlots({
+        bookingLinkSlug: bookingLink.slug,
+        dateRange: { start: startStr, end: endStr },
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
 
-      if (!error && data?.slots) {
+      if (data?.slots) {
         // Count slots per date
         const slotsByDate = new Map<string, number>();
 
@@ -126,21 +121,11 @@ export function UnifiedDateTimeSelector({
       const dateStr = format(date, "yyyy-MM-dd");
       logger.debug('Loading slots for date', { componentName: 'UnifiedDateTimeSelector', dateStr, slug: bookingLink.slug });
 
-      const { data, error } = await supabase.functions.invoke("get-available-slots", {
-        body: {
-          bookingLinkSlug: bookingLink.slug,
-          dateRange: {
-            start: dateStr,
-            end: dateStr,
-          },
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
+      const data = await getAvailableSlots({
+        bookingLinkSlug: bookingLink.slug,
+        dateRange: { start: dateStr, end: dateStr },
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
-
-      if (error) {
-        logger.error('API error loading slots', error as Error, { componentName: 'UnifiedDateTimeSelector' });
-        throw error;
-      }
 
       if (!data || !data.slots) {
         logger.error('Invalid response structure', new Error('Missing slots array'), { componentName: 'UnifiedDateTimeSelector', data });
