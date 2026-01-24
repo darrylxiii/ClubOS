@@ -12,6 +12,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  type Slot = { start: string; end: string };
+
   try {
     const { bookingLinkSlug, dateRange, timezone = "Europe/Amsterdam" } = await req.json();
     console.log(`[Slots] Request params: slug=${bookingLinkSlug}, dateRange=${JSON.stringify(dateRange)}, timezone=${timezone}`);
@@ -185,6 +187,10 @@ serve(async (req) => {
             setTimeout(() => reject(new Error('Calendar API timeout')), 5000)
           );
           
+          const calendarsToCheck = settings?.check_all_calendars && Array.isArray(calendar.calendar_ids) && calendar.calendar_ids.length > 0
+            ? calendar.calendar_ids
+            : ['primary'];
+
           const apiPromise = supabaseClient.functions.invoke(
             functionName,
             {
@@ -194,7 +200,7 @@ serve(async (req) => {
                 accessToken: accessToken,
                 timeMin: dateRange.start,
                 timeMax: dateRange.end,
-                calendars: ['primary']
+                calendars: calendarsToCheck,
               }
             }
           );
@@ -269,7 +275,7 @@ serve(async (req) => {
       console.log(`[Slots] First 3 busy times:`, JSON.stringify(allBusyTimes.slice(0, 3)));
     }
 
-    // Generate available slots
+    // Generate available slots (canonical ISO contract)
     const slots = generateAvailableSlots(
       dateRange,
       bookingLink,
@@ -281,17 +287,18 @@ serve(async (req) => {
     console.log(`[Slots] Generated ${slots.length} available slots`);
 
     // Validate format before returning
-    const validatedSlots = slots.filter(slot => {
-      if (typeof slot !== 'string') {
-        console.error('[Slots] Invalid slot format (not a string):', slot);
+    const validatedSlots: Slot[] = (Array.isArray(slots) ? slots : []).filter((slot: unknown) => {
+      if (!slot || typeof slot !== 'object') {
+        console.error('[Slots] Invalid slot format (not an object):', slot);
         return false;
       }
-      if (!slot.includes(' - ')) {
-        console.error('[Slots] Invalid slot format (missing separator):', slot);
+      const s = slot as { start?: unknown; end?: unknown };
+      if (typeof s.start !== 'string' || typeof s.end !== 'string') {
+        console.error('[Slots] Invalid slot format (missing start/end):', slot);
         return false;
       }
       return true;
-    });
+    }) as Slot[];
 
     console.log(`[Slots] Validated ${validatedSlots.length} slots`);
     if (validatedSlots.length > 0) {
@@ -300,8 +307,9 @@ serve(async (req) => {
 
     // Generate availability summary for frontend optimization
     const slotsByDate = new Map<string, number>();
-    validatedSlots.forEach(slot => {
-      const [_, dateStr] = slot.split(" - ");
+    validatedSlots.forEach((slot) => {
+      const dateStr = slot.start.split('T')[0];
+      if (!dateStr) return;
       slotsByDate.set(dateStr, (slotsByDate.get(dateStr) || 0) + 1);
     });
 
@@ -335,7 +343,7 @@ function generateAvailableSlots(
   settings: any,
   existingBookings: any[],
   timezone: string
-): any[] {
+): { start: string; end: string }[] {
   const slots = [];
   const startDate = new Date(dateRange.start);
   const endDate = new Date(dateRange.end);
@@ -357,6 +365,7 @@ function generateAvailableSlots(
   const now = new Date();
   const minStartTime = new Date(now.getTime() + minNoticeHours * 60 * 60 * 1000);
 
+  // NOTE: Deno runtime uses UTC by default; we return ISO UTC instants.
   for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
     const dayOfWeek = d.getDay();
     
@@ -391,10 +400,10 @@ function generateAvailableSlots(
         });
         
         if (!hasConflict) {
-          // Format: "HH:MM - YYYY-MM-DD" for frontend consumption
-          const timeStr = slotTime.toTimeString().slice(0, 5); // "09:00"
-          const dateStr = slotTime.toISOString().split('T')[0]; // "2025-11-13"
-          slots.push(`${timeStr} - ${dateStr}`);
+          slots.push({
+            start: slotTime.toISOString(),
+            end: slotEnd.toISOString(),
+          });
         }
       }
       

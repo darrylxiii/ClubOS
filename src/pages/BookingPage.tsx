@@ -169,11 +169,10 @@ export default function BookingPage() {
     return null;
   }
 
-  return (
-    <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY}>
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex flex-col">
-        <MinimalHeader showBackButton={false} showHelpLink={true} />
-        <div className="container mx-auto py-8 px-4 max-w-5xl flex-1">
+  const pageContent = (
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex flex-col">
+      <MinimalHeader showBackButton={false} showHelpLink={true} />
+      <div className="container mx-auto py-8 px-4 max-w-5xl flex-1">
           {/* Header */}
           <div className="mb-8 text-center">
             <Avatar className="h-20 w-20 mx-auto mb-4">
@@ -319,8 +318,17 @@ export default function BookingPage() {
           <div className="mt-8 text-center text-sm text-muted-foreground">
             <p>Powered by The Quantum Club</p>
           </div>
-        </div>
       </div>
+    </div>
+  );
+
+  // In preview builds, VITE_RECAPTCHA_SITE_KEY may be missing at runtime.
+  // Avoid mounting the provider with an empty key (it can throw).
+  return RECAPTCHA_SITE_KEY ? (
+    <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY}>
+      {pageContent}
     </GoogleReCaptchaProvider>
+  ) : (
+    pageContent
   );
 }
