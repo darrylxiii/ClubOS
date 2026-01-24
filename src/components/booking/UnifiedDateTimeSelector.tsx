@@ -211,10 +211,22 @@ export function UnifiedDateTimeSelector({
 
   const formatTimeOnly = (isoStart: string) => {
     try {
-      return formatInTimeZone(isoStart, guestTimezone, 'h:mm a');
+      // Parse the ISO string to a Date object first
+      const date = new Date(isoStart);
+      if (isNaN(date.getTime())) {
+        logger.error('Invalid date string', new Error('Invalid date'), { componentName: 'UnifiedDateTimeSelector', isoStart });
+        return isoStart;
+      }
+      return formatInTimeZone(date, guestTimezone, 'h:mm a');
     } catch (error) {
-      logger.error('Error formatting time', error as Error, { componentName: 'UnifiedDateTimeSelector', isoStart });
-      return isoStart;
+      logger.error('Error formatting time', error as Error, { componentName: 'UnifiedDateTimeSelector', isoStart, guestTimezone });
+      // Fallback: parse and format locally
+      try {
+        const date = new Date(isoStart);
+        return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+      } catch {
+        return isoStart;
+      }
     }
   };
 
