@@ -1,161 +1,242 @@
 
-# Booking Page Reliability + Full Scheduling Audit
+# Automatic Time Format Detection with Toggle Switch
 
-## Problem Summary
+## Overview
 
-The `/book/:slug` page shows "Booking page unavailable" because:
-
-1. **Environment variables missing in preview**: The Supabase client is initialized with placeholder URLs when `VITE_SUPABASE_URL` is unavailable
-2. **OpenTelemetry fetch interception**: All `fetch` calls go through OTel instrumentation which tries to POST traces to `/api/traces` (returns 404 in preview), causing cascading failures
-3. **Fallback not working**: Even though `src/services/booking-page.ts` has a direct fetch fallback, both paths fail due to the OTel wrapper
-4. **Time slot display issues**: Times appear correctly formatted now, but user wants start-end ranges and dual timezone display
+Implement an intelligent time format system that automatically detects whether to display times in 12-hour (AM/PM) or 24-hour format, with a manual toggle so users can override the auto-detected preference.
 
 ---
 
-## Phase 1: Fix Booking Page Loading (Critical)
-
-### 1.1 Auto-detect Environment + Skip Invoke
-Update `src/services/booking-page.ts` and `src/services/availability.ts`:
+## Detection Priority Chain
 
 ```text
-Strategy: If we detect the Supabase client is using a placeholder URL, skip 
-invoke entirely and go straight to direct fetch with hardcoded config.
+1. Logged-in user        -> Use saved preference from user_preferences table
+2. System/Browser locale -> Use Intl API to detect system format
+3. Country detection     -> Use IP geolocation (already have useCountryDetection hook)
+4. Default fallback      -> 12-hour for US/UK/etc, 24-hour for Europe
 ```
-
-Changes:
-- Add helper `isPlaceholderClient()` that checks if the current Supabase URL contains "placeholder"
-- If placeholder detected, skip `invokeGetBookingPage()` entirely and use only `fetchGetBookingPageDirect()`
-- Keep retry logic but with longer initial timeout (8s) for cold-start edge functions
-
-### 1.2 Bypass OpenTelemetry for Critical Public Paths
-Modify the fallback fetch to use a "raw" fetch that bypasses OTel instrumentation:
-
-```typescript
-// Use native fetch directly to avoid OTel wrapper in fallback paths
-const nativeFetch = window.fetch.bind(window);
-```
-
-Or configure OTel to exclude booking endpoints from instrumentation.
 
 ---
 
-## Phase 2: Time Slot Display Improvements
+## Implementation Phases
 
-### 2.1 Show Time Ranges (User Request)
-Update `UnifiedDateTimeSelector.tsx` to display slots as "9:00 AM – 9:30 AM" instead of just "9:00 AM":
+### Phase 1: Core Time Format Detection Hook
 
-```typescript
-const formatTimeRange = (slot: TimeSlot) => {
-  const start = formatInTimeZone(new Date(slot.start), guestTimezone, 'h:mm a');
-  const end = formatInTimeZone(new Date(slot.end), guestTimezone, 'h:mm a');
-  return `${start} – ${end}`;
-};
+Create a new hook `useTimeFormatPreference` that implements the full detection chain:
+
+**File**: `src/hooks/useTimeFormatPreference.ts`
+
+Features:
+- Check if user is authenticated and has a saved preference
+- Detect system preference using `Intl.DateTimeFormat().resolvedOptions().hourCycle`
+- Fall back to country-based defaults using existing `useCountryDetection`
+- Provide a toggle function that persists the choice
+
+**Country-to-Format Mapping**:
+| Region | Countries | Default Format |
+|--------|-----------|----------------|
+| 12-hour | US, CA, AU, PH, MY, IN, PK, EG, SA, KR | AM/PM |
+| 24-hour | NL, DE, FR, ES, IT, BE, AT, CH, PL, CZ, RU, JP, CN, BR | HH:MM |
+
+### Phase 2: Database Schema Update
+
+Add `time_format` column to `user_preferences` table:
+
+```sql
+ALTER TABLE user_preferences
+ADD COLUMN IF NOT EXISTS time_format TEXT DEFAULT NULL
+  CHECK (time_format IN ('12h', '24h', NULL));
 ```
 
-### 2.2 Dual Timezone Display (User Request)
-Show both guest timezone (primary) and host timezone (secondary) for clarity:
+- `NULL` means "auto-detect" (respect system/country)
+- `'12h'` means always use AM/PM
+- `'24h'` means always use 24-hour format
 
+### Phase 3: Time Format Context Provider
+
+Create a context provider that makes the time format preference available app-wide:
+
+**File**: `src/contexts/TimeFormatContext.tsx`
+
+```typescript
+interface TimeFormatContextValue {
+  format: '12h' | '24h';
+  isAuto: boolean;
+  source: 'user' | 'system' | 'country' | 'default';
+  setFormat: (format: '12h' | '24h' | 'auto') => void;
+}
+```
+
+This context will:
+- Load user preference if logged in
+- Detect system preference for anonymous users
+- Fall back to country-based detection
+- Persist changes to localStorage (anonymous) or database (authenticated)
+
+### Phase 4: Update Time Formatting Utilities
+
+Modify `src/lib/timezoneUtils.ts` to accept format parameter:
+
+```typescript
+export function formatTimeSlot(
+  isoStart: string,
+  isoEnd: string,
+  timezone: string,
+  format: '12h' | '24h' = '12h'
+): string {
+  const pattern = format === '24h' ? 'HH:mm' : 'h:mm a';
+  const start = formatInTimeZone(isoStart, timezone, pattern);
+  const end = formatInTimeZone(isoEnd, timezone, pattern);
+  return `${start} - ${end}`;
+}
+```
+
+### Phase 5: Toggle Component for Booking Pages
+
+Create a compact toggle switch component:
+
+**File**: `src/components/booking/TimeFormatToggle.tsx`
+
+Design:
 ```text
 ┌─────────────────────────────────────┐
-│ 9:00 AM – 9:30 AM                   │
-│ 3:00 PM – 3:30 PM (Host timezone)   │
+│  🕐  9:00 AM  |  09:00              │
+│      ○────●   (toggle switch)       │
 └─────────────────────────────────────┘
 ```
 
-Implementation:
-- Add a small secondary line below each slot showing the same time in host timezone
-- Only show if host timezone differs from guest timezone
+Features:
+- Shows current format with visual preview
+- Toggle between 12h and 24h
+- Saves to localStorage for anonymous users
+- Saves to database for authenticated users
+- Subtle, non-intrusive design matching TQC aesthetic
+
+### Phase 6: Update Booking Components
+
+**UnifiedDateTimeSelector.tsx**:
+- Import and use `useTimeFormatPreference`
+- Pass format to `formatSlotDisplay`
+- Update both guest and host timezone displays
+
+**BookingPage.tsx**:
+- Add `TimeFormatToggle` component near timezone selector
+- Pass format to all time display functions
+
+### Phase 7: Settings Page Integration
+
+Update `PreferencesSettings.tsx` to include time format toggle:
+
+```text
+┌─────────────────────────────────────┐
+│ Time Format                         │
+│                                     │
+│ ○ Auto-detect (based on location)   │
+│ ○ 12-hour (9:00 AM)                │
+│ ○ 24-hour (09:00)                  │
+│                                     │
+│ Current: Using system preference    │
+└─────────────────────────────────────┘
+```
 
 ---
 
-## Phase 3: Code Quality Fixes
+## Files to Create
 
-### 3.1 Error State Improvements
-- Replace generic "Booking page unavailable" with actionable messages:
-  - "Connection error – please check your internet and retry"
-  - "This booking link doesn't exist or has been deactivated"
-  - "Unable to reach scheduling service – retrying..."
-
-### 3.2 Loading State Enhancement
-- Add visual progress indicator (pulsing animation) during retries
-- Show retry count: "Connecting... (attempt 2 of 3)"
-
-### 3.3 Remove Render-phase Side Effects
-Ensure no `toast()` calls happen during component render (already partially done, verify completeness)
-
----
-
-## Phase 4: Backend Reliability Hardening
-
-### 4.1 Edge Function Health Check
-Add a lightweight `/health` endpoint or use OPTIONS pre-flight to verify function availability before main request.
-
-### 4.2 Caching Layer
-Cache the `get-booking-page` response in sessionStorage for 5 minutes to avoid repeated calls on navigation.
-
----
+| File | Purpose |
+|------|---------|
+| `src/hooks/useTimeFormatPreference.ts` | Main detection hook with priority chain |
+| `src/contexts/TimeFormatContext.tsx` | App-wide context provider |
+| `src/components/booking/TimeFormatToggle.tsx` | Compact toggle for booking pages |
+| `src/lib/timeFormatConstants.ts` | Country-to-format mapping constants |
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/services/booking-page.ts` | Auto-detect placeholder client, native fetch fallback |
-| `src/services/availability.ts` | Same auto-detect pattern for slots |
-| `src/config/backend.ts` | Add `isPlaceholderEnvironment()` helper |
-| `src/components/booking/UnifiedDateTimeSelector.tsx` | Time range display, dual timezone |
-| `src/pages/BookingPage.tsx` | Better error messages, retry UI |
-| `src/lib/tracing/index.ts` | Exclude booking endpoints from OTel (optional) |
+| `src/lib/timezoneUtils.ts` | Add format parameter to formatting functions |
+| `src/components/booking/UnifiedDateTimeSelector.tsx` | Use time format preference |
+| `src/pages/BookingPage.tsx` | Add toggle component |
+| `src/components/settings/PreferencesSettings.tsx` | Add time format setting |
+| `src/App.tsx` | Wrap with TimeFormatProvider |
 
 ---
 
 ## Technical Details
 
-### Auto-detect Placeholder Client
-```typescript
-// src/config/backend.ts
-export function isPlaceholderEnvironment(): boolean {
-  const url = import.meta.env.VITE_SUPABASE_URL || '';
-  return !url || url.includes('placeholder');
-}
-```
+### System Detection Logic
 
-### Native Fetch Bypass
 ```typescript
-// Capture native fetch before any instrumentation
-const nativeFetch = globalThis.fetch?.bind?.(globalThis) || fetch;
-
-async function fetchWithBypass(url: string, options: RequestInit) {
-  // Use native fetch to bypass OTel in critical paths
-  return nativeFetch(url, options);
-}
-```
-
-### Time Range Formatting
-```typescript
-const formatSlotDisplay = (slot: TimeSlot) => {
-  const guestStart = formatInTimeZone(new Date(slot.start), guestTimezone, 'h:mm a');
-  const guestEnd = formatInTimeZone(new Date(slot.end), guestTimezone, 'h:mm a');
-  
-  // Only calculate host time if different timezone
-  if (hostTimezone && hostTimezone !== guestTimezone) {
-    const hostStart = formatInTimeZone(new Date(slot.start), hostTimezone, 'h:mm a');
-    return {
-      primary: `${guestStart} – ${guestEnd}`,
-      secondary: `${hostStart} in host timezone`
-    };
+function detectSystemTimeFormat(): '12h' | '24h' | null {
+  try {
+    const locale = navigator.language || 'en-US';
+    const options = Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions();
+    
+    // hourCycle: 'h11', 'h12' = 12-hour; 'h23', 'h24' = 24-hour
+    if (options.hourCycle === 'h11' || options.hourCycle === 'h12') {
+      return '12h';
+    }
+    if (options.hourCycle === 'h23' || options.hourCycle === 'h24') {
+      return '24h';
+    }
+    return null; // Couldn't determine
+  } catch {
+    return null;
   }
-  
-  return { primary: `${guestStart} – ${guestEnd}`, secondary: null };
+}
+```
+
+### Country-Based Fallback
+
+```typescript
+const TWELVE_HOUR_COUNTRIES = [
+  'US', 'CA', 'AU', 'NZ', 'PH', 'MY', 'IN', 'PK', 'BD', 'EG', 'SA', 'AE', 'KR', 'CO', 'MX'
+];
+
+function getCountryDefaultFormat(countryCode: string): '12h' | '24h' {
+  return TWELVE_HOUR_COUNTRIES.includes(countryCode) ? '12h' : '24h';
+}
+```
+
+### LocalStorage Keys for Anonymous Users
+
+```typescript
+const STORAGE_KEYS = {
+  TIME_FORMAT: 'tqc_time_format_preference',
+  TIME_FORMAT_SOURCE: 'tqc_time_format_source',
 };
 ```
 
 ---
 
-## Expected Outcome
+## UI/UX Considerations
 
-After implementation:
-1. `/book/:slug` loads reliably in all environments (preview, production, custom domains)
-2. Time slots show as ranges: "9:00 AM – 9:30 AM"
-3. Dual timezone display when guest and host are in different timezones
-4. Better error messages with retry UI
-5. Faster cold-start recovery with intelligent fallback
+1. **Non-intrusive toggle**: Small icon-based toggle near timezone selector
+2. **Instant feedback**: Time slots update immediately on toggle
+3. **Persistence**: Choice remembered across sessions
+4. **Clear indication**: Show which detection method is being used
+5. **Accessibility**: Toggle is keyboard accessible and has proper ARIA labels
+
+---
+
+## Expected Behavior Examples
+
+**Scenario 1**: Anonymous user in Netherlands
+- System locale: nl-NL (24-hour)
+- Display: 09:00 - 09:30
+- Can toggle to: 9:00 AM - 9:30 AM
+
+**Scenario 2**: Anonymous user in USA
+- System locale: en-US (12-hour)
+- Display: 9:00 AM - 9:30 AM
+- Can toggle to: 09:00 - 09:30
+
+**Scenario 3**: Logged-in user with saved preference
+- User preference: 24-hour
+- Display: 09:00 - 09:30 (regardless of location)
+
+**Scenario 4**: User with VPN (location mismatch)
+- System locale: en-US (12-hour)
+- IP location: Netherlands
+- Priority: System locale wins (12-hour)
+- Can toggle to 24-hour if preferred
