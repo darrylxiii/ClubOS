@@ -1,204 +1,186 @@
 
+# Full Meetings Audit: Branding, Routing, and Domain Fixes
 
-# Fix Booking Confirmation Database Trigger Error
+## Problem Summary
 
-## Problem Identified
+Three interconnected issues are breaking the meetings flow:
 
-The booking confirmation fails with the error:
-```
-record "new" has no field "scheduled_at"
-```
+| Issue | Symptom | Root Cause |
+|-------|---------|------------|
+| **Branding** | "TQC Meetings" shown everywhere | Hardcoded strings need update to "Club Meetings" |
+| **Broken Routes** | `/meetings/CODE` returns 404 | Route defined as `/meeting/:code` (singular) but components navigate to `/meetings/` (plural) |
+| **Domain Mismatch** | Join button redirects to `.app` from preview | Backend hardcodes fallback URL; frontend uses `window.location.origin` inconsistently |
 
-### Root Cause Analysis
+---
 
-A database trigger `trg_activity_bookings` fires on every `INSERT` or `UPDATE` to the `bookings` table. The trigger calls `log_user_activity()` which has **two critical bugs**:
+## Part 1: Branding Updates (TQC Meetings -> Club Meetings)
 
-| Bug | Location | Issue |
-|-----|----------|-------|
-| 1. Wrong column name | Line 104 | References `NEW.scheduled_at` but column is `scheduled_start` |
-| 2. Identity mismatch | Line 96 | Uses `NEW.candidate_id` which may be `NULL` for non-interview bookings |
+### Files Requiring Text Changes
 
-### Bookings Table Schema (Verified)
+| File | Location | Current | New |
+|------|----------|---------|-----|
+| `src/components/booking/VideoPlatformSelector.tsx` | Line 77, 196, 243 | "TQC Meetings" | "Club Meetings" |
+| `src/components/booking/GuestPlatformSelector.tsx` | Line 57 | "TQC Meetings" | "Club Meetings" |
+| `src/components/booking/BookingConfirmation.tsx` | Line 189, 218 | "TQC Meetings" | "Club Meetings" |
+| `src/components/meetings/MeetingHistoryTab.tsx` | Line 165, 203 | "TQC Meetings" | "Club Meetings" |
+| `src/components/meetings/MeetingRecordingCard.tsx` | Line 116 | "TQC Meeting" | "Club Meeting" |
+| `src/components/meetings/ConflictResolutionDialog.tsx` | Line 75, 124 | "TQC Meeting" | "Club Meeting" |
+| `src/components/meetings/RecordingPlaybackPage.tsx` | Line 227 | "TQC Meeting" | "Club Meeting" |
+| `src/services/calendarAggregation.ts` | Line 353, 366, 376 | "TQC Meeting" | "Club Meeting" |
+| `src/i18n/locales/en/common.json` | Line 12 | "Quantum Meetings" | "Club Meetings" |
+| `supabase/functions/send-booking-confirmation/index.ts` | Line 102-103 | "TQC Meetings" | "Club Meetings" |
+| `supabase/functions/send-booking-reminder/index.ts` | Line 100 | "Quantum Club Meeting" | "Club Meeting" |
+
+---
+
+## Part 2: Route Standardization
+
+### Current State (Broken)
 
 ```text
-scheduled_start     TIMESTAMPTZ  ← Correct column name
-scheduled_end       TIMESTAMPTZ
-user_id            UUID         ← Host user
-candidate_id       UUID         ← May be NULL for general bookings
+Route Definition:    /meeting/:meetingCode    (SINGULAR)
+                          ↑
+Components Navigate: /meetings/:meetingCode   (PLURAL - 404!)
 ```
 
-### Current Buggy Trigger Code
+### Solution: Standardize on Singular `/meeting/` Path
 
-```sql
--- supabase/migrations/20260121020842_...sql (lines 95-106)
-ELSIF TG_TABLE_NAME = 'bookings' THEN
-  target_user_id := NEW.candidate_id;          -- BUG: May be NULL
-  activity_type_name := CASE 
-    WHEN TG_OP = 'INSERT' THEN 'interview_scheduled'
-    WHEN TG_OP = 'UPDATE' AND NEW.status = 'completed' THEN 'interview_completed'
-    ELSE NULL
-  END;
-  activity_data := jsonb_build_object(
-    'booking_id', NEW.id,
-    'scheduled_at', NEW.scheduled_at,           -- BUG: Column doesn't exist
-    'status', NEW.status
+Update all frontend navigation and URL generation to use the singular `/meeting/` path to match the route definition.
+
+### Files to Update
+
+| File | Line | Current | New |
+|------|------|---------|-----|
+| `src/components/meetings/JoinMeetingButton.tsx` | 26, 33 | `/meetings/${id}/insights`, `/meetings/${id}/room` | `/meeting/${id}/insights`, `/meeting/${id}` |
+| `src/components/meetings/MeetingCard.tsx` | 43, 49 | `/meetings/${code}` | `/meeting/${code}` |
+| `src/components/meetings/EventDetailModal.tsx` | 39 | `/meetings/${id}` | `/meeting/${id}` |
+| `src/components/meetings/MeetingVideoCallInterface.tsx` | 564 | `/meetings/${code}` | `/meeting/${code}` |
+| `src/pages/PersonalMeetingRoom.tsx` | 192 | `/meetings/${code}` | `/meeting/${code}` |
+| `supabase/functions/create-instant-meeting/index.ts` | 147 | `/meetings/${code}` | `/meeting/${code}` |
+
+### Add Route Alias for Backward Compatibility
+
+Add a redirect route to catch any old `/meetings/:code` links:
+
+```typescript
+// In meetings.routes.tsx - Add redirect for legacy plural paths
+<Route
+  path="/meetings/:meetingCode"
+  element={<Navigate to="/meeting/:meetingCode" replace />}
+/>
+```
+
+---
+
+## Part 3: Dynamic Domain URLs
+
+### Problem
+
+Backend edge functions hardcode `https://app.thequantumclub.com` as fallback:
+
+```typescript
+// supabase/functions/_shared/app-config.ts
+export function getAppUrl(): string {
+  return (
+    Deno.env.get('APP_URL') ||
+    'https://app.thequantumclub.com'  // ← Hardcoded fallback
   );
+}
+```
+
+This causes all meeting links generated by edge functions to point to the production `.app` domain regardless of where the request originated.
+
+### Solution
+
+1. **Pass origin from frontend**: Include the `origin` header or request body when calling edge functions
+2. **Respect request origin**: Update edge functions to prefer the incoming origin
+
+### Update `create-instant-meeting` Edge Function
+
+```typescript
+// Parse origin from request
+const origin = req.headers.get('origin') || 
+               req.headers.get('referer')?.split('/').slice(0,3).join('/') ||
+               Deno.env.get('APP_URL') || 
+               'https://app.thequantumclub.com';
+
+// Use origin for meeting URL
+meeting_url: `${origin}/meeting/${meeting.meeting_code}`,
+```
+
+### Update Frontend Calls
+
+In `MeetingCard.tsx` and similar:
+
+```typescript
+// Already correct - uses window.location.origin
+const meetingUrl = `${window.location.origin}/meeting/${meeting.meeting_code}`;
 ```
 
 ---
 
-## Solution: Fix the `log_user_activity()` Function
+## Part 4: Fix Remaining Route Issues
 
-### Database Migration Required
+### Add `/meeting/:code/room` and `/meeting/:code/insights` Routes
 
-Create a new migration to fix the trigger function with correct column references:
+Currently, `JoinMeetingButton` navigates to `/meetings/${id}/room` which doesn't exist. Need to either:
+- **Option A**: Remove `/room` suffix and use `/meeting/:code` directly
+- **Option B**: Add sub-routes for `/room` and `/insights`
 
-```sql
--- Fix log_user_activity() function for bookings table
-CREATE OR REPLACE FUNCTION public.log_user_activity()
-RETURNS TRIGGER AS $$
-DECLARE
-  target_user_id UUID;
-  activity_type_name TEXT;
-  activity_data JSONB;
-BEGIN
-  -- Determine user_id based on table
-  IF TG_TABLE_NAME = 'applications' THEN
-    target_user_id := NEW.candidate_id;
-    activity_type_name := CASE 
-      WHEN TG_OP = 'INSERT' THEN 'application_submitted'
-      WHEN TG_OP = 'UPDATE' AND NEW.status != OLD.status THEN 'application_status_changed'
-      ELSE NULL
-    END;
-    activity_data := jsonb_build_object(
-      'job_id', NEW.job_id,
-      'status', NEW.status,
-      'action', TG_OP
-    );
-  ELSIF TG_TABLE_NAME = 'assessment_results' THEN
-    target_user_id := NEW.user_id;
-    activity_type_name := 'assessment_completed';
-    activity_data := jsonb_build_object(
-      'assessment_id', NEW.assessment_id,
-      'assessment_name', NEW.assessment_name,
-      'score', NEW.score
-    );
-  ELSIF TG_TABLE_NAME = 'bookings' THEN
-    -- FIX 1: Use candidate_id if available, otherwise fall back to user_id (host)
-    -- For interview bookings, candidate_id should be set
-    -- For general bookings, use user_id as the activity owner
-    target_user_id := COALESCE(NEW.candidate_id, NEW.user_id);
-    
-    activity_type_name := CASE 
-      WHEN TG_OP = 'INSERT' THEN 
-        CASE WHEN NEW.candidate_id IS NOT NULL THEN 'interview_scheduled' ELSE 'booking_created' END
-      WHEN TG_OP = 'UPDATE' AND NEW.status = 'completed' THEN 'interview_completed'
-      WHEN TG_OP = 'UPDATE' AND NEW.status = 'cancelled' THEN 'booking_cancelled'
-      ELSE NULL
-    END;
-    
-    -- FIX 2: Use scheduled_start instead of scheduled_at
-    activity_data := jsonb_build_object(
-      'booking_id', NEW.id,
-      'scheduled_start', NEW.scheduled_start,
-      'scheduled_end', NEW.scheduled_end,
-      'status', NEW.status,
-      'guest_name', NEW.guest_name
-    );
-  ELSIF TG_TABLE_NAME = 'milestone_comments' THEN
-    target_user_id := NEW.user_id;
-    activity_type_name := 'comment_added';
-    activity_data := jsonb_build_object(
-      'milestone_id', NEW.milestone_id,
-      'comment_id', NEW.id
-    );
-  END IF;
-
-  -- Only insert if we have a valid activity type AND user_id
-  IF activity_type_name IS NOT NULL AND target_user_id IS NOT NULL THEN
-    INSERT INTO public.activity_timeline (user_id, activity_type, activity_data, created_at)
-    VALUES (target_user_id, activity_type_name, activity_data, now());
-  END IF;
-
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-```
+**Recommended: Option A** - The MeetingRoom component already handles the full flow.
 
 ---
 
-## Implementation Details
+## Implementation Summary
 
-### Fixes Applied
-
-| Issue | Before | After |
-|-------|--------|-------|
-| Column reference | `NEW.scheduled_at` (doesn't exist) | `NEW.scheduled_start` |
-| Identity fallback | `NEW.candidate_id` (may be NULL) | `COALESCE(NEW.candidate_id, NEW.user_id)` |
-| Activity data | Only booking_id, scheduled_at, status | booking_id, scheduled_start, scheduled_end, status, guest_name |
-| Activity types | Only interview_scheduled, interview_completed | Added booking_created, booking_cancelled |
-
-### Why This Fix Works
-
-1. **Column Name Fix**: The `bookings` table uses `scheduled_start` and `scheduled_end` columns (verified from schema). The trigger was referencing a non-existent `scheduled_at` column.
-
-2. **Identity Fallback**: For general booking links (non-interview), `candidate_id` is `NULL`. Using `COALESCE()` ensures we always have a valid `user_id` to log activity against.
-
-3. **Richer Activity Data**: Including more fields in `activity_data` makes the timeline more useful for UI display.
-
----
-
-## Files to Modify
+### Frontend Components (12 files)
 
 | File | Changes |
 |------|---------|
-| Database Migration (new) | Fix `log_user_activity()` function with correct column references |
+| `src/components/booking/VideoPlatformSelector.tsx` | Replace 3x "TQC Meetings" |
+| `src/components/booking/GuestPlatformSelector.tsx` | Replace 1x "TQC Meetings" |
+| `src/components/booking/BookingConfirmation.tsx` | Replace 2x "TQC Meetings" |
+| `src/components/meetings/MeetingHistoryTab.tsx` | Replace 2x "TQC Meetings" |
+| `src/components/meetings/MeetingRecordingCard.tsx` | Replace 1x "TQC Meeting" |
+| `src/components/meetings/ConflictResolutionDialog.tsx` | Replace 2x "TQC Meeting" |
+| `src/components/meetings/RecordingPlaybackPage.tsx` | Replace 1x "TQC Meeting" |
+| `src/components/meetings/JoinMeetingButton.tsx` | Fix routes (plural -> singular) |
+| `src/components/meetings/MeetingCard.tsx` | Fix routes (plural -> singular) |
+| `src/components/meetings/EventDetailModal.tsx` | Fix routes (plural -> singular) |
+| `src/components/meetings/MeetingVideoCallInterface.tsx` | Fix routes (plural -> singular) |
+| `src/pages/PersonalMeetingRoom.tsx` | Fix routes (plural -> singular) |
+
+### Services/Utilities (2 files)
+
+| File | Changes |
+|------|---------|
+| `src/services/calendarAggregation.ts` | Replace 3x "TQC Meeting" |
+| `src/i18n/locales/en/common.json` | Replace "Quantum Meetings" |
+
+### Routes (1 file)
+
+| File | Changes |
+|------|---------|
+| `src/routes/meetings.routes.tsx` | Add redirect route for `/meetings/:code` -> `/meeting/:code` |
+
+### Edge Functions (3 files)
+
+| File | Changes |
+|------|---------|
+| `supabase/functions/send-booking-confirmation/index.ts` | Replace "TQC Meetings" |
+| `supabase/functions/send-booking-reminder/index.ts` | Replace branding, use `getAppUrl()` |
+| `supabase/functions/create-instant-meeting/index.ts` | Fix route path and add origin detection |
 
 ---
 
 ## Verification Checklist
 
-After applying the fix:
-- [ ] `/book/:slug` page loads without errors
-- [ ] Selecting a time slot works correctly
-- [ ] Clicking "Confirm Booking" creates the booking successfully
-- [ ] No "scheduled_at" errors in console/logs
-- [ ] Activity timeline correctly logs booking events
-- [ ] Both interview bookings (with candidate_id) and general bookings (without) work
-
----
-
-## Technical Notes
-
-### Database Trigger Execution Flow
-
-```text
-INSERT INTO bookings (...)
-    │
-    ▼
-AFTER INSERT TRIGGER: trg_activity_bookings
-    │
-    ▼
-FUNCTION: log_user_activity()
-    │
-    ├─→ Builds activity_data using NEW.scheduled_at  ← ERROR HERE
-    │
-    └─→ Postgres error: record "new" has no field "scheduled_at"
-```
-
-### After Fix
-
-```text
-INSERT INTO bookings (...)
-    │
-    ▼
-AFTER INSERT TRIGGER: trg_activity_bookings
-    │
-    ▼
-FUNCTION: log_user_activity()
-    │
-    ├─→ Builds activity_data using NEW.scheduled_start  ← CORRECT
-    │
-    └─→ INSERT INTO activity_timeline (...)  ← SUCCESS
-```
-
+After implementation:
+- [ ] All "TQC Meetings" and "Quantum Meetings" replaced with "Club Meetings"
+- [ ] `/meeting/CODE` works correctly (singular path)
+- [ ] Typing `/meetings/CODE` (plural) redirects to singular
+- [ ] Join Meeting button stays on current domain (preview, .app, bytqc.com)
+- [ ] Copy Link copies URL with current domain
+- [ ] Email confirmations use correct domain
+- [ ] Meeting recordings show "Club Meeting" badge
+- [ ] Calendar sync descriptions say "Join Club Meeting"
