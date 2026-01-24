@@ -176,7 +176,12 @@ export function UnifiedDateTimeSelector({
       }
     } catch (error: any) {
       logger.error('Error loading slots', error as Error, { componentName: 'UnifiedDateTimeSelector' });
-      toast.error(`Failed to load available times: ${error.message || 'Unknown error'}`);
+      const message = String(error?.message || 'Unknown error');
+      if (message.startsWith('availability_missing_backend_config')) {
+        toast.error('Availability temporarily unreachable. Please refresh.');
+      } else {
+        toast.error(`Failed to load available times: ${message}`);
+      }
       setAvailableSlots([]);
     } finally {
       setLoading(false);
