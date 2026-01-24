@@ -5,6 +5,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { CodeBox, Heading, Paragraph, Spacer, Card } from "../_shared/email-templates/components.ts";
 import { logSecurityEvent } from "../_shared/security-logger.ts";
+import { EMAIL_SENDERS } from "../_shared/email-config.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -189,7 +190,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "The Quantum Club <onboarding@verify.thequantumclub.nl>",
+        from: EMAIL_SENDERS.verification,
         to: [email],
         subject: "Verify Your Email - The Quantum Club",
         html,

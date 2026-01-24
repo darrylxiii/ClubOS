@@ -1,5 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { 
+  Heading, Paragraph, Spacer, Card, Button, InfoRow, 
+  CalendarButtons, SchemaEvent 
+} from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,7 +41,7 @@ PRODID:-//The Quantum Club//Meeting Invitation//EN
 CALSCALE:GREGORIAN
 METHOD:REQUEST
 BEGIN:VEVENT
-UID:${crypto.randomUUID()}@thequantumclub.com
+UID:${crypto.randomUUID()}@thequantumclub.nl
 DTSTAMP:${formatDate(new Date())}
 DTSTART:${formatDate(start)}
 DTEND:${formatDate(end)}
@@ -46,132 +52,6 @@ STATUS:CONFIRMED
 SEQUENCE:0
 END:VEVENT
 END:VCALENDAR`;
-};
-
-const generateEmailHTML = (
-  inviterName: string,
-  meetingTitle: string,
-  startTime: string,
-  duration: number,
-  acceptUrl: string,
-  declineUrl: string,
-  meetingUrl: string
-): string => {
-  const start = new Date(startTime);
-  const formattedDate = start.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-  const formattedTime = start.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meeting Invitation</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #0E0E10; color: #F5F4EF;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0E0E10;">
-    <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <table width="600" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #1A1A1D 0%, #0E0E10 100%); border-radius: 16px; overflow: hidden; border: 1px solid rgba(201, 162, 78, 0.2);">
-          
-          <!-- Header -->
-          <tr>
-            <td style="background: linear-gradient(90deg, rgba(201, 162, 78, 0.1) 0%, rgba(201, 162, 78, 0.05) 50%, transparent 100%); padding: 32px; border-bottom: 1px solid rgba(201, 162, 78, 0.1);">
-              <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #F5F4EF;">Meeting Invitation</h1>
-              <p style="margin: 8px 0 0 0; font-size: 14px; color: rgba(245, 244, 239, 0.6);">You've been invited to a meeting</p>
-            </td>
-          </tr>
-          
-          <!-- Content -->
-          <tr>
-            <td style="padding: 32px;">
-              <p style="margin: 0 0 24px 0; font-size: 16px; color: rgba(245, 244, 239, 0.8);">
-                <strong style="color: #C9A24E;">${inviterName}</strong> has invited you to:
-              </p>
-              
-              <div style="background: rgba(201, 162, 78, 0.05); border-left: 3px solid #C9A24E; padding: 20px; margin: 0 0 24px 0; border-radius: 8px;">
-                <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #F5F4EF;">${meetingTitle}</h2>
-                
-                <table cellpadding="0" cellspacing="0" style="width: 100%;">
-                  <tr>
-                    <td style="padding: 8px 0; font-size: 14px; color: rgba(245, 244, 239, 0.7);">
-                      📅 <strong>When:</strong>
-                    </td>
-                    <td style="padding: 8px 0; font-size: 14px; color: #F5F4EF; text-align: right;">
-                      ${formattedDate}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; font-size: 14px; color: rgba(245, 244, 239, 0.7);">
-                      🕐 <strong>Time:</strong>
-                    </td>
-                    <td style="padding: 8px 0; font-size: 14px; color: #F5F4EF; text-align: right;">
-                      ${formattedTime}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; font-size: 14px; color: rgba(245, 244, 239, 0.7);">
-                      ⏱️ <strong>Duration:</strong>
-                    </td>
-                    <td style="padding: 8px 0; font-size: 14px; color: #F5F4EF; text-align: right;">
-                      ${duration} minutes
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              
-              <!-- Action Buttons -->
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center" style="padding: 0 0 16px 0;">
-                    <a href="${acceptUrl}" style="display: inline-block; background: #C9A24E; color: #0E0E10; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 15px;">
-                      ✓ Accept & Join Meeting
-                    </a>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center" style="padding: 0 0 16px 0;">
-                    <a href="${declineUrl}" style="display: inline-block; background: rgba(201, 162, 78, 0.1); color: #F5F4EF; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; border: 1px solid rgba(201, 162, 78, 0.2);">
-                      Decline
-                    </a>
-                  </td>
-                </tr>
-              </table>
-              
-              <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(201, 162, 78, 0.1);">
-                <p style="margin: 0; font-size: 13px; color: rgba(245, 244, 239, 0.5); text-align: center;">
-                  Can't make it? <a href="${declineUrl}" style="color: #C9A24E; text-decoration: none;">Let us know</a>
-                </p>
-              </div>
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="background: rgba(201, 162, 78, 0.03); padding: 24px; border-top: 1px solid rgba(201, 162, 78, 0.1); text-align: center;">
-              <p style="margin: 0; font-size: 12px; color: rgba(245, 244, 239, 0.4);">
-                The Quantum Club • Exclusive Talent Platform<br>
-                <a href="${meetingUrl}" style="color: #C9A24E; text-decoration: none;">View in app</a>
-              </p>
-            </td>
-          </tr>
-          
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-  `;
 };
 
 serve(async (req) => {
@@ -190,9 +70,23 @@ serve(async (req) => {
     const emailData: EmailRequest = await req.json();
     
     // Use APP_URL from env or fallback to production URL
-    const appUrl = Deno.env.get('APP_URL') || 'https://app.thequantumclub.com';
+    const appUrl = getEmailAppUrl();
     const acceptUrl = `${appUrl}/api/meeting-response?id=${emailData.invitationId}&action=accept`;
     const declineUrl = `${appUrl}/api/meeting-response?id=${emailData.invitationId}&action=decline`;
+
+    // Format dates
+    const start = new Date(emailData.meetingStartTime);
+    const end = new Date(start.getTime() + emailData.meetingDuration * 60000);
+    const formattedDate = start.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    const formattedTime = start.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
 
     const icsContent = generateICS(
       emailData.meetingTitle,
@@ -201,15 +95,68 @@ serve(async (req) => {
       emailData.meetingUrl
     );
 
-    const htmlContent = generateEmailHTML(
-      emailData.inviterName,
-      emailData.meetingTitle,
-      emailData.meetingStartTime,
-      emailData.meetingDuration,
-      acceptUrl,
-      declineUrl,
-      emailData.meetingUrl
-    );
+    // Build email content using components
+    const emailContent = `
+      ${SchemaEvent({
+        name: emailData.meetingTitle,
+        startDate: emailData.meetingStartTime,
+        endDate: end.toISOString(),
+        location: emailData.meetingUrl,
+        description: `Meeting with ${emailData.inviterName}`,
+        organizerName: emailData.inviterName,
+      })}
+      
+      ${Heading({ text: 'Meeting Invitation', level: 1 })}
+      ${Spacer(16)}
+      ${Paragraph(`<strong style="color: ${EMAIL_COLORS.gold};">${emailData.inviterName}</strong> has invited you to:`, 'secondary')}
+      ${Spacer(24)}
+      
+      ${Card({
+        variant: 'highlight',
+        content: `
+          <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: ${EMAIL_COLORS.ivory};">
+            ${emailData.meetingTitle}
+          </h2>
+          ${InfoRow({ icon: '📅', label: 'When', value: formattedDate })}
+          ${InfoRow({ icon: '🕐', label: 'Time', value: formattedTime })}
+          ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${emailData.meetingDuration} minutes` })}
+        `
+      })}
+      
+      ${Spacer(32)}
+      
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center" style="padding-bottom: 12px;">
+            ${Button({ url: acceptUrl, text: '✓ Accept & Join Meeting', variant: 'primary' })}
+          </td>
+        </tr>
+        <tr>
+          <td align="center">
+            ${Button({ url: declineUrl, text: 'Decline', variant: 'secondary' })}
+          </td>
+        </tr>
+      </table>
+      
+      ${Spacer(24)}
+      ${CalendarButtons({
+        title: emailData.meetingTitle,
+        startDate: start,
+        endDate: end,
+        location: emailData.meetingUrl,
+        description: `Meeting with ${emailData.inviterName}`,
+      })}
+      
+      ${Spacer(24)}
+      ${Paragraph(`Can't make it? <a href="${declineUrl}" style="color: ${EMAIL_COLORS.gold}; text-decoration: none;">Let us know</a>`, 'muted')}
+    `;
+
+    const htmlContent = baseEmailTemplate({
+      preheader: `${emailData.inviterName} invited you to ${emailData.meetingTitle} • ${formattedDate}`,
+      content: emailContent,
+      showHeader: true,
+      showFooter: true,
+    });
 
     // Actually send the email via Resend
     if (resendApiKey) {
@@ -222,7 +169,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'The Quantum Club <meetings@thequantumclub.com>',
+          from: EMAIL_SENDERS.meetings,
           to: [emailData.inviteeEmail],
           subject: `Meeting Invitation: ${emailData.meetingTitle}`,
           html: htmlContent,
