@@ -1,126 +1,93 @@
 
-
-# Fix "formatInTimeZone is not defined" Error - Comprehensive Audit
+# Fix reCAPTCHA Configuration Mismatch
 
 ## Problem Identified
 
-The booking page crashes with `ReferenceError: formatInTimeZone is not defined` when clicking a time slot. Root cause analysis reveals:
+The booking fails with "reCAPTCHA token missing" due to a configuration mismatch:
 
-1. **Module Loading Failure**: The `date-fns-tz` library fails to load properly in the preview environment due to OpenTelemetry instrumentation conflicts
-2. **Incomplete Migration**: While `UnifiedDateTimeSelector.tsx` was migrated to use `safeFormatTime`, several other files still depend on the fragile `date-fns-tz` imports
-3. **Cascading Failure**: When any component imports from `timezoneUtils.ts`, it triggers the broken `date-fns-tz` import
+| Component | Status | Result |
+|-----------|--------|--------|
+| Backend (`RECAPTCHA_SECRET_KEY`) | Configured | Enforces token validation |
+| Frontend (`VITE_RECAPTCHA_SITE_KEY`) | Not configured | Skips token generation |
 
----
-
-## Files Still Using date-fns-tz (Must Fix)
-
-| File | Usage | Impact |
-|------|-------|--------|
-| `src/lib/timezoneUtils.ts` | `formatInTimeZone`, `toZonedTime` | Core utility used by many components |
-| `src/components/settings/WorkAvailabilitySettings.tsx` | `formatInTimeZone`, `toZonedTime` | Settings page (lower priority) |
-| `src/pages/GuestBookingPage.tsx` | `formatInTimeZone` | Guest view after booking |
-| `src/components/booking/BookingWeekView.tsx` | Uses `format` from date-fns (no TZ) | Week view selector |
+The frontend check `RECAPTCHA_ENABLED` evaluates to `false` because the site key is missing, so no token is generated. But the backend sees its secret key is configured and enforces validation, returning a 403 error.
 
 ---
 
-## Solution: Complete Migration to Native APIs
+## Solution Options
 
-### Phase 1: Update timezoneUtils.ts (Critical)
+### Option A: Add Frontend Site Key (Recommended)
 
-Replace all `date-fns-tz` functions with native `Intl` alternatives:
+Add the `VITE_RECAPTCHA_SITE_KEY` environment variable so the frontend can generate tokens that the backend validates.
+
+**Steps:**
+1. Get the reCAPTCHA v3 site key from Google reCAPTCHA admin console (the one paired with your secret key)
+2. Add it to the project's environment variables
+
+### Option B: Disable Backend Enforcement (Quick Fix)
+
+Remove the `RECAPTCHA_SECRET_KEY` from the backend secrets, which will make the edge function skip reCAPTCHA validation entirely.
+
+**Impact:** Reduces bot protection on the booking endpoint
+
+### Option C: Make Backend Validation Optional
+
+Modify the edge function to gracefully handle missing tokens when in development/preview environments instead of enforcing "fail-closed" behavior.
+
+---
+
+## Recommended Implementation (Option C - Hybrid Approach)
+
+Make the edge function more resilient by checking for placeholder/preview environments and only strictly enforcing reCAPTCHA in production:
+
+### Changes to `supabase/functions/create-booking/index.ts`
+
+Update the reCAPTCHA enforcement logic:
 
 ```text
-Current (Broken):
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-export function formatDateForTimezone(date, tz) {
-  return formatInTimeZone(date, tz, "yyyy-MM-dd'T'HH:mm:ssXXX");
-}
+Current behavior (lines 22-28):
+- If RECAPTCHA_SECRET_KEY exists AND no token → 403 error
 
-New (Robust):
-// Use native Intl.DateTimeFormat instead
-export function formatDateForTimezone(date: Date, timezone: string): string {
-  try {
-    const parts = new Intl.DateTimeFormat('en-CA', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    }).formatToParts(date);
-    
-    // Construct ISO-like string from parts
-    const get = (type: string) => parts.find(p => p.type === type)?.value ?? '';
-    return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`;
-  } catch {
-    return date.toISOString();
+New behavior:
+- If RECAPTCHA_SECRET_KEY exists:
+  - If token provided → validate it
+  - If no token AND in preview/development → log warning, continue
+  - If no token AND in production → 403 error
+```
+
+### Implementation
+
+```typescript
+// Verify reCAPTCHA (fail-closed when secret is configured, with preview grace)
+const recaptchaSecretConfigured = !!Deno.env.get('RECAPTCHA_SECRET_KEY');
+const recaptchaToken = req.headers.get("x-recaptcha-token");
+
+// Detect if this is a preview/development environment
+const host = req.headers.get('origin') || req.headers.get('referer') || '';
+const isPreviewEnvironment = host.includes('lovableproject.com') || 
+                             host.includes('lovable.app') ||
+                             host.includes('localhost');
+
+if (recaptchaSecretConfigured) {
+  if (recaptchaToken) {
+    // Token provided - validate it
+    const recaptchaResult = await verifyRecaptcha(recaptchaToken, "create_booking", 0.5);
+    if (!recaptchaResult.success) {
+      return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
+    }
+    console.log("[Booking] reCAPTCHA verified, score:", recaptchaResult.score);
+  } else if (isPreviewEnvironment) {
+    // No token in preview - allow with warning
+    console.warn('[Booking] reCAPTCHA token missing in preview environment - allowing request');
+  } else {
+    // No token in production - block
+    return new Response(
+      JSON.stringify({ error: 'reCAPTCHA token missing' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
   }
-}
-```
-
-### Phase 2: Update formatTimeSlot in timezoneUtils.ts
-
-Replace:
-```typescript
-export function formatTimeSlot(isoStart, isoEnd, timezone) {
-  const start = formatInTimeZone(isoStart, timezone, 'h:mm a'); // BROKEN
-  const end = formatInTimeZone(isoEnd, timezone, 'h:mm a');
-  return `${start} - ${end}`;
-}
-```
-
-With import from safeTimeFormat:
-```typescript
-import { formatTimeRange } from '@/lib/safeTimeFormat';
-
-export function formatTimeSlot(isoStart: string, isoEnd: string, timezone: string): string {
-  return formatTimeRange(isoStart, isoEnd, timezone, '12h');
-}
-```
-
-### Phase 3: Update GuestBookingPage.tsx
-
-Replace direct `formatInTimeZone` usage:
-```typescript
-// Before (broken)
-import { formatInTimeZone } from 'date-fns-tz';
-const displayTime = formatInTimeZone(booking.scheduled_start, timezone, 'h:mm a');
-
-// After (robust)
-import { safeFormatTime } from '@/lib/safeTimeFormat';
-const displayTime = safeFormatTime(booking.scheduled_start, timezone, '12h');
-```
-
-### Phase 4: Update WorkAvailabilitySettings.tsx
-
-Replace timezone formatting:
-```typescript
-// Before
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-
-// After
-import { safeFormatTime } from '@/lib/safeTimeFormat';
-// Use native Date + Intl for timezone conversions
-```
-
-### Phase 5: Add Fallback for toZonedTime
-
-Create a native replacement for `toZonedTime`:
-```typescript
-/**
- * Convert a date to a specific timezone using native APIs
- * Returns a Date object representing the time in that timezone
- */
-export function toTimezone(date: Date, timezone: string): Date {
-  try {
-    // Get the time string in the target timezone
-    const tzString = date.toLocaleString('en-US', { timeZone: timezone });
-    return new Date(tzString);
-  } catch {
-    return date;
-  }
+} else {
+  console.log('[Booking] RECAPTCHA_SECRET_KEY not set; skipping verification');
 }
 ```
 
@@ -130,97 +97,28 @@ export function toTimezone(date: Date, timezone: string): Date {
 
 | File | Changes |
 |------|---------|
-| `src/lib/timezoneUtils.ts` | Remove all `date-fns-tz` imports, use native APIs + safeTimeFormat |
-| `src/lib/safeTimeFormat.ts` | Add `formatDateForTimezone` helper with native implementation |
-| `src/pages/GuestBookingPage.tsx` | Switch to `safeFormatTime` import |
-| `src/components/settings/WorkAvailabilitySettings.tsx` | Switch to native formatting |
-| `src/components/booking/BookingWeekView.tsx` | Switch to `safeFormatTime` for time display |
-
----
-
-## Technical Implementation
-
-### New safeTimeFormat.ts additions
-
-```typescript
-/**
- * Format a date to ISO-like string in a specific timezone
- */
-export function formatDateForTimezone(date: Date, timezone: string): string {
-  try {
-    const formatter = new Intl.DateTimeFormat('en-CA', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    });
-    const parts = formatter.formatToParts(date);
-    const get = (type: string) => parts.find(p => p.type === type)?.value || '';
-    return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`;
-  } catch {
-    return date.toISOString();
-  }
-}
-
-/**
- * Get start and end of day boundaries for a date in a timezone
- */
-export function getDateRangeForTimezone(date: Date, timezone: string) {
-  try {
-    // Format date as YYYY-MM-DD in target timezone
-    const dateStr = new Intl.DateTimeFormat('en-CA', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(date);
-    
-    return {
-      start: dateStr,
-      end: dateStr,
-    };
-  } catch {
-    const fallback = date.toISOString().split('T')[0];
-    return { start: fallback, end: fallback };
-  }
-}
-```
-
-### Updated timezoneUtils.ts
-
-```typescript
-// Remove this:
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-
-// Add this:
-import { safeFormatTime, formatTimeRange, formatDateForTimezone as safeDateFormat } from '@/lib/safeTimeFormat';
-```
+| `supabase/functions/create-booking/index.ts` | Add preview environment detection, graceful fallback for missing tokens |
 
 ---
 
 ## Expected Outcome
 
 After implementation:
-1. No more "formatInTimeZone is not defined" errors
-2. Time slots display correctly in all environments (preview, production)
-3. All timezone-related formatting uses robust native browser APIs
-4. Zero dependency on potentially broken `date-fns-tz` imports
-5. Time format toggle works seamlessly
-6. Booking flow completes without runtime errors
+1. Booking works in preview/development without requiring frontend reCAPTCHA configuration
+2. Production deployments with proper `VITE_RECAPTCHA_SITE_KEY` still get full reCAPTCHA protection
+3. No code changes required to the frontend
+4. Edge function remains secure in production while being testable in preview
 
 ---
 
-## Verification Checklist
+## Alternative: Quick Fix
 
-- [ ] `/book/:slug` loads without errors
-- [ ] Clicking time slots works correctly
-- [ ] Times display as ranges: "9:00 AM - 9:30 AM"
-- [ ] 12h/24h toggle switches format correctly
-- [ ] Dual timezone display shows when applicable
-- [ ] Guest booking page shows correct times
-- [ ] Settings page availability preview works
+If you prefer to just make bookings work immediately without code changes:
 
+**Option 1:** Add the site key
+- Go to Google reCAPTCHA admin console
+- Find the site key paired with your secret key
+- Add `VITE_RECAPTCHA_SITE_KEY` to your environment variables
+
+**Option 2:** Remove backend enforcement
+- Remove the `RECAPTCHA_SECRET_KEY` secret to disable validation entirely
