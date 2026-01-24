@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { Button, CodeBox, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
+import { CodeBox, Heading, Paragraph, Spacer, AlertBox } from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS } from "../_shared/email-config.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -27,13 +28,16 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Sending verification code to:', email);
 
     const emailContent = `
-      ${Heading({ text: 'Email Verification', level: 1 })}
+      ${Heading({ text: 'Verify Your Email', level: 1, align: 'center' })}
       ${Spacer(24)}
-      ${Paragraph('Your verification code is ready. Enter this code to complete your verification:', 'secondary')}
+      ${Paragraph('Your verification code is ready. Enter this code to complete your email verification:', 'secondary')}
       ${Spacer(32)}
       ${CodeBox({ code, label: 'Verification Code' })}
       ${Spacer(32)}
-      ${Paragraph('This code will expire in 10 minutes for your security.', 'muted')}
+      ${AlertBox({
+        type: 'warning',
+        message: 'This code will expire in <strong>10 minutes</strong> for your security.',
+      })}
       ${Spacer(16)}
       ${Paragraph('If you didn\'t request this code, you can safely ignore this email.', 'muted')}
     `;
@@ -52,9 +56,9 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "The Quantum Club <onboarding@verify.thequantumclub.nl>",
+        from: EMAIL_SENDERS.verification,
         to: [email],
-        subject: "Your Verification Code - The Quantum Club",
+        subject: "🔐 Your Verification Code - The Quantum Club",
         html,
       }),
     });

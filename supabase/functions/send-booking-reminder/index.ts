@@ -1,9 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { getAppUrl } from "../_shared/app-config.ts";
-
-const APP_URL = getAppUrl();
+import { 
+  Heading, Paragraph, Spacer, Card, InfoRow, 
+  VideoCallCard, StatusBadge, MeetingPrepCard, CalendarButtons 
+} from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,6 +22,8 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
+
+    const appUrl = getEmailAppUrl();
 
     // Get bookings scheduled for tomorrow that haven't received reminders
     const tomorrow = new Date();
@@ -38,7 +42,8 @@ serve(async (req) => {
           title,
           duration_minutes,
           user_id,
-          create_quantum_meeting
+          create_quantum_meeting,
+          description
         ),
         meetings:meeting_id(
           id,
@@ -66,96 +71,102 @@ serve(async (req) => {
     let successCount = 0;
     let errorCount = 0;
 
-    // Send reminder emails
     for (const booking of bookings) {
       try {
-        // FIX: Fetch the profile separately using the user_id from booking_links
+        // Fetch the profile separately
         const { data: profile } = await supabaseClient
           .from("profiles")
           .select("full_name, email")
           .eq("id", booking.booking_links.user_id)
           .single();
 
-        const formattedDate = new Date(booking.scheduled_start).toLocaleDateString("en-US", {
+        const startDate = new Date(booking.scheduled_start);
+        const endDate = new Date(booking.scheduled_end);
+        
+        const formattedDate = startDate.toLocaleDateString("en-US", {
           weekday: "long",
           year: "numeric",
           month: "long",
           day: "numeric",
         });
-        const formattedTime = new Date(booking.scheduled_start).toLocaleTimeString("en-US", {
+        const formattedTime = startDate.toLocaleTimeString("en-US", {
           hour: "numeric",
           minute: "2-digit",
-          timeZoneName: "short",
         });
+        const formattedTimeRange = `${formattedTime} - ${endDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`;
 
-        const hostName = profile?.full_name || "The Quantum Club";
+        const hostName = profile?.full_name || "Your Host";
 
-        // Determine the best video meeting link (priority: quantum > hangout > generic)
+        // Determine video meeting link
         let meetingLink = null;
-        let meetingLinkLabel = "Join Video Meeting";
+        let platformName = "Video Conference";
+        let platformType: 'google_meet' | 'zoom' | 'club_meetings' | 'teams' | 'generic' = 'generic';
         
-        // Check for Quantum Club meeting first
         if (booking.meetings?.meeting_code) {
-          meetingLink = `${APP_URL}/meeting/${booking.meetings.meeting_code}`;
-          meetingLinkLabel = "Join Quantum Club Meeting";
+          meetingLink = `${appUrl}/meeting/${booking.meetings.meeting_code}`;
+          platformName = "Club Meetings";
+          platformType = 'club_meetings';
         } else if (booking.quantum_meeting_link) {
           meetingLink = booking.quantum_meeting_link;
-          meetingLinkLabel = "Join Quantum Club Meeting";
+          platformName = "Club Meetings";
+          platformType = 'club_meetings';
         } else if (booking.google_meet_hangout_link) {
           meetingLink = booking.google_meet_hangout_link;
-          meetingLinkLabel = "Join Google Meet";
+          platformName = "Google Meet";
+          platformType = 'google_meet';
         } else if (booking.video_meeting_link) {
           meetingLink = booking.video_meeting_link;
         }
 
         const content = `
-          <div style="text-align: center; margin-bottom: 32px;">
-            <div style="display: inline-block; padding: 8px 16px; background-color: #FEF3C7; color: #92400E; border-radius: 8px; font-weight: 600; font-size: 14px; margin-bottom: 24px;">
-              REMINDER: MEETING TOMORROW
-            </div>
-          </div>
-
-          <h1 class="text-primary" style="font-size: 28px; font-weight: 700; margin: 0 0 16px 0; line-height: 1.3;">
-            Your Meeting is Tomorrow
-          </h1>
-
-          <p class="text-secondary" style="font-size: 16px; line-height: 1.6; margin: 0 0 32px 0;">
-            This is a friendly reminder about your upcoming meeting with ${hostName}.
-          </p>
-
-          <div class="bg-card" style="padding: 24px; border-radius: 12px; margin-bottom: 32px;">
-            <h3 class="text-primary" style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0;">Meeting Details</h3>
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 15px;">
-              <tr>
-                <td class="text-secondary" style="padding: 8px 0;"><strong>Meeting:</strong></td>
-                <td class="text-primary" style="padding: 8px 0; text-align: right;">${booking.booking_links.title}</td>
-              </tr>
-              <tr>
-                <td class="text-secondary" style="padding: 8px 0;"><strong>Date:</strong></td>
-                <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedDate}</td>
-              </tr>
-              <tr>
-                <td class="text-secondary" style="padding: 8px 0;"><strong>Time:</strong></td>
-                <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedTime}</td>
-              </tr>
-              <tr>
-                <td class="text-secondary" style="padding: 8px 0;"><strong>Duration:</strong></td>
-                <td class="text-primary" style="padding: 8px 0; text-align: right;">${booking.booking_links.duration_minutes} minutes</td>
-              </tr>
-            </table>
-          </div>
-
-          ${meetingLink ? `
-          <div style="text-align: center; margin: 32px 0;">
-            <a href="${meetingLink}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #C9A24E 0%, #F5F4EF 100%); color: #0E0E10; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
-              ${meetingLinkLabel}
-            </a>
-          </div>
-          ` : ''}
-
-          <p class="text-secondary" style="font-size: 14px; line-height: 1.6; margin: 24px 0 0 0; text-align: center;">
-            Need to reschedule? <a href="${APP_URL}/bookings/${booking.id}" style="color: #C9A24E; text-decoration: none;">Manage your booking</a>
-          </p>
+          ${StatusBadge({ status: 'reminder', text: 'MEETING TOMORROW' })}
+          ${Heading({ text: 'Your Meeting is Tomorrow', level: 1, align: 'center' })}
+          ${Spacer(24)}
+          ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
+          ${Spacer(8)}
+          ${Paragraph(`This is a friendly reminder about your upcoming meeting with <strong>${hostName}</strong>.`, 'secondary')}
+          ${Spacer(32)}
+          ${Card({
+            variant: 'highlight',
+            content: `
+              ${Heading({ text: booking.booking_links.title, level: 2 })}
+              ${Spacer(16)}
+              ${InfoRow({ icon: '👤', label: 'Host', value: hostName })}
+              ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
+              ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTimeRange} (${booking.timezone})` })}
+              ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${booking.booking_links.duration_minutes} minutes` })}
+            `
+          })}
+          ${Spacer(24)}
+          ${meetingLink ? VideoCallCard({
+            platform: platformType,
+            platformName: platformName,
+            joinUrl: meetingLink,
+            instructions: 'Click below to join when your meeting starts.',
+          }) : ''}
+          ${Spacer(24)}
+          ${MeetingPrepCard({
+            meetingType: booking.booking_links.title?.toLowerCase().includes('interview') ? 'interview' : 'general',
+            interviewerName: hostName,
+          })}
+          ${Spacer(24)}
+          ${CalendarButtons({
+            title: booking.booking_links.title,
+            startDate: startDate,
+            endDate: endDate,
+            description: booking.booking_links.description || '',
+            location: meetingLink || '',
+          })}
+          ${Spacer(24)}
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td align="center">
+                <p style="font-size: 14px; color: ${EMAIL_COLORS.textMuted}; margin: 0;">
+                  Need to reschedule? <a href="${appUrl}/bookings/${booking.id}/manage" style="color: ${EMAIL_COLORS.gold}; text-decoration: none;">Manage your booking</a>
+                </p>
+              </td>
+            </tr>
+          </table>
         `;
 
         await fetch("https://api.resend.com/emails", {
@@ -165,12 +176,14 @@ serve(async (req) => {
             "Authorization": `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
           },
           body: JSON.stringify({
-            from: "The Quantum Club <bookings@thequantumclub.nl>",
+            from: EMAIL_SENDERS.bookings,
             to: [booking.guest_email],
-            subject: `Reminder: ${booking.booking_links.title} Tomorrow`,
+            subject: `🔔 Reminder: ${booking.booking_links.title} Tomorrow at ${formattedTime}`,
             html: baseEmailTemplate({ 
               content,
-              preheader: `Your meeting is tomorrow at ${formattedTime}`
+              preheader: `Your meeting with ${hostName} is tomorrow at ${formattedTime}`,
+              showHeader: true,
+              showFooter: true,
             }),
           }),
         });
