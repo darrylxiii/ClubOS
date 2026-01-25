@@ -178,7 +178,7 @@ serve(async (req) => {
       .update({
         transcript: plainTranscript,
         transcript_json: transcriptJson,
-        processing_status: 'transcribed',
+        processing_status: 'analyzing', // Use valid status (not 'transcribed' which violates constraint)
         processing_error: null,
         updated_at: new Date().toISOString()
       })
@@ -211,8 +211,16 @@ serve(async (req) => {
     });
 
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(`[Transcribe] ❌ Error:`, errorMessage);
+    // Better error extraction for Supabase/Postgres errors
+    let errorMessage = 'Unknown error';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'object' && error !== null) {
+      const errObj = error as Record<string, unknown>;
+      errorMessage = errObj.message as string || errObj.details as string || JSON.stringify(error);
+    }
+    console.error(`[Transcribe] ❌ Error:`, error);
+    console.error(`[Transcribe] ❌ Error message:`, errorMessage);
 
     // Update recording with error status
     if (recordingId) {
