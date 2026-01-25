@@ -154,25 +154,25 @@ export function useLiveHubAutoRecording({
 
       toast.success('Live Hub recording saved');
 
-      // Trigger transcription and AI analysis with retry
+      // Trigger transcription (which chains to analysis automatically)
       const recordingId = (recordingData as any).id;
-      const triggerAnalysis = async (id: string, attempt = 1): Promise<void> => {
+      const triggerTranscription = async (id: string, attempt = 1): Promise<void> => {
         try {
-          const { error } = await supabase.functions.invoke('analyze-meeting-recording-advanced', {
-            body: { recordingId: id, isLiveHub: true }
+          const { error } = await supabase.functions.invoke('transcribe-recording', {
+            body: { recordingId: id, chainAnalysis: true }
           });
           if (error) throw error;
-          console.log('[LiveHub Recording] Analysis triggered successfully');
+          console.log('[LiveHub Recording] Transcription triggered successfully');
         } catch (err) {
-          console.error(`[LiveHub Recording] Analysis attempt ${attempt} failed:`, err);
+          console.error(`[LiveHub Recording] Transcription attempt ${attempt} failed:`, err);
           if (attempt < 3) {
-            setTimeout(() => triggerAnalysis(id, attempt + 1), 2000 * attempt);
+            setTimeout(() => triggerTranscription(id, attempt + 1), 2000 * attempt);
           } else {
-            toast.error('Recording saved but analysis failed. You can retry from History.');
+            toast.error('Recording saved but transcription failed. You can retry from History.');
           }
         }
       };
-      triggerAnalysis(recordingId);
+      triggerTranscription(recordingId);
 
       console.log('[LiveHub Recording] Uploaded successfully:', recordingId);
     } catch (error) {
