@@ -427,7 +427,7 @@ serve(async (req) => {
     const currentRetryCount = isReanalysis ? 0 : ((recording.analysis_retry_count || 0) + 1);
     await updateRecordingStatus(supabase, recordingId, {
       analysis_status: 'processing',
-      processing_status: 'processing',
+      processing_status: 'analyzing',
       analysis_retry_count: currentRetryCount
     });
 
@@ -676,7 +676,6 @@ CRITICAL REQUIREMENTS:
 
     // Update recording with analysis
     await updateRecordingStatus(supabase, recordingId, {
-      ai_summary: aiAnalysis,
       ai_analysis: aiAnalysis,
       executive_summary: aiAnalysis.executiveSummary || null,
       action_items: aiAnalysis.actionItems || [],
