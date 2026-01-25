@@ -1,243 +1,217 @@
 
-# Booking System Comprehensive Audit & Fix Plan
 
-## Executive Summary
+# Email Branding Enhancement Plan
 
-After thorough analysis, I've identified **6 interconnected root causes** affecting the booking system. This plan addresses all issues systematically to bring the email quality to 100/100 and eliminate the slot collision and cancellation bugs.
+## Summary
 
----
-
-## Issues Identified
-
-### Issue 1: Booked Slots Still Appear in UI (Critical)
-**Root Cause**: The `get-available-slots` edge function only filters out `confirmed` bookings, ignoring `pending` bookings. Additionally, the modern `UnifiedDateTimeSelector` component lacks real-time subscription to remove slots when someone else books them.
-
-**Impact**: Users can select already-booked slots, only to receive an error upon submission.
-
-**Files Affected**:
-- `supabase/functions/get-available-slots/index.ts` (line 55)
-- `src/components/booking/UnifiedDateTimeSelector.tsx` (missing real-time hook)
+This plan addresses three specific issues with the email system:
+1. **Logo too small and squeezed** - Make it full-size and prominently displayed for clear branding
+2. **Missing "Join Meeting" button** - Add the video call join button to all booking-related emails
+3. **Small QC icon for meeting buttons** - Use the compact "QC" icon (like the collapsed sidebar) instead of the full logo in the join meeting section
 
 ---
 
-### Issue 2: Cancel Booking Edge Function Errors (Critical)
-**Root Cause**: The `cancel-booking` function uses a nested query syntax (`profiles:user_id(email, full_name)`) that may fail depending on foreign key relationships. Additionally, it doesn't properly handle email send failures (no error checking on Resend API responses).
+## Current State Analysis
 
-**Impact**: Cancellation fails silently or throws 500 errors.
+### Logo Issues
+- **Current size**: 64x64 pixels - way too small for brand visibility
+- **Target size**: 120x120 pixels (almost double) for prominent, oversized branding
+- **File used**: `quantum-clover-icon.png` in `public/` folder
 
-**Files Affected**:
-- `supabase/functions/cancel-booking/index.ts` (lines 31-46, 156-168)
+### Available Logo Assets
+```text
+public/
+├── quantum-clover-icon.png  ← Full clover logo (header branding)
+└── quantum-logo.svg         ← Vector version
 
----
+src/assets/
+├── quantum-logo-light-transparent.png  ← Small QC icon (white)
+├── quantum-logo-dark-transparent.png   ← Small QC icon (black)
+└── quantum-club-logo.png               ← Full text logo
+```
 
-### Issue 3: Broken Logo in Emails (65/100 Rating)
-**Root Cause**: Email logo references `https://thequantumclub.app/lovable-uploads/57a00fec-4cc3-44e5-a5d9-c4a1a4c3f6d6.png` which doesn't exist (the `lovable-uploads` folder in `public/` is empty). Should use the existing `quantum-clover-icon.png` that exists in `public/`.
-
-**Impact**: Blue question mark / broken image icon appears in email clients.
-
-**Files Affected**:
-- `supabase/functions/_shared/email-config.ts` (lines 11-13)
-
----
-
-### Issue 4: Host Not Receiving Booking Notifications
-**Root Cause**: Confirmed that owner notification logic exists in `send-booking-confirmation` and logs show "Owner confirmation email sent". However, if the profile query fails or returns no email, the host block is skipped. Need to verify and add better error handling/logging.
-
-**Files Affected**:
-- `supabase/functions/send-booking-confirmation/index.ts` (lines 40-52, 268-338)
-
----
-
-### Issue 5: Cancel-Booking Uses Hardcoded Email Senders
-**Root Cause**: The `cancel-booking` function hardcodes `bookings@thequantumclub.nl` instead of using the centralized `EMAIL_SENDERS` config, leading to inconsistency and potential issues if the domain changes.
-
-**Files Affected**:
-- `supabase/functions/cancel-booking/index.ts` (lines 163, 215)
-
----
-
-### Issue 6: Email Template Quality Improvements
-**Current Rating**: 65/100
-**Target**: 100/100
-
-**Improvements Needed**:
-- Use hosted logo that actually exists
-- Add fallback alt text for images
-- Improve error handling in email sending
-- Use consistent sender configuration
-- Add better Schema.org markup
+### Missing Join Button
+- The `send-booking-confirmation` already has `VideoCallCard` component
+- The `send-booking-reminder-email` is MISSING the join meeting button
+- Other emails may also be missing this functionality
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Fix Slot Availability (Eliminates Ghost Slots)
+### Phase 1: Update Email Logo Configuration
 
-#### 1.1 Update `get-available-slots` to Include Pending Bookings
-```sql
--- Change from:
-.eq("status", "confirmed")
+**File**: `supabase/functions/_shared/email-config.ts`
 
--- To include pending status:
-.in("status", ["confirmed", "pending"])
-```
+Add new logo variants for different use cases:
+- `fullBrand` - Large logo for email header (120px)
+- `cloverIcon` - Standard clover icon (80px)
+- `qcIcon` - Small QC text icon for meeting cards (40px)
 
-#### 1.2 Add Real-time Subscription to UnifiedDateTimeSelector
-Import and use the existing `useBookingRealtime` hook:
-```typescript
-const { liveBookingsCount } = useBookingRealtime({
-  bookingLinkId: bookingLink.id,
-  selectedDate,
-  onSlotBooked: () => {
-    toast.info("A slot was just booked. Refreshing...");
-    if (selectedDate) loadSlotsForDate(selectedDate);
-  },
-  onSlotCancelled: () => {
-    toast.success("A slot just became available!");
-    if (selectedDate) loadSlotsForDate(selectedDate);
-  },
-});
-```
-
----
-
-### Phase 2: Fix Cancel Booking Edge Function
-
-#### 2.1 Improve Profile Query (More Robust)
-Replace the nested query with a separate profile fetch:
-```typescript
-// Get booking details first
-const { data: booking } = await supabaseClient
-  .from("bookings")
-  .select(`*, booking_links!inner(title, user_id)`)
-  .eq("id", bookingId)
-  .single();
-
-// Then fetch owner profile separately  
-const { data: ownerProfile } = await supabaseClient
-  .from("profiles")
-  .select("email, full_name")
-  .eq("id", booking.booking_links.user_id)
-  .single();
-```
-
-#### 2.2 Add Email Error Handling
-Check Resend API response status:
-```typescript
-const emailResponse = await fetch("https://api.resend.com/emails", {...});
-if (!emailResponse.ok) {
-  const errorData = await emailResponse.json();
-  console.error("Resend API error:", errorData);
-  // Continue with booking cancellation even if email fails
-}
-```
-
-#### 2.3 Use Centralized EMAIL_SENDERS
-```typescript
-import { EMAIL_SENDERS } from "../_shared/email-config.ts";
-// ...
-from: EMAIL_SENDERS.bookings,
-```
-
----
-
-### Phase 3: Fix Email Logo
-
-#### 3.1 Update email-config.ts
-Change logo URLs to use the existing asset:
 ```typescript
 export const EMAIL_LOGOS = {
+  // Primary header logo - OVERSIZED for clear branding
+  fullBrand: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
+  // Standard icon
+  cloverIcon: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
+  // Small QC icon for meeting join buttons (hosted version needed)
+  qcIconLight: `${EMAIL_ASSETS_BASE_URL}/quantum-logo-light-transparent.png`,
+  qcIconDark: `${EMAIL_ASSETS_BASE_URL}/quantum-logo-dark-transparent.png`,
+  // Legacy aliases
   cloverIcon80: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
-  cloverIcon40: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`, // Fixed
-  fullLogo: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,     // Fixed
+  cloverIcon40: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
+  fullLogo: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
+} as const;
+
+// Logo sizes (in pixels)
+export const EMAIL_LOGO_SIZES = {
+  headerBrand: 120,   // Oversized for clear branding
+  standard: 80,       // Standard usage
+  meetingCard: 40,    // Small icon for meeting cards
 } as const;
 ```
 
----
+### Phase 2: Update Base Email Template Header
 
-### Phase 4: Enhance Host Notifications
+**File**: `supabase/functions/_shared/email-templates/base-template.ts`
 
-#### 4.1 Add Better Logging and Error Handling in send-booking-confirmation
-```typescript
-// Add explicit logging for debugging
-console.log("Looking up owner profile for user_id:", bookingLink.user_id);
+Change logo from 64px squeezed to 120px full-size with proper aspect ratio:
 
-const response = await fetch(...);
-if (!response.ok) {
-  console.error("Profile fetch failed:", response.status, await response.text());
-}
-
-const profiles = await response.json();
-console.log("Owner profile lookup result:", profiles);
-
-if (!ownerProfile?.email) {
-  console.error("Owner profile not found or missing email for user_id:", bookingLink.user_id);
-} else {
-  console.log("Sending owner notification to:", ownerProfile.email);
-}
-```
-
----
-
-### Phase 5: Email Template Polish (100/100)
-
-#### 5.1 Add Fallback Text for Logo
 ```html
-<img 
-  src="${EMAIL_LOGOS.cloverIcon40}" 
-  alt="The Quantum Club"
-  title="The Quantum Club" 
-  width="64" 
-  height="64"
-  onerror="this.style.display='none'"
-/>
-<!-- Text fallback if image fails -->
-<div style="display: none;">The Quantum Club</div>
+<!-- Logo Image - OVERSIZED for clear branding -->
+<a href="${appUrl}" style="text-decoration: none;">
+  <img 
+    src="${EMAIL_LOGOS.fullBrand}" 
+    alt="${COMPANY_NAME}" 
+    title="${COMPANY_NAME}"
+    width="120" 
+    height="120" 
+    style="display: block; margin: 0 auto 24px auto; border: 0; outline: none; max-width: 120px;"
+    onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+  />
+  <!-- Fallback: Larger styled Q circle -->
+  <div style="display: none; width: 120px; height: 120px; margin: 0 auto 24px auto; background-color: ${EMAIL_COLORS.gold}; border-radius: 50%; line-height: 120px; text-align: center; font-size: 56px; font-weight: bold; color: #0E0E10;">Q</div>
+</a>
 ```
 
-#### 5.2 Improve Color Contrast
-Replace `rgba()` colors with solid hex equivalents for better email client compatibility:
+### Phase 3: Add Join Meeting Button to Reminder Emails
+
+**File**: `supabase/functions/send-booking-reminder-email/index.ts`
+
+Add functionality to:
+1. Fetch booking meeting link details
+2. Include `VideoCallCard` component with join button
+3. Use small QC icon in the meeting card
+
+Changes needed:
+- Import `VideoCallCard` component
+- Fetch video platform and link from booking data
+- Add join button to email content
+
 ```typescript
-textSecondary: '#B8B7B3',  // Instead of rgba(245, 244, 239, 0.7)
-textMuted: '#8A8985',      // Instead of rgba(245, 244, 239, 0.5)
+// Add to imports
+import { VideoCallCard } from "../_shared/email-templates/components.ts";
+
+// After fetching booking details, determine meeting link
+const activePlatform = booking.active_video_platform;
+let meetingLink = '';
+let platformName = '';
+let platformType = 'generic';
+
+if (activePlatform === 'google_meet' && booking.google_meet_hangout_link) {
+  meetingLink = booking.google_meet_hangout_link;
+  platformName = 'Google Meet';
+  platformType = 'google_meet';
+} else if (activePlatform === 'quantum_club' && booking.quantum_meeting_link) {
+  meetingLink = booking.quantum_meeting_link;
+  platformName = 'Club Meetings';
+  platformType = 'club_meetings';
+}
+
+// Add VideoCallCard to email content if meeting link exists
+${meetingLink ? VideoCallCard({
+  platform: platformType,
+  platformName: platformName,
+  joinUrl: meetingLink,
+  instructions: 'Your meeting starts soon. Click below to join.',
+}) : ''}
 ```
+
+### Phase 4: Update VideoCallCard Component with Small QC Icon
+
+**File**: `supabase/functions/_shared/email-templates/components.ts`
+
+Modify `VideoCallCard` to use the small QC icon for Club Meetings platform:
+
+```typescript
+export const VideoCallCard = ({ 
+  platform, 
+  platformName,
+  joinUrl, 
+  meetingId,
+  password,
+  dialIn,
+  instructions,
+}: VideoCallCardProps): string => {
+  // For club_meetings, use text-based "QC" badge instead of large logo
+  const isClubMeetings = platform === 'club_meetings';
+  const platformIcon = isClubMeetings 
+    ? null  // Will use QC badge instead
+    : PLATFORM_ICONS[platform as keyof typeof PLATFORM_ICONS];
+  
+  const iconHtml = isClubMeetings 
+    ? `<div style="width: 40px; height: 40px; border-radius: 10px; background-color: ${EMAIL_COLORS.gold}; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 16px; color: ${EMAIL_COLORS.eclipse};">QC</div>`
+    : `<img src="${platformIcon}" alt="${platformName}" width="40" height="40" style="display: block; border-radius: 8px;" />`;
+
+  // ... rest of component
+};
+```
+
+### Phase 5: Copy QC Icons to Public Folder
+
+The small QC icons need to be accessible via URL for emails. Currently they're in `src/assets/` which is bundled with the app.
+
+**Action**: Copy these files to `public/` folder:
+- `quantum-logo-light-transparent.png` → `public/qc-icon-light.png`
+- `quantum-logo-dark-transparent.png` → `public/qc-icon-dark.png`
 
 ---
 
-## Technical Details
-
-### Files to Modify
+## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `supabase/functions/get-available-slots/index.ts` | Include pending bookings in conflict check |
-| `src/components/booking/UnifiedDateTimeSelector.tsx` | Add real-time subscription hook |
-| `supabase/functions/cancel-booking/index.ts` | Fix profile query, add error handling, use EMAIL_SENDERS |
-| `supabase/functions/_shared/email-config.ts` | Fix logo URLs, solidify colors |
-| `supabase/functions/send-booking-confirmation/index.ts` | Add better logging for host notifications |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add image fallback |
+| `supabase/functions/_shared/email-config.ts` | Add new logo variants and size constants |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Increase header logo to 120px, improve spacing |
+| `supabase/functions/_shared/email-templates/components.ts` | Update VideoCallCard to use QC badge for Club Meetings |
+| `supabase/functions/send-booking-reminder-email/index.ts` | Add VideoCallCard join button |
 
-### Edge Functions to Deploy
-- `get-available-slots`
-- `cancel-booking`
-- `send-booking-confirmation`
+## Visual Impact
+
+```text
+BEFORE                           AFTER
+┌──────────────────┐            ┌──────────────────┐
+│      [64px]      │            │                  │
+│    small logo    │            │    [120px]       │
+│                  │            │   LARGE LOGO     │
+│ THE QUANTUM CLUB │            │                  │
+└──────────────────┘            │ THE QUANTUM CLUB │
+                                └──────────────────┘
+                                
+Meeting Card:                   Meeting Card:
+┌──────────────────┐            ┌──────────────────┐
+│ [large clover]   │            │ [QC] Club Meet   │
+│ Join via Club... │            │ Join via Club... │
+└──────────────────┘            └──────────────────┘
+```
 
 ---
 
-## Expected Outcomes
+## Technical Notes
 
-1. **Slots disappear immediately** when booked (real-time + pending status check)
-2. **Cancel booking works reliably** with proper error handling
-3. **Logo displays correctly** in all email clients
-4. **Host receives notifications** for all bookings
-5. **Email quality 100/100** with solid colors and proper fallbacks
+- Logo size increased from 64px to 120px (87% larger)
+- Added 24px bottom margin for better spacing below logo
+- Fallback "Q" circle also scales to 120px with 56px font
+- VideoCallCard uses inline "QC" badge (gold background, eclipse text) instead of image for Club Meetings
+- Other platforms (Google Meet, Zoom, Teams) continue using their brand icons
 
----
-
-## Testing Checklist
-
-1. Book a slot, verify it disappears for other users in real-time
-2. Cancel a booking, verify success without errors
-3. Check email in Gmail, Outlook, Apple Mail for logo display
-4. Verify host receives notification email
-5. Verify guest receives confirmation email with all details
