@@ -1,234 +1,210 @@
 
 
-# Comprehensive Email System Audit Report
+# Fix Time Slot Display Bug
 
-## Current Score: 95/100 → Target: 100/100
+## Problem Identified
 
-The email system overhaul has been successfully implemented with significant improvements. However, several edge functions still use legacy templates and hardcoded sender addresses that need to be migrated to reach 100/100.
+The booking page at `/book/darryl` is displaying raw ISO timestamps (e.g., `2026-01-26T09:00:00.000Z`) instead of formatted times (e.g., `10:00 AM – 10:30 AM`). When a user clicks on a time slot, it fails with "not a valid value."
 
----
+### Root Cause Analysis
 
-## Phase 1 Summary: What Was Completed
+The `safeFormatTime` function in `src/lib/safeTimeFormat.ts` has a fallback path that returns the raw ISO string when formatting fails:
 
-### Core Infrastructure (All Done)
-
-| Component | Status | Details |
-|-----------|--------|---------|
-| `email-config.ts` | Done | Centralized EMAIL_SENDERS, EMAIL_LOGOS, EMAIL_COLORS, PLATFORM_ICONS |
-| `base-template.ts` | Done | Professional template with hosted logo, solid colors, Schema.org support |
-| `components.ts` | Done | 15+ reusable components (Button, Card, VideoCallCard, SchemaEvent, AttendeeList, etc.) |
-
-### Updated Email Functions (7 Complete)
-
-| Function | Sender | Template | Status |
-|----------|--------|----------|--------|
-| `send-booking-confirmation` | `EMAIL_SENDERS.bookings` | `baseEmailTemplate` | Done |
-| `send-booking-reminder` | `EMAIL_SENDERS.bookings` | `baseEmailTemplate` | Done |
-| `send-verification-code` | `EMAIL_SENDERS.verification` | `baseEmailTemplate` | Done |
-| `send-referral-invite` | `EMAIL_SENDERS.referrals` | `baseEmailTemplate` | Done |
-| `send-password-reset-email` | `EMAIL_SENDERS.security` | `baseEmailTemplate` | Done |
-| `send-password-changed-email` | `EMAIL_SENDERS.security` | `baseEmailTemplate` | Done |
-| `send-notification-email` | Hardcoded `.com` domain | `baseEmailTemplate` | Partial |
-
----
-
-## Phase 2: Outstanding Items (5 Points Remaining)
-
-### Legacy Functions Requiring Migration
-
-| Function | Current Sender | Issue | Priority |
-|----------|----------------|-------|----------|
-| `send-email-verification` | `onboarding@verify.thequantumclub.nl` | Uses baseEmailTemplate but hardcoded sender | Medium |
-| `send-notification-email` | `notifications@thequantumclub.com` | Uses `.com` not `.nl` | Medium |
-| `send-meeting-invitation-email` | `meetings@thequantumclub.com` | Full legacy HTML template | High |
-| `send-booking-pending-notification` | `bookings@thequantumclub.com` | Full legacy HTML template | High |
-| `send-booking-reminder-email` | `reminders@thequantumclub.com` | Full legacy HTML template | Medium |
-| `send-security-alert` | `security@thequantumclub.com` | Full legacy HTML template | Low |
-| `send-meeting-summary-email` | `notifications@thequantumclub.com` | Full legacy HTML template | Medium |
-| `send-test-email` | `onboarding@resend.dev` | Uses testing domain | High |
-
-### Sender Domain Inconsistency
-
-The email config uses `.nl` domain consistently:
 ```typescript
-EMAIL_SENDERS = {
-  bookings: 'The Quantum Club <bookings@thequantumclub.nl>',
-  meetings: 'The Quantum Club <meetings@thequantumclub.nl>',
-  verification: 'The Quantum Club <verify@thequantumclub.nl>',
-  // ...
+// Line 34-35 in safeTimeFormat.ts
+// Ultimate fallback: return raw string
+return isoString;
+```
+
+**Why formatting is failing**: The function catches errors silently without logging, making it impossible to debug. The likely cause is:
+1. An issue with timezone resolution in `Intl.DateTimeFormat`
+2. The date parsing failing due to an edge case with the ISO string format
+
+### Data Flow Issue
+
+```text
+Edge Function → { start: "2026-01-26T09:00:00.000Z", end: "2026-01-26T09:30:00.000Z" }
+       ↓
+formatSlotWithDualTimezone(slot.start, slot.end, guestTimezone, hostTimezone, format)
+       ↓
+formatTimeRange() → safeFormatTime() 
+       ↓
+Intl.DateTimeFormat() FAILS → returns raw ISO string
+       ↓
+Display: "2026-01-26T09:00:00.000Z" (BUG!)
+```
+
+---
+
+## Solution: Robust Formatting with Better Fallbacks
+
+### Fix 1: Improve safeFormatTime with Debug Logging and Better Fallbacks
+
+Update `src/lib/safeTimeFormat.ts` to:
+1. Add debug logging when formatting fails
+2. Implement a more robust manual fallback that always produces readable times
+3. Never return raw ISO strings to the UI
+
+```typescript
+export function safeFormatTime(
+  isoString: string,
+  timezone: string,
+  format: TimeFormat = '12h'
+): string {
+  // Manual fallback that never returns raw ISO
+  const manualFallback = (date: Date, fmt: TimeFormat): string => {
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    if (fmt === '24h') {
+      return `${hours.toString().padStart(2, '0')}:${minutes}`;
+    }
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    return `${displayHour}:${minutes} ${period}`;
+  };
+
+  try {
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) {
+      console.warn('[safeFormatTime] Invalid date:', isoString);
+      // Try to extract time from ISO string directly
+      const match = isoString.match(/T(\d{2}):(\d{2})/);
+      if (match) {
+        const h = parseInt(match[1], 10);
+        const m = match[2];
+        if (format === '24h') return `${h.toString().padStart(2, '0')}:${m}`;
+        const period = h >= 12 ? 'PM' : 'AM';
+        const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+        return `${displayHour}:${m} ${period}`;
+      }
+      return 'Invalid time';
+    }
+
+    // Try native Intl.DateTimeFormat
+    return new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: format === '12h',
+      timeZone: timezone,
+    }).format(date);
+  } catch (err) {
+    console.warn('[safeFormatTime] Intl.DateTimeFormat failed:', err, { isoString, timezone });
+    
+    // Fallback: try without timezone
+    try {
+      const date = new Date(isoString);
+      if (!isNaN(date.getTime())) {
+        return new Intl.DateTimeFormat('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: format === '12h',
+        }).format(date);
+      }
+    } catch {
+      // Continue to manual fallback
+    }
+    
+    // Ultimate manual fallback - never return raw ISO
+    try {
+      const date = new Date(isoString);
+      if (!isNaN(date.getTime())) {
+        return manualFallback(date, format);
+      }
+    } catch {
+      // Even this failed
+    }
+    
+    // Last resort: extract time from string pattern
+    const match = isoString.match(/T(\d{2}):(\d{2})/);
+    if (match) {
+      const h = parseInt(match[1], 10);
+      const m = match[2];
+      if (format === '24h') return `${h.toString().padStart(2, '0')}:${m}`;
+      const period = h >= 12 ? 'PM' : 'AM';
+      const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      return `${displayHour}:${m} ${period}`;
+    }
+    
+    return 'Time unavailable';
+  }
 }
 ```
 
-But several legacy functions still use `.com`:
-- `notifications@thequantumclub.com`
-- `meetings@thequantumclub.com`
-- `bookings@thequantumclub.com`
-- `security@thequantumclub.com`
+### Fix 2: Add Debug Logging to UnifiedDateTimeSelector
 
----
-
-## Implementation Plan for 100/100
-
-### Step 1: Fix Sender Imports (Quick Wins)
-
-Update these functions to import and use `EMAIL_SENDERS`:
-
-**send-email-verification/index.ts**
-```typescript
-// Add import
-import { EMAIL_SENDERS } from "../_shared/email-config.ts";
-
-// Change line 192
-from: EMAIL_SENDERS.verification,
-```
-
-**send-notification-email/index.ts**
-```typescript
-// Add import
-import { EMAIL_SENDERS } from "../_shared/email-config.ts";
-
-// Change line 179
-from: EMAIL_SENDERS.notifications,
-```
-
-### Step 2: Migrate Legacy HTML Templates
-
-Refactor these functions to use `baseEmailTemplate` and components:
-
-1. **send-meeting-invitation-email** (High Priority)
-   - Replace `generateEmailHTML()` function with component-based approach
-   - Use `VideoCallCard`, `Card`, `Button`, `InfoRow` components
-   - Add `SchemaEvent` for Gmail rich previews
-   - Use `EMAIL_SENDERS.meetings`
-
-2. **send-booking-pending-notification** (High Priority)
-   - Replace inline HTML with `baseEmailTemplate`
-   - Use `StatusBadge({ status: 'pending' })`
-   - Use `Card`, `InfoRow` components
-   - Use `EMAIL_SENDERS.bookings`
-
-3. **send-booking-reminder-email** (Medium Priority)
-   - May be redundant with `send-booking-reminder`
-   - If needed, migrate to use shared components
-   - Add new sender: `EMAIL_SENDERS.reminders` or use `bookings`
-
-4. **send-meeting-summary-email** (Medium Priority)
-   - Replace `generateSummaryEmailHtml()` with component-based approach
-   - Create new `MeetingSummaryCard` component if needed
-   - Use `EMAIL_SENDERS.notifications`
-
-5. **send-security-alert** (Low Priority - Admin only)
-   - Internal email, lower priority
-   - Migrate to use `baseEmailTemplate`
-   - Use `AlertBox` with severity colors
-   - Use `EMAIL_SENDERS.security`
-
-6. **send-test-email** (High Priority)
-   - Remove `onboarding@resend.dev` testing domain
-   - Use `EMAIL_SENDERS.system`
-   - Apply `baseEmailTemplate` with test banner
-
-### Step 3: Add Missing Sender Configuration
-
-Update `email-config.ts`:
+Add temporary logging to identify where the failure occurs:
 
 ```typescript
-export const EMAIL_SENDERS = {
-  bookings: 'The Quantum Club <bookings@thequantumclub.nl>',
-  meetings: 'The Quantum Club <meetings@thequantumclub.nl>',
-  verification: 'The Quantum Club <verify@thequantumclub.nl>',
-  notifications: 'The Quantum Club <notifications@thequantumclub.nl>',
-  referrals: 'The Quantum Club <invites@thequantumclub.nl>',
-  system: 'The Quantum Club <noreply@thequantumclub.nl>',
-  security: 'The Quantum Club <security@thequantumclub.nl>',
-  reminders: 'The Quantum Club <reminders@thequantumclub.nl>', // NEW
-  clubAI: 'Club AI <ai@thequantumclub.nl>', // NEW - for AI-powered summaries
-} as const;
+// In UnifiedDateTimeSelector.tsx, update formatSlotDisplay
+const formatSlotDisplay = (slot: TimeSlot) => {
+  console.log('[formatSlotDisplay] Input:', { 
+    start: slot.start, 
+    end: slot.end, 
+    guestTimezone, 
+    hostTimezone, 
+    timeFormat 
+  });
+  
+  const result = formatSlotWithDualTimezone(
+    slot.start,
+    slot.end,
+    guestTimezone,
+    hostTimezone,
+    timeFormat
+  );
+  
+  console.log('[formatSlotDisplay] Output:', result);
+  return result;
+};
 ```
 
----
+### Fix 3: Validate Timezone Before Use
 
-## Verification Checklist
+The guest timezone detection might be returning an invalid value:
 
-### Already Verified (Phase 1 Complete)
-- [x] Logo uses hosted image (`EMAIL_LOGOS.cloverIcon40`)
-- [x] No gradient text (solid `#C9A24E` gold)
-- [x] Schema.org JSON-LD support in base template
-- [x] MSO fallbacks for Outlook compatibility
-- [x] Mobile responsive styles
-- [x] Dark/light mode support
-- [x] Preheader with padding
-- [x] `CalendarButtons` component with Google/Outlook links
-- [x] `VideoCallCard` with platform icons
-- [x] `MeetingPrepCard` for interview emails
-- [x] Rate limiting on confirmation emails
-- [x] ICS attachment generation
-
-### Remaining Verifications
-- [ ] All functions use `EMAIL_SENDERS` constants
-- [ ] All functions use `baseEmailTemplate`
-- [ ] No `.com` domains (standardize on `.nl`)
-- [ ] No `resend.dev` testing domains
-- [ ] All legacy HTML templates removed
+```typescript
+// In UnifiedDateTimeSelector.tsx
+const rawGuestTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const guestTimezone = rawGuestTimezone || 'UTC'; // Fallback to UTC if undefined
+```
 
 ---
 
 ## Files to Modify
 
-| File | Changes Required |
-|------|------------------|
-| `supabase/functions/_shared/email-config.ts` | Add `reminders` and `clubAI` senders |
-| `supabase/functions/send-email-verification/index.ts` | Import and use `EMAIL_SENDERS.verification` |
-| `supabase/functions/send-notification-email/index.ts` | Import and use `EMAIL_SENDERS.notifications` |
-| `supabase/functions/send-meeting-invitation-email/index.ts` | Full refactor to use baseEmailTemplate + components |
-| `supabase/functions/send-booking-pending-notification/index.ts` | Full refactor to use baseEmailTemplate + components |
-| `supabase/functions/send-booking-reminder-email/index.ts` | Full refactor or consolidate with send-booking-reminder |
-| `supabase/functions/send-meeting-summary-email/index.ts` | Full refactor to use baseEmailTemplate + components |
-| `supabase/functions/send-security-alert/index.ts` | Migrate to baseEmailTemplate |
-| `supabase/functions/send-test-email/index.ts` | Use EMAIL_SENDERS.system, apply baseEmailTemplate |
+| File | Changes |
+|------|---------|
+| `src/lib/safeTimeFormat.ts` | Robust fallback chain that never returns raw ISO strings |
+| `src/components/booking/UnifiedDateTimeSelector.tsx` | Add timezone fallback and debug logging |
 
 ---
 
-## Expected Outcome
+## Verification Steps
 
-After completing Phase 2:
-
-| Metric | Before | After |
-|--------|--------|-------|
-| Functions using `EMAIL_SENDERS` | 7/15 | 15/15 |
-| Functions using `baseEmailTemplate` | 7/15 | 15/15 |
-| Hardcoded `.com` domains | 8 | 0 |
-| Testing domains (`resend.dev`) | 1 | 0 |
-| Legacy inline HTML templates | 6 | 0 |
-
-**Final Score: 100/100**
+After implementation:
+1. Navigate to `/book/darryl`
+2. Select a date with available times
+3. Verify times display as "9:00 AM – 9:30 AM" (not raw ISO)
+4. Click on a time slot
+5. Verify the form step loads correctly
+6. Complete a test booking to ensure end-to-end flow works
 
 ---
 
 ## Technical Notes
 
-### Domain Strategy Recommendation
+### Why Intl.DateTimeFormat Might Fail
 
-All email senders should use `.nl` domain consistently:
-- Primary: `thequantumclub.nl` (transactional emails)
-- All SPF, DKIM, DMARC records should be configured on this domain
-- Avoid mixing `.com` and `.nl` to prevent deliverability issues
+1. **Invalid timezone string**: If `Intl.DateTimeFormat().resolvedOptions().timeZone` returns `undefined` or an invalid IANA timezone
+2. **Browser compatibility**: Older browsers may not support all timezone options
+3. **Preview environment quirks**: OpenTelemetry instrumentation or other polyfills may interfere
 
-### Function Consolidation Opportunity
+### Defense in Depth Strategy
 
-Two functions handle booking reminders:
-- `send-booking-reminder` (updated, uses new templates)
-- `send-booking-reminder-email` (legacy)
-
-Consider consolidating into one function to reduce maintenance burden.
-
-### Schema.org Gmail Registration
-
-To enable one-click RSVP buttons in Gmail:
-1. Register sender domain at Google's Email Markup Registration
-2. Verify SPF, DKIM, DMARC configuration
-3. Submit test emails for approval
-4. Wait 2-4 weeks for verification
-
-This is a separate process but will unlock the full Google Calendar-like experience.
+The fix implements multiple fallback layers:
+1. Native `Intl.DateTimeFormat` with timezone
+2. Native `Intl.DateTimeFormat` without timezone (local time)
+3. Manual UTC-based calculation
+4. Regex extraction from ISO string
+5. "Time unavailable" as absolute last resort (never show raw ISO)
 
