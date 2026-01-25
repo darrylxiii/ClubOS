@@ -3003,27 +3003,6 @@ export type Database = {
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_applications_candidate_profiles"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidate_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_applications_candidate_profiles"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "potential_merges"
-            referencedColumns: ["candidate_id"]
-          },
-          {
-            foreignKeyName: "fk_applications_candidate_profiles"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["id"]
-          },
         ]
       }
       approval_notification_logs: {
@@ -52016,27 +51995,6 @@ export type Database = {
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_applications_candidate_profiles"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidate_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_applications_candidate_profiles"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "potential_merges"
-            referencedColumns: ["candidate_id"]
-          },
-          {
-            foreignKeyName: "fk_applications_candidate_profiles"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["id"]
-          },
         ]
       }
       booking_video_platform_analytics: {
@@ -52137,27 +52095,6 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_applications_candidate_profiles"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidate_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_applications_candidate_profiles"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "potential_merges"
-            referencedColumns: ["candidate_id"]
-          },
-          {
-            foreignKeyName: "fk_applications_candidate_profiles"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
           },
           {

@@ -57,13 +57,82 @@ Deno.serve(async (req) => {
     // 2. Uncomment the Proxycurl integration code below
     // 3. Remove the mock data fallback
 
+    const APIFY_API_KEY = Deno.env.get('APIFY_API_KEY');
     const PROXYCURL_API_KEY = Deno.env.get('PROXYCURL_API_KEY');
     
     let profile: LinkedInProfile;
+    let apiUsed = 'url_extraction';
     
-    if (PROXYCURL_API_KEY) {
-      // Real Proxycurl integration
+    if (APIFY_API_KEY) {
+      // Priority 1: Apify LinkedIn Profile Scraper
+      console.log('[linkedin-scraper] Using Apify API');
+      apiUsed = 'apify';
+      
+      try {
+        const response = await fetch(
+          `https://api.apify.com/v2/acts/apify~linkedin-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              startUrls: [{ url: linkedinUrl }],
+              maxResults: 1,
+              proxy: {
+                useApifyProxy: true,
+                apifyProxyGroups: ['RESIDENTIAL']
+              }
+            })
+          }
+        );
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[linkedin-scraper] Apify error:', response.status, errorText);
+          throw new Error(`Apify scraping failed: ${response.status}`);
+        }
+        
+        const results = await response.json();
+        const data = results?.[0] || {};
+        
+        profile = {
+          fullName: data.fullName || data.firstName && data.lastName 
+            ? `${data.firstName} ${data.lastName}` 
+            : extractNameFromUrl(linkedinUrl),
+          email: data.email || '',
+          headline: data.headline || data.title || '',
+          location: data.location || data.addressLocality || '',
+          profileUrl: linkedinUrl,
+          imageUrl: data.profilePicture || data.image || '',
+          summary: data.summary || data.description || '',
+          experience: (data.experience || data.positions || []).map((exp: any) => ({
+            title: exp.title || exp.role,
+            company: exp.company || exp.companyName,
+            location: exp.location,
+            startDate: exp.startDate || exp.start?.year ? `${exp.start?.year}-${exp.start?.month || 1}` : undefined,
+            endDate: exp.endDate || exp.end?.year ? `${exp.end?.year}-${exp.end?.month || 1}` : undefined,
+            description: exp.description,
+          })),
+          education: (data.education || []).map((edu: any) => ({
+            school: edu.school || edu.schoolName,
+            degree: edu.degree || edu.degreeName,
+            field: edu.field || edu.fieldOfStudy,
+            startYear: edu.startYear?.toString() || edu.start?.year?.toString(),
+            endYear: edu.endYear?.toString() || edu.end?.year?.toString(),
+          })),
+          skills: data.skills?.map((s: any) => typeof s === 'string' ? s : s.name) || [],
+        };
+      } catch (apifyError) {
+        console.error('[linkedin-scraper] Apify failed, falling back:', apifyError);
+        // Fall through to next provider
+        profile = null as any;
+      }
+    }
+    
+    if (!profile && PROXYCURL_API_KEY) {
+      // Priority 2: Proxycurl integration
       console.log('[linkedin-scraper] Using Proxycurl API');
+      apiUsed = 'proxycurl';
+      
       const response = await fetch(`https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(linkedinUrl)}`, {
         headers: {
           'Authorization': `Bearer ${PROXYCURL_API_KEY}`,
@@ -102,9 +171,12 @@ Deno.serve(async (req) => {
         })),
         skills: data.skills || [],
       };
-    } else {
-      // Fallback: Extract name from URL only - manual data entry required
+    }
+    
+    if (!profile) {
+      // Priority 3: Fallback - Extract name from URL only
       console.log('[linkedin-scraper] No API key configured - using URL extraction only');
+      apiUsed = 'url_extraction';
       const extractedName = extractNameFromUrl(linkedinUrl);
       profile = {
         fullName: extractedName,
@@ -142,8 +214,10 @@ Deno.serve(async (req) => {
       source_metadata: {
         scraped_at: new Date().toISOString(),
         profile_url: linkedinUrl,
-        api_used: PROXYCURL_API_KEY ? 'proxycurl' : 'url_extraction',
-        note: PROXYCURL_API_KEY ? 'Imported from LinkedIn via Proxycurl' : 'Imported from LinkedIn - verify details manually'
+        api_used: apiUsed,
+        note: apiUsed === 'url_extraction' 
+          ? 'Imported from LinkedIn - verify details manually' 
+          : `Imported from LinkedIn via ${apiUsed}`
       },
       linkedin_profile_data: profile,
       ai_summary: generateAiSummary(profile)
