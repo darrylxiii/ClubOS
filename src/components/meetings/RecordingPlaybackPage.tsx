@@ -256,9 +256,9 @@ export default function RecordingPlaybackPage() {
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-6 max-w-7xl">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+          <Button variant="ghost" onClick={() => navigate('/meetings?tab=history')} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            Back to Recordings
           </Button>
           <Skeleton className="h-8 w-64 mb-6" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -274,9 +274,9 @@ export default function RecordingPlaybackPage() {
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-6 max-w-7xl">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+          <Button variant="ghost" onClick={() => navigate('/meetings?tab=history')} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            Back to Recordings
           </Button>
           <Alert>
             <AlertTriangle className="h-4 w-4" />
@@ -307,9 +307,9 @@ export default function RecordingPlaybackPage() {
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate('/meetings?tab=history')} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          Back to Recordings
         </Button>
 
         {/* Header */}
