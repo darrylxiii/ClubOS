@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export type SemanticEntityType = 'candidate' | 'job' | 'knowledge' | 'interaction';
+export type SemanticEntityType = 
+  | 'candidate' 
+  | 'job' 
+  | 'knowledge' 
+  | 'interaction'
+  | 'meeting_candidate'
+  | 'meeting_job'
+  | 'meeting_interviewer';
 
 export interface SemanticSearchResult {
   id: string;

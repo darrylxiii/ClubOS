@@ -19,7 +19,7 @@ serve(async (req) => {
     }
 
     if (!entity_type) {
-      throw new Error('entity_type is required (candidate, job, knowledge, interaction)');
+      throw new Error('entity_type is required (candidate, job, knowledge, interaction, meeting_candidate, meeting_job, meeting_interviewer)');
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -58,6 +58,7 @@ serve(async (req) => {
     let tableName: string;
     let embeddingColumn: string;
     let selectColumns: string;
+    let whereClause: string | null = null;
 
     switch (entity_type) {
       case 'candidate':
@@ -80,8 +81,27 @@ serve(async (req) => {
         embeddingColumn = 'interaction_embedding';
         selectColumns = 'id, company_id, interaction_type, context, notes, interaction_embedding';
         break;
+      // NEW: Meeting-specific entity types
+      case 'meeting_candidate':
+        tableName = 'intelligence_embeddings';
+        embeddingColumn = 'embedding';
+        selectColumns = 'id, entity_id, content, metadata, embedding';
+        whereClause = "entity_type = 'meeting_candidate'";
+        break;
+      case 'meeting_job':
+        tableName = 'intelligence_embeddings';
+        embeddingColumn = 'embedding';
+        selectColumns = 'id, entity_id, content, metadata, embedding';
+        whereClause = "entity_type = 'meeting_job'";
+        break;
+      case 'meeting_interviewer':
+        tableName = 'intelligence_embeddings';
+        embeddingColumn = 'embedding';
+        selectColumns = 'id, entity_id, content, metadata, embedding';
+        whereClause = "entity_type = 'meeting_interviewer'";
+        break;
       default:
-        throw new Error(`Unknown entity_type: ${entity_type}`);
+        throw new Error(`Unknown entity_type: ${entity_type}. Valid types: candidate, job, knowledge, interaction, meeting_candidate, meeting_job, meeting_interviewer`);
     }
 
     // Perform vector similarity search using pgvector

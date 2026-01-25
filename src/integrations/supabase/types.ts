@@ -27607,6 +27607,8 @@ export type Database = {
           deleted_at: string | null
           deleted_by: string | null
           duration_seconds: number | null
+          embeddings_generated: boolean | null
+          embeddings_generated_at: string | null
           executive_summary: string | null
           file_size_bytes: number | null
           host_id: string
@@ -27647,6 +27649,8 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           duration_seconds?: number | null
+          embeddings_generated?: boolean | null
+          embeddings_generated_at?: string | null
           executive_summary?: string | null
           file_size_bytes?: number | null
           host_id: string
@@ -27687,6 +27691,8 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           duration_seconds?: number | null
+          embeddings_generated?: boolean | null
+          embeddings_generated_at?: string | null
           executive_summary?: string | null
           file_size_bytes?: number | null
           host_id?: string
@@ -29285,6 +29291,14 @@ export type Database = {
           created_at: string | null
           features: Json
           id: string
+          interview_communication_score: number | null
+          interview_count: number | null
+          interview_cultural_fit_score: number | null
+          interview_green_flags_count: number | null
+          interview_hiring_recommendation: string | null
+          interview_performance_score: number | null
+          interview_red_flags_count: number | null
+          interview_technical_score: number | null
           job_id: string
           label_hired: boolean
           label_interviewed: boolean
@@ -29304,6 +29318,14 @@ export type Database = {
           created_at?: string | null
           features: Json
           id?: string
+          interview_communication_score?: number | null
+          interview_count?: number | null
+          interview_cultural_fit_score?: number | null
+          interview_green_flags_count?: number | null
+          interview_hiring_recommendation?: string | null
+          interview_performance_score?: number | null
+          interview_red_flags_count?: number | null
+          interview_technical_score?: number | null
           job_id: string
           label_hired?: boolean
           label_interviewed?: boolean
@@ -29323,6 +29345,14 @@ export type Database = {
           created_at?: string | null
           features?: Json
           id?: string
+          interview_communication_score?: number | null
+          interview_count?: number | null
+          interview_cultural_fit_score?: number | null
+          interview_green_flags_count?: number | null
+          interview_hiring_recommendation?: string | null
+          interview_performance_score?: number | null
+          interview_red_flags_count?: number | null
+          interview_technical_score?: number | null
           job_id?: string
           label_hired?: boolean
           label_interviewed?: boolean
