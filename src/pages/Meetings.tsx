@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar as CalendarIcon, Settings, Video, Clock, Sparkles, BarChart3 } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Settings, Video, Clock, Sparkles, BarChart3, FileText, CheckSquare } from "lucide-react";
 import { CreateMeetingDialog } from "@/components/meetings/CreateMeetingDialog";
 import { MeetingCard } from "@/components/meetings/MeetingCard";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MeetingStatsBar } from "@/components/meetings/MeetingStatsBar";
 import { UnifiedCalendarView } from "@/components/meetings/UnifiedCalendarView";
@@ -20,8 +20,10 @@ import { MeetingHistoryTab } from "@/components/meetings/MeetingHistoryTab";
 import { InstantMeetingButton } from "@/components/meetings/InstantMeetingButton";
 import { PersonalMeetingRoomCard } from "@/components/meetings/PersonalMeetingRoomCard";
 import { MeetingAnalyticsDashboard } from "@/components/meetings/MeetingAnalyticsDashboard";
+import { PostMeetingPanel } from "@/components/meetings/PostMeetingPanel";
 import { useAutoCreatePMR } from "@/hooks/useAutoCreatePMR";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 export default function Meetings() {
   const navigate = useNavigate();
@@ -30,6 +32,8 @@ export default function Meetings() {
   const [meetings, setMeetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPrepMeeting, setSelectedPrepMeeting] = useState<string | null>(null);
+  const [selectedPostMeeting, setSelectedPostMeeting] = useState<string | null>(null);
 
   const [stats, setStats] = useState({
     upcoming: 0,
@@ -224,14 +228,22 @@ export default function Meetings() {
         />
 
         <Tabs key={activeTab} value={activeTab} onValueChange={setActiveTabValue}>
-          <TabsList className="w-full justify-start">
+          <TabsList className="w-full justify-start flex-wrap h-auto gap-1 py-1">
             <TabsTrigger value="calendar" className="gap-2">
               <CalendarIcon className="h-4 w-4" />
-              Calendar View
+              Calendar
             </TabsTrigger>
             <TabsTrigger value="my-meetings" className="gap-2">
               <Video className="h-4 w-4" />
               My Meetings
+            </TabsTrigger>
+            <TabsTrigger value="prep" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Prep
+            </TabsTrigger>
+            <TabsTrigger value="post" className="gap-2">
+              <CheckSquare className="h-4 w-4" />
+              Post
             </TabsTrigger>
             <TabsTrigger value="history" className="gap-2">
               <Clock className="h-4 w-4" />
@@ -285,6 +297,130 @@ export default function Meetings() {
                     onDelete={handleDeleteMeeting}
                   />
                 ))
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="prep" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">Pre-Meeting Prep</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Generate dossiers and prepare for upcoming meetings
+                  </p>
+                </div>
+              </div>
+              
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-24 w-full" />
+                  ))}
+                </div>
+              ) : meetings.filter(m => new Date(m.scheduled_start) > new Date()).length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No upcoming meetings to prepare for</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4">
+                  {meetings
+                    .filter(m => new Date(m.scheduled_start) > new Date())
+                    .slice(0, 5)
+                    .map((meeting) => (
+                      <Card key={meeting.id} className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4 className="font-medium">{meeting.title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(meeting.scheduled_start).toLocaleDateString()} at{' '}
+                              {new Date(meeting.scheduled_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/meeting-notes/${meeting.id}`)}
+                          >
+                            Prepare
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="post" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">Post-Meeting Review</h3>
+                  <p className="text-sm text-muted-foreground">
+                    View summaries, action items, and follow-ups for completed meetings
+                  </p>
+                </div>
+              </div>
+              
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-24 w-full" />
+                  ))}
+                </div>
+              ) : meetings.filter(m => new Date(m.scheduled_end || m.scheduled_start) < new Date()).length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <CheckSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No completed meetings to review</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4">
+                  {meetings
+                    .filter(m => new Date(m.scheduled_end || m.scheduled_start) < new Date())
+                    .slice(0, 10)
+                    .map((meeting) => (
+                      <Card key={meeting.id} className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4 className="font-medium">{meeting.title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(meeting.scheduled_start).toLocaleDateString()} at{' '}
+                              {new Date(meeting.scheduled_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/meeting-notes/${meeting.id}`)}
+                            >
+                              View Notes
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedPostMeeting(
+                                selectedPostMeeting === meeting.id ? null : meeting.id
+                              )}
+                            >
+                              {selectedPostMeeting === meeting.id ? 'Hide Summary' : 'Quick Summary'}
+                            </Button>
+                          </div>
+                        </div>
+                        {selectedPostMeeting === meeting.id && (
+                          <div className="mt-4 pt-4 border-t">
+                            <PostMeetingPanel meetingId={meeting.id} />
+                          </div>
+                        )}
+                      </Card>
+                    ))}
+                </div>
               )}
             </div>
           </TabsContent>

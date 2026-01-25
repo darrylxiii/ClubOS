@@ -274,6 +274,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Focus View", icon: Target, path: "/crm/focus" },
         { name: "Reply Inbox", icon: Mail, path: "/crm/inbox" },
         { name: "WhatsApp Hub", icon: Phone, path: "/admin/whatsapp", badge: "New" },
+        { name: "WhatsApp Booking", icon: Calendar, path: "/admin/whatsapp-booking" },
         { name: "Campaigns", icon: Zap, path: "/crm/campaigns" },
         { name: "Email Sequencing", icon: Mail, path: "/email-sequences" },
         { name: "Lead Scoring", icon: TrendingUp, path: "/crm/lead-scoring" },

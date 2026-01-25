@@ -45,6 +45,7 @@ const TranslationAuditLog = lazy(() => import("@/pages/admin/TranslationAuditLog
 const TemplateManagement = lazy(() => import("@/pages/admin/TemplateManagement"));
 // WhatsApp pages consolidated into WhatsAppHub
 const WhatsAppHub = lazy(() => import("@/pages/admin/WhatsAppHub"));
+const WhatsAppBookingPage = lazy(() => import("@/pages/admin/WhatsAppBookingPage"));
 const CompanyRelationships = lazy(() => import("@/pages/admin/CompanyRelationships"));
 const RevenueSharesPage = lazy(() => import("@/pages/admin/RevenueShares"));
 const InvoiceReconciliationPage = lazy(() => import("@/pages/admin/InvoiceReconciliation"));
@@ -792,5 +793,8 @@ export const adminRoutes = (
 
     {/* Hidden one-time exports (no navigation) */}
     <Route path="/admin/exports" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AdminExports /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* WhatsApp Booking Admin */}
+    <Route path="/admin/whatsapp-booking" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><WhatsAppBookingPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );
