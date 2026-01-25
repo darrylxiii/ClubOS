@@ -4034,6 +4034,39 @@ export type Database = {
           },
         ]
       }
+      booking_behavior_patterns: {
+        Row: {
+          avg_lead_time_hours: number | null
+          cancellation_count: number | null
+          common_booking_hours: number[] | null
+          guest_email_domain: string
+          id: string
+          no_show_count: number | null
+          total_bookings: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_lead_time_hours?: number | null
+          cancellation_count?: number | null
+          common_booking_hours?: number[] | null
+          guest_email_domain: string
+          id?: string
+          no_show_count?: number | null
+          total_bookings?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_lead_time_hours?: number | null
+          cancellation_count?: number | null
+          common_booking_hours?: number[] | null
+          guest_email_domain?: string
+          id?: string
+          no_show_count?: number | null
+          total_bookings?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       booking_calendar_check_failures: {
         Row: {
           booking_id: string | null
@@ -4423,6 +4456,47 @@ export type Database = {
             columns: ["primary_calendar_id"]
             isOneToOne: false
             referencedRelation: "calendar_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_no_show_predictions: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          id: string
+          intervention_triggered: boolean | null
+          intervention_type: string | null
+          prediction_factors: Json | null
+          risk_level: string | null
+          risk_score: number | null
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          intervention_triggered?: boolean | null
+          intervention_type?: string | null
+          prediction_factors?: Json | null
+          risk_level?: string | null
+          risk_score?: number | null
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          intervention_triggered?: boolean | null
+          intervention_type?: string | null
+          prediction_factors?: Json | null
+          risk_level?: string | null
+          risk_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_no_show_predictions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
