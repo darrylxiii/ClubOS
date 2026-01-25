@@ -1,154 +1,117 @@
 
-# Pipeline Candidate Card Quality Fix
+# LinkedIn Quick Add Fix - Timeout and Reliability Improvement
 
 ## Problem Analysis
 
-The pipeline is showing unprofessional candidate cards with several issues:
+The LinkedIn Quick Add is failing with "Failed to import LinkedIn profile" due to a **timeout cascade**:
 
-### Issue 1: Name Showing as "Candidate" Instead of Real Name
-- **Root Cause**: The `full_name` field in `candidate_profiles` shows user input like "Test84" or "39393" instead of the actual LinkedIn name
-- **Why**: The LinkedIn scraper extracts the name but users may still enter junk data in the form
-- **Data Evidence**: Database shows `full_name: 'Test84'` and `full_name: '39393'` for candidates with valid LinkedIn URLs
+```
++---------------+     60s timeout    +----------------+    30-120s wait    +--------+
+| Frontend      | -----------------> | Edge Function  | -----------------> | Apify  |
+| (supabase SDK)|                    | linkedin-scraper|                   | API    |
++---------------+                    +----------------+                    +--------+
+     ^                                      |
+     |       Connection drops               |
+     +--------------------------------------+
+```
 
-### Issue 2: Raw Ugly Notes Displayed on Card
-- **Root Cause**: The stage notes contain raw template text:
-  ```
-  Candidate: Test84
-  Email: N/A
-  Phone: N/A
-  LinkedIn: https://www.linkedin.com/in/anni-pfeiffer-13963a15b/
-  Current: N/A at N/A
-  ```
-- **Why**: `AddCandidateDialog` line 340-341 stores this raw format in `stages[0].notes`
-- **Result**: This ugly text is displayed verbatim in the card UI
-
-### Issue 3: Avatar Not Showing LinkedIn Profile Photo
-- **Root Cause**: `avatar_url` is explicitly set to `null` on line 285 of `AddCandidateDialog.tsx`
-- **Why**: The code ignores the `avatar_url` returned by the LinkedIn scraper
-- **Evidence**: All manually added candidates have `avatar_url: null` in database
-
-### Issue 4: LinkedIn URL Extraction Not Using Apify Properly
-- **Current State**: Apify is now integrated but the form is accepting user-entered names without validating against scraped data
-- **Flow Gap**: User enters "Test84" as name, system doesn't override with Apify-scraped name
+**Root Cause**: The Apify LinkedIn scraper uses the synchronous `run-sync-get-dataset-items` endpoint which can take 30-120+ seconds. Edge Functions default to a 60s timeout, causing the request to fail.
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Fix AddCandidateDialog to Save Avatar from LinkedIn Scraper
+### Phase 1: Add Immediate URL Extraction Fallback
 
-**File**: `src/components/partner/AddCandidateDialog.tsx`
+Rather than waiting for Apify (which may timeout), implement a **two-phase approach**:
 
-**Changes**:
-1. Add state to store scraped avatar URL:
-   ```typescript
-   const [scrapedAvatarUrl, setScrapedAvatarUrl] = useState<string | null>(null);
-   ```
+**Phase 1a: Instant extraction** (fallback first)
+- Extract name from LinkedIn URL immediately
+- Return basic profile data in less than 1 second
+- User gets immediate feedback
 
-2. Update `handleLinkedInScrape` to capture avatar:
-   ```typescript
-   if (data.success) {
-     setScrapedAvatarUrl(data.data.avatar_url || null);
-     setFormData({
-       fullName: data.data.full_name || "",
-       // ... rest unchanged
-     });
-   }
-   ```
-
-3. Update candidate profile insert to use the scraped avatar:
-   ```typescript
-   .insert({
-     // ... existing fields
-     avatar_url: scrapedAvatarUrl, // Use scraped avatar instead of null
-   })
-   ```
-
-### Phase 2: Stop Storing Raw Data in Stage Notes
-
-**File**: `src/components/partner/AddCandidateDialog.tsx`
-
-**Changes**:
-Instead of storing contact details in stage notes, store only meaningful notes:
-
-```typescript
-stages: [
-  {
-    name: "Applied",
-    status: "in_progress",
-    started_at: new Date().toISOString(),
-    notes: formData.notes || "Candidate added via LinkedIn import",
-  },
-],
-```
-
-### Phase 3: Improve StageCandidatesList Card Layout
-
-**File**: `src/components/partner/StageCandidatesList.tsx`
-
-**Changes**:
-1. Don't show stage notes if they contain the auto-generated template
-2. Show professional contact details in a cleaner layout
-3. Ensure avatar properly loads from `avatar_url`
-4. Show proper fallback initials from the full name
-
-Current problematic rendering:
-```tsx
-{currentStage?.notes && (
-  <div className="mb-3 p-3 rounded-lg bg-muted/30 border border-border/50">
-    <p className="text-xs text-muted-foreground line-clamp-2">
-      {currentStage.notes}
-    </p>
-  </div>
-)}
-```
-
-Updated rendering:
-```tsx
-{currentStage?.notes && !currentStage.notes.startsWith('Candidate:') && (
-  <div className="mb-3 p-3 rounded-lg bg-muted/30 border border-border/50">
-    <p className="text-xs text-muted-foreground line-clamp-2">
-      {currentStage.notes}
-    </p>
-  </div>
-)}
-```
-
-### Phase 4: Fix LinkedIn URL Name Extraction
+**Phase 1b: Async enrichment** (background)
+- If Apify/Proxycurl succeed within timeout, use enriched data
+- Add AbortController with 15s timeout for external APIs
 
 **File**: `supabase/functions/linkedin-scraper/index.ts`
 
-The `extractNameFromUrl` function should already work, but ensure it's being used correctly when Apify fails:
-
 ```typescript
-function extractNameFromUrl(url: string): string {
-  // Current logic is good - extracts "Anni Pfeiffer" from 
-  // "https://www.linkedin.com/in/anni-pfeiffer-13963a15b/"
+// Add timeout for external API calls
+const EXTERNAL_API_TIMEOUT = 15000; // 15 seconds
+
+// Create AbortController for timeout
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), EXTERNAL_API_TIMEOUT);
+
+try {
+  const response = await fetch(apifyUrl, {
+    signal: controller.signal,
+    // ... rest of options
+  });
+} catch (err) {
+  if (err.name === 'AbortError') {
+    console.log('[linkedin-scraper] Apify timed out, using URL extraction');
+    // Fall through to URL extraction
+  }
+} finally {
+  clearTimeout(timeoutId);
 }
 ```
 
-The issue is that when Apify successfully returns data, we should **enforce** using the Apify name, not allow user override with junk like "Test84".
-
-### Phase 5: Auto-Fill Form with Scraped Name (Enforce Override)
+### Phase 2: Improve Error Handling in Frontend
 
 **File**: `src/components/partner/AddCandidateDialog.tsx`
 
-After successful LinkedIn scrape, disable the name field to prevent user from entering junk:
+Add specific error messages for timeout vs other failures:
 
-```tsx
-<Input
-  id="fullName"
-  value={formData.fullName}
-  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-  placeholder="John Smith"
-  disabled={linkedinImported && formData.fullName.length > 0}
-  className={linkedinImported ? "bg-muted" : ""}
-/>
-{linkedinImported && (
-  <p className="text-xs text-muted-foreground mt-1">
-    Name extracted from LinkedIn profile
-  </p>
-)}
+```typescript
+} catch (error: any) {
+  console.error("Error scraping LinkedIn:", error);
+  
+  if (error.message?.includes('Failed to fetch') || error.name === 'FunctionsFetchError') {
+    // Likely a timeout - offer manual entry
+    toast.error("LinkedIn import timed out", {
+      description: "Please enter candidate details manually or try again"
+    });
+    // Auto-fill name from URL as best-effort
+    const extractedName = extractNameFromLinkedInUrl(linkedinUrlForScrape);
+    if (extractedName) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: extractedName,
+        linkedinUrl: linkedinUrlForScrape
+      }));
+    }
+  } else {
+    toast.error("Failed to import LinkedIn profile");
+  }
+}
+```
+
+### Phase 3: Add Client-Side URL Name Extraction
+
+**File**: `src/components/partner/AddCandidateDialog.tsx`
+
+Add a utility function to extract name from LinkedIn URL on the client side:
+
+```typescript
+function extractNameFromLinkedInUrl(url: string): string {
+  const match = url.match(/linkedin\.com\/in\/([^\/\?]+)/);
+  if (match && match[1]) {
+    let namePart = match[1].replace(/\/\d+$/, '').split('/')[0];
+    namePart = namePart.replace(/-[a-z0-9]{6,}$/i, '');
+    const parts = namePart.split('-').filter(word => {
+      const digitCount = (word.match(/\d/g) || []).length;
+      return digitCount < word.length / 2;
+    });
+    return parts
+      .filter(word => word.length > 0)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+  return '';
+}
 ```
 
 ---
@@ -157,25 +120,48 @@ After successful LinkedIn scrape, disable the name field to prevent user from en
 
 | File | Changes |
 |------|---------|
-| `src/components/partner/AddCandidateDialog.tsx` | Save avatar_url from scraper, clean stage notes format, disable name field after import |
-| `src/components/partner/StageCandidatesList.tsx` | Filter out auto-generated notes, ensure avatar displays properly |
-| `supabase/functions/linkedin-scraper/index.ts` | Ensure avatar_url is returned in response (already done) |
+| `supabase/functions/linkedin-scraper/index.ts` | Add 15s timeout with AbortController, ensure fast fallback to URL extraction |
+| `src/components/partner/AddCandidateDialog.tsx` | Add client-side name extraction, improved error handling with timeout detection |
 
 ---
 
-## Data Migration Consideration
+## Technical Details
 
-Existing candidates with bad data (like "Test84", "39393") will need manual cleanup or a migration script. Options:
-1. Manual update in database
-2. Migration script to re-extract names from LinkedIn URLs
-3. Add "Edit Candidate" feature for strategists
+### Timeout Strategy
+
+```
+User clicks "Import" 
+       │
+       ▼
+┌──────────────────────────────────┐
+│ Edge Function starts             │
+│ - Try Apify with 15s timeout     │
+│ - If timeout → try Proxycurl 10s │
+│ - If timeout → URL extraction    │
+│ - Return result (always <20s)    │
+└──────────────────────────────────┘
+       │
+       ▼
+Frontend receives response OR timeout
+       │
+       ├─► Success: Auto-fill form with data
+       │
+       └─► Timeout: Client-side URL extraction
+           Auto-fill name, show "verify details" message
+```
+
+### API Call Hierarchy with Timeouts
+
+1. **Apify** (15s timeout) → Primary provider, best data quality
+2. **Proxycurl** (10s timeout) → Fallback, good data quality  
+3. **URL Extraction** (instant) → Always available, name only
 
 ---
 
 ## Expected Result
 
 After implementation:
-- Avatar shows LinkedIn profile photo (when available) or professional initials
-- Name shows actual extracted name (e.g., "Anni Pfeiffer", "Vincent Biekman")
-- Card shows clean layout without raw template data
-- Professional appearance matching The Quantum Club brand standards
+- LinkedIn import works within 3-15 seconds (not 30-120 seconds)
+- If external APIs timeout, user still gets extracted name from URL
+- No more "Failed to import" errors for timeout scenarios
+- Users can always proceed with manual entry if needed
