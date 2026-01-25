@@ -46,13 +46,46 @@ serve(async (req) => {
 
     // Handle createEvent action
     if (action === 'createEvent') {
+      // Format event for Microsoft Graph API with proper attendee structure
+      const msEvent = {
+        subject: event.summary,
+        body: {
+          contentType: 'HTML',
+          content: event.description || '',
+        },
+        start: {
+          dateTime: event.start,
+          timeZone: event.timeZone || 'UTC',
+        },
+        end: {
+          dateTime: event.end,
+          timeZone: event.timeZone || 'UTC',
+        },
+        location: {
+          displayName: event.location || 'Video Call',
+        },
+        attendees: (event.attendees || []).map((email: string) => ({
+          emailAddress: {
+            address: email,
+          },
+          type: 'required',
+        })),
+        isOnlineMeeting: true,
+        onlineMeetingProvider: 'teamsForBusiness',
+        responseRequested: true, // Request RSVP from attendees
+      };
+
+      console.log('[Microsoft Calendar] Creating event with attendees (invites sent automatically)');
+      console.log('[Microsoft Calendar] Attendees:', msEvent.attendees);
+
       const response = await fetch('https://graph.microsoft.com/v1.0/me/events', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${msAccessToken}`,
           'Content-Type': 'application/json',
+          'Prefer': 'outlook.timezone="UTC"',
         },
-        body: JSON.stringify(event),
+        body: JSON.stringify(msEvent),
       });
 
       if (!response.ok) {
@@ -65,8 +98,9 @@ serve(async (req) => {
       }
 
       const createdEvent = await response.json();
+      console.log('[Microsoft Calendar] Event created successfully, invites sent to attendees');
       return new Response(
-        JSON.stringify({ event: createdEvent }),
+        JSON.stringify({ event: createdEvent, eventId: createdEvent.id }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
