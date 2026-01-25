@@ -204,8 +204,15 @@ export const VideoCallCard = ({
   dialIn,
   instructions,
 }: VideoCallCardProps): string => {
+  // For club_meetings, use text-based "QC" badge instead of large logo
+  const isClubMeetings = platform === 'club_meetings';
   const platformIcon = PLATFORM_ICONS[platform as keyof typeof PLATFORM_ICONS] || PLATFORM_ICONS.club_meetings;
   const defaultInstructions = instructions || 'Click the button below to join the video call.';
+  
+  // QC badge for Club Meetings, regular icon for other platforms
+  const iconHtml = isClubMeetings 
+    ? `<div style="width: 40px; height: 40px; border-radius: 10px; background-color: ${EMAIL_COLORS.gold}; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 16px; color: ${EMAIL_COLORS.eclipse};">QC</div>`
+    : `<img src="${platformIcon}" alt="${platformName}" width="40" height="40" style="display: block; border-radius: 8px;" />`;
   
   return `
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.03) 100%); border-radius: 16px; overflow: hidden; border: 1px solid rgba(99, 102, 241, 0.2); margin: 24px 0;">
@@ -215,7 +222,7 @@ export const VideoCallCard = ({
           <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
             <tr>
               <td width="48" valign="middle">
-                <img src="${platformIcon}" alt="${platformName}" width="40" height="40" style="display: block; border-radius: 8px;" />
+                ${iconHtml}
               </td>
               <td style="padding-left: 16px;" valign="middle">
                 <div style="font-size: 16px; font-weight: 600; color: ${EMAIL_COLORS.textPrimary};">

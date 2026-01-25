@@ -8,9 +8,24 @@ export const EMAIL_ASSETS_BASE_URL = 'https://thequantumclub.app';
 
 // Hosted email logos (publicly accessible)
 export const EMAIL_LOGOS = {
+  // Primary header logo - OVERSIZED for clear branding
+  fullBrand: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
+  // Standard clover icon
+  cloverIcon: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
+  // Small QC icon for meeting join buttons
+  qcIconLight: `${EMAIL_ASSETS_BASE_URL}/qc-icon-light.png`,
+  qcIconDark: `${EMAIL_ASSETS_BASE_URL}/qc-icon-dark.png`,
+  // Legacy aliases (for backward compatibility)
   cloverIcon80: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
   cloverIcon40: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
   fullLogo: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
+} as const;
+
+// Logo sizes (in pixels)
+export const EMAIL_LOGO_SIZES = {
+  headerBrand: 120,   // Oversized for clear branding
+  standard: 80,       // Standard usage
+  meetingCard: 40,    // Small icon for meeting cards
 } as const;
 
 // Standardized email sender addresses
