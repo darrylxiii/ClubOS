@@ -26027,6 +26027,65 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_action_items: {
+        Row: {
+          assignee_email: string | null
+          assignee_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          follow_up_id: string | null
+          id: string
+          meeting_id: string
+          priority: string | null
+          reminder_sent: boolean | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assignee_email?: string | null
+          assignee_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          follow_up_id?: string | null
+          id?: string
+          meeting_id: string
+          priority?: string | null
+          reminder_sent?: boolean | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assignee_email?: string | null
+          assignee_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          follow_up_id?: string | null
+          id?: string
+          meeting_id?: string
+          priority?: string | null
+          reminder_sent?: boolean | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_action_items_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_follow_ups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_agenda_items: {
         Row: {
           actual_minutes: number | null
@@ -26722,6 +26781,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      meeting_follow_ups: {
+        Row: {
+          action_items: Json | null
+          calendar_blocks_created: string[] | null
+          created_at: string | null
+          email_body: string | null
+          email_subject: string | null
+          generated_content: Json
+          host_id: string | null
+          id: string
+          meeting_id: string
+          sent_at: string | null
+          status: string | null
+          thank_you_sent: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_items?: Json | null
+          calendar_blocks_created?: string[] | null
+          created_at?: string | null
+          email_body?: string | null
+          email_subject?: string | null
+          generated_content?: Json
+          host_id?: string | null
+          id?: string
+          meeting_id: string
+          sent_at?: string | null
+          status?: string | null
+          thank_you_sent?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_items?: Json | null
+          calendar_blocks_created?: string[] | null
+          created_at?: string | null
+          email_body?: string | null
+          email_subject?: string | null
+          generated_content?: Json
+          host_id?: string | null
+          id?: string
+          meeting_id?: string
+          sent_at?: string | null
+          status?: string | null
+          thank_you_sent?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       meeting_insights: {
         Row: {
@@ -27671,6 +27778,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      meeting_roi_metrics: {
+        Row: {
+          action_items_count: number | null
+          could_have_been_email: boolean | null
+          created_at: string | null
+          decisions_made: number | null
+          duration_minutes: number | null
+          efficiency_score: number | null
+          host_id: string | null
+          id: string
+          meeting_id: string
+          outcomes: Json | null
+          participant_count: number | null
+          roi_calculated_at: string | null
+          total_salary_cost_usd: number | null
+          updated_at: string | null
+          value_generated_usd: number | null
+        }
+        Insert: {
+          action_items_count?: number | null
+          could_have_been_email?: boolean | null
+          created_at?: string | null
+          decisions_made?: number | null
+          duration_minutes?: number | null
+          efficiency_score?: number | null
+          host_id?: string | null
+          id?: string
+          meeting_id: string
+          outcomes?: Json | null
+          participant_count?: number | null
+          roi_calculated_at?: string | null
+          total_salary_cost_usd?: number | null
+          updated_at?: string | null
+          value_generated_usd?: number | null
+        }
+        Update: {
+          action_items_count?: number | null
+          could_have_been_email?: boolean | null
+          created_at?: string | null
+          decisions_made?: number | null
+          duration_minutes?: number | null
+          efficiency_score?: number | null
+          host_id?: string | null
+          id?: string
+          meeting_id?: string
+          outcomes?: Json | null
+          participant_count?: number | null
+          roi_calculated_at?: string | null
+          total_salary_cost_usd?: number | null
+          updated_at?: string | null
+          value_generated_usd?: number | null
+        }
+        Relationships: []
       }
       meeting_summaries: {
         Row: {
@@ -49020,6 +49181,54 @@ export type Database = {
           },
         ]
       }
+      voice_booking_sessions: {
+        Row: {
+          booking_id: string | null
+          booking_link_id: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          extracted_intent: Json | null
+          id: string
+          phone_number: string | null
+          session_id: string
+          started_at: string | null
+          status: string | null
+          transcript: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          booking_link_id?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          extracted_intent?: Json | null
+          id?: string
+          phone_number?: string | null
+          session_id: string
+          started_at?: string | null
+          status?: string | null
+          transcript?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          booking_link_id?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          extracted_intent?: Json | null
+          id?: string
+          phone_number?: string | null
+          session_id?: string
+          started_at?: string | null
+          status?: string | null
+          transcript?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       voice_connection_stats: {
         Row: {
           audio_level_db: number | null
@@ -49983,6 +50192,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      whatsapp_booking_sessions: {
+        Row: {
+          booking_id: string | null
+          booking_link_id: string | null
+          conversation_history: Json | null
+          created_at: string | null
+          expires_at: string | null
+          extracted_data: Json | null
+          id: string
+          last_message_at: string | null
+          phone_number: string
+          status: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          booking_link_id?: string | null
+          conversation_history?: Json | null
+          created_at?: string | null
+          expires_at?: string | null
+          extracted_data?: Json | null
+          id?: string
+          last_message_at?: string | null
+          phone_number: string
+          status?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          booking_link_id?: string | null
+          conversation_history?: Json | null
+          created_at?: string | null
+          expires_at?: string | null
+          extracted_data?: Json | null
+          id?: string
+          last_message_at?: string | null
+          phone_number?: string
+          status?: string | null
+        }
+        Relationships: []
       }
       whatsapp_broadcast_campaigns: {
         Row: {
