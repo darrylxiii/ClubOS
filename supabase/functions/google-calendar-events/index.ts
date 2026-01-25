@@ -140,12 +140,39 @@ serve(async (req) => {
     };
 
     if (action === 'createEvent') {
+      // Format event for Google Calendar API with proper attendee structure
+      const googleEvent = {
+        summary: event.summary,
+        description: event.description,
+        start: { 
+          dateTime: event.start, 
+          timeZone: event.timeZone || 'UTC' 
+        },
+        end: { 
+          dateTime: event.end, 
+          timeZone: event.timeZone || 'UTC' 
+        },
+        location: event.location || '',
+        attendees: (event.attendees || []).map((email: string) => ({
+          email,
+          responseStatus: email === event.organizer?.email ? 'accepted' : 'needsAction',
+        })),
+        guestsCanModify: false,
+        guestsCanInviteOthers: false,
+        guestsCanSeeOtherGuests: true,
+        ...(event.conferenceData && { conferenceData: event.conferenceData }),
+      };
+
+      console.log('[Google Calendar] Creating event with sendUpdates=all to trigger invites');
+      console.log('[Google Calendar] Attendees:', googleEvent.attendees);
+
+      // Add sendUpdates=all to send calendar invites to all attendees
       const response = await fetch(
-        'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+        'https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=all',
         {
           method: 'POST',
           headers,
-          body: JSON.stringify(event),
+          body: JSON.stringify(googleEvent),
         }
       );
 
@@ -159,8 +186,9 @@ serve(async (req) => {
       }
 
       const createdEvent = await response.json();
+      console.log('[Google Calendar] Event created successfully, invites sent to attendees');
       return new Response(
-        JSON.stringify({ event: createdEvent }),
+        JSON.stringify({ event: createdEvent, eventId: createdEvent.id }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -299,8 +327,9 @@ serve(async (req) => {
         );
       }
 
+      // Add sendUpdates=all to notify attendees of changes
       const response = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}?sendUpdates=all`,
         {
           method: 'PUT',
           headers,
@@ -318,6 +347,7 @@ serve(async (req) => {
       }
 
       const updatedEvent = await response.json();
+      console.log('[Google Calendar] Event updated, notifications sent to attendees');
       return new Response(
         JSON.stringify({ event: updatedEvent }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -335,8 +365,9 @@ serve(async (req) => {
         );
       }
 
+      // Add sendUpdates=all to notify attendees of cancellation
       const response = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}?sendUpdates=all`,
         {
           method: 'DELETE',
           headers,
@@ -352,6 +383,7 @@ serve(async (req) => {
         );
       }
 
+      console.log('[Google Calendar] Event deleted, cancellation notifications sent to attendees');
       return new Response(
         JSON.stringify({ success: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

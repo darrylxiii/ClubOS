@@ -123,6 +123,12 @@ serve(async (req) => {
 
     console.log(`[Sync] Total attendees: ${attendeesList.length}`, attendeesList);
 
+    // Determine meeting link for location
+    const meetingLink = booking.quantum_meeting_link || 
+                        booking.google_meet_hangout_link || 
+                        booking.video_meeting_link || 
+                        booking.booking_links?.meeting_link || '';
+
     const eventDetails = {
       summary: `${booking.booking_links?.title || 'Meeting'} - ${booking.guest_name}`,
       description: `
@@ -131,16 +137,18 @@ Email: ${booking.guest_email}
 ${booking.guest_phone ? `Phone: ${booking.guest_phone}\n` : ''}
 ${booking.notes ? `Notes: ${booking.notes}\n` : ''}
 ${booking.guests && booking.guests.length > 0 ? `\nAdditional Guests: ${booking.guests.map((g: any) => g.email).join(', ')}\n` : ''}
-${booking.booking_links?.meeting_link ? `\nMeeting Link: ${booking.booking_links.meeting_link}` : ''}
+${meetingLink ? `\nMeeting Link: ${meetingLink}` : ''}
       `.trim(),
       start: booking.scheduled_start,
       end: booking.scheduled_end,
       attendees: attendeesList,
-      location: booking.booking_links?.location || '',
+      location: meetingLink || booking.booking_links?.location || '',
+      timeZone: booking.timezone || 'UTC',
       organizer: {
         email: ownerProfile?.email,
         name: ownerProfile?.full_name || `${ownerProfile?.first_name} ${ownerProfile?.last_name}`,
       },
+      sendInvites: true, // Flag to enable calendar invite sending
     };
 
     // Create event in the appropriate calendar
