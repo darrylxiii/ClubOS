@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     const APIFY_API_KEY = Deno.env.get('APIFY_API_KEY');
     const PROXYCURL_API_KEY = Deno.env.get('PROXYCURL_API_KEY');
     
-    let profile: LinkedInProfile;
+    let profile: LinkedInProfile | null = null;
     let apiUsed = 'url_extraction';
     
     if (APIFY_API_KEY) {
