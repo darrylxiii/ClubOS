@@ -18602,6 +18602,108 @@ export type Database = {
           },
         ]
       }
+      focus_time_blocks: {
+        Row: {
+          auto_detected: boolean | null
+          block_type: string
+          calendar_event_id: string | null
+          created_at: string | null
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean | null
+          label: string | null
+          start_time: string
+          sync_to_calendar: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_detected?: boolean | null
+          block_type?: string
+          calendar_event_id?: string | null
+          created_at?: string | null
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+          start_time: string
+          sync_to_calendar?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_detected?: boolean | null
+          block_type?: string
+          calendar_event_id?: string | null
+          created_at?: string | null
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+          start_time?: string
+          sync_to_calendar?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      focus_time_preferences: {
+        Row: {
+          allow_override_with_reason: boolean | null
+          auto_detect_patterns: boolean | null
+          buffer_between_meetings_minutes: number | null
+          created_at: string | null
+          enable_focus_defender: boolean | null
+          id: string
+          max_daily_meetings: number | null
+          max_weekly_meeting_hours: number | null
+          min_focus_block_minutes: number | null
+          morning_end_hour: number | null
+          notification_when_protected: boolean | null
+          preferred_meeting_hours: Json | null
+          protect_mornings: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          allow_override_with_reason?: boolean | null
+          auto_detect_patterns?: boolean | null
+          buffer_between_meetings_minutes?: number | null
+          created_at?: string | null
+          enable_focus_defender?: boolean | null
+          id?: string
+          max_daily_meetings?: number | null
+          max_weekly_meeting_hours?: number | null
+          min_focus_block_minutes?: number | null
+          morning_end_hour?: number | null
+          notification_when_protected?: boolean | null
+          preferred_meeting_hours?: Json | null
+          protect_mornings?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          allow_override_with_reason?: boolean | null
+          auto_detect_patterns?: boolean | null
+          buffer_between_meetings_minutes?: number | null
+          created_at?: string | null
+          enable_focus_defender?: boolean | null
+          id?: string
+          max_daily_meetings?: number | null
+          max_weekly_meeting_hours?: number | null
+          min_focus_block_minutes?: number | null
+          morning_end_hour?: number | null
+          notification_when_protected?: boolean | null
+          preferred_meeting_hours?: Json | null
+          protect_mornings?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       freelance_contracts: {
         Row: {
           activated_at: string | null
@@ -34480,6 +34582,51 @@ export type Database = {
           },
         ]
       }
+      productivity_patterns: {
+        Row: {
+          avg_response_time_minutes: number | null
+          created_at: string | null
+          day_of_week: number
+          focus_quality_score: number | null
+          hour_of_day: number
+          id: string
+          last_calculated_at: string | null
+          meeting_success_rate: number | null
+          productivity_score: number | null
+          sample_size: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avg_response_time_minutes?: number | null
+          created_at?: string | null
+          day_of_week: number
+          focus_quality_score?: number | null
+          hour_of_day: number
+          id?: string
+          last_calculated_at?: string | null
+          meeting_success_rate?: number | null
+          productivity_score?: number | null
+          sample_size?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avg_response_time_minutes?: number | null
+          created_at?: string | null
+          day_of_week?: number
+          focus_quality_score?: number | null
+          hour_of_day?: number
+          id?: string
+          last_calculated_at?: string | null
+          meeting_success_rate?: number | null
+          productivity_score?: number | null
+          sample_size?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       productivity_privacy_settings: {
         Row: {
           activity_tracking_enabled: boolean
@@ -44982,6 +45129,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      team_meeting_load: {
+        Row: {
+          back_to_back_count: number | null
+          burnout_risk: string | null
+          created_at: string | null
+          date: string
+          focus_time_minutes: number | null
+          id: string
+          load_score: number | null
+          longest_meeting_minutes: number | null
+          meeting_count: number | null
+          meeting_minutes: number | null
+          recommendations: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          back_to_back_count?: number | null
+          burnout_risk?: string | null
+          created_at?: string | null
+          date: string
+          focus_time_minutes?: number | null
+          id?: string
+          load_score?: number | null
+          longest_meeting_minutes?: number | null
+          meeting_count?: number | null
+          meeting_minutes?: number | null
+          recommendations?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          back_to_back_count?: number | null
+          burnout_risk?: string | null
+          created_at?: string | null
+          date?: string
+          focus_time_minutes?: number | null
+          id?: string
+          load_score?: number | null
+          longest_meeting_minutes?: number | null
+          meeting_count?: number | null
+          meeting_minutes?: number | null
+          recommendations?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       template_assignments: {
         Row: {
