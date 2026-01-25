@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, Trash2, Video, Users, Shield, Repeat, CheckCircle } from "lucide-react";
+import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, Trash2, Video, Users, Shield, Repeat, CheckCircle, Brain, UsersRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { BookingAvailabilitySettings } from "@/components/scheduling/BookingAvailabilitySettings";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,6 +24,9 @@ import { BookingApprovalList } from "@/components/booking/BookingApprovalList";
 import { AvailabilityOnboardingWizard } from "@/components/scheduling/AvailabilityOnboardingWizard";
 import { useAvailabilityOnboarding } from "@/hooks/useAvailabilityOnboarding";
 import { SchedulingSkeleton } from "@/components/LoadingSkeletons";
+import { SchedulingAITab } from "@/components/scheduling/SchedulingAITab";
+import { TeamLoadDashboard } from "@/components/scheduling/TeamLoadDashboard";
+
 interface BookingLink {
   id: string;
   slug: string;
@@ -735,7 +738,7 @@ export default function Scheduling() {
         )}
 
         <Tabs defaultValue="links" className="w-full">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto gap-1 py-1">
             <TabsTrigger value="links">
               <LinkIcon className="h-4 w-4 mr-2" />
               Booking Links
@@ -759,7 +762,15 @@ export default function Scheduling() {
             </TabsTrigger>
             <TabsTrigger value="availability">
               <Clock className="h-4 w-4 mr-2" />
-              Availability Settings
+              Availability
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="gap-2">
+              <Brain className="h-4 w-4" />
+              AI Intelligence
+            </TabsTrigger>
+            <TabsTrigger value="team" className="gap-2">
+              <UsersRound className="h-4 w-4" />
+              Team
             </TabsTrigger>
           </TabsList>
 
@@ -939,6 +950,32 @@ export default function Scheduling() {
 
           <TabsContent value="availability" className="mt-6">
             <BookingAvailabilitySettings />
+          </TabsContent>
+
+          <TabsContent value="ai" className="mt-6">
+            <SchedulingAITab 
+              bookingIds={upcomingBookings.map(b => b.id)}
+            />
+          </TabsContent>
+
+          <TabsContent value="team" className="mt-6">
+            {bookingLinks.some(l => l.scheduling_type === 'round_robin' || l.scheduling_type === 'collective') ? (
+              <TeamLoadDashboard 
+                bookingLinkId={bookingLinks.find(l => 
+                  l.scheduling_type === 'round_robin' || l.scheduling_type === 'collective'
+                )?.id || ''}
+              />
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <UsersRound className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No Team Booking Links</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    Create a Round Robin or Collective booking link to enable team load balancing features.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>
