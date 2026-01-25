@@ -19,6 +19,8 @@ interface CancelBookingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bookingId: string;
+  /** Guest access token for guest-initiated cancellations */
+  accessToken?: string;
   onCancelled: () => void;
 }
 
@@ -26,6 +28,7 @@ export function CancelBookingDialog({
   open,
   onOpenChange,
   bookingId,
+  accessToken,
   onCancelled,
 }: CancelBookingDialogProps) {
   const [reason, setReason] = useState("");
@@ -39,21 +42,36 @@ export function CancelBookingDialog({
 
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke("cancel-booking", {
-        body: {
-          bookingId,
-          reason: reason.trim(),
-        },
-      });
+      // If we have an accessToken, use guest-booking-actions, otherwise use cancel-booking
+      if (accessToken) {
+        const { error } = await supabase.functions.invoke("guest-booking-actions", {
+          body: {
+            action: 'cancel',
+            bookingId,
+            accessToken,
+            cancelReason: reason.trim(),
+          },
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.functions.invoke("cancel-booking", {
+          body: {
+            bookingId,
+            reason: reason.trim(),
+          },
+        });
+
+        if (error) throw error;
+      }
 
       toast.success("Booking cancelled successfully");
       onOpenChange(false);
       onCancelled();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Cancel error:", error);
-      toast.error(error.message || "Failed to cancel booking");
+      const errorMessage = error instanceof Error ? error.message : "Failed to cancel booking";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

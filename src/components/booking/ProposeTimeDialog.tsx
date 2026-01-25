@@ -8,21 +8,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { format, addDays, setHours, setMinutes } from "date-fns";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProposeTimeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (proposedStart: string, proposedEnd: string, message?: string) => Promise<void>;
-  durationMinutes: number;
-  title: string;
+  bookingId: string;
+  bookingLinkSlug: string;
+  accessToken?: string;
+  proposerEmail?: string;
+  proposerName?: string;
+  onProposed?: () => void;
+  /** Legacy: direct submit handler (takes precedence if provided) */
+  onSubmit?: (proposedStart: string, proposedEnd: string, message?: string) => Promise<void>;
+  durationMinutes?: number;
+  title?: string;
 }
 
 export function ProposeTimeDialog({
   open,
   onOpenChange,
+  bookingId,
+  bookingLinkSlug,
+  accessToken,
+  proposerEmail,
+  proposerName,
+  onProposed,
   onSubmit,
-  durationMinutes,
-  title,
+  durationMinutes = 30,
+  title = "Meeting",
 }: ProposeTimeDialogProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -57,20 +71,44 @@ export function ProposeTimeDialog({
 
     setLoading(true);
     try {
-      await onSubmit(
-        proposedStart.toISOString(),
-        proposedEnd.toISOString(),
-        message.trim() || undefined
-      );
+      // If legacy onSubmit is provided, use it
+      if (onSubmit) {
+        await onSubmit(
+          proposedStart.toISOString(),
+          proposedEnd.toISOString(),
+          message.trim() || undefined
+        );
+      } else {
+        // Use the guest-booking-actions edge function
+        const { error } = await supabase.functions.invoke("guest-booking-actions", {
+          body: {
+            action: 'propose_time',
+            bookingId,
+            accessToken,
+            proposedStart: proposedStart.toISOString(),
+            proposedEnd: proposedEnd.toISOString(),
+            proposalMessage: message.trim() || undefined,
+            guestEmail: proposerEmail,
+          },
+        });
+
+        if (error) throw error;
+      }
       
       // Reset form
       setSelectedDate(undefined);
       setSelectedTime("");
       setMessage("");
       onOpenChange(false);
-      toast.success("Time proposal submitted! The host will be notified.");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to submit proposal");
+      
+      if (onProposed) {
+        onProposed();
+      } else {
+        toast.success("Time proposal submitted! The host will be notified.");
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit proposal";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

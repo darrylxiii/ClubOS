@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { 
   Button, Card, Heading, Paragraph, Spacer, InfoRow, 
@@ -12,6 +13,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+interface GuestWithPermissions {
+  email: string;
+  name?: string;
+  can_cancel?: boolean;
+  can_reschedule?: boolean;
+  can_propose_times?: boolean;
+  can_add_attendees?: boolean;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -32,10 +42,12 @@ serve(async (req) => {
 
     const { booking, bookingLink } = await req.json();
     
-    // Initialize Supabase client to fetch owner profile
+    // Initialize Supabase client to fetch owner profile and insert guest records
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const appUrl = getEmailAppUrl();
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
     
     console.log("[BookingConfirmation] Looking up owner profile for user_id:", bookingLink.user_id);
     
@@ -123,7 +135,7 @@ serve(async (req) => {
     ];
 
     if (booking.guests && Array.isArray(booking.guests)) {
-      booking.guests.forEach((guest: any) => {
+      booking.guests.forEach((guest: GuestWithPermissions) => {
         if (guest.email) {
           attendeesList.push(`ATTENDEE;CN=${guest.name || guest.email};RSVP=TRUE:MAILTO:${guest.email}`);
         }
@@ -219,7 +231,7 @@ serve(async (req) => {
       schemaMarkup: schemaMarkup,
     });
 
-    // Send email to GUEST
+    // Send email to GUEST (primary booker)
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const guestEmailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -245,37 +257,212 @@ serve(async (req) => {
     const guestEmailResult = await guestEmailResponse.json();
     console.log("Guest confirmation email sent:", guestEmailResult);
 
-    // Send emails to ADDITIONAL GUESTS
+    // Send emails to ADDITIONAL GUESTS with personalized invitations
     if (booking.guests && Array.isArray(booking.guests) && booking.guests.length > 0) {
-      for (const guest of booking.guests) {
-        if (guest.email) {
-          await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${resendApiKey}`,
-            },
-            body: JSON.stringify({
-              from: EMAIL_SENDERS.bookings,
-              to: [guest.email],
-              subject: `You're invited: ${bookingLink.title} - ${formattedDate}`,
-              html: emailHtml,
-              attachments: [
-                {
-                  filename: "meeting.ics",
-                  content: btoa(icsContent),
-                  content_type: "text/calendar; method=REQUEST",
-                },
-              ],
-            }),
-          });
-          console.log(`Additional guest email sent to ${guest.email}`);
+      console.log(`[BookingConfirmation] Processing ${booking.guests.length} additional guests`);
+      
+      // Get host-level permissions from booking link
+      const hostPermissions = bookingLink.guest_permissions || {
+        allow_guest_cancel: false,
+        allow_guest_reschedule: false,
+        allow_guest_propose_times: true,
+        allow_guest_add_attendees: false,
+        booker_can_delegate: true,
+      };
+      
+      // Get booker's delegated permissions from booking
+      const delegatedPermissions = booking.delegated_permissions || {
+        can_cancel: false,
+        can_reschedule: false,
+        can_propose_times: true,
+        can_add_attendees: false,
+      };
+      
+      for (const guest of booking.guests as GuestWithPermissions[]) {
+        if (!guest.email) continue;
+        
+        // Calculate effective permissions (guest permissions capped by host and booker settings)
+        const effectivePermissions = {
+          can_cancel: (guest.can_cancel ?? delegatedPermissions.can_cancel) && hostPermissions.allow_guest_cancel,
+          can_reschedule: (guest.can_reschedule ?? delegatedPermissions.can_reschedule) && hostPermissions.allow_guest_reschedule,
+          can_propose_times: (guest.can_propose_times ?? delegatedPermissions.can_propose_times) && hostPermissions.allow_guest_propose_times,
+          can_add_attendees: (guest.can_add_attendees ?? delegatedPermissions.can_add_attendees) && hostPermissions.allow_guest_add_attendees,
+        };
+        
+        // Insert guest record into booking_guests table with access token
+        const { data: guestRecord, error: insertError } = await supabase
+          .from('booking_guests')
+          .insert([{
+            booking_id: booking.id,
+            email: guest.email,
+            name: guest.name || null,
+            can_cancel: effectivePermissions.can_cancel,
+            can_reschedule: effectivePermissions.can_reschedule,
+            can_propose_times: effectivePermissions.can_propose_times,
+            can_add_attendees: effectivePermissions.can_add_attendees,
+            email_sent_at: new Date().toISOString(),
+          }])
+          .select('access_token')
+          .single();
+        
+        if (insertError) {
+          console.error(`[BookingConfirmation] Failed to insert guest record for ${guest.email}:`, insertError);
+          // Continue sending email even if insert fails - token won't be available
         }
+        
+        const guestAccessToken = guestRecord?.access_token;
+        const guestPortalUrl = guestAccessToken 
+          ? `${appUrl}/booking/${booking.id}/guest/${guestAccessToken}`
+          : `${appUrl}/bookings/${booking.id}`;
+        
+        // Build permission-based action buttons
+        const actionButtons = [];
+        
+        if (effectivePermissions.can_propose_times) {
+          actionButtons.push(`
+            <a href="${guestPortalUrl}?action=propose" 
+               style="display: inline-block; padding: 10px 20px; margin: 5px; 
+                      background-color: transparent; border: 1px solid ${EMAIL_COLORS.gold}; 
+                      color: ${EMAIL_COLORS.gold}; text-decoration: none; border-radius: 6px; 
+                      font-size: 14px;">
+              Propose Different Time
+            </a>
+          `);
+        }
+        
+        if (effectivePermissions.can_cancel) {
+          actionButtons.push(`
+            <a href="${guestPortalUrl}?action=cancel" 
+               style="display: inline-block; padding: 10px 20px; margin: 5px; 
+                      background-color: transparent; border: 1px solid #dc2626; 
+                      color: #dc2626; text-decoration: none; border-radius: 6px; 
+                      font-size: 14px;">
+              Cancel Meeting
+            </a>
+          `);
+        }
+        
+        if (effectivePermissions.can_add_attendees) {
+          actionButtons.push(`
+            <a href="${guestPortalUrl}?action=add_guest" 
+               style="display: inline-block; padding: 10px 20px; margin: 5px; 
+                      background-color: transparent; border: 1px solid ${EMAIL_COLORS.textSecondary}; 
+                      color: ${EMAIL_COLORS.textSecondary}; text-decoration: none; border-radius: 6px; 
+                      font-size: 14px;">
+              Add Attendees
+            </a>
+          `);
+        }
+        
+        const actionButtonsHtml = actionButtons.length > 0 
+          ? `
+            ${Spacer(24)}
+            <div style="text-align: center;">
+              <p style="color: ${EMAIL_COLORS.textSecondary}; font-size: 12px; margin-bottom: 12px;">
+                Manage your attendance:
+              </p>
+              ${actionButtons.join('')}
+            </div>
+          `
+          : '';
+        
+        // Build personalized guest email content
+        const guestEmailContent = `
+          ${StatusBadge({ status: 'new', text: "YOU'RE INVITED" })}
+          ${Heading({ text: bookingLink.title, level: 1, align: 'center' })}
+          ${Spacer(24)}
+          ${Paragraph(`Hi ${guest.name || 'there'},`, 'primary')}
+          ${Spacer(8)}
+          ${Paragraph(`<strong>${booking.guest_name}</strong> has invited you to a meeting.`, 'secondary')}
+          ${Spacer(32)}
+          ${Card({
+            variant: 'highlight',
+            content: `
+              ${Heading({ text: 'Meeting Details', level: 2 })}
+              ${Spacer(16)}
+              ${InfoRow({ icon: '👤', label: 'Host', value: ownerProfile?.full_name || 'Meeting Host' })}
+              ${InfoRow({ icon: '📧', label: 'Booked by', value: `${booking.guest_name} (${booking.guest_email})` })}
+              ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
+              ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} (${booking.timezone})` })}
+              ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${bookingLink.duration_minutes} minutes` })}
+              ${bookingLink.description ? InfoRow({ icon: '📝', label: 'Description', value: bookingLink.description }) : ''}
+            `
+          })}
+          ${Spacer(24)}
+          ${hasMeetingLink ? VideoCallCard({
+            platform: platformType,
+            platformName: platformName,
+            joinUrl: meetingLink,
+            instructions: meetingInstructions,
+          }) : ''}
+          ${actionButtonsHtml}
+          ${Spacer(24)}
+          ${CalendarButtons({
+            title: bookingLink.title,
+            startDate: startDate,
+            endDate: endDate,
+            description: enhancedDescription,
+            location: meetingLocation,
+          })}
+          ${Spacer(24)}
+          ${AlertBox({
+            type: 'info',
+            title: 'Questions?',
+            message: `Contact the person who booked this meeting at <a href="mailto:${booking.guest_email}" style="color: ${EMAIL_COLORS.gold}; text-decoration: none;">${booking.guest_email}</a>`,
+          })}
+        `;
+
+        const guestInviteHtml = baseEmailTemplate({
+          preheader: `${booking.guest_name} invited you: ${bookingLink.title} • ${formattedDate}`,
+          content: guestEmailContent,
+          showHeader: true,
+          showFooter: true,
+          schemaMarkup: schemaMarkup,
+        });
+        
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${resendApiKey}`,
+          },
+          body: JSON.stringify({
+            from: EMAIL_SENDERS.bookings,
+            to: [guest.email],
+            subject: `📅 ${booking.guest_name} invited you: ${bookingLink.title} - ${formattedDate}`,
+            html: guestInviteHtml,
+            attachments: [
+              {
+                filename: "meeting.ics",
+                content: btoa(icsContent),
+                content_type: "text/calendar; method=REQUEST",
+              },
+            ],
+          }),
+        });
+        console.log(`[BookingConfirmation] Personalized invite sent to ${guest.email} with token: ${guestAccessToken ? 'yes' : 'no'}`);
       }
     }
 
     // Send email to OWNER (booking link creator)
     if (ownerProfile?.email) {
+      // Build guest list for owner notification
+      const guestListHtml = booking.guests && booking.guests.length > 0
+        ? `
+          ${Spacer(16)}
+          <div style="border-top: 1px solid ${EMAIL_COLORS.border}; padding-top: 16px;">
+            <p style="color: ${EMAIL_COLORS.textSecondary}; font-size: 12px; margin-bottom: 8px;">
+              Additional Attendees (${booking.guests.length}):
+            </p>
+            ${booking.guests.map((g: GuestWithPermissions) => 
+              `<p style="color: ${EMAIL_COLORS.textPrimary}; font-size: 14px; margin: 4px 0;">
+                • ${g.name || g.email} ${g.name ? `(${g.email})` : ''}
+              </p>`
+            ).join('')}
+          </div>
+        `
+        : '';
+      
       const ownerEmailContent = `
         ${StatusBadge({ status: 'new', text: 'NEW BOOKING' })}
         ${Heading({ text: `New Booking: ${bookingLink.title}`, level: 1, align: 'center' })}
@@ -296,6 +483,7 @@ serve(async (req) => {
             ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} (${booking.timezone})` })}
             ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${bookingLink.duration_minutes} minutes` })}
             ${booking.notes ? InfoRow({ icon: '💬', label: 'Guest Notes', value: booking.notes }) : ''}
+            ${guestListHtml}
           `
         })}
         ${Spacer(24)}
