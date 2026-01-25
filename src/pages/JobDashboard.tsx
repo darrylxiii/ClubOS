@@ -297,60 +297,104 @@ export default function JobDashboard() {
 
       if (error) throw error;
 
-      // Enrich with candidate profile data through candidate_interactions
+       // Enrich with candidate profile data
       const enrichedApps = await Promise.all((data || []).map(async (app) => {
         let profileData = null;
         let linkedUserId = app.user_id;
+         let candidateIdToUse = app.candidate_id;
 
-        // First try to get candidate_profile through candidate_interactions
-        const { data: interaction } = await supabase
-          .from('candidate_interactions')
-          .select(`
-            candidate_id,
-            candidate_profiles!candidate_interactions_candidate_id_fkey (
-              user_id,
-              full_name,
-              email,
-              phone,
-              avatar_url,
-              current_title,
-              current_company,
-              linkedin_url
-            )
-          `)
-          .eq('application_id', app.id)
-          .maybeSingle();
-
-        if (interaction?.candidate_profiles) {
-          profileData = interaction.candidate_profiles;
-          // Use linked user_id from candidate_profile if available
-          if (profileData.user_id) {
-            linkedUserId = profileData.user_id;
-
-            // If candidate_profile is linked to user, get user's latest avatar
-            const { data: userProfile } = await supabase
-              .from('profiles')
-              .select('avatar_url')
-              .eq('id', profileData.user_id)
-              .maybeSingle();
-
-            if (userProfile?.avatar_url) {
-              profileData.avatar_url = userProfile.avatar_url;
-            }
-          }
-        } else if (app.user_id) {
-          // Fallback to user profile if no candidate_profile found
-          const { data: userProfile } = await supabase
-            .from('profiles')
-            .select('full_name, email, phone, avatar_url')
-            .eq('id', app.user_id)
-            .maybeSingle();
-          profileData = userProfile;
-        }
-
-        return {
-          ...app,
-          candidate_id: interaction?.candidate_id || null, // Add candidate_id from interactions
+         // PRIORITY 1: Direct lookup via candidate_id (for manually-added candidates)
+         if (app.candidate_id) {
+           const { data: candidateProfile } = await supabase
+             .from('candidate_profiles')
+             .select(`
+               user_id,
+               full_name,
+               email,
+               phone,
+               avatar_url,
+               current_title,
+               current_company,
+               linkedin_url
+             `)
+             .eq('id', app.candidate_id)
+             .maybeSingle();
+ 
+           if (candidateProfile) {
+             profileData = candidateProfile;
+             // Use linked user_id from candidate_profile if available
+             if (candidateProfile.user_id) {
+               linkedUserId = candidateProfile.user_id;
+ 
+               // If candidate_profile is linked to user, get user's latest avatar
+               const { data: userProfile } = await supabase
+                 .from('profiles')
+                 .select('avatar_url')
+                 .eq('id', candidateProfile.user_id)
+                 .maybeSingle();
+ 
+               if (userProfile?.avatar_url) {
+                 profileData.avatar_url = userProfile.avatar_url;
+               }
+             }
+           }
+         }
+ 
+         // PRIORITY 2: Fallback to candidate_interactions lookup (legacy path)
+         if (!profileData) {
+           const { data: interaction } = await supabase
+             .from('candidate_interactions')
+             .select(`
+               candidate_id,
+               candidate_profiles!candidate_interactions_candidate_id_fkey (
+                 user_id,
+                 full_name,
+                 email,
+                 phone,
+                 avatar_url,
+                 current_title,
+                 current_company,
+                 linkedin_url
+               )
+             `)
+             .eq('application_id', app.id)
+             .maybeSingle();
+ 
+           if (interaction?.candidate_profiles) {
+             profileData = interaction.candidate_profiles;
+             candidateIdToUse = interaction.candidate_id;
+             
+             // Use linked user_id from candidate_profile if available
+             if (profileData.user_id) {
+               linkedUserId = profileData.user_id;
+ 
+               // If candidate_profile is linked to user, get user's latest avatar
+               const { data: userProfile } = await supabase
+                 .from('profiles')
+                 .select('avatar_url')
+                 .eq('id', profileData.user_id)
+                 .maybeSingle();
+ 
+               if (userProfile?.avatar_url) {
+                 profileData.avatar_url = userProfile.avatar_url;
+               }
+             }
+           }
+         }
+ 
+         // PRIORITY 3: Final fallback to user profile if no candidate_profile found
+         if (!profileData && app.user_id) {
+           const { data: userProfile } = await supabase
+             .from('profiles')
+             .select('full_name, email, phone, avatar_url')
+             .eq('id', app.user_id)
+             .maybeSingle();
+           profileData = userProfile;
+         }
+ 
+         return {
+           ...app,
+           candidate_id: candidateIdToUse, // Use direct candidate_id or from interactions
           full_name: profileData?.full_name || 'Candidate',
           email: profileData?.email,
           phone: profileData?.phone,
