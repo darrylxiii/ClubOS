@@ -48,6 +48,40 @@ export default function RecordingPlaybackPage() {
     }
   }, [recordingId]);
 
+  // Real-time subscription for status updates
+  useEffect(() => {
+    if (!recording?.id) return;
+
+    const channel = supabase
+      .channel(`recording-${recording.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'meeting_recordings_extended',
+          filter: `id=eq.${recording.id}`
+        },
+        (payload) => {
+          console.log('[Recording] Real-time update received:', payload.new);
+          setRecording((prev: any) => ({ ...prev, ...payload.new }));
+
+          // Show appropriate toast based on status
+          const newStatus = (payload.new as any).processing_status;
+          if (newStatus === 'completed') {
+            toast.success('Analysis completed!');
+          } else if (newStatus === 'failed') {
+            toast.error(`Processing failed: ${(payload.new as any).processing_error || 'Unknown error'}`);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [recording?.id]);
+
   const loadRecording = async () => {
     try {
       const { data: recordingData, error } = await supabase
@@ -286,8 +320,14 @@ export default function RecordingPlaybackPage() {
                 {recording.title || recording.meeting?.title || 'Recording'}
               </h1>
               <Badge variant="secondary">{sourceType}</Badge>
-              {recording.processing_status === 'processing' && (
-                <Badge variant="outline" className="animate-pulse">
+              {recording.processing_status === 'transcribing' && (
+                <Badge variant="outline" className="animate-pulse border-blue-500/50 text-blue-500">
+                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                  Transcribing...
+                </Badge>
+              )}
+              {recording.processing_status === 'analyzing' && (
+                <Badge variant="outline" className="animate-pulse border-purple-500/50 text-purple-500">
                   <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
                   Analyzing...
                 </Badge>

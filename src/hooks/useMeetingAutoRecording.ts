@@ -234,24 +234,18 @@ export function useMeetingAutoRecording({
     }
   };
 
-  // Trigger AI analysis pipeline
+  // Trigger transcription and AI analysis pipeline
   const triggerAnalysis = async (recordingId: string) => {
     try {
-      console.log('[AutoRecording] Triggering AI analysis for:', recordingId);
+      console.log('[AutoRecording] Triggering transcription pipeline for:', recordingId);
 
-      // Update status to transcribing
-      await supabase
-        .from('meeting_recordings_extended')
-        .update({ processing_status: 'transcribing' })
-        .eq('id', recordingId);
-
-      // Call the analysis edge function
-      const { error } = await supabase.functions.invoke('analyze-meeting-recording-advanced', {
-        body: { recordingId }
+      // Call transcribe-recording which handles the full pipeline (transcription + analysis)
+      const { error } = await supabase.functions.invoke('transcribe-recording', {
+        body: { recordingId, chainAnalysis: true }
       });
 
       if (error) {
-        console.error('[AutoRecording] Analysis trigger failed:', error);
+        console.error('[AutoRecording] Transcription trigger failed:', error);
         await supabase
           .from('meeting_recordings_extended')
           .update({
@@ -260,13 +254,13 @@ export function useMeetingAutoRecording({
           })
           .eq('id', recordingId);
       } else {
-        console.log('[AutoRecording] ✅ AI analysis triggered');
-        toast.success('AI analysis started', {
+        console.log('[AutoRecording] ✅ Transcription pipeline triggered');
+        toast.success('Processing started', {
           description: 'Transcript and insights will be ready soon'
         });
       }
     } catch (error) {
-      console.error('[AutoRecording] Error triggering analysis:', error);
+      console.error('[AutoRecording] Error triggering transcription:', error);
     }
   };
 

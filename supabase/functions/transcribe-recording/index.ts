@@ -57,8 +57,8 @@ serve(async (req) => {
     if (fetchError) throw fetchError;
     if (!recording) throw new Error(`Recording not found: ${recordingId}`);
 
-    // Check if already transcribed
-    if (recording.transcript && recording.transcript.length > 100) {
+    // Check if already transcribed (any non-empty transcript counts)
+    if (recording.transcript && recording.transcript.trim().length > 0) {
       console.log(`[Transcribe] ✅ Recording already has transcript (${recording.transcript.length} chars)`);
       
       // If chaining, trigger analysis
