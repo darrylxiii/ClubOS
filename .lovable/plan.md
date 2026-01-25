@@ -1,341 +1,333 @@
 
-# Comprehensive UI/UX Audit & Enterprise Integration Plan
+
+# Meeting History & Transcription System: Comprehensive Enterprise Audit
+
+## Current Score: 42/100
+
+---
 
 ## AUDIT FINDINGS
 
-### Current Score: 52/100 (Revised from 38/100)
+### Issue 1: Navigation Duplication (CRITICAL)
 
-After thorough exploration, I found **significantly more existing infrastructure** than initially assessed. Here's the complete inventory:
+**Problem**: Two separate navigation paths exist for Meeting History:
+1. **Sidebar Navigation**: `/meeting-history` → `MeetingHistory.tsx` (standalone page)
+2. **Meetings Tab**: `/meetings?tab=history` → `MeetingHistoryTab.tsx` (tab component)
 
----
+**Root Cause Analysis**:
+- `MeetingHistory.tsx` is an older implementation using the legacy `meeting_recordings` table
+- `MeetingHistoryTab.tsx` uses the modern `meeting_recordings_extended` table via `useMeetingRecordings` hook
+- Both appear in navigation, creating confusion
 
-## EXISTING FEATURES INVENTORY
-
-### Already Built & Visible to Users:
-
-| Feature | Component | Location | Status |
-|---------|-----------|----------|--------|
-| Meeting Notes | `src/pages/MeetingNotes.tsx` | `/meeting-notes/:meetingId` | **LIVE** - Full AI analysis with Summary, Actions, Moments, Skills tabs |
-| Meeting Intelligence Tab | `src/components/meetings/MeetingIntelligenceTab.tsx` | `/meetings?tab=intelligence` | **LIVE** |
-| Meeting Analytics | `src/components/meetings/MeetingAnalyticsDashboard.tsx` | `/meetings?tab=analytics` | **LIVE** |
-| Meeting History | `src/components/meetings/MeetingHistoryTab.tsx` | `/meetings?tab=history` | **LIVE** |
-| Notetaker Settings | `src/components/meetings/NotetakerSettingsTab.tsx` | `/meetings?tab=settings` | **LIVE** |
-| No-Show Prediction Panel | `src/components/booking/NoShowPredictionPanel.tsx` | Built but **NOT INTEGRATED** |
-| No-Show Risk Badge | `src/components/booking/NoShowRiskBadge.tsx` | Built but **NOT INTEGRATED** |
-| Focus Time Settings | `src/components/scheduling/FocusTimeSettings.tsx` | Built but **NOT INTEGRATED** |
-| Team Load Dashboard | `src/components/scheduling/TeamLoadDashboard.tsx` | Built but **NOT INTEGRATED** |
-| Conflict Alert Banner | `src/components/scheduling/ConflictAlertBanner.tsx` | Built but **NOT INTEGRATED** |
-| Conflict Resolution Dialog | `src/components/scheduling/ConflictResolutionDialog.tsx` | Built but **NOT INTEGRATED** |
-| Post-Meeting Panel | `src/components/meetings/PostMeetingPanel.tsx` | Built but **NOT INTEGRATED** |
-| Voice Booking Widget | `src/components/booking/VoiceBookingWidget.tsx` | Built but **NOT INTEGRATED** |
-| WhatsApp Booking Dashboard | `src/components/admin/WhatsAppBookingDashboard.tsx` | Built but **NO ROUTE** |
-| Meeting Dossier Panel | `src/components/meetings/MeetingDossierPanel.tsx` | Built (partial integration) |
-
-### Existing Scheduling Page Tabs (5 tabs):
-1. **Booking Links** - Fully functional
-2. **Pending Approvals** - Fully functional
-3. **Upcoming Bookings** - Fully functional
-4. **Analytics** - `BookingAnalyticsDashboard` integrated
-5. **Availability Settings** - `BookingAvailabilitySettings` integrated
-
-### Existing Meetings Page Tabs (6 tabs):
-1. **Calendar View** - `UnifiedCalendarView`
-2. **My Meetings** - Meeting cards with search
-3. **History** - `MeetingHistoryTab`
-4. **Intelligence** - `MeetingIntelligenceTab`
-5. **Analytics** - `MeetingAnalyticsDashboard`
-6. **Settings** - `NotetakerSettingsTab`
-
-### Existing Admin WhatsApp Hub:
-- Full WhatsApp management at `/admin/whatsapp`
-- Tabs: Inbox, Analytics, Campaigns, Automations, Import, Settings
-- **WhatsApp Booking is a SEPARATE feature** from WhatsApp Hub (booking via WA messages)
+**Files Involved**:
+- `src/config/navigation.config.ts:104` - Defines "Meeting History" in sidebar
+- `src/routes/meetings.routes.tsx:70-80` - Route for `/meeting-history`
+- `src/pages/MeetingHistory.tsx` - Legacy standalone page
+- `src/components/meetings/MeetingHistoryTab.tsx` - Modern tab component
+- `src/pages/Meetings.tsx:428-430` - History tab in Meetings page
 
 ---
 
-## INTEGRATION GAPS (What's Missing)
+### Issue 2: Transcript Not Available (CRITICAL)
 
-### Gap 1: Scheduling Page Missing AI Intelligence
-**Components built but not surfaced:**
-- `FocusTimeSettings` (Phase 3)
-- `TeamLoadDashboard` (Phase 3)
-- `NoShowPredictionPanel` (Phase 1)
-- `ConflictAlertBanner` (Phase 4)
+**Problem**: Recording `43cecc37-db8a-48b1-b0b2-80c4a515807d` shows "Transcript not available yet"
 
-### Gap 2: Meetings Page Missing Post-Meeting & Dossier Tabs
-**Components built but not surfaced:**
-- `PostMeetingPanel` (Phase 6) - Should be accessible after meetings end
-- `MeetingDossierPanel` - Should be accessible before meetings start
-
-### Gap 3: Booking Page Missing Voice Widget
-**Component built but not integrated:**
-- `VoiceBookingWidget` (Phase 7) - Not added to `/book/:slug`
-
-### Gap 4: Admin Routes Missing Scheduling Intelligence
-**Components built but no route:**
-- `WhatsAppBookingDashboard` - Needs admin route
-
-### Gap 5: Global Conflict Banner Not in AppLayout
-**Component built but not globally visible:**
-- `ConflictAlertBanner` should show across app when conflicts detected
-
----
-
-## IMPLEMENTATION PLAN
-
-### PHASE A: Enhance Scheduling Page (+20 points)
-
-**File to modify:** `src/pages/Scheduling.tsx`
-
-**Add 2 new tabs:**
-1. **"AI Intelligence"** tab containing:
-   - `FocusTimeSettings` component
-   - `NoShowPredictionPanel` component
-   - Conflict detection button trigger
-
-2. **"Team"** tab (visible for round-robin links):
-   - `TeamLoadDashboard` component
-
-**Technical approach:**
+**Root Cause Analysis** (Database Query Results):
 ```text
-Current tabs: links | pending | bookings | analytics | availability
-New tabs: links | pending | bookings | analytics | availability | ai | team
+Recording Status:
+- id: 43cecc37-db8a-48b1-b0b2-80c4a515807d
+- source_type: live_hub
+- processing_status: pending
+- transcript: NULL
+- transcript_json: NULL
+- meeting_id: NULL (it's a Live Hub recording, not a meeting)
+- live_channel_id: 7f95cb6c-ded6-46b8-b67d-a1e693d980d8
+- duration_seconds: 108
+- recording_url: EXISTS (valid)
 ```
 
-**Implementation:**
-- Import `FocusTimeSettings`, `TeamLoadDashboard`, `NoShowPredictionPanel`
-- Import `Brain`, `Users` icons from lucide-react
-- Add TabsTrigger for "AI Intelligence" and "Team"
-- Add TabsContent with components
-- Use `useNoShowPrediction` hook for predictions data
+**The transcription pipeline is BROKEN** because:
+1. **No automatic transcription trigger**: When a Live Hub recording is saved, no function automatically calls `voice-to-text` or `meeting-debrief`
+2. **Live Hub uses different tables**: Live Hub transcripts go to `livehub_transcripts`, not `meeting_transcripts`
+3. **The compile function targets wrong table**: `compile-meeting-transcript` reads from `meeting_transcripts` but Live Hub uses `livehub_transcripts`
+4. **No post-recording processing**: `process-livehub-recording` exists but is NOT triggered automatically after recording upload
+5. **Missing Whisper integration for Live Hub**: `voice-to-text` requires the recording to be downloaded and sent to OpenAI Whisper, but this is never triggered
 
----
-
-### PHASE B: Enhance Meetings Page (+15 points)
-
-**File to modify:** `src/pages/Meetings.tsx`
-
-**Add 2 new tabs:**
-1. **"Prep"** (Pre-Meeting) tab:
-   - List upcoming meetings with "Generate Dossier" button
-   - Use `GenerateDossierButton` component
-   - Show `MeetingDossierPanel` inline for selected meeting
-
-2. **"Post"** (Post-Meeting) tab:
-   - Filter completed meetings
-   - Integrate `PostMeetingPanel` for selected meeting
-   - Show action items, follow-ups, ROI metrics
-
-**Technical approach:**
+**Transcription Pipeline Gap Analysis**:
 ```text
-Current tabs: calendar | my-meetings | history | intelligence | analytics | settings
-New tabs: calendar | my-meetings | prep | post | history | intelligence | analytics | settings
-```
+CURRENT FLOW (BROKEN):
+Recording Uploaded → processing_status: pending → NOTHING HAPPENS
 
-**Implementation:**
-- Import `PostMeetingPanel`, `MeetingDossierPanel`
-- Import `FileText`, `CheckSquare` icons
-- Add filtering logic for upcoming vs completed meetings
-- Create `PreMeetingTab` and `PostMeetingTab` inline components
-
----
-
-### PHASE C: Add Voice Widget to Booking Page (+10 points)
-
-**File to modify:** `src/pages/BookingPage.tsx`
-
-**Add:**
-- Import `VoiceBookingWidget`
-- Render at bottom of page (conditionally based on feature flag or always)
-
-**Implementation:**
-```typescript
-// At end of pageContent JSX, before closing div
-<VoiceBookingWidget 
-  bookingLinkSlug={slug} 
-  onBookingComplete={(id) => handleBookingComplete(id)} 
-/>
+EXPECTED FLOW (Fathom/Fireflies):
+Recording Uploaded → Auto-trigger Whisper transcription → Save transcript → Run AI analysis → processing_status: completed
 ```
 
 ---
 
-### PHASE D: Add WhatsApp Booking Admin Route (+8 points)
+### Issue 3: Summary/Actions/Key Moments/Skills Not Working (CRITICAL)
 
-**Files to modify:**
-1. `src/routes/admin.routes.tsx` - Add route
-2. `src/config/navigation.config.ts` - Add nav item
+**Problem**: All AI analysis tabs show "Analysis in progress..." or empty states
 
-**Create new page:** `src/pages/admin/WhatsAppBookingPage.tsx`
-```typescript
-import { WhatsAppBookingDashboard } from '@/components/admin/WhatsAppBookingDashboard';
-import { RoleGate } from '@/components/RoleGate';
+**Root Cause**:
+1. `RecordingPlaybackPage.tsx` reads from `recording.ai_analysis` which is NULL
+2. The `analyze-meeting-recording-advanced` function is never triggered automatically
+3. Even if triggered manually via "Start Analysis" button, it requires a transcript first
+4. For Live Hub recordings specifically:
+   - `process-livehub-recording` only processes `live_channel_recordings` table
+   - It doesn't update `meeting_recordings_extended` table
+   - Different data structures between tables cause mismatch
 
-export default function WhatsAppBookingPage() {
-  return (
-    <RoleGate allowedRoles={['admin', 'strategist']}>
-      <div className="container mx-auto py-8">
-        <WhatsAppBookingDashboard />
-      </div>
-    </RoleGate>
+**Data Flow Mismatch**:
+```text
+RecordingPlaybackPage reads: meeting_recordings_extended.ai_analysis
+process-livehub-recording writes: live_channel_recordings.ai_summary
+
+MISMATCH - AI analysis never reaches the display component!
+```
+
+---
+
+### Issue 4: Dual Recording Tables (ARCHITECTURAL ISSUE)
+
+**Problem**: Two separate recording tables with different schemas:
+1. `meeting_recordings` - Legacy, used by `MeetingHistory.tsx`
+2. `meeting_recordings_extended` - Modern, used by `MeetingHistoryTab.tsx` and `RecordingPlaybackPage.tsx`
+3. `live_channel_recordings` - Live Hub specific
+
+**Impact**:
+- Inconsistent data across the application
+- Some recordings visible in one place but not another
+- AI analysis saved to wrong table
+
+---
+
+## SOLUTION ARCHITECTURE
+
+### Phase 1: Eliminate Navigation Duplication (+8 points)
+
+**Changes Required**:
+1. Remove "Meeting History" from sidebar navigation
+2. Redirect `/meeting-history` to `/meetings?tab=history`
+3. Deprecate `MeetingHistory.tsx` in favor of `MeetingHistoryTab.tsx`
+
+**Files to Modify**:
+- `src/config/navigation.config.ts` - Remove line 104
+- `src/routes/meetings.routes.tsx` - Add redirect from `/meeting-history` to `/meetings?tab=history`
+- `src/pages/MeetingHistory.tsx` - Add deprecation redirect
+
+---
+
+### Phase 2: Fix Transcription Pipeline (+25 points)
+
+**Create Unified Transcription Flow**:
+
+1. **New Edge Function**: `transcribe-recording` - Unified function that:
+   - Downloads audio/video from storage
+   - Calls OpenAI Whisper for transcription
+   - Saves transcript to `meeting_recordings_extended.transcript` AND `transcript_json`
+   - Updates `processing_status` to 'transcribed'
+   - Works for ALL source types (tqc_meeting, live_hub, conversation_call)
+
+2. **Automatic Trigger**: Database trigger or webhook that:
+   - Fires when `meeting_recordings_extended` row is inserted
+   - Calls `transcribe-recording` Edge Function
+   - Handles retry logic for failures
+
+3. **UI Enhancement**: Add "Generate Transcript" button in `RecordingPlaybackPage.tsx` when transcript is missing
+
+**New Files to Create**:
+- `supabase/functions/transcribe-recording/index.ts` - Universal transcription function
+
+**Files to Modify**:
+- `src/components/meetings/RecordingPlaybackPage.tsx` - Add manual trigger button
+- `supabase/functions/analyze-meeting-recording-advanced/index.ts` - Call transcribe first if needed
+
+---
+
+### Phase 3: Fix AI Analysis Pipeline (+20 points)
+
+**Enhance Analysis Flow**:
+
+1. **Chain Transcription → Analysis**: After transcription completes, automatically trigger analysis
+2. **Update `analyze-meeting-recording-advanced`**:
+   - First ensure transcript exists (call transcribe-recording if not)
+   - Generate all required analysis fields:
+     - `executive_summary` → For Summary tab
+     - `action_items` → For Actions tab  
+     - `key_moments` → For Key Moments tab
+     - `skills_assessed` → For Skills tab
+     - `ai_analysis` → Full structured analysis JSON
+3. **Unify Live Hub processing**: Ensure `process-livehub-recording` updates `meeting_recordings_extended`
+
+**Files to Modify**:
+- `supabase/functions/analyze-meeting-recording-advanced/index.ts` - Ensure all fields populated
+- `supabase/functions/process-livehub-recording/index.ts` - Also update meeting_recordings_extended
+
+---
+
+### Phase 4: Bridge Live Hub to Unified System (+15 points)
+
+**Problem**: Live Hub recordings exist in separate tables from regular meetings
+
+**Solution**:
+1. **Automatic Sync**: When `live_channel_recordings` is processed, also create/update corresponding `meeting_recordings_extended` entry
+2. **Unified Query**: Ensure `useMeetingRecordings` hook fetches from all sources
+3. **Data Migration**: One-time backfill of existing Live Hub recordings to `meeting_recordings_extended`
+
+**Files to Create**:
+- `supabase/functions/sync-livehub-to-extended/index.ts` - Sync function
+
+**Files to Modify**:
+- `supabase/functions/process-livehub-recording/index.ts` - Add sync call
+- `src/hooks/useMeetingRecordings.ts` - Verify multi-source support
+
+---
+
+### Phase 5: UI Polish & Error Handling (+12 points)
+
+1. **Processing Status Indicators**:
+   - Show clear status: Pending → Transcribing → Analyzing → Complete
+   - Add progress bar for long operations
+   - Show time estimates
+
+2. **Error Recovery**:
+   - Retry button for failed transcriptions
+   - Detailed error messages
+   - Admin dashboard for failed recordings
+
+3. **Empty State Improvements**:
+   - Replace "Analysis in progress..." with actual status
+   - Show "Start Transcription" CTA when transcript missing
+   - Show "Run Analysis" CTA when transcript exists but analysis missing
+
+**Files to Modify**:
+- `src/components/meetings/RecordingPlaybackPage.tsx` - Status indicators, CTAs
+- `src/components/meetings/MeetingRecordingCard.tsx` - Processing status badge
+
+---
+
+## TECHNICAL IMPLEMENTATION DETAILS
+
+### New Edge Function: transcribe-recording
+
+```text
+Input: { recordingId: string }
+
+Flow:
+1. Fetch recording from meeting_recordings_extended
+2. Download audio/video from recording_url
+3. Call OpenAI Whisper API:
+   - /v1/audio/transcriptions
+   - model: whisper-1
+   - response_format: verbose_json (for timestamps)
+4. Parse response into:
+   - Plain text transcript
+   - JSON with word-level timestamps
+5. Update recording:
+   - transcript: plain text
+   - transcript_json: structured JSON with timestamps
+   - processing_status: 'transcribed'
+6. Optionally chain to analyze-meeting-recording-advanced
+```
+
+### Database Trigger: auto_transcribe_recording
+
+```text
+CREATE FUNCTION trigger_transcribe_recording()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Call Edge Function via pg_net (async)
+  PERFORM net.http_post(
+    url := 'https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/transcribe-recording',
+    body := json_build_object('recordingId', NEW.id)::text
   );
-}
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_recording_insert
+AFTER INSERT ON meeting_recordings_extended
+FOR EACH ROW
+WHEN (NEW.processing_status = 'pending')
+EXECUTE FUNCTION trigger_transcribe_recording();
 ```
-
-**Add to navigation under "Business Development" group:**
-```typescript
-{ name: "WhatsApp Booking", icon: MessageCircle, path: "/admin/whatsapp-booking" }
-```
-
----
-
-### PHASE E: Global Conflict Alert Banner (+7 points)
-
-**File to modify:** `src/components/AppLayout.tsx`
-
-**Add:**
-- Import `ConflictAlertBanner` from scheduling
-- Import `useConflictResolution` hook
-- Render banner in header area (below existing banners)
-
-**Implementation:**
-```typescript
-// In AppLayout, add after MaintenanceModeBanner or similar
-const { hasConflicts } = useConflictResolution();
-
-// In JSX:
-{hasConflicts && <ConflictAlertBanner />}
-```
-
----
-
-### PHASE F: User Settings for AI Preferences (+5 points)
-
-**Create new file:** `src/components/settings/SchedulingAISettings.tsx`
-
-**Content:**
-- Toggle: Enable QUIN No-Show Predictions
-- Toggle: Enable Focus Time Defender
-- Toggle: Auto-generate Post-Meeting Summaries
-- Setting: No-show intervention threshold (50%, 70%, 90%)
-- Setting: Focus time protection level
-
-**Integrate into:** `src/pages/Settings.tsx` or `src/pages/SchedulingSettings.tsx`
-
----
-
-## TECHNICAL ARCHITECTURE
-
-```text
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           APP LAYOUT                                     │
-│  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │  ConflictAlertBanner (global, shows when hasConflicts === true)    │ │
-│  └────────────────────────────────────────────────────────────────────┘ │
-│                                                                          │
-│  ┌─ SCHEDULING PAGE (/scheduling) ─────────────────────────────────────┐│
-│  │ Tabs: Links | Pending | Bookings | Analytics | Availability         ││
-│  │       | AI Intelligence (NEW) | Team (NEW)                          ││
-│  │                                                                      ││
-│  │  AI Intelligence Tab:                                                ││
-│  │  ├── NoShowPredictionPanel (with booking predictions)                ││
-│  │  ├── FocusTimeSettings                                               ││
-│  │  └── Conflict Detection Trigger                                      ││
-│  │                                                                      ││
-│  │  Team Tab:                                                           ││
-│  │  └── TeamLoadDashboard                                               ││
-│  └──────────────────────────────────────────────────────────────────────┘│
-│                                                                          │
-│  ┌─ MEETINGS PAGE (/meetings) ─────────────────────────────────────────┐│
-│  │ Tabs: Calendar | My Meetings | Prep (NEW) | Post (NEW)              ││
-│  │       | History | Intelligence | Analytics | Settings               ││
-│  │                                                                      ││
-│  │  Prep Tab (Pre-Meeting):                                             ││
-│  │  └── List upcoming meetings with GenerateDossierButton               ││
-│  │      └── MeetingDossierPanel (expandable)                            ││
-│  │                                                                      ││
-│  │  Post Tab (Post-Meeting):                                            ││
-│  │  └── List completed meetings with PostMeetingPanel integration       ││
-│  │      └── Action items, Follow-ups, ROI metrics                       ││
-│  └──────────────────────────────────────────────────────────────────────┘│
-│                                                                          │
-│  ┌─ BOOKING PAGE (/book/:slug) ────────────────────────────────────────┐│
-│  │  VoiceBookingWidget (floating FAB, bottom-right)                     ││
-│  └──────────────────────────────────────────────────────────────────────┘│
-│                                                                          │
-│  ┌─ ADMIN ROUTES ──────────────────────────────────────────────────────┐│
-│  │  /admin/whatsapp-booking → WhatsAppBookingPage                       ││
-│  │    └── WhatsAppBookingDashboard (test console + sessions)            ││
-│  └──────────────────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## FILES TO CREATE (3 files)
-
-| File | Purpose |
-|------|---------|
-| `src/pages/admin/WhatsAppBookingPage.tsx` | Admin page wrapper for WhatsApp booking dashboard |
-| `src/components/settings/SchedulingAISettings.tsx` | User preferences for scheduling AI features |
-| `src/components/scheduling/SchedulingAITab.tsx` | Combined AI intelligence tab content |
-
----
-
-## FILES TO MODIFY (6 files)
-
-| File | Changes |
-|------|---------|
-| `src/pages/Scheduling.tsx` | Add 2 new tabs: AI Intelligence, Team |
-| `src/pages/Meetings.tsx` | Add 2 new tabs: Prep, Post |
-| `src/pages/BookingPage.tsx` | Add VoiceBookingWidget |
-| `src/routes/admin.routes.tsx` | Add WhatsApp Booking route |
-| `src/config/navigation.config.ts` | Add nav item for WhatsApp Booking |
-| `src/components/AppLayout.tsx` | Add global ConflictAlertBanner |
-
----
-
-## IMPLEMENTATION PRIORITY ORDER
-
-1. **Scheduling Page Tabs** (Phases A) - Exposes 4 major AI features
-2. **Meetings Page Tabs** (Phase B) - Completes meeting lifecycle
-3. **Booking Page Widget** (Phase C) - Voice booking FAB
-4. **Admin WhatsApp Booking Route** (Phase D) - Admin access
-5. **Global Conflict Banner** (Phase E) - Real-time alerts
-6. **Settings Integration** (Phase F) - User preferences
 
 ---
 
 ## SCORING BREAKDOWN
 
-| Phase | Points | Description |
-|-------|--------|-------------|
-| Current State | 52 | Existing features already live |
-| Phase A | +20 | Scheduling AI tabs |
-| Phase B | +15 | Meetings Prep/Post tabs |
-| Phase C | +10 | Voice booking widget |
-| Phase D | +8 | Admin WhatsApp booking route |
-| Phase E | +7 | Global conflict banner |
-| Phase F | +5 | AI settings preferences |
-| **Total** | **100** | **Enterprise-ready** |
+| Issue | Current | After Fix | Points |
+|-------|---------|-----------|--------|
+| Navigation Duplication | Confusing dual paths | Single consolidated path | +8 |
+| Transcription Pipeline | Broken, never triggers | Auto-triggers on upload | +25 |
+| AI Analysis Pipeline | Missing data fields | All tabs populated | +20 |
+| Live Hub Integration | Separate, broken | Unified with meetings | +15 |
+| UI/UX Polish | Poor error states | Clear status & CTAs | +12 |
+| **TOTAL** | **42/100** | **100/100** | **+58** |
 
 ---
 
-## KEY MERGES WITH EXISTING FEATURES
+## COMPARISON: Current vs. Fathom/Fireflies
 
-1. **MeetingNotes.tsx already has**: Summary, Action Items, Key Moments, Skills tabs - PostMeetingPanel should LINK to this, not duplicate
-2. **MeetingIntelligenceTab already has**: Search, sentiment, action items - enhance with new Phase 5 engagement data
-3. **WhatsAppHub already exists**: WhatsApp Booking is SEPARATE (booking via WA messages vs general WA management)
-4. **NoShowPredictionPanel exists**: Just needs to be imported and rendered in Scheduling AI tab
+| Feature | Current TQC | Fathom | Fireflies | After Fix |
+|---------|-------------|--------|-----------|-----------|
+| Auto-transcription | ❌ | ✅ | ✅ | ✅ |
+| Speaker diarization | ❌ | ✅ | ✅ | ✅ (via Whisper) |
+| AI Summary | ❌ (broken) | ✅ | ✅ | ✅ |
+| Action Items | ❌ (broken) | ✅ | ✅ | ✅ |
+| Key Moments | ❌ (broken) | ✅ | ✅ | ✅ |
+| Timestamped playback | ✅ (UI ready) | ✅ | ✅ | ✅ |
+| Clip creation | ✅ | ✅ | ✅ | ✅ |
+| Skills assessment | ✅ (UI ready) | ❌ | ❌ | ✅ (unique advantage!) |
+| Multi-source recordings | ❌ (broken) | ❌ | ✅ | ✅ |
+| Real-time transcription | ❌ | ✅ | ✅ | Future Phase |
 
 ---
 
-## EXPECTED OUTCOME
+## IMPLEMENTATION ORDER
+
+1. **Phase 1**: Navigation cleanup (15 minutes)
+2. **Phase 2**: Create transcribe-recording function (45 minutes)
+3. **Phase 3**: Fix analyze-meeting-recording-advanced (30 minutes)
+4. **Phase 4**: Bridge Live Hub recordings (30 minutes)
+5. **Phase 5**: UI polish (30 minutes)
+
+**Total Estimated Time**: ~2.5 hours
+
+---
+
+## FILES SUMMARY
+
+### New Files to Create (3 files):
+| File | Purpose |
+|------|---------|
+| `supabase/functions/transcribe-recording/index.ts` | Universal transcription function |
+| `supabase/functions/sync-livehub-to-extended/index.ts` | Sync Live Hub to unified table |
+| `supabase/migrations/[timestamp]_auto_transcribe_trigger.sql` | Database trigger for auto-transcription |
+
+### Files to Modify (7 files):
+| File | Changes |
+|------|---------|
+| `src/config/navigation.config.ts` | Remove "Meeting History" from sidebar |
+| `src/routes/meetings.routes.tsx` | Redirect /meeting-history → /meetings?tab=history |
+| `src/components/meetings/RecordingPlaybackPage.tsx` | Add manual transcription trigger, status indicators |
+| `supabase/functions/analyze-meeting-recording-advanced/index.ts` | Chain transcription, ensure all fields |
+| `supabase/functions/process-livehub-recording/index.ts` | Sync to meeting_recordings_extended |
+| `src/components/meetings/MeetingRecordingCard.tsx` | Processing status badge |
+| `src/pages/MeetingHistory.tsx` | Add redirect to /meetings?tab=history |
+
+---
+
+## SUCCESS CRITERIA
 
 After implementation:
-- **All 8 phases fully accessible** via intuitive UI
-- **Zero hidden features** - Every AI capability discoverable
-- **Role-appropriate access** - Admins see team tools, candidates see personal tools
-- **Consistent UX** - Follows existing tab/card patterns
-- **No duplicated components** - Reuses existing infrastructure
+1. ✅ Single "Meetings" navigation with History tab (no duplication)
+2. ✅ All recordings auto-transcribed within 5 minutes of upload
+3. ✅ All tabs (Summary, Actions, Key Moments, Skills) populated with AI insights
+4. ✅ Live Hub recordings appear in unified history
+5. ✅ Clear processing status at every stage
+6. ✅ Manual retry available for failed transcriptions
+7. ✅ Performance equal to or better than Fathom/Fireflies
 
 **Final Score: 100/100**
+
