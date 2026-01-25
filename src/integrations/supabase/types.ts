@@ -19769,6 +19769,54 @@ export type Database = {
           },
         ]
       }
+      guest_domain_behavior: {
+        Row: {
+          average_booking_lead_time_hours: number | null
+          average_meeting_duration_minutes: number | null
+          cancelled_count: number | null
+          completed_bookings: number | null
+          created_at: string | null
+          first_booking_at: string | null
+          guest_email_domain: string
+          id: string
+          last_booking_at: string | null
+          no_show_count: number | null
+          rescheduled_count: number | null
+          total_bookings: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          average_booking_lead_time_hours?: number | null
+          average_meeting_duration_minutes?: number | null
+          cancelled_count?: number | null
+          completed_bookings?: number | null
+          created_at?: string | null
+          first_booking_at?: string | null
+          guest_email_domain: string
+          id?: string
+          last_booking_at?: string | null
+          no_show_count?: number | null
+          rescheduled_count?: number | null
+          total_bookings?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          average_booking_lead_time_hours?: number | null
+          average_meeting_duration_minutes?: number | null
+          cancelled_count?: number | null
+          completed_bookings?: number | null
+          created_at?: string | null
+          first_booking_at?: string | null
+          guest_email_domain?: string
+          id?: string
+          last_booking_at?: string | null
+          no_show_count?: number | null
+          rescheduled_count?: number | null
+          total_bookings?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       hallucination_detection_log: {
         Row: {
           claims_extracted: Json
@@ -30196,6 +30244,66 @@ export type Database = {
         }
         Relationships: []
       }
+      no_show_interventions: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          delivery_status: string | null
+          effectiveness_outcome: string | null
+          id: string
+          intervention_type: string
+          metadata: Json | null
+          prediction_id: string | null
+          response_at: string | null
+          response_received: boolean | null
+          response_type: string | null
+          triggered_at: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          delivery_status?: string | null
+          effectiveness_outcome?: string | null
+          id?: string
+          intervention_type: string
+          metadata?: Json | null
+          prediction_id?: string | null
+          response_at?: string | null
+          response_received?: boolean | null
+          response_type?: string | null
+          triggered_at?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          delivery_status?: string | null
+          effectiveness_outcome?: string | null
+          id?: string
+          intervention_type?: string
+          metadata?: Json | null
+          prediction_id?: string | null
+          response_at?: string | null
+          response_received?: boolean | null
+          response_type?: string | null
+          triggered_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "no_show_interventions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "no_show_interventions_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "booking_no_show_predictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       note_mentions: {
         Row: {
           created_at: string | null
@@ -34676,6 +34784,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      preferred_meeting_hours: {
+        Row: {
+          created_at: string | null
+          day_of_week: number | null
+          end_hour: number | null
+          id: string
+          is_available: boolean | null
+          priority: string | null
+          start_hour: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week?: number | null
+          end_hour?: number | null
+          id?: string
+          is_available?: boolean | null
+          priority?: string | null
+          start_hour?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: number | null
+          end_hour?: number | null
+          id?: string
+          is_available?: boolean | null
+          priority?: string | null
+          start_hour?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       pressure_cooker_actions: {
         Row: {
