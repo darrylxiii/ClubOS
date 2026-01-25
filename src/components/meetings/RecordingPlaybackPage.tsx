@@ -33,6 +33,7 @@ export default function RecordingPlaybackPage() {
   const [recording, setRecording] = useState<any>(null);
   const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const [retriggeringAnalysis, setRetriggeringAnalysis] = useState(false);
+  const [triggeringTranscription, setTriggeringTranscription] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   
@@ -94,11 +95,42 @@ export default function RecordingPlaybackPage() {
     }
   };
 
+  const triggerTranscription = async () => {
+    if (!recording) return;
+    
+    setTriggeringTranscription(true);
+    try {
+      const { error } = await supabase.functions.invoke('transcribe-recording', {
+        body: { recordingId: recording.id, chainAnalysis: true }
+      });
+
+      if (error) throw error;
+      
+      toast.success('Transcription started - this may take a few minutes');
+      setRecording((prev: any) => ({ ...prev, processing_status: 'transcribing' }));
+      
+      // Poll for updates
+      setTimeout(() => loadRecording(), 10000);
+    } catch (error) {
+      console.error('Failed to trigger transcription:', error);
+      toast.error('Failed to start transcription');
+    } finally {
+      setTriggeringTranscription(false);
+    }
+  };
+
   const retriggerAnalysis = async () => {
     if (!recording) return;
     
     setRetriggeringAnalysis(true);
     try {
+      // First ensure transcript exists
+      if (!recording.transcript || recording.transcript.length < 50) {
+        toast.info('Starting transcription first...');
+        await triggerTranscription();
+        return;
+      }
+
       const { error } = await supabase.functions.invoke('analyze-meeting-recording-advanced', {
         body: { recordingId: recording.id }
       });
@@ -106,7 +138,10 @@ export default function RecordingPlaybackPage() {
       if (error) throw error;
       
       toast.success('Analysis started - refresh in a few minutes');
-      setRecording((prev: any) => ({ ...prev, processing_status: 'processing' }));
+      setRecording((prev: any) => ({ ...prev, processing_status: 'analyzing' }));
+      
+      // Poll for updates
+      setTimeout(() => loadRecording(), 15000);
     } catch (error) {
       console.error('Failed to retrigger analysis:', error);
       toast.error('Failed to start analysis');
@@ -341,17 +376,41 @@ export default function RecordingPlaybackPage() {
               </CardContent>
             </Card>
 
-            {/* Analysis Status */}
-            {recording.processing_status === 'pending' && (
+            {/* Processing Status Alerts */}
+            {recording.processing_status === 'pending' && !recording.transcript && (
+              <Alert className="border-amber-500/50 bg-amber-500/10">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                <AlertTitle>Transcript Required</AlertTitle>
+                <AlertDescription className="flex items-center justify-between">
+                  <span>This recording needs to be transcribed before AI analysis can begin.</span>
+                  <Button 
+                    size="sm" 
+                    onClick={triggerTranscription}
+                    disabled={triggeringTranscription}
+                    className="ml-4"
+                  >
+                    {triggeringTranscription ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Mic className="h-4 w-4 mr-2" />
+                    )}
+                    Generate Transcript
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {recording.processing_status === 'pending' && recording.transcript && (
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Analysis Pending</AlertTitle>
                 <AlertDescription className="flex items-center justify-between">
-                  <span>AI analysis has not started yet.</span>
+                  <span>Transcript available. Ready for AI analysis.</span>
                   <Button 
                     size="sm" 
                     onClick={retriggerAnalysis}
                     disabled={retriggeringAnalysis}
+                    className="ml-4"
                   >
                     {retriggeringAnalysis ? (
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -359,6 +418,50 @@ export default function RecordingPlaybackPage() {
                       <Play className="h-4 w-4 mr-2" />
                     )}
                     Start Analysis
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {recording.processing_status === 'transcribing' && (
+              <Alert className="border-blue-500/50 bg-blue-500/10">
+                <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />
+                <AlertTitle>Transcribing Audio</AlertTitle>
+                <AlertDescription>
+                  Converting speech to text using OpenAI Whisper. This typically takes 1-3 minutes...
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {(recording.processing_status === 'analyzing' || recording.processing_status === 'processing') && (
+              <Alert className="border-purple-500/50 bg-purple-500/10">
+                <Sparkles className="h-4 w-4 text-purple-500 animate-pulse" />
+                <AlertTitle>AI Analysis in Progress</AlertTitle>
+                <AlertDescription>
+                  Generating summary, action items, key moments, and skills assessment...
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {recording.processing_status === 'failed' && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Processing Failed</AlertTitle>
+                <AlertDescription className="flex items-center justify-between">
+                  <span>{recording.processing_error || 'An error occurred during processing.'}</span>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={triggerTranscription}
+                    disabled={triggeringTranscription}
+                    className="ml-4"
+                  >
+                    {triggeringTranscription ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    Retry
                   </Button>
                 </AlertDescription>
               </Alert>
@@ -408,9 +511,38 @@ export default function RecordingPlaybackPage() {
                         </pre>
                       </ScrollArea>
                     ) : (
-                      <p className="text-muted-foreground text-center py-8">
-                        Transcript not available yet. Analysis may be in progress.
-                      </p>
+                      <div className="text-center py-12 space-y-4">
+                        <Mic className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                        <div>
+                          <p className="text-muted-foreground mb-2">
+                            No transcript available yet.
+                          </p>
+                          <p className="text-sm text-muted-foreground/70 mb-4">
+                            {recording.processing_status === 'transcribing' 
+                              ? 'Transcription is in progress...' 
+                              : 'Click below to generate a transcript using AI.'}
+                          </p>
+                        </div>
+                        {recording.processing_status !== 'transcribing' && recording.recording_url && (
+                          <Button 
+                            onClick={triggerTranscription}
+                            disabled={triggeringTranscription}
+                          >
+                            {triggeringTranscription ? (
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <Mic className="h-4 w-4 mr-2" />
+                            )}
+                            Generate Transcript
+                          </Button>
+                        )}
+                        {recording.processing_status === 'transcribing' && (
+                          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                            <RefreshCw className="h-4 w-4 animate-spin" />
+                            <span>Processing audio...</span>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -423,9 +555,33 @@ export default function RecordingPlaybackPage() {
                     <CardTitle>Executive Summary</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {analysis.executiveSummary || recording.executive_summary || 'Analysis in progress...'}
-                    </p>
+                    {(analysis.executiveSummary || recording.executive_summary) ? (
+                      <p className="leading-relaxed">
+                        {analysis.executiveSummary || recording.executive_summary}
+                      </p>
+                    ) : (
+                      <div className="text-center py-8 space-y-3">
+                        <Sparkles className="h-10 w-10 mx-auto text-muted-foreground/50" />
+                        <p className="text-muted-foreground">
+                          {recording.transcript 
+                            ? 'Summary will be generated during AI analysis.'
+                            : 'Generate a transcript first to enable AI analysis.'}
+                        </p>
+                        {recording.transcript && recording.processing_status !== 'analyzing' && (
+                          <Button 
+                            variant="outline"
+                            onClick={retriggerAnalysis}
+                            disabled={retriggeringAnalysis}
+                          >
+                            {retriggeringAnalysis ? (
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <Play className="h-4 w-4 mr-2" />
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    )}
 
                     {(candidateEval.overallFit || decisionGuidance.recommendation) && (
                       <div className="mt-6 grid grid-cols-2 gap-4">

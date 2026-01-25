@@ -160,7 +160,82 @@ Respond in JSON format:
       })
       .eq('id', recording_id);
 
-    // 8. Trigger intelligence bridge if channel has entity context
+    // 8. SYNC TO meeting_recordings_extended (CRITICAL for unified history)
+    console.log(`[ProcessLiveHub] 🔄 Syncing to meeting_recordings_extended...`);
+    
+    const extendedRecording = {
+      meeting_id: null, // Live Hub recordings don't have a meeting
+      live_channel_id: recording.channel_id,
+      host_id: recording.host_user_id || recording.started_by,
+      title: recording.channel?.name || 'Live Hub Recording',
+      recording_url: recording.recording_url,
+      storage_path: recording.storage_path,
+      duration_seconds: durationSeconds,
+      source_type: 'live_hub' as const,
+      transcript: fullTranscript || null,
+      transcript_json: transcripts && transcripts.length > 0 ? {
+        segments: transcripts.map(t => ({
+          speaker: t.speaker_name || 'Unknown',
+          text: t.text,
+          timestamp_ms: t.timestamp_ms
+        }))
+      } : null,
+      ai_analysis: aiSummary ? {
+        executiveSummary: aiSummary,
+        topics: keyTopics,
+        actionItems: actionItems.map((item: string) => ({
+          action: item,
+          priority: 'medium',
+          status: 'open'
+        })),
+        entities: mentionedEntities
+      } : null,
+      executive_summary: aiSummary,
+      action_items: actionItems.map((item: string) => ({
+        action: item,
+        priority: 'medium', 
+        status: 'open'
+      })),
+      key_moments: keyTopics.map((topic: string, i: number) => ({
+        title: topic,
+        timestamp_ms: 0,
+        type: 'topic'
+      })),
+      participants: uniqueSpeakers,
+      processing_status: aiSummary ? 'completed' : 'transcribed',
+      recorded_at: recording.started_at || recording.created_at,
+      is_private: false
+    };
+
+    // Upsert to meeting_recordings_extended using live_channel_id + recorded_at as unique key
+    const { data: extendedData, error: extendedError } = await supabase
+      .from('meeting_recordings_extended')
+      .upsert(extendedRecording, {
+        onConflict: 'live_channel_id,recorded_at',
+        ignoreDuplicates: false
+      })
+      .select('id')
+      .maybeSingle();
+
+    if (extendedError) {
+      // Try insert if upsert fails (might be unique constraint issue)
+      console.warn(`[ProcessLiveHub] Upsert failed, trying insert:`, extendedError.message);
+      const { data: insertData, error: insertError } = await supabase
+        .from('meeting_recordings_extended')
+        .insert(extendedRecording)
+        .select('id')
+        .maybeSingle();
+        
+      if (insertError) {
+        console.error(`[ProcessLiveHub] Failed to sync to extended:`, insertError.message);
+      } else {
+        console.log(`[ProcessLiveHub] ✅ Synced to meeting_recordings_extended: ${insertData?.id}`);
+      }
+    } else {
+      console.log(`[ProcessLiveHub] ✅ Synced to meeting_recordings_extended: ${extendedData?.id}`);
+    }
+
+    // 9. Trigger intelligence bridge if channel has entity context
     if (recording.channel?.company_id || recording.channel?.job_id) {
       console.log(`[ProcessLiveHub] Triggering intelligence bridge...`);
       
@@ -188,6 +263,7 @@ Respond in JSON format:
       success: true,
       recording_id,
       summary_id: summary?.id,
+      extended_recording_id: extendedData?.id,
       transcript_segments: transcriptCount,
       duration_seconds: durationSeconds,
       has_ai_summary: !!aiSummary
