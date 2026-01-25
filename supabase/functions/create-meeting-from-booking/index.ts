@@ -70,6 +70,7 @@ serve(async (req) => {
     };
 
     // Create Quantum Club meeting with correct column names
+    // Include entity linking for interview intelligence integration
     const { data: meeting, error: meetingError } = await supabaseClient
       .from("meetings")
       .insert({
@@ -85,6 +86,12 @@ serve(async (req) => {
         require_approval: false,
         enable_notetaker: booking.booking_links?.enable_club_ai || false,
         settings: settings,
+        // Entity linking for ML/RAG integration
+        candidate_id: booking.candidate_id || null,
+        job_id: booking.job_id || null,
+        application_id: booking.application_id || null,
+        booking_id: bookingId,
+        meeting_type: booking.is_interview_booking ? 'interview' : 'general',
         host_settings: {
           allowChat: true,
           allowScreenShare: true,
