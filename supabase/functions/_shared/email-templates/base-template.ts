@@ -207,15 +207,18 @@ export const baseEmailTemplate = ({
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
                   <td align="center">
-                    <!-- Logo Image -->
+                    <!-- Logo Image with Fallback -->
                     <a href="${appUrl}" style="text-decoration: none;">
                       <img 
                         src="${EMAIL_LOGOS.cloverIcon40}" 
                         alt="${COMPANY_NAME}" 
+                        title="${COMPANY_NAME}"
                         width="64" 
                         height="64" 
                         style="display: block; margin: 0 auto 20px auto; border: 0; outline: none;"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
                       />
+                      <div style="display: none; width: 64px; height: 64px; margin: 0 auto 20px auto; background-color: ${EMAIL_COLORS.gold}; border-radius: 50%; line-height: 64px; text-align: center; font-size: 28px; font-weight: bold; color: #0E0E10;">Q</div>
                     </a>
                     <!-- Brand Name (Solid Gold - Compatible with all clients) -->
                     <div style="font-size: 24px; font-weight: 700; color: ${EMAIL_COLORS.gold}; letter-spacing: 1px; margin-bottom: 8px;">

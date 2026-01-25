@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import { logger } from "@/lib/logger";
 import { getAvailableSlots } from "@/services/availability";
 import { useTimeFormatPreference } from "@/hooks/useTimeFormatPreference";
 import { formatSlotWithDualTimezone } from "@/lib/safeTimeFormat";
+import { useBookingRealtime } from "@/hooks/useBookingRealtime";
 
 interface TimeSlot {
   start: string;
@@ -54,6 +55,77 @@ export function UnifiedDateTimeSelector({
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   const showDualTimezone = hostTimezone && hostTimezone !== guestTimezone;
+
+  // Memoized slot loader for real-time refresh
+  const loadSlotsForDateCallback = useCallback(async (date: Date) => {
+    setLoading(true);
+    try {
+      const dateStr = format(date, "yyyy-MM-dd");
+      logger.debug('Loading slots for date', { componentName: 'UnifiedDateTimeSelector', dateStr, slug: bookingLink.slug });
+
+      const data = await getAvailableSlots({
+        bookingLinkSlug: bookingLink.slug,
+        dateRange: { start: dateStr, end: dateStr },
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+
+      if (!data || !data.slots) {
+        logger.error('Invalid response structure', new Error('Missing slots array'), { componentName: 'UnifiedDateTimeSelector', data });
+        throw new Error('Invalid response: missing slots array');
+      }
+
+      if (!Array.isArray(data.slots)) {
+        throw new Error(`Expected slots to be an array, got ${typeof data.slots}`);
+      }
+
+      const slots = (data.slots as unknown[])
+        .map((slot: unknown) => {
+          if (!slot || typeof slot !== 'object') return null;
+          const s = slot as { start?: unknown; end?: unknown };
+          if (typeof s.start !== 'string') return null;
+
+          if (typeof s.end !== 'string' || !s.end) {
+            try {
+              const startMs = new Date(s.start).getTime();
+              if (!Number.isFinite(startMs)) return null;
+              const endIso = new Date(startMs + bookingLink.duration_minutes * 60 * 1000).toISOString();
+              return { start: s.start, end: endIso } satisfies TimeSlot;
+            } catch {
+              return null;
+            }
+          }
+          return { start: s.start, end: s.end } satisfies TimeSlot;
+        })
+        .filter(Boolean) as TimeSlot[];
+
+      setAvailableSlots(slots);
+    } catch (error: unknown) {
+      logger.error('Error loading slots', error as Error, { componentName: 'UnifiedDateTimeSelector' });
+      setAvailableSlots([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [bookingLink.slug, bookingLink.duration_minutes]);
+
+  // Real-time subscription to remove slots when booked by others
+  useBookingRealtime({
+    bookingLinkId: bookingLink.id,
+    selectedDate,
+    onSlotBooked: () => {
+      toast.info("A slot was just booked. Refreshing availability...");
+      if (selectedDate) {
+        loadSlotsForDateCallback(selectedDate);
+        loadMonthAvailability(currentMonth);
+      }
+    },
+    onSlotCancelled: () => {
+      toast.success("A slot just became available!");
+      if (selectedDate) {
+        loadSlotsForDateCallback(selectedDate);
+        loadMonthAvailability(currentMonth);
+      }
+    },
+  });
 
   // Format a time range using robust native formatting
   const formatSlotDisplay = (slot: TimeSlot) => {
@@ -139,75 +211,14 @@ export function UnifiedDateTimeSelector({
       tomorrow.setHours(0, 0, 0, 0);
       setSelectedDate(tomorrow);
       setCurrentMonth(tomorrow);
-      loadSlotsForDate(tomorrow);
+      loadSlotsForDateCallback(tomorrow);
       loadMonthAvailability(tomorrow);
     }
   }, []);
 
-  const loadSlotsForDate = async (date: Date) => {
-    setLoading(true);
-    try {
-      const dateStr = format(date, "yyyy-MM-dd");
-      logger.debug('Loading slots for date', { componentName: 'UnifiedDateTimeSelector', dateStr, slug: bookingLink.slug });
-
-      const data = await getAvailableSlots({
-        bookingLinkSlug: bookingLink.slug,
-        dateRange: { start: dateStr, end: dateStr },
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      });
-
-      if (!data || !data.slots) {
-        logger.error('Invalid response structure', new Error('Missing slots array'), { componentName: 'UnifiedDateTimeSelector', data });
-        throw new Error('Invalid response: missing slots array');
-      }
-
-      logger.debug('Slots received', { componentName: 'UnifiedDateTimeSelector', slotsCount: data.slots.length });
-
-      // Validate that slots is an array
-      if (!Array.isArray(data.slots)) {
-        throw new Error(`Expected slots to be an array, got ${typeof data.slots}`);
-      }
-
-      const slots = (data.slots as unknown[])
-        .map((slot: unknown) => {
-          if (!slot || typeof slot !== 'object') return null;
-          const s = slot as { start?: unknown; end?: unknown };
-          if (typeof s.start !== 'string') return null;
-
-          // End is required for booking; be defensive for any older payloads.
-          if (typeof s.end !== 'string' || !s.end) {
-            try {
-              const startMs = new Date(s.start).getTime();
-              if (!Number.isFinite(startMs)) return null;
-              const endIso = new Date(startMs + bookingLink.duration_minutes * 60 * 1000).toISOString();
-              return { start: s.start, end: endIso } satisfies TimeSlot;
-            } catch {
-              return null;
-            }
-          }
-          return { start: s.start, end: s.end } satisfies TimeSlot;
-        })
-        .filter(Boolean) as TimeSlot[];
-
-      setAvailableSlots(slots);
-
-      if (slots.length === 0) {
-        toast.info("No available times for this date. Please select another date.");
-      } else {
-        toast.success(`Found ${slots.length} available times`);
-      }
-    } catch (error: any) {
-      logger.error('Error loading slots', error as Error, { componentName: 'UnifiedDateTimeSelector' });
-      const message = String(error?.message || 'Unknown error');
-      if (message.startsWith('availability_missing_backend_config')) {
-        toast.error('Availability temporarily unreachable. Please refresh.');
-      } else {
-        toast.error(`Failed to load available times: ${message}`);
-      }
-      setAvailableSlots([]);
-    } finally {
-      setLoading(false);
-    }
+  const loadSlotsForDate = (date: Date) => {
+    // Use the memoized callback version
+    loadSlotsForDateCallback(date);
   };
 
   const handleDateSelect = (date: Date | undefined) => {

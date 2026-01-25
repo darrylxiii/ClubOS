@@ -52,7 +52,7 @@ serve(async (req) => {
       .eq("user_id", bookingLink.user_id)
       .gte("scheduled_start", dateRange.start)
       .lte("scheduled_end", dateRange.end)
-      .eq("status", "confirmed");
+      .in("status", ["confirmed", "pending"]);
 
     // Get Quantum Club meetings to block slots (using correct column names)
     const { data: meetings } = await supabaseClient

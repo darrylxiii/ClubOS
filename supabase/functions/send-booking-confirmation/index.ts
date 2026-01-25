@@ -37,6 +37,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const appUrl = getEmailAppUrl();
     
+    console.log("[BookingConfirmation] Looking up owner profile for user_id:", bookingLink.user_id);
+    
     const response = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${bookingLink.user_id}&select=email,full_name`, {
       headers: {
         "apikey": supabaseKey,
@@ -44,11 +46,19 @@ serve(async (req) => {
       },
     });
     
+    if (!response.ok) {
+      console.error("[BookingConfirmation] Profile fetch failed:", response.status, await response.text());
+    }
+    
     const profiles = await response.json();
+    console.log("[BookingConfirmation] Profile lookup result:", JSON.stringify(profiles));
+    
     const ownerProfile = profiles[0];
     
     if (!ownerProfile?.email) {
-      console.error("Owner profile not found for user_id:", bookingLink.user_id);
+      console.error("[BookingConfirmation] Owner profile not found or missing email for user_id:", bookingLink.user_id);
+    } else {
+      console.log("[BookingConfirmation] Owner email found:", ownerProfile.email);
     }
 
     const startDate = new Date(booking.scheduled_start);
