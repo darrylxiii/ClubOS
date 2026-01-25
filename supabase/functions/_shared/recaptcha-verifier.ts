@@ -44,28 +44,44 @@ export async function verifyRecaptcha(
 
     const verifyData = await verifyResponse.json();
 
-    console.log('reCAPTCHA verification:', {
+    console.log('reCAPTCHA verification result:', {
       success: verifyData.success,
       score: verifyData.score,
       action: verifyData.action,
-      expectedAction
+      expectedAction,
+      hostname: verifyData.hostname,
+      errorCodes: verifyData['error-codes'],
     });
 
-    // Verify action matches if specified
-    if (expectedAction && verifyData.action !== expectedAction) {
+    // Check for Google API errors first
+    if (!verifyData.success && verifyData['error-codes']?.length > 0) {
+      const errorCodes = verifyData['error-codes'].join(', ');
+      console.error(`reCAPTCHA API error: ${errorCodes}`);
       return {
         success: false,
         score: verifyData.score,
-        error: 'Action mismatch'
+        error: `API error: ${errorCodes}`
+      };
+    }
+
+    // Verify action matches if specified
+    if (expectedAction && verifyData.action !== expectedAction) {
+      console.error(`reCAPTCHA action mismatch: expected '${expectedAction}', got '${verifyData.action}'`);
+      return {
+        success: false,
+        score: verifyData.score,
+        action: verifyData.action,
+        error: `Action mismatch: expected '${expectedAction}', got '${verifyData.action}'`
       };
     }
 
     // Check score threshold
     if (verifyData.success && verifyData.score < minScore) {
+      console.warn(`reCAPTCHA score below threshold: ${verifyData.score} < ${minScore} (hostname: ${verifyData.hostname})`);
       return {
         success: false,
         score: verifyData.score,
-        error: `Score too low: ${verifyData.score} < ${minScore}`
+        error: `Score ${verifyData.score} below threshold ${minScore}`
       };
     }
 

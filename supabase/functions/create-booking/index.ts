@@ -19,27 +19,48 @@ serve(async (req) => {
     const recaptchaSecretConfigured = !!Deno.env.get('RECAPTCHA_SECRET_KEY');
     const recaptchaToken = req.headers.get("x-recaptcha-token");
 
-    // Detect if this is a preview/development environment
+    // Detect environment type from origin
     const origin = req.headers.get('origin') || req.headers.get('referer') || '';
     const isPreviewEnvironment = origin.includes('lovableproject.com') || 
                                  origin.includes('lovable.app') ||
                                  origin.includes('localhost');
+    
+    // Known production domains for enhanced logging
+    const isKnownProductionDomain = origin.includes('bytqc.com') || 
+                                     origin.includes('thequantumclub.app') ||
+                                     origin.includes('thequantumclub.nl');
 
     if (recaptchaSecretConfigured) {
       if (recaptchaToken) {
-        // Token provided - validate it
-        const recaptchaResult = await verifyRecaptcha(recaptchaToken, "create_booking", 0.5);
+        // Token provided - validate it (using 0.3 threshold for better reliability)
+        const recaptchaResult = await verifyRecaptcha(recaptchaToken, "create_booking", 0.3);
         if (!recaptchaResult.success) {
+          // Detailed logging for production debugging
+          console.error("[Booking] reCAPTCHA FAILED:", {
+            origin,
+            isKnownProductionDomain,
+            score: recaptchaResult.score,
+            action: recaptchaResult.action,
+            error: recaptchaResult.error,
+          });
           return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
         }
-        console.log("[Booking] reCAPTCHA verified, score:", recaptchaResult.score);
+        console.log("[Booking] reCAPTCHA verified:", { 
+          score: recaptchaResult.score, 
+          action: recaptchaResult.action,
+          origin: isKnownProductionDomain ? origin : 'preview'
+        });
       } else if (isPreviewEnvironment) {
         // No token in preview - allow with warning
         console.warn('[Booking] reCAPTCHA token missing in preview environment - allowing request');
       } else {
-        // No token in production - block
+        // No token in production - block with detailed logging
+        console.error("[Booking] reCAPTCHA token MISSING:", {
+          origin,
+          isKnownProductionDomain,
+        });
         return new Response(
-          JSON.stringify({ error: 'reCAPTCHA token missing' }),
+          JSON.stringify({ error: 'Security verification required. Please refresh and try again.' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
       }

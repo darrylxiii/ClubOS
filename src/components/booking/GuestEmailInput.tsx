@@ -24,7 +24,9 @@ export function GuestEmailInput({ guests, onChange, maxGuests = 10 }: GuestEmail
     return emailRegex.test(email);
   };
 
-  const handleAddGuest = () => {
+  const handleAddGuest = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     setError("");
 
     if (!email.trim()) {
@@ -51,13 +53,16 @@ export function GuestEmailInput({ guests, onChange, maxGuests = 10 }: GuestEmail
     setEmail("");
   };
 
-  const handleRemoveGuest = (index: number) => {
+  const handleRemoveGuest = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
     onChange(guests.filter((_, i) => i !== index));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
+      e.stopPropagation();
       handleAddGuest();
     }
   };
@@ -83,7 +88,7 @@ export function GuestEmailInput({ guests, onChange, maxGuests = 10 }: GuestEmail
         </div>
         <Button
           type="button"
-          onClick={handleAddGuest}
+          onClick={(e) => handleAddGuest(e)}
           variant="outline"
           size="icon"
           disabled={guests.length >= maxGuests}
@@ -106,7 +111,7 @@ export function GuestEmailInput({ guests, onChange, maxGuests = 10 }: GuestEmail
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleRemoveGuest(index)}
+                  onClick={(e) => handleRemoveGuest(e, index)}
                   className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
                 >
                   <X className="h-3 w-3" />
