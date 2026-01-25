@@ -31107,6 +31107,83 @@ export type Database = {
           },
         ]
       }
+      participant_dossiers: {
+        Row: {
+          booking_id: string | null
+          company_intel: Json | null
+          created_at: string | null
+          dossier_content: Json
+          generated_at: string | null
+          ice_breakers: string[] | null
+          id: string
+          interaction_history: Json | null
+          linkedin_data: Json | null
+          meeting_id: string | null
+          mutual_connections: string[] | null
+          participant_email: string
+          participant_name: string | null
+          participant_type: string | null
+          personality_insights: Json | null
+          red_flags: string[] | null
+          suggested_talking_points: string[] | null
+          things_to_avoid: string[] | null
+          updated_at: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          company_intel?: Json | null
+          created_at?: string | null
+          dossier_content?: Json
+          generated_at?: string | null
+          ice_breakers?: string[] | null
+          id?: string
+          interaction_history?: Json | null
+          linkedin_data?: Json | null
+          meeting_id?: string | null
+          mutual_connections?: string[] | null
+          participant_email: string
+          participant_name?: string | null
+          participant_type?: string | null
+          personality_insights?: Json | null
+          red_flags?: string[] | null
+          suggested_talking_points?: string[] | null
+          things_to_avoid?: string[] | null
+          updated_at?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          company_intel?: Json | null
+          created_at?: string | null
+          dossier_content?: Json
+          generated_at?: string | null
+          ice_breakers?: string[] | null
+          id?: string
+          interaction_history?: Json | null
+          linkedin_data?: Json | null
+          meeting_id?: string | null
+          mutual_connections?: string[] | null
+          participant_email?: string
+          participant_name?: string | null
+          participant_type?: string | null
+          personality_insights?: Json | null
+          red_flags?: string[] | null
+          suggested_talking_points?: string[] | null
+          things_to_avoid?: string[] | null
+          updated_at?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participant_dossiers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_ai_insights: {
         Row: {
           company_id: string
