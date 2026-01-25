@@ -1,210 +1,243 @@
 
+# Booking System Comprehensive Audit & Fix Plan
 
-# Fix Time Slot Display Bug
+## Executive Summary
 
-## Problem Identified
+After thorough analysis, I've identified **6 interconnected root causes** affecting the booking system. This plan addresses all issues systematically to bring the email quality to 100/100 and eliminate the slot collision and cancellation bugs.
 
-The booking page at `/book/darryl` is displaying raw ISO timestamps (e.g., `2026-01-26T09:00:00.000Z`) instead of formatted times (e.g., `10:00 AM – 10:30 AM`). When a user clicks on a time slot, it fails with "not a valid value."
+---
 
-### Root Cause Analysis
+## Issues Identified
 
-The `safeFormatTime` function in `src/lib/safeTimeFormat.ts` has a fallback path that returns the raw ISO string when formatting fails:
+### Issue 1: Booked Slots Still Appear in UI (Critical)
+**Root Cause**: The `get-available-slots` edge function only filters out `confirmed` bookings, ignoring `pending` bookings. Additionally, the modern `UnifiedDateTimeSelector` component lacks real-time subscription to remove slots when someone else books them.
 
-```typescript
-// Line 34-35 in safeTimeFormat.ts
-// Ultimate fallback: return raw string
-return isoString;
+**Impact**: Users can select already-booked slots, only to receive an error upon submission.
+
+**Files Affected**:
+- `supabase/functions/get-available-slots/index.ts` (line 55)
+- `src/components/booking/UnifiedDateTimeSelector.tsx` (missing real-time hook)
+
+---
+
+### Issue 2: Cancel Booking Edge Function Errors (Critical)
+**Root Cause**: The `cancel-booking` function uses a nested query syntax (`profiles:user_id(email, full_name)`) that may fail depending on foreign key relationships. Additionally, it doesn't properly handle email send failures (no error checking on Resend API responses).
+
+**Impact**: Cancellation fails silently or throws 500 errors.
+
+**Files Affected**:
+- `supabase/functions/cancel-booking/index.ts` (lines 31-46, 156-168)
+
+---
+
+### Issue 3: Broken Logo in Emails (65/100 Rating)
+**Root Cause**: Email logo references `https://thequantumclub.app/lovable-uploads/57a00fec-4cc3-44e5-a5d9-c4a1a4c3f6d6.png` which doesn't exist (the `lovable-uploads` folder in `public/` is empty). Should use the existing `quantum-clover-icon.png` that exists in `public/`.
+
+**Impact**: Blue question mark / broken image icon appears in email clients.
+
+**Files Affected**:
+- `supabase/functions/_shared/email-config.ts` (lines 11-13)
+
+---
+
+### Issue 4: Host Not Receiving Booking Notifications
+**Root Cause**: Confirmed that owner notification logic exists in `send-booking-confirmation` and logs show "Owner confirmation email sent". However, if the profile query fails or returns no email, the host block is skipped. Need to verify and add better error handling/logging.
+
+**Files Affected**:
+- `supabase/functions/send-booking-confirmation/index.ts` (lines 40-52, 268-338)
+
+---
+
+### Issue 5: Cancel-Booking Uses Hardcoded Email Senders
+**Root Cause**: The `cancel-booking` function hardcodes `bookings@thequantumclub.nl` instead of using the centralized `EMAIL_SENDERS` config, leading to inconsistency and potential issues if the domain changes.
+
+**Files Affected**:
+- `supabase/functions/cancel-booking/index.ts` (lines 163, 215)
+
+---
+
+### Issue 6: Email Template Quality Improvements
+**Current Rating**: 65/100
+**Target**: 100/100
+
+**Improvements Needed**:
+- Use hosted logo that actually exists
+- Add fallback alt text for images
+- Improve error handling in email sending
+- Use consistent sender configuration
+- Add better Schema.org markup
+
+---
+
+## Implementation Plan
+
+### Phase 1: Fix Slot Availability (Eliminates Ghost Slots)
+
+#### 1.1 Update `get-available-slots` to Include Pending Bookings
+```sql
+-- Change from:
+.eq("status", "confirmed")
+
+-- To include pending status:
+.in("status", ["confirmed", "pending"])
 ```
 
-**Why formatting is failing**: The function catches errors silently without logging, making it impossible to debug. The likely cause is:
-1. An issue with timezone resolution in `Intl.DateTimeFormat`
-2. The date parsing failing due to an edge case with the ISO string format
-
-### Data Flow Issue
-
-```text
-Edge Function → { start: "2026-01-26T09:00:00.000Z", end: "2026-01-26T09:30:00.000Z" }
-       ↓
-formatSlotWithDualTimezone(slot.start, slot.end, guestTimezone, hostTimezone, format)
-       ↓
-formatTimeRange() → safeFormatTime() 
-       ↓
-Intl.DateTimeFormat() FAILS → returns raw ISO string
-       ↓
-Display: "2026-01-26T09:00:00.000Z" (BUG!)
+#### 1.2 Add Real-time Subscription to UnifiedDateTimeSelector
+Import and use the existing `useBookingRealtime` hook:
+```typescript
+const { liveBookingsCount } = useBookingRealtime({
+  bookingLinkId: bookingLink.id,
+  selectedDate,
+  onSlotBooked: () => {
+    toast.info("A slot was just booked. Refreshing...");
+    if (selectedDate) loadSlotsForDate(selectedDate);
+  },
+  onSlotCancelled: () => {
+    toast.success("A slot just became available!");
+    if (selectedDate) loadSlotsForDate(selectedDate);
+  },
+});
 ```
 
 ---
 
-## Solution: Robust Formatting with Better Fallbacks
+### Phase 2: Fix Cancel Booking Edge Function
 
-### Fix 1: Improve safeFormatTime with Debug Logging and Better Fallbacks
-
-Update `src/lib/safeTimeFormat.ts` to:
-1. Add debug logging when formatting fails
-2. Implement a more robust manual fallback that always produces readable times
-3. Never return raw ISO strings to the UI
-
+#### 2.1 Improve Profile Query (More Robust)
+Replace the nested query with a separate profile fetch:
 ```typescript
-export function safeFormatTime(
-  isoString: string,
-  timezone: string,
-  format: TimeFormat = '12h'
-): string {
-  // Manual fallback that never returns raw ISO
-  const manualFallback = (date: Date, fmt: TimeFormat): string => {
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    if (fmt === '24h') {
-      return `${hours.toString().padStart(2, '0')}:${minutes}`;
-    }
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-    return `${displayHour}:${minutes} ${period}`;
-  };
+// Get booking details first
+const { data: booking } = await supabaseClient
+  .from("bookings")
+  .select(`*, booking_links!inner(title, user_id)`)
+  .eq("id", bookingId)
+  .single();
 
-  try {
-    const date = new Date(isoString);
-    if (isNaN(date.getTime())) {
-      console.warn('[safeFormatTime] Invalid date:', isoString);
-      // Try to extract time from ISO string directly
-      const match = isoString.match(/T(\d{2}):(\d{2})/);
-      if (match) {
-        const h = parseInt(match[1], 10);
-        const m = match[2];
-        if (format === '24h') return `${h.toString().padStart(2, '0')}:${m}`;
-        const period = h >= 12 ? 'PM' : 'AM';
-        const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-        return `${displayHour}:${m} ${period}`;
-      }
-      return 'Invalid time';
-    }
+// Then fetch owner profile separately  
+const { data: ownerProfile } = await supabaseClient
+  .from("profiles")
+  .select("email, full_name")
+  .eq("id", booking.booking_links.user_id)
+  .single();
+```
 
-    // Try native Intl.DateTimeFormat
-    return new Intl.DateTimeFormat('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: format === '12h',
-      timeZone: timezone,
-    }).format(date);
-  } catch (err) {
-    console.warn('[safeFormatTime] Intl.DateTimeFormat failed:', err, { isoString, timezone });
-    
-    // Fallback: try without timezone
-    try {
-      const date = new Date(isoString);
-      if (!isNaN(date.getTime())) {
-        return new Intl.DateTimeFormat('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: format === '12h',
-        }).format(date);
-      }
-    } catch {
-      // Continue to manual fallback
-    }
-    
-    // Ultimate manual fallback - never return raw ISO
-    try {
-      const date = new Date(isoString);
-      if (!isNaN(date.getTime())) {
-        return manualFallback(date, format);
-      }
-    } catch {
-      // Even this failed
-    }
-    
-    // Last resort: extract time from string pattern
-    const match = isoString.match(/T(\d{2}):(\d{2})/);
-    if (match) {
-      const h = parseInt(match[1], 10);
-      const m = match[2];
-      if (format === '24h') return `${h.toString().padStart(2, '0')}:${m}`;
-      const period = h >= 12 ? 'PM' : 'AM';
-      const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-      return `${displayHour}:${m} ${period}`;
-    }
-    
-    return 'Time unavailable';
-  }
+#### 2.2 Add Email Error Handling
+Check Resend API response status:
+```typescript
+const emailResponse = await fetch("https://api.resend.com/emails", {...});
+if (!emailResponse.ok) {
+  const errorData = await emailResponse.json();
+  console.error("Resend API error:", errorData);
+  // Continue with booking cancellation even if email fails
 }
 ```
 
-### Fix 2: Add Debug Logging to UnifiedDateTimeSelector
-
-Add temporary logging to identify where the failure occurs:
-
+#### 2.3 Use Centralized EMAIL_SENDERS
 ```typescript
-// In UnifiedDateTimeSelector.tsx, update formatSlotDisplay
-const formatSlotDisplay = (slot: TimeSlot) => {
-  console.log('[formatSlotDisplay] Input:', { 
-    start: slot.start, 
-    end: slot.end, 
-    guestTimezone, 
-    hostTimezone, 
-    timeFormat 
-  });
-  
-  const result = formatSlotWithDualTimezone(
-    slot.start,
-    slot.end,
-    guestTimezone,
-    hostTimezone,
-    timeFormat
-  );
-  
-  console.log('[formatSlotDisplay] Output:', result);
-  return result;
-};
-```
-
-### Fix 3: Validate Timezone Before Use
-
-The guest timezone detection might be returning an invalid value:
-
-```typescript
-// In UnifiedDateTimeSelector.tsx
-const rawGuestTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const guestTimezone = rawGuestTimezone || 'UTC'; // Fallback to UTC if undefined
+import { EMAIL_SENDERS } from "../_shared/email-config.ts";
+// ...
+from: EMAIL_SENDERS.bookings,
 ```
 
 ---
 
-## Files to Modify
+### Phase 3: Fix Email Logo
+
+#### 3.1 Update email-config.ts
+Change logo URLs to use the existing asset:
+```typescript
+export const EMAIL_LOGOS = {
+  cloverIcon80: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
+  cloverIcon40: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`, // Fixed
+  fullLogo: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,     // Fixed
+} as const;
+```
+
+---
+
+### Phase 4: Enhance Host Notifications
+
+#### 4.1 Add Better Logging and Error Handling in send-booking-confirmation
+```typescript
+// Add explicit logging for debugging
+console.log("Looking up owner profile for user_id:", bookingLink.user_id);
+
+const response = await fetch(...);
+if (!response.ok) {
+  console.error("Profile fetch failed:", response.status, await response.text());
+}
+
+const profiles = await response.json();
+console.log("Owner profile lookup result:", profiles);
+
+if (!ownerProfile?.email) {
+  console.error("Owner profile not found or missing email for user_id:", bookingLink.user_id);
+} else {
+  console.log("Sending owner notification to:", ownerProfile.email);
+}
+```
+
+---
+
+### Phase 5: Email Template Polish (100/100)
+
+#### 5.1 Add Fallback Text for Logo
+```html
+<img 
+  src="${EMAIL_LOGOS.cloverIcon40}" 
+  alt="The Quantum Club"
+  title="The Quantum Club" 
+  width="64" 
+  height="64"
+  onerror="this.style.display='none'"
+/>
+<!-- Text fallback if image fails -->
+<div style="display: none;">The Quantum Club</div>
+```
+
+#### 5.2 Improve Color Contrast
+Replace `rgba()` colors with solid hex equivalents for better email client compatibility:
+```typescript
+textSecondary: '#B8B7B3',  // Instead of rgba(245, 244, 239, 0.7)
+textMuted: '#8A8985',      // Instead of rgba(245, 244, 239, 0.5)
+```
+
+---
+
+## Technical Details
+
+### Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/lib/safeTimeFormat.ts` | Robust fallback chain that never returns raw ISO strings |
-| `src/components/booking/UnifiedDateTimeSelector.tsx` | Add timezone fallback and debug logging |
+| `supabase/functions/get-available-slots/index.ts` | Include pending bookings in conflict check |
+| `src/components/booking/UnifiedDateTimeSelector.tsx` | Add real-time subscription hook |
+| `supabase/functions/cancel-booking/index.ts` | Fix profile query, add error handling, use EMAIL_SENDERS |
+| `supabase/functions/_shared/email-config.ts` | Fix logo URLs, solidify colors |
+| `supabase/functions/send-booking-confirmation/index.ts` | Add better logging for host notifications |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Add image fallback |
+
+### Edge Functions to Deploy
+- `get-available-slots`
+- `cancel-booking`
+- `send-booking-confirmation`
 
 ---
 
-## Verification Steps
+## Expected Outcomes
 
-After implementation:
-1. Navigate to `/book/darryl`
-2. Select a date with available times
-3. Verify times display as "9:00 AM – 9:30 AM" (not raw ISO)
-4. Click on a time slot
-5. Verify the form step loads correctly
-6. Complete a test booking to ensure end-to-end flow works
+1. **Slots disappear immediately** when booked (real-time + pending status check)
+2. **Cancel booking works reliably** with proper error handling
+3. **Logo displays correctly** in all email clients
+4. **Host receives notifications** for all bookings
+5. **Email quality 100/100** with solid colors and proper fallbacks
 
 ---
 
-## Technical Notes
+## Testing Checklist
 
-### Why Intl.DateTimeFormat Might Fail
-
-1. **Invalid timezone string**: If `Intl.DateTimeFormat().resolvedOptions().timeZone` returns `undefined` or an invalid IANA timezone
-2. **Browser compatibility**: Older browsers may not support all timezone options
-3. **Preview environment quirks**: OpenTelemetry instrumentation or other polyfills may interfere
-
-### Defense in Depth Strategy
-
-The fix implements multiple fallback layers:
-1. Native `Intl.DateTimeFormat` with timezone
-2. Native `Intl.DateTimeFormat` without timezone (local time)
-3. Manual UTC-based calculation
-4. Regex extraction from ISO string
-5. "Time unavailable" as absolute last resort (never show raw ISO)
-
+1. Book a slot, verify it disappears for other users in real-time
+2. Cancel a booking, verify success without errors
+3. Check email in Gmail, Outlook, Apple Mail for logo display
+4. Verify host receives notification email
+5. Verify guest receives confirmation email with all details
