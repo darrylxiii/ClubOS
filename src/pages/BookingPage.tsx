@@ -39,6 +39,13 @@ interface BookingLink {
   available_platforms?: string[];
   video_platform?: string;
   host_display_mode?: 'full' | 'discreet' | 'avatar_only' | 'name_only';
+  guest_permissions?: {
+    allow_guest_cancel?: boolean;
+    allow_guest_reschedule?: boolean;
+    allow_guest_propose_times?: boolean;
+    allow_guest_add_attendees?: boolean;
+    booker_can_delegate?: boolean;
+  };
 }
 
 interface Profile {

@@ -11,9 +11,22 @@ export interface CreateBookingRequest {
   scheduledEnd: string;
   timezone: string;
   notes?: string | null;
-  guests?: Array<{ name?: string; email: string }>;
+  guests?: Array<{ 
+    name?: string; 
+    email: string;
+    can_cancel?: boolean;
+    can_reschedule?: boolean;
+    can_propose_times?: boolean;
+    can_add_attendees?: boolean;
+  }>;
   guestSelectedPlatform?: string;
   smsReminders?: boolean;
+  delegatedPermissions?: {
+    can_cancel: boolean;
+    can_reschedule: boolean;
+    can_propose_times: boolean;
+    can_add_attendees: boolean;
+  };
 }
 
 export interface CreateBookingResponse {

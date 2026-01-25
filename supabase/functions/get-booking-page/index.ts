@@ -49,6 +49,7 @@ serve(async (req) => {
           'available_platforms',
           'video_platform',
           'host_display_mode',
+          'guest_permissions',
         ].join(', '),
       )
       .eq('slug', slug)
