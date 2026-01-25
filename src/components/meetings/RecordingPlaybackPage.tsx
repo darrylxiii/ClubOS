@@ -298,7 +298,7 @@ export default function RecordingPlaybackPage() {
                 recordingId={recording.id}
                 meetingId={recording.meeting_id}
               />
-              <Button onClick={sendSummaryEmail} variant="outline" size="sm" disabled={sendingEmail || !recording.ai_summary}>
+              <Button onClick={sendSummaryEmail} variant="outline" size="sm" disabled={sendingEmail || !recording.ai_analysis}>
                 <Mail className="h-4 w-4 mr-2" />
                 {sendingEmail ? 'Sending...' : 'Email Summary'}
               </Button>

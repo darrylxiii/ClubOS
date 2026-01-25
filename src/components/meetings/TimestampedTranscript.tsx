@@ -42,6 +42,28 @@ export function TimestampedTranscript({
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeSegmentRef = useRef<HTMLDivElement>(null);
   
+  // Normalize transcript data - handle both array and Whisper response object formats
+  const normalizedSegments: TranscriptSegment[] = (() => {
+    if (!transcriptJson) return [];
+    
+    // If it's already an array, use it directly
+    if (Array.isArray(transcriptJson)) {
+      return transcriptJson;
+    }
+    
+    // If it's a Whisper response object with segments
+    if (typeof transcriptJson === 'object' && 'segments' in transcriptJson && Array.isArray((transcriptJson as any).segments)) {
+      return ((transcriptJson as any).segments as any[]).map((seg: any) => ({
+        timestamp_ms: (seg.start || 0) * 1000,
+        speaker: seg.speaker || undefined,
+        speaker_id: seg.speaker_id || undefined,
+        text: seg.text || ''
+      }));
+    }
+    
+    return [];
+  })();
+  
   // Auto-scroll to current segment
   useEffect(() => {
     if (activeSegmentRef.current && scrollRef.current) {
@@ -52,7 +74,7 @@ export function TimestampedTranscript({
     }
   }, [currentTimeMs]);
 
-  if (!transcriptJson || transcriptJson.length === 0) {
+  if (normalizedSegments.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-muted-foreground">
         <p>No transcript available yet</p>
@@ -73,8 +95,8 @@ export function TimestampedTranscript({
   };
 
   const getActiveSegmentIndex = (): number => {
-    for (let i = transcriptJson.length - 1; i >= 0; i--) {
-      if (transcriptJson[i].timestamp_ms <= currentTimeMs) {
+    for (let i = normalizedSegments.length - 1; i >= 0; i--) {
+      if (normalizedSegments[i].timestamp_ms <= currentTimeMs) {
         return i;
       }
     }
@@ -82,22 +104,22 @@ export function TimestampedTranscript({
   };
 
   const filteredSegments = searchQuery
-    ? transcriptJson.filter(seg => 
+    ? normalizedSegments.filter(seg => 
         seg.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
         seg.speaker?.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : transcriptJson;
+    : normalizedSegments;
 
   const activeIndex = getActiveSegmentIndex();
-  const uniqueSpeakers = [...new Set(transcriptJson.map(s => s.speaker).filter(Boolean))];
+  const uniqueSpeakers = [...new Set(normalizedSegments.map(s => s.speaker).filter(Boolean))];
 
   const handleCreateClip = () => {
     if (selectedSegments.size < 1 || !onCreateClip) return;
     
     const indices = Array.from(selectedSegments).sort((a, b) => a - b);
-    const startMs = transcriptJson[indices[0]].timestamp_ms;
-    const endMs = transcriptJson[indices[indices.length - 1]].timestamp_ms + 5000; // Add 5s buffer
-    const text = indices.map(i => transcriptJson[i].text).join(' ');
+    const startMs = normalizedSegments[indices[0]].timestamp_ms;
+    const endMs = normalizedSegments[indices[indices.length - 1]].timestamp_ms + 5000; // Add 5s buffer
+    const text = indices.map(i => normalizedSegments[i].text).join(' ');
     
     onCreateClip(startMs, endMs, text);
     setSelectedSegments(new Set());
