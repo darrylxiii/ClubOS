@@ -366,7 +366,33 @@ export const AddCandidateDialog = ({
         } else if (appError.code === '42501' || appError.message?.toLowerCase().includes('rls') || appError.message?.toLowerCase().includes('permission')) {
           throw new Error('PERMISSION_ERROR: You do not have permission to add applications. Your user role may not be properly configured. Please contact an administrator.');
         } else if (appError.code === '23503') {
-          throw new Error('FK_ERROR: Invalid job or candidate reference. Please refresh the page and try again.');
+          // FK violation - diagnose which reference is invalid
+          console.error('❌ [Add Candidate] FK violation details:', {
+            candidateId,
+            jobId,
+            constraint: appError.message
+          });
+          
+          // Check which reference is invalid
+          const { data: jobExists } = await supabase
+            .from('jobs')
+            .select('id')
+            .eq('id', jobId)
+            .maybeSingle();
+            
+          const { data: candidateExists } = await supabase
+            .from('candidate_profiles')
+            .select('id')
+            .eq('id', candidateId)
+            .maybeSingle();
+            
+          if (!jobExists) {
+            throw new Error('FK_ERROR: The selected job no longer exists. Please refresh and select a different job.');
+          } else if (!candidateExists) {
+            throw new Error('FK_ERROR: Candidate profile creation was interrupted. Please try again.');
+          }
+          
+          throw new Error('FK_ERROR: Database constraint error. Please refresh and try again.');
         } else {
           throw new Error(`DB_ERROR: Failed to create application - ${appError.message} (code: ${appError.code || 'unknown'})`);
         }
