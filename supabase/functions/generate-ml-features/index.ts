@@ -55,7 +55,9 @@ serve(async (req) => {
       candidateInterviewsResult,
       jobApplicationsResult,
       candidateEmbeddingResult,
-      jobEmbeddingResult
+      jobEmbeddingResult,
+      interviewPerformanceResult,
+      meetingsCountResult
     ] = await Promise.all([
       supabase.from('candidate_profiles').select('*').eq('id', candidate_id).single(),
       supabase.from('jobs').select('*').eq('id', job_id).single(),
@@ -67,7 +69,20 @@ serve(async (req) => {
       supabase.from('applications').select('*').eq('candidate_id', candidate_id).in('status', ['interviewed', 'hired']),
       supabase.from('applications').select('*').eq('job_id', job_id),
       supabase.from('candidate_profiles').select('profile_embedding').eq('id', candidate_id).single(),
-      supabase.from('jobs').select('job_embedding').eq('id', job_id).single()
+      supabase.from('jobs').select('job_embedding').eq('id', job_id).single(),
+      // NEW: Fetch interview performance data
+      supabase.from('candidate_interview_performance')
+        .select('*')
+        .eq('candidate_id', candidate_id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      // NEW: Count meetings for this candidate-job pair
+      supabase.from('meeting_recordings_extended')
+        .select('id', { count: 'exact', head: true })
+        .eq('candidate_id', candidate_id)
+        .eq('job_id', job_id)
+        .eq('analysis_status', 'completed')
     ]);
 
     const candidate = candidateResult.data;
@@ -80,6 +95,8 @@ serve(async (req) => {
     const jobApplications = jobApplicationsResult.data || [];
     const candidateEmbedding = candidateEmbeddingResult.data?.profile_embedding;
     const jobEmbedding = jobEmbeddingResult.data?.job_embedding;
+    const interviewPerformance = interviewPerformanceResult.data;
+    const meetingsCount = meetingsCountResult.count || 0;
 
     if (!candidate || !job) {
       return new Response(
@@ -236,7 +253,22 @@ serve(async (req) => {
       day_of_week: new Date().getDay(),
       is_weekend: [0, 6].includes(new Date().getDay()) ? 1 : 0,
 
-      // === G. DERIVED FEATURES (10 features) ===
+      // === H. INTERVIEW PERFORMANCE FEATURES (15 features) ===
+      interview_performance_exists: !!interviewPerformance,
+      interview_communication_clarity: interviewPerformance?.communication_clarity_score || 0,
+      interview_communication_confidence: interviewPerformance?.confidence_score || 0,
+      interview_technical_competence: interviewPerformance?.technical_competence_score || 0,
+      interview_cultural_fit: interviewPerformance?.cultural_fit_score || 0,
+      interview_red_flags_count: interviewPerformance?.red_flags?.length || 0,
+      interview_green_flags_count: interviewPerformance?.green_flags?.length || 0,
+      interview_hiring_recommendation: interviewPerformance?.hiring_recommendation || 'unknown',
+      interview_answer_quality_avg: interviewPerformance?.average_answer_quality || 0,
+      interview_meetings_count: meetingsCount,
+      // Hiring manager pattern match (if available)
+      hiring_manager_style_match: 0.5, // Default - can be enhanced with hiring_manager_profiles comparison
+      hiring_manager_cultural_priorities_match: 0.5, // Default
+
+      // === I. DERIVED FEATURES (10 features) ===
       
       // Composite scores
       overall_fit_score: calculateOverallFitScore({
@@ -248,7 +280,12 @@ serve(async (req) => {
         ),
         salary_match: isSalaryInRange(candidate.expected_salary, job.salary_min, job.salary_max) ? 1 : 0,
         location_match: isRemoteCompatible(candidate.remote_preference, job.remote_policy) ? 1 : 0,
-        semantic_match: semanticSimilarity || 0
+        semantic_match: semanticSimilarity || 0,
+        interview_match: interviewPerformance ? (
+          (interviewPerformance.technical_competence_score || 0) * 0.4 +
+          (interviewPerformance.cultural_fit_score || 0) * 0.3 +
+          (interviewPerformance.communication_clarity_score || 0) * 0.3
+        ) : 0
       }),
       
       profile_quality_score: calculateProfileCompleteness(candidate),
@@ -327,11 +364,12 @@ function calculateSalaryDistance(expected: number, min: number, max: number): nu
 
 function calculateOverallFitScore(scores: Record<string, number>): number {
   const weights = {
-    skills_match: 0.30,
-    experience_match: 0.25,
-    salary_match: 0.15,
-    location_match: 0.15,
-    semantic_match: 0.15,  // NEW: Semantic similarity weight
+    skills_match: 0.25,
+    experience_match: 0.20,
+    salary_match: 0.10,
+    location_match: 0.10,
+    semantic_match: 0.15,
+    interview_match: 0.20, // NEW: Interview performance weight
   };
   
   return Object.entries(weights).reduce((sum, [key, weight]) => {

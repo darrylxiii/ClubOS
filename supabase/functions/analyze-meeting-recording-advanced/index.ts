@@ -764,6 +764,26 @@ CRITICAL REQUIREMENTS:
     const totalTime = Date.now() - startTime;
     console.log(`[Analysis] ✅ Completed in ${totalTime}ms:`, recordingId);
 
+    // Trigger embedding generation for ML/RAG integration
+    try {
+      const embedResponse = await fetch(`${supabaseUrl}/functions/v1/embed-meeting-intelligence`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recordingId })
+      });
+      
+      if (embedResponse.ok) {
+        console.log('[Analysis] 🔗 Embedding generation triggered successfully');
+      } else {
+        console.warn('[Analysis] ⚠️ Embedding generation returned non-OK:', embedResponse.status);
+      }
+    } catch (embErr) {
+      console.warn('[Analysis] ⚠️ Failed to trigger embedding generation:', embErr);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
@@ -772,7 +792,8 @@ CRITICAL REQUIREMENTS:
           duration_ms: totalTime,
           transcript_chars: transcript.length,
           retry_count: currentRetryCount,
-          used_fallback: usedFallback
+          used_fallback: usedFallback,
+          embeddings_triggered: true
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

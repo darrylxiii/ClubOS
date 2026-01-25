@@ -27,6 +27,23 @@ export interface MLFeatures {
   location_remote_compatible: number;
   overall_fit_score: number;
   
+  // Semantic similarity
+  semantic_similarity_score: number;
+  
+  // Interview performance features (from meeting intelligence)
+  interview_performance_exists: boolean;
+  interview_communication_clarity: number;
+  interview_communication_confidence: number;
+  interview_technical_competence: number;
+  interview_cultural_fit: number;
+  interview_red_flags_count: number;
+  interview_green_flags_count: number;
+  interview_hiring_recommendation: string;
+  interview_answer_quality_avg: number;
+  interview_meetings_count: number;
+  hiring_manager_style_match: number;
+  hiring_manager_cultural_priorities_match: number;
+  
   [key: string]: any; // Allow additional features
 }
 
