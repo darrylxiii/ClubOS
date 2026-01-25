@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
@@ -9,7 +9,6 @@ const Meetings = lazy(() => import("@/pages/Meetings"));
 const MeetingRoom = lazy(() => import("@/pages/MeetingRoom"));
 const JoinMeeting = lazy(() => import("@/pages/JoinMeeting"));
 const MeetingNotes = lazy(() => import("@/pages/MeetingNotes"));
-const MeetingHistory = lazy(() => import("@/pages/MeetingHistory"));
 const Scheduling = lazy(() => import("@/pages/Scheduling"));
 const BookingManagement = lazy(() => import("@/pages/BookingManagement"));
 const SchedulingSettings = lazy(() => import("@/pages/SchedulingSettings"));
@@ -67,17 +66,10 @@ export const meetingsRoutes = (
         </ProtectedRoute>
       }
     />
+    {/* Redirect legacy /meeting-history to /meetings?tab=history */}
     <Route
       path="/meeting-history"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <MeetingHistory />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
+      element={<Navigate to="/meetings?tab=history" replace />}
     />
     <Route
       path="/scheduling"
