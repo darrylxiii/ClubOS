@@ -11102,6 +11102,47 @@ export type Database = {
         }
         Relationships: []
       }
+      conflict_resolution_history: {
+        Row: {
+          action_details: Json | null
+          action_taken: string
+          affected_parties: string[] | null
+          conflict_id: string
+          created_at: string
+          id: string
+          notifications_sent: boolean | null
+          performed_by: string | null
+        }
+        Insert: {
+          action_details?: Json | null
+          action_taken: string
+          affected_parties?: string[] | null
+          conflict_id: string
+          created_at?: string
+          id?: string
+          notifications_sent?: boolean | null
+          performed_by?: string | null
+        }
+        Update: {
+          action_details?: Json | null
+          action_taken?: string
+          affected_parties?: string[] | null
+          conflict_id?: string
+          created_at?: string
+          id?: string
+          notifications_sent?: boolean | null
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conflict_resolution_history_conflict_id_fkey"
+            columns: ["conflict_id"]
+            isOneToOne: false
+            referencedRelation: "scheduling_conflicts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connects_subscriptions: {
         Row: {
           created_at: string | null
@@ -25986,6 +26027,65 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_agenda_items: {
+        Row: {
+          actual_minutes: number | null
+          ai_summary: string | null
+          allocated_minutes: number | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          item_order: number
+          meeting_id: string
+          notes: string | null
+          started_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_minutes?: number | null
+          ai_summary?: string | null
+          allocated_minutes?: number | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_order: number
+          meeting_id: string
+          notes?: string | null
+          started_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_minutes?: number | null
+          ai_summary?: string | null
+          allocated_minutes?: number | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_order?: number
+          meeting_id?: string
+          notes?: string | null
+          started_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_agenda_items_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_analytics: {
         Row: {
           chat_messages_count: number | null
@@ -26534,6 +26634,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "meeting_engagement_metrics_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_engagement_samples: {
+        Row: {
+          attention_indicator: string | null
+          created_at: string
+          engagement_score: number | null
+          id: string
+          meeting_id: string
+          participant_id: string
+          sample_timestamp: string
+          sentiment_score: number | null
+          speaking_detected: boolean | null
+        }
+        Insert: {
+          attention_indicator?: string | null
+          created_at?: string
+          engagement_score?: number | null
+          id?: string
+          meeting_id: string
+          participant_id: string
+          sample_timestamp?: string
+          sentiment_score?: number | null
+          speaking_detected?: boolean | null
+        }
+        Update: {
+          attention_indicator?: string | null
+          created_at?: string
+          engagement_score?: number | null
+          id?: string
+          meeting_id?: string
+          participant_id?: string
+          sample_timestamp?: string
+          sentiment_score?: number | null
+          speaking_detected?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_engagement_samples_meeting_id_fkey"
             columns: ["meeting_id"]
             isOneToOne: false
             referencedRelation: "meetings"
@@ -40936,6 +41080,57 @@ export type Database = {
           report_type?: string
           schedule_cron?: string
           timezone?: string | null
+        }
+        Relationships: []
+      }
+      scheduling_conflicts: {
+        Row: {
+          conflict_type: string
+          created_at: string
+          id: string
+          involved_bookings: string[] | null
+          involved_calendar_events: Json | null
+          proposed_solutions: Json | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          selected_solution_index: number | null
+          severity: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conflict_type: string
+          created_at?: string
+          id?: string
+          involved_bookings?: string[] | null
+          involved_calendar_events?: Json | null
+          proposed_solutions?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          selected_solution_index?: number | null
+          severity?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conflict_type?: string
+          created_at?: string
+          id?: string
+          involved_bookings?: string[] | null
+          involved_calendar_events?: Json | null
+          proposed_solutions?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          selected_solution_index?: number | null
+          severity?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
