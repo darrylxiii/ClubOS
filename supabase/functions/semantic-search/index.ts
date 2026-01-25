@@ -108,30 +108,45 @@ serve(async (req) => {
     // Using cosine distance operator <=> (lower is better)
     const vectorString = `[${queryEmbedding.join(',')}]`;
     
+    // Extract entity_type for filter if this is an intelligence_embeddings query
+    const filterEntityType = ['meeting_candidate', 'meeting_job', 'meeting_interviewer'].includes(entity_type) 
+      ? entity_type 
+      : null;
+    
     const { data, error } = await supabase.rpc('semantic_search_query', {
       query_embedding: vectorString,
       match_table: tableName,
       match_column: embeddingColumn,
-      match_threshold: 1 - threshold, // Convert similarity to distance
+      match_threshold: threshold, // Use threshold directly (function expects similarity threshold)
       match_count: limit,
-    }).select(selectColumns);
+      filter_entity_type: filterEntityType,
+    });
 
     if (error) {
       // Fallback to direct query if RPC not available
-      console.log('RPC not available, using direct query');
+      console.log('RPC not available, using direct query:', error.message);
       
-      const { data: directData, error: directError } = await supabase
+      let query = supabase
         .from(tableName)
         .select(selectColumns)
-        .not(embeddingColumn, 'is', null)
-        .limit(limit);
+        .not(embeddingColumn, 'is', null);
+      
+      // Apply entity_type filter for intelligence_embeddings table
+      if (tableName === 'intelligence_embeddings' && whereClause) {
+        const entityTypeMatch = whereClause.match(/entity_type\s*=\s*'([^']+)'/);
+        if (entityTypeMatch) {
+          query = query.eq('entity_type', entityTypeMatch[1]);
+        }
+      }
+      
+      const { data: directData, error: directError } = await query.limit(limit);
 
       if (directError) {
         throw new Error(`Search failed: ${directError.message}`);
       }
 
       // Calculate similarity scores manually
-      const results = directData.map((row: any) => {
+      const results = (directData || []).map((row: any) => {
         const embedding = row[embeddingColumn];
         // Calculate cosine similarity
         let similarity = 0;

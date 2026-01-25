@@ -814,6 +814,12 @@ verify_jwt = true
 [functions.transcribe-recording]
 verify_jwt = false
 
+[functions.embed-meeting-intelligence]
+verify_jwt = false
+
+[functions.backfill-meeting-embeddings]
+verify_jwt = false
+
 # =============================================================================
 # Interview Description Generation (JWT Required)
 # =============================================================================

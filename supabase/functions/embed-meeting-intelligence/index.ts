@@ -44,10 +44,11 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    // Use OpenAI API key for embeddings (Lovable AI doesn't support embedding models)
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
+      throw new Error('OPENAI_API_KEY not configured');
     }
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -62,11 +63,11 @@ serve(async (req) => {
         meeting_id,
         transcript,
         transcript_json,
-        ai_summary,
-        ai_action_items,
-        ai_key_moments,
-        ai_skills_assessed,
-        ai_coaching_suggestions,
+        executive_summary,
+        action_items,
+        key_moments,
+        skills_assessed,
+        ai_analysis,
         candidate_id,
         job_id,
         application_id,
@@ -77,8 +78,11 @@ serve(async (req) => {
       .single();
 
     if (recordingError || !recording) {
+      console.error(`[EmbedMeeting] Recording fetch error:`, recordingError);
       throw new Error(`Recording not found: ${recordingId}`);
     }
+
+    console.log(`[EmbedMeeting] 📋 Recording found - analysis_status: ${recording.analysis_status}, host_id: ${recording.host_id}`);
 
     // Skip if not analyzed yet
     if (recording.analysis_status !== 'completed') {
@@ -97,33 +101,47 @@ serve(async (req) => {
 
     // Generate embedding helper
     async function generateEmbedding(text: string): Promise<number[] | null> {
-      if (!text || text.length < 20) return null;
-      
-      // Truncate if too long
-      const truncatedText = text.length > EMBEDDING_CHUNK_SIZE 
-        ? text.substring(0, EMBEDDING_CHUNK_SIZE) + '...'
-        : text;
-
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'text-embedding-3-small',
-          input: truncatedText,
-          encoding_format: 'float',
-        }),
-      });
-
-      if (!response.ok) {
-        console.error(`[EmbedMeeting] Embedding API error: ${response.status}`);
+      if (!text || text.length < 20) {
+        console.log(`[EmbedMeeting] Skipping embedding - text too short: ${text.length} chars`);
         return null;
       }
+      
+      // Truncate if too long and clean up the text
+      let cleanText = text
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (cleanText.length > EMBEDDING_CHUNK_SIZE) {
+        cleanText = cleanText.substring(0, EMBEDDING_CHUNK_SIZE);
+      }
 
-      const data = await response.json();
-      return data.data?.[0]?.embedding || null;
+      console.log(`[EmbedMeeting] Generating embedding for ${cleanText.length} chars`);
+
+      try {
+        const response = await fetch('https://api.openai.com/v1/embeddings', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'text-embedding-3-small',
+            input: cleanText,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[EmbedMeeting] Embedding API error: ${response.status} - ${errorText}`);
+          return null;
+        }
+
+        const data = await response.json();
+        return data.data?.[0]?.embedding || null;
+      } catch (err) {
+        console.error(`[EmbedMeeting] Embedding fetch error:`, err);
+        return null;
+      }
     }
 
     // Store embedding in intelligence_embeddings
@@ -169,9 +187,9 @@ serve(async (req) => {
       
       // Build candidate context from meeting
       const candidateContent = [
-        recording.ai_summary || '',
-        recording.ai_skills_assessed ? `Skills discussed: ${JSON.stringify(recording.ai_skills_assessed)}` : '',
-        recording.ai_coaching_suggestions ? `Coaching insights: ${JSON.stringify(recording.ai_coaching_suggestions)}` : '',
+        recording.executive_summary || '',
+        recording.skills_assessed ? `Skills discussed: ${JSON.stringify(recording.skills_assessed)}` : '',
+        recording.ai_analysis ? `Analysis insights: ${typeof recording.ai_analysis === 'string' ? recording.ai_analysis.substring(0, 2000) : JSON.stringify(recording.ai_analysis).substring(0, 2000)}` : '',
         // Extract candidate segments from transcript if available
         recording.transcript ? `Interview transcript summary: ${recording.transcript.substring(0, 3000)}` : '',
       ].filter(Boolean).join('\n\n');
@@ -186,7 +204,7 @@ serve(async (req) => {
           candidateEmbedding,
           {
             job_id: recording.job_id,
-            skills_assessed: recording.ai_skills_assessed,
+            skills_assessed: recording.skills_assessed,
           }
         );
         results.push({ 
@@ -210,9 +228,9 @@ serve(async (req) => {
       
       // Build job context from meeting
       const jobContent = [
-        recording.ai_summary || '',
-        recording.ai_key_moments ? `Interview key moments: ${JSON.stringify(recording.ai_key_moments)}` : '',
-        recording.ai_action_items ? `Hiring actions: ${JSON.stringify(recording.ai_action_items)}` : '',
+        recording.executive_summary || '',
+        recording.key_moments ? `Interview key moments: ${JSON.stringify(recording.key_moments)}` : '',
+        recording.action_items ? `Hiring actions: ${JSON.stringify(recording.action_items)}` : '',
       ].filter(Boolean).join('\n\n');
 
       const jobEmbedding = await generateEmbedding(jobContent);
@@ -225,7 +243,7 @@ serve(async (req) => {
           jobEmbedding,
           {
             candidate_id: recording.candidate_id,
-            action_items: recording.ai_action_items,
+            action_items: recording.action_items,
           }
         );
         results.push({ 
@@ -261,10 +279,12 @@ serve(async (req) => {
       }
 
       const interviewerContent = [
-        recording.ai_summary ? `Interview style: ${recording.ai_summary}` : '',
+        recording.executive_summary ? `Interview style: ${recording.executive_summary}` : '',
+        recording.key_moments ? `Key moments: ${JSON.stringify(recording.key_moments)}` : '',
         hiringPatterns?.communication_style ? `Communication style: ${hiringPatterns.communication_style}` : '',
         hiringPatterns?.cultural_priorities ? `Cultural priorities: ${JSON.stringify(hiringPatterns.cultural_priorities)}` : '',
         hiringPatterns?.decision_patterns ? `Decision patterns: ${JSON.stringify(hiringPatterns.decision_patterns)}` : '',
+        recording.transcript ? `Meeting context: ${recording.transcript.substring(0, 2000)}` : '',
       ].filter(Boolean).join('\n\n');
 
       if (interviewerContent.length > 50) {
@@ -287,6 +307,8 @@ serve(async (req) => {
             success 
           });
         }
+      } else {
+        console.log('[EmbedMeeting] ⏭️ Skipping interviewer embedding - insufficient content');
       }
     }
 
@@ -296,28 +318,30 @@ serve(async (req) => {
       console.log('[EmbedMeeting] 🏢 Updating company interaction embedding...');
       
       const interactionContent = [
-        recording.ai_summary || '',
+        recording.executive_summary || '',
         recording.transcript ? `Full transcript: ${recording.transcript.substring(0, 5000)}` : '',
       ].filter(Boolean).join('\n\n');
 
-      const interactionEmbedding = await generateEmbedding(interactionContent);
-      
-      if (interactionEmbedding) {
-        // Update company_interactions if exists
-        const { error: updateError } = await supabase
-          .from('company_interactions')
-          .update({
-            interaction_embedding: interactionEmbedding,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('meeting_id', recording.meeting_id);
+      if (interactionContent.length > 50) {
+        const interactionEmbedding = await generateEmbedding(interactionContent);
+        
+        if (interactionEmbedding) {
+          // Update company_interactions if exists
+          const { error: updateError } = await supabase
+            .from('company_interactions')
+            .update({
+              interaction_embedding: interactionEmbedding,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('meeting_id', recording.meeting_id);
 
-        results.push({ 
-          entity_type: 'interaction', 
-          entity_id: recording.meeting_id, 
-          success: !updateError,
-          error: updateError?.message
-        });
+          results.push({ 
+            entity_type: 'interaction', 
+            entity_id: recording.meeting_id, 
+            success: !updateError,
+            error: updateError?.message
+          });
+        }
       }
     }
 

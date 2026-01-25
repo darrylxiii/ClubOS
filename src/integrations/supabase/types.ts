@@ -20584,26 +20584,32 @@ export type Database = {
         Row: {
           content: string
           created_at: string | null
+          embedding: string | null
           entity_id: string
           entity_type: string
           id: string
           metadata: Json | null
+          updated_at: string | null
         }
         Insert: {
           content: string
           created_at?: string | null
+          embedding?: string | null
           entity_id: string
           entity_type: string
           id?: string
           metadata?: Json | null
+          updated_at?: string | null
         }
         Update: {
           content?: string
           created_at?: string | null
+          embedding?: string | null
           entity_id?: string
           entity_type?: string
           id?: string
           metadata?: Json | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -53658,6 +53664,24 @@ export type Database = {
           similarity_score: number
           tags: string[]
           title: string
+        }[]
+      }
+      semantic_search_query: {
+        Args: {
+          filter_entity_type?: string
+          match_column: string
+          match_count?: number
+          match_table: string
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          content: string
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json
+          similarity: number
         }[]
       }
       start_impersonation_session: {
