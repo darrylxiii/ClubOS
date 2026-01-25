@@ -304,35 +304,29 @@ export function useCompositorRecording({
   };
 
   /**
-   * Trigger AI analysis pipeline with retry logic
+   * Trigger transcription and AI analysis pipeline with retry logic
    */
   const triggerAnalysis = async (recordingId: string, attempt = 1) => {
     const maxAttempts = 3;
     const baseDelay = 2000;
 
     try {
-      // Update status
-      await supabase
-        .from('meeting_recordings_extended')
-        .update({ processing_status: 'transcribing' })
-        .eq('id', recordingId);
-
-      // Call analysis function
-      const { error } = await supabase.functions.invoke('analyze-meeting-recording-advanced', {
-        body: { recordingId }
+      // Call transcribe-recording which handles the full pipeline
+      const { error } = await supabase.functions.invoke('transcribe-recording', {
+        body: { recordingId, chainAnalysis: true }
       });
 
       if (error) {
         throw error;
       }
 
-      logger.info('AI analysis triggered successfully', {
+      logger.info('Transcription pipeline triggered successfully', {
         componentName: 'CompositorRecording',
         recordingId,
         attempt
       });
     } catch (error: any) {
-      logger.error(`Analysis trigger attempt ${attempt} failed`, {
+      logger.error(`Transcription trigger attempt ${attempt} failed`, {
         componentName: 'CompositorRecording',
         error,
         recordingId
@@ -340,14 +334,14 @@ export function useCompositorRecording({
 
       if (attempt < maxAttempts) {
         const delay = baseDelay * attempt;
-        logger.info(`Retrying analysis in ${delay}ms (attempt ${attempt + 1}/${maxAttempts})`, {
+        logger.info(`Retrying transcription in ${delay}ms (attempt ${attempt + 1}/${maxAttempts})`, {
           componentName: 'CompositorRecording',
           recordingId
         });
         setTimeout(() => triggerAnalysis(recordingId, attempt + 1), delay);
       } else {
         // All retries exhausted
-        toast.error('Recording saved but analysis failed', {
+        toast.error('Recording saved but processing failed', {
           description: 'You can retry from History tab',
           duration: 5000
         });
@@ -356,7 +350,7 @@ export function useCompositorRecording({
           .from('meeting_recordings_extended')
           .update({
             processing_status: 'failed',
-            processing_error: error.message || 'Analysis trigger failed after 3 attempts'
+            processing_error: error.message || 'Transcription trigger failed after 3 attempts'
           })
           .eq('id', recordingId);
       }
