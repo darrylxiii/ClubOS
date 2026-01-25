@@ -1,171 +1,181 @@
 
+# Pipeline Candidate Card Quality Fix
 
-# Add Candidate Button & LinkedIn Import Fix
+## Problem Analysis
 
-## Issues Identified
+The pipeline is showing unprofessional candidate cards with several issues:
 
-### Issue 1: "Invalid job or candidate reference" Error
-**Root Cause**: Duplicate conflicting foreign key constraints on the `applications` table
+### Issue 1: Name Showing as "Candidate" Instead of Real Name
+- **Root Cause**: The `full_name` field in `candidate_profiles` shows user input like "Test84" or "39393" instead of the actual LinkedIn name
+- **Why**: The LinkedIn scraper extracts the name but users may still enter junk data in the form
+- **Data Evidence**: Database shows `full_name: 'Test84'` and `full_name: '39393'` for candidates with valid LinkedIn URLs
 
-The `applications.candidate_id` column has **two FK constraints** with different behaviors:
-| Constraint Name | ON DELETE Action |
-|-----------------|------------------|
-| `applications_candidate_id_fkey` | SET NULL |
-| `fk_applications_candidate_profiles` | CASCADE |
+### Issue 2: Raw Ugly Notes Displayed on Card
+- **Root Cause**: The stage notes contain raw template text:
+  ```
+  Candidate: Test84
+  Email: N/A
+  Phone: N/A
+  LinkedIn: https://www.linkedin.com/in/anni-pfeiffer-13963a15b/
+  Current: N/A at N/A
+  ```
+- **Why**: `AddCandidateDialog` line 340-341 stores this raw format in `stages[0].notes`
+- **Result**: This ugly text is displayed verbatim in the card UI
 
-This creates unpredictable behavior when:
-1. A candidate profile is created successfully (Step 1) ✅
-2. The application insert (Step 2) triggers the `23503` FK error because PostgreSQL encounters constraint conflicts
+### Issue 3: Avatar Not Showing LinkedIn Profile Photo
+- **Root Cause**: `avatar_url` is explicitly set to `null` on line 285 of `AddCandidateDialog.tsx`
+- **Why**: The code ignores the `avatar_url` returned by the LinkedIn scraper
+- **Evidence**: All manually added candidates have `avatar_url: null` in database
 
-**Fix**: Remove the duplicate constraint and keep only the correct one.
-
-### Issue 2: LinkedIn Import Not Working
-**Root Cause**: No Apify integration exists - the function only supports Proxycurl
-
-**Current State**:
-- The `linkedin-scraper` Edge Function checks for `PROXYCURL_API_KEY`
-- If missing, it falls back to **URL-only extraction** (just parses the name from the URL)
-- There is **NO Apify integration** in the codebase despite user's claim
-- No `APIFY_API_KEY` in the 32 configured secrets
-
-**Fix**: Add Apify integration to the LinkedIn scraper as an alternative provider.
+### Issue 4: LinkedIn URL Extraction Not Using Apify Properly
+- **Current State**: Apify is now integrated but the form is accepting user-entered names without validating against scraped data
+- **Flow Gap**: User enters "Test84" as name, system doesn't override with Apify-scraped name
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Fix Duplicate FK Constraint (Database Migration)
+### Phase 1: Fix AddCandidateDialog to Save Avatar from LinkedIn Scraper
 
-Remove the conflicting duplicate constraint:
+**File**: `src/components/partner/AddCandidateDialog.tsx`
 
-```sql
--- Remove duplicate FK constraint that causes the 23503 error
-ALTER TABLE applications 
-DROP CONSTRAINT IF EXISTS fk_applications_candidate_profiles;
+**Changes**:
+1. Add state to store scraped avatar URL:
+   ```typescript
+   const [scrapedAvatarUrl, setScrapedAvatarUrl] = useState<string | null>(null);
+   ```
 
--- The remaining constraint will be:
--- applications_candidate_id_fkey: FOREIGN KEY (candidate_id) REFERENCES candidate_profiles(id) ON DELETE SET NULL
-```
+2. Update `handleLinkedInScrape` to capture avatar:
+   ```typescript
+   if (data.success) {
+     setScrapedAvatarUrl(data.data.avatar_url || null);
+     setFormData({
+       fullName: data.data.full_name || "",
+       // ... rest unchanged
+     });
+   }
+   ```
 
-### Phase 2: Add Apify LinkedIn Scraper Integration
+3. Update candidate profile insert to use the scraped avatar:
+   ```typescript
+   .insert({
+     // ... existing fields
+     avatar_url: scrapedAvatarUrl, // Use scraped avatar instead of null
+   })
+   ```
 
-Update `supabase/functions/linkedin-scraper/index.ts` to support Apify as a provider:
+### Phase 2: Stop Storing Raw Data in Stage Notes
 
-**Provider Priority Order**:
-1. **Apify** (if `APIFY_API_KEY` is configured) - LinkedIn Profile Scraper Actor
-2. **Proxycurl** (if `PROXYCURL_API_KEY` is configured) - Current implementation
-3. **URL Extraction** (fallback) - Parse name from URL only
+**File**: `src/components/partner/AddCandidateDialog.tsx`
 
-**Apify Actor to use**: `apify/linkedin-profile-scraper`
+**Changes**:
+Instead of storing contact details in stage notes, store only meaningful notes:
 
 ```typescript
-// Check for Apify first
-const APIFY_API_KEY = Deno.env.get('APIFY_API_KEY');
-if (APIFY_API_KEY) {
-  console.log('[linkedin-scraper] Using Apify API');
-  
-  // Run Apify actor synchronously
-  const response = await fetch(
-    `https://api.apify.com/v2/acts/apify~linkedin-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        startUrls: [{ url: linkedinUrl }],
-        maxResults: 1
-      })
-    }
-  );
-  
-  // Parse Apify response format
-  const data = await response.json();
-  // ... map to LinkedInProfile format
+stages: [
+  {
+    name: "Applied",
+    status: "in_progress",
+    started_at: new Date().toISOString(),
+    notes: formData.notes || "Candidate added via LinkedIn import",
+  },
+],
+```
+
+### Phase 3: Improve StageCandidatesList Card Layout
+
+**File**: `src/components/partner/StageCandidatesList.tsx`
+
+**Changes**:
+1. Don't show stage notes if they contain the auto-generated template
+2. Show professional contact details in a cleaner layout
+3. Ensure avatar properly loads from `avatar_url`
+4. Show proper fallback initials from the full name
+
+Current problematic rendering:
+```tsx
+{currentStage?.notes && (
+  <div className="mb-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+    <p className="text-xs text-muted-foreground line-clamp-2">
+      {currentStage.notes}
+    </p>
+  </div>
+)}
+```
+
+Updated rendering:
+```tsx
+{currentStage?.notes && !currentStage.notes.startsWith('Candidate:') && (
+  <div className="mb-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+    <p className="text-xs text-muted-foreground line-clamp-2">
+      {currentStage.notes}
+    </p>
+  </div>
+)}
+```
+
+### Phase 4: Fix LinkedIn URL Name Extraction
+
+**File**: `supabase/functions/linkedin-scraper/index.ts`
+
+The `extractNameFromUrl` function should already work, but ensure it's being used correctly when Apify fails:
+
+```typescript
+function extractNameFromUrl(url: string): string {
+  // Current logic is good - extracts "Anni Pfeiffer" from 
+  // "https://www.linkedin.com/in/anni-pfeiffer-13963a15b/"
 }
 ```
 
-### Phase 3: Add APIFY_API_KEY Secret
+The issue is that when Apify successfully returns data, we should **enforce** using the Apify name, not allow user override with junk like "Test84".
 
-If the user has an Apify API key, add it as a secret using the `add_secret` tool.
+### Phase 5: Auto-Fill Form with Scraped Name (Enforce Override)
 
-### Phase 4: Improve Error Messaging
+**File**: `src/components/partner/AddCandidateDialog.tsx`
 
-Enhance the FK error handler to provide more diagnostic information:
+After successful LinkedIn scrape, disable the name field to prevent user from entering junk:
 
-```typescript
-} else if (appError.code === '23503') {
-  console.error('❌ [Add Candidate] FK violation details:', {
-    candidateId,
-    jobId,
-    constraint: appError.message
-  });
-  
-  // Check which reference is invalid
-  const { data: jobExists } = await supabase
-    .from('jobs')
-    .select('id')
-    .eq('id', jobId)
-    .maybeSingle();
-    
-  const { data: candidateExists } = await supabase
-    .from('candidate_profiles')
-    .select('id')
-    .eq('id', candidateId)
-    .maybeSingle();
-    
-  if (!jobExists) {
-    throw new Error('FK_ERROR: The selected job no longer exists. Please refresh and select a different job.');
-  } else if (!candidateExists) {
-    throw new Error('FK_ERROR: Candidate profile creation was interrupted. Please try again.');
-  }
-  
-  throw new Error('FK_ERROR: Database constraint error. Please refresh and try again.');
-}
+```tsx
+<Input
+  id="fullName"
+  value={formData.fullName}
+  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+  placeholder="John Smith"
+  disabled={linkedinImported && formData.fullName.length > 0}
+  className={linkedinImported ? "bg-muted" : ""}
+/>
+{linkedinImported && (
+  <p className="text-xs text-muted-foreground mt-1">
+    Name extracted from LinkedIn profile
+  </p>
+)}
 ```
 
 ---
 
 ## Files to Modify
 
-| File | Action | Description |
-|------|--------|-------------|
-| `supabase/migrations/xxx_fix_duplicate_fk.sql` | Create | Remove duplicate FK constraint |
-| `supabase/functions/linkedin-scraper/index.ts` | Modify | Add Apify provider support |
-| `src/components/partner/AddCandidateDialog.tsx` | Modify | Improve FK error diagnostics |
+| File | Changes |
+|------|---------|
+| `src/components/partner/AddCandidateDialog.tsx` | Save avatar_url from scraper, clean stage notes format, disable name field after import |
+| `src/components/partner/StageCandidatesList.tsx` | Filter out auto-generated notes, ensure avatar displays properly |
+| `supabase/functions/linkedin-scraper/index.ts` | Ensure avatar_url is returned in response (already done) |
 
 ---
 
-## Verification Steps
+## Data Migration Consideration
+
+Existing candidates with bad data (like "Test84", "39393") will need manual cleanup or a migration script. Options:
+1. Manual update in database
+2. Migration script to re-extract names from LinkedIn URLs
+3. Add "Edit Candidate" feature for strategists
+
+---
+
+## Expected Result
 
 After implementation:
-
-1. **FK Constraint Check**:
-```sql
-SELECT conname, pg_get_constraintdef(oid) 
-FROM pg_constraint 
-WHERE conrelid = 'applications'::regclass 
-AND contype = 'f';
--- Should show only ONE candidate_id FK
-```
-
-2. **Test Add Candidate**:
-   - Sebastiaan logs in
-   - Opens job pipeline
-   - Clicks "Add Candidate"
-   - Fills form and submits
-   - Should succeed without FK error
-
-3. **Test LinkedIn Import**:
-   - Enter LinkedIn URL
-   - Click "Import from LinkedIn"
-   - Should show extracted profile data (with Apify) or just name (fallback)
-
----
-
-## Secret Required
-
-To enable full LinkedIn scraping, the user needs to provide one of:
-- `APIFY_API_KEY` - From Apify account (has LinkedIn Profile Scraper actor)
-- `PROXYCURL_API_KEY` - From Proxycurl account (~$49/mo for 1000 credits)
-
-Without either key, LinkedIn import will only extract the name from the URL.
-
+- Avatar shows LinkedIn profile photo (when available) or professional initials
+- Name shows actual extracted name (e.g., "Anni Pfeiffer", "Vincent Biekman")
+- Card shows clean layout without raw template data
+- Professional appearance matching The Quantum Club brand standards
