@@ -9,8 +9,8 @@ export const EMAIL_ASSETS_BASE_URL = 'https://thequantumclub.app';
 // Hosted email logos (publicly accessible)
 export const EMAIL_LOGOS = {
   cloverIcon80: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
-  cloverIcon40: `${EMAIL_ASSETS_BASE_URL}/lovable-uploads/57a00fec-4cc3-44e5-a5d9-c4a1a4c3f6d6.png`,
-  fullLogo: `${EMAIL_ASSETS_BASE_URL}/lovable-uploads/57a00fec-4cc3-44e5-a5d9-c4a1a4c3f6d6.png`,
+  cloverIcon40: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
+  fullLogo: `${EMAIL_ASSETS_BASE_URL}/quantum-clover-icon.png`,
 } as const;
 
 // Standardized email sender addresses
@@ -33,9 +33,9 @@ export const EMAIL_COLORS = {
   eclipse: '#0E0E10',
   cardBg: '#1a1a1c',
   textPrimary: '#F5F4EF',
-  textSecondary: 'rgba(245, 244, 239, 0.7)',
-  textMuted: 'rgba(245, 244, 239, 0.5)',
-  border: 'rgba(201, 162, 78, 0.2)',
+  textSecondary: '#B8B7B3',
+  textMuted: '#8A8985',
+  border: '#3D3426',
   success: '#22c55e',
   warning: '#f59e0b',
   error: '#ef4444',

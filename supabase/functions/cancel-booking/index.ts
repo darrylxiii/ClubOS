@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { EMAIL_SENDERS } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,23 +28,36 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Get booking details
+    // Get booking details first
     const { data: booking, error: fetchError } = await supabaseClient
       .from("bookings")
       .select(`
         *,
         booking_links!inner(
           title,
-          user_id,
-          profiles:user_id(email, full_name)
+          user_id
         )
       `)
       .eq("id", bookingId)
       .single();
 
     if (fetchError || !booking) {
+      console.error("[Cancel] Booking fetch error:", fetchError);
       throw new Error("Booking not found");
     }
+
+    // Fetch owner profile separately (more robust than nested query)
+    const { data: ownerProfile, error: profileError } = await supabaseClient
+      .from("profiles")
+      .select("email, full_name")
+      .eq("id", booking.booking_links.user_id)
+      .single();
+
+    if (profileError) {
+      console.error("[Cancel] Owner profile fetch error:", profileError);
+    }
+    
+    console.log("[Cancel] Owner profile:", ownerProfile?.email || "not found");
 
     if (booking.status === "cancelled") {
       return new Response(
@@ -153,22 +167,29 @@ serve(async (req) => {
       </p>
     `;
 
-    await fetch("https://api.resend.com/emails", {
+    const guestEmailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: "The Quantum Club <bookings@thequantumclub.nl>",
+        from: EMAIL_SENDERS.bookings,
         to: [booking.guest_email],
         subject: `Booking Cancelled - ${booking.booking_links.title}`,
         html: baseEmailTemplate({ content: guestContent }),
       }),
     });
 
+    if (!guestEmailResponse.ok) {
+      const errorData = await guestEmailResponse.json();
+      console.error("[Cancel] Guest email send failed:", errorData);
+    } else {
+      console.log("[Cancel] Guest cancellation email sent to:", booking.guest_email);
+    }
+
     // Email to owner
-    const ownerEmail = booking.booking_links.profiles?.email;
+    const ownerEmail = ownerProfile?.email;
     if (ownerEmail) {
       const ownerContent = `
         <h1 class="text-primary" style="font-size: 28px; font-weight: 700; margin: 0 0 16px 0;">
@@ -205,19 +226,28 @@ serve(async (req) => {
         </div>
       `;
 
-      await fetch("https://api.resend.com/emails", {
+      const ownerEmailResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${resendApiKey}`,
         },
         body: JSON.stringify({
-          from: "The Quantum Club <bookings@thequantumclub.nl>",
+          from: EMAIL_SENDERS.bookings,
           to: [ownerEmail],
           subject: `Booking Cancelled - ${booking.guest_name}`,
           html: baseEmailTemplate({ content: ownerContent }),
         }),
       });
+
+      if (!ownerEmailResponse.ok) {
+        const errorData = await ownerEmailResponse.json();
+        console.error("[Cancel] Owner email send failed:", errorData);
+      } else {
+        console.log("[Cancel] Owner cancellation email sent to:", ownerEmail);
+      }
+    } else {
+      console.warn("[Cancel] No owner email found, skipping owner notification");
     }
 
     return new Response(
