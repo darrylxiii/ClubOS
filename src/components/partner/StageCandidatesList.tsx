@@ -161,8 +161,10 @@ export function StageCandidatesList({
                     )}
                   </div>
 
-                  {/* Stage Notes */}
-                  {currentStage?.notes && (
+                  {/* Stage Notes - only show user-entered notes, not auto-generated templates */}
+                  {currentStage?.notes && 
+                   !currentStage.notes.startsWith('Candidate:') && 
+                   currentStage.notes.trim().length > 0 && (
                     <div className="mb-3 p-3 rounded-lg bg-muted/30 border border-border/50">
                       <p className="text-xs text-muted-foreground line-clamp-2">
                         {currentStage.notes}

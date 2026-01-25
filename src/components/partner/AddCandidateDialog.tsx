@@ -66,6 +66,7 @@ export const AddCandidateDialog = ({
   const [duplicateMatchType, setDuplicateMatchType] = useState<"name" | "linkedin" | "both">("name");
   const [proceedWithDuplicate, setProceedWithDuplicate] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [scrapedAvatarUrl, setScrapedAvatarUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     fullName: "",
@@ -122,6 +123,9 @@ export const AddCandidateDialog = ({
       if (error) throw error;
 
       if (data.success) {
+        // Store scraped avatar URL
+        setScrapedAvatarUrl(data.data.avatar_url || null);
+        
         // Auto-fill form with scraped data
         setFormData({
           fullName: data.data.full_name || "",
@@ -135,8 +139,10 @@ export const AddCandidateDialog = ({
         });
         setLinkedinImported(true);
         setAddMode("manual");
-        toast.success("Name extracted from LinkedIn", {
-          description: "Please verify and fill in missing details from their profile"
+        toast.success("Profile imported from LinkedIn", {
+          description: data.data.avatar_url 
+            ? "Name and photo extracted successfully" 
+            : "Name extracted - please verify details"
         });
       }
     } catch (error) {
@@ -282,10 +288,12 @@ export const AddCandidateDialog = ({
           linkedin_url: formData.linkedinUrl || null,
           current_company: formData.currentCompany || null,
           current_title: formData.currentTitle || null,
-          avatar_url: null, // No avatar for manual entries
-          source_channel: 'manual_admin',
+          avatar_url: scrapedAvatarUrl, // Use avatar from LinkedIn scraper if available
+          source_channel: linkedinImported ? 'linkedin_import' : 'manual_admin',
           created_by: adminUser.id,
-          tags: ['manually_added', 'standalone_profile']
+          tags: linkedinImported 
+            ? ['linkedin_imported', 'standalone_profile'] 
+            : ['manually_added', 'standalone_profile']
         })
         .select()
         .single();
@@ -334,10 +342,10 @@ export const AddCandidateDialog = ({
           status: "active",
           stages: [
             {
-              name: "Admin Added",
+              name: linkedinImported ? "LinkedIn Import" : "Admin Added",
               status: "in_progress",
               started_at: new Date().toISOString(),
-              notes: `Candidate: ${formData.fullName}\nEmail: ${formData.email || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\nLinkedIn: ${formData.linkedinUrl || 'N/A'}\nCurrent: ${formData.currentTitle || 'N/A'} at ${formData.currentCompany || 'N/A'}\n\n${formData.notes}`,
+              notes: formData.notes || null, // Only store user-entered notes, not raw data
             },
           ],
         })
@@ -515,6 +523,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         startStageIndex: "0",
       });
       setLinkedinImported(false);
+      setScrapedAvatarUrl(null);
       setCreditTo([]);
       setResumeFile(null);
       setLinkedinUrlForScrape("");
@@ -833,7 +842,15 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                 }
                 required
                 placeholder="John Doe"
+                disabled={linkedinImported && formData.fullName.length > 0}
+                className={linkedinImported && formData.fullName.length > 0 ? "bg-muted" : ""}
               />
+              {linkedinImported && formData.fullName.length > 0 && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Linkedin className="w-3 h-3" />
+                  Name extracted from LinkedIn profile
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
