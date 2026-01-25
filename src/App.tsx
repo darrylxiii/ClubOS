@@ -76,6 +76,7 @@ const Install = lazy(() => import("./pages/Install"));
 const SharedProfile = lazy(() => import("./pages/SharedProfile"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
 const GuestBookingPage = lazy(() => import("./pages/GuestBookingPage"));
+const GuestBookingPortal = lazy(() => import("./pages/GuestBookingPortal"));
 const PartnerFunnel = lazy(() => import("./pages/PartnerFunnel"));
 const PartnershipSubmitted = lazy(() => import("./pages/PartnershipSubmitted"));
 const CandidateOnboarding = lazy(() => import("./pages/CandidateOnboarding"));
@@ -188,6 +189,13 @@ const App = () => {
                   <PublicProviders>
                     <RouteErrorBoundary>
                       <Suspense fallback={<PageLoader />}><GuestBookingPage /></Suspense>
+                    </RouteErrorBoundary>
+                  </PublicProviders>
+                } />
+                <Route path="/booking/:bookingId/guest/:accessToken" element={
+                  <PublicProviders>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><GuestBookingPortal /></Suspense>
                     </RouteErrorBoundary>
                   </PublicProviders>
                 } />
