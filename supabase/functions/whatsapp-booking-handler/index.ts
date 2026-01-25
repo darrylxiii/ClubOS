@@ -50,13 +50,23 @@ serve(async (req) => {
     // Get or create session
     let { data: session } = await supabase
       .from('whatsapp_booking_sessions')
-      .select('*, booking_links(*, profiles:owner_id(full_name))')
+      .select('*')
       .eq('phone_number', phone_number)
-      .eq('status', 'active')
-      .or('status.eq.awaiting_confirmation')
+      .in('status', ['active', 'awaiting_confirmation'])
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
+
+    // Fetch booking link separately if session exists
+    let bookingLinkData = null;
+    if (session?.booking_link_id) {
+      const { data: bl } = await supabase
+        .from('booking_links')
+        .select('*, profiles:owner_id(full_name)')
+        .eq('id', session.booking_link_id)
+        .single();
+      bookingLinkData = bl;
+    }
 
     // Check if session expired
     if (session && new Date(session.expires_at) < new Date()) {
@@ -91,11 +101,12 @@ serve(async (req) => {
           status: 'active',
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
         })
-        .select('*, booking_links(*, profiles:owner_id(full_name))')
+        .select('*')
         .single();
 
       if (error) throw error;
       session = newSession;
+      bookingLinkData = bookingLink;
     }
 
     // Update conversation history
@@ -128,7 +139,7 @@ serve(async (req) => {
       }
     }
 
-    const hostName = bookingLink?.profiles?.full_name || 'our team';
+    const hostName = bookingLinkData?.profiles?.full_name || bookingLink?.profiles?.full_name || 'our team';
     const currentData = session.extracted_data || {};
 
     // Check for confirmation intent
