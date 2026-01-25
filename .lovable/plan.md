@@ -1,298 +1,171 @@
 
-# Complete Meeting Intelligence → ML/RAG Integration Fix
-## Goal: 100/100 Creation Quality + 100/100 Integration Completeness
+
+# Add Candidate Button & LinkedIn Import Fix
+
+## Issues Identified
+
+### Issue 1: "Invalid job or candidate reference" Error
+**Root Cause**: Duplicate conflicting foreign key constraints on the `applications` table
+
+The `applications.candidate_id` column has **two FK constraints** with different behaviors:
+| Constraint Name | ON DELETE Action |
+|-----------------|------------------|
+| `applications_candidate_id_fkey` | SET NULL |
+| `fk_applications_candidate_profiles` | CASCADE |
+
+This creates unpredictable behavior when:
+1. A candidate profile is created successfully (Step 1) ✅
+2. The application insert (Step 2) triggers the `23503` FK error because PostgreSQL encounters constraint conflicts
+
+**Fix**: Remove the duplicate constraint and keep only the correct one.
+
+### Issue 2: LinkedIn Import Not Working
+**Root Cause**: No Apify integration exists - the function only supports Proxycurl
+
+**Current State**:
+- The `linkedin-scraper` Edge Function checks for `PROXYCURL_API_KEY`
+- If missing, it falls back to **URL-only extraction** (just parses the name from the URL)
+- There is **NO Apify integration** in the codebase despite user's claim
+- No `APIFY_API_KEY` in the 32 configured secrets
+
+**Fix**: Add Apify integration to the LinkedIn scraper as an alternative provider.
 
 ---
 
-## Executive Summary
+## Implementation Plan
 
-The audit identified **7 critical gaps** preventing full integration. This plan addresses all of them to achieve perfect scores.
+### Phase 1: Fix Duplicate FK Constraint (Database Migration)
 
-| Issue | Impact | Fix |
-|-------|--------|-----|
-| Missing function deployments | Edge functions not callable | Add to config.toml |
-| Booking → Meeting entity linking broken | candidate_id/job_id always NULL | Fix create-meeting-from-booking |
-| Semantic search fallback ignores entity_type | Cross-entity pollution in results | Fix filter in semantic-search |
-| Missing semantic_search_query RPC | Falls back to inefficient manual search | Create PostgreSQL function |
-| No embeddings exist | 0 records in intelligence_embeddings | Run backfill after fixes |
-| ML features miss interview data | candidate_id is NULL | Data will flow after entity linking fix |
-| No search UI for meeting intelligence | Can't verify integration | Add admin UI component |
+Remove the conflicting duplicate constraint:
 
----
+```sql
+-- Remove duplicate FK constraint that causes the 23503 error
+ALTER TABLE applications 
+DROP CONSTRAINT IF EXISTS fk_applications_candidate_profiles;
 
-## Phase 1: Deploy Missing Edge Functions
-
-**Problem**: `embed-meeting-intelligence` and `backfill-meeting-embeddings` exist in code but are NOT in `config.toml`, so they fail with network/CORS errors.
-
-**File**: `supabase/config.toml`
-
-**Location**: Add after line 816 (after `transcribe-recording`)
-
-```toml
-[functions.embed-meeting-intelligence]
-verify_jwt = false
-
-[functions.backfill-meeting-embeddings]
-verify_jwt = false
+-- The remaining constraint will be:
+-- applications_candidate_id_fkey: FOREIGN KEY (candidate_id) REFERENCES candidate_profiles(id) ON DELETE SET NULL
 ```
 
----
+### Phase 2: Add Apify LinkedIn Scraper Integration
 
-## Phase 2: Fix Booking → Meeting → Recording Entity Linking
+Update `supabase/functions/linkedin-scraper/index.ts` to support Apify as a provider:
 
-**Problem**: `create-meeting-from-booking` does NOT copy `candidate_id`, `job_id`, `application_id` from booking to meeting, causing all downstream recordings to have NULL entity references.
+**Provider Priority Order**:
+1. **Apify** (if `APIFY_API_KEY` is configured) - LinkedIn Profile Scraper Actor
+2. **Proxycurl** (if `PROXYCURL_API_KEY` is configured) - Current implementation
+3. **URL Extraction** (fallback) - Parse name from URL only
 
-**File**: `supabase/functions/create-meeting-from-booking/index.ts`
-
-**Change**: Add entity fields when creating the meeting (lines 75-101)
+**Apify Actor to use**: `apify/linkedin-profile-scraper`
 
 ```typescript
-.insert({
-  title: `${booking.booking_links?.title || 'Meeting'} - ${booking.guest_name}`,
-  // ... existing fields ...
+// Check for Apify first
+const APIFY_API_KEY = Deno.env.get('APIFY_API_KEY');
+if (APIFY_API_KEY) {
+  console.log('[linkedin-scraper] Using Apify API');
   
-  // NEW: Link interview entities from booking
-  candidate_id: booking.candidate_id || null,
-  job_id: booking.job_id || null,
-  application_id: booking.application_id || null,
-  booking_id: bookingId,
-  meeting_type: booking.is_interview_booking ? 'interview' : 'general',
-})
-```
-
-This ensures that when recordings are created via `useMeetingAutoRecording`, they inherit the correct entity IDs.
-
----
-
-## Phase 3: Fix Semantic Search Entity Type Filtering
-
-**Problem**: The fallback query in `semantic-search` ignores the `whereClause` for meeting entity types, returning all intelligence_embeddings regardless of type.
-
-**File**: `supabase/functions/semantic-search/index.ts`
-
-**Change**: Add entity_type filter to fallback query (lines 121-127)
-
-```typescript
-// Fallback to direct query if RPC not available
-console.log('RPC not available, using direct query');
-
-let query = supabase
-  .from(tableName)
-  .select(selectColumns)
-  .not(embeddingColumn, 'is', null);
-
-// Apply entity_type filter for intelligence_embeddings
-if (whereClause && tableName === 'intelligence_embeddings') {
-  const entityType = whereClause.split("'")[1]; // Extract 'meeting_candidate' etc.
-  query = query.eq('entity_type', entityType);
+  // Run Apify actor synchronously
+  const response = await fetch(
+    `https://api.apify.com/v2/acts/apify~linkedin-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        startUrls: [{ url: linkedinUrl }],
+        maxResults: 1
+      })
+    }
+  );
+  
+  // Parse Apify response format
+  const data = await response.json();
+  // ... map to LinkedInProfile format
 }
-
-const { data: directData, error: directError } = await query.limit(limit);
 ```
 
----
+### Phase 3: Add APIFY_API_KEY Secret
 
-## Phase 4: Create semantic_search_query PostgreSQL Function
+If the user has an Apify API key, add it as a secret using the `add_secret` tool.
 
-**Problem**: The RPC `semantic_search_query` doesn't exist, forcing slow client-side similarity calculations.
+### Phase 4: Improve Error Messaging
 
-**Database Migration**:
-
-```sql
--- Create generic semantic search function using pgvector
-CREATE OR REPLACE FUNCTION semantic_search_query(
-  query_embedding vector(1536),
-  match_table text,
-  match_column text,
-  match_threshold float DEFAULT 0.3,
-  match_count int DEFAULT 10,
-  filter_entity_type text DEFAULT NULL
-)
-RETURNS TABLE (
-  id uuid,
-  entity_id uuid,
-  entity_type text,
-  content text,
-  metadata jsonb,
-  similarity float
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  -- For intelligence_embeddings table
-  IF match_table = 'intelligence_embeddings' THEN
-    RETURN QUERY
-    SELECT 
-      ie.id,
-      ie.entity_id,
-      ie.entity_type,
-      ie.content,
-      ie.metadata,
-      1 - (ie.embedding <=> query_embedding) as similarity
-    FROM intelligence_embeddings ie
-    WHERE ie.embedding IS NOT NULL
-      AND (filter_entity_type IS NULL OR ie.entity_type = filter_entity_type)
-      AND 1 - (ie.embedding <=> query_embedding) >= match_threshold
-    ORDER BY ie.embedding <=> query_embedding
-    LIMIT match_count;
-  END IF;
-  
-  -- Can extend for other tables as needed
-  RETURN;
-END;
-$$;
-
--- Grant execute to authenticated users
-GRANT EXECUTE ON FUNCTION semantic_search_query TO authenticated, service_role;
-```
-
----
-
-## Phase 5: Backfill Existing Recordings with Entity Data
-
-**Problem**: All 5 existing recordings have `candidate_id = NULL` and `job_id = NULL`.
-
-**Approach**: Since these are test recordings without actual interview context, we have two options:
-
-1. **Manual linking** (for real interview recordings): Admin updates the recording with correct candidate/job
-2. **Interaction embeddings only**: Generate embeddings for the host_id (interviewer) and meeting summary only
-
-**Action**: After deploying the embedding function, trigger backfill:
-
-```sql
--- First, update any recordings that have meetings with entity data
-UPDATE meeting_recordings_extended mre
-SET 
-  candidate_id = m.candidate_id,
-  job_id = m.job_id,
-  application_id = m.application_id
-FROM meetings m
-WHERE mre.meeting_id = m.id
-  AND m.candidate_id IS NOT NULL
-  AND mre.candidate_id IS NULL;
-```
-
-Then call the backfill endpoint:
-```bash
-POST /functions/v1/backfill-meeting-embeddings
-Body: { "batchSize": 10 }
-```
-
----
-
-## Phase 6: Enhance semantic-search RPC Call
-
-**File**: `supabase/functions/semantic-search/index.ts`
-
-**Change**: Update the RPC call to use the new function properly (lines 111-117)
+Enhance the FK error handler to provide more diagnostic information:
 
 ```typescript
-// For meeting entity types, use the new semantic_search_query function
-if (['meeting_candidate', 'meeting_job', 'meeting_interviewer'].includes(entity_type)) {
-  const { data, error } = await supabase.rpc('semantic_search_query', {
-    query_embedding: vectorString,
-    match_table: tableName,
-    match_column: embeddingColumn,
-    match_threshold: 1 - threshold,
-    match_count: limit,
-    filter_entity_type: entity_type
+} else if (appError.code === '23503') {
+  console.error('❌ [Add Candidate] FK violation details:', {
+    candidateId,
+    jobId,
+    constraint: appError.message
   });
   
-  if (!error && data) {
-    return new Response(
-      JSON.stringify({ 
-        results: data,
-        query,
-        entity_type,
-        count: data.length,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+  // Check which reference is invalid
+  const { data: jobExists } = await supabase
+    .from('jobs')
+    .select('id')
+    .eq('id', jobId)
+    .maybeSingle();
+    
+  const { data: candidateExists } = await supabase
+    .from('candidate_profiles')
+    .select('id')
+    .eq('id', candidateId)
+    .maybeSingle();
+    
+  if (!jobExists) {
+    throw new Error('FK_ERROR: The selected job no longer exists. Please refresh and select a different job.');
+  } else if (!candidateExists) {
+    throw new Error('FK_ERROR: Candidate profile creation was interrupted. Please try again.');
   }
+  
+  throw new Error('FK_ERROR: Database constraint error. Please refresh and try again.');
 }
 ```
 
 ---
 
-## Phase 7: Add Meeting Intelligence Search UI (Optional Enhancement)
+## Files to Modify
 
-**File**: `src/components/admin/MeetingIntelligenceSearch.tsx`
-
-Create a simple admin component to test and verify the integration:
-
-```typescript
-// Search across meeting_candidate, meeting_job, meeting_interviewer
-// Display results with similarity scores
-// Link to candidate/job/interviewer profiles
-```
+| File | Action | Description |
+|------|--------|-------------|
+| `supabase/migrations/xxx_fix_duplicate_fk.sql` | Create | Remove duplicate FK constraint |
+| `supabase/functions/linkedin-scraper/index.ts` | Modify | Add Apify provider support |
+| `src/components/partner/AddCandidateDialog.tsx` | Modify | Improve FK error diagnostics |
 
 ---
 
-## Implementation Order
+## Verification Steps
 
-| Step | Action | Files |
-|------|--------|-------|
-| 1 | Add function configs | `supabase/config.toml` |
-| 2 | Deploy functions | Automatic after config change |
-| 3 | Create RPC function | Database migration |
-| 4 | Fix entity linking | `create-meeting-from-booking/index.ts` |
-| 5 | Fix search filter | `semantic-search/index.ts` |
-| 6 | Backfill existing data | SQL update + API call |
-| 7 | Verify integration | Test searches |
+After implementation:
 
----
-
-## Verification Checklist
-
-After implementation, these queries should return expected results:
-
+1. **FK Constraint Check**:
 ```sql
--- Embeddings should exist
-SELECT entity_type, COUNT(*) 
-FROM intelligence_embeddings 
-WHERE entity_type LIKE 'meeting_%' 
-GROUP BY entity_type;
-
--- Recordings should have entity links
-SELECT COUNT(*) as linked, 
-       COUNT(*) FILTER (WHERE candidate_id IS NULL) as unlinked
-FROM meeting_recordings_extended 
-WHERE analysis_status = 'completed';
-
--- Semantic search should filter correctly
--- POST /functions/v1/semantic-search
--- { "query": "technical skills", "entity_type": "meeting_candidate" }
--- Should return ONLY meeting_candidate results
+SELECT conname, pg_get_constraintdef(oid) 
+FROM pg_constraint 
+WHERE conrelid = 'applications'::regclass 
+AND contype = 'f';
+-- Should show only ONE candidate_id FK
 ```
 
----
+2. **Test Add Candidate**:
+   - Sebastiaan logs in
+   - Opens job pipeline
+   - Clicks "Add Candidate"
+   - Fills form and submits
+   - Should succeed without FK error
 
-## Score Impact
-
-| Metric | Before | After | Reason |
-|--------|--------|-------|--------|
-| **Creation Quality** | 82/100 | 100/100 | All functions deployed + RPC created |
-| **Integration Completeness** | 58/100 | 100/100 | Full data flow + proper filtering |
-
-### Creation Quality Improvements
-- +8: Functions properly deployed in config.toml
-- +5: RPC function created for fast vector search
-- +5: Entity linking logic complete
-
-### Integration Completeness Improvements
-- +15: Booking → Meeting → Recording entity chain fixed
-- +12: Semantic search properly filters by entity_type
-- +10: Embeddings generated and stored
-- +5: ML features can access interview data
+3. **Test LinkedIn Import**:
+   - Enter LinkedIn URL
+   - Click "Import from LinkedIn"
+   - Should show extracted profile data (with Apify) or just name (fallback)
 
 ---
 
-## Risk Mitigation
+## Secret Required
 
-| Risk | Mitigation |
-|------|------------|
-| Existing bookings without entities | Graceful NULL handling preserved |
-| Backfill timeout | Batch processing with delays |
-| RPC doesn't match vector types | Explicit vector(1536) casting |
+To enable full LinkedIn scraping, the user needs to provide one of:
+- `APIFY_API_KEY` - From Apify account (has LinkedIn Profile Scraper actor)
+- `PROXYCURL_API_KEY` - From Proxycurl account (~$49/mo for 1000 credits)
+
+Without either key, LinkedIn import will only extract the name from the URL.
+
