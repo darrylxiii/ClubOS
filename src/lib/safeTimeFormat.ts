@@ -1,39 +1,98 @@
 import type { TimeFormat } from '@/hooks/useTimeFormatPreference';
 
 /**
+ * Manual fallback that extracts time from UTC and formats it - never returns raw ISO
+ */
+function manualTimeFormat(date: Date, format: TimeFormat): string {
+  const hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+  if (format === '24h') {
+    return `${hours.toString().padStart(2, '0')}:${minutes}`;
+  }
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  return `${displayHour}:${minutes} ${period}`;
+}
+
+/**
+ * Extract time from ISO string pattern as last resort
+ */
+function extractTimeFromISO(isoString: string, format: TimeFormat): string | null {
+  const match = isoString.match(/T(\d{2}):(\d{2})/);
+  if (match) {
+    const h = parseInt(match[1], 10);
+    const m = match[2];
+    if (format === '24h') return `${h.toString().padStart(2, '0')}:${m}`;
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${displayHour}:${m} ${period}`;
+  }
+  return null;
+}
+
+/**
  * Safely format a time from an ISO string using native Intl.DateTimeFormat
- * This is more robust than date-fns-tz which can fail in certain environments
+ * This is more robust than date-fns-tz which can fail in certain environments.
+ * NEVER returns raw ISO strings - always produces human-readable time.
  */
 export function safeFormatTime(
   isoString: string,
   timezone: string,
   format: TimeFormat = '12h'
 ): string {
+  // Validate timezone - fallback to UTC if invalid
+  const safeTimezone = timezone || 'UTC';
+  
   try {
     const date = new Date(isoString);
     if (isNaN(date.getTime())) {
-      return isoString;
+      console.warn('[safeFormatTime] Invalid date:', isoString);
+      // Try to extract time from ISO string directly
+      const extracted = extractTimeFromISO(isoString, format);
+      if (extracted) return extracted;
+      return 'Invalid time';
     }
 
-    // Use native Intl.DateTimeFormat - always available, always works
+    // Try native Intl.DateTimeFormat with timezone
     return new Intl.DateTimeFormat('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: format === '12h',
-      timeZone: timezone,
+      timeZone: safeTimezone,
     }).format(date);
-  } catch {
-    // Fallback: try without timezone (local time)
+  } catch (err) {
+    console.warn('[safeFormatTime] Intl.DateTimeFormat failed:', err, { isoString, timezone: safeTimezone });
+    
+    // Fallback 1: try without timezone (local time)
     try {
-      return new Date(isoString).toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: format === '12h',
-      });
+      const date = new Date(isoString);
+      if (!isNaN(date.getTime())) {
+        return new Intl.DateTimeFormat('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: format === '12h',
+        }).format(date);
+      }
     } catch {
-      // Ultimate fallback: return raw string
-      return isoString;
+      // Continue to manual fallback
     }
+    
+    // Fallback 2: manual UTC-based calculation
+    try {
+      const date = new Date(isoString);
+      if (!isNaN(date.getTime())) {
+        return manualTimeFormat(date, format);
+      }
+    } catch {
+      // Even this failed
+    }
+    
+    // Fallback 3: extract time from string pattern
+    const extracted = extractTimeFromISO(isoString, format);
+    if (extracted) return extracted;
+    
+    // Absolute last resort - never show raw ISO
+    return 'Time unavailable';
   }
 }
 
