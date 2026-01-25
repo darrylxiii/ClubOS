@@ -1,476 +1,422 @@
 
-# Comprehensive Guest Permissions & Notifications System
+# Complete Guest Permissions System - Fixes Implementation Plan
 
-## Overview
+## Executive Summary
 
-This plan implements a complete guest management system with:
-1. **Enhanced guest emails** - Personalized invitations showing who booked and who hosts
-2. **Granular guest permissions** - Booker can grant guests specific rights
-3. **Host control layer** - Host configures what permissions bookers can delegate
-4. **New "Propose Time" feature** - Allow guests to suggest alternative meeting times
-5. **Guest self-service actions** - Cancel, add guests, reschedule (if permitted)
+After a comprehensive audit, I've identified **7 critical integration gaps** that need to be fixed to complete the Guest Permissions & Notifications system. This plan addresses all issues in proper dependency order to ensure error-free deployment.
 
 ---
 
-## Architecture
+## Issues Identified
 
-```text
-┌─────────────────────────────────────────────────────────────────────┐
-│                    PERMISSION HIERARCHY                              │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  HOST (Ultimate Authority)                                          │
-│  └── Controls via booking_links settings:                           │
-│       • allow_guest_cancel: boolean                                 │
-│       • allow_guest_reschedule: boolean                             │
-│       • allow_guest_propose_times: boolean                          │
-│       • allow_guest_add_attendees: boolean                          │
-│                                                                      │
-│  BOOKER (Primary Guest)                                             │
-│  └── Can delegate to additional guests (within host limits):        │
-│       • can_cancel: boolean                                         │
-│       • can_reschedule: boolean                                     │
-│       • can_propose_times: boolean                                  │
-│       • can_add_attendees: boolean                                  │
-│                                                                      │
-│  ADDITIONAL GUESTS                                                   │
-│  └── Actions limited by:                                            │
-│       • Host's booking_link settings (ceiling)                      │
-│       • Booker's delegated permissions (floor)                      │
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
-```
+| # | Issue | Severity | Root Cause |
+|---|-------|----------|------------|
+| 1 | **BookingForm guest state type mismatch** | High | `guests` state is `Array<{ name?; email }>` but needs `GuestWithPermissions[]` |
+| 2 | **Missing allowedPermissions prop in BookingForm** | High | BookingForm doesn't fetch or pass guest_permissions from booking_links |
+| 3 | **CreateBookingRequest missing permission fields** | High | API interface lacks guest permission fields |
+| 4 | **create-booking Zod schema missing permissions** | High | Edge function doesn't validate/store guest permissions |
+| 5 | **No anonymous RLS for GuestBookingPortal** | Critical | Guests can't query booking_guests via token - RLS blocks it |
+| 6 | **Missing host UI for guest_permissions** | Medium | Scheduling.tsx lacks toggles to configure guest permissions |
+| 7 | **TimeProposalsManager not integrated** | Low | Component exists but not wired into host dashboard |
 
 ---
 
-## Database Schema Changes
+## Implementation Plan
 
-### 1. New Table: `booking_guests`
-Stores additional guests with individual permission assignments and access tokens.
+### Phase 1: Database Security (RLS Policy)
 
-```sql
-CREATE TABLE public.booking_guests (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  booking_id UUID NOT NULL REFERENCES public.bookings(id) ON DELETE CASCADE,
-  email TEXT NOT NULL,
-  name TEXT,
-  access_token UUID DEFAULT gen_random_uuid(),
-  
-  -- Permissions delegated by booker (capped by host settings)
-  can_cancel BOOLEAN DEFAULT false,
-  can_reschedule BOOLEAN DEFAULT false,
-  can_propose_times BOOLEAN DEFAULT false,
-  can_add_attendees BOOLEAN DEFAULT false,
-  
-  -- Tracking
-  email_sent_at TIMESTAMPTZ,
-  last_accessed_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  
-  UNIQUE(booking_id, email)
-);
+**File: Database Migration**
 
--- Indexes for fast lookups
-CREATE INDEX idx_booking_guests_booking_id ON booking_guests(booking_id);
-CREATE INDEX idx_booking_guests_access_token ON booking_guests(access_token);
-CREATE INDEX idx_booking_guests_email ON booking_guests(email);
-```
-
-### 2. New Table: `booking_time_proposals`
-Stores proposed alternative times from guests.
+Add anonymous access policy for token-based guest authentication:
 
 ```sql
-CREATE TABLE public.booking_time_proposals (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  booking_id UUID NOT NULL REFERENCES public.bookings(id) ON DELETE CASCADE,
-  
-  proposed_by_email TEXT NOT NULL,
-  proposed_by_name TEXT,
-  proposed_by_type TEXT NOT NULL CHECK (proposed_by_type IN ('booker', 'guest')),
-  
-  proposed_start TIMESTAMPTZ NOT NULL,
-  proposed_end TIMESTAMPTZ NOT NULL,
-  message TEXT,
-  
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'expired')),
-  responded_at TIMESTAMPTZ,
-  response_message TEXT,
-  
-  created_at TIMESTAMPTZ DEFAULT now(),
-  expires_at TIMESTAMPTZ DEFAULT (now() + interval '48 hours')
-);
-
-CREATE INDEX idx_proposals_booking_id ON booking_time_proposals(booking_id);
-CREATE INDEX idx_proposals_status ON booking_time_proposals(status);
+-- Allow anonymous users to SELECT booking_guests by access_token
+CREATE POLICY "Guests can view their own record via token" ON booking_guests
+  FOR SELECT TO anon
+  USING (access_token = COALESCE(
+    current_setting('request.jwt.claims', true)::json->>'access_token',
+    current_setting('request.headers', true)::json->>'x-guest-token'
+  )::uuid);
 ```
 
-### 3. Alter Table: `booking_links`
-Add host-level permission toggles.
-
-```sql
-ALTER TABLE public.booking_links
-ADD COLUMN IF NOT EXISTS guest_permissions JSONB DEFAULT '{
-  "allow_guest_cancel": false,
-  "allow_guest_reschedule": false,
-  "allow_guest_propose_times": true,
-  "allow_guest_add_attendees": false,
-  "booker_can_delegate": true
-}'::jsonb;
-
-COMMENT ON COLUMN booking_links.guest_permissions IS 
-  'Host-controlled permissions: what guests/bookers can do with this booking type';
-```
-
-### 4. Alter Table: `bookings`
-Add booker-level permission settings for their guests.
-
-```sql
-ALTER TABLE public.bookings
-ADD COLUMN IF NOT EXISTS delegated_permissions JSONB DEFAULT '{
-  "can_cancel": false,
-  "can_reschedule": false,
-  "can_propose_times": true,
-  "can_add_attendees": false
-}'::jsonb;
-
-COMMENT ON COLUMN bookings.delegated_permissions IS 
-  'Permissions the booker grants to additional guests (capped by host settings)';
-```
-
-### 5. RLS Policies
-
-```sql
--- Enable RLS
-ALTER TABLE booking_guests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE booking_time_proposals ENABLE ROW LEVEL SECURITY;
-
--- Booking guests: Viewable by host and accessible via token
-CREATE POLICY "Hosts can view their booking guests" ON booking_guests
-  FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM bookings b
-      JOIN booking_links bl ON b.booking_link_id = bl.id
-      WHERE b.id = booking_guests.booking_id
-      AND bl.user_id = auth.uid()
-    )
-  );
-
--- Proposals: Same pattern
-CREATE POLICY "Hosts can view proposals for their bookings" ON booking_time_proposals
-  FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM bookings b
-      JOIN booking_links bl ON b.booking_link_id = bl.id
-      WHERE b.id = booking_time_proposals.booking_id
-      AND bl.user_id = auth.uid()
-    )
-  );
-```
+However, since the GuestBookingPortal uses authenticated Supabase client but guests aren't logged in, the simpler solution is to:
+- Use the edge function `guest-booking-actions` (which uses service role) for all guest data fetching
+- Update GuestBookingPortal to call the edge function instead of direct Supabase queries
 
 ---
 
-## Edge Functions
+### Phase 2: API & Type Updates
 
-### 1. Update: `send-booking-confirmation`
-Enhance to send personalized guest invitations.
+#### 2.1 Update CreateBookingRequest Interface
 
-**Changes:**
-- Create dedicated guest email template showing:
-  - Who booked the meeting (booker name/email)
-  - Who is hosting (host name)
-  - Meeting details
-  - Individual action buttons based on permissions
-  - Unique guest access link
-- Insert records into `booking_guests` table
-- Track email sent timestamp
-
-**Guest Email Structure:**
-```text
-┌────────────────────────────────────────────────────┐
-│           [TQC LOGO - 120px]                       │
-├────────────────────────────────────────────────────┤
-│  YOU'RE INVITED                                    │
-│                                                    │
-│  {Booker Name} has invited you to:                │
-│  ────────────────────────────────                  │
-│  📅 {Meeting Title}                                │
-│  🗓️ {Date}                                         │
-│  🕐 {Time} ({Timezone})                            │
-│  ⏱️ {Duration}                                     │
-│  👤 Host: {Host Name}                              │
-│  📧 Booked by: {Booker Email}                      │
-│                                                    │
-│  ┌──────────────────────────────────────┐         │
-│  │      [QC] Join via Club Meetings     │         │
-│  └──────────────────────────────────────┘         │
-│                                                    │
-│  ┌─────────┐ ┌─────────┐ ┌─────────────┐         │
-│  │ Propose │ │ Cancel  │ │ Add Guests  │         │
-│  │ Time    │ │ Meeting │ │             │         │
-│  └─────────┘ └─────────┘ └─────────────┘         │
-│  (buttons shown based on permissions)              │
-│                                                    │
-│  ────────────────────────────────                  │
-│  📎 Add to Calendar: [Google] [Outlook] [Apple]   │
-└────────────────────────────────────────────────────┘
-```
-
-### 2. New: `guest-booking-actions`
-Unified edge function for guest self-service actions.
-
-**Endpoints (via `action` parameter):**
-- `cancel` - Cancel meeting (if permitted)
-- `propose_time` - Submit alternative time proposal
-- `add_guest` - Add another attendee (if permitted)
-- `get_details` - Fetch booking details for guest portal
-
-**Security:**
-- Validate access via `booking_guests.access_token`
-- Check booker token via `bookings.id` + `guest_email` match
-- Verify permissions before each action
-- Rate limit: 10 requests/minute per token
+**File: `src/services/booking.ts`**
 
 ```typescript
-// Pseudocode structure
-interface GuestActionRequest {
-  action: 'cancel' | 'propose_time' | 'add_guest' | 'get_details';
-  accessToken: string;      // For additional guests
-  bookingId?: string;       // For booker (with email verification)
-  guestEmail?: string;      // For booker verification
-  
-  // Action-specific data
-  cancelReason?: string;
-  proposedStart?: string;
-  proposedEnd?: string;
-  proposalMessage?: string;
-  newGuestEmail?: string;
-  newGuestName?: string;
-  newGuestPermissions?: GuestPermissions;
-}
-```
-
-### 3. New: `handle-time-proposal`
-Host response to time proposals.
-
-**Actions:**
-- `accept` - Accept proposal, reschedule booking, notify all parties
-- `decline` - Decline with optional message, notify proposer
-- `counter` - Suggest different time (creates new proposal in reverse)
-
-### 4. Update: `cancel-booking`
-Extend to support guest-initiated cancellations.
-
-**Changes:**
-- Accept `accessToken` parameter for guest auth
-- Verify guest has `can_cancel` permission
-- Add `cancelled_by` field to track who cancelled
-- Send notification to all parties (host, booker, other guests)
-
----
-
-## Frontend Components
-
-### 1. Update: `GuestEmailInput.tsx`
-Add permission toggles when host allows delegation.
-
-```tsx
-interface GuestWithPermissions {
-  email: string;
-  name?: string;
-  can_cancel?: boolean;
-  can_reschedule?: boolean;
-  can_propose_times?: boolean;
-  can_add_attendees?: boolean;
-}
-
-// New props
-interface GuestEmailInputProps {
-  guests: GuestWithPermissions[];
-  onChange: (guests: GuestWithPermissions[]) => void;
-  maxGuests?: number;
-  allowedPermissions?: {
+export interface CreateBookingRequest {
+  // ... existing fields ...
+  guests?: Array<{ 
+    name?: string; 
+    email: string;
+    can_cancel?: boolean;
+    can_reschedule?: boolean;
+    can_propose_times?: boolean;
+    can_add_attendees?: boolean;
+  }>;
+  delegatedPermissions?: {
     can_cancel: boolean;
     can_reschedule: boolean;
     can_propose_times: boolean;
     can_add_attendees: boolean;
   };
-  showPermissions?: boolean;
 }
 ```
 
-**UI Addition:**
-- Expandable section per guest showing permission toggles
-- Only show toggles the host has enabled for this booking link
-- Default: `can_propose_times: true`, others `false`
+#### 2.2 Update create-booking Edge Function Zod Schema
 
-### 2. Update: `Scheduling.tsx` (Booking Link Creation)
-Add guest permissions section.
+**File: `supabase/functions/create-booking/index.ts`**
 
-**New UI Section:**
-```text
-┌──────────────────────────────────────────────────┐
-│  👥 Guest Permissions                            │
-│  ────────────────────────────                    │
-│  Control what guests and attendees can do        │
-│                                                  │
-│  ☑️ Allow guests to propose alternative times    │
-│  ☐ Allow guests to cancel the meeting            │
-│  ☐ Allow guests to reschedule                    │
-│  ☐ Allow guests to add more attendees            │
-│  ────────────────────────────                    │
-│  ☑️ Allow booker to delegate permissions         │
-│     (Let the person booking decide what their    │
-│      guests can do, within your limits)          │
-└──────────────────────────────────────────────────┘
+```typescript
+const bookingSchema = z.object({
+  // ... existing fields ...
+  guests: z.array(z.object({
+    name: z.string().optional(),
+    email: z.string().email(),
+    can_cancel: z.boolean().optional(),
+    can_reschedule: z.boolean().optional(),
+    can_propose_times: z.boolean().optional(),
+    can_add_attendees: z.boolean().optional(),
+  })).max(10).optional(),
+  delegatedPermissions: z.object({
+    can_cancel: z.boolean(),
+    can_reschedule: z.boolean(),
+    can_propose_times: z.boolean(),
+    can_add_attendees: z.boolean(),
+  }).optional(),
+});
 ```
 
-### 3. New: `GuestBookingPortal.tsx`
-Guest-specific booking management page.
-
-**Route:** `/booking/:bookingId/guest/:accessToken`
-
-**Features:**
-- View booking details
-- See host and booker info
-- Action buttons based on permissions:
-  - "Propose Different Time" → Opens proposal form
-  - "Cancel Meeting" → Confirmation dialog
-  - "Add Attendee" → Guest input form
-- View proposal history and status
-
-### 4. New: `ProposeTimeDialog.tsx`
-Dialog for proposing alternative times.
-
-**UI:**
-- Calendar/time picker
-- Optional message field
-- Preview of proposed time
-- Submit button
-
-### 5. New: `TimeProposalsManager.tsx`
-Host view for managing time proposals.
-
-**Route:** Integrated into `/scheduling` or booking detail view
-
-**Features:**
-- List pending proposals
-- Accept/Decline buttons
-- Counter-propose option
-- Proposal history
-
-### 6. Update: `BookingForm.tsx`
-Show permission delegation UI when adding guests.
+Also update the booking insert to store `delegated_permissions` and ensure `send-booking-confirmation` receives guest permissions.
 
 ---
 
-## Email Templates
+### Phase 3: BookingForm Integration
 
-### 1. `GuestInvitationEmail`
-New template for additional guest invitations.
+#### 3.1 Update BookingForm Props & State
 
-**Content:**
-- Personalized greeting
-- Who invited them (booker)
-- Host information
-- Meeting details
-- Permission-based action buttons
-- Calendar add buttons
-- Unique access link in footer
+**File: `src/components/booking/BookingForm.tsx`**
 
-### 2. `TimeProposalReceivedEmail`
-Notify host of new time proposals.
+Changes needed:
+1. Import `GuestWithPermissions` type
+2. Change guests state type to `GuestWithPermissions[]`
+3. Add `guestPermissions` prop from booking_links
+4. Pass `allowedPermissions` and `showPermissions` to GuestEmailInput
+5. Include guest permissions in createBooking request
 
-### 3. `TimeProposalResponseEmail`
-Notify proposer of accept/decline.
+```typescript
+// Updated state
+const [guests, setGuests] = useState<GuestWithPermissions[]>([]);
 
-### 4. `GuestCancellationEmail`
-Notify all parties when a guest cancels.
+// Updated props interface
+interface BookingFormProps {
+  bookingLink: {
+    // ... existing ...
+    guest_permissions?: {
+      allow_guest_cancel?: boolean;
+      allow_guest_reschedule?: boolean;
+      allow_guest_propose_times?: boolean;
+      allow_guest_add_attendees?: boolean;
+      booker_can_delegate?: boolean;
+    };
+  };
+  // ...
+}
 
-### 5. `GuestAddedEmail`
-Notify when a guest adds another attendee.
+// In JSX
+<GuestEmailInput
+  guests={guests}
+  onChange={setGuests}
+  maxGuests={10}
+  allowedPermissions={bookingLink.guest_permissions ? {
+    can_cancel: bookingLink.guest_permissions.allow_guest_cancel ?? false,
+    can_reschedule: bookingLink.guest_permissions.allow_guest_reschedule ?? false,
+    can_propose_times: bookingLink.guest_permissions.allow_guest_propose_times ?? true,
+    can_add_attendees: bookingLink.guest_permissions.allow_guest_add_attendees ?? false,
+  } : undefined}
+  showPermissions={bookingLink.guest_permissions?.booker_can_delegate ?? false}
+/>
+```
+
+#### 3.2 Update createBooking Call
+
+```typescript
+const data = await createBooking(
+  {
+    // ... existing ...
+    guests: guests.length > 0 ? guests.map(g => ({
+      name: g.name,
+      email: g.email,
+      can_cancel: g.can_cancel,
+      can_reschedule: g.can_reschedule,
+      can_propose_times: g.can_propose_times,
+      can_add_attendees: g.can_add_attendees,
+    })) : undefined,
+  },
+  // ...
+);
+```
 
 ---
 
-## Files to Create/Modify
+### Phase 4: Update Public Booking Page
 
-### New Files
-| File | Purpose |
-|------|---------|
-| `supabase/functions/guest-booking-actions/index.ts` | Guest self-service actions |
-| `supabase/functions/handle-time-proposal/index.ts` | Host response to proposals |
-| `src/pages/GuestBookingPortal.tsx` | Guest portal page |
-| `src/components/booking/ProposeTimeDialog.tsx` | Time proposal UI |
-| `src/components/booking/TimeProposalsManager.tsx` | Host proposal management |
-| `src/components/booking/GuestPermissionToggles.tsx` | Permission toggle UI |
+**File: `src/pages/BookingPage.tsx`**
 
-### Modified Files
+Ensure booking_links query includes `guest_permissions`:
+
+```typescript
+const { data: bookingLinkData } = await supabase
+  .from("booking_links")
+  .select(`
+    *,
+    guest_permissions
+  `)
+  .eq("slug", slug)
+  .single();
+```
+
+---
+
+### Phase 5: GuestBookingPortal - Use Edge Function
+
+**File: `src/pages/GuestBookingPortal.tsx`**
+
+Change from direct Supabase queries to edge function calls:
+
+```typescript
+const loadBookingAndValidateAccess = async () => {
+  if (!bookingId || !accessToken) return;
+  
+  setLoading(true);
+  try {
+    // Use the guest-booking-actions edge function for authenticated access
+    const { data, error } = await supabase.functions.invoke("guest-booking-actions", {
+      body: {
+        action: 'get_details',
+        accessToken,
+        bookingId,
+      },
+    });
+
+    if (error) throw error;
+    
+    if (data.success) {
+      setBooking(data.booking);
+      setGuestRecord({
+        id: '', // Not needed for display
+        email: data.viewer.email,
+        name: data.booking.guests?.find(g => g.email === data.viewer.email)?.name,
+        ...data.viewer.permissions,
+      });
+      setPermissions(data.viewer.permissions);
+      setIsAuthenticated(true);
+    }
+  } catch (error) {
+    console.error("Error loading booking:", error);
+    toast.error("Could not find this booking or access is invalid");
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+---
+
+### Phase 6: Host Configuration UI
+
+**File: `src/pages/Scheduling.tsx`**
+
+Add guest permissions section to booking link creation dialog:
+
+#### 6.1 Update newLink State
+
+```typescript
+const [newLink, setNewLink] = useState({
+  // ... existing fields ...
+  guest_permissions: {
+    allow_guest_cancel: false,
+    allow_guest_reschedule: false,
+    allow_guest_propose_times: true,
+    allow_guest_add_attendees: false,
+    booker_can_delegate: true,
+  },
+});
+```
+
+#### 6.2 Add UI Section (after Advanced Options)
+
+```tsx
+{/* Guest Permissions Section */}
+<div className="space-y-4 pt-4 border-t">
+  <h3 className="font-semibold flex items-center gap-2">
+    <Users className="h-4 w-4" />
+    Guest Permissions
+  </h3>
+  <p className="text-sm text-muted-foreground">
+    Control what guests and attendees can do with bookings
+  </p>
+  
+  <div className="space-y-3">
+    <div className="flex items-center justify-between">
+      <Label htmlFor="allow_propose_times" className="text-sm font-normal">
+        Allow guests to propose alternative times
+      </Label>
+      <Switch
+        id="allow_propose_times"
+        checked={newLink.guest_permissions.allow_guest_propose_times}
+        onCheckedChange={(checked) => setNewLink({
+          ...newLink,
+          guest_permissions: { ...newLink.guest_permissions, allow_guest_propose_times: checked }
+        })}
+      />
+    </div>
+    
+    <div className="flex items-center justify-between">
+      <Label htmlFor="allow_cancel" className="text-sm font-normal">
+        Allow guests to cancel the meeting
+      </Label>
+      <Switch
+        id="allow_cancel"
+        checked={newLink.guest_permissions.allow_guest_cancel}
+        onCheckedChange={(checked) => setNewLink({
+          ...newLink,
+          guest_permissions: { ...newLink.guest_permissions, allow_guest_cancel: checked }
+        })}
+      />
+    </div>
+    
+    <div className="flex items-center justify-between">
+      <Label htmlFor="allow_reschedule" className="text-sm font-normal">
+        Allow guests to reschedule
+      </Label>
+      <Switch
+        id="allow_reschedule"
+        checked={newLink.guest_permissions.allow_guest_reschedule}
+        onCheckedChange={(checked) => setNewLink({
+          ...newLink,
+          guest_permissions: { ...newLink.guest_permissions, allow_guest_reschedule: checked }
+        })}
+      />
+    </div>
+    
+    <div className="flex items-center justify-between">
+      <Label htmlFor="allow_add_attendees" className="text-sm font-normal">
+        Allow guests to add more attendees
+      </Label>
+      <Switch
+        id="allow_add_attendees"
+        checked={newLink.guest_permissions.allow_guest_add_attendees}
+        onCheckedChange={(checked) => setNewLink({
+          ...newLink,
+          guest_permissions: { ...newLink.guest_permissions, allow_guest_add_attendees: checked }
+        })}
+      />
+    </div>
+    
+    <Separator className="my-2" />
+    
+    <div className="flex items-center justify-between">
+      <div>
+        <Label htmlFor="booker_delegate" className="text-sm font-normal">
+          Allow booker to delegate permissions
+        </Label>
+        <p className="text-xs text-muted-foreground">
+          Let the person booking decide what their guests can do
+        </p>
+      </div>
+      <Switch
+        id="booker_delegate"
+        checked={newLink.guest_permissions.booker_can_delegate}
+        onCheckedChange={(checked) => setNewLink({
+          ...newLink,
+          guest_permissions: { ...newLink.guest_permissions, booker_can_delegate: checked }
+        })}
+      />
+    </div>
+  </div>
+</div>
+```
+
+#### 6.3 Update Reset State
+
+Also update the reset state in `createBookingLink` success handler to include guest_permissions default.
+
+---
+
+### Phase 7: Update create-booking to Store delegated_permissions
+
+**File: `supabase/functions/create-booking/index.ts`**
+
+When inserting the booking, include delegated_permissions if provided:
+
+```typescript
+const { data: booking, error: bookingError } = await supabaseClient
+  .from("bookings")
+  .insert({
+    // ... existing fields ...
+    delegated_permissions: delegatedPermissions || {
+      can_cancel: false,
+      can_reschedule: false,
+      can_propose_times: true,
+      can_add_attendees: false,
+    },
+  })
+  .select()
+  .single();
+```
+
+---
+
+### Phase 8: Optional - TimeProposalsManager Integration
+
+**File: `src/pages/Scheduling.tsx`**
+
+Add a tab or section to show pending time proposals using the TimeProposalsManager component.
+
+This is lower priority but completes the host experience.
+
+---
+
+## Files to Modify
+
 | File | Changes |
 |------|---------|
-| `supabase/functions/send-booking-confirmation/index.ts` | Enhanced guest emails, insert booking_guests records |
-| `supabase/functions/cancel-booking/index.ts` | Support guest-initiated cancellations |
-| `src/components/booking/GuestEmailInput.tsx` | Add permission toggles |
-| `src/pages/Scheduling.tsx` | Add guest permissions section to booking link form |
-| `src/components/booking/BookingForm.tsx` | Show permission delegation when host allows |
-| `src/App.tsx` | Add new route for guest portal |
-
----
-
-## Implementation Order
-
-### Phase 1: Database & Backend Foundation
-1. Create migration for new tables and columns
-2. Implement `guest-booking-actions` edge function
-3. Update `send-booking-confirmation` for guest emails
-4. Update `cancel-booking` for guest-initiated cancellations
-
-### Phase 2: Host Configuration
-5. Update booking link creation UI with guest permissions
-6. Create `GuestPermissionToggles` component
-7. Wire up new booking_links columns
-
-### Phase 3: Guest Experience
-8. Create `GuestBookingPortal` page
-9. Update `GuestEmailInput` with permission toggles
-10. Update `BookingForm` to pass permissions
-
-### Phase 4: Time Proposals
-11. Create `ProposeTimeDialog` component
-12. Create `handle-time-proposal` edge function
-13. Create `TimeProposalsManager` for hosts
-14. Add proposal notification emails
-
-### Phase 5: Polish & Testing
-15. Comprehensive email template updates
-16. Error handling and edge cases
-17. Rate limiting and security hardening
-
----
-
-## Security Considerations
-
-1. **Token-based access** - Each guest gets unique UUID token
-2. **Permission ceiling** - Guest permissions cannot exceed host settings
-3. **Rate limiting** - All guest actions rate-limited per token
-4. **Audit logging** - Track all guest actions for accountability
-5. **Token expiry** - Consider expiring tokens after meeting ends
-6. **Email verification** - Booker verified by booking ID + email match
+| `src/services/booking.ts` | Add guest permission fields to CreateBookingRequest |
+| `supabase/functions/create-booking/index.ts` | Update Zod schema, store delegated_permissions |
+| `src/components/booking/BookingForm.tsx` | Update guests state type, pass allowedPermissions to GuestEmailInput |
+| `src/pages/BookingPage.tsx` | Include guest_permissions in booking_links query |
+| `src/pages/GuestBookingPortal.tsx` | Use edge function instead of direct queries |
+| `src/pages/Scheduling.tsx` | Add guest_permissions to newLink state and UI toggles |
 
 ---
 
 ## Testing Checklist
 
-- [ ] Guest receives personalized invitation email
-- [ ] Email shows booker name and host name
-- [ ] Permission buttons only show when allowed
-- [ ] Guest can access portal via unique link
-- [ ] Guest can propose alternative time (if permitted)
+- [ ] Host can configure guest permissions when creating booking link
+- [ ] Booker sees permission toggles when adding guests (if booker_can_delegate is true)
+- [ ] Guest receives email with correct permission-based action buttons
+- [ ] Guest can access portal via unique token link
+- [ ] Guest can propose alternative times (if permitted)
 - [ ] Guest can cancel meeting (if permitted)
-- [ ] Guest can add attendees (if permitted)
-- [ ] Host receives proposal notifications
-- [ ] Host can accept/decline proposals
+- [ ] Host sees pending time proposals
 - [ ] All parties notified of changes
-- [ ] Permissions cannot exceed host limits
-- [ ] Rate limiting works correctly
-- [ ] Cancelled bookings prevent further actions
+
+---
+
+## Expected Outcomes
+
+1. Complete end-to-end guest permission flow
+2. Host controls ceiling of what guests can do
+3. Booker can delegate within host limits
+4. Guests have self-service portal with granted permissions
+5. No RLS errors for guest access
+6. All emails properly personalized with permissions
