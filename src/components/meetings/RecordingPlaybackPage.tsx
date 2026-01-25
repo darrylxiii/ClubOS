@@ -256,7 +256,7 @@ export default function RecordingPlaybackPage() {
     );
   }
 
-  const analysis = recording.ai_summary || {};
+  const analysis = recording.ai_analysis || {};
   const candidateEval = analysis.candidateEvaluation || {};
   const decisionGuidance = analysis.decisionGuidance || {};
   const sourceType = recording.source_type === 'live_hub' ? 'Live Hub' : 'TQC Meeting';

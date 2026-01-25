@@ -127,7 +127,7 @@ serve(async (req) => {
         .update({
           transcript: plainTextTranscript,
           transcript_json: transcriptJson,
-          processing_status: 'transcribed',
+          processing_status: 'analyzing',
           updated_at: new Date().toISOString()
         })
         .eq('id', targetRecordingId);
