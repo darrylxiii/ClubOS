@@ -4234,6 +4234,59 @@ export type Database = {
           },
         ]
       }
+      booking_guests: {
+        Row: {
+          access_token: string
+          booking_id: string
+          can_add_attendees: boolean | null
+          can_cancel: boolean | null
+          can_propose_times: boolean | null
+          can_reschedule: boolean | null
+          created_at: string | null
+          email: string
+          email_sent_at: string | null
+          id: string
+          last_accessed_at: string | null
+          name: string | null
+        }
+        Insert: {
+          access_token?: string
+          booking_id: string
+          can_add_attendees?: boolean | null
+          can_cancel?: boolean | null
+          can_propose_times?: boolean | null
+          can_reschedule?: boolean | null
+          created_at?: string | null
+          email: string
+          email_sent_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          name?: string | null
+        }
+        Update: {
+          access_token?: string
+          booking_id?: string
+          can_add_attendees?: boolean | null
+          can_cancel?: boolean | null
+          can_propose_times?: boolean | null
+          can_reschedule?: boolean | null
+          created_at?: string | null
+          email?: string
+          email_sent_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_guests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_links: {
         Row: {
           advance_booking_days: number | null
@@ -4254,6 +4307,7 @@ export type Database = {
           enable_club_ai: boolean | null
           expires_at: string | null
           google_meet_settings: Json | null
+          guest_permissions: Json | null
           host_display_mode: string
           id: string
           is_active: boolean
@@ -4296,6 +4350,7 @@ export type Database = {
           enable_club_ai?: boolean | null
           expires_at?: string | null
           google_meet_settings?: Json | null
+          guest_permissions?: Json | null
           host_display_mode?: string
           id?: string
           is_active?: boolean
@@ -4338,6 +4393,7 @@ export type Database = {
           enable_club_ai?: boolean | null
           expires_at?: string | null
           google_meet_settings?: Json | null
+          guest_permissions?: Json | null
           host_display_mode?: string
           id?: string
           is_active?: boolean
@@ -4539,6 +4595,62 @@ export type Database = {
           },
         ]
       }
+      booking_time_proposals: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          message: string | null
+          proposed_by_email: string
+          proposed_by_name: string | null
+          proposed_by_type: string
+          proposed_end: string
+          proposed_start: string
+          responded_at: string | null
+          response_message: string | null
+          status: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          proposed_by_email: string
+          proposed_by_name?: string | null
+          proposed_by_type: string
+          proposed_end: string
+          proposed_start: string
+          responded_at?: string | null
+          response_message?: string | null
+          status?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          proposed_by_email?: string
+          proposed_by_name?: string | null
+          proposed_by_type?: string
+          proposed_end?: string
+          proposed_start?: string
+          responded_at?: string | null
+          response_message?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_time_proposals_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_waitlist: {
         Row: {
           booking_link_id: string
@@ -4649,10 +4761,13 @@ export type Database = {
           calendar_sync_status: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
+          cancelled_by_email: string | null
+          cancelled_by_type: string | null
           candidate_id: string | null
           created_at: string
           custom_answers: Json | null
           custom_responses: Json | null
+          delegated_permissions: Json | null
           enable_recording: boolean | null
           feedback_submitted_at: string | null
           google_meet_event_id: string | null
@@ -4710,10 +4825,13 @@ export type Database = {
           calendar_sync_status?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          cancelled_by_email?: string | null
+          cancelled_by_type?: string | null
           candidate_id?: string | null
           created_at?: string
           custom_answers?: Json | null
           custom_responses?: Json | null
+          delegated_permissions?: Json | null
           enable_recording?: boolean | null
           feedback_submitted_at?: string | null
           google_meet_event_id?: string | null
@@ -4771,10 +4889,13 @@ export type Database = {
           calendar_sync_status?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          cancelled_by_email?: string | null
+          cancelled_by_type?: string | null
           candidate_id?: string | null
           created_at?: string
           custom_answers?: Json | null
           custom_responses?: Json | null
+          delegated_permissions?: Json | null
           enable_recording?: boolean | null
           feedback_submitted_at?: string | null
           google_meet_event_id?: string | null
