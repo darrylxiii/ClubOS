@@ -3,7 +3,7 @@
  * Professional, client-compatible, with proper branding
  */
 
-import { EMAIL_LOGOS, EMAIL_COLORS, COMPANY_NAME, TAGLINE, SUPPORT_EMAIL, getEmailAppUrl } from '../email-config.ts';
+import { EMAIL_LOGOS, EMAIL_LOGO_SIZES, EMAIL_COLORS, COMPANY_NAME, TAGLINE, SUPPORT_EMAIL, getEmailAppUrl } from '../email-config.ts';
 
 export interface BaseTemplateProps {
   preheader?: string;
@@ -207,18 +207,18 @@ export const baseEmailTemplate = ({
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
                   <td align="center">
-                    <!-- Logo Image with Fallback -->
+                    <!-- Logo Image - OVERSIZED for clear branding -->
                     <a href="${appUrl}" style="text-decoration: none;">
                       <img 
-                        src="${EMAIL_LOGOS.cloverIcon40}" 
+                        src="${EMAIL_LOGOS.fullBrand}" 
                         alt="${COMPANY_NAME}" 
                         title="${COMPANY_NAME}"
-                        width="64" 
-                        height="64" 
-                        style="display: block; margin: 0 auto 20px auto; border: 0; outline: none;"
+                        width="${EMAIL_LOGO_SIZES.headerBrand}" 
+                        height="${EMAIL_LOGO_SIZES.headerBrand}" 
+                        style="display: block; margin: 0 auto 24px auto; border: 0; outline: none; max-width: ${EMAIL_LOGO_SIZES.headerBrand}px;"
                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
                       />
-                      <div style="display: none; width: 64px; height: 64px; margin: 0 auto 20px auto; background-color: ${EMAIL_COLORS.gold}; border-radius: 50%; line-height: 64px; text-align: center; font-size: 28px; font-weight: bold; color: #0E0E10;">Q</div>
+                      <div style="display: none; width: ${EMAIL_LOGO_SIZES.headerBrand}px; height: ${EMAIL_LOGO_SIZES.headerBrand}px; margin: 0 auto 24px auto; background-color: ${EMAIL_COLORS.gold}; border-radius: 50%; line-height: ${EMAIL_LOGO_SIZES.headerBrand}px; text-align: center; font-size: 56px; font-weight: bold; color: #0E0E10;">Q</div>
                     </a>
                     <!-- Brand Name (Solid Gold - Compatible with all clients) -->
                     <div style="font-size: 24px; font-weight: 700; color: ${EMAIL_COLORS.gold}; letter-spacing: 1px; margin-bottom: 8px;">

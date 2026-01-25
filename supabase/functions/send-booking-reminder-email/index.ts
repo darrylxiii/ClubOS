@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { 
-  Heading, Paragraph, Spacer, Card, Button, InfoRow 
+  Heading, Paragraph, Spacer, Card, Button, InfoRow, VideoCallCard 
 } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
 
@@ -25,6 +25,9 @@ interface EmailReminderRequest {
     booking_link_id?: string;
     meeting_id?: string;
     notes?: string;
+    active_video_platform?: string;
+    google_meet_hangout_link?: string;
+    quantum_meeting_link?: string;
   };
 }
 
@@ -93,6 +96,22 @@ const handler = async (req: Request): Promise<Response> => {
     const appUrl = getEmailAppUrl();
     const manageUrl = `${appUrl}/bookings/${booking.id}`;
 
+    // Determine meeting link for join button
+    const activePlatform = booking.active_video_platform;
+    let meetingLink = '';
+    let platformName = '';
+    let platformType: 'google_meet' | 'zoom' | 'club_meetings' | 'teams' | 'generic' = 'generic';
+
+    if (activePlatform === 'google_meet' && booking.google_meet_hangout_link) {
+      meetingLink = booking.google_meet_hangout_link;
+      platformName = 'Google Meet';
+      platformType = 'google_meet';
+    } else if (activePlatform === 'quantum_club' && booking.quantum_meeting_link) {
+      meetingLink = booking.quantum_meeting_link;
+      platformName = 'Club Meetings';
+      platformType = 'club_meetings';
+    }
+
     // Build email content using components
     const emailContent = `
       ${Heading({ text: '⏰ Meeting Reminder', level: 1 })}
@@ -111,6 +130,13 @@ const handler = async (req: Request): Promise<Response> => {
           ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} - ${formattedEndTime}` })}
         `
       })}
+      
+      ${meetingLink ? VideoCallCard({
+        platform: platformType,
+        platformName: platformName,
+        joinUrl: meetingLink,
+        instructions: 'Your meeting starts soon. Click below to join.',
+      }) : ''}
       
       ${booking.notes ? `
         ${Spacer(16)}
