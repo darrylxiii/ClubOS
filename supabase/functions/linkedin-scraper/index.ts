@@ -60,13 +60,20 @@ Deno.serve(async (req) => {
     const APIFY_API_KEY = Deno.env.get('APIFY_API_KEY');
     const PROXYCURL_API_KEY = Deno.env.get('PROXYCURL_API_KEY');
     
+    // Timeout constants - keep responses fast
+    const APIFY_TIMEOUT = 15000; // 15 seconds
+    const PROXYCURL_TIMEOUT = 10000; // 10 seconds
+    
     let profile: LinkedInProfile | null = null;
     let apiUsed = 'url_extraction';
     
     if (APIFY_API_KEY) {
-      // Priority 1: Apify LinkedIn Profile Scraper
-      console.log('[linkedin-scraper] Using Apify API');
+      // Priority 1: Apify LinkedIn Profile Scraper with timeout
+      console.log('[linkedin-scraper] Trying Apify API with 15s timeout');
       apiUsed = 'apify';
+      
+      const apifyController = new AbortController();
+      const apifyTimeoutId = setTimeout(() => apifyController.abort(), APIFY_TIMEOUT);
       
       try {
         const response = await fetch(
@@ -74,6 +81,7 @@ Deno.serve(async (req) => {
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: apifyController.signal,
             body: JSON.stringify({
               startUrls: [{ url: linkedinUrl }],
               maxResults: 1,
@@ -84,6 +92,8 @@ Deno.serve(async (req) => {
             })
           }
         );
+        
+        clearTimeout(apifyTimeoutId);
         
         if (!response.ok) {
           const errorText = await response.text();
@@ -121,56 +131,83 @@ Deno.serve(async (req) => {
           })),
           skills: data.skills?.map((s: any) => typeof s === 'string' ? s : s.name) || [],
         };
-      } catch (apifyError) {
-        console.error('[linkedin-scraper] Apify failed, falling back:', apifyError);
+        
+        console.log('[linkedin-scraper] Apify succeeded:', profile.fullName);
+      } catch (apifyError: any) {
+        clearTimeout(apifyTimeoutId);
+        
+        if (apifyError.name === 'AbortError') {
+          console.warn('[linkedin-scraper] Apify timed out after 15s, falling back to next provider');
+        } else {
+          console.error('[linkedin-scraper] Apify failed:', apifyError.message);
+        }
         // Fall through to next provider
         profile = null as any;
       }
     }
     
     if (!profile && PROXYCURL_API_KEY) {
-      // Priority 2: Proxycurl integration
-      console.log('[linkedin-scraper] Using Proxycurl API');
+      // Priority 2: Proxycurl integration with timeout
+      console.log('[linkedin-scraper] Trying Proxycurl API with 10s timeout');
       apiUsed = 'proxycurl';
       
-      const response = await fetch(`https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(linkedinUrl)}`, {
-        headers: {
-          'Authorization': `Bearer ${PROXYCURL_API_KEY}`,
-        },
-      });
+      const proxycurlController = new AbortController();
+      const proxycurlTimeoutId = setTimeout(() => proxycurlController.abort(), PROXYCURL_TIMEOUT);
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[linkedin-scraper] Proxycurl error:', response.status, errorText);
-        throw new Error(`LinkedIn scraping failed: ${response.status}`);
+      try {
+        const response = await fetch(`https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(linkedinUrl)}`, {
+          headers: {
+            'Authorization': `Bearer ${PROXYCURL_API_KEY}`,
+          },
+          signal: proxycurlController.signal,
+        });
+        
+        clearTimeout(proxycurlTimeoutId);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[linkedin-scraper] Proxycurl error:', response.status, errorText);
+          throw new Error(`Proxycurl scraping failed: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        profile = {
+          fullName: data.full_name || extractNameFromUrl(linkedinUrl),
+          email: data.personal_emails?.[0] || '',
+          headline: data.headline || '',
+          location: data.city ? `${data.city}, ${data.country_full_name}` : '',
+          profileUrl: linkedinUrl,
+          imageUrl: data.profile_pic_url || '',
+          summary: data.summary || '',
+          experience: (data.experiences || []).map((exp: any) => ({
+            title: exp.title,
+            company: exp.company,
+            location: exp.location,
+            startDate: exp.starts_at ? `${exp.starts_at.year}-${exp.starts_at.month || 1}` : undefined,
+            endDate: exp.ends_at ? `${exp.ends_at.year}-${exp.ends_at.month || 1}` : undefined,
+            description: exp.description,
+          })),
+          education: (data.education || []).map((edu: any) => ({
+            school: edu.school,
+            degree: edu.degree_name,
+            field: edu.field_of_study,
+            startYear: edu.starts_at?.year?.toString(),
+            endYear: edu.ends_at?.year?.toString(),
+          })),
+          skills: data.skills || [],
+        };
+        
+        console.log('[linkedin-scraper] Proxycurl succeeded:', profile.fullName);
+      } catch (proxycurlError: any) {
+        clearTimeout(proxycurlTimeoutId);
+        
+        if (proxycurlError.name === 'AbortError') {
+          console.warn('[linkedin-scraper] Proxycurl timed out after 10s, using URL extraction');
+        } else {
+          console.error('[linkedin-scraper] Proxycurl failed:', proxycurlError.message);
+        }
+        // Fall through to URL extraction
       }
-      
-      const data = await response.json();
-      profile = {
-        fullName: data.full_name || extractNameFromUrl(linkedinUrl),
-        email: data.personal_emails?.[0] || '',
-        headline: data.headline || '',
-        location: data.city ? `${data.city}, ${data.country_full_name}` : '',
-        profileUrl: linkedinUrl,
-        imageUrl: data.profile_pic_url || '',
-        summary: data.summary || '',
-        experience: (data.experiences || []).map((exp: any) => ({
-          title: exp.title,
-          company: exp.company,
-          location: exp.location,
-          startDate: exp.starts_at ? `${exp.starts_at.year}-${exp.starts_at.month || 1}` : undefined,
-          endDate: exp.ends_at ? `${exp.ends_at.year}-${exp.ends_at.month || 1}` : undefined,
-          description: exp.description,
-        })),
-        education: (data.education || []).map((edu: any) => ({
-          school: edu.school,
-          degree: edu.degree_name,
-          field: edu.field_of_study,
-          startYear: edu.starts_at?.year?.toString(),
-          endYear: edu.ends_at?.year?.toString(),
-        })),
-        skills: data.skills || [],
-      };
     }
     
     if (!profile) {

@@ -108,6 +108,25 @@ export const AddCandidateDialog = ({
     }
   }, [open]);
 
+  // Client-side URL name extraction as fallback
+  const extractNameFromLinkedInUrl = (url: string): string => {
+    const match = url.match(/linkedin\.com\/in\/([^\/\?]+)/);
+    if (match && match[1]) {
+      let namePart = match[1].replace(/\/\d+$/, '').split('/')[0];
+      // Remove trailing alphanumeric IDs (e.g., -13963a15b)
+      namePart = namePart.replace(/-[a-z0-9]{6,}$/i, '');
+      const parts = namePart.split('-').filter(word => {
+        const digitCount = (word.match(/\d/g) || []).length;
+        return digitCount < word.length / 2;
+      });
+      return parts
+        .filter(word => word.length > 0)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
+    return '';
+  };
+
   const handleLinkedInScrape = async () => {
     if (!linkedinUrlForScrape) {
       toast.error("Please enter a LinkedIn URL");
@@ -145,9 +164,45 @@ export const AddCandidateDialog = ({
             : "Name extracted - please verify details"
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error scraping LinkedIn:", error);
-      toast.error("Failed to import LinkedIn profile");
+      
+      // Check for timeout/network errors - use client-side fallback
+      const isTimeoutError = error?.message?.includes('Failed to fetch') || 
+                             error?.message?.includes('FunctionsFetchError') ||
+                             error?.message?.includes('timeout') ||
+                             error?.name === 'FunctionsFetchError';
+      
+      if (isTimeoutError) {
+        // Fallback: Extract name from URL on client side
+        const extractedName = extractNameFromLinkedInUrl(linkedinUrlForScrape);
+        
+        if (extractedName) {
+          setFormData(prev => ({
+            ...prev,
+            fullName: extractedName,
+            linkedinUrl: linkedinUrlForScrape,
+          }));
+          setLinkedinImported(true);
+          setAddMode("manual");
+          toast.warning("LinkedIn import timed out", {
+            description: `Name extracted as "${extractedName}" - please verify and complete details manually`
+          });
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            linkedinUrl: linkedinUrlForScrape,
+          }));
+          setAddMode("manual");
+          toast.error("LinkedIn import timed out", {
+            description: "Please enter candidate details manually"
+          });
+        }
+      } else {
+        toast.error("Failed to import LinkedIn profile", {
+          description: "Please try again or enter details manually"
+        });
+      }
     } finally {
       setScrapingLinkedIn(false);
     }
