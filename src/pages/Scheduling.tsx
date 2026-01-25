@@ -92,6 +92,13 @@ export default function Scheduling() {
     video_platform: 'quantum_club' as string,
     allow_guest_platform_choice: false,
     available_platforms: ['quantum_club'] as string[],
+    guest_permissions: {
+      allow_guest_cancel: false,
+      allow_guest_reschedule: false,
+      allow_guest_propose_times: true,
+      allow_guest_add_attendees: false,
+      booker_can_delegate: true,
+    },
   });
 
   useEffect(() => {
@@ -234,6 +241,13 @@ export default function Scheduling() {
         video_platform: 'quantum_club',
         allow_guest_platform_choice: false,
         available_platforms: ['quantum_club'],
+        guest_permissions: {
+          allow_guest_cancel: false,
+          allow_guest_reschedule: false,
+          allow_guest_propose_times: true,
+          allow_guest_add_attendees: false,
+          booker_can_delegate: true,
+        },
       });
       setDialogOpen(false);
     } catch (error: any) {
@@ -596,6 +610,104 @@ export default function Scheduling() {
                     availablePlatforms={newLink.available_platforms}
                     onAvailablePlatformsChange={(platforms) => setNewLink({ ...newLink, available_platforms: platforms })}
                   />
+                </div>
+
+                {/* Guest Permissions Section */}
+                <div className="space-y-4 pt-4 border-t">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Guest Permissions
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Control what guests and attendees can do with bookings
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="allow_propose_times" className="text-sm font-normal">
+                          Allow guests to propose alternative times
+                        </Label>
+                      </div>
+                      <Switch
+                        id="allow_propose_times"
+                        checked={newLink.guest_permissions.allow_guest_propose_times}
+                        onCheckedChange={(checked) => setNewLink({
+                          ...newLink,
+                          guest_permissions: { ...newLink.guest_permissions, allow_guest_propose_times: checked }
+                        })}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="allow_cancel" className="text-sm font-normal">
+                          Allow guests to cancel the meeting
+                        </Label>
+                      </div>
+                      <Switch
+                        id="allow_cancel"
+                        checked={newLink.guest_permissions.allow_guest_cancel}
+                        onCheckedChange={(checked) => setNewLink({
+                          ...newLink,
+                          guest_permissions: { ...newLink.guest_permissions, allow_guest_cancel: checked }
+                        })}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="allow_reschedule" className="text-sm font-normal">
+                          Allow guests to reschedule
+                        </Label>
+                      </div>
+                      <Switch
+                        id="allow_reschedule"
+                        checked={newLink.guest_permissions.allow_guest_reschedule}
+                        onCheckedChange={(checked) => setNewLink({
+                          ...newLink,
+                          guest_permissions: { ...newLink.guest_permissions, allow_guest_reschedule: checked }
+                        })}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="allow_add_attendees" className="text-sm font-normal">
+                          Allow guests to add more attendees
+                        </Label>
+                      </div>
+                      <Switch
+                        id="allow_add_attendees"
+                        checked={newLink.guest_permissions.allow_guest_add_attendees}
+                        onCheckedChange={(checked) => setNewLink({
+                          ...newLink,
+                          guest_permissions: { ...newLink.guest_permissions, allow_guest_add_attendees: checked }
+                        })}
+                      />
+                    </div>
+                    
+                    <div className="pt-2 border-t border-border/50">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="booker_delegate" className="text-sm font-normal">
+                            Allow booker to delegate permissions
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            Let the person booking decide what their guests can do
+                          </p>
+                        </div>
+                        <Switch
+                          id="booker_delegate"
+                          checked={newLink.guest_permissions.booker_can_delegate}
+                          onCheckedChange={(checked) => setNewLink({
+                            ...newLink,
+                            guest_permissions: { ...newLink.guest_permissions, booker_can_delegate: checked }
+                          })}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <Button

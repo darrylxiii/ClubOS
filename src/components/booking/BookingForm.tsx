@@ -13,7 +13,7 @@ import { RECAPTCHA_ENABLED } from "@/config/recaptcha";
 import { bookingFormSchema, type BookingFormData } from "@/lib/bookingSchemas";
 import { z } from "zod";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
-import { GuestEmailInput } from "./GuestEmailInput";
+import { GuestEmailInput, GuestWithPermissions } from "./GuestEmailInput";
 import { GuestPlatformSelector } from "./GuestPlatformSelector";
 import { TimezoneWarning } from "./TimezoneWarning";
 import { logger } from "@/lib/logger";
@@ -31,6 +31,13 @@ interface BookingFormProps {
     available_platforms?: string[];
     video_platform?: string;
     host_timezone?: string;
+    guest_permissions?: {
+      allow_guest_cancel?: boolean;
+      allow_guest_reschedule?: boolean;
+      allow_guest_propose_times?: boolean;
+      allow_guest_add_attendees?: boolean;
+      booker_can_delegate?: boolean;
+    };
   };
   selectedDate: Date;
   selectedSlot: { start: string; end: string };
@@ -57,7 +64,7 @@ export function BookingForm({
     notes: "",
     smsReminders: false,
   });
-  const [guests, setGuests] = useState<Array<{ name?: string; email: string }>>([]);
+  const [guests, setGuests] = useState<GuestWithPermissions[]>([]);
 
   // Platform selection state
   const [selectedVideoPlatform, setSelectedVideoPlatform] = useState<string>(
@@ -172,7 +179,14 @@ export function BookingForm({
           scheduledEnd,
           timezone: userTimezone,
           notes: formData.notes || null,
-          guests: guests.length > 0 ? guests : undefined,
+          guests: guests.length > 0 ? guests.map(g => ({
+            name: g.name,
+            email: g.email,
+            can_cancel: g.can_cancel,
+            can_reschedule: g.can_reschedule,
+            can_propose_times: g.can_propose_times,
+            can_add_attendees: g.can_add_attendees,
+          })) : undefined,
           guestSelectedPlatform: bookingLink.allow_guest_platform_choice ? selectedVideoPlatform : undefined,
           smsReminders: formData.smsReminders || false,
         },
@@ -358,6 +372,13 @@ export function BookingForm({
             guests={guests}
             onChange={setGuests}
             maxGuests={10}
+            allowedPermissions={bookingLink.guest_permissions ? {
+              can_cancel: bookingLink.guest_permissions.allow_guest_cancel ?? false,
+              can_reschedule: bookingLink.guest_permissions.allow_guest_reschedule ?? false,
+              can_propose_times: bookingLink.guest_permissions.allow_guest_propose_times ?? true,
+              can_add_attendees: bookingLink.guest_permissions.allow_guest_add_attendees ?? false,
+            } : undefined}
+            showPermissions={bookingLink.guest_permissions?.booker_can_delegate ?? false}
           />
           <p className="text-xs text-muted-foreground">
             Invite team members to join this meeting

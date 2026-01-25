@@ -82,10 +82,20 @@ serve(async (req) => {
       guests: z.array(z.object({
         name: z.string().optional(),
         email: z.string().email(),
+        can_cancel: z.boolean().optional(),
+        can_reschedule: z.boolean().optional(),
+        can_propose_times: z.boolean().optional(),
+        can_add_attendees: z.boolean().optional(),
       })).max(10).optional(),
       guestSelectedPlatform: z.string().optional(),
       smsReminders: z.boolean().optional(),
       metadata: z.record(z.any()).optional(),
+      delegatedPermissions: z.object({
+        can_cancel: z.boolean(),
+        can_reschedule: z.boolean(),
+        can_propose_times: z.boolean(),
+        can_add_attendees: z.boolean(),
+      }).optional(),
     });
 
     const {
@@ -102,6 +112,7 @@ serve(async (req) => {
       guestSelectedPlatform,
       smsReminders,
       metadata,
+      delegatedPermissions,
     } = bookingSchema.parse(await req.json());
     
     console.log(`[Booking] Request received: slug=${bookingLinkSlug}, guest=${guestName}, time=${scheduledStart}, timezone=${timezone}`);
@@ -448,6 +459,12 @@ serve(async (req) => {
         guests: guests || [],
         guest_selected_platform: guestSelectedPlatform,
         sms_reminders: smsReminders || false,
+        delegated_permissions: delegatedPermissions || {
+          can_cancel: false,
+          can_reschedule: false,
+          can_propose_times: true,
+          can_add_attendees: false,
+        },
       })
       .select()
       .single();

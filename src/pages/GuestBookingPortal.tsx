@@ -116,7 +116,59 @@ export default function GuestBookingPortal() {
     
     setLoading(true);
     try {
-      // First get the booking
+      // If we have an access token, use the edge function for secure access
+      if (accessToken) {
+        const { data, error } = await supabase.functions.invoke("guest-booking-actions", {
+          body: {
+            action: 'get_details',
+            accessToken,
+            bookingId,
+          },
+        });
+
+        if (error) throw error;
+
+        if (data?.success) {
+          // Transform booking data to match expected format
+          const bookingData = data.booking;
+          setBooking({
+            id: bookingData.id,
+            guest_name: bookingData.guest_name,
+            guest_email: bookingData.guest_email,
+            guest_phone: bookingData.guest_phone,
+            scheduled_start: bookingData.scheduled_start,
+            scheduled_end: bookingData.scheduled_end,
+            status: bookingData.status,
+            notes: bookingData.notes,
+            quantum_meeting_link: bookingData.quantum_meeting_link,
+            video_meeting_link: bookingData.video_meeting_link,
+            google_meet_hangout_link: bookingData.google_meet_hangout_link,
+            booking_links: bookingData.booking_links,
+            profiles: bookingData.host ? {
+              full_name: bookingData.host.full_name,
+              avatar_url: bookingData.host.avatar_url,
+              timezone: guestTimezone,
+            } : undefined,
+          });
+
+          // Set guest record from viewer info
+          const viewerGuest = bookingData.guests?.find((g: any) => 
+            g.email.toLowerCase() === data.viewer.email.toLowerCase()
+          );
+          
+          setGuestRecord({
+            id: viewerGuest?.id || '',
+            email: data.viewer.email,
+            name: viewerGuest?.name,
+            ...data.viewer.permissions,
+          });
+          setPermissions(data.viewer.permissions);
+          setIsAuthenticated(true);
+          return;
+        }
+      }
+
+      // Fallback: Direct query for public booking view (no special permissions)
       const { data: bookingData, error: bookingError } = await supabase
         .from("bookings")
         .select(`
@@ -150,39 +202,11 @@ export default function GuestBookingPortal() {
         setBooking(bookingData as BookingDetails);
       }
 
-      // If we have an access token, validate it against booking_guests
-      if (accessToken) {
-        const { data: guestData, error: guestError } = await supabase
-          .from("booking_guests")
-          .select("*")
-          .eq("booking_id", bookingId)
-          .eq("access_token", accessToken)
-          .single();
-
-        if (guestError || !guestData) {
-          console.warn("Invalid guest access token");
-          setIsAuthenticated(false);
-          // Fall back to basic view
-        } else {
-          setGuestRecord(guestData);
-          setPermissions({
-            can_cancel: guestData.can_cancel,
-            can_reschedule: guestData.can_reschedule,
-            can_propose_times: guestData.can_propose_times,
-            can_add_attendees: guestData.can_add_attendees,
-          });
-          setIsAuthenticated(true);
-          
-          // Update last_accessed_at
-          await supabase
-            .from("booking_guests")
-            .update({ last_accessed_at: new Date().toISOString() })
-            .eq("id", guestData.id);
-        }
-      }
+      // No token means no special permissions
+      setIsAuthenticated(false);
     } catch (error: unknown) {
       console.error("Error loading booking:", error);
-      toast.error("Could not find this booking");
+      toast.error("Could not find this booking or access is invalid");
     } finally {
       setLoading(false);
     }
