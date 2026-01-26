@@ -25,6 +25,9 @@ import { ExitIntentPopup, useExitIntent } from "./ExitIntentPopup";
 import { TrustBadges } from "./TrustBadges";
 import { FunnelErrorBoundary } from "./FunnelErrorBoundary";
 import { useFormValidation, FieldError } from "@/hooks/useFormValidation";
+import { MobileProgressIndicator, DesktopProgressSteps } from "./MobileProgressIndicator";
+import { SuccessConfetti } from "./SuccessConfetti";
+import { useFunnelAnalytics } from "@/hooks/useFunnelAnalytics";
 
 const STEPS = ["contact", "company", "partnership", "compliance", "verification"];
 
@@ -749,29 +752,11 @@ export function FunnelSteps() {
 
       case 5:
         return (
-          <div className="py-8">
-            <div className="text-center mb-8">
-              <CheckCircle className="w-20 h-20 text-primary mx-auto mb-6" />
-              <h2 className="text-3xl font-semibold mb-3 uppercase font-[Inter]">Successfully Submitted Partner Request</h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Thank you for your interest in partnering with The Quantum Club.
-                Your strategist is reviewing your request now.
-              </p>
-            </div>
-
-            <div className="max-w-2xl mx-auto">
-              <PartnerRequestTracker />
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-              <Button size="lg" onClick={() => navigate("/companies")}>
-                View Companies
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate("/home")}>
-                Go to Dashboard
-              </Button>
-            </div>
-          </div>
+          <SuccessConfetti
+            companyName={formData.company_name || "Partner"}
+            sessionId={sessionId}
+            onTrackRequest={() => setTrackDialogOpen(true)}
+          />
         );
     }
   };
@@ -787,6 +772,12 @@ export function FunnelSteps() {
 
   return (
     <React.Fragment>
+      {/* Track Request Dialog */}
+      <TrackRequestDialog 
+        open={trackDialogOpen} 
+        onOpenChange={setTrackDialogOpen} 
+      />
+
       {/* Exit Intent Popup */}
       <ExitIntentPopup
         isOpen={exitIntentOpen}
@@ -825,37 +816,45 @@ export function FunnelSteps() {
             );
           })()}
 
-          {/* Progress Bar */}
+          {/* Mobile Progress Indicator */}
+          <MobileProgressIndicator
+            currentStep={currentStep}
+            totalSteps={5}
+            stepLabels={STEPS}
+          />
+
+          {/* Desktop Progress Steps */}
+          <DesktopProgressSteps
+            currentStep={currentStep}
+            totalSteps={5}
+            stepLabels={STEPS}
+          />
+
+          {/* Progress Bar with time estimate */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  Step {currentStep + 1} of 5
-                </span>
                 {remainingMinutes > 0 && (
                   <Badge variant="outline" className="text-xs gap-1">
                     <Clock className="w-3 h-3" />
-                    ~{remainingMinutes} min remaining
+                    ~{remainingMinutes} min left
                   </Badge>
                 )}
               </div>
               {showKeyboardHints && currentStep < 4 && (
-                <div className="flex items-center gap-2">
+                <div className="hidden md:flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
                     <Keyboard className="w-3 h-3" />
-                    <span className="hidden sm:inline">Enter</span> = Next
+                    <span>Enter</span> = Next
                   </Badge>
                   {currentStep > 0 && (
                     <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
                       <Keyboard className="w-3 h-3" />
-                      <span className="hidden sm:inline">Esc</span> = Back
+                      <span>Esc</span> = Back
                     </Badge>
                   )}
                 </div>
               )}
-              <span className="text-sm font-medium">
-                {Math.round(((currentStep + 1) / 5) * 100)}%
-              </span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
@@ -871,28 +870,44 @@ export function FunnelSteps() {
           {/* Trust Badges */}
           {currentStep < 4 && <TrustBadges />}
 
-          {/* Navigation Buttons */}
+          {/* Navigation Buttons - 44px min touch targets */}
           {currentStep < 5 && (
             <div className="flex gap-4 mt-8">
               {currentStep > 0 && (
-                <Button variant="outline" onClick={handleBack} className="flex-1">
+                <Button 
+                  variant="outline" 
+                  onClick={handleBack} 
+                  className="flex-1 min-h-[44px] text-base"
+                >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back
                 </Button>
               )}
               {currentStep < 4 ? (
-                <Button onClick={handleNext} className="flex-1">
+                <Button 
+                  onClick={handleNext} 
+                  className="flex-1 min-h-[44px] text-base"
+                >
                   Next
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
                 <Button
                   onClick={handleSubmit}
-                  className="flex-1"
+                  className="flex-1 min-h-[44px] text-base"
                   disabled={!verificationCode || verificationCode.length !== 6 || isVerifying}
                 >
-                  {isVerifying ? "Verifying..." : "Submit Request"}
-                  <CheckCircle className="w-4 h-4 ml-2" />
+                  {isVerifying ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      Submit Request
+                      <CheckCircle className="w-4 h-4 ml-2" />
+                    </>
+                  )}
                 </Button>
               )}
             </div>
