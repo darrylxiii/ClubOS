@@ -7,12 +7,15 @@ import type { VerificationHookReturn } from '@/types/verification';
 const COOLDOWN_STORAGE_KEY = 'email_verification_cooldown';
 const COOLDOWN_DURATION = 60; // seconds
 const DEBOUNCE_MS = 1000; // minimum ms between send attempts
+const MAX_RETRIES = 3; // max auto-retries for network errors
+const RETRY_DELAY_MS = 2000; // delay between retries
 
 export const useEmailVerification = (): VerificationHookReturn => {
   const [otpSent, setOtpSent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [networkError, setNetworkError] = useState(false);
   
   // Debounce refs
   const lastSendAttemptRef = useRef<number>(0);
@@ -68,6 +71,66 @@ export const useEmailVerification = (): VerificationHookReturn => {
     }, 1000);
   }, []);
 
+  // Helper function to detect network errors
+  const isNetworkError = (error: unknown): boolean => {
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase();
+      return message.includes('failed to fetch') || 
+             message.includes('network') ||
+             message.includes('failed to send a request') ||
+             message.includes('typeerror');
+    }
+    return false;
+  };
+
+  // Internal send function with retry logic
+  const sendWithRetry = async (email: string, retryCount = 0): Promise<boolean> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const { data, error } = await supabase.functions.invoke('send-email-verification', {
+        body: { email },
+        headers: session ? {
+          Authorization: `Bearer ${session.access_token}`
+        } : {}
+      });
+
+      if (error) {
+        // Check if it's a network error and we haven't exceeded retries
+        if (isNetworkError(error) && retryCount < MAX_RETRIES) {
+          console.log(`[EmailVerification] Network error, retry ${retryCount + 1}/${MAX_RETRIES}`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+          return sendWithRetry(email, retryCount + 1);
+        }
+        throw error;
+      }
+      
+      // Handle rate limit error with retry info
+      if (data?.error) {
+        if (data.retry_after_seconds || data.retry_after_minutes) {
+          const retrySeconds = data.retry_after_seconds || Math.ceil(data.retry_after_minutes * 60);
+          startCooldownTimer(retrySeconds);
+          toast.error(`Too many attempts. Please wait ${Math.ceil(retrySeconds / 60)} minute(s).`);
+          return false;
+        }
+        throw new Error(data.error);
+      }
+
+      setNetworkError(false);
+      setOtpSent(true);
+      toast.success('Verification code sent to your email');
+      return true;
+    } catch (error: unknown) {
+      // Check if we should retry
+      if (isNetworkError(error) && retryCount < MAX_RETRIES) {
+        console.log(`[EmailVerification] Network error, retry ${retryCount + 1}/${MAX_RETRIES}`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+        return sendWithRetry(email, retryCount + 1);
+      }
+      throw error;
+    }
+  };
+
   const sendOTP = useCallback(async (email: string) => {
     // Debounce check - prevent rapid successive calls
     const now = Date.now();
@@ -76,13 +139,13 @@ export const useEmailVerification = (): VerificationHookReturn => {
       return false;
     }
     
-    // Don't allow if already sending or in cooldown
+    // Don't allow if already sending or in cooldown (unless network error)
     if (isSendingOtp) {
       console.log('[EmailVerification] Already sending OTP');
       return false;
     }
     
-    if (resendCooldown > 0) {
+    if (resendCooldown > 0 && !networkError) {
       toast.error(`Please wait ${resendCooldown} seconds before requesting another code`);
       return false;
     }
@@ -95,48 +158,36 @@ export const useEmailVerification = (): VerificationHookReturn => {
 
     lastSendAttemptRef.current = now;
     setIsSendingOtp(true);
+    setNetworkError(false);
     
     // Start cooldown immediately to prevent rapid clicks
     startCooldownTimer(COOLDOWN_DURATION);
     
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      const { data, error } = await supabase.functions.invoke('send-email-verification', {
-        body: { email },
-        headers: session ? {
-          Authorization: `Bearer ${session.access_token}`
-        } : {}
-      });
-
-      if (error) throw error;
-      
-      // Handle rate limit error with retry info
-      if (data?.error) {
-        // Check if it's a rate limit error
-        if (data.retry_after_seconds || data.retry_after_minutes) {
-          const retrySeconds = data.retry_after_seconds || Math.ceil(data.retry_after_minutes * 60);
-          startCooldownTimer(retrySeconds);
-          toast.error(`Too many attempts. Please wait ${Math.ceil(retrySeconds / 60)} minute(s).`);
-          return false;
-        }
-        throw new Error(data.error);
-      }
-
-      setOtpSent(true);
-      toast.success('Verification code sent to your email');
-      return true;
-    } catch (error: any) {
+      return await sendWithRetry(email);
+    } catch (error: unknown) {
       console.error('Error sending email OTP:', error);
       
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
       // Parse rate limit from error message
-      const retryMatch = error.message?.match(/wait (\d+) minute/i);
+      const retryMatch = errorMessage.match(/wait (\d+) minute/i);
       if (retryMatch) {
         const minutes = parseInt(retryMatch[1], 10);
         startCooldownTimer(minutes * 60);
         toast.error(`Too many attempts. Please wait ${minutes} minute(s).`);
+      } else if (isNetworkError(error)) {
+        // Network error - allow immediate retry
+        setNetworkError(true);
+        toast.error('Connection failed. Please check your internet and try again.');
+        setResendCooldown(0);
+        localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+        if (cooldownIntervalRef.current) {
+          clearInterval(cooldownIntervalRef.current);
+          cooldownIntervalRef.current = null;
+        }
       } else {
-        toast.error(error.message || 'Failed to send verification code');
+        toast.error(errorMessage || 'Failed to send verification code');
         // Reset cooldown on non-rate-limit errors so user can retry
         setResendCooldown(0);
         localStorage.removeItem(COOLDOWN_STORAGE_KEY);
@@ -149,7 +200,7 @@ export const useEmailVerification = (): VerificationHookReturn => {
     } finally {
       setIsSendingOtp(false);
     }
-  }, [isSendingOtp, resendCooldown, startCooldownTimer]);
+  }, [isSendingOtp, resendCooldown, networkError, startCooldownTimer]);
 
   const verifyOTP = useCallback(async (
     email: string,
@@ -218,6 +269,7 @@ export const useEmailVerification = (): VerificationHookReturn => {
     isVerifying,
     isSendingOtp,
     resendCooldown,
+    networkError,
     sendOTP,
     verifyOTP,
     resetVerification,
