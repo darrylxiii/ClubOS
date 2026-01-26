@@ -83,8 +83,12 @@ export function useLiveKitMeeting({
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        // Create abort controller for this request
+        // Create abort controller for this request with timeout
         abortControllerRef.current = new AbortController();
+        const timeoutId = setTimeout(() => {
+          console.warn(`[LiveKit] ⏰ Request timeout (attempt ${attempt})`);
+          abortControllerRef.current?.abort();
+        }, 10000); // 10 second timeout per attempt
         
         console.log(`[LiveKit] 🔑 Requesting token (attempt ${attempt}/${MAX_RETRIES})...`);
         
@@ -99,12 +103,15 @@ export function useLiveKitMeeting({
           }
         });
 
+        clearTimeout(timeoutId);
+
         if (error) {
           console.error(`[LiveKit] ❌ Token request error (attempt ${attempt}):`, error);
           throw new Error(error.message);
         }
 
         if (!data?.token) {
+          console.error(`[LiveKit] ❌ No token in response:`, data);
           throw new Error('Invalid token response - no token received');
         }
 
@@ -123,10 +130,13 @@ export function useLiveKitMeeting({
       }
     }
 
-    console.error('[LiveKit] ❌ All token attempts failed after', MAX_RETRIES, 'retries');
+    // CRITICAL: All retries failed - set isConnecting to false to trigger fallback
+    const errorMsg = `Failed to get LiveKit token after ${MAX_RETRIES} attempts`;
+    console.error('[LiveKit] ❌', errorMsg);
     setState(prev => ({
       ...prev,
-      error: lastError?.message || `Failed to get LiveKit token after ${MAX_RETRIES} attempts`
+      isConnecting: false,  // ← CRITICAL: Must set to false to trigger fallback
+      error: lastError?.message || errorMsg
     }));
     return null;
   }, [roomName, participantName, participantId, isHost]);
