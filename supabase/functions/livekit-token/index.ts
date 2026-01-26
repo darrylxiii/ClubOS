@@ -31,8 +31,12 @@ interface LiveKitGrant {
 }
 
 serve(async (req) => {
+  // Log request immediately for debugging
+  console.log('[LiveKit] 📥 Token request received at:', new Date().toISOString());
+  
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
+    console.log('[LiveKit] ✅ CORS preflight handled');
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -41,8 +45,16 @@ serve(async (req) => {
     const apiSecret = Deno.env.get('LIVEKIT_API_SECRET');
     const livekitUrl = Deno.env.get('LIVEKIT_URL');
 
+    // Log configuration status for debugging
+    console.log('[LiveKit] 🔧 Config check:', {
+      hasApiKey: !!apiKey,
+      hasApiSecret: !!apiSecret,
+      hasUrl: !!livekitUrl,
+      urlValue: livekitUrl ? livekitUrl.slice(0, 30) + '...' : 'missing'
+    });
+
     if (!apiKey || !apiSecret || !livekitUrl) {
-      console.error('[LiveKit] Missing required environment variables');
+      console.error('[LiveKit] ❌ Missing required environment variables');
       return new Response(JSON.stringify({ 
         error: 'LiveKit not configured',
         configured: false 

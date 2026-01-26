@@ -115,10 +115,14 @@ export function MeetingVideoCallInterface({
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [hasGivenConsent, setHasGivenConsent] = useState(false);
   const [unreadChatMessages, setUnreadChatMessages] = useState(0);
+  const [layout, setLayout] = useState<'grid' | 'spotlight'>('grid');
+  
+  // LiveKit vs WebRTC P2P mode - fallback if LiveKit fails
+  const [useLiveKitMode, setUseLiveKitMode] = useState(true);
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
-  const [layout, setLayout] = useState<'grid' | 'spotlight'>('grid');
 
   const [hostSettings, setHostSettings] = useState({
     allowScreenShare: true,
@@ -571,8 +575,9 @@ export function MeetingVideoCallInterface({
   }, [localStream, isVideoEnabled]);
 
   // Heartbeat: Update last_seen every 10 seconds to maintain presence
+  // FIXED: Removed showDiagnostics dependency - heartbeat must start immediately on join
   useEffect(() => {
-    if (!meeting?.id || !participantId || showDiagnostics) return;
+    if (!meeting?.id || !participantId) return;
 
     const updateHeartbeat = async () => {
       try {
@@ -587,7 +592,7 @@ export function MeetingVideoCallInterface({
       }
     };
 
-    // Initial heartbeat
+    // Initial heartbeat - run immediately
     updateHeartbeat();
 
     // Update every 10 seconds
@@ -596,11 +601,12 @@ export function MeetingVideoCallInterface({
     return () => {
       clearInterval(heartbeatInterval);
     };
-  }, [meeting?.id, participantId, showDiagnostics]);
+  }, [meeting?.id, participantId]);
 
   // Auto-rejoin: If incorrectly marked as "left", auto-fix
+  // FIXED: Removed showDiagnostics dependency - presence check must start immediately
   useEffect(() => {
-    if (!meeting?.id || !participantId || showDiagnostics) return;
+    if (!meeting?.id || !participantId) return;
 
     const checkAndFixPresence = async () => {
       const { data } = await supabase
@@ -628,13 +634,16 @@ export function MeetingVideoCallInterface({
       }
     };
 
+    // Initial check
+    checkAndFixPresence();
+
     // Check every 15 seconds
     const checkInterval = setInterval(checkAndFixPresence, 15000);
 
     return () => {
       clearInterval(checkInterval);
     };
-  }, [meeting?.id, participantId, showDiagnostics]);
+  }, [meeting?.id, participantId]);
 
   // Subscribe to reactions
   useEffect(() => {
@@ -1058,18 +1067,55 @@ export function MeetingVideoCallInterface({
         </div>
       </div>
 
-      {/* Video Grid - Updated to use Real LiveKit Wrapper */}
+      {/* Video Grid - LiveKit SFU with WebRTC P2P Fallback */}
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-950/50 via-transparent to-black/50 pointer-events-none" />
-        {/* Swapped VideoGrid for LiveKitMeetingWrapper */}
-        <LiveKitMeetingWrapper
-          meetingId={meeting.id}
-          participantName={participantName}
-          participantId={participantId}
-          isHost={meeting.host_id === participantId}
-          onEnd={onEnd}
-          className="h-full w-full"
-        />
+        
+        {useLiveKitMode ? (
+          /* Primary: LiveKit SFU for scalable meetings */
+          <LiveKitMeetingWrapper
+            meetingId={meeting.id}
+            participantName={participantName}
+            participantId={participantId}
+            isHost={meeting.host_id === participantId}
+            onEnd={onEnd}
+            onFallbackToWebRTC={() => {
+              console.log('[Meeting] 🔄 Falling back to WebRTC P2P mode');
+              setUseLiveKitMode(false);
+              toast.info('Switched to direct peer-to-peer mode', {
+                description: 'Using direct connection for this meeting'
+              });
+            }}
+            className="h-full w-full"
+          />
+        ) : (
+          /* Fallback: WebRTC P2P for direct connections */
+          <VideoGrid
+            localParticipant={localStream ? {
+              id: participantId,
+              display_name: participantName,
+              role: meeting.host_id === participantId ? 'host' : 'participant',
+              is_muted: !isAudioEnabled,
+              is_video_off: !isVideoEnabled,
+              is_screen_sharing: isScreenSharing,
+              is_hand_raised: isHandRaised,
+              is_speaking: false,
+              stream: localStream
+            } : undefined}
+            participants={Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
+              id,
+              display_name: name,
+              role: 'participant',
+              is_muted: false,
+              is_video_off: false,
+              is_screen_sharing: false,
+              is_hand_raised: false,
+              is_speaking: false,
+              stream
+            }))}
+            layout={layout}
+          />
+        )}
       </div>
 
 
