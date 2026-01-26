@@ -333,10 +333,40 @@ export function useMeetingWebRTC({
       }))
     });
 
-    currentStream.getTracks().forEach(track => {
-      console.log('[WebRTC] 📹 Adding track:', track.kind, 'ID:', track.id, 'enabled:', track.enabled, 'ready:', track.readyState);
+    // Verify tracks are ready before adding - filter out dead/disabled tracks
+    const tracksToAdd = currentStream.getTracks().filter(track => {
+      const isReady = track.readyState === 'live';
+      if (!isReady) {
+        console.warn('[WebRTC] ⚠️ Skipping track (not ready):', {
+          kind: track.kind,
+          readyState: track.readyState,
+          enabled: track.enabled,
+          muted: track.muted
+        });
+      }
+      return isReady;
+    });
+
+    if (tracksToAdd.length === 0) {
+      console.error('[WebRTC] ❌ No live tracks available to add to peer connection!');
+      // Don't throw - try to continue anyway, tracks might become live
+    }
+
+    tracksToAdd.forEach(track => {
+      console.log('[WebRTC] ✅ Adding live track:', track.kind, 'ID:', track.id, 'enabled:', track.enabled, 'ready:', track.readyState);
       const sender = pc.addTrack(track, currentStream);
       console.log('[WebRTC] ✅ Track added, sender:', sender.track?.kind, 'track ID:', sender.track?.id);
+      
+      // Monitor track state changes
+      track.onended = () => {
+        console.warn('[WebRTC] ⚠️ Track ended:', track.kind, track.id);
+      };
+      track.onmute = () => {
+        console.warn('[WebRTC] ⚠️ Track muted:', track.kind, track.id);
+      };
+      track.onunmute = () => {
+        console.log('[WebRTC] ✅ Track unmuted:', track.kind, track.id);
+      };
     });
 
     // Configure VP9 codec preference

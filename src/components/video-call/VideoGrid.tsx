@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { ParticipantTile } from './ParticipantTile';
+import { RemoteAudioRenderer } from '@/components/meetings/RemoteAudioRenderer';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { meetingAnimations } from '@/config/meeting-design-tokens';
@@ -207,11 +208,24 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
                     !isSingleParticipant && "aspect-video"
                   )}
                 />
-              </motion.div>
+            </motion.div>
             );
           })}
         </AnimatePresence>
       </div>
+
+      {/* Render audio separately for all remote participants */}
+      {allParticipants
+        .filter(p => p.stream && p.id !== localParticipant?.id)
+        .map(p => (
+          <RemoteAudioRenderer
+            key={`audio-${p.id}`}
+            stream={p.stream!}
+            participantId={p.id}
+            participantName={p.display_name}
+          />
+        ))
+      }
     </div>
   );
 }

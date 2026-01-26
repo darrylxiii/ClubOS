@@ -31,37 +31,136 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    if (videoRef.current && participant.stream) {
-      console.log(`[ParticipantTile] 🎬 Setting stream for ${participant.display_name}`, {
-        streamId: participant.stream.id,
-        videoOff: participant.is_video_off,
-        videoTracks: participant.stream.getVideoTracks().length,
-        audioTracks: participant.stream.getAudioTracks().length,
-        hasVideoRef: !!videoRef.current
-      });
-
-      videoRef.current.srcObject = participant.stream;
-
-      videoRef.current.onloadedmetadata = () => {
-        console.log(`[ParticipantTile] ✅ Video metadata loaded for ${participant.display_name}`);
-        setIsLoading(false);
-      };
-
-      videoRef.current.onloadeddata = () => {
-        console.log(`[ParticipantTile] ✅ Video data loaded for ${participant.display_name}`);
-      };
-
-      videoRef.current.onerror = (e) => {
-        console.error(`[ParticipantTile] ❌ Video error for ${participant.display_name}:`, e);
-        setIsLoading(false);
-      };
-    } else {
+    const video = videoRef.current;
+    if (!video || !participant.stream) {
       console.log(`[ParticipantTile] ⏸️ Not setting stream for ${participant.display_name}`, {
-        hasVideoRef: !!videoRef.current,
+        hasVideoRef: !!video,
         hasStream: !!participant.stream
       });
       setIsLoading(false);
+      return;
     }
+
+    const stream = participant.stream;
+    const videoTracks = stream.getVideoTracks();
+    
+    console.log(`[ParticipantTile] 🎬 Attaching stream for ${participant.display_name}`, {
+      streamId: stream.id,
+      videoOff: participant.is_video_off,
+      videoTracks: videoTracks.length,
+      audioTracks: stream.getAudioTracks().length,
+      trackStates: stream.getTracks().map(t => ({
+        kind: t.kind,
+        enabled: t.enabled,
+        readyState: t.readyState,
+        muted: t.muted
+      }))
+    });
+
+    // Verify video track exists
+    if (videoTracks.length === 0) {
+      console.warn(`[ParticipantTile] ⚠️ No video tracks for ${participant.display_name}`);
+      setIsLoading(false);
+      return;
+    }
+
+    const videoTrack = videoTracks[0];
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    // Function to attach stream and attempt playback
+    const attachStream = async () => {
+      try {
+        video.srcObject = stream;
+        
+        // Attempt play with retry logic for autoplay restrictions
+        const attemptPlay = async (): Promise<void> => {
+          try {
+            await video.play();
+            console.log(`[ParticipantTile] ✅ Video playing for ${participant.display_name}`);
+            setIsLoading(false);
+          } catch (err: any) {
+            if (err.name === 'NotAllowedError' && retryCount < maxRetries) {
+              retryCount++;
+              console.warn(`[ParticipantTile] ⚠️ Autoplay blocked for ${participant.display_name}, retry ${retryCount}/${maxRetries}`);
+              // Retry after increasing delay
+              await new Promise(resolve => setTimeout(resolve, 300 * retryCount));
+              return attemptPlay();
+            } else if (err.name === 'AbortError') {
+              // AbortError usually means the element was removed or src changed - not critical
+              console.log(`[ParticipantTile] Play aborted for ${participant.display_name} (likely element removed)`);
+            } else {
+              console.error(`[ParticipantTile] ❌ Video play failed for ${participant.display_name}:`, err.message);
+            }
+            setIsLoading(false);
+          }
+        };
+
+        video.onloadedmetadata = () => {
+          console.log(`[ParticipantTile] ✅ Video metadata loaded for ${participant.display_name}`);
+          attemptPlay();
+        };
+
+        video.onloadeddata = () => {
+          console.log(`[ParticipantTile] ✅ Video data loaded for ${participant.display_name}`);
+        };
+
+        video.onerror = (e) => {
+          console.error(`[ParticipantTile] ❌ Video element error for ${participant.display_name}:`, e);
+          setIsLoading(false);
+        };
+        
+      } catch (error) {
+        console.error(`[ParticipantTile] ❌ Failed to attach stream for ${participant.display_name}:`, error);
+        setIsLoading(false);
+      }
+    };
+
+    // Check if video track is live before attaching
+    if (videoTrack.readyState !== 'live') {
+      console.warn(`[ParticipantTile] ⚠️ Video track not live for ${participant.display_name}:`, videoTrack.readyState);
+      
+      // Wait for track to become live
+      const onLive = () => {
+        console.log(`[ParticipantTile] ✅ Video track now live for ${participant.display_name}`);
+        attachStream();
+      };
+      
+      videoTrack.addEventListener('unmute', onLive, { once: true });
+      
+      // Also try immediately in case it becomes live soon
+      const checkInterval = setInterval(() => {
+        if (videoTrack.readyState === 'live') {
+          clearInterval(checkInterval);
+          videoTrack.removeEventListener('unmute', onLive);
+          attachStream();
+        }
+      }, 200);
+      
+      // Cleanup timeout - don't wait forever
+      const timeout = setTimeout(() => {
+        clearInterval(checkInterval);
+        videoTrack.removeEventListener('unmute', onLive);
+        // Try attaching anyway in case readyState is wrong
+        if (video.srcObject !== stream) {
+          console.log(`[ParticipantTile] ⏳ Timeout waiting for live track, attaching anyway for ${participant.display_name}`);
+          attachStream();
+        }
+      }, 3000);
+      
+      return () => {
+        clearInterval(checkInterval);
+        clearTimeout(timeout);
+        videoTrack.removeEventListener('unmute', onLive);
+      };
+    }
+
+    attachStream();
+
+    return () => {
+      video.pause();
+      video.srcObject = null;
+    };
   }, [participant.stream, participant.is_video_off, participant.display_name]);
 
   return (

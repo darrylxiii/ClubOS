@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Centralized WebRTC Configuration
@@ -6,6 +7,8 @@ import { logger } from "@/lib/logger";
  * This utility manages ICE server configuration for both Meeting Rooms and Live Hub.
  * It prioritizes paid/private TURN servers via environment variables for production reliability,
  * falling back to free community servers for development.
+ * 
+ * Supports dynamic TURN credential fetching from Twilio for enterprise-grade reliability.
  */
 
 export interface TURNServerHealth {
@@ -131,6 +134,87 @@ export const getIceServers = (): RTCIceServer[] => {
       credential: 'wKTpIwxj7tRY+1aV'
     }
   ];
+};
+
+// Cache for dynamic TURN credentials
+let cachedTURNCredentials: {
+  iceServers: RTCIceServer[];
+  expiresAt: Date;
+  provider: string;
+} | null = null;
+
+/**
+ * Fetch dynamic TURN credentials from Twilio via edge function
+ * Falls back to static configuration if fetch fails
+ */
+export const fetchDynamicTURNCredentials = async (): Promise<RTCIceServer[]> => {
+  // Return cached credentials if still valid (with 5 min buffer)
+  if (cachedTURNCredentials && cachedTURNCredentials.expiresAt > new Date(Date.now() + 5 * 60 * 1000)) {
+    logger.debug('[WebRTC] 🔄 Using cached TURN credentials', {
+      provider: cachedTURNCredentials.provider,
+      expiresAt: cachedTURNCredentials.expiresAt.toISOString()
+    });
+    return cachedTURNCredentials.iceServers;
+  }
+
+  try {
+    logger.info('[WebRTC] 📡 Fetching dynamic TURN credentials...');
+    
+    const { data, error } = await supabase.functions.invoke('turn-credentials');
+    
+    if (error) {
+      throw new Error(`Edge function error: ${error.message}`);
+    }
+    
+    if (data && data.iceServers && Array.isArray(data.iceServers)) {
+      cachedTURNCredentials = {
+        iceServers: data.iceServers,
+        expiresAt: new Date(data.expiresAt || Date.now() + 3600 * 1000),
+        provider: data.provider || 'unknown'
+      };
+      
+      logger.info('[WebRTC] ✅ Fetched dynamic TURN credentials', {
+        provider: data.provider,
+        servers: data.iceServers.length,
+        expiresAt: data.expiresAt
+      });
+      
+      return data.iceServers;
+    }
+    
+    throw new Error('No ICE servers in response');
+  } catch (error) {
+    logger.warn('[WebRTC] ⚠️ Failed to fetch dynamic TURN credentials, using fallback:', error);
+    return getIceServers(); // Fallback to static config
+  }
+};
+
+/**
+ * Get RTCConfiguration with dynamic TURN credentials
+ * Attempts to fetch enterprise-grade credentials, falls back to static config
+ */
+export const getDynamicRTCConfig = async (options?: {
+  forceRelay?: boolean;
+  lowBandwidth?: boolean;
+  enableE2EE?: boolean;
+}): Promise<RTCConfiguration> => {
+  const iceServers = await fetchDynamicTURNCredentials();
+  
+  const config: RTCConfiguration = {
+    iceServers,
+    iceTransportPolicy: options?.forceRelay ? 'relay' : 'all',
+    bundlePolicy: 'max-bundle',
+    rtcpMuxPolicy: 'require',
+    iceCandidatePoolSize: options?.lowBandwidth ? 3 : 10
+  };
+  
+  if (options?.enableE2EE && supportsE2EEncryption()) {
+    // @ts-ignore - encodedInsertableStreams is not in TypeScript types yet
+    config.encodedInsertableStreams = true;
+    logger.info('[WebRTC Config] 🔒 E2EE enabled with dynamic TURN credentials');
+  }
+  
+  return config;
 };
 
 export const DEFAULT_RTC_CONFIG: RTCConfiguration = {
