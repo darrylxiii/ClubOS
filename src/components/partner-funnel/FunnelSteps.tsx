@@ -28,6 +28,9 @@ import { useFormValidation, FieldError } from "@/hooks/useFormValidation";
 import { MobileProgressIndicator, DesktopProgressSteps } from "./MobileProgressIndicator";
 import { SuccessConfetti } from "./SuccessConfetti";
 import { useFunnelAnalytics } from "@/hooks/useFunnelAnalytics";
+import { ProgressSaver } from "./ProgressSaver";
+import { useActiveFunnelExperiments } from "@/hooks/useFunnelABTest";
+import { KeyboardHintToast } from "./KeyboardShortcuts";
 
 const STEPS = ["contact", "company", "partnership", "compliance", "verification"];
 
@@ -56,6 +59,9 @@ export function FunnelSteps() {
   
   // Form validation hook
   const validation = useFormValidation();
+
+  // A/B Testing experiments
+  const experiments = useActiveFunnelExperiments(sessionId);
 
   // Exit intent detection - only on steps 0-3
   const handleExitIntent = useCallback(() => {
@@ -352,6 +358,9 @@ export function FunnelSteps() {
 
       // Redirect to trackable success page with company name
       const encodedCompanyName = encodeURIComponent(formData.company_name || 'unknown');
+
+      // Track A/B test conversions
+      await experiments.trackAllConversions('submission_complete');
 
       // Mark funnel as completed and clear auto-save data
       autoSave.markCompleted();
@@ -796,6 +805,11 @@ export function FunnelSteps() {
         onStartFresh={handleStartFresh}
       />
 
+      {/* Keyboard hint toast for first-time visitors */}
+      {showKeyboardHints && currentStep === 0 && (
+        <KeyboardHintToast onDismiss={() => setShowKeyboardHints(false)} />
+      )}
+
       <FunnelErrorBoundary stepName={STEPS[currentStep]}>
         <Card className="p-8 glass-effect">
           {/* Availability Indicator */}
@@ -869,6 +883,18 @@ export function FunnelSteps() {
 
           {/* Trust Badges */}
           {currentStep < 4 && <TrustBadges />}
+
+          {/* Progress Saver with cross-device recovery */}
+          {currentStep > 0 && currentStep < 5 && (
+            <div className="mt-4 flex justify-center">
+              <ProgressSaver
+                sessionId={sessionId}
+                currentStep={currentStep}
+                formData={formData}
+                email={formData.contact_email}
+              />
+            </div>
+          )}
 
           {/* Navigation Buttons - 44px min touch targets */}
           {currentStep < 5 && (
