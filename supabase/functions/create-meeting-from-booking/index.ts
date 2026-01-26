@@ -145,7 +145,7 @@ serve(async (req) => {
     // Generate quantum meeting link for the booking - use bytqc.com as production default
     const quantumMeetingLink = `${Deno.env.get("APP_URL") || 'https://bytqc.com'}/meeting/${meeting.meeting_code}`;
 
-    // Update booking with meeting link as well
+    // Update booking with meeting link
     await supabaseClient
       .from("bookings")
       .update({ 
@@ -154,6 +154,13 @@ serve(async (req) => {
         video_meeting_link: quantumMeetingLink, // Also set as primary video link
       })
       .eq("id", bookingId);
+
+    // Update meeting description to include join link for easy sharing
+    const descriptionWithLink = `${booking.notes || `Booking with ${booking.guest_name}`}\n\n📹 Join Link: ${quantumMeetingLink}`;
+    await supabaseClient
+      .from("meetings")
+      .update({ description: descriptionWithLink })
+      .eq("id", meeting.id);
 
     // Create in-app notification for host about meeting creation
     await supabaseClient

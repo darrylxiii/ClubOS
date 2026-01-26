@@ -144,7 +144,7 @@ serve(async (req) => {
         meeting: {
           id: meeting.id,
           meeting_code: meeting.meeting_code,
-          meeting_url: `${Deno.env.get('APP_URL') || 'https://app.thequantumclub.com'}/meetings/${meeting.meeting_code}`,
+          meeting_url: `${Deno.env.get('APP_URL') || 'https://bytqc.com'}/meeting/${meeting.meeting_code}`,
           title: meeting.title,
           scheduled_start: meeting.scheduled_start,
           scheduled_end: meeting.scheduled_end,
