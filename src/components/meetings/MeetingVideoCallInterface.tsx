@@ -75,12 +75,6 @@ export function MeetingVideoCallInterface({
   // Mobile detection
   const isMobile = useIsMobile();
 
-  // AI Intelligence Hook (The Neural Link)
-  const { transcript } = useMeetingTranscript({
-    enabled: true, // simplified for hook placement, will use meetingStarted later
-    simulate: true // Enable simulation for demo Phase 3
-  });
-
   const [showDiagnostics, setShowDiagnostics] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, { stream: MediaStream; name: string }>>(new Map());
@@ -119,6 +113,12 @@ export function MeetingVideoCallInterface({
   
   // LiveKit vs WebRTC P2P mode - fallback if LiveKit fails
   const [useLiveKitMode, setUseLiveKitMode] = useState(true);
+
+  // AI Intelligence Hook - Real transcription via Web Speech API (fallback for ElevenLabs)
+  const { transcript } = useMeetingTranscript({
+    enabled: meetingStarted && !showDiagnostics && hasGivenConsent,
+    simulate: false // ← FIXED: Use real speech recognition, not mock data
+  });
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
