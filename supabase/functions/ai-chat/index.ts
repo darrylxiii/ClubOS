@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchAI, handleAIError, AITimeoutError, createTimeoutResponse } from "../_shared/ai-fetch.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,7 +56,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, context, systemPrompt } = await req.json() as {
+    const { message, systemPrompt } = await req.json() as {
       message: string;
       context?: string;
       systemPrompt?: string;
@@ -65,32 +66,6 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Message is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Use OpenRouter for AI responses
-    const openRouterApiKey = Deno.env.get("OPENROUTER_API_KEY");
-    
-    if (!openRouterApiKey) {
-      // Return a helpful fallback response based on keywords
-      const lowerMessage = message.toLowerCase();
-      let fallbackResponse = "I'd be happy to help! For detailed information, please complete the partner request form and one of our strategists will provide personalized guidance.";
-      
-      if (lowerMessage.includes("fee") || lowerMessage.includes("cost") || lowerMessage.includes("price") || lowerMessage.includes("pay")) {
-        fallbackResponse = "Our no-cure-no-pay model means you only pay when we successfully place a candidate. Our standard fee is 20% of the first-year salary, paid after the hire completes their probation period. No upfront costs or retainers required.";
-      } else if (lowerMessage.includes("time") || lowerMessage.includes("long") || lowerMessage.includes("quick") || lowerMessage.includes("fast")) {
-        fallbackResponse = "Our typical timeline is 2-4 weeks from brief to shortlist, with first candidate interviews often happening within the first week. For executive-level searches, it may take 4-8 weeks to find the perfect match.";
-      } else if (lowerMessage.includes("industry") || lowerMessage.includes("sector")) {
-        fallbackResponse = "We specialize in Technology, Finance, Healthcare, Consulting, and high-growth startups. Our network spans senior and executive-level positions across Europe, North America, and Asia-Pacific.";
-      } else if (lowerMessage.includes("country") || lowerMessage.includes("location") || lowerMessage.includes("international") || lowerMessage.includes("global")) {
-        fallbackResponse = "We work with companies worldwide. Whether you're in Europe, North America, Asia, or elsewhere, our global network can connect you with top talent in your region or help with international recruitment.";
-      } else if (lowerMessage.includes("guarantee") || lowerMessage.includes("risk")) {
-        fallbackResponse = "We offer a guarantee: if a placed candidate leaves during their probation period, we'll find a replacement at no additional cost. With our no-cure-no-pay model, you have zero financial risk until we deliver results.";
-      }
-
-      return new Response(
-        JSON.stringify({ response: fallbackResponse }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -106,31 +81,32 @@ Guidelines:
 - Always maintain a premium, consultative tone
 - Offer to connect them with a strategist when appropriate`;
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${openRouterApiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": Deno.env.get("SUPABASE_URL") || "https://thequantumclub.com",
-        "X-Title": "The Quantum Club Partner Funnel",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp:free",
-        messages: [
-          { role: "system", content: finalSystemPrompt },
-          { role: "user", content: message }
-        ],
-        max_tokens: 500,
-        temperature: 0.7,
-      }),
-    });
+    // Use Lovable AI Gateway
+    const response = await fetchAI({
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        { role: "system", content: finalSystemPrompt },
+        { role: "user", content: message }
+      ],
+      max_tokens: 500,
+      temperature: 0.7,
+    }, { timeoutMs: 30000 });
+
+    // Handle rate limits and credit exhaustion
+    const errorResponse = handleAIError(response, corsHeaders);
+    if (errorResponse) {
+      return errorResponse;
+    }
 
     if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error("Lovable AI error:", response.status, errorText);
+      throw new Error(`AI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content || "I apologize, I couldn't process that request. Please try again or submit your partner request form for direct assistance.";
+    const aiResponse = data.choices?.[0]?.message?.content || 
+      "I apologize, I couldn't process that request. Please try again or submit your partner request form for direct assistance.";
 
     return new Response(
       JSON.stringify({ response: aiResponse }),
@@ -139,6 +115,12 @@ Guidelines:
 
   } catch (error) {
     console.error("AI Chat error:", error);
+    
+    // Handle timeout specifically
+    if (error instanceof AITimeoutError) {
+      return createTimeoutResponse(corsHeaders);
+    }
+    
     return new Response(
       JSON.stringify({ 
         error: "Failed to process request",

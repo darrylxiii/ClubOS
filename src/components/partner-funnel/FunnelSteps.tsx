@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, Suspense } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,14 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { migrateToast as toast } from "@/lib/notify";
-import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Phone, Shield, Clock, Keyboard, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Phone, Clock, Keyboard, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TrackRequestDialog } from "./TrackRequestDialog";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { PartnerRequestTracker } from "./PartnerRequestTracker";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useCountryDetection } from "@/hooks/useCountryDetection";
 import { useFunnelAutoSave } from "@/hooks/useFunnelAutoSave";
@@ -31,9 +30,10 @@ import { useFunnelAnalytics } from "@/hooks/useFunnelAnalytics";
 import { ProgressSaver } from "./ProgressSaver";
 import { useActiveFunnelExperiments } from "@/hooks/useFunnelABTest";
 import { KeyboardHintToast } from "./KeyboardShortcuts";
-import { usePrefetch, FunnelStepSkeleton } from "./LazyFunnelComponents";
+import { usePrefetch } from "./LazyFunnelComponents";
 import { NetworkStatusIndicator, InlineNetworkStatus } from "./NetworkStatusIndicator";
 import { StepTransition } from "./StepTransition";
+import { cn } from "@/lib/utils";
 
 const STEPS = ["contact", "company", "partnership", "compliance", "verification"];
 
@@ -66,6 +66,9 @@ export function FunnelSteps() {
   
   // Form validation hook
   const validation = useFormValidation();
+  
+  // Analytics hook - properly integrated
+  const analytics = useFunnelAnalytics(sessionId);
 
   // A/B Testing experiments
   const experiments = useActiveFunnelExperiments(sessionId);
@@ -190,30 +193,10 @@ export function FunnelSteps() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [currentStep, formData, emailVerified, phoneNumber]);
 
+  // Track step views using analytics hook
   useEffect(() => {
-    trackStep("view");
-  }, [currentStep]);
-
-  const trackStep = async (action: string) => {
-    const timeOnStep = Math.floor((Date.now() - stepStartTime) / 1000);
-
-    await supabase.from("funnel_analytics").insert({
-      session_id: sessionId,
-      step_number: currentStep,
-      step_name: STEPS[currentStep],
-      action,
-      time_on_step_seconds: timeOnStep,
-      source_channel: new URLSearchParams(window.location.search).get("source") || "direct",
-      utm_source: new URLSearchParams(window.location.search).get("utm_source"),
-      utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
-      utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
-      user_agent: navigator.userAgent,
-    });
-
-    if (action === "complete") {
-      setStepStartTime(Date.now());
-    }
-  };
+    analytics.trackStepView(currentStep, STEPS[currentStep]);
+  }, [currentStep, analytics]);
 
   const handleNext = async () => {
     // If on contact step and email not verified, send OTP
@@ -243,13 +226,13 @@ export function FunnelSteps() {
       }
     }
 
-    await trackStep("complete");
+    await analytics.trackStepComplete(currentStep, STEPS[currentStep]);
     setTransitionDirection('forward');
     setCurrentStep(currentStep + 1);
   };
 
   const handleBack = async () => {
-    await trackStep("abandon");
+    await analytics.trackStepAbandon(currentStep, STEPS[currentStep]);
     setTransitionDirection('backward');
     setCurrentStep(currentStep - 1);
   };
@@ -353,7 +336,7 @@ export function FunnelSteps() {
         assigned_to: '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5',
       });
 
-      await trackStep("complete");
+      await analytics.trackFunnelComplete(timeToComplete);
 
       if (error) {
         toast({ title: "Submission failed", description: error.message, variant: "destructive" });
@@ -397,19 +380,35 @@ export function FunnelSteps() {
               <Label>Full Name *</Label>
               <Input
                 value={formData.contact_name}
-                onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, contact_name: e.target.value });
+                  if (validation.hasError('contact_name')) {
+                    validation.clearError('contact_name');
+                  }
+                }}
+                onBlur={() => validation.validateField('contact_name', formData.contact_name)}
                 placeholder="John Doe"
+                className={cn(validation.hasError('contact_name') && "border-destructive focus-visible:ring-destructive")}
               />
+              <FieldError error={validation.getFieldError('contact_name')} />
             </div>
             <div>
               <Label>Email Address *</Label>
               <Input
                 type="email"
                 value={formData.contact_email}
-                onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, contact_email: e.target.value });
+                  if (validation.hasError('contact_email')) {
+                    validation.clearError('contact_email');
+                  }
+                }}
+                onBlur={() => validation.validateField('contact_email', formData.contact_email)}
                 placeholder="john@company.com"
                 disabled={emailVerified}
+                className={cn(validation.hasError('contact_email') && "border-destructive focus-visible:ring-destructive")}
               />
+              <FieldError error={validation.getFieldError('contact_email')} />
               {emailVerified && (
                 <p className="text-sm text-primary mt-2 flex items-center">
                   <CheckCircle className="w-4 h-4 mr-2" />
@@ -457,8 +456,9 @@ export function FunnelSteps() {
                         verifyEmailOTP(formData.contact_email, value, async () => {
                           setEmailVerified(true);
                           setEmailOtpCode("");
-                          // Auto-advance to next step
-                          await trackStep("complete");
+                          // Track email verification and auto-advance to next step
+                          await analytics.trackVerification('email', 'verified');
+                          await analytics.trackStepComplete(currentStep, STEPS[currentStep]);
                           setCurrentStep(1);
                         });
                       }
@@ -522,9 +522,17 @@ export function FunnelSteps() {
               <Label>Company Name *</Label>
               <Input
                 value={formData.company_name}
-                onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, company_name: e.target.value });
+                  if (validation.hasError('company_name')) {
+                    validation.clearError('company_name');
+                  }
+                }}
+                onBlur={() => validation.validateField('company_name', formData.company_name)}
                 placeholder="Acme Corporation"
+                className={cn(validation.hasError('company_name') && "border-destructive focus-visible:ring-destructive")}
               />
+              <FieldError error={validation.getFieldError('company_name')} />
             </div>
             <div>
               <Label>Website</Label>
@@ -635,10 +643,18 @@ export function FunnelSteps() {
               <Label>Description *</Label>
               <Textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, description: e.target.value });
+                  if (validation.hasError('description')) {
+                    validation.clearError('description');
+                  }
+                }}
+                onBlur={() => validation.validateField('description', formData.description)}
                 placeholder="Tell us about your hiring needs, team culture, and what success looks like..."
                 rows={5}
+                className={cn(validation.hasError('description') && "border-destructive focus-visible:ring-destructive")}
               />
+              <FieldError error={validation.getFieldError('description')} />
             </div>
           </div>
         );
@@ -716,12 +732,22 @@ export function FunnelSteps() {
               <PhoneInput
                 international
                 countryCallingCodeEditable={false}
-                defaultCountry={countryCode as any}
+                defaultCountry={countryCode as "NL" | "US" | "GB" | "DE" | undefined}
                 value={phoneNumber}
-                onChange={(value) => setPhoneNumber(value || "")}
+                onChange={(value) => {
+                  setPhoneNumber(value || "");
+                  if (validation.hasError('phoneNumber')) {
+                    validation.clearError('phoneNumber');
+                  }
+                }}
+                onBlur={() => validation.validateField('phoneNumber', phoneNumber)}
                 placeholder="Enter phone number"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className={cn(
+                  "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+                  validation.hasError('phoneNumber') && "border-destructive"
+                )}
               />
+              <FieldError error={validation.getFieldError('phoneNumber')} />
               <p className="text-xs text-muted-foreground mt-2">
                 We'll send a verification code to this number. Make sure to include your country code.
               </p>
