@@ -197,12 +197,15 @@ export default function MeetingRoom() {
       // This ensures participant is NEVER in a "left" state during join
       const now = new Date().toISOString();
       
-      // First try to update any existing record to reset it
+      // FIXED: Get most recent participant record (there may be stale duplicates)
+      // Using .order().limit(1) before .maybeSingle() ensures safe handling
       const { data: existingParticipant } = await supabase
         .from('meeting_participants')
         .select('id')
         .eq('meeting_id', meeting.id)
         .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (existingParticipant) {
@@ -253,13 +256,13 @@ export default function MeetingRoom() {
         }
       }
 
-      // Update meeting status to 'in_progress' if host is joining
-      if (user.id === meeting.host_id && meeting.status === 'scheduled') {
+      // Update meeting status to 'in_progress' if host is joining (works for scheduled OR completed)
+      if (user.id === meeting.host_id && meeting.status !== 'in_progress') {
         await supabase
           .from('meetings')
           .update({ status: 'in_progress' })
           .eq('id', meeting.id);
-        console.log('[MeetingRoom] ✅ Meeting status updated to in_progress');
+        console.log('[MeetingRoom] ✅ Meeting status reset to in_progress');
       }
 
       setInCall(true);

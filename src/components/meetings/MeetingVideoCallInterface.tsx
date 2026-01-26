@@ -621,20 +621,47 @@ export function MeetingVideoCallInterface({
 
     const updateHeartbeat = async () => {
       try {
-        // FIXED: Clear left_at AND update last_seen to ensure participant is active
-        // This handles the case where participant was incorrectly marked as left
-        const { error } = await supabase
+        // FIXED: Use single-record update pattern to avoid unique constraint violation
+        // First check if we already have an active record
+        const { data: activeRecord } = await supabase
           .from('meeting_participants')
-          .update({ 
-            last_seen: new Date().toISOString(),
-            left_at: null,  // ← Always clear left_at on heartbeat
-            status: 'accepted'
-          })
+          .select('id')
           .eq('meeting_id', meeting.id)
-          .or(`user_id.eq.${participantId},session_token.eq.${participantId}`);
-        
-        if (error) {
-          console.error('[Meeting] ❌ Heartbeat update failed:', error);
+          .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
+          .is('left_at', null)
+          .limit(1)
+          .maybeSingle();
+
+        if (activeRecord) {
+          // Update the active record's heartbeat only
+          await supabase
+            .from('meeting_participants')
+            .update({ 
+              last_seen: new Date().toISOString(),
+              status: 'accepted'
+            })
+            .eq('id', activeRecord.id);
+        } else {
+          // No active record - find most recent and reactivate it
+          const { data: latestRecord } = await supabase
+            .from('meeting_participants')
+            .select('id')
+            .eq('meeting_id', meeting.id)
+            .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (latestRecord) {
+            await supabase
+              .from('meeting_participants')
+              .update({ 
+                last_seen: new Date().toISOString(),
+                left_at: null,  // Reactivate
+                status: 'accepted'
+              })
+              .eq('id', latestRecord.id);
+          }
         }
       } catch (error) {
         console.error('[Meeting] ❌ Heartbeat exception:', error);
@@ -659,14 +686,17 @@ export function MeetingVideoCallInterface({
     if (!meeting?.id || !participantId) return;
 
     const checkAndFixPresence = async () => {
+      // FIXED: Use single-record pattern to handle duplicate records safely
       const { data } = await supabase
         .from('meeting_participants')
-        .select('left_at, status')
+        .select('id, left_at, status')
         .eq('meeting_id', meeting.id)
         .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      // If we're in the call UI but marked as left, fix it
+      // If we're in the call UI but marked as left, fix it (target specific record)
       if (data && data.left_at !== null) {
         console.warn('[Meeting] ⚠️ Participant incorrectly marked as left - auto-fixing...');
 
@@ -677,8 +707,7 @@ export function MeetingVideoCallInterface({
             status: 'accepted',
             last_seen: new Date().toISOString()
           })
-          .eq('meeting_id', meeting.id)
-          .or(`user_id.eq.${participantId},session_token.eq.${participantId}`);
+          .eq('id', data.id);  // Target specific record by ID
 
         toast.success('Reconnected to meeting');
       }
