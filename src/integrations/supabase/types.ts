@@ -11021,6 +11021,81 @@ export type Database = {
         }
         Relationships: []
       }
+      comprehensive_audit_logs: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          actor_ip_address: unknown
+          actor_role: string | null
+          actor_user_agent: string | null
+          after_value: Json | null
+          before_value: Json | null
+          changed_fields: string[] | null
+          compliance_tags: string[] | null
+          created_at: string | null
+          description: string | null
+          error_message: string | null
+          event_category: string | null
+          event_timestamp: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          resource_id: string | null
+          resource_name: string | null
+          resource_type: string | null
+          success: boolean | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_ip_address?: unknown
+          actor_role?: string | null
+          actor_user_agent?: string | null
+          after_value?: Json | null
+          before_value?: Json | null
+          changed_fields?: string[] | null
+          compliance_tags?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          error_message?: string | null
+          event_category?: string | null
+          event_timestamp?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_name?: string | null
+          resource_type?: string | null
+          success?: boolean | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_ip_address?: unknown
+          actor_role?: string | null
+          actor_user_agent?: string | null
+          after_value?: Json | null
+          before_value?: Json | null
+          changed_fields?: string[] | null
+          compliance_tags?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          error_message?: string | null
+          event_category?: string | null
+          event_timestamp?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_name?: string | null
+          resource_type?: string | null
+          success?: boolean | null
+        }
+        Relationships: []
+      }
       compression_experiments: {
         Row: {
           compressed_context: string
