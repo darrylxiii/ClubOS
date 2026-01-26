@@ -33,10 +33,16 @@ export default function TranslationManager() {
   const seedTranslations = useSeedTranslations();
   const { data: coverageData, isLoading: coverageLoading, refetch: refetchCoverage } = useTranslationCoverage();
 
-  // Auto-cleanup stale jobs on page load
+  // Helper to add logs (must be defined before useEffect that uses it)
+  const addLog = useCallback((level: 'info' | 'warn' | 'error', message: string, details?: string, source?: string) => {
+    const id = `log-${++logIdRef.current}`;
+    setLogs(prev => [...prev.slice(-50), { id, level, message, details, timestamp: new Date(), source }]);
+  }, []);
+
+  // Auto-cleanup stale jobs on page load and every 5 minutes
   useEffect(() => {
     const cleanupStaleJobs = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('translation_generation_jobs')
         .update({
           status: 'failed',
@@ -44,7 +50,7 @@ export default function TranslationManager() {
           updated_at: new Date().toISOString()
         })
         .eq('status', 'running')
-        .lt('updated_at', new Date(Date.now() - 30 * 60 * 1000).toISOString())
+        .lt('updated_at', new Date(Date.now() - 10 * 60 * 1000).toISOString()) // 10 min threshold (was 30)
         .select();
 
       if (data && data.length > 0) {
@@ -53,7 +59,9 @@ export default function TranslationManager() {
     };
 
     cleanupStaleJobs();
-  }, []);
+    const interval = setInterval(cleanupStaleJobs, 5 * 60 * 1000); // Run every 5 minutes
+    return () => clearInterval(interval);
+  }, [addLog]);
 
   const cleanupStuckJobs = async () => {
     setIsCleaningJobs(true);
@@ -81,19 +89,14 @@ export default function TranslationManager() {
         addLog('info', 'No stuck jobs found', undefined, 'cleanup');
         toast.info('No stuck jobs to clean up');
       }
-    } catch (error: any) {
-      addLog('error', 'Cleanup failed', error.message, 'cleanup');
-      toast.error(`Cleanup failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      addLog('error', 'Cleanup failed', message, 'cleanup');
+      toast.error(`Cleanup failed: ${message}`);
     } finally {
       setIsCleaningJobs(false);
     }
   };
-
-  // Helper to add logs
-  const addLog = useCallback((level: 'info' | 'warn' | 'error', message: string, details?: string, source?: string) => {
-    const id = `log-${++logIdRef.current}`;
-    setLogs(prev => [...prev.slice(-50), { id, level, message, details, timestamp: new Date(), source }]);
-  }, []);
 
   // Fetch namespaces with timing
   const namespacesQuery = useQuery({
@@ -116,6 +119,8 @@ export default function TranslationManager() {
       addLog('info', `Loaded ${namespaces.length} namespaces`, `Duration: ${Date.now() - start}ms`, 'namespaces');
       return { namespaces, duration: Date.now() - start };
     },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   // Fetch languages
@@ -139,6 +144,8 @@ export default function TranslationManager() {
       addLog('info', `Loaded ${data.length} languages`, `Duration: ${Date.now() - start}ms`, 'languages');
       return { languages: data, duration: Date.now() - start };
     },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Check English exists
@@ -163,6 +170,8 @@ export default function TranslationManager() {
         `Duration: ${Date.now() - start}ms`, 'english');
       return { exists, count, duration: Date.now() - start };
     },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Coverage query
@@ -191,6 +200,8 @@ export default function TranslationManager() {
         `Duration: ${Date.now() - start}ms`, 'coverage');
       return { coverageMap, duration: Date.now() - start };
     },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Build query states for loading indicator

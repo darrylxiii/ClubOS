@@ -217,6 +217,8 @@ export const useTranslationCoverage = () => {
         },
       };
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: false, // Disabled - manual refresh only (translation system needs DB configuration)
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    refetchOnWindowFocus: false,
   });
 };
