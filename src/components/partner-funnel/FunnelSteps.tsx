@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,10 @@ import { useCountryDetection } from "@/hooks/useCountryDetection";
 import { useFunnelAutoSave } from "@/hooks/useFunnelAutoSave";
 import { ResumeFunnelDialog } from "./ResumeFunnelDialog";
 import { Badge } from "@/components/ui/badge";
+import { ExitIntentPopup, useExitIntent } from "./ExitIntentPopup";
+import { TrustBadges } from "./TrustBadges";
+import { FunnelErrorBoundary } from "./FunnelErrorBoundary";
+import { useFormValidation, FieldError } from "@/hooks/useFormValidation";
 
 const STEPS = ["contact", "company", "partnership", "compliance", "verification"];
 
@@ -43,9 +47,21 @@ export function FunnelSteps() {
   const [verificationCode, setVerificationCode] = useState("");
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
   const [showKeyboardHints, setShowKeyboardHints] = useState(true);
+  const [exitIntentOpen, setExitIntentOpen] = useState(false);
 
-  
   const navigate = useNavigate();
+  
+  // Form validation hook
+  const validation = useFormValidation();
+
+  // Exit intent detection - only on steps 0-3
+  const handleExitIntent = useCallback(() => {
+    if (currentStep < 4 && currentStep > 0) {
+      setExitIntentOpen(true);
+    }
+  }, [currentStep]);
+
+  useExitIntent(currentStep > 0 && currentStep < 4, handleExitIntent);
 
   // Auto-save hook
   const autoSave = useFunnelAutoSave({
@@ -771,6 +787,15 @@ export function FunnelSteps() {
 
   return (
     <React.Fragment>
+      {/* Exit Intent Popup */}
+      <ExitIntentPopup
+        isOpen={exitIntentOpen}
+        onClose={() => setExitIntentOpen(false)}
+        onStay={() => setExitIntentOpen(false)}
+        currentStep={currentStep}
+        totalSteps={5}
+      />
+
       {/* Resume Dialog */}
       <ResumeFunnelDialog
         open={resumeDialogOpen}
@@ -780,95 +805,100 @@ export function FunnelSteps() {
         onStartFresh={handleStartFresh}
       />
 
-      <Card className="p-8 glass-effect">
-        {/* Availability Indicator */}
-        {(() => {
-          const indicatorColor = spotsLeft >= 4 ? 'bg-green-500' : spotsLeft >= 2 ? 'bg-orange-500' : 'bg-red-500';
-          const textColor = spotsLeft >= 4 ? 'text-green-500' : spotsLeft >= 2 ? 'text-orange-500' : 'text-red-500';
+      <FunnelErrorBoundary stepName={STEPS[currentStep]}>
+        <Card className="p-8 glass-effect">
+          {/* Availability Indicator */}
+          {(() => {
+            const indicatorColor = spotsLeft >= 4 ? 'bg-primary' : spotsLeft >= 2 ? 'bg-primary/70' : 'bg-destructive';
+            const textColor = spotsLeft >= 4 ? 'text-primary' : spotsLeft >= 2 ? 'text-primary' : 'text-destructive';
 
-          return (
-            <div className="flex items-center justify-center gap-3 p-4 glass-effect border border-primary/20 rounded-2xl mb-6">
-              <div className="relative">
-                <div className={`w-3 h-3 ${indicatorColor} rounded-full animate-pulse`}></div>
-                <div className={`absolute inset-0 w-3 h-3 ${indicatorColor} rounded-full animate-ping`}></div>
+            return (
+              <div className="flex items-center justify-center gap-3 p-4 glass-effect border border-primary/20 rounded-2xl mb-6">
+                <div className="relative">
+                  <div className={`w-3 h-3 ${indicatorColor} rounded-full animate-pulse`}></div>
+                  <div className={`absolute inset-0 w-3 h-3 ${indicatorColor} rounded-full animate-ping`}></div>
+                </div>
+                <span className="text-sm font-semibold">
+                  <span className={textColor}>{spotsLeft}/5</span> partner spots left for this quarter
+                </span>
               </div>
-              <span className="text-sm font-semibold">
-                <span className={textColor}>{spotsLeft}/5</span> partner spots left for this quarter
-              </span>
-            </div>
-          );
-        })()}
+            );
+          })()}
 
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                Step {currentStep + 1} of 5
-              </span>
-              {remainingMinutes > 0 && (
-                <Badge variant="outline" className="text-xs gap-1">
-                  <Clock className="w-3 h-3" />
-                  ~{remainingMinutes} min remaining
-                </Badge>
-              )}
-            </div>
-            {showKeyboardHints && currentStep < 4 && (
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
-                  <Keyboard className="w-3 h-3" />
-                  <span className="hidden sm:inline">Enter</span> = Next
-                </Badge>
-                {currentStep > 0 && (
-                  <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
-                    <Keyboard className="w-3 h-3" />
-                    <span className="hidden sm:inline">Esc</span> = Back
+                <span className="text-sm text-muted-foreground">
+                  Step {currentStep + 1} of 5
+                </span>
+                {remainingMinutes > 0 && (
+                  <Badge variant="outline" className="text-xs gap-1">
+                    <Clock className="w-3 h-3" />
+                    ~{remainingMinutes} min remaining
                   </Badge>
                 )}
               </div>
-            )}
-            <span className="text-sm font-medium">
-              {Math.round(((currentStep + 1) / 5) * 100)}%
-            </span>
+              {showKeyboardHints && currentStep < 4 && (
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
+                    <Keyboard className="w-3 h-3" />
+                    <span className="hidden sm:inline">Enter</span> = Next
+                  </Badge>
+                  {currentStep > 0 && (
+                    <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
+                      <Keyboard className="w-3 h-3" />
+                      <span className="hidden sm:inline">Esc</span> = Back
+                    </Badge>
+                  )}
+                </div>
+              )}
+              <span className="text-sm font-medium">
+                {Math.round(((currentStep + 1) / 5) * 100)}%
+              </span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all duration-300"
+                style={{ width: `${((currentStep + 1) / 5) * 100}%` }}
+              />
+            </div>
           </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all duration-300"
-              style={{ width: `${((currentStep + 1) / 5) * 100}%` }}
-            />
-          </div>
-        </div>
 
-      {/* Step Content */}
-      {renderStep()}
+          {/* Step Content */}
+          {renderStep()}
 
-      {/* Navigation Buttons */}
-      {currentStep < 5 && (
-        <div className="flex gap-4 mt-8">
-          {currentStep > 0 && (
-            <Button variant="outline" onClick={handleBack} className="flex-1">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
+          {/* Trust Badges */}
+          {currentStep < 4 && <TrustBadges />}
+
+          {/* Navigation Buttons */}
+          {currentStep < 5 && (
+            <div className="flex gap-4 mt-8">
+              {currentStep > 0 && (
+                <Button variant="outline" onClick={handleBack} className="flex-1">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              )}
+              {currentStep < 4 ? (
+                <Button onClick={handleNext} className="flex-1">
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSubmit}
+                  className="flex-1"
+                  disabled={!verificationCode || verificationCode.length !== 6 || isVerifying}
+                >
+                  {isVerifying ? "Verifying..." : "Submit Request"}
+                  <CheckCircle className="w-4 h-4 ml-2" />
+                </Button>
+              )}
+            </div>
           )}
-          {currentStep < 4 ? (
-            <Button onClick={handleNext} className="flex-1">
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleSubmit}
-              className="flex-1"
-              disabled={!verificationCode || verificationCode.length !== 6 || isVerifying}
-            >
-              {isVerifying ? "Verifying..." : "Submit Request"}
-              <CheckCircle className="w-4 h-4 ml-2" />
-            </Button>
-          )}
-        </div>
-      )}
-    </Card>
+        </Card>
+      </FunnelErrorBoundary>
     </React.Fragment>
   );
 }
