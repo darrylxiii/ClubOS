@@ -142,8 +142,8 @@ serve(async (req) => {
       console.log(`[Meeting] Added guest ${booking.guest_email} as meeting participant`);
     }
 
-    // Generate quantum meeting link for the booking
-    const quantumMeetingLink = `${Deno.env.get("APP_URL") || 'https://app.thequantumclub.com'}/meeting/${meeting.meeting_code}`;
+    // Generate quantum meeting link for the booking - use bytqc.com as production default
+    const quantumMeetingLink = `${Deno.env.get("APP_URL") || 'https://bytqc.com'}/meeting/${meeting.meeting_code}`;
 
     // Update booking with meeting link as well
     await supabaseClient

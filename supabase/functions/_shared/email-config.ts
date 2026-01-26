@@ -23,7 +23,7 @@ export const EMAIL_LOGOS = {
 
 // Logo sizes (in pixels)
 export const EMAIL_LOGO_SIZES = {
-  headerBrand: 120,   // Oversized for clear branding
+  headerBrand: 180,   // Full-size for prominent branding
   standard: 80,       // Standard usage
   meetingCard: 40,    // Small icon for meeting cards
 } as const;
@@ -64,9 +64,9 @@ export const PLATFORM_ICONS = {
   teams: 'https://upload.wikimedia.org/wikipedia/commons/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg',
 } as const;
 
-// App URLs
+// App URLs - Production domain is bytqc.com
 export const getEmailAppUrl = (): string => {
-  return Deno.env.get('APP_URL') || 'https://thequantumclub.app';
+  return Deno.env.get('APP_URL') || 'https://bytqc.com';
 };
 
 // Support contact
