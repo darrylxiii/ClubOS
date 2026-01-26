@@ -1,171 +1,180 @@
 
+# Fix "Waiting for Host" - Host Participant Record Not Active
 
-# Fix "Failed to Join Meeting" Error - RLS Policy Bug
+## Root Cause Analysis
 
-## Problem Summary
+The issue stems from **duplicate participant records** for the same user in the same meeting:
 
-Sebastiaan cannot join the meeting because the database is blocking his attempt to insert a participant record. The error message "Failed to join meeting. Please check connection" is misleading - the real issue is a Row Level Security (RLS) policy violation.
+| Finding | Impact |
+|---------|--------|
+| Host has **11 participant records** | All marked as `left`, none active |
+| Query uses `.maybeSingle()` | Fails silently with multiple records |
+| Heartbeat updates ALL records | Blocked by unique constraint when setting `left_at = null` |
+| Result | Host appears offline to other participants |
 
-## Root Cause
-
-The meeting has `access_type: invite_only`, and the RLS policy uses a function called `can_join_meeting()` that contains a logical flaw:
+### The Unique Constraint Problem
 
 ```text
-For invite_only meetings:
-  → Check if user already has a participant record with status 'invited' or 'accepted'
-  → If YES → Allow INSERT
-  → If NO → Block INSERT
+UNIQUE INDEX meeting_participants_user_active_unique 
+ON (meeting_id, user_id) WHERE left_at IS NULL
 ```
 
-**The contradiction**: How can a user have a participant record if they haven't been able to INSERT one yet? This only works if someone pre-creates an invite record for them.
-
-Since users are joining via meeting code/link (not via explicit invitations), there's no pre-created record, and they get blocked.
+This means only ONE record per user per meeting can be "active" (left_at = null). When the heartbeat tries to update all 11 records to set `left_at = null`, the database rejects it because that would create 11 active records for the same user.
 
 ---
 
-## The Fix
+## Solution: Single-Record Update Pattern
 
-Update the `can_join_meeting` function to allow authenticated users to join meetings in these scenarios:
+### Phase 1: Fix Join Logic in MeetingRoom.tsx
 
-1. **User is the host** → Already works
-2. **Meeting is public with allow_guests** → Already works  
-3. **Meeting is invite_only AND user has existing invite** → Already works
-4. **NEW: Meeting is invite_only AND host is present** → Implied consent
-5. **NEW: Meeting is open access** → Allow any authenticated user
+Change the existing record lookup to find the MOST RECENT record and update only that one:
 
-Additionally, for the immediate fix, we should change the meeting's `access_type` to `open` or add Sebastiaan as an invited participant.
+**File: `src/pages/MeetingRoom.tsx` (lines 200-224)**
 
----
-
-## Implementation Plan
-
-### Phase 1: Update the can_join_meeting Function
-
-**Database Migration:**
-
-```sql
-CREATE OR REPLACE FUNCTION public.can_join_meeting(
-  _meeting_id UUID,
-  _user_id UUID
-) RETURNS BOOLEAN
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  meeting_rec RECORD;
-  participant_count INTEGER;
-  host_is_present BOOLEAN;
-BEGIN
-  -- Get meeting details
-  SELECT * INTO meeting_rec
-  FROM meetings
-  WHERE id = _meeting_id;
-  
-  IF NOT FOUND THEN
-    RETURN FALSE;
-  END IF;
-  
-  -- Always allow host
-  IF meeting_rec.host_id = _user_id THEN
-    RETURN TRUE;
-  END IF;
-  
-  -- For public/open meetings with guests allowed
-  IF meeting_rec.access_type IN ('public', 'open') AND meeting_rec.allow_guests = TRUE THEN
-    -- Check max participants if set
-    IF meeting_rec.max_participants IS NOT NULL THEN
-      SELECT COUNT(*) INTO participant_count
-      FROM meeting_participants
-      WHERE meeting_id = _meeting_id AND left_at IS NULL;
-      
-      IF participant_count >= meeting_rec.max_participants THEN
-        RETURN FALSE;
-      END IF;
-    END IF;
-    RETURN TRUE;
-  END IF;
-  
-  -- For invite_only: Check if user was explicitly invited
-  IF EXISTS (
-    SELECT 1 FROM meeting_participants
-    WHERE meeting_id = _meeting_id
-      AND user_id = _user_id
-      AND status IN ('invited', 'accepted')
-  ) THEN
-    RETURN TRUE;
-  END IF;
-  
-  -- NEW: For invite_only meetings, allow join if host is actively present
-  -- This handles the case where host shares a link and expects guests to join
-  IF meeting_rec.access_type = 'invite_only' THEN
-    SELECT EXISTS (
-      SELECT 1 FROM meeting_participants
-      WHERE meeting_id = _meeting_id
-        AND user_id = meeting_rec.host_id
-        AND left_at IS NULL
-        AND last_seen > NOW() - INTERVAL '2 minutes'
-    ) INTO host_is_present;
-    
-    IF host_is_present THEN
-      RETURN TRUE;
-    END IF;
-  END IF;
-  
-  -- NEW: If user has a booking/calendar entry for this meeting, allow join
-  IF EXISTS (
-    SELECT 1 FROM calendar_bookings cb
-    JOIN calendar_invitees ci ON ci.booking_id = cb.id
-    WHERE cb.id = (SELECT booking_id FROM meetings WHERE id = _meeting_id)
-      AND ci.email = (SELECT email FROM auth.users WHERE id = _user_id)
-  ) THEN
-    RETURN TRUE;
-  END IF;
-  
-  RETURN FALSE;
-END;
-$$;
-```
-
-### Phase 2: Clean Up Database State
-
-Reset any problematic participant records and add Sebastiaan as an invited participant for immediate testing:
-
-```sql
--- Find Sebastiaan's user ID
-SELECT id, email FROM auth.users WHERE email ILIKE '%sebastiaan%';
-
--- Add him as invited participant (if known)
-INSERT INTO meeting_participants (meeting_id, user_id, status)
-VALUES ('b1d749ce-33a3-4956-ac4a-b1759c353b4c', 'SEBASTIAAN_USER_ID', 'invited')
-ON CONFLICT (meeting_id, user_id) WHERE left_at IS NULL 
-DO UPDATE SET status = 'invited', left_at = NULL;
-```
-
-### Phase 3: Improve Error Messages
-
-Update `MeetingRoom.tsx` to show specific error messages:
-
+Current code:
 ```typescript
-} catch (error: any) {
-  console.error('[MeetingRoom] ❌ Error joining meeting:', error);
-  
-  // Detect RLS violation
-  const isRLSError = error?.message?.includes('row-level security') || 
-                     error?.code === 'PGRST301';
-  
-  toast.error(
-    isRLSError ? 'Not authorized to join' : 'Failed to join meeting',
-    {
-      description: isRLSError 
-        ? 'You may need an invitation from the host to join this private meeting'
-        : 'Please check your connection and try again',
-      action: !isRLSError ? {
-        label: 'Retry',
-        onClick: () => handleJoinMeeting()
-      } : undefined
-    }
-  );
+const { data: existingParticipant } = await supabase
+  .from('meeting_participants')
+  .select('id')
+  .eq('meeting_id', meeting.id)
+  .eq('user_id', user.id)
+  .maybeSingle();  // ← BUG: fails with multiple records
+```
+
+Fixed code:
+```typescript
+// Get the most recent participant record (there may be stale duplicates)
+const { data: existingParticipant } = await supabase
+  .from('meeting_participants')
+  .select('id')
+  .eq('meeting_id', meeting.id)
+  .eq('user_id', user.id)
+  .order('created_at', { ascending: false })
+  .limit(1)
+  .maybeSingle();  // Now safe because limit(1) ensures only one row
+```
+
+### Phase 2: Fix Heartbeat in MeetingVideoCallInterface.tsx
+
+The heartbeat currently updates ALL matching records, which fails when multiple exist. Change it to update only the active record (or most recent if none active):
+
+**File: `src/components/meetings/MeetingVideoCallInterface.tsx` (lines 626-641)**
+
+Current code:
+```typescript
+const { error } = await supabase
+  .from('meeting_participants')
+  .update({ 
+    last_seen: new Date().toISOString(),
+    left_at: null,
+    status: 'accepted'
+  })
+  .eq('meeting_id', meeting.id)
+  .or(`user_id.eq.${participantId},session_token.eq.${participantId}`);
+// ← BUG: Updates ALL 11 records, violates unique constraint
+```
+
+Fixed code:
+```typescript
+// First check if we already have an active record
+const { data: activeRecord } = await supabase
+  .from('meeting_participants')
+  .select('id')
+  .eq('meeting_id', meeting.id)
+  .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
+  .is('left_at', null)
+  .limit(1)
+  .maybeSingle();
+
+if (activeRecord) {
+  // Update the active record's heartbeat
+  await supabase
+    .from('meeting_participants')
+    .update({ 
+      last_seen: new Date().toISOString(),
+      status: 'accepted'
+    })
+    .eq('id', activeRecord.id);
+} else {
+  // No active record - find most recent and reactivate it
+  const { data: latestRecord } = await supabase
+    .from('meeting_participants')
+    .select('id')
+    .eq('meeting_id', meeting.id)
+    .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (latestRecord) {
+    await supabase
+      .from('meeting_participants')
+      .update({ 
+        last_seen: new Date().toISOString(),
+        left_at: null,  // Reactivate
+        status: 'accepted'
+      })
+      .eq('id', latestRecord.id);
+  }
+}
+```
+
+### Phase 3: Fix Auto-Rejoin Logic
+
+Apply the same single-record pattern to the auto-rejoin effect:
+
+**File: `src/components/meetings/MeetingVideoCallInterface.tsx` (lines 661-685)**
+
+Update to target only the most recent record instead of all matching records.
+
+### Phase 4: Immediate Database Cleanup
+
+Run a one-time cleanup to consolidate duplicate records:
+
+```sql
+-- Keep only the most recent record per user per meeting
+-- Mark older duplicates as permanently left
+
+WITH ranked AS (
+  SELECT id, 
+         ROW_NUMBER() OVER (
+           PARTITION BY meeting_id, user_id 
+           ORDER BY created_at DESC
+         ) as rn
+  FROM meeting_participants
+  WHERE user_id IS NOT NULL
+)
+UPDATE meeting_participants mp
+SET status = 'archived'
+FROM ranked r
+WHERE mp.id = r.id AND r.rn > 1;
+```
+
+### Phase 5: Add Meeting Status Reset
+
+The meeting is currently marked as `completed`. When the host rejoins a completed meeting, reset it to `in_progress`:
+
+**File: `src/pages/MeetingRoom.tsx` (line 256-262)**
+
+Current:
+```typescript
+if (user.id === meeting.host_id && meeting.status === 'scheduled') {
+  await supabase
+    .from('meetings')
+    .update({ status: 'in_progress' })
+    .eq('id', meeting.id);
+}
+```
+
+Fixed:
+```typescript
+// Reset meeting to in_progress if host rejoins (works for scheduled OR completed)
+if (user.id === meeting.host_id && meeting.status !== 'in_progress') {
+  await supabase
+    .from('meetings')
+    .update({ status: 'in_progress' })
+    .eq('id', meeting.id);
+  console.log('[MeetingRoom] ✅ Meeting status reset to in_progress');
 }
 ```
 
@@ -175,48 +184,64 @@ Update `MeetingRoom.tsx` to show specific error messages:
 
 | File | Change |
 |------|--------|
-| Database Migration | Update `can_join_meeting` function to allow join when host is present |
-| `src/pages/MeetingRoom.tsx` | Improve error handling to show RLS-specific messages |
+| `src/pages/MeetingRoom.tsx` | Add `.order().limit(1)` to existing record query (lines 200-206) |
+| `src/pages/MeetingRoom.tsx` | Reset meeting status for completed meetings too (line 257) |
+| `src/components/meetings/MeetingVideoCallInterface.tsx` | Change heartbeat to single-record update pattern (lines 626-641) |
+| `src/components/meetings/MeetingVideoCallInterface.tsx` | Change auto-rejoin to single-record pattern (lines 673-681) |
 
 ---
 
-## Immediate Workaround (Before Code Fix)
+## Immediate Action: Clean Up Current Meeting
 
-If you want Sebastiaan to join right now without waiting for the code fix, I can:
+Before deploying code changes, clean up the current meeting so you can test immediately:
 
-1. **Option A**: Change the meeting's `access_type` from `invite_only` to `open`
-2. **Option B**: Add Sebastiaan as an invited participant manually
+```sql
+-- Consolidate host's records: Keep only the most recent, clear left_at
+UPDATE meeting_participants
+SET left_at = null, status = 'accepted', last_seen = NOW()
+WHERE id = (
+  SELECT id FROM meeting_participants 
+  WHERE meeting_id = 'b1d749ce-33a3-4956-ac4a-b1759c353b4c'
+    AND user_id = '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5'
+  ORDER BY created_at DESC
+  LIMIT 1
+);
+
+-- Reset meeting status
+UPDATE meetings 
+SET status = 'in_progress' 
+WHERE id = 'b1d749ce-33a3-4956-ac4a-b1759c353b4c';
+```
 
 ---
 
-## Expected Results After Fix
+## Expected Results
 
-| Scenario | Before | After |
-|----------|--------|-------|
-| User joins invite_only meeting via link | ❌ RLS blocks INSERT | ✅ Allowed if host is present |
-| Error message on RLS block | "Check connection" | "Need invitation from host" |
-| Host shares link, guests click | Cannot join | Can join immediately |
+| Metric | Before | After |
+|--------|--------|-------|
+| Host active records | 0 | 1 |
+| Sebastiaan sees | "Waiting for Host" | "Join Meeting" button |
+| Heartbeat success | Fails (unique constraint) | Works (single record) |
+| Duplicate handling | Creates new records | Updates existing |
+
+---
+
+## Why This Happened
+
+1. **Missing LIMIT clause**: The join logic used `.maybeSingle()` without `.limit(1)`, causing silent failures
+2. **Bulk heartbeat updates**: Updating ALL matching records violates the unique constraint
+3. **Meeting status stuck**: Once marked `completed`, the host couldn't reset it on rejoin
+4. **No duplicate prevention**: Multiple join attempts created multiple records instead of reusing existing ones
 
 ---
 
 ## Technical Details
 
-### Why This Happened
+### Constraint Definition
+```sql
+CREATE UNIQUE INDEX meeting_participants_user_active_unique 
+ON meeting_participants (meeting_id, user_id) 
+WHERE (left_at IS NULL) AND (user_id IS NOT NULL)
+```
 
-The original `can_join_meeting` function was designed for explicit invitation workflows (host invites specific users). But the actual usage pattern is:
-
-1. Host creates meeting → Shares link/code
-2. Guest clicks link → Expects to join directly
-
-The function didn't account for this "implicit invitation" pattern where having the link IS the invitation.
-
-### The Fix Philosophy
-
-The updated function allows joining when:
-- Host is actively in the meeting (implies consent to receive guests)
-- User was explicitly invited (original behavior)
-- Meeting is public/open (original behavior)
-- User has a calendar booking for the meeting (new)
-
-This maintains security for invite_only meetings while supporting the practical reality of how video meetings work.
-
+This index ensures only ONE active participant record per user per meeting. The fix respects this constraint by always targeting a single specific record for updates.
