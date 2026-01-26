@@ -1,180 +1,464 @@
 
-# Fix "Waiting for Host" - Host Participant Record Not Active
+# Fix WebRTC Meeting Connectivity & Mutual Audio/Video
 
-## Root Cause Analysis
+## Problem Analysis
 
-The issue stems from **duplicate participant records** for the same user in the same meeting:
+Based on the session replay, console logs, database state, and codebase analysis, I've identified **8 interconnected root causes** preventing stable video calls:
 
-| Finding | Impact |
-|---------|--------|
-| Host has **11 participant records** | All marked as `left`, none active |
-| Query uses `.maybeSingle()` | Fails silently with multiple records |
-| Heartbeat updates ALL records | Blocked by unique constraint when setting `left_at = null` |
-| Result | Host appears offline to other participants |
+### 1. **Both Participants Marked as "Left"**
+The database shows both users have `left_at` timestamps and status "left". The meeting is marked as "completed". When participants try to reconnect, they're stuck in an inconsistent state.
 
-### The Unique Constraint Problem
+### 2. **Missing Audio Playback Infrastructure**
+**CRITICAL**: The `ParticipantTile` component only has a `<video>` element. Remote audio tracks in the MediaStream won't play without a separate `<audio>` element or AudioContext setup. This explains why you can see each other but cannot hear.
 
-```text
-UNIQUE INDEX meeting_participants_user_active_unique 
-ON (meeting_id, user_id) WHERE left_at IS NULL
+### 3. **Video Element Attachment Race Conditions**
+The `useEffect` in `ParticipantTile` sets `videoRef.current.srcObject = participant.stream`, but:
+- No verification that video element is mounted
+- No check if MediaStream tracks are in "live" state
+- No retry mechanism if attachment fails
+- Autoplay may be blocked by browser policies
+
+### 4. **Track State Not Validated Before Peer Connection**
+`useMeetingWebRTC` adds tracks to peer connections immediately:
+```typescript
+currentStream.getTracks().forEach(track => {
+  pc.addTrack(track, currentStream);
+});
 ```
+But doesn't verify tracks are in `readyState: 'live'` or `enabled: true`.
 
-This means only ONE record per user per meeting can be "active" (left_at = null). When the heartbeat tries to update all 11 records to set `left_at = null`, the database rejects it because that would create 11 active records for the same user.
+### 5. **No Error Recovery in ParticipantTile**
+When `video.srcObject` fails or autoplay is blocked:
+- Error is logged but not recovered
+- No fallback to manual play attempt
+- No user notification
+
+### 6. **Signaling Working But Streams Not Rendering**
+Database shows proper offer/answer/ICE candidate exchange:
+- Host sends offer at 03:34:02
+- Guest sends answer at 03:34:03
+- ICE candidates exchanged
+- But streams don't appear in UI
+
+This indicates the WebRTC connection succeeds at the protocol level, but stream rendering fails.
+
+### 7. **Free TURN Servers (Reliability Issue)**
+System uses community TURN servers (OpenRelay, Metered.ca free tier) which:
+- Have rate limits
+- Can be congested
+- May timeout during peak usage
+- Don't guarantee uptime
+
+### 8. **No Comprehensive Connection Health Monitoring**
+No real-time visibility into:
+- ICE connection state per peer
+- Track receive status
+- Audio/video playback state
+- Network quality degradation
 
 ---
 
-## Solution: Single-Record Update Pattern
+## Solution Architecture
 
-### Phase 1: Fix Join Logic in MeetingRoom.tsx
+### Phase 1: Database State Reset (Immediate)
+Clean up participant records to ensure both users are marked as active when they enter the call.
 
-Change the existing record lookup to find the MOST RECENT record and update only that one:
+### Phase 2: Add Remote Audio Playback
+Create a dedicated `RemoteAudioPlayer` component that handles remote audio tracks separately from video.
 
-**File: `src/pages/MeetingRoom.tsx` (lines 200-224)**
+### Phase 3: Fix Video Element Lifecycle
+Add robust stream attachment with autoplay unlocking, track state validation, and retry logic.
 
-Current code:
-```typescript
-const { data: existingParticipant } = await supabase
-  .from('meeting_participants')
-  .select('id')
-  .eq('meeting_id', meeting.id)
-  .eq('user_id', user.id)
-  .maybeSingle();  // ← BUG: fails with multiple records
-```
+### Phase 4: Track State Validation
+Ensure all MediaStream tracks are "live" before adding to peer connections.
 
-Fixed code:
-```typescript
-// Get the most recent participant record (there may be stale duplicates)
-const { data: existingParticipant } = await supabase
-  .from('meeting_participants')
-  .select('id')
-  .eq('meeting_id', meeting.id)
-  .eq('user_id', user.id)
-  .order('created_at', { ascending: false })
-  .limit(1)
-  .maybeSingle();  // Now safe because limit(1) ensures only one row
-```
+### Phase 5: TURN Server Upgrade Path
+Add dynamic TURN credential fetching from Twilio (professional TURN service) with graceful fallback.
 
-### Phase 2: Fix Heartbeat in MeetingVideoCallInterface.tsx
+### Phase 6: Connection Health Dashboard
+Add a real-time connection monitor showing ICE state, bitrate, packet loss, and track status.
 
-The heartbeat currently updates ALL matching records, which fails when multiple exist. Change it to update only the active record (or most recent if none active):
+---
 
-**File: `src/components/meetings/MeetingVideoCallInterface.tsx` (lines 626-641)**
+## Detailed Implementation Plan
 
-Current code:
-```typescript
-const { error } = await supabase
-  .from('meeting_participants')
-  .update({ 
-    last_seen: new Date().toISOString(),
-    left_at: null,
-    status: 'accepted'
-  })
-  .eq('meeting_id', meeting.id)
-  .or(`user_id.eq.${participantId},session_token.eq.${participantId}`);
-// ← BUG: Updates ALL 11 records, violates unique constraint
-```
+### Phase 1: Database Cleanup & Session Reset
 
-Fixed code:
-```typescript
-// First check if we already have an active record
-const { data: activeRecord } = await supabase
-  .from('meeting_participants')
-  .select('id')
-  .eq('meeting_id', meeting.id)
-  .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
-  .is('left_at', null)
-  .limit(1)
-  .maybeSingle();
-
-if (activeRecord) {
-  // Update the active record's heartbeat
-  await supabase
-    .from('meeting_participants')
-    .update({ 
-      last_seen: new Date().toISOString(),
-      status: 'accepted'
-    })
-    .eq('id', activeRecord.id);
-} else {
-  // No active record - find most recent and reactivate it
-  const { data: latestRecord } = await supabase
-    .from('meeting_participants')
-    .select('id')
-    .eq('meeting_id', meeting.id)
-    .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (latestRecord) {
-    await supabase
-      .from('meeting_participants')
-      .update({ 
-        last_seen: new Date().toISOString(),
-        left_at: null,  // Reactivate
-        status: 'accepted'
-      })
-      .eq('id', latestRecord.id);
-  }
-}
-```
-
-### Phase 3: Fix Auto-Rejoin Logic
-
-Apply the same single-record pattern to the auto-rejoin effect:
-
-**File: `src/components/meetings/MeetingVideoCallInterface.tsx` (lines 661-685)**
-
-Update to target only the most recent record instead of all matching records.
-
-### Phase 4: Immediate Database Cleanup
-
-Run a one-time cleanup to consolidate duplicate records:
-
+**File: Database Migration**
 ```sql
--- Keep only the most recent record per user per meeting
--- Mark older duplicates as permanently left
+-- Reset meeting to active state when host rejoins
+CREATE OR REPLACE FUNCTION reset_meeting_on_host_rejoin()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- If host is rejoining and meeting is completed, reset to in_progress
+  IF NEW.user_id IN (
+    SELECT host_id FROM meetings WHERE id = NEW.meeting_id AND status = 'completed'
+  ) AND NEW.left_at IS NULL THEN
+    UPDATE meetings
+    SET status = 'in_progress'
+    WHERE id = NEW.meeting_id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-WITH ranked AS (
-  SELECT id, 
-         ROW_NUMBER() OVER (
-           PARTITION BY meeting_id, user_id 
-           ORDER BY created_at DESC
-         ) as rn
-  FROM meeting_participants
-  WHERE user_id IS NOT NULL
-)
-UPDATE meeting_participants mp
-SET status = 'archived'
-FROM ranked r
-WHERE mp.id = r.id AND r.rn > 1;
+CREATE TRIGGER reset_meeting_on_host_rejoin_trigger
+AFTER UPDATE ON meeting_participants
+FOR EACH ROW
+EXECUTE FUNCTION reset_meeting_on_host_rejoin();
 ```
 
-### Phase 5: Add Meeting Status Reset
+**File: `src/pages/MeetingRoom.tsx`**
+- On join, explicitly reset any stale `left_at` timestamps for current user
+- Query for active participants (not just presence check)
 
-The meeting is currently marked as `completed`. When the host rejoins a completed meeting, reset it to `in_progress`:
+### Phase 2: Remote Audio Playback Component
 
-**File: `src/pages/MeetingRoom.tsx` (line 256-262)**
-
-Current:
+**New File: `src/components/meetings/RemoteAudioRenderer.tsx`**
 ```typescript
-if (user.id === meeting.host_id && meeting.status === 'scheduled') {
-  await supabase
-    .from('meetings')
-    .update({ status: 'in_progress' })
-    .eq('id', meeting.id);
+/**
+ * Dedicated component for playing remote audio tracks
+ * Handles autoplay restrictions and browser audio contexts
+ */
+import { useEffect, useRef } from 'react';
+import { useAudioUnlock } from '@/hooks/useAudioUnlock';
+
+interface RemoteAudioRendererProps {
+  stream: MediaStream;
+  participantId: string;
+  participantName: string;
+  volume?: number;
+}
+
+export function RemoteAudioRenderer({ 
+  stream, 
+  participantId, 
+  participantName,
+  volume = 1.0 
+}: RemoteAudioRendererProps) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const { registerAudioElement } = useAudioUnlock();
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !stream) return;
+
+    const audioTracks = stream.getAudioTracks();
+    console.log(`[RemoteAudio] Setting up audio for ${participantName}`, {
+      streamId: stream.id,
+      audioTracks: audioTracks.length,
+      trackStates: audioTracks.map(t => ({
+        id: t.id,
+        enabled: t.enabled,
+        readyState: t.readyState,
+        muted: t.muted
+      }))
+    });
+
+    // Attach stream
+    audio.srcObject = stream;
+    audio.volume = volume;
+
+    // Register with autoplay unlock system
+    const unregister = registerAudioElement(audio);
+
+    // Attempt to play
+    const playPromise = audio.play();
+    if (playPromise) {
+      playPromise
+        .then(() => {
+          console.log(`[RemoteAudio] ✅ Playing audio for ${participantName}`);
+        })
+        .catch(err => {
+          console.warn(`[RemoteAudio] ⚠️ Autoplay blocked for ${participantName}, will retry on interaction:`, err);
+        });
+    }
+
+    return () => {
+      audio.pause();
+      audio.srcObject = null;
+      unregister();
+    };
+  }, [stream, participantId, participantName, volume, registerAudioElement]);
+
+  return (
+    <audio
+      ref={audioRef}
+      autoPlay
+      playsInline
+      style={{ display: 'none' }}
+    />
+  );
 }
 ```
 
-Fixed:
+### Phase 3: Enhanced Video Element with Retry Logic
+
+**File: `src/components/video-call/ParticipantTile.tsx`** (lines 33-65)
+
+Current code has no retry or autoplay handling:
 ```typescript
-// Reset meeting to in_progress if host rejoins (works for scheduled OR completed)
-if (user.id === meeting.host_id && meeting.status !== 'in_progress') {
-  await supabase
-    .from('meetings')
-    .update({ status: 'in_progress' })
-    .eq('id', meeting.id);
-  console.log('[MeetingRoom] ✅ Meeting status reset to in_progress');
+useEffect(() => {
+  if (videoRef.current && participant.stream) {
+    videoRef.current.srcObject = participant.stream;
+    // ... basic event handlers
+  }
+}, [participant.stream]);
+```
+
+Replace with:
+```typescript
+useEffect(() => {
+  const video = videoRef.current;
+  if (!video || !participant.stream) {
+    setIsLoading(false);
+    return;
+  }
+
+  const stream = participant.stream;
+  const videoTracks = stream.getVideoTracks();
+  
+  console.log(`[ParticipantTile] 🎬 Attaching stream for ${participant.display_name}`, {
+    streamId: stream.id,
+    videoTracks: videoTracks.length,
+    audioTracks: stream.getAudioTracks().length,
+    trackStates: stream.getTracks().map(t => ({
+      kind: t.kind,
+      enabled: t.enabled,
+      readyState: t.readyState,
+      muted: t.muted
+    }))
+  });
+
+  // Verify video track is live before attaching
+  if (videoTracks.length === 0) {
+    console.warn(`[ParticipantTile] ⚠️ No video tracks for ${participant.display_name}`);
+    setIsLoading(false);
+    return;
+  }
+
+  const videoTrack = videoTracks[0];
+  if (videoTrack.readyState !== 'live') {
+    console.warn(`[ParticipantTile] ⚠️ Video track not live for ${participant.display_name}:`, videoTrack.readyState);
+    
+    // Wait for track to become live
+    const onLive = () => {
+      console.log(`[ParticipantTile] ✅ Video track now live for ${participant.display_name}`);
+      attachStream();
+    };
+    videoTrack.addEventListener('unmute', onLive);
+    return () => videoTrack.removeEventListener('unmute', onLive);
+  }
+
+  const attachStream = async () => {
+    try {
+      video.srcObject = stream;
+      
+      // Force play with retry logic
+      let retries = 0;
+      const attemptPlay = async () => {
+        try {
+          await video.play();
+          console.log(`[ParticipantTile] ✅ Video playing for ${participant.display_name}`);
+          setIsLoading(false);
+        } catch (err: any) {
+          if (err.name === 'NotAllowedError' && retries < 3) {
+            console.warn(`[ParticipantTile] ⚠️ Autoplay blocked, retry ${retries + 1}/3`);
+            retries++;
+            setTimeout(attemptPlay, 500);
+          } else {
+            console.error(`[ParticipantTile] ❌ Video play failed for ${participant.display_name}:`, err);
+            setIsLoading(false);
+          }
+        }
+      };
+
+      video.onloadedmetadata = attemptPlay;
+      
+    } catch (error) {
+      console.error(`[ParticipantTile] ❌ Failed to attach stream:`, error);
+      setIsLoading(false);
+    }
+  };
+
+  attachStream();
+
+  return () => {
+    video.pause();
+    video.srcObject = null;
+  };
+}, [participant.stream, participant.display_name]);
+```
+
+### Phase 4: Track State Validation in WebRTC Hook
+
+**File: `src/hooks/useMeetingWebRTC.ts`** (line 336-340)
+
+Current code adds tracks without validation:
+```typescript
+currentStream.getTracks().forEach(track => {
+  pc.addTrack(track, currentStream);
+});
+```
+
+Replace with:
+```typescript
+// Verify tracks are ready before adding
+const tracksToAdd = currentStream.getTracks().filter(track => {
+  const isReady = track.readyState === 'live' && track.enabled;
+  if (!isReady) {
+    console.warn('[WebRTC] ⚠️ Skipping track (not ready):', {
+      kind: track.kind,
+      readyState: track.readyState,
+      enabled: track.enabled,
+      muted: track.muted
+    });
+  }
+  return isReady;
+});
+
+if (tracksToAdd.length === 0) {
+  console.error('[WebRTC] ❌ No live tracks available to add to peer connection!');
+  throw new Error('No live media tracks available');
+}
+
+tracksToAdd.forEach(track => {
+  console.log('[WebRTC] ✅ Adding live track:', track.kind, track.id);
+  const sender = pc.addTrack(track, currentStream);
+  
+  // Monitor track state
+  track.onended = () => {
+    console.warn('[WebRTC] ⚠️ Track ended:', track.kind, track.id);
+  };
+  track.onmute = () => {
+    console.warn('[WebRTC] ⚠️ Track muted:', track.kind, track.id);
+  };
+  track.onunmute = () => {
+    console.log('[WebRTC] ✅ Track unmuted:', track.kind, track.id);
+  };
+});
+```
+
+### Phase 5: Remote Audio Rendering in VideoGrid
+
+**File: `src/components/video-call/VideoGrid.tsx`** (after line 212)
+
+Add audio renderers for all remote participants:
+```typescript
+{/* Render audio separately for all remote participants */}
+{participants
+  .filter(p => p.stream && p.id !== localParticipant?.id)
+  .map(p => (
+    <RemoteAudioRenderer
+      key={`audio-${p.id}`}
+      stream={p.stream!}
+      participantId={p.id}
+      participantName={p.display_name}
+    />
+  ))
+}
+```
+
+### Phase 6: TURN Server Reliability (Optional Enhancement)
+
+**New File: `supabase/functions/turn-credentials/index.ts`**
+
+Already exists! The system has a TURN credentials edge function that fetches from Twilio. Need to:
+
+1. Ensure Twilio credentials are configured (check secrets)
+2. Update `webrtcConfig.ts` to call this edge function on startup
+3. Refresh credentials every 50 minutes (before 1-hour expiry)
+
+**File: `src/utils/webrtcConfig.ts`** (add new function):
+```typescript
+let cachedTURNCredentials: {
+  iceServers: RTCIceServer[];
+  expiresAt: string;
+} | null = null;
+
+export const fetchDynamicTURNCredentials = async (): Promise<RTCIceServer[]> => {
+  try {
+    const response = await supabase.functions.invoke('turn-credentials');
+    
+    if (response.data && response.data.iceServers) {
+      cachedTURNCredentials = response.data;
+      logger.info('[WebRTC] 🔒 Fetched dynamic TURN credentials', {
+        provider: response.data.provider,
+        servers: response.data.iceServers.length,
+        expiresAt: response.data.expiresAt
+      });
+      return response.data.iceServers;
+    }
+    
+    throw new Error('No ICE servers in response');
+  } catch (error) {
+    logger.error('[WebRTC] ❌ Failed to fetch TURN credentials, using fallback:', error);
+    return getIceServers(); // Fallback to static config
+  }
+};
+```
+
+### Phase 7: Connection Health Monitor (UI Component)
+
+**New File: `src/components/meetings/ConnectionHealthMonitor.tsx`**
+```typescript
+/**
+ * Real-time connection health display
+ * Shows ICE state, bitrate, packet loss for each peer
+ */
+export function ConnectionHealthMonitor({ 
+  peerConnections 
+}: { 
+  peerConnections: Map<string, RTCPeerConnection> 
+}) {
+  const [stats, setStats] = useState<Map<string, {
+    iceState: string;
+    bitrate: number;
+    packetLoss: number;
+  }>>(new Map());
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const newStats = new Map();
+      
+      for (const [peerId, pc] of peerConnections.entries()) {
+        const stats = await pc.getStats();
+        let bitrate = 0;
+        let packetLoss = 0;
+        
+        stats.forEach(report => {
+          if (report.type === 'inbound-rtp') {
+            bitrate = report.bytesReceived || 0;
+            packetLoss = report.packetsLost || 0;
+          }
+        });
+        
+        newStats.set(peerId, {
+          iceState: pc.iceConnectionState,
+          bitrate,
+          packetLoss
+        });
+      }
+      
+      setStats(newStats);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [peerConnections]);
+
+  // Render connection badges
+  return (
+    <div className="absolute top-4 right-4 flex gap-2">
+      {Array.from(stats.entries()).map(([peerId, stat]) => (
+        <Badge 
+          key={peerId}
+          variant={stat.iceState === 'connected' ? 'default' : 'destructive'}
+        >
+          {stat.iceState}
+        </Badge>
+      ))}
+    </div>
+  );
 }
 ```
 
@@ -184,64 +468,113 @@ if (user.id === meeting.host_id && meeting.status !== 'in_progress') {
 
 | File | Change |
 |------|--------|
-| `src/pages/MeetingRoom.tsx` | Add `.order().limit(1)` to existing record query (lines 200-206) |
-| `src/pages/MeetingRoom.tsx` | Reset meeting status for completed meetings too (line 257) |
-| `src/components/meetings/MeetingVideoCallInterface.tsx` | Change heartbeat to single-record update pattern (lines 626-641) |
-| `src/components/meetings/MeetingVideoCallInterface.tsx` | Change auto-rejoin to single-record pattern (lines 673-681) |
+| **Database Migration** | Add trigger to reset meeting status when host rejoins |
+| `src/components/meetings/RemoteAudioRenderer.tsx` | **NEW** - Dedicated audio playback component |
+| `src/components/video-call/ParticipantTile.tsx` | Add track state validation, autoplay retry, and error recovery |
+| `src/hooks/useMeetingWebRTC.ts` | Validate track readyState before adding to peer connections |
+| `src/components/video-call/VideoGrid.tsx` | Render RemoteAudioRenderer for each remote participant |
+| `src/utils/webrtcConfig.ts` | Add dynamic TURN credential fetching (optional) |
+| `src/components/meetings/ConnectionHealthMonitor.tsx` | **NEW** - Real-time connection monitor |
 
 ---
 
-## Immediate Action: Clean Up Current Meeting
+## Testing Checklist
 
-Before deploying code changes, clean up the current meeting so you can test immediately:
+After implementation, verify:
 
-```sql
--- Consolidate host's records: Keep only the most recent, clear left_at
-UPDATE meeting_participants
-SET left_at = null, status = 'accepted', last_seen = NOW()
-WHERE id = (
-  SELECT id FROM meeting_participants 
-  WHERE meeting_id = 'b1d749ce-33a3-4956-ac4a-b1759c353b4c'
-    AND user_id = '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5'
-  ORDER BY created_at DESC
-  LIMIT 1
-);
-
--- Reset meeting status
-UPDATE meetings 
-SET status = 'in_progress' 
-WHERE id = 'b1d749ce-33a3-4956-ac4a-b1759c353b4c';
-```
+✅ **Host can join** - No "Waiting for Host" errors  
+✅ **Guest can join** - RLS allows insertion after host presence  
+✅ **Video appears** - Both participants see each other's video  
+✅ **Audio works** - Both participants hear each other  
+✅ **Connection stable** - No disconnections during 5-minute call  
+✅ **Rejoin works** - Both users can leave and rejoin without issues  
+✅ **Network resilience** - Call continues on moderate packet loss  
+✅ **Browser autoplay** - Video/audio play despite autoplay restrictions  
 
 ---
 
 ## Expected Results
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Host active records | 0 | 1 |
-| Sebastiaan sees | "Waiting for Host" | "Join Meeting" button |
-| Heartbeat success | Fails (unique constraint) | Works (single record) |
-| Duplicate handling | Creates new records | Updates existing |
+| Issue | Before | After |
+|-------|--------|-------|
+| Can see each other | ❌ No | ✅ Yes |
+| Can hear each other | ❌ No | ✅ Yes |
+| Connection stability | ❌ Unstable, kicked out | ✅ Stable for duration of call |
+| Autoplay blocked | ❌ Videos don't play | ✅ Retry logic handles autoplay blocks |
+| Track state validation | ❌ Dead tracks added to PC | ✅ Only live tracks added |
+| TURN reliability | ⚠️ Free servers, unreliable | ✅ Enterprise TURN with fallback |
+| Error visibility | ❌ Silent failures | ✅ Health monitor shows connection state |
 
 ---
 
-## Why This Happened
+## Why This Fixes The Problem
 
-1. **Missing LIMIT clause**: The join logic used `.maybeSingle()` without `.limit(1)`, causing silent failures
-2. **Bulk heartbeat updates**: Updating ALL matching records violates the unique constraint
-3. **Meeting status stuck**: Once marked `completed`, the host couldn't reset it on rejoin
-4. **No duplicate prevention**: Multiple join attempts created multiple records instead of reusing existing ones
+### Root Cause → Solution Mapping
+
+1. **"Can't hear each other"** → Add `RemoteAudioRenderer` component
+   - Video element doesn't play audio tracks
+   - Separate audio element required for remote audio
+   - Autoplay unlock handles browser restrictions
+
+2. **"Video doesn't load"** → Track state validation + retry logic
+   - Wait for tracks to be in "live" state
+   - Retry autoplay if blocked
+   - Error recovery instead of silent failure
+
+3. **"Kicked out when other joins"** → Already fixed in previous iteration
+   - Host presence detection with 60s window
+   - Heartbeat clears `left_at` flag
+   - RLS allows join when host is active
+
+4. **"Connection unstable"** → TURN server upgrade
+   - Dynamic credentials from Twilio (enterprise-grade)
+   - Fallback to community servers if Twilio fails
+   - Better NAT traversal success rate
+
+5. **"No visibility into problems"** → Connection health monitor
+   - Real-time ICE state display
+   - Bitrate and packet loss metrics
+   - Early warning of connection degradation
 
 ---
 
-## Technical Details
+## Technical Context
 
-### Constraint Definition
-```sql
-CREATE UNIQUE INDEX meeting_participants_user_active_unique 
-ON meeting_participants (meeting_id, user_id) 
-WHERE (left_at IS NULL) AND (user_id IS NOT NULL)
+### Why ParticipantTile Only Has Video Element
+
+The original implementation assumed the `<video>` element would play both video and audio tracks from the MediaStream. This works for *local* streams (where `muted={true}` is set), but for *remote* streams, browsers require explicit audio playback.
+
+### Why Autoplay Fails
+
+Modern browsers block autoplay unless:
+1. User has interacted with the page
+2. Media is muted
+3. Document has received a user gesture
+
+The `useAudioUnlock` hook handles this by registering audio elements and playing them on first user interaction.
+
+### Why Track Validation Matters
+
+MediaStream tracks can be in states:
+- `live` - Ready to transmit/receive
+- `ended` - No longer usable
+- `muted` - Temporarily paused
+
+Adding a track that's not `live` to a peer connection causes the connection to negotiate, but no actual media flows.
+
+### WebRTC Connection Flow
+
+```
+Host Joins → Media Ready → Send "join" signal
+  ↓
+Guest Receives "join" → Creates PeerConnection → Sends Offer
+  ↓
+Host Receives Offer → Sends Answer + ICE Candidates
+  ↓
+ICE Negotiation → Connection Established
+  ↓
+Tracks Flow → Video Element Renders Video
+                Audio Element Plays Audio
 ```
 
-This index ensures only ONE active participant record per user per meeting. The fix respects this constraint by always targeting a single specific record for updates.
+The fix ensures every step completes before proceeding to the next.
