@@ -127,7 +127,16 @@ export function useStreamingTranscription({
   }, [meetingId, participantId]);
 
   const connect = useCallback(async () => {
-    if (!localStream || hasConnectedRef.current) return;
+    if (!localStream || hasConnectedRef.current) {
+      console.log('[StreamingTranscription] 🚫 Connect skipped:', {
+        hasLocalStream: !!localStream,
+        alreadyConnected: hasConnectedRef.current
+      });
+      return;
+    }
+
+    console.log('[StreamingTranscription] 🎬 Attempting connection...');
+    console.log('[StreamingTranscription] Stream tracks:', localStream.getTracks().map(t => `${t.kind}: ${t.enabled ? 'enabled' : 'disabled'}`));
 
     try {
       const token = await fetchToken();
@@ -136,7 +145,7 @@ export function useStreamingTranscription({
         throw new Error('Could not obtain transcription token');
       }
 
-      console.log('[StreamingTranscription] Connecting to ElevenLabs Scribe...');
+      console.log('[StreamingTranscription] ✅ Token received, connecting to ElevenLabs Scribe...');
       
       await scribe.connect({
         token,
@@ -152,12 +161,14 @@ export function useStreamingTranscription({
       setIsReconnecting(false);
       setError(null);
       reconnectAttemptsRef.current = 0;
-      console.log('[StreamingTranscription] Connected successfully');
+      
+      console.log('[StreamingTranscription] ✅ Connected successfully to ElevenLabs Scribe');
+      console.log('[StreamingTranscription] VAD commit strategy enabled');
 
       // Schedule token refresh before expiry
       scheduleTokenRefresh();
     } catch (err) {
-      console.error('[StreamingTranscription] Connection failed:', err);
+      console.error('[StreamingTranscription] ❌ Connection failed:', err);
       setError(err instanceof Error ? err.message : 'Connection failed');
       setIsConnected(false);
       
@@ -230,7 +241,14 @@ export function useStreamingTranscription({
 
   // Connect when enabled and stream available
   useEffect(() => {
+    console.log('[StreamingTranscription] 🔍 Effect check:', {
+      enabled,
+      hasLocalStream: !!localStream,
+      hasConnected: hasConnectedRef.current
+    });
+
     if (enabled && localStream && !hasConnectedRef.current) {
+      console.log('[StreamingTranscription] 🎬 Starting connection in 1s...');
       // Small delay to ensure stream is ready
       const timer = setTimeout(() => {
         connect();
@@ -239,6 +257,7 @@ export function useStreamingTranscription({
     }
     
     if (!enabled && hasConnectedRef.current) {
+      console.log('[StreamingTranscription] ⏸️ Disabled, disconnecting...');
       disconnect();
     }
   }, [enabled, localStream, connect, disconnect]);
