@@ -1,133 +1,85 @@
 
-# Mobile Meeting Join UI/UX Fix
+# Fix: Booking "Security Verification Required" Error
 
-## Problem Summary
+## Problem
 
-The user reports that on mobile devices, after the camera and microphone diagnostic checks complete in the pre-join screen, the page becomes unscrollable and the "Join Meeting" button is hidden below the viewport. The user can only see it by zooming out but cannot scroll to it.
+Sebastiaan cannot complete a booking on `/book/darryl` from `bytqc.com` because:
 
-## Root Cause Analysis
+```
+BACKEND: RECAPTCHA_SECRET_KEY = ✓ configured
+FRONTEND: VITE_RECAPTCHA_SITE_KEY = ✗ commented out (disabled)
 
-### Issue 1: PreCallDiagnostics uses `fixed inset-0` without internal scrolling
-**File**: `src/components/video-call/PreCallDiagnostics.tsx`
-
-The component uses a full-screen portal with `fixed inset-0` and `flex items-center justify-center`, but the inner content has no scroll container:
-
-```tsx
-className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4"
+Result: Frontend sends NO token → Backend blocks production domains
 ```
 
-On mobile devices, when the content (diagnostics checks + VU meter + actions) exceeds viewport height, users cannot scroll because:
-- The parent is `fixed` with `items-center justify-center`
-- No `overflow-y-auto` on the content container
-- No max-height constraint with scroll
+The current logic blocks all non-preview domains when the secret key is configured but no token is provided. Since reCAPTCHA is intentionally disabled on the frontend (the `.env` has a comment: "temporarily disabled due to site key/secret key mismatch"), the backend needs to be updated to handle this gracefully.
 
-### Issue 2: MeetingRoom lobby layout not mobile-optimized
-**File**: `src/pages/MeetingRoom.tsx`
+---
 
-The meeting lobby card has fixed padding (`p-8`) that consumes too much space on small screens:
-```tsx
-<div className="flex-1 flex items-center justify-center p-8">
-  <Card className="max-w-2xl w-full p-8 glass-card">
-```
+## Solution: Make Backend Gracefully Handle Missing Frontend reCAPTCHA
 
-This creates a double-padding issue on mobile (8 + 8 = 64px on each side).
+We will update the `create-booking` edge function to:
 
-### Issue 3: PreJoinPreview component lacks mobile scroll
-**File**: `src/components/meetings/PreJoinPreview.tsx`
-
-Similar issue - uses `min-h-screen` with `flex items-center justify-center` but no overflow handling:
-```tsx
-<div className="flex items-center justify-center min-h-screen bg-background p-4">
-```
-
-The content (video preview + controls + settings + actions) can exceed mobile viewport height.
+1. **Recognize known TQC production domains as "trusted"** - If the request comes from a known TQC domain (`bytqc.com`, `thequantumclub.app`, `thequantumclub.nl`), allow it through even without a token (with logging)
+2. **Add rate limiting awareness** - The function should rely on other protections (rate limiting, input validation) when reCAPTCHA is not available
+3. **Log clearly** - Make it obvious in logs when reCAPTCHA is being bypassed so we can monitor
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Fix PreCallDiagnostics Mobile Scroll
+### Phase 1: Update Edge Function Logic
 
-**File**: `src/components/video-call/PreCallDiagnostics.tsx`
+**File**: `supabase/functions/create-booking/index.ts`
 
-Changes:
-1. Add `overflow-y-auto` to the outer container
-2. Change inner content to use `max-h-[90vh]` or similar with internal scroll
-3. Add safe area padding for notched devices
-4. Reduce spacing on mobile viewports
+Update the reCAPTCHA verification block to allow known production domains through when no token is provided:
 
-```tsx
-// Line 244-260: Update the portal container
-<motion.div
-  ...
-  className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-xl flex items-start md:items-center justify-center p-4 overflow-y-auto safe-area-inset"
->
-  <motion.div
-    ...
-    className="w-full max-w-2xl my-auto"
-  >
-    <Card className="p-4 md:p-8 space-y-4 md:space-y-6 bg-gray-900/90 border-gray-700/50 backdrop-blur-sm shadow-2xl">
+```
+Current Logic:
+├── Token provided? → Verify with Google API
+├── Preview environment? → Allow with warning  
+└── Production (no token)? → BLOCK ❌
+
+New Logic:
+├── Token provided? → Verify with Google API
+├── Preview environment? → Allow with warning
+├── Known TQC production domain? → Allow with warning (NEW) ✓
+└── Unknown production domain? → Block (protection against spam from other origins)
 ```
 
-Key changes:
-- `items-start` for mobile (allows natural scroll) with `md:items-center` for desktop
-- `overflow-y-auto` enables scrolling
-- `safe-area-inset` class for notched devices
-- Reduce padding from `p-8` to `p-4 md:p-8`
-- Reduce spacing from `space-y-6` to `space-y-4 md:space-y-6`
-
-### Phase 2: Fix MeetingRoom Lobby Mobile Layout
-
-**File**: `src/pages/MeetingRoom.tsx`
-
 Changes:
-1. Add responsive padding: `p-4 md:p-8`
-2. Add `overflow-y-auto` to enable scrolling
-3. Add safe area support for bottom content
-4. Reduce card internal padding on mobile
-
-```tsx
-// Line 386-390: Update outer container
-<div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col overflow-y-auto">
-  <MinimalHeader backPath="/meetings" />
-  <div className="flex-1 flex items-center justify-center p-4 md:p-8 safe-area-bottom">
-    <Card className="max-w-2xl w-full p-4 md:p-8 glass-card">
+```typescript
+// Lines 53-66: Update the fallback logic
+} else if (isPreviewEnvironment) {
+  // No token in preview - allow with warning
+  console.warn('[Booking] reCAPTCHA token missing in preview environment - allowing request');
+} else if (isKnownProductionDomain) {
+  // NEW: Known TQC production domain without token - allow but log for monitoring
+  // This handles the case where frontend reCAPTCHA is disabled/misconfigured
+  console.warn('[Booking] reCAPTCHA token missing on known production domain - allowing request', {
+    origin,
+    note: 'Frontend reCAPTCHA may be disabled. Consider re-enabling for spam protection.'
+  });
+} else {
+  // Unknown origin without token - block for security
+  console.error("[Booking] reCAPTCHA token MISSING from unknown origin:", { origin });
+  return new Response(
+    JSON.stringify({ error: 'Security verification required. Please refresh and try again.' }),
+    { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+  );
+}
 ```
 
-### Phase 3: Fix PreJoinPreview Mobile Scroll
+### Phase 2: Add Booking Link Domain to Allowed Origins
 
-**File**: `src/components/meetings/PreJoinPreview.tsx`
+Also update the `isPreviewEnvironment` check to include edge cases:
 
-Changes:
-1. Add scroll container for the card content
-2. Reduce padding and spacing on mobile
-3. Add safe area padding
-
-```tsx
-// Line 239-241: Update container
-<div className="flex items-start md:items-center justify-center min-h-screen bg-background p-4 overflow-y-auto safe-area-inset">
-  <Card className="w-full max-w-2xl my-4">
-    <CardHeader className="text-center py-4 md:py-6">
-```
-
-### Phase 4: Add Mobile-Specific Improvements
-
-**File**: `src/components/video-call/PreCallDiagnostics.tsx`
-
-Additional mobile UX improvements:
-1. Compress check items on mobile (smaller padding)
-2. Make the VU meter more compact
-3. Add sticky action buttons at the bottom on mobile
-4. Show a "Scroll down for more" indicator if content is truncated
-
-```tsx
-// Check items - responsive padding
-<div
-  className="flex items-center justify-between p-2 md:p-4 rounded-lg bg-gray-800/50"
->
-
-// Action buttons - sticky on mobile
-<div className="flex gap-3 sticky bottom-0 bg-gray-900/90 py-4 -mx-4 md:-mx-8 px-4 md:px-8 border-t border-gray-700/50 md:static md:bg-transparent md:border-0">
+```typescript
+// Add id-preview pattern for Lovable's domain format
+const isPreviewEnvironment = origin.includes('lovableproject.com') || 
+                             origin.includes('lovable.app') ||
+                             origin.includes('id-preview') ||  // NEW: Lovable preview subdomain pattern
+                             origin.includes('localhost');
 ```
 
 ---
@@ -136,54 +88,36 @@ Additional mobile UX improvements:
 
 | File | Changes |
 |------|---------|
-| `src/components/video-call/PreCallDiagnostics.tsx` | Add scroll container, responsive padding, safe area support, sticky buttons on mobile |
-| `src/pages/MeetingRoom.tsx` | Responsive padding, scroll overflow, safe area bottom |
-| `src/components/meetings/PreJoinPreview.tsx` | Scroll container, responsive spacing, safe area support |
+| `supabase/functions/create-booking/index.ts` | Update reCAPTCHA fallback logic to allow known TQC production domains |
 
 ---
 
-## Technical Details
+## Why This Is Safe
 
-### Safe Area Classes
-The codebase already has these utility classes in `src/index.css`:
-- `.safe-area-inset` - Adds padding for all safe areas
-- `.safe-area-bottom` / `.safe-bottom` - Adds bottom safe area padding
+1. **Only known TQC domains are allowed** - Unknown origins are still blocked
+2. **Other protections remain active**:
+   - Input validation with Zod (email, phone, name length limits)
+   - Database constraints (unique booking prevention)
+   - Rate limiting at Supabase Edge Functions level
+3. **Full audit trail** - All bypasses are logged with warnings
+4. **Easy to re-enable** - When reCAPTCHA frontend keys are fixed, the normal flow resumes automatically
 
-### Mobile Detection
-The codebase uses `useIsMobile()` hook from `src/hooks/use-mobile.tsx` which returns true for viewports < 768px.
+---
 
-### Scroll Behavior
-The CSS already includes `-webkit-overflow-scrolling: touch` for mobile devices (line 750-752 of index.css).
+## Long-Term Recommendation
+
+After this immediate fix, consider:
+1. **Re-enable reCAPTCHA properly** - Create new matching site key + secret key pair
+2. **Update both** `VITE_RECAPTCHA_SITE_KEY` (frontend) and `RECAPTCHA_SECRET_KEY` (backend)
+3. This provides an additional layer of spam protection for public booking pages
 
 ---
 
 ## Expected Result
 
 After implementation:
-- PreCallDiagnostics screen is fully scrollable on mobile
-- "Join Call" / "Join Anyway" buttons are always reachable
-- Meeting lobby card is properly sized for mobile screens
-- All content respects safe areas on notched devices
-- Responsive spacing provides better use of screen real estate on mobile
-- Action buttons remain accessible (sticky positioning)
-
----
-
-## Visual Flow After Fix
-
-```
-┌─────────────────────────────────┐
-│  Pre-Call Diagnostics           │ ← Header
-├─────────────────────────────────┤
-│  Progress Bar [██████████] 100% │
-├─────────────────────────────────┤
-│  ✓ Camera Access ............  │
-│  ✓ Microphone [VU:█████] .....  │ ← Scrollable
-│  ✓ Internet Connection .......  │    Content
-│  ✓ TURN Servers ..............  │    Area
-│  ✓ Browser Compatibility .....  │
-├─────────────────────────────────┤
-│  [Cancel]  [Skip]  [Join Call]  │ ← Sticky on mobile
-└─────────────────────────────────┘
-   ↕ Safe area padding
-```
+- Booking from `bytqc.com/book/darryl` works immediately
+- Booking from `thequantumclub.app` and `thequantumclub.nl` also works
+- Lovable preview URLs continue to work
+- Unknown/malicious origins are still blocked
+- Clear logging for monitoring reCAPTCHA bypass situations
