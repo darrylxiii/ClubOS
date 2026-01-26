@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,9 @@ import { useFunnelAnalytics } from "@/hooks/useFunnelAnalytics";
 import { ProgressSaver } from "./ProgressSaver";
 import { useActiveFunnelExperiments } from "@/hooks/useFunnelABTest";
 import { KeyboardHintToast } from "./KeyboardShortcuts";
+import { usePrefetch, FunnelStepSkeleton } from "./LazyFunnelComponents";
+import { NetworkStatusIndicator, InlineNetworkStatus } from "./NetworkStatusIndicator";
+import { StepTransition } from "./StepTransition";
 
 const STEPS = ["contact", "company", "partnership", "compliance", "verification"];
 
@@ -54,8 +57,12 @@ export function FunnelSteps() {
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
   const [showKeyboardHints, setShowKeyboardHints] = useState(true);
   const [exitIntentOpen, setExitIntentOpen] = useState(false);
+  const [transitionDirection, setTransitionDirection] = useState<'forward' | 'backward'>('forward');
 
   const navigate = useNavigate();
+  
+  // Prefetch next step resources
+  usePrefetch(currentStep);
   
   // Form validation hook
   const validation = useFormValidation();
@@ -237,11 +244,13 @@ export function FunnelSteps() {
     }
 
     await trackStep("complete");
+    setTransitionDirection('forward');
     setCurrentStep(currentStep + 1);
   };
 
   const handleBack = async () => {
     await trackStep("abandon");
+    setTransitionDirection('backward');
     setCurrentStep(currentStep - 1);
   };
 
@@ -878,8 +887,13 @@ export function FunnelSteps() {
             </div>
           </div>
 
-          {/* Step Content */}
-          {renderStep()}
+          {/* Inline Network Status */}
+          <InlineNetworkStatus className="mb-4" />
+
+          {/* Step Content with Transition */}
+          <StepTransition stepKey={currentStep} direction={transitionDirection}>
+            {renderStep()}
+          </StepTransition>
 
           {/* Trust Badges */}
           {currentStep < 4 && <TrustBadges />}
@@ -940,6 +954,9 @@ export function FunnelSteps() {
           )}
         </Card>
       </FunnelErrorBoundary>
+
+      {/* Network Status Indicator */}
+      <NetworkStatusIndicator />
     </React.Fragment>
   );
 }
