@@ -111,8 +111,8 @@ export function MeetingVideoCallInterface({
   const [unreadChatMessages, setUnreadChatMessages] = useState(0);
   const [layout, setLayout] = useState<'grid' | 'spotlight'>('grid');
   
-  // LiveKit vs WebRTC P2P mode - fallback if LiveKit fails
-  const [useLiveKitMode, setUseLiveKitMode] = useState(true);
+  // LiveKit vs WebRTC P2P mode - default to P2P for reliability
+  const [useLiveKitMode, setUseLiveKitMode] = useState(false);  // P2P WebRTC by default
 
   // AI Intelligence Hook - Real transcription via Web Speech API (fallback for ElevenLabs)
   const { transcript } = useMeetingTranscript({
