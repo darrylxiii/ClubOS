@@ -248,16 +248,16 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4"
+        className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-xl flex items-start md:items-center justify-center p-4 overflow-y-auto safe-area-inset"
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="w-full max-w-2xl"
+          className="w-full max-w-2xl my-4 md:my-0"
         >
-          <Card className="p-8 space-y-6 bg-gray-900/90 border-gray-700/50 backdrop-blur-sm shadow-2xl">
+          <Card className="p-4 md:p-8 space-y-4 md:space-y-6 bg-gray-900/90 border-gray-700/50 backdrop-blur-sm shadow-2xl">
             <div className="text-center">
               <h2 className="text-2xl font-bold mb-2 text-white">Pre-Call Diagnostics</h2>
               <p className="text-gray-400">
@@ -274,11 +274,11 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
             </div>
 
             {/* Checks */}
-            <div className="space-y-4">
+            <div className="space-y-2 md:space-y-4">
               {checks.map((check, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-4 rounded-lg bg-gray-800/50"
+                  className="flex items-center justify-between p-2 md:p-4 rounded-lg bg-gray-800/50"
                 >
                   <div className="flex items-center gap-3 flex-1">
                     {check.status === 'pending' && (
@@ -350,8 +350,8 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
               </div>
             )}
 
-            {/* Actions */}
-            <div className="flex gap-3">
+            {/* Actions - sticky on mobile for accessibility */}
+            <div className="flex gap-2 md:gap-3 sticky bottom-0 bg-gray-900/95 py-3 md:py-0 -mx-4 md:mx-0 px-4 md:px-0 border-t border-gray-700/50 md:border-0 mt-4 md:mt-0 md:static md:bg-transparent">
               <Button
                 variant="outline"
                 onClick={onCancel}

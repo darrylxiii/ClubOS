@@ -237,16 +237,16 @@ export function PreJoinPreview({
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">{meetingTitle}</CardTitle>
+    <div className="flex items-start md:items-center justify-center min-h-screen bg-background p-4 overflow-y-auto safe-area-inset">
+      <Card className="w-full max-w-2xl my-4 md:my-0">
+        <CardHeader className="text-center py-4 md:py-6">
+          <CardTitle className="text-lg md:text-xl">{meetingTitle}</CardTitle>
           <p className="text-sm text-muted-foreground">
             Joining as <span className="font-medium">{participantName}</span>
           </p>
         </CardHeader>
         
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 md:space-y-6 pb-6">
           {/* Video Preview */}
           <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
             {isLoading ? (
@@ -307,7 +307,7 @@ export function PreJoinPreview({
           </div>
 
           {/* Controls */}
-          <div className="flex justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-2 md:gap-4">
             <Button
               variant={isAudioEnabled ? 'default' : 'outline'}
               size="lg"
@@ -402,7 +402,7 @@ export function PreJoinPreview({
           )}
 
           {/* Action buttons */}
-          <div className="flex gap-4">
+          <div className="flex gap-2 md:gap-4">
             <Button variant="outline" className="flex-1" onClick={onCancel}>
               <X className="h-4 w-4 mr-2" />
               Cancel

@@ -306,10 +306,10 @@ export default function MeetingRoom() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col overflow-y-auto">
         <MinimalHeader backPath="/meetings" />
-        <div className="flex-1 flex items-center justify-center p-8">
-          <Card className="max-w-2xl w-full p-8">
+        <div className="flex-1 flex items-center justify-center p-4 md:p-8">
+          <Card className="max-w-2xl w-full p-4 md:p-8">
             <div className="text-center space-y-4">
               <Skeleton className="h-16 w-16 rounded-full mx-auto" />
               <Skeleton className="h-8 w-3/4 mx-auto" />
@@ -324,10 +324,10 @@ export default function MeetingRoom() {
 
   if (!meeting) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col overflow-y-auto">
         <MinimalHeader backPath="/meetings" />
-        <div className="flex-1 flex items-center justify-center p-8">
-          <Card className="max-w-2xl w-full p-8 text-center space-y-4">
+        <div className="flex-1 flex items-center justify-center p-4 md:p-8">
+          <Card className="max-w-2xl w-full p-4 md:p-8 text-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
               <Video className="h-8 w-8 text-destructive" />
             </div>
@@ -384,10 +384,10 @@ export default function MeetingRoom() {
   const canJoin = isHost || isScheduledTimeReached || hostIsPresent;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col overflow-y-auto">
       <MinimalHeader backPath="/meetings" />
-      <div className="flex-1 flex items-center justify-center p-8">
-      <Card className="max-w-2xl w-full p-8 glass-card">
+      <div className="flex-1 flex items-center justify-center p-4 md:p-8 safe-area-bottom">
+      <Card className="max-w-2xl w-full p-4 md:p-8 glass-card">
         {/* Meeting Info */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
