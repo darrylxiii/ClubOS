@@ -1,8 +1,14 @@
 import { lazy, Suspense } from "react";
-import { Route, Navigate } from "react-router-dom";
+import { Route, Navigate, useParams } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
+
+// Redirect component for legacy /meetings/:code URLs
+const MeetingsCodeRedirect = () => {
+  const { meetingCode } = useParams();
+  return <Navigate to={`/meeting/${meetingCode}`} replace />;
+};
 
 // Meeting Pages
 const Meetings = lazy(() => import("@/pages/Meetings"));
@@ -53,6 +59,11 @@ export const meetingsRoutes = (
           </RouteErrorBoundary>
         </ProtectedRoute>
       }
+    />
+    {/* Backward compatibility: redirect legacy /meetings/:code to /meeting/:code */}
+    <Route
+      path="/meetings/:meetingCode"
+      element={<MeetingsCodeRedirect />}
     />
     <Route
       path="/meeting-notes/:meetingId"

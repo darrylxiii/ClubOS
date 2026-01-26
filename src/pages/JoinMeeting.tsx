@@ -78,7 +78,7 @@ export default function JoinMeeting() {
       });
 
       // Navigate to meeting room
-      navigate(`/meetings/${formattedCode}`);
+      navigate(`/meeting/${formattedCode}`);
     } catch (error: any) {
       console.error('Error joining meeting:', error);
       toast.error('Failed to join meeting', {

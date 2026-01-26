@@ -124,8 +124,9 @@ serve(async (req) => {
 
     // Build meeting location for ICS and calendar
     const meetingLocation = hasMeetingLink ? meetingLink : '';
+    // Enhanced description with join link prominently at top for calendar agendas
     const enhancedDescription = hasMeetingLink 
-      ? `${bookingLink.description || 'Meeting scheduled via The Quantum Club'}\n\nJoin ${platformName}: ${meetingLink}`
+      ? `📹 JOIN MEETING: ${meetingLink}\n\n${bookingLink.description || 'Meeting scheduled via The Quantum Club'}`
       : bookingLink.description || 'Meeting scheduled via The Quantum Club';
 
     // Generate .ics calendar file content
@@ -470,6 +471,25 @@ serve(async (req) => {
         ${Paragraph(`Hi ${ownerProfile.full_name || 'there'},`, 'primary')}
         ${Spacer(8)}
         ${Paragraph(`You have a new booking from <strong>${booking.guest_name}</strong>.`, 'secondary')}
+        ${hasMeetingLink ? `
+          ${Spacer(24)}
+          ${Card({
+            variant: 'success',
+            content: `
+              ${Heading({ text: 'Your Meeting Room is Ready', level: 2, align: 'center' })}
+              ${Spacer(12)}
+              ${Paragraph('Click below to join as the host when the meeting starts.', 'secondary')}
+              ${Spacer(16)}
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td align="center">
+                    ${Button({ url: meetingLink, text: 'Join as Host', variant: 'primary' })}
+                  </td>
+                </tr>
+              </table>
+            `
+          })}
+        ` : ''}
         ${Spacer(32)}
         ${Card({
           variant: 'highlight',
@@ -491,7 +511,7 @@ serve(async (req) => {
           platform: platformType,
           platformName: platformName,
           joinUrl: meetingLink,
-          instructions: 'Click below to join when the meeting starts.',
+          instructions: 'You can also use this link to join the meeting.',
         }) : ''}
         ${Spacer(24)}
         ${CalendarButtons({

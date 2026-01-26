@@ -10,7 +10,7 @@ export function getAppUrl(): string {
   return (
     Deno.env.get('APP_URL') ||
     Deno.env.get('VITE_APP_URL') ||
-    'https://app.thequantumclub.com'
+    'https://bytqc.com'
   );
 }
 
@@ -37,7 +37,7 @@ export const AppUrls = {
   auth: () => `${getAppUrl()}/auth`,
   booking: (bookingId: string) => `${getAppUrl()}/bookings/${bookingId}`,
   candidate: (candidateId: string) => `${getAppUrl()}/candidate/${candidateId}`,
-  meeting: (meetingCode: string) => `${getAppUrl()}/meetings/${meetingCode}`,
+  meeting: (meetingCode: string) => `${getAppUrl()}/meeting/${meetingCode}`,
   invite: (token: string) => `${getAppUrl()}/invite/${token}`,
   profile: (profileId: string) => `${getAppUrl()}/profile/${profileId}`,
   job: (jobId: string) => `${getAppUrl()}/jobs/${jobId}`,

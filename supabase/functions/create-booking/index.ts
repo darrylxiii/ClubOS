@@ -709,7 +709,7 @@ serve(async (req) => {
           await supabaseClient
             .from('bookings')
             .update({
-              quantum_meeting_link: `${siteUrl}/meetings/${meetingResult.data.meetingCode}`,
+              quantum_meeting_link: `${siteUrl}/meeting/${meetingResult.data.meetingCode}`,
               quantum_meeting_code: meetingResult.data.meetingCode,
               active_video_platform: 'quantum_club',
             })
