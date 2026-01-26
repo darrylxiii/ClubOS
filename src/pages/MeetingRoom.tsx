@@ -182,43 +182,64 @@ export default function MeetingRoom() {
     try {
       logger.debug('Authenticated user joining meeting', { componentName: 'MeetingRoom', userId: user.id });
       
-      // First, mark any existing active participant as left (in case of reconnection)
-      const { error: updateError } = await supabase
+      // FIXED: Use atomic upsert to prevent race condition
+      // This ensures participant is NEVER in a "left" state during join
+      const now = new Date().toISOString();
+      
+      // First try to update any existing record to reset it
+      const { data: existingParticipant } = await supabase
         .from('meeting_participants')
-        .update({ 
-          left_at: new Date().toISOString(),
-          status: 'left'
-        })
+        .select('id')
         .eq('meeting_id', meeting.id)
         .eq('user_id', user.id)
-        .is('left_at', null);
+        .maybeSingle();
 
-      if (updateError) {
-        logger.warn('Could not mark old participant as left', { componentName: 'MeetingRoom', error: updateError });
-      }
+      if (existingParticipant) {
+        // Update existing record atomically - never mark as left first
+        const { error: updateError } = await supabase
+          .from('meeting_participants')
+          .update({
+            status: 'accepted',
+            joined_at: now,
+            left_at: null,  // ← Atomic: never in "left" state
+            last_seen: now  // ← Immediate heartbeat
+          })
+          .eq('id', existingParticipant.id);
 
-      // Now insert the new active participant entry
-      const { error: insertError } = await supabase
-        .from('meeting_participants')
-        .insert({
-          meeting_id: meeting.id,
-          user_id: user.id,
-          status: 'accepted',
-          joined_at: new Date().toISOString(),
-          left_at: null
-        });
-
-      if (insertError) {
-        // If it's a duplicate error, the user might already be in - that's okay
-        if (insertError.code === '23505') {
-          console.log('[MeetingRoom] ✅ User already in meeting, proceeding...');
-          toast.info('Rejoining meeting...');
-        } else {
-          console.error('[MeetingRoom] ❌ Error inserting participant:', insertError);
-          throw insertError;
+        if (updateError) {
+          console.error('[MeetingRoom] ❌ Error updating participant:', updateError);
+          throw updateError;
         }
+        console.log('[MeetingRoom] ✅ User rejoined meeting (updated existing record)');
       } else {
-        console.log('[MeetingRoom] ✅ User joined meeting successfully');
+        // Insert new participant with immediate heartbeat
+        const { error: insertError } = await supabase
+          .from('meeting_participants')
+          .insert({
+            meeting_id: meeting.id,
+            user_id: user.id,
+            status: 'accepted',
+            joined_at: now,
+            left_at: null,
+            last_seen: now  // ← Immediate heartbeat
+          });
+
+        if (insertError) {
+          // Handle unique constraint violation (race condition - another insert happened)
+          if (insertError.code === '23505') {
+            console.log('[MeetingRoom] ⚠️ Concurrent join detected, updating instead...');
+            await supabase
+              .from('meeting_participants')
+              .update({ left_at: null, status: 'accepted', last_seen: now })
+              .eq('meeting_id', meeting.id)
+              .eq('user_id', user.id);
+          } else {
+            console.error('[MeetingRoom] ❌ Error inserting participant:', insertError);
+            throw insertError;
+          }
+        } else {
+          console.log('[MeetingRoom] ✅ User joined meeting successfully');
+        }
       }
 
       // Update meeting status to 'in_progress' if host is joining
@@ -235,18 +256,13 @@ export default function MeetingRoom() {
       console.error('[MeetingRoom] ❌ Error joining meeting:', error);
       
       // Show user-friendly error with retry option
-      if (error.code === '23505') {
-        toast.info('You are already in this meeting');
-        setInCall(true); // Allow them to proceed anyway
-      } else {
-        toast.error('Failed to join meeting', {
-          description: 'Please check your connection and try again',
-          action: {
-            label: 'Retry',
-            onClick: () => handleJoinMeeting()
-          }
-        });
-      }
+      toast.error('Failed to join meeting', {
+        description: 'Please check your connection and try again',
+        action: {
+          label: 'Retry',
+          onClick: () => handleJoinMeeting()
+        }
+      });
     } finally {
       setJoining(false);
     }

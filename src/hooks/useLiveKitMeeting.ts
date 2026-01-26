@@ -1,6 +1,7 @@
 /**
  * LiveKit SFU Meeting Hook
  * Handles large meetings (10+ participants) via LiveKit's SFU infrastructure
+ * With retry logic and exponential backoff
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -43,6 +44,9 @@ interface LiveKitMeetingState {
   token: string | null;
 }
 
+const MAX_RETRIES = 3;
+const RETRY_DELAYS = [1000, 2000, 4000]; // Exponential backoff: 1s, 2s, 4s
+
 export function useLiveKitMeeting({
   roomName,
   participantName,
@@ -69,43 +73,62 @@ export function useLiveKitMeeting({
 
   // We keep a ref to the room instance
   const roomRef = useRef<Room | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   /**
-   * Get LiveKit token from edge function
+   * Get LiveKit token from edge function with retry logic
    */
   const getToken = useCallback(async (): Promise<string | null> => {
-    try {
-      console.log('[LiveKit] Requesting token for room:', roomName);
-      const { data, error } = await supabase.functions.invoke('livekit-token', {
-        body: {
-          roomName,
-          participantName,
-          participantId,
-          isHost,
-          canPublish: true,
-          canSubscribe: true
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        // Create abort controller for this request
+        abortControllerRef.current = new AbortController();
+        
+        console.log(`[LiveKit] 🔑 Requesting token (attempt ${attempt}/${MAX_RETRIES})...`);
+        
+        const { data, error } = await supabase.functions.invoke('livekit-token', {
+          body: {
+            roomName,
+            participantName,
+            participantId,
+            isHost,
+            canPublish: true,
+            canSubscribe: true
+          }
+        });
+
+        if (error) {
+          console.error(`[LiveKit] ❌ Token request error (attempt ${attempt}):`, error);
+          throw new Error(error.message);
         }
-      });
 
-      if (error) {
-        console.error('[LiveKit] Token error:', error);
-        throw new Error(error.message);
+        if (!data?.token) {
+          throw new Error('Invalid token response - no token received');
+        }
+
+        console.log('[LiveKit] ✅ Token received successfully');
+        return data.token;
+
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unknown error');
+        console.warn(`[LiveKit] ⚠️ Token attempt ${attempt}/${MAX_RETRIES} failed:`, lastError.message);
+
+        if (attempt < MAX_RETRIES) {
+          const delay = RETRY_DELAYS[attempt - 1];
+          console.log(`[LiveKit] ⏳ Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
       }
-
-      if (!data?.token) {
-        throw new Error('Invalid token response');
-      }
-
-      console.log('[LiveKit] ✅ Token received');
-      return data.token;
-    } catch (error) {
-      console.error('[LiveKit] Failed to get token:', error);
-      setState(prev => ({
-        ...prev,
-        error: error instanceof Error ? error.message : 'Failed to get LiveKit token'
-      }));
-      return null;
     }
+
+    console.error('[LiveKit] ❌ All token attempts failed after', MAX_RETRIES, 'retries');
+    setState(prev => ({
+      ...prev,
+      error: lastError?.message || `Failed to get LiveKit token after ${MAX_RETRIES} attempts`
+    }));
+    return null;
   }, [roomName, participantName, participantId, isHost]);
 
   /**
@@ -113,32 +136,36 @@ export function useLiveKitMeeting({
    */
   const connect = useCallback(async () => {
     if (state.isConnected || state.isConnecting) {
-      console.log('[LiveKit] Already connected or connecting');
+      console.log('[LiveKit] ⏭️ Already connected or connecting, skipping...');
       return;
     }
 
     setState(prev => ({ ...prev, isConnecting: true, error: null }));
+    onConnectionStateChange?.('connecting');
 
     try {
+      console.log('[LiveKit] 🚀 Starting connection to room:', roomName);
+      
       const token = await getToken();
-      if (!token) return;
+      if (!token) {
+        // Error already set in getToken
+        setState(prev => ({ ...prev, isConnecting: false }));
+        onConnectionStateChange?.('failed');
+        return;
+      }
 
-      // We don't need to manually connect here if we are using the LiveKitRoom component
-      // The LiveKitRoom component handles connection when provided with a token
-      // However, we expose the token so the component can use it
-
+      // Token obtained - LiveKitRoom component will handle actual connection
       setState(prev => ({
         ...prev,
         isConnecting: false,
-        token: token, // This triggers the UI to render LiveKitRoom
+        token: token,
         roomName
       }));
 
-      onConnectionStateChange?.('connecting');
-      // Actual connection happens in the UI component via useLiveKitRoom or LiveKitRoom
+      console.log('[LiveKit] 🎉 Token ready, LiveKitRoom will connect');
 
     } catch (error) {
-      console.error('[LiveKit] Setup failed:', error);
+      console.error('[LiveKit] ❌ Connection setup failed:', error);
       setState(prev => ({
         ...prev,
         isConnecting: false,
@@ -153,6 +180,11 @@ export function useLiveKitMeeting({
    * Disconnect from LiveKit room
    */
   const disconnect = useCallback(() => {
+    // Abort any pending requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
     setState(prev => ({
       ...prev,
       isConnected: false,
@@ -163,11 +195,10 @@ export function useLiveKitMeeting({
     }));
 
     onConnectionStateChange?.('disconnected');
-    console.log('[LiveKit] Disconnected');
+    console.log('[LiveKit] 👋 Disconnected');
   }, [onConnectionStateChange]);
 
-  // Exposed controls (wrappers around room methods if room ref was available, 
-  // but mostly state setters that UI components react to)
+  // Exposed controls
   const toggleAudio = useCallback((enabled: boolean) => setIsAudioEnabled(enabled), []);
   const toggleVideo = useCallback((enabled: boolean) => setIsVideoEnabled(enabled), []);
   const toggleScreenShare = useCallback((enabled: boolean) => setIsScreenSharing(enabled), []);
