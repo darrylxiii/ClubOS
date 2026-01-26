@@ -113,7 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from('email_verifications')
       .select('id, code, created_at')
       .eq('email', email)
-      .eq('verified', false)
+      .is('verified_at', null)
       .gt('expires_at', new Date().toISOString())
       .gt('created_at', new Date(Date.now() - 60000).toISOString()) // Within last 60 seconds
       .order('created_at', { ascending: false })
