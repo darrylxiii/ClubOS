@@ -1,481 +1,317 @@
 
-
-# Make Club Meetings the Best Video Platform - Comprehensive Fix Plan
+# Fix Meeting Connection & Live Transcript - COMPLETE AUDIT
 
 ## Executive Summary
 
-Your meeting system has **two critical failures** preventing proper functionality:
+I identified **3 critical root causes** preventing meetings from working:
 
-1. **"Connecting to secure room..." infinite loading** - LiveKit token requests are silently failing (logs show only "shutdown", no request processing)
-2. **"Waiting for host" despite host being present** - Race condition marks participants as "left" during join, blocking presence detection
-
-The database confirms the issue: Meeting CB54DB5D6C shows the host (8b762c96...) with TWO participant records, **BOTH marked as "left"** - one with `joined_at: null` and `left_at: 2026-01-26 01:18:44`, another with `last_seen: 01:18:58` but `left_at: 01:18:58` (marked left within 14 seconds of joining).
+1. **LiveKit Edge Function Crashing** - Token requests are received but function shuts down before returning a token
+2. **Transcript Using Mock Data** - The transcript hook has `simulate: true` hardcoded
+3. **No Fallback Triggers After 30 Seconds** - Despite the timeout code existing, something prevents the auto-fallback
 
 ---
 
-## Root Cause Analysis
+## Root Cause Evidence
 
-### Problem 1: LiveKit Token Not Processing
+### Issue 1: LiveKit Token Function Crashing
 
-**Evidence:**
-- Edge function logs show ONLY "shutdown" entries - no actual token requests being processed
-- No network requests to `livekit-token` visible in browser
-- No console logs with "[LiveKit]" prefix
-
-**Root Causes:**
-1. The `LiveKitMeetingWrapper` calls `connect()` which calls `getToken()`, but errors are silently caught
-2. No timeout mechanism - component waits forever for `!isConnecting && token`
-3. No fallback to the existing working WebRTC P2P system (`useMeetingWebRTC`)
-
-### Problem 2: Participant State Race Condition
-
-**Current Join Flow (Broken):**
+**Edge Function Logs Evidence:**
 ```
-T0: User clicks "Join Meeting" (handleJoinMeeting)
-T1: UPDATE all existing records SET left_at = NOW() ← Marks as LEFT
-T2: INSERT new participant record (left_at = NULL)
-T3: User enters diagnostics screen (camera/mic check)
-T4: Heartbeat BLOCKED by showDiagnostics dependency
-T5: Guest joins, checks host presence, sees left_at != NULL from T1
-T6: Guest shows "Waiting for host" screen
+2026-01-26T01:50:30Z INFO [LiveKit] 📥 Token request received at: 2026-01-26T01:50:30.180Z
+2026-01-26T01:50:30Z LOG shutdown  ← CRASH immediately after receiving request!
 ```
 
-**Code Evidence (MeetingVideoCallInterface.tsx:575):**
+The pattern repeats throughout the logs - "Token request received" is NEVER followed by "Token generated" or "Config check". The function is crashing during execution, likely during:
+- JSON body parsing (`await req.json()`)
+- JWT creation (`createJWT()`)
+- Or the Web Crypto API call
+
+**Why the fallback doesn't trigger:**
+- The hook gets stuck in `isConnecting: true` state forever because the request never returns
+- The 30-second timeout in `LiveKitMeetingWrapper` only runs when `token` is falsy, but if the state is stuck, it might not evaluate correctly
+
+### Issue 2: Live Transcript Shows Fake Data
+
+**Evidence (MeetingVideoCallInterface.tsx line 79-82):**
 ```typescript
-if (!meeting?.id || !participantId || showDiagnostics) return; // ❌ Heartbeat blocked
+const { transcript } = useMeetingTranscript({
+  enabled: true,
+  simulate: true  // ← THIS IS THE PROBLEM - Forces mock interview phrases
+});
 ```
+
+The `simulate: true` flag triggers an interval that outputs canned phrases like:
+- "Can you explain your experience with React?"
+- "I have worked with React for 5 years..."
+
+This is demo/placeholder code that was never switched to production mode.
+
+### Issue 3: Streaming Transcription Disabled
+
+**Evidence (MeetingVideoCallInterface.tsx line 244):**
+```typescript
+enabled: transcriptionEnabled && meetingStarted && !showDiagnostics && hasGivenConsent
+```
+
+The **real** ElevenLabs transcription (`useStreamingTranscription`) is disabled until:
+- `meetingStarted` = true
+- `showDiagnostics` = false  
+- `hasGivenConsent` = true
+
+But users never see this because the mock `useMeetingTranscript` is always running.
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Fix LiveKit Timeout + WebRTC Fallback (CRITICAL)
+### Phase 1: Fix LiveKit Token Function (CRITICAL)
 
-**File: `src/components/meetings/LiveKitMeetingWrapper.tsx`**
+The function is crashing - likely due to an unhandled exception. Need to:
 
-Add timeout logic and fallback capability:
-
-```typescript
-interface LiveKitMeetingWrapperProps {
-    // ... existing props
-    onFallbackToWebRTC?: () => void;
-}
-
-export function LiveKitMeetingWrapper({
-    // ... existing props
-    onFallbackToWebRTC
-}: LiveKitMeetingWrapperProps) {
-    const [connectionAttempts, setConnectionAttempts] = useState(0);
-    const [showFallbackOption, setShowFallbackOption] = useState(false);
-    const connectionStartTime = useRef<number>(Date.now());
-
-    // Add timeout detection
-    useEffect(() => {
-        if (!isConnecting && token) return; // Connected successfully
-        
-        const timer = setTimeout(() => {
-            if (!token && isConnecting) {
-                console.warn('[LiveKit] Connection timeout after 15 seconds');
-                setShowFallbackOption(true);
-            }
-        }, 15000); // 15 second timeout
-        
-        return () => clearTimeout(timer);
-    }, [isConnecting, token]);
-
-    // Hard fallback after 30 seconds
-    useEffect(() => {
-        const hardTimeout = setTimeout(() => {
-            if (!token) {
-                console.error('[LiveKit] Hard timeout - auto-fallback to WebRTC');
-                onFallbackToWebRTC?.();
-            }
-        }, 30000);
-        
-        return () => clearTimeout(hardTimeout);
-    }, [token, onFallbackToWebRTC]);
-
-    // Enhanced loading state with fallback option
-    if (isConnecting || !token) {
-        return (
-            <div className="flex flex-col items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4" />
-                <p className="text-muted-foreground">Connecting to secure room...</p>
-                
-                {showFallbackOption && (
-                    <div className="mt-6 flex flex-col items-center gap-3">
-                        <p className="text-sm text-amber-500">
-                            Connection taking longer than expected...
-                        </p>
-                        <div className="flex gap-2">
-                            <Button 
-                                variant="outline"
-                                onClick={() => onFallbackToWebRTC?.()}
-                            >
-                                Switch to Direct Mode
-                            </Button>
-                            <Button 
-                                variant="ghost"
-                                onClick={() => {
-                                    setConnectionAttempts(prev => prev + 1);
-                                    connect();
-                                }}
-                            >
-                                Keep Trying
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        );
-    }
-    // ... rest of component
-}
-```
-
-**File: `src/components/meetings/MeetingVideoCallInterface.tsx`**
-
-Add fallback state and conditional rendering:
-
-```typescript
-// Add state for video mode
-const [useLiveKitMode, setUseLiveKitMode] = useState(true);
-
-// In render section, add fallback logic
-{useLiveKitMode ? (
-    <LiveKitMeetingWrapper
-        meetingId={meeting.id}
-        participantName={participantName}
-        participantId={participantId}
-        isHost={meeting.host_id === participantId}
-        onEnd={onEnd}
-        onFallbackToWebRTC={() => {
-            console.log('[Meeting] Falling back to WebRTC P2P mode');
-            setUseLiveKitMode(false);
-            toast.info('Switched to direct peer-to-peer mode');
-        }}
-        className="h-full w-full"
-    />
-) : (
-    <VideoGrid
-        localParticipant={localStream ? {
-            id: participantId,
-            name: participantName,
-            stream: localStream,
-            isLocal: true,
-            isSpeaking: false,
-            isAudioEnabled,
-            isVideoEnabled
-        } : undefined}
-        participants={Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
-            id,
-            name,
-            stream,
-            isLocal: false,
-            isSpeaking: false,
-            isAudioEnabled: true,
-            isVideoEnabled: true
-        }))}
-        layout={layout}
-    />
-)}
-```
-
----
-
-### Phase 2: Fix Participant State Race Condition (CRITICAL)
-
-**File: `src/pages/MeetingRoom.tsx`**
-
-Replace the two-step join with atomic upsert + immediate heartbeat:
-
-```typescript
-const handleJoinMeeting = async () => {
-    if (!meeting) return;
-
-    if (meeting.access_type === 'password' && meeting.meeting_password !== password) {
-        toast.error('Incorrect password');
-        return;
-    }
-
-    if (!user) {
-        setShowGuestDialog(true);
-        return;
-    }
-
-    setJoining(true);
-    try {
-        logger.debug('Authenticated user joining meeting', { componentName: 'MeetingRoom', userId: user.id });
-        
-        // FIXED: Use single upsert to prevent race condition
-        // This ensures participant is NEVER in a "left" state during join
-        const now = new Date().toISOString();
-        
-        const { error: upsertError } = await supabase
-            .from('meeting_participants')
-            .upsert({
-                meeting_id: meeting.id,
-                user_id: user.id,
-                status: 'accepted',
-                joined_at: now,
-                left_at: null,  // ← Atomic: never marked as left
-                last_seen: now  // ← Immediate heartbeat
-            }, {
-                onConflict: 'meeting_id,user_id',
-                ignoreDuplicates: false
-            });
-
-        if (upsertError) {
-            // Handle unique constraint differently
-            if (upsertError.code === '23505') {
-                // Already joined, just update presence
-                await supabase
-                    .from('meeting_participants')
-                    .update({ left_at: null, status: 'accepted', last_seen: now })
-                    .eq('meeting_id', meeting.id)
-                    .eq('user_id', user.id);
-                console.log('[MeetingRoom] ✅ User rejoined meeting');
-            } else {
-                throw upsertError;
-            }
-        }
-
-        // Update meeting status to 'in_progress' if host is joining
-        if (user.id === meeting.host_id && meeting.status === 'scheduled') {
-            await supabase
-                .from('meetings')
-                .update({ status: 'in_progress' })
-                .eq('id', meeting.id);
-        }
-
-        setInCall(true);
-    } catch (error: any) {
-        console.error('[MeetingRoom] ❌ Error joining meeting:', error);
-        toast.error('Failed to join meeting', {
-            description: 'Please check your connection and try again',
-            action: { label: 'Retry', onClick: () => handleJoinMeeting() }
-        });
-    } finally {
-        setJoining(false);
-    }
-};
-```
-
-**File: `src/components/meetings/MeetingVideoCallInterface.tsx`**
-
-Remove `showDiagnostics` dependency from heartbeat - presence must update immediately:
-
-```typescript
-// Line 575 - BEFORE (blocks heartbeat during diagnostics):
-if (!meeting?.id || !participantId || showDiagnostics) return;
-
-// Line 575 - AFTER (heartbeat runs immediately):
-if (!meeting?.id || !participantId) return;
-```
-
-Also remove from auto-rejoin effect (line 603):
-
-```typescript
-// Line 603 - BEFORE:
-if (!meeting?.id || !participantId || showDiagnostics) return;
-
-// Line 603 - AFTER:
-if (!meeting?.id || !participantId) return;
-```
-
----
-
-### Phase 3: Database Constraint for Unique Active Participants
-
-**Database Migration:**
-
-```sql
--- Prevent duplicate active participant records per user per meeting
-CREATE UNIQUE INDEX IF NOT EXISTS idx_meeting_participants_unique_active
-ON meeting_participants(meeting_id, user_id)
-WHERE left_at IS NULL;
-
--- For guests using session_token
-CREATE UNIQUE INDEX IF NOT EXISTS idx_meeting_participants_unique_guest_active
-ON meeting_participants(meeting_id, session_token)
-WHERE left_at IS NULL AND session_token IS NOT NULL;
-```
-
-This ensures only ONE active participant record per user per meeting.
-
----
-
-### Phase 4: Improve LiveKit Token Error Handling
-
-**File: `src/hooks/useLiveKitMeeting.ts`**
-
-Add retry logic with exponential backoff:
-
-```typescript
-const getToken = useCallback(async (): Promise<string | null> => {
-    const maxRetries = 3;
-    let lastError: Error | null = null;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            console.log(`[LiveKit] Requesting token (attempt ${attempt}/${maxRetries})...`);
-            
-            const { data, error } = await supabase.functions.invoke('livekit-token', {
-                body: {
-                    roomName,
-                    participantName,
-                    participantId,
-                    isHost,
-                    canPublish: true,
-                    canSubscribe: true
-                }
-            });
-
-            if (error) {
-                throw new Error(error.message);
-            }
-
-            if (!data?.token) {
-                throw new Error('Invalid token response');
-            }
-
-            console.log('[LiveKit] ✅ Token received');
-            return data.token;
-            
-        } catch (error) {
-            lastError = error instanceof Error ? error : new Error('Unknown error');
-            console.warn(`[LiveKit] Token attempt ${attempt} failed:`, lastError.message);
-            
-            if (attempt < maxRetries) {
-                // Exponential backoff: 1s, 2s, 4s
-                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt - 1) * 1000));
-            }
-        }
-    }
-
-    console.error('[LiveKit] All token attempts failed');
-    setState(prev => ({
-        ...prev,
-        error: lastError?.message || 'Failed to get LiveKit token after 3 attempts'
-    }));
-    return null;
-}, [roomName, participantName, participantId, isHost]);
-```
+1. Add comprehensive try-catch around every operation
+2. Add detailed logging at each step to identify crash point
+3. Ensure proper error responses instead of crashes
 
 **File: `supabase/functions/livekit-token/index.ts`**
 
-Add detailed request logging for debugging:
-
 ```typescript
 serve(async (req) => {
-    // Add request logging at the very start
-    console.log('[LiveKit] Token request received at:', new Date().toISOString());
-    
-    if (req.method === 'OPTIONS') {
-        console.log('[LiveKit] CORS preflight handled');
-        return new Response(null, { headers: corsHeaders });
+  console.log('[LiveKit] 📥 Request method:', req.method);
+  
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    // Step 1: Check environment
+    const apiKey = Deno.env.get('LIVEKIT_API_KEY');
+    const apiSecret = Deno.env.get('LIVEKIT_API_SECRET');
+    const livekitUrl = Deno.env.get('LIVEKIT_URL');
+
+    console.log('[LiveKit] 🔧 Secrets loaded:', {
+      hasApiKey: !!apiKey,
+      hasApiSecret: !!apiSecret,
+      hasUrl: !!livekitUrl
+    });
+
+    if (!apiKey || !apiSecret || !livekitUrl) {
+      console.error('[LiveKit] ❌ Missing secrets');
+      return new Response(JSON.stringify({ 
+        error: 'LiveKit not configured',
+        configured: false 
+      }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
+    // Step 2: Parse body with error handling
+    let body;
     try {
-        const apiKey = Deno.env.get('LIVEKIT_API_KEY');
-        const apiSecret = Deno.env.get('LIVEKIT_API_SECRET');
-        const livekitUrl = Deno.env.get('LIVEKIT_URL');
+      body = await req.json();
+      console.log('[LiveKit] 📄 Body parsed:', Object.keys(body));
+    } catch (parseError) {
+      console.error('[LiveKit] ❌ Body parse failed:', parseError);
+      return new Response(JSON.stringify({ 
+        error: 'Invalid request body' 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-        console.log('[LiveKit] Config check:', {
-            hasApiKey: !!apiKey,
-            hasApiSecret: !!apiSecret,
-            hasUrl: !!livekitUrl,
-            urlValue: livekitUrl ? livekitUrl.slice(0, 30) + '...' : 'missing'
-        });
-        // ... rest of function
+    const { roomName, participantName, participantId, isHost = false } = body;
+
+    if (!roomName || !participantName || !participantId) {
+      console.error('[LiveKit] ❌ Missing required fields');
+      return new Response(JSON.stringify({ 
+        error: 'Missing required fields' 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Step 3: Create token with error handling
+    console.log('[LiveKit] 🔑 Creating JWT for:', participantName);
+    let token;
+    try {
+      token = await createJWT({ ... }, apiSecret);
+      console.log('[LiveKit] ✅ JWT created successfully');
+    } catch (jwtError) {
+      console.error('[LiveKit] ❌ JWT creation failed:', jwtError);
+      return new Response(JSON.stringify({ 
+        error: 'Token generation failed' 
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({
+      token,
+      url: livekitUrl,
+      roomName,
+      participantId
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('[LiveKit] ❌ Unhandled error:', error);
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
 ```
 
----
+### Phase 2: Fix Fallback Trigger (CRITICAL)
 
-### Phase 5: Add LiveKit Health Check Endpoint
+The useLiveKitMeeting hook needs to properly signal failure so the fallback can trigger.
 
-**New File: `supabase/functions/livekit-health/index.ts`**
+**File: `src/hooks/useLiveKitMeeting.ts`**
+
+Add request timeout and proper error state:
+
+```typescript
+const getToken = useCallback(async (): Promise<string | null> => {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      console.log(`[LiveKit] 🔑 Token request attempt ${attempt}/${MAX_RETRIES}`);
+      
+      // Add timeout using AbortController
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s per attempt
+      
+      const { data, error } = await supabase.functions.invoke('livekit-token', {
+        body: { roomName, participantName, participantId, isHost }
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (error) {
+        console.error(`[LiveKit] ❌ Attempt ${attempt} error:`, error);
+        throw new Error(error.message);
+      }
+
+      if (!data?.token) {
+        throw new Error('No token in response');
+      }
+
+      console.log('[LiveKit] ✅ Token received');
+      return data.token;
+
+    } catch (error) {
+      console.warn(`[LiveKit] ⚠️ Attempt ${attempt} failed:`, error);
+      
+      if (attempt < MAX_RETRIES) {
+        await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt - 1]));
+      }
+    }
+  }
+
+  // All retries failed - set error state to trigger fallback
+  const errorMsg = 'Failed to connect to video service after 3 attempts';
+  console.error('[LiveKit] ❌', errorMsg);
+  setState(prev => ({
+    ...prev,
+    isConnecting: false,  // ← CRITICAL: Must set to false
+    error: errorMsg
+  }));
+  return null;
+}, [roomName, participantName, participantId, isHost]);
+```
+
+### Phase 3: Remove Mock Transcript (CRITICAL)
+
+**File: `src/components/meetings/MeetingVideoCallInterface.tsx`**
+
+Change line 79-82:
+
+```typescript
+// BEFORE:
+const { transcript } = useMeetingTranscript({
+  enabled: true,
+  simulate: true  // ← REMOVE THIS
+});
+
+// AFTER: Remove entirely - we use real streaming transcription
+// The useStreamingTranscription hook already provides real transcripts
+```
+
+OR if you need the hook for AI analysis, disable simulation:
+
+```typescript
+const { transcript } = useMeetingTranscript({
+  enabled: meetingStarted && !showDiagnostics,
+  simulate: false  // ← Use real Speech Recognition API
+});
+```
+
+### Phase 4: Ensure Streaming Transcription Works
+
+The ElevenLabs streaming transcription (`useStreamingTranscription`) is already properly implemented. We need to ensure:
+
+1. The `elevenlabs-scribe-token` edge function is deployed and working
+2. The `ELEVENLABS_API_KEY` secret is configured (✅ already confirmed)
+
+**Verify edge function exists:**
+```bash
+supabase/functions/elevenlabs-scribe-token/index.ts
+```
+
+If missing, create it:
 
 ```typescript
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 serve(async (req) => {
-    if (req.method === 'OPTIONS') {
-        return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ElevenLabs API key not configured');
     }
 
-    const apiKey = Deno.env.get('LIVEKIT_API_KEY');
-    const apiSecret = Deno.env.get('LIVEKIT_API_SECRET');
-    const livekitUrl = Deno.env.get('LIVEKIT_URL');
-
-    const health = {
-        timestamp: new Date().toISOString(),
-        configured: !!(apiKey && apiSecret && livekitUrl),
-        livekitUrl: livekitUrl || null,
-        ready: false
-    };
-
-    // Test if LiveKit cloud is reachable
-    if (health.configured && livekitUrl) {
-        try {
-            const response = await fetch(`${livekitUrl}/healthz`, {
-                method: 'GET',
-                signal: AbortSignal.timeout(5000)
-            });
-            health.ready = response.ok;
-        } catch (error) {
-            health.ready = false;
-        }
-    }
-
-    return new Response(JSON.stringify(health), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-});
-```
-
----
-
-### Phase 6: Automated Stale Participant Cleanup
-
-**New File: `supabase/functions/cleanup-stale-meeting-participants/index.ts`**
-
-```typescript
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-serve(async (req) => {
-    const supabase = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const response = await fetch(
+      'https://api.elevenlabs.io/v1/single-use-token/realtime_scribe',
+      {
+        method: 'POST',
+        headers: { 'xi-api-key': ELEVENLABS_API_KEY },
+      }
     );
 
-    const staleThreshold = new Date(Date.now() - 2 * 60 * 1000); // 2 minutes ago
+    if (!response.ok) {
+      throw new Error(`ElevenLabs API error: ${response.status}`);
+    }
 
-    // Mark participants as disconnected if no heartbeat for 2+ minutes
-    const { data, error } = await supabase
-        .from('meeting_participants')
-        .update({ 
-            left_at: new Date().toISOString(), 
-            status: 'disconnected' 
-        })
-        .is('left_at', null)
-        .lt('last_seen', staleThreshold.toISOString())
-        .select('id, meeting_id');
+    const { token } = await response.json();
 
-    console.log('[Cleanup] Marked', data?.length || 0, 'stale participants as disconnected');
-
-    return new Response(JSON.stringify({ 
-        cleaned: data?.length || 0,
-        threshold: staleThreshold.toISOString()
-    }), {
-        headers: { 'Content-Type': 'application/json' }
+    return new Response(JSON.stringify({ token }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+  } catch (error) {
+    console.error('[ElevenLabs Scribe] Error:', error);
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'Failed to get token' 
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 });
 ```
 
@@ -483,38 +319,54 @@ serve(async (req) => {
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `src/components/meetings/LiveKitMeetingWrapper.tsx` | Add 15s/30s timeouts, fallback button, enhanced loading state |
-| `src/components/meetings/MeetingVideoCallInterface.tsx` | Add WebRTC fallback state, remove showDiagnostics from heartbeat |
-| `src/pages/MeetingRoom.tsx` | Replace two-step join with atomic upsert |
-| `src/hooks/useLiveKitMeeting.ts` | Add retry logic with exponential backoff |
-| `supabase/functions/livekit-token/index.ts` | Add detailed request logging |
-| **NEW** `supabase/functions/livekit-health/index.ts` | Health check endpoint |
-| **NEW** `supabase/functions/cleanup-stale-meeting-participants/index.ts` | Automated cleanup |
-| Database migration | Unique constraint on active participants |
-| `supabase/config.toml` | Register new edge functions |
+| File | Change |
+|------|--------|
+| `supabase/functions/livekit-token/index.ts` | Add granular try-catch, step-by-step logging |
+| `src/hooks/useLiveKitMeeting.ts` | Add per-request timeout, ensure `isConnecting: false` on failure |
+| `src/components/meetings/MeetingVideoCallInterface.tsx` | Remove `simulate: true` from useMeetingTranscript |
+| `supabase/functions/elevenlabs-scribe-token/index.ts` | Verify exists and working |
 
 ---
 
-## Expected Results
+## Expected Results After Fix
 
-After implementation:
-
-| Metric | Before | After |
-|--------|--------|-------|
-| "Connecting..." timeout | ∞ (forever) | 30s max (with 15s fallback option) |
-| "Waiting for host" false positives | Common | Eliminated |
-| Time-to-first-heartbeat | Blocked until diagnostics complete | Immediate on join |
-| Participant state accuracy | ~50% (race conditions) | 99.9% (atomic upsert) |
-| LiveKit failure resilience | None (stuck forever) | Auto-fallback to P2P |
+| Issue | Before | After |
+|-------|--------|-------|
+| "Connecting to secure room..." | Infinite spinner | Either connects in <5s OR auto-fallback at 30s |
+| Live Transcript | Fake mock phrases | Real speech-to-text via ElevenLabs Scribe |
+| Fallback to WebRTC | Never triggers | Triggers after 30s if LiveKit fails |
+| Token generation | Crashes silently | Returns error response, client can retry |
 
 ---
 
-## Testing Scenarios
+## Testing Checklist
 
-1. **LiveKit Working**: Host joins → Guest joins → Both see each other within 5 seconds
-2. **LiveKit Down**: Host joins → 15s "Switch to Direct Mode" → Click → P2P video works
-3. **Rapid Reconnection**: Host closes tab → Reopens within 5s → Single active participant record
-4. **Stale Cleanup**: Participant force-quits browser → Within 2 min marked as "disconnected"
+After deployment:
 
+1. **LiveKit Path**: Join meeting → Should connect to LiveKit room within 5 seconds
+2. **Fallback Path**: If LiveKit fails → Should see fallback buttons at 15s → Auto-switch at 30s
+3. **Transcript**: Enable captions → Speak → See YOUR words appear (not mock phrases)
+4. **Final Transcript**: End meeting → Meeting history should show full transcript with timestamps
+
+---
+
+## Technical Details
+
+### Why the function crashes
+
+The Supabase Edge Functions have a cold start issue where the function boots, receives a request, but shuts down before processing completes. This can happen when:
+1. The function has a syntax error (unlikely - it deployed)
+2. An unhandled promise rejection occurs
+3. The function takes too long and hits timeout
+4. A runtime error occurs in async code
+
+The fix is to wrap EVERYTHING in try-catch and ensure proper error responses.
+
+### Why the timeout doesn't work
+
+The `LiveKitMeetingWrapper` timeout effects depend on `isConnecting` and `token` state. If the hook gets stuck with `isConnecting: true` and never updates, the timeout condition:
+```typescript
+if (!token && isConnecting) {  // ← This evaluates to true forever
+```
+
+Keeps waiting. We need to ensure `isConnecting` is set to `false` when all retries fail.
