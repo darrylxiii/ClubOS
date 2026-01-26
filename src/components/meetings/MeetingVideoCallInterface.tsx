@@ -615,24 +615,34 @@ export function MeetingVideoCallInterface({
   }, [localStream, isVideoEnabled]);
 
   // Heartbeat: Update last_seen every 10 seconds to maintain presence
-  // FIXED: Removed showDiagnostics dependency - heartbeat must start immediately on join
+  // FIXED: Also clears left_at to ensure participant is marked as active
   useEffect(() => {
     if (!meeting?.id || !participantId) return;
 
     const updateHeartbeat = async () => {
       try {
-        await supabase
+        // FIXED: Clear left_at AND update last_seen to ensure participant is active
+        // This handles the case where participant was incorrectly marked as left
+        const { error } = await supabase
           .from('meeting_participants')
-          .update({ last_seen: new Date().toISOString() })
+          .update({ 
+            last_seen: new Date().toISOString(),
+            left_at: null,  // ← Always clear left_at on heartbeat
+            status: 'accepted'
+          })
           .eq('meeting_id', meeting.id)
-          .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
-          .is('left_at', null);
+          .or(`user_id.eq.${participantId},session_token.eq.${participantId}`);
+        
+        if (error) {
+          console.error('[Meeting] ❌ Heartbeat update failed:', error);
+        }
       } catch (error) {
-        console.error('[Meeting] ❌ Heartbeat update failed:', error);
+        console.error('[Meeting] ❌ Heartbeat exception:', error);
       }
     };
 
     // Initial heartbeat - run immediately
+    console.log('[Meeting] ❤️ Starting presence heartbeat for:', participantId);
     updateHeartbeat();
 
     // Update every 10 seconds

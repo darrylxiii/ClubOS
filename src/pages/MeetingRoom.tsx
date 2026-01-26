@@ -45,23 +45,34 @@ export default function MeetingRoom() {
     const isHost = user?.id === meeting.host_id;
     if (isHost) return; // Host doesn't need to check their own presence
     
-    const checkHostPresence = async () => {
+  const checkHostPresence = async () => {
+      // FIXED: Get the most recent host participant record (there may be duplicates)
+      // Look for ANY record where left_at is null (currently in meeting)
       const { data } = await supabase
         .from('meeting_participants')
         .select('id, last_seen, left_at')
         .eq('meeting_id', meeting.id)
         .eq('user_id', meeting.host_id)
+        .is('left_at', null)  // Only get active records
+        .order('last_seen', { ascending: false, nullsFirst: false })
+        .limit(1)
         .maybeSingle();
       
       if (!data) {
+        // No active host participant record
         setHostIsPresent(false);
         return;
       }
       
-      // Consider host present if left_at is null AND last_seen is recent (within 30 seconds)
-      const isActive = data.left_at === null && 
-        data.last_seen && 
-        (new Date().getTime() - new Date(data.last_seen).getTime()) < 30000;
+      // Host has an active record (left_at is null) - check if last_seen is recent
+      const isActive = data.last_seen && 
+        (new Date().getTime() - new Date(data.last_seen).getTime()) < 60000; // Extended to 60s for reliability
+      
+      console.log('[MeetingRoom] 🔍 Host presence check:', { 
+        hasActiveRecord: !!data, 
+        lastSeen: data.last_seen, 
+        isActive 
+      });
       
       setHostIsPresent(isActive);
     };
