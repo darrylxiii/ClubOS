@@ -1,117 +1,133 @@
 
-# LinkedIn Quick Add Fix - Timeout and Reliability Improvement
+# Mobile Meeting Join UI/UX Fix
 
-## Problem Analysis
+## Problem Summary
 
-The LinkedIn Quick Add is failing with "Failed to import LinkedIn profile" due to a **timeout cascade**:
+The user reports that on mobile devices, after the camera and microphone diagnostic checks complete in the pre-join screen, the page becomes unscrollable and the "Join Meeting" button is hidden below the viewport. The user can only see it by zooming out but cannot scroll to it.
 
+## Root Cause Analysis
+
+### Issue 1: PreCallDiagnostics uses `fixed inset-0` without internal scrolling
+**File**: `src/components/video-call/PreCallDiagnostics.tsx`
+
+The component uses a full-screen portal with `fixed inset-0` and `flex items-center justify-center`, but the inner content has no scroll container:
+
+```tsx
+className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4"
 ```
-+---------------+     60s timeout    +----------------+    30-120s wait    +--------+
-| Frontend      | -----------------> | Edge Function  | -----------------> | Apify  |
-| (supabase SDK)|                    | linkedin-scraper|                   | API    |
-+---------------+                    +----------------+                    +--------+
-     ^                                      |
-     |       Connection drops               |
-     +--------------------------------------+
+
+On mobile devices, when the content (diagnostics checks + VU meter + actions) exceeds viewport height, users cannot scroll because:
+- The parent is `fixed` with `items-center justify-center`
+- No `overflow-y-auto` on the content container
+- No max-height constraint with scroll
+
+### Issue 2: MeetingRoom lobby layout not mobile-optimized
+**File**: `src/pages/MeetingRoom.tsx`
+
+The meeting lobby card has fixed padding (`p-8`) that consumes too much space on small screens:
+```tsx
+<div className="flex-1 flex items-center justify-center p-8">
+  <Card className="max-w-2xl w-full p-8 glass-card">
 ```
 
-**Root Cause**: The Apify LinkedIn scraper uses the synchronous `run-sync-get-dataset-items` endpoint which can take 30-120+ seconds. Edge Functions default to a 60s timeout, causing the request to fail.
+This creates a double-padding issue on mobile (8 + 8 = 64px on each side).
+
+### Issue 3: PreJoinPreview component lacks mobile scroll
+**File**: `src/components/meetings/PreJoinPreview.tsx`
+
+Similar issue - uses `min-h-screen` with `flex items-center justify-center` but no overflow handling:
+```tsx
+<div className="flex items-center justify-center min-h-screen bg-background p-4">
+```
+
+The content (video preview + controls + settings + actions) can exceed mobile viewport height.
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Add Immediate URL Extraction Fallback
+### Phase 1: Fix PreCallDiagnostics Mobile Scroll
 
-Rather than waiting for Apify (which may timeout), implement a **two-phase approach**:
+**File**: `src/components/video-call/PreCallDiagnostics.tsx`
 
-**Phase 1a: Instant extraction** (fallback first)
-- Extract name from LinkedIn URL immediately
-- Return basic profile data in less than 1 second
-- User gets immediate feedback
+Changes:
+1. Add `overflow-y-auto` to the outer container
+2. Change inner content to use `max-h-[90vh]` or similar with internal scroll
+3. Add safe area padding for notched devices
+4. Reduce spacing on mobile viewports
 
-**Phase 1b: Async enrichment** (background)
-- If Apify/Proxycurl succeed within timeout, use enriched data
-- Add AbortController with 15s timeout for external APIs
-
-**File**: `supabase/functions/linkedin-scraper/index.ts`
-
-```typescript
-// Add timeout for external API calls
-const EXTERNAL_API_TIMEOUT = 15000; // 15 seconds
-
-// Create AbortController for timeout
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), EXTERNAL_API_TIMEOUT);
-
-try {
-  const response = await fetch(apifyUrl, {
-    signal: controller.signal,
-    // ... rest of options
-  });
-} catch (err) {
-  if (err.name === 'AbortError') {
-    console.log('[linkedin-scraper] Apify timed out, using URL extraction');
-    // Fall through to URL extraction
-  }
-} finally {
-  clearTimeout(timeoutId);
-}
+```tsx
+// Line 244-260: Update the portal container
+<motion.div
+  ...
+  className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-xl flex items-start md:items-center justify-center p-4 overflow-y-auto safe-area-inset"
+>
+  <motion.div
+    ...
+    className="w-full max-w-2xl my-auto"
+  >
+    <Card className="p-4 md:p-8 space-y-4 md:space-y-6 bg-gray-900/90 border-gray-700/50 backdrop-blur-sm shadow-2xl">
 ```
 
-### Phase 2: Improve Error Handling in Frontend
+Key changes:
+- `items-start` for mobile (allows natural scroll) with `md:items-center` for desktop
+- `overflow-y-auto` enables scrolling
+- `safe-area-inset` class for notched devices
+- Reduce padding from `p-8` to `p-4 md:p-8`
+- Reduce spacing from `space-y-6` to `space-y-4 md:space-y-6`
 
-**File**: `src/components/partner/AddCandidateDialog.tsx`
+### Phase 2: Fix MeetingRoom Lobby Mobile Layout
 
-Add specific error messages for timeout vs other failures:
+**File**: `src/pages/MeetingRoom.tsx`
 
-```typescript
-} catch (error: any) {
-  console.error("Error scraping LinkedIn:", error);
-  
-  if (error.message?.includes('Failed to fetch') || error.name === 'FunctionsFetchError') {
-    // Likely a timeout - offer manual entry
-    toast.error("LinkedIn import timed out", {
-      description: "Please enter candidate details manually or try again"
-    });
-    // Auto-fill name from URL as best-effort
-    const extractedName = extractNameFromLinkedInUrl(linkedinUrlForScrape);
-    if (extractedName) {
-      setFormData(prev => ({
-        ...prev,
-        fullName: extractedName,
-        linkedinUrl: linkedinUrlForScrape
-      }));
-    }
-  } else {
-    toast.error("Failed to import LinkedIn profile");
-  }
-}
+Changes:
+1. Add responsive padding: `p-4 md:p-8`
+2. Add `overflow-y-auto` to enable scrolling
+3. Add safe area support for bottom content
+4. Reduce card internal padding on mobile
+
+```tsx
+// Line 386-390: Update outer container
+<div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col overflow-y-auto">
+  <MinimalHeader backPath="/meetings" />
+  <div className="flex-1 flex items-center justify-center p-4 md:p-8 safe-area-bottom">
+    <Card className="max-w-2xl w-full p-4 md:p-8 glass-card">
 ```
 
-### Phase 3: Add Client-Side URL Name Extraction
+### Phase 3: Fix PreJoinPreview Mobile Scroll
 
-**File**: `src/components/partner/AddCandidateDialog.tsx`
+**File**: `src/components/meetings/PreJoinPreview.tsx`
 
-Add a utility function to extract name from LinkedIn URL on the client side:
+Changes:
+1. Add scroll container for the card content
+2. Reduce padding and spacing on mobile
+3. Add safe area padding
 
-```typescript
-function extractNameFromLinkedInUrl(url: string): string {
-  const match = url.match(/linkedin\.com\/in\/([^\/\?]+)/);
-  if (match && match[1]) {
-    let namePart = match[1].replace(/\/\d+$/, '').split('/')[0];
-    namePart = namePart.replace(/-[a-z0-9]{6,}$/i, '');
-    const parts = namePart.split('-').filter(word => {
-      const digitCount = (word.match(/\d/g) || []).length;
-      return digitCount < word.length / 2;
-    });
-    return parts
-      .filter(word => word.length > 0)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  }
-  return '';
-}
+```tsx
+// Line 239-241: Update container
+<div className="flex items-start md:items-center justify-center min-h-screen bg-background p-4 overflow-y-auto safe-area-inset">
+  <Card className="w-full max-w-2xl my-4">
+    <CardHeader className="text-center py-4 md:py-6">
+```
+
+### Phase 4: Add Mobile-Specific Improvements
+
+**File**: `src/components/video-call/PreCallDiagnostics.tsx`
+
+Additional mobile UX improvements:
+1. Compress check items on mobile (smaller padding)
+2. Make the VU meter more compact
+3. Add sticky action buttons at the bottom on mobile
+4. Show a "Scroll down for more" indicator if content is truncated
+
+```tsx
+// Check items - responsive padding
+<div
+  className="flex items-center justify-between p-2 md:p-4 rounded-lg bg-gray-800/50"
+>
+
+// Action buttons - sticky on mobile
+<div className="flex gap-3 sticky bottom-0 bg-gray-900/90 py-4 -mx-4 md:-mx-8 px-4 md:px-8 border-t border-gray-700/50 md:static md:bg-transparent md:border-0">
 ```
 
 ---
@@ -120,48 +136,54 @@ function extractNameFromLinkedInUrl(url: string): string {
 
 | File | Changes |
 |------|---------|
-| `supabase/functions/linkedin-scraper/index.ts` | Add 15s timeout with AbortController, ensure fast fallback to URL extraction |
-| `src/components/partner/AddCandidateDialog.tsx` | Add client-side name extraction, improved error handling with timeout detection |
+| `src/components/video-call/PreCallDiagnostics.tsx` | Add scroll container, responsive padding, safe area support, sticky buttons on mobile |
+| `src/pages/MeetingRoom.tsx` | Responsive padding, scroll overflow, safe area bottom |
+| `src/components/meetings/PreJoinPreview.tsx` | Scroll container, responsive spacing, safe area support |
 
 ---
 
 ## Technical Details
 
-### Timeout Strategy
+### Safe Area Classes
+The codebase already has these utility classes in `src/index.css`:
+- `.safe-area-inset` - Adds padding for all safe areas
+- `.safe-area-bottom` / `.safe-bottom` - Adds bottom safe area padding
 
-```
-User clicks "Import" 
-       │
-       ▼
-┌──────────────────────────────────┐
-│ Edge Function starts             │
-│ - Try Apify with 15s timeout     │
-│ - If timeout → try Proxycurl 10s │
-│ - If timeout → URL extraction    │
-│ - Return result (always <20s)    │
-└──────────────────────────────────┘
-       │
-       ▼
-Frontend receives response OR timeout
-       │
-       ├─► Success: Auto-fill form with data
-       │
-       └─► Timeout: Client-side URL extraction
-           Auto-fill name, show "verify details" message
-```
+### Mobile Detection
+The codebase uses `useIsMobile()` hook from `src/hooks/use-mobile.tsx` which returns true for viewports < 768px.
 
-### API Call Hierarchy with Timeouts
-
-1. **Apify** (15s timeout) → Primary provider, best data quality
-2. **Proxycurl** (10s timeout) → Fallback, good data quality  
-3. **URL Extraction** (instant) → Always available, name only
+### Scroll Behavior
+The CSS already includes `-webkit-overflow-scrolling: touch` for mobile devices (line 750-752 of index.css).
 
 ---
 
 ## Expected Result
 
 After implementation:
-- LinkedIn import works within 3-15 seconds (not 30-120 seconds)
-- If external APIs timeout, user still gets extracted name from URL
-- No more "Failed to import" errors for timeout scenarios
-- Users can always proceed with manual entry if needed
+- PreCallDiagnostics screen is fully scrollable on mobile
+- "Join Call" / "Join Anyway" buttons are always reachable
+- Meeting lobby card is properly sized for mobile screens
+- All content respects safe areas on notched devices
+- Responsive spacing provides better use of screen real estate on mobile
+- Action buttons remain accessible (sticky positioning)
+
+---
+
+## Visual Flow After Fix
+
+```
+┌─────────────────────────────────┐
+│  Pre-Call Diagnostics           │ ← Header
+├─────────────────────────────────┤
+│  Progress Bar [██████████] 100% │
+├─────────────────────────────────┤
+│  ✓ Camera Access ............  │
+│  ✓ Microphone [VU:█████] .....  │ ← Scrollable
+│  ✓ Internet Connection .......  │    Content
+│  ✓ TURN Servers ..............  │    Area
+│  ✓ Browser Compatibility .....  │
+├─────────────────────────────────┤
+│  [Cancel]  [Skip]  [Join Call]  │ ← Sticky on mobile
+└─────────────────────────────────┘
+   ↕ Safe area padding
+```
