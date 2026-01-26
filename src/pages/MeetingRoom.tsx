@@ -266,14 +266,25 @@ export default function MeetingRoom() {
     } catch (error: any) {
       console.error('[MeetingRoom] ❌ Error joining meeting:', error);
       
-      // Show user-friendly error with retry option
-      toast.error('Failed to join meeting', {
-        description: 'Please check your connection and try again',
-        action: {
-          label: 'Retry',
-          onClick: () => handleJoinMeeting()
-        }
-      });
+      // Detect RLS policy violation (authorization error)
+      const isRLSError = error?.message?.includes('row-level security') || 
+                         error?.message?.includes('policy') ||
+                         error?.code === 'PGRST301' ||
+                         error?.code === '42501';
+      
+      if (isRLSError) {
+        toast.error('Not authorized to join', {
+          description: 'The host must be present before you can join this private meeting. Please wait for them to start.',
+        });
+      } else {
+        toast.error('Failed to join meeting', {
+          description: 'Please check your connection and try again',
+          action: {
+            label: 'Retry',
+            onClick: () => handleJoinMeeting()
+          }
+        });
+      }
     } finally {
       setJoining(false);
     }
