@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { migrateToast as toast } from "@/lib/notify";
-import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Phone, Shield, Clock, Keyboard } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Phone, Shield, Clock, Keyboard, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TrackRequestDialog } from "./TrackRequestDialog";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
@@ -68,13 +68,15 @@ export function FunnelSteps() {
     otpSent: emailOtpSent,
     isVerifying: isVerifyingEmail,
     isSendingOtp: isSendingEmailOtp,
-    resendCooldown: emailResendCooldown
+    resendCooldown: emailResendCooldown,
+    resetVerification: resetEmailVerification
   } = useEmailVerification();
 
   const { countryCode } = useCountryDetection();
 
   const [emailVerified, setEmailVerified] = useState(false);
   const [emailOtpCode, setEmailOtpCode] = useState("");
+  const [spotsLeft, setSpotsLeft] = useState(2);
 
   const [formData, setFormData] = useState({
     // Contact
@@ -98,12 +100,28 @@ export function FunnelSteps() {
     agreed_nda: false,
   });
 
-  // Load saved data on mount
+  // Load saved data and dynamic spots count on mount
   useEffect(() => {
     const savedData = autoSave.load();
     if (savedData && !savedData.completed) {
       setResumeDialogOpen(true);
     }
+
+    // Load dynamic spots count from database
+    const loadSpotsCount = async () => {
+      const { data } = await supabase
+        .from("funnel_config")
+        .select("live_stats")
+        .single();
+      
+      if (data?.live_stats && typeof data.live_stats === 'object') {
+        const stats = data.live_stats as { available_spots?: number };
+        if (stats.available_spots !== undefined) {
+          setSpotsLeft(stats.available_spots);
+        }
+      }
+    };
+    loadSpotsCount();
   }, []);
 
   // Auto-save form data when it changes
@@ -356,10 +374,28 @@ export function FunnelSteps() {
                 disabled={emailVerified}
               />
               {emailVerified && (
-                <p className="text-sm text-green-600 mt-2 flex items-center">
+                <p className="text-sm text-primary mt-2 flex items-center">
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Email verified
                 </p>
+              )}
+              {!emailOtpSent && !emailVerified && formData.contact_email && formData.contact_email.includes('@') && (
+                <Button
+                  type="button"
+                  onClick={() => sendEmailOTP(formData.contact_email)}
+                  disabled={isSendingEmailOtp}
+                  className="mt-2"
+                  size="sm"
+                >
+                  {isSendingEmailOtp ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Verify Email'
+                  )}
+                </Button>
               )}
             </div>
 
@@ -419,6 +455,18 @@ export function FunnelSteps() {
                       Resend available in {emailResendCooldown}s
                     </p>
                   )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEmailOtpCode("");
+                      resetEmailVerification();
+                    }}
+                    className="text-xs mt-2"
+                  >
+                    Change email address
+                  </Button>
                 </div>
               </div>
             )}
@@ -735,7 +783,6 @@ export function FunnelSteps() {
       <Card className="p-8 glass-effect">
         {/* Availability Indicator */}
         {(() => {
-          const spotsLeft = 2; // Update this number dynamically as needed
           const indicatorColor = spotsLeft >= 4 ? 'bg-green-500' : spotsLeft >= 2 ? 'bg-orange-500' : 'bg-red-500';
           const textColor = spotsLeft >= 4 ? 'text-green-500' : spotsLeft >= 2 ? 'text-orange-500' : 'text-red-500';
 

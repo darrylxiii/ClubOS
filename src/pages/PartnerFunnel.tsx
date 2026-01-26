@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FunnelSteps } from "@/components/partner-funnel/FunnelSteps";
 import { FunnelAIAssistant } from "@/components/partner-funnel/FunnelAIAssistant";
+import { SocialProofCarousel } from "@/components/partner-funnel/SocialProofCarousel";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -100,6 +101,11 @@ export default function PartnerFunnel() {
         {/* Main Funnel */}
         <div className="max-w-4xl mx-auto">
           <FunnelSteps />
+        </div>
+
+        {/* Social Proof */}
+        <div className="max-w-4xl mx-auto mt-8">
+          <SocialProofCarousel />
         </div>
       </div>
 

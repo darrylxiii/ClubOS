@@ -3,11 +3,30 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, X, Send } from "lucide-react";
+import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+// FAQ responses as fallback
+const getFAQResponse = (message: string): string => {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes("no-cure-no-pay") || lowerMessage.includes("fee")) {
+    return "Our no-cure-no-pay model means you only pay when we successfully place a candidate. Our standard fee is 20% of the first-year salary, paid only after the hire completes their probation period. No upfront costs or retainers.";
+  } else if (lowerMessage.includes("time") || lowerMessage.includes("long")) {
+    return "Our typical timeline is 2-4 weeks from brief to shortlist, with first interviews happening within the first week. For executive searches, it may take 4-8 weeks to find the perfect candidate.";
+  } else if (lowerMessage.includes("industry") || lowerMessage.includes("industries")) {
+    return "We specialize in Technology, Finance, Healthcare, Consulting, and high-growth startups. Our network spans globally with a focus on senior and executive-level positions across Europe, North America, and Asia-Pacific markets.";
+  } else if (lowerMessage.includes("country") || lowerMessage.includes("international") || lowerMessage.includes("location")) {
+    return "We work with companies worldwide. Whether you're based in Europe, North America, Asia, or anywhere else, our global network can connect you with top talent in your region or help you recruit internationally.";
+  }
+  
+  return "I can help you with that. Our team will provide detailed information during the consultation.";
+};
 
 export function FunnelAIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([
     {
       role: "assistant",
@@ -22,29 +41,66 @@ export function FunnelAIAssistant() {
     "What are your fees?",
   ];
 
-  const handleSend = () => {
-    if (!message.trim()) return;
+  const handleSend = async () => {
+    if (!message.trim() || isLoading) return;
 
-    setMessages([...messages, { role: "user", content: message }]);
-    
-    // Simple FAQ responses
-    let response = "I can help you with that. Our team will provide detailed information during the consultation.";
-    
-    if (message.toLowerCase().includes("no-cure-no-pay") || message.toLowerCase().includes("fee")) {
-      response = "Our no-cure-no-pay model means you only pay when we successfully place a candidate. Our standard fee is 20% of the first-year salary, paid only after the hire completes their probation period. No upfront costs or retainers.";
-    } else if (message.toLowerCase().includes("time") || message.toLowerCase().includes("long")) {
-      response = "Our typical timeline is 2-4 weeks from brief to shortlist, with first interviews happening within the first week. For executive searches, it may take 4-8 weeks to find the perfect candidate.";
-    } else if (message.toLowerCase().includes("industry") || message.toLowerCase().includes("industries")) {
-      response = "We specialize in Technology, Finance, Healthcare, Consulting, and high-growth startups. Our network spans globally with a focus on senior and executive-level positions across Europe, North America, and Asia-Pacific markets.";
-    } else if (message.toLowerCase().includes("country") || message.toLowerCase().includes("international") || message.toLowerCase().includes("location")) {
-      response = "We work with companies worldwide. Whether you're based in Europe, North America, Asia, or anywhere else, our global network can connect you with top talent in your region or help you recruit internationally.";
-    }
-
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { role: "assistant", content: response }]);
-    }, 500);
-
+    const userMessage = message.trim();
+    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setMessage("");
+    setIsLoading(true);
+    
+    try {
+      // Try to use AI backend
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          message: userMessage,
+          context: 'partner_funnel',
+          systemPrompt: `You are QUIN, the AI assistant for The Quantum Club, a luxury executive recruitment platform. 
+          
+Answer questions about:
+- No-cure-no-pay model: Only pay when a candidate is successfully placed. 20% fee of first-year salary, paid after probation.
+- Timeline: 2-4 weeks from brief to shortlist. First interviews within first week. Executive searches: 4-8 weeks.
+- Industries: Technology, Finance, Healthcare, Consulting, high-growth startups.
+- Global reach: Europe, North America, Asia-Pacific focus.
+- Process: Submit request → Strategy call → Shortlist → Interviews → Offer → Placement
+
+Keep responses concise, professional, and helpful. Always offer to connect them with a strategist for detailed discussions.`
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.response) {
+        setMessages(prev => [...prev, { 
+          role: "assistant", 
+          content: data.response 
+        }]);
+      } else {
+        throw new Error("No response from AI");
+      }
+    } catch (error) {
+      // Fallback to FAQ responses
+      const fallbackResponse = getFAQResponse(userMessage);
+      setMessages(prev => [...prev, { 
+        role: "assistant", 
+        content: fallbackResponse 
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickReply = (reply: string) => {
+    setMessage(reply);
+    // Use setTimeout to ensure state is updated before sending
+    setTimeout(() => {
+      const input = document.querySelector('input[placeholder="Ask a question..."]') as HTMLInputElement;
+      if (input) {
+        input.value = reply;
+        const event = new Event('input', { bubbles: true });
+        input.dispatchEvent(event);
+      }
+    }, 0);
   };
 
   return (
@@ -63,8 +119,8 @@ export function FunnelAIAssistant() {
         <Card className="fixed bottom-24 right-6 w-96 h-[500px] shadow-2xl z-50 flex flex-col glass-effect">
           <div className="p-4 border-b border-border flex items-center justify-between">
             <div>
-              <h3 className="font-semibold">AI Assistant</h3>
-              <p className="text-xs text-muted-foreground">Ask me anything about partnerships</p>
+              <h3 className="font-semibold">QUIN - AI Assistant</h3>
+              <p className="text-xs text-muted-foreground">Powered by The Quantum Club</p>
             </div>
             <Button size="icon" variant="ghost" onClick={() => setIsOpen(false)}>
               <X className="w-4 h-4" />
@@ -89,6 +145,13 @@ export function FunnelAIAssistant() {
                   </div>
                 </div>
               ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-muted rounded-2xl px-4 py-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  </div>
+                </div>
+              )}
             </div>
           </ScrollArea>
 
@@ -102,10 +165,7 @@ export function FunnelAIAssistant() {
                     size="sm"
                     variant="outline"
                     className="text-xs"
-                    onClick={() => {
-                      setMessage(reply);
-                      handleSend();
-                    }}
+                    onClick={() => handleQuickReply(reply)}
                   >
                     {reply}
                   </Button>
@@ -121,9 +181,10 @@ export function FunnelAIAssistant() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSend()}
+                disabled={isLoading}
               />
-              <Button size="icon" onClick={handleSend}>
-                <Send className="w-4 h-4" />
+              <Button size="icon" onClick={handleSend} disabled={isLoading || !message.trim()}>
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </Button>
             </div>
           </div>
