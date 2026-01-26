@@ -23,9 +23,10 @@ serve(async (req) => {
     const origin = req.headers.get('origin') || req.headers.get('referer') || '';
     const isPreviewEnvironment = origin.includes('lovableproject.com') || 
                                  origin.includes('lovable.app') ||
+                                 origin.includes('id-preview') ||  // Lovable preview subdomain pattern
                                  origin.includes('localhost');
     
-    // Known production domains for enhanced logging
+    // Known TQC production domains - trusted sources that can bypass reCAPTCHA if frontend is disabled
     const isKnownProductionDomain = origin.includes('bytqc.com') || 
                                      origin.includes('thequantumclub.app') ||
                                      origin.includes('thequantumclub.nl');
@@ -53,11 +54,17 @@ serve(async (req) => {
       } else if (isPreviewEnvironment) {
         // No token in preview - allow with warning
         console.warn('[Booking] reCAPTCHA token missing in preview environment - allowing request');
-      } else {
-        // No token in production - block with detailed logging
-        console.error("[Booking] reCAPTCHA token MISSING:", {
+      } else if (isKnownProductionDomain) {
+        // Known TQC production domain without token - allow but log for monitoring
+        // This handles the case where frontend reCAPTCHA is disabled/misconfigured
+        console.warn('[Booking] reCAPTCHA token missing on known production domain - allowing request', {
           origin,
-          isKnownProductionDomain,
+          note: 'Frontend reCAPTCHA may be disabled. Consider re-enabling for spam protection.'
+        });
+      } else {
+        // Unknown origin without token - block for security
+        console.error("[Booking] reCAPTCHA token MISSING from unknown origin:", {
+          origin,
         });
         return new Response(
           JSON.stringify({ error: 'Security verification required. Please refresh and try again.' }),
