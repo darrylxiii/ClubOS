@@ -79,7 +79,10 @@ export function useLiveKitMeeting({
    * Get LiveKit token from edge function with retry logic
    */
   const getToken = useCallback(async (): Promise<string | null> => {
+    const connectionStartTime = Date.now();
     let lastError: Error | null = null;
+
+    console.log('[LiveKit] 🚦 getToken started at', new Date().toISOString());
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
@@ -90,7 +93,7 @@ export function useLiveKitMeeting({
           abortControllerRef.current?.abort();
         }, 10000); // 10 second timeout per attempt
         
-        console.log(`[LiveKit] 🔑 Requesting token (attempt ${attempt}/${MAX_RETRIES})...`);
+        console.log(`[LiveKit] 🔑 Requesting token (attempt ${attempt}/${MAX_RETRIES}) at ${Date.now() - connectionStartTime}ms...`);
         
         const { data, error } = await supabase.functions.invoke('livekit-token', {
           body: {
@@ -115,12 +118,14 @@ export function useLiveKitMeeting({
           throw new Error('Invalid token response - no token received');
         }
 
-        console.log('[LiveKit] ✅ Token received successfully');
+        const elapsed = Date.now() - connectionStartTime;
+        console.log(`[LiveKit] ✅ Token received successfully in ${elapsed}ms`);
         return data.token;
 
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
-        console.warn(`[LiveKit] ⚠️ Token attempt ${attempt}/${MAX_RETRIES} failed:`, lastError.message);
+        const elapsed = Date.now() - connectionStartTime;
+        console.warn(`[LiveKit] ⚠️ Token attempt ${attempt}/${MAX_RETRIES} failed at ${elapsed}ms:`, lastError.message);
 
         if (attempt < MAX_RETRIES) {
           const delay = RETRY_DELAYS[attempt - 1];
@@ -130,12 +135,16 @@ export function useLiveKitMeeting({
       }
     }
 
-    // CRITICAL: All retries failed - set isConnecting to false to trigger fallback
+    // CRITICAL: All retries failed - set BOTH isConnecting to false AND token to null
+    const totalElapsed = Date.now() - connectionStartTime;
     const errorMsg = `Failed to get LiveKit token after ${MAX_RETRIES} attempts`;
     console.error('[LiveKit] ❌', errorMsg);
+    console.error('[LiveKit] ❌ Total connection attempt time:', totalElapsed, 'ms');
+    
     setState(prev => ({
       ...prev,
       isConnecting: false,  // ← CRITICAL: Must set to false to trigger fallback
+      token: null,          // ← CRITICAL: Explicitly set token to null
       error: lastError?.message || errorMsg
     }));
     return null;

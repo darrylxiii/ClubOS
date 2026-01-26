@@ -10,6 +10,7 @@ interface StreamingCaptionsProps {
   partialTranscript: string;
   committedTranscripts: Array<{ id: string; text: string }>;
   participantName: string;
+  source?: string; // NEW: Shows which transcription source is active
 }
 
 export function StreamingCaptions({
@@ -17,7 +18,8 @@ export function StreamingCaptions({
   isConnected,
   partialTranscript,
   committedTranscripts,
-  participantName
+  participantName,
+  source
 }: StreamingCaptionsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +57,7 @@ export function StreamingCaptions({
             )}
           </Badge>
           <span className="text-xs text-muted-foreground">
-            Powered by ElevenLabs Scribe
+            {source || 'Powered by ElevenLabs Scribe'}
           </span>
         </div>
         

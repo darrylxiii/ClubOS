@@ -62,31 +62,42 @@ export function LiveKitMeetingWrapper({
         };
     }, [connect, disconnect]);
 
-    // Soft timeout: Show fallback option after 15 seconds
+    // CRITICAL FIX: Use mount-once timers that DO NOT depend on state changes
+    // This prevents the timer from resetting when isConnecting/token changes
     useEffect(() => {
-        if (!isConnecting && token) return; // Connected successfully
+        const mountTime = Date.now();
+        console.log('[LiveKit] ⏱️ Starting connection timers at', new Date().toISOString());
 
+        // Soft timeout: Show fallback option at 15 seconds
         const softTimer = setTimeout(() => {
-            if (!token) {
-                console.warn('[LiveKit] ⏱️ Connection timeout after 15 seconds - showing fallback option');
-                setShowFallbackOption(true);
-            }
+            const elapsed = Date.now() - mountTime;
+            console.warn(`[LiveKit] ⏱️ Soft timeout at ${elapsed}ms - showing fallback option`);
+            setShowFallbackOption(true);
         }, 15000);
 
-        return () => clearTimeout(softTimer);
-    }, [isConnecting, token]);
-
-    // Hard timeout: Auto-fallback after 30 seconds
-    useEffect(() => {
+        // Hard timeout: Auto-fallback at 30 seconds
         const hardTimer = setTimeout(() => {
-            if (!token && onFallbackToWebRTC) {
-                console.error('[LiveKit] ⏱️ Hard timeout (30s) - auto-fallback to WebRTC');
+            const elapsed = Date.now() - mountTime;
+            console.error(`[LiveKit] ⏱️ Hard timeout at ${elapsed}ms - forcing WebRTC fallback`);
+            if (onFallbackToWebRTC) {
                 onFallbackToWebRTC();
             }
         }, 30000);
 
-        return () => clearTimeout(hardTimer);
-    }, [token, onFallbackToWebRTC]);
+        return () => {
+            console.log('[LiveKit] 🧹 Clearing connection timers');
+            clearTimeout(softTimer);
+            clearTimeout(hardTimer);
+        };
+    }, [onFallbackToWebRTC]); // Only depends on callback, not on state
+
+    // Success detector: Clear fallback option when connected
+    useEffect(() => {
+        if (token && !isConnecting) {
+            console.log('[LiveKit] ✅ Connection successful - clearing fallback option');
+            setShowFallbackOption(false);
+        }
+    }, [token, isConnecting]);
 
     const handleRetry = () => {
         setConnectionAttempts(prev => prev + 1);

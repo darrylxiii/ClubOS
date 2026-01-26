@@ -244,7 +244,47 @@ export function MeetingVideoCallInterface({
     enabled: transcriptionEnabled && meetingStarted && !showDiagnostics && hasGivenConsent
   });
 
-  // Connection quality monitoring
+  // TRANSCRIPT FALLBACK CHAIN: ElevenLabs → Web Speech API → None
+  // If ElevenLabs isn't connected, fall back to browser's Web Speech API transcript
+  const activePartialTranscript = isTranscribing 
+    ? (partialTranscript || '')  // ElevenLabs active
+    : '';  // Web Speech API doesn't provide partial transcripts in real-time
+
+  const activeCommittedTranscripts = isTranscribing 
+    ? (committedTranscripts || [])  // ElevenLabs active
+    : (transcript ? [{ id: 'web-speech-' + Date.now(), text: transcript }] : []);  // Fallback to Web Speech
+
+  const activeTranscriptionSource = isTranscribing 
+    ? 'ElevenLabs Scribe' 
+    : (transcript ? 'Browser Speech API' : 'Not connected');
+
+  const isAnyTranscriptionActive = isTranscribing || !!transcript;
+
+  // Health check for meeting infrastructure on mount
+  useEffect(() => {
+    const checkInfrastructure = async () => {
+      console.log('[Meeting] 🏥 Checking infrastructure health...');
+      
+      try {
+        // Check LiveKit health
+        const { data: lkHealth, error: lkError } = await supabase.functions.invoke('livekit-health', { body: {} });
+        console.log('[Meeting] LiveKit health:', lkError ? '❌ ' + lkError.message : lkHealth);
+        
+        // Check ElevenLabs by attempting token fetch
+        const { data: elToken, error: elError } = await supabase.functions.invoke('elevenlabs-scribe-token', {
+          body: { meeting_id: meeting.id, participant_id: participantId }
+        });
+        console.log('[Meeting] ElevenLabs token:', elError ? '❌ ' + elError.message : '✅ OK');
+      } catch (err) {
+        console.error('[Meeting] ❌ Infrastructure health check failed:', err);
+      }
+    };
+    
+    // Run health check after a short delay to not block initial render
+    const timer = setTimeout(checkInfrastructure, 2000);
+    return () => clearTimeout(timer);
+  }, [meeting.id, participantId]);
+
   const { overallStats, worstQuality, suggestedAction } = useMeetingConnectionQuality({
     peerConnections: peerConnections || new Map(),
     meetingId: meeting.id,
@@ -1323,13 +1363,14 @@ export function MeetingVideoCallInterface({
         />
       )}
 
-      {/* Streaming Live Captions (ElevenLabs Scribe) */}
+      {/* Streaming Live Captions (with fallback to Web Speech API) */}
       <StreamingCaptions
         enabled={captionsEnabled && hasGivenConsent}
-        isConnected={isTranscribing}
-        partialTranscript={partialTranscript || ''}
-        committedTranscripts={committedTranscripts || []}
+        isConnected={isAnyTranscriptionActive}
+        partialTranscript={activePartialTranscript}
+        committedTranscripts={activeCommittedTranscripts}
         participantName={participantName}
+        source={activeTranscriptionSource}
       />
 
       {/* Host Approval Panel */}
