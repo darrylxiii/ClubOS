@@ -13,6 +13,7 @@ export const usePhoneVerification = (): VerificationHookReturn => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [networkError, setNetworkError] = useState(false);
   
   // Debounce refs
   const lastSendAttemptRef = useRef<number>(0);
@@ -225,6 +226,7 @@ export const usePhoneVerification = (): VerificationHookReturn => {
     isVerifying,
     isSendingOtp,
     resendCooldown,
+    networkError,
     sendOTP,
     verifyOTP,
     resetVerification,

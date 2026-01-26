@@ -3,6 +3,7 @@ export interface VerificationState {
   isVerifying: boolean;
   isSendingOtp: boolean;
   resendCooldown: number;
+  networkError: boolean;
 }
 
 export interface VerificationHookReturn extends VerificationState {
