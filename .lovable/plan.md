@@ -1,86 +1,128 @@
 
-# Fix: Booking "Security Verification Required" Error
+# Fix Translation Manager Constant Loading + Full System Resource Audit
 
-## Problem
+## Problem Summary
 
-Sebastiaan cannot complete a booking on `/book/darryl` from `bytqc.com` because:
+The Translation Manager page at `/admin/translations` shows constant loading because:
 
-```
-BACKEND: RECAPTCHA_SECRET_KEY = ✓ configured
-FRONTEND: VITE_RECAPTCHA_SITE_KEY = ✗ commented out (disabled)
+1. **10 Zombie Jobs**: There are 10 translation jobs stuck in "running" status from December 15-21, 2025 that were never cleaned up. These trigger the "No updates for 51904m 55s" warning.
 
-Result: Frontend sends NO token → Backend blocks production domains
-```
+2. **Aggressive 30s Polling**: The `useTranslationCoverage` hook polls every 30 seconds even when there are no active jobs or changes.
 
-The current logic blocks all non-preview domains when the secret key is configured but no token is provided. Since reCAPTCHA is intentionally disabled on the frontend (the `.env` has a comment: "temporarily disabled due to site key/secret key mismatch"), the backend needs to be updated to handle this gracefully.
+3. **Translation System Not Working**: As noted in the audit, the translation system has fundamental configuration issues (DB-only source, no local fallback), so constant polling is wasteful.
 
 ---
 
-## Solution: Make Backend Gracefully Handle Missing Frontend reCAPTCHA
+## Phase 1: Clean Up Zombie Translation Jobs
 
-We will update the `create-booking` edge function to:
+**Database Migration**: Mark all stuck "running" jobs as "failed"
 
-1. **Recognize known TQC production domains as "trusted"** - If the request comes from a known TQC domain (`bytqc.com`, `thequantumclub.app`, `thequantumclub.nl`), allow it through even without a token (with logging)
-2. **Add rate limiting awareness** - The function should rely on other protections (rate limiting, input validation) when reCAPTCHA is not available
-3. **Log clearly** - Make it obvious in logs when reCAPTCHA is being bypassed so we can monitor
+```sql
+UPDATE translation_generation_jobs 
+SET 
+  status = 'failed',
+  error_message = 'Job timed out - cleaned up by system maintenance',
+  updated_at = NOW(),
+  completed_at = NOW()
+WHERE status = 'running' 
+  AND updated_at < NOW() - INTERVAL '30 minutes';
+```
+
+This will immediately stop the stale job warnings in the UI.
 
 ---
 
-## Implementation Plan
+## Phase 2: Disable Wasteful Polling in Translation Manager
 
-### Phase 1: Update Edge Function Logic
+**File**: `src/hooks/use-translation-coverage.ts`
 
-**File**: `supabase/functions/create-booking/index.ts`
-
-Update the reCAPTCHA verification block to allow known production domains through when no token is provided:
-
-```
-Current Logic:
-├── Token provided? → Verify with Google API
-├── Preview environment? → Allow with warning  
-└── Production (no token)? → BLOCK ❌
-
-New Logic:
-├── Token provided? → Verify with Google API
-├── Preview environment? → Allow with warning
-├── Known TQC production domain? → Allow with warning (NEW) ✓
-└── Unknown production domain? → Block (protection against spam from other origins)
-```
-
-Changes:
-```typescript
-// Lines 53-66: Update the fallback logic
-} else if (isPreviewEnvironment) {
-  // No token in preview - allow with warning
-  console.warn('[Booking] reCAPTCHA token missing in preview environment - allowing request');
-} else if (isKnownProductionDomain) {
-  // NEW: Known TQC production domain without token - allow but log for monitoring
-  // This handles the case where frontend reCAPTCHA is disabled/misconfigured
-  console.warn('[Booking] reCAPTCHA token missing on known production domain - allowing request', {
-    origin,
-    note: 'Frontend reCAPTCHA may be disabled. Consider re-enabling for spam protection.'
-  });
-} else {
-  // Unknown origin without token - block for security
-  console.error("[Booking] reCAPTCHA token MISSING from unknown origin:", { origin });
-  return new Response(
-    JSON.stringify({ error: 'Security verification required. Please refresh and try again.' }),
-    { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-  );
-}
-```
-
-### Phase 2: Add Booking Link Domain to Allowed Origins
-
-Also update the `isPreviewEnvironment` check to include edge cases:
+Change from aggressive 30-second polling to **manual refresh only**:
 
 ```typescript
-// Add id-preview pattern for Lovable's domain format
-const isPreviewEnvironment = origin.includes('lovableproject.com') || 
-                             origin.includes('lovable.app') ||
-                             origin.includes('id-preview') ||  // NEW: Lovable preview subdomain pattern
-                             origin.includes('localhost');
+// Current (wasteful):
+refetchInterval: 30000, // Refresh every 30 seconds
+
+// Fixed (on-demand only):
+refetchInterval: false, // Disable auto-polling - refresh manually when needed
+staleTime: 5 * 60 * 1000, // Cache for 5 minutes
 ```
+
+**File**: `src/pages/admin/TranslationManager.tsx`
+
+Disable auto-refetch on the four status queries since translations are rarely updated:
+
+```typescript
+const namespacesQuery = useQuery({
+  queryKey: ['db-namespaces'],
+  queryFn: async () => { ... },
+  staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  refetchOnWindowFocus: false,
+});
+```
+
+---
+
+## Phase 3: Fix Stale Job Auto-Cleanup
+
+The current cleanup only triggers on page load and only cleans jobs older than 30 minutes. Improve to clean jobs older than 10 minutes and add a periodic check.
+
+**File**: `src/pages/admin/TranslationManager.tsx`
+
+```typescript
+// Reduce cleanup threshold from 30 to 10 minutes
+.lt('updated_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
+
+// Run cleanup every 5 minutes while on the page
+useEffect(() => {
+  cleanupStaleJobs();
+  const interval = setInterval(cleanupStaleJobs, 5 * 60 * 1000);
+  return () => clearInterval(interval);
+}, []);
+```
+
+---
+
+## Full System Resource Audit
+
+Here is where your application currently spends **memory and bandwidth**:
+
+### Critical High-Frequency Consumers (2-5 seconds)
+
+| Component | Interval | Purpose | Recommendation |
+|-----------|----------|---------|----------------|
+| `useMeetingWebRTC.ts` | 2s | WebRTC fallback polling | OK - only when Realtime fails |
+| `RadioListen.tsx` | 3s | Live DJ session | OK - only on radio page |
+| `DJMixer.tsx` | 5s | DJ queue polling | OK - only when DJing |
+| `BulkOperationHistory.tsx` | 5s | Task progress | OK - only during bulk ops |
+
+### Moderate Consumers (30 seconds)
+
+| Component | Interval | Purpose | Recommendation |
+|-----------|----------|---------|----------------|
+| `useTranslationCoverage.ts` | 30s | Translation stats | **DISABLE** - not working anyway |
+| `useSystemHealthMetrics.ts` | 30s | Admin health dashboard | OK - admin only |
+| `useAnomalyAlerts.ts` | 30s | Security alerts | OK - critical for security |
+| `AdminIntelligenceTab.tsx` | 30s | Admin activity | OK - admin only |
+| `UserActivity.tsx` | 30s | User analytics | OK - admin only |
+
+### Background Memory Consumers
+
+| Component | Interval | Purpose | Recommendation |
+|-----------|----------|---------|----------------|
+| `usePerformanceMonitor.ts` | 5s | Performance sampling | Consider disabling in production |
+| `useResourceOptimizer.ts` | 5s | Auto-optimization | Consider disabling in production |
+| `useOfflineSync.ts` | 5min | Cache sync | OK - reasonable interval |
+
+### Real-time WebSocket Subscriptions
+
+These are always-on connections that consume memory:
+
+| Table | Subscriber | Purpose |
+|-------|------------|---------|
+| `translation_generation_jobs` | TranslationJobProgress | Job updates |
+| `anomaly_alerts` | useAnomalyAlerts | Security events |
+| `meeting_participants` | MeetingRoom | Video calls |
+| `messages` | Chat components | Messaging |
 
 ---
 
@@ -88,36 +130,17 @@ const isPreviewEnvironment = origin.includes('lovableproject.com') ||
 
 | File | Changes |
 |------|---------|
-| `supabase/functions/create-booking/index.ts` | Update reCAPTCHA fallback logic to allow known TQC production domains |
+| `src/hooks/use-translation-coverage.ts` | Disable 30s auto-polling |
+| `src/pages/admin/TranslationManager.tsx` | Add staleTime, disable refetchOnWindowFocus, improve cleanup |
+| Database migration | Clean up 10 zombie translation jobs |
 
 ---
 
-## Why This Is Safe
-
-1. **Only known TQC domains are allowed** - Unknown origins are still blocked
-2. **Other protections remain active**:
-   - Input validation with Zod (email, phone, name length limits)
-   - Database constraints (unique booking prevention)
-   - Rate limiting at Supabase Edge Functions level
-3. **Full audit trail** - All bypasses are logged with warnings
-4. **Easy to re-enable** - When reCAPTCHA frontend keys are fixed, the normal flow resumes automatically
-
----
-
-## Long-Term Recommendation
-
-After this immediate fix, consider:
-1. **Re-enable reCAPTCHA properly** - Create new matching site key + secret key pair
-2. **Update both** `VITE_RECAPTCHA_SITE_KEY` (frontend) and `RECAPTCHA_SECRET_KEY` (backend)
-3. This provides an additional layer of spam protection for public booking pages
-
----
-
-## Expected Result
+## Expected Results
 
 After implementation:
-- Booking from `bytqc.com/book/darryl` works immediately
-- Booking from `thequantumclub.app` and `thequantumclub.nl` also works
-- Lovable preview URLs continue to work
-- Unknown/malicious origins are still blocked
-- Clear logging for monitoring reCAPTCHA bypass situations
+- No more "constant loading" on Translation Manager
+- No more "51904m 55s" stale job warnings
+- Reduced memory usage from eliminated 30s polling
+- Translation page loads once and caches until manual refresh
+- Stale jobs automatically cleaned every 5 minutes
