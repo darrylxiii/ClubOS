@@ -1,128 +1,124 @@
 
-# Fix Translation Manager Constant Loading + Full System Resource Audit
+# Fix Meeting Join Links + Comprehensive Meeting Experience Enhancement
 
 ## Problem Summary
 
-The Translation Manager page at `/admin/translations` shows constant loading because:
+Sebastiaan cannot join meetings from bytqc.com because clicking "Join Meeting" redirects to a 404 page. The root cause is **inconsistent URL routing**: the app uses `/meeting/:code` (singular) as the active route, but several edge functions and components still generate links with `/meetings/:code` (plural).
 
-1. **10 Zombie Jobs**: There are 10 translation jobs stuck in "running" status from December 15-21, 2025 that were never cleaned up. These trigger the "No updates for 51904m 55s" warning.
-
-2. **Aggressive 30s Polling**: The `useTranslationCoverage` hook polls every 30 seconds even when there are no active jobs or changes.
-
-3. **Translation System Not Working**: As noted in the audit, the translation system has fundamental configuration issues (DB-only source, no local fallback), so constant polling is wasteful.
+Additionally:
+- Host emails DO have a "Join Meeting" button, but the instructions could be clearer
+- Calendar agendas lack a visible join link (only in the location field, not the description body)
 
 ---
 
-## Phase 1: Clean Up Zombie Translation Jobs
+## Root Cause Analysis
 
-**Database Migration**: Mark all stuck "running" jobs as "failed"
+### 404 Error Sources
 
-```sql
-UPDATE translation_generation_jobs 
-SET 
-  status = 'failed',
-  error_message = 'Job timed out - cleaned up by system maintenance',
-  updated_at = NOW(),
-  completed_at = NOW()
-WHERE status = 'running' 
-  AND updated_at < NOW() - INTERVAL '30 minutes';
+| File | Line | Current (BROKEN) | Should Be |
+|------|------|------------------|-----------|
+| `create-instant-meeting/index.ts` | 147 | `/meetings/${code}` | `/meeting/${code}` |
+| `create-booking/index.ts` | 712 | `/meetings/${code}` | `/meeting/${code}` |
+| `JoinMeeting.tsx` | 81 | `/meetings/${code}` | `/meeting/${code}` |
+| `_shared/app-config.ts` | 40 | `/meetings/${code}` | `/meeting/${code}` |
+
+### Active Route Definition
+```
+src/routes/meetings.routes.tsx:34
+path="/meeting/:meetingCode"  ← This is the ONLY valid route
 ```
 
-This will immediately stop the stale job warnings in the UI.
+There is no `/meetings/:code` route - that pattern leads to the dashboard, not a specific meeting room.
 
 ---
 
-## Phase 2: Disable Wasteful Polling in Translation Manager
+## Implementation Plan
 
-**File**: `src/hooks/use-translation-coverage.ts`
+### Phase 1: Fix All Legacy URL Patterns (Critical - Fixes 404)
 
-Change from aggressive 30-second polling to **manual refresh only**:
+**File 1**: `supabase/functions/create-instant-meeting/index.ts`
+- Line 147: Change `/meetings/` to `/meeting/`
+- Also update fallback domain from `app.thequantumclub.com` to `bytqc.com`
+
+**File 2**: `supabase/functions/create-booking/index.ts`
+- Line 712: Change `/meetings/` to `/meeting/`
+
+**File 3**: `src/pages/JoinMeeting.tsx`
+- Line 81: Change `navigate('/meetings/...')` to `navigate('/meeting/...')`
+
+**File 4**: `supabase/functions/_shared/app-config.ts`
+- Line 40: Change `AppUrls.meeting` to use `/meeting/` (singular)
+
+### Phase 2: Add Backward Compatibility Redirect
+
+**File**: `src/routes/meetings.routes.tsx`
+
+Add a catch-all redirect to handle any legacy plural URLs:
+```tsx
+<Route
+  path="/meetings/:meetingCode"
+  element={<Navigate to={`/meeting/${meetingCode}`} replace />}
+/>
+```
+
+This ensures existing calendar invites and bookmarks don't break.
+
+### Phase 3: Enhance Calendar Agenda with Join Link
+
+**File**: `supabase/functions/send-booking-confirmation/index.ts`
+
+Update the `enhancedDescription` to prominently include the join link at the top:
+```typescript
+const enhancedDescription = hasMeetingLink 
+  ? `Join Meeting: ${meetingLink}\n\n${bookingLink.description || 'Meeting scheduled via The Quantum Club'}`
+  : bookingLink.description || 'Meeting scheduled via The Quantum Club';
+```
+
+This ensures the join link appears in:
+- Google Calendar event description
+- Outlook event body
+- .ics file DESCRIPTION field
+
+### Phase 4: Improve Host Email with Dedicated Join Section
+
+**File**: `supabase/functions/send-booking-confirmation/index.ts`
+
+Update the host email content (lines 466-504) to include:
+1. A more prominent "Join as Host" section before the booking details
+2. Clearer copy: "Your meeting room is ready"
 
 ```typescript
-// Current (wasteful):
-refetchInterval: 30000, // Refresh every 30 seconds
-
-// Fixed (on-demand only):
-refetchInterval: false, // Disable auto-polling - refresh manually when needed
-staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+${hasMeetingLink ? `
+  ${Spacer(24)}
+  ${Card({
+    variant: 'success',
+    content: `
+      ${Heading({ text: 'Your Meeting Room is Ready', level: 2, align: 'center' })}
+      ${Spacer(12)}
+      ${Paragraph('Click below to join as the host when the meeting starts.', 'secondary')}
+      ${Spacer(16)}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            ${Button({ url: meetingLink, text: 'Join as Host', variant: 'primary' })}
+          </td>
+        </tr>
+      </table>
+    `
+  })}
+` : ''}
 ```
 
-**File**: `src/pages/admin/TranslationManager.tsx`
+### Phase 5: Add Meeting Link to Meeting Notes Pre-Population
 
-Disable auto-refetch on the four status queries since translations are rarely updated:
+When a meeting is created from a booking, pre-populate the meeting notes/agenda with a join link section that can be shared:
 
+**File**: `supabase/functions/create-meeting-from-booking/index.ts`
+
+Update the meeting creation to include a default description with the join link:
 ```typescript
-const namespacesQuery = useQuery({
-  queryKey: ['db-namespaces'],
-  queryFn: async () => { ... },
-  staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  refetchOnWindowFocus: false,
-});
+description: `${booking.notes || `Meeting with ${booking.guest_name}`}\n\nJoin Link: ${quantumMeetingLink}`,
 ```
-
----
-
-## Phase 3: Fix Stale Job Auto-Cleanup
-
-The current cleanup only triggers on page load and only cleans jobs older than 30 minutes. Improve to clean jobs older than 10 minutes and add a periodic check.
-
-**File**: `src/pages/admin/TranslationManager.tsx`
-
-```typescript
-// Reduce cleanup threshold from 30 to 10 minutes
-.lt('updated_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
-
-// Run cleanup every 5 minutes while on the page
-useEffect(() => {
-  cleanupStaleJobs();
-  const interval = setInterval(cleanupStaleJobs, 5 * 60 * 1000);
-  return () => clearInterval(interval);
-}, []);
-```
-
----
-
-## Full System Resource Audit
-
-Here is where your application currently spends **memory and bandwidth**:
-
-### Critical High-Frequency Consumers (2-5 seconds)
-
-| Component | Interval | Purpose | Recommendation |
-|-----------|----------|---------|----------------|
-| `useMeetingWebRTC.ts` | 2s | WebRTC fallback polling | OK - only when Realtime fails |
-| `RadioListen.tsx` | 3s | Live DJ session | OK - only on radio page |
-| `DJMixer.tsx` | 5s | DJ queue polling | OK - only when DJing |
-| `BulkOperationHistory.tsx` | 5s | Task progress | OK - only during bulk ops |
-
-### Moderate Consumers (30 seconds)
-
-| Component | Interval | Purpose | Recommendation |
-|-----------|----------|---------|----------------|
-| `useTranslationCoverage.ts` | 30s | Translation stats | **DISABLE** - not working anyway |
-| `useSystemHealthMetrics.ts` | 30s | Admin health dashboard | OK - admin only |
-| `useAnomalyAlerts.ts` | 30s | Security alerts | OK - critical for security |
-| `AdminIntelligenceTab.tsx` | 30s | Admin activity | OK - admin only |
-| `UserActivity.tsx` | 30s | User analytics | OK - admin only |
-
-### Background Memory Consumers
-
-| Component | Interval | Purpose | Recommendation |
-|-----------|----------|---------|----------------|
-| `usePerformanceMonitor.ts` | 5s | Performance sampling | Consider disabling in production |
-| `useResourceOptimizer.ts` | 5s | Auto-optimization | Consider disabling in production |
-| `useOfflineSync.ts` | 5min | Cache sync | OK - reasonable interval |
-
-### Real-time WebSocket Subscriptions
-
-These are always-on connections that consume memory:
-
-| Table | Subscriber | Purpose |
-|-------|------------|---------|
-| `translation_generation_jobs` | TranslationJobProgress | Job updates |
-| `anomaly_alerts` | useAnomalyAlerts | Security events |
-| `meeting_participants` | MeetingRoom | Video calls |
-| `messages` | Chat components | Messaging |
 
 ---
 
@@ -130,17 +126,33 @@ These are always-on connections that consume memory:
 
 | File | Changes |
 |------|---------|
-| `src/hooks/use-translation-coverage.ts` | Disable 30s auto-polling |
-| `src/pages/admin/TranslationManager.tsx` | Add staleTime, disable refetchOnWindowFocus, improve cleanup |
-| Database migration | Clean up 10 zombie translation jobs |
+| `supabase/functions/create-instant-meeting/index.ts` | Fix URL pattern + default domain |
+| `supabase/functions/create-booking/index.ts` | Fix URL pattern |
+| `src/pages/JoinMeeting.tsx` | Fix navigation path |
+| `supabase/functions/_shared/app-config.ts` | Fix AppUrls.meeting pattern |
+| `src/routes/meetings.routes.tsx` | Add backward-compat redirect |
+| `supabase/functions/send-booking-confirmation/index.ts` | Enhanced description + host join button |
+| `supabase/functions/create-meeting-from-booking/index.ts` | Include join link in meeting description |
+
+---
+
+## Additional 100/100 Enhancements Included
+
+1. **Backward Compatibility**: Legacy `/meetings/:code` URLs will auto-redirect to `/meeting/:code` - no broken bookmarks
+2. **Calendar Agenda Link**: Join link prominently at the top of event descriptions
+3. **Host Email Clarity**: Dedicated "Your Meeting Room is Ready" card with "Join as Host" button
+4. **Meeting Description**: Auto-includes join link for sharing via any channel
+5. **Consistent Fallback Domain**: All edge functions default to `bytqc.com` instead of old domains
+6. **Schema.org Location**: Meeting link already in location field for rich email previews
 
 ---
 
 ## Expected Results
 
 After implementation:
-- No more "constant loading" on Translation Manager
-- No more "51904m 55s" stale job warnings
-- Reduced memory usage from eliminated 30s polling
-- Translation page loads once and caches until manual refresh
-- Stale jobs automatically cleaned every 5 minutes
+- Clicking "Join Meeting" from any email works (no 404)
+- Legacy links from old calendar invites still work (redirect)
+- Host receives email with clear "Join as Host" button in its own section
+- Calendar events (Google, Outlook, .ics) show join link in agenda description
+- Meeting descriptions include shareable join link
+- All URLs consistently use `bytqc.com` as production domain
