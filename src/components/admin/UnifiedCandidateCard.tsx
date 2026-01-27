@@ -18,7 +18,8 @@ import {
   Pencil,
   History,
   Archive,
-  Trash2
+  Trash2,
+  UserPlus
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +28,7 @@ import { DeleteCandidateDialog } from "./DeleteCandidateDialog";
 import { MatchScoreInline } from "@/components/partner/MatchScoreInline";
 import { UrgencyIndicators } from "@/components/partner/UrgencyIndicators";
 import { CandidateActionBar } from "@/components/partner/CandidateActionBar";
+import { CandidateStrategistDialog } from "./CandidateStrategistDialog";
 
 interface UnifiedCandidateCardProps {
   candidate: any;
@@ -46,6 +48,7 @@ export function UnifiedCandidateCard({
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteType, setDeleteType] = useState<'soft' | 'hard'>('soft');
+  const [strategistDialogOpen, setStrategistDialogOpen] = useState(false);
 
   const activityColor = getActivityColor(candidate.last_interaction_date, activityThresholds);
   const activityLabel = getActivityLabel(candidate.last_interaction_date);
@@ -107,6 +110,15 @@ export function UnifiedCandidateCard({
 
               {/* Actions */}
               <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStrategistDialogOpen(true)}
+                  className="h-8 text-xs"
+                  title="Assign Strategist"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -291,6 +303,20 @@ export function UnifiedCandidateCard({
           if (onDelete) onDelete();
         }}
         deleteType={deleteType}
+      />
+
+      {/* Strategist Assignment Dialog */}
+      <CandidateStrategistDialog
+        open={strategistDialogOpen}
+        onOpenChange={setStrategistDialogOpen}
+        candidate={{
+          id: candidate.id,
+          full_name: candidate.full_name,
+          email: candidate.email,
+          avatar_url: candidate.avatar_url,
+          current_title: candidate.current_title,
+          assigned_strategist_id: candidate.assigned_strategist_id,
+        }}
       />
     </Card>
   );
