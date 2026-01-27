@@ -1,247 +1,135 @@
 
-# Admin Strategist Assignment Management System
+# Fix Strategist Assignment Dropdowns
 
-## Overview
-This plan creates a comprehensive admin system for managing strategist assignments across both companies and candidates. The system will provide a centralized modal for bulk viewing/editing, plus inline assignment capabilities throughout the admin interface.
+## Problem Analysis
 
-## Current State Analysis
+The dropdown selects for assigning strategists are empty because:
 
-| Entity | Current Assignment Method | Gap |
-|--------|--------------------------|-----|
-| Companies | Dropdown menu → StrategistAssignmentDialog | No centralized overview, no bulk management |
-| Candidates | BulkActionsToolbar in AdminCandidates | No individual assignment dialog, no quick inline edit |
+1. **Wrong data source**: The `useStrategistList` hook queries `talent_strategists` table with filters that don't exist:
+   - `.eq('is_active', true)` — column doesn't exist
+   - Uses `user_id` field — column doesn't exist (only `id`)
 
-**Database Status:**
-- All 15+ companies are currently assigned to Sebastiaan Brouwer (backfilled by trigger)
-- The `company_strategist_assignments` table has proper schema with SLA configs
-- Candidates use `assigned_strategist_id` in `candidate_profiles` table
+2. **Stale table**: The `talent_strategists` table is a legacy static table with 4 entries that have no linkage to actual user accounts in `profiles`
 
----
+3. **Correct data source**: Team members are identified via `profiles` + `user_roles` where `role` is `'admin'` or `'strategist'`
 
-## Implementation Components
+## Current State
 
-### 1. Admin Strategist Management Modal (Centralized Hub)
+| Table | Status |
+|-------|--------|
+| `talent_strategists` | Legacy, no `is_active`, no `user_id`, no link to profiles |
+| `profiles` | Active users with real UUIDs |
+| `user_roles` | Has `admin` and `strategist` roles |
+| `company_strategist_assignments.strategist_id` | References `profiles.id` (e.g., Sebastiaan = `f1f446e1-...`) |
 
-A full-screen modal/page accessible from Admin dashboard showing:
+**Available TQC Team Members (from user_roles):**
+- Admins: Darryl, Francis, Ivo, Jan, Jasper, Jelle, Jill, Megan, Paul, Romy, Sebastiaan (11 people)
+- Strategists: Sebastiaan (1 person)
 
-```text
-┌────────────────────────────────────────────────────────────────────────────┐
-│ 👥 Strategist Assignment Manager                              [×]         │
-├────────────────────────────────────────────────────────────────────────────┤
-│ ┌─── Tabs ───────────────────────────────────────────────────────────────┐ │
-│ │ [Companies (15)]  [Candidates (247)]  [Strategist Workload]           │ │
-│ └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                            │
-│ ┌─── Companies Tab ──────────────────────────────────────────────────────┐ │
-│ │ Search: [________________] [Industry ▼] [Unassigned Only □]           │ │
-│ │                                                                        │ │
-│ │ Company              │ Current Strategist  │ SLA │ Actions            │ │
-│ │ ─────────────────────┼────────────────────┼─────┼────────────────────│ │
-│ │ ABB                  │ Sebastiaan B.      │ 3d  │ [Change] [Remove]  │ │
-│ │ Qualogy              │ Sebastiaan B.      │ 3d  │ [Change] [Remove]  │ │
-│ │ HEARS                │ —                  │ —   │ [Assign]           │ │
-│ │                                                                        │ │
-│ │ [Bulk Assign Selected] [Export Assignments]                           │ │
-│ └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                            │
-│ ┌─── Candidates Tab ─────────────────────────────────────────────────────┐ │
-│ │ Search: [________________] [Unassigned Only □] [Active Only □]        │ │
-│ │                                                                        │ │
-│ │ Candidate           │ Current Strategist  │ Status │ Actions          │ │
-│ │ ────────────────────┼────────────────────┼────────┼──────────────────│ │
-│ │ Sarah Chen          │ —                  │ Active │ [Assign]         │ │
-│ │ Mark Liu            │ Sebastiaan B.      │ Active │ [Change]         │ │
-│ └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                            │
-│ ┌─── Strategist Workload Tab ────────────────────────────────────────────┐ │
-│ │ Strategist          │ Companies │ Candidates │ Active Apps │ Capacity │ │
-│ │ ────────────────────┼───────────┼────────────┼─────────────┼──────────│ │
-│ │ Sebastiaan B.       │ 15        │ 10         │ 23          │ ██████░░ │ │
-│ │ (Unassigned)        │ 0         │ 237        │ —           │ —        │ │
-│ └────────────────────────────────────────────────────────────────────────┘ │
-└────────────────────────────────────────────────────────────────────────────┘
-```
+## Solution
 
-### 2. Add Company Dialog Enhancement
+### Hook Changes: `useStrategistWorkload.ts`
 
-When creating a new company, add strategist assignment step:
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│ Add New Company                                    [×]  │
-├─────────────────────────────────────────────────────────┤
-│ Step 3 of 3: Assign Strategist                          │
-│                                                         │
-│ Company: TechCorp                                       │
-│                                                         │
-│ Assign Strategist *                                     │
-│ ┌─────────────────────────────────────────────────────┐ │
-│ │ [Select strategist...]                          ▼  │ │
-│ │   ○ Sebastiaan Brouwer (15 companies, 10 cand.)   │ │
-│ │   ○ Auto-assign (round-robin)                      │ │
-│ └─────────────────────────────────────────────────────┘ │
-│                                                         │
-│ SLA Response Time: [3] days                             │
-│ Commission Split:  [20] %                               │
-│                                                         │
-│ [← Back]                            [Create Company]    │
-└─────────────────────────────────────────────────────────┘
-```
-
-### 3. Candidate Strategist Assignment Dialog
-
-A dedicated modal for assigning strategist to individual candidates:
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│ Assign Strategist                                  [×]  │
-├─────────────────────────────────────────────────────────┤
-│ Candidate: Sarah Chen                                   │
-│ Status: Active • Last activity: 2 days ago              │
-│                                                         │
-│ Current Strategist: (None assigned)                     │
-│                                                         │
-│ Select Strategist                                       │
-│ ┌─────────────────────────────────────────────────────┐ │
-│ │ ○ Sebastiaan Brouwer                               │ │
-│ │   15 companies • 10 candidates • 85% capacity      │ │
-│ │                                                     │ │
-│ │ ○ (More strategists would appear here)             │ │
-│ └─────────────────────────────────────────────────────┘ │
-│                                                         │
-│ Assignment Notes (optional):                            │
-│ ┌─────────────────────────────────────────────────────┐ │
-│ │ High-priority candidate for fintech roles          │ │
-│ └─────────────────────────────────────────────────────┘ │
-│                                                         │
-│ [Cancel]                                     [Assign]   │
-└─────────────────────────────────────────────────────────┘
-```
-
-### 4. Inline Quick Assignment
-
-Add quick-edit capability to existing components:
-
-**In UnifiedCandidateCard:**
-- Add small "Assign Strategist" button/icon next to candidate name
-- Shows current strategist with ability to change inline
-
-**In Companies table:**
-- Show strategist column with current assignment
-- Click to open quick-change popover
-
----
-
-## Files to Create
-
-| File | Purpose |
-|------|---------|
-| `src/components/admin/StrategistManagementModal.tsx` | Main admin modal with tabs |
-| `src/components/admin/StrategistCompanyTab.tsx` | Companies assignment tab content |
-| `src/components/admin/StrategistCandidateTab.tsx` | Candidates assignment tab content |
-| `src/components/admin/StrategistWorkloadTab.tsx` | Workload overview tab content |
-| `src/components/admin/CandidateStrategistDialog.tsx` | Individual candidate assignment dialog |
-| `src/hooks/useStrategistWorkload.ts` | Hook for calculating strategist capacity |
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/pages/Admin.tsx` | Add "Manage Strategists" button to open modal |
-| `src/components/admin/UnifiedCandidateCard.tsx` | Add inline strategist display/edit |
-| `src/components/companies/AddCompanyDialog.tsx` | Add strategist assignment step |
-| `src/pages/Companies.tsx` | Show strategist column in company list |
-| `src/components/admin/companies/CompanyRowActions.tsx` | Already has dialog - enhance it |
-
----
-
-## Database Changes
-
-No schema changes required - existing tables support this:
-- `company_strategist_assignments` - for company assignments
-- `candidate_profiles.assigned_strategist_id` - for candidate assignments
-
----
-
-## Technical Implementation
-
-### Hook: useStrategistWorkload
+Replace the `talent_strategists` query with a proper `profiles` + `user_roles` join:
 
 ```typescript
-// Calculates workload for each strategist
-interface StrategistWorkload {
-  id: string;
-  name: string;
-  avatar_url: string;
+// OLD (broken)
+const { data } = await supabase
+  .from('talent_strategists')
+  .select('id, user_id, full_name, ...')
+  .eq('is_active', true);
+
+// NEW (correct)
+const { data } = await supabase
+  .from('profiles')
+  .select(`
+    id,
+    full_name,
+    email,
+    avatar_url,
+    current_title,
+    user_roles!inner(role)
+  `)
+  .in('user_roles.role', ['admin', 'strategist'])
+  .order('full_name');
+```
+
+### Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/hooks/useStrategistWorkload.ts` | Query `profiles` + `user_roles` instead of `talent_strategists` |
+| `src/components/admin/StrategistCompanyTab.tsx` | Update to use new data structure (use `id` not `user_id`) |
+| `src/components/admin/StrategistCandidateTab.tsx` | Update to use new data structure |
+| `src/components/admin/StrategistWorkloadTab.tsx` | Update to use new data structure |
+| `src/components/admin/CandidateStrategistDialog.tsx` | Update to use new data structure |
+
+### Data Structure Change
+
+```typescript
+// OLD interface expected
+interface Strategist {
+  user_id: string;      // ❌ doesn't exist in talent_strategists
+  full_name: string;
+  photo_url: string;
+  // ...
+}
+
+// NEW interface
+interface TeamMember {
+  id: string;           // ✅ profiles.id (used as strategist_id in assignments)
+  full_name: string;
   email: string;
-  companyCount: number;
-  candidateCount: number;
-  activeApplications: number;
-  capacityPercent: number; // 0-100
+  avatar_url: string;
+  current_title: string;
 }
 ```
 
-### Component: StrategistManagementModal
+### Component Updates
 
-- Uses Radix Dialog for modal
-- Three tabs via Radix Tabs
-- React Query for data fetching
-- Bulk selection with checkboxes
-- Search/filter functionality
-- Optimistic updates for smooth UX
+All components that render strategist options need to change from:
 
-### Integration Points
+```typescript
+// OLD
+{strategists?.map((s) => (
+  <SelectItem key={s.user_id} value={s.user_id}>
+    {s.full_name}
+  </SelectItem>
+))}
 
-1. **Admin Dashboard**: "Manage Strategists" button in header
-2. **Companies Page**: Strategist column visible for admins
-3. **Candidates Page**: Inline assignment in cards + bulk toolbar
-4. **Add Company Flow**: Step 3 strategist selection
+// NEW
+{teamMembers?.map((member) => (
+  <SelectItem key={member.id} value={member.id}>
+    {member.full_name}
+  </SelectItem>
+))}
+```
 
----
+## Technical Details
 
-## User Experience Flow
+### Database Query for Team Members
 
-### Admin Assigning Strategist to New Company
+```sql
+SELECT p.id, p.full_name, p.email, p.avatar_url, p.current_title
+FROM profiles p
+JOIN user_roles ur ON p.id = ur.user_id
+WHERE ur.role IN ('admin', 'strategist')
+ORDER BY p.full_name
+```
 
-1. Admin clicks "Add Company"
-2. Fills company details (Step 1-2)
-3. Step 3: Select strategist from dropdown with workload indicators
-4. Creates company with assignment
+This returns all 11 team members who can be assigned as concierges.
 
-### Admin Reassigning Strategist
+### Workload Calculation Update
 
-1. Admin opens Strategist Management Modal
-2. Selects Companies tab
-3. Searches for company
-4. Clicks "Change" → selects new strategist
-5. Confirms change
+The workload calculation will continue to work because:
+- `company_strategist_assignments.strategist_id` stores `profiles.id`
+- `candidate_profiles.assigned_strategist_id` stores `profiles.id`
 
-### Admin Bulk Assigning Candidates
+We just need to change the source of strategist info from `talent_strategists` to `profiles`.
 
-1. Admin opens Strategist Management Modal
-2. Selects Candidates tab
-3. Filters to "Unassigned Only"
-4. Selects multiple candidates via checkboxes
-5. Uses "Bulk Assign" dropdown to select strategist
-6. All selected candidates updated
+## Expected Outcome
 
----
-
-## Expected Outcomes
-
-| Metric | Before | After |
-|--------|--------|-------|
-| Time to assign strategist to company | ~5 clicks (find company → dropdown → dialog) | 2 clicks from modal |
-| Visibility of all assignments | None (must check each company) | Full overview in one place |
-| Candidate assignment | Bulk only, no individual | Both bulk and individual |
-| Workload balancing | Manual counting | Visual capacity indicators |
-
----
-
-## Priority Order
-
-1. **P0**: StrategistManagementModal with Companies tab (immediate need)
-2. **P0**: CandidateStrategistDialog for individual assignment
-3. **P1**: Add strategist step to AddCompanyDialog
-4. **P1**: Workload tab for capacity planning
-5. **P2**: Inline assignment in cards (nice-to-have polish)
+After this fix:
+- Dropdowns will show all 11 TQC team members (admins + strategists)
+- Assigning a team member will correctly store their `profiles.id`
+- Workload calculations will accurately reflect company/candidate counts per team member
