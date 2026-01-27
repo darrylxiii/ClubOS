@@ -436,43 +436,45 @@ export function FunnelSteps() {
             </div>
 
             {emailOtpSent && !emailVerified && (
-              <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1">
-                    <Label className="text-base font-semibold">Verify Your Email</Label>
-                    <p className="text-sm text-muted-foreground mt-1">
+              <div className="p-3 sm:p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3 max-w-full overflow-hidden">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-sm sm:text-base font-semibold">Verify Your Email</Label>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
                       We've sent a 6-digit code to {formData.contact_email}
                     </p>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Enter Verification Code *</Label>
-                  <InputOTP
-                    maxLength={6}
-                    value={emailOtpCode}
-                    onChange={(value) => {
-                      setEmailOtpCode(value);
-                      if (value.length === 6) {
-                        verifyEmailOTP(formData.contact_email, value, async () => {
-                          setEmailVerified(true);
-                          setEmailOtpCode("");
-                          // Track email verification and auto-advance to next step
-                          await analytics.trackVerification('email', 'verified');
-                          await analytics.trackStepComplete(currentStep, STEPS[currentStep]);
-                          setCurrentStep(1);
-                        });
-                      }
-                    }}
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
+                  <Label className="text-sm">Enter Verification Code *</Label>
+                  <div className="flex justify-center w-full">
+                    <InputOTP
+                      maxLength={6}
+                      value={emailOtpCode}
+                      onChange={(value) => {
+                        setEmailOtpCode(value);
+                        if (value.length === 6) {
+                          verifyEmailOTP(formData.contact_email, value, async () => {
+                            setEmailVerified(true);
+                            setEmailOtpCode("");
+                            // Track email verification and auto-advance to next step
+                            await analytics.trackVerification('email', 'verified');
+                            await analytics.trackStepComplete(currentStep, STEPS[currentStep]);
+                            setCurrentStep(1);
+                          });
+                        }
+                      }}
+                    >
+                      <InputOTPGroup className="gap-1 sm:gap-2">
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
                   {isVerifyingEmail && (
                     <p className="text-sm text-muted-foreground">Verifying...</p>
                   )}
