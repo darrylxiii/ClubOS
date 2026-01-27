@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Star, ExternalLink, X, Sparkles } from "lucide-react";
+import { Star, ExternalLink, X, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -74,7 +74,7 @@ export function CandidateShortlistWidget({ companyId }: { companyId: string }) {
       <Card className="glass-card">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Star className="h-4 w-4 text-gold" />
+            <Star className="h-4 w-4 text-amber-500" />
             Starred Candidates
           </CardTitle>
         </CardHeader>
@@ -90,14 +90,14 @@ export function CandidateShortlistWidget({ companyId }: { companyId: string }) {
   }
 
   return (
-    <Card className="glass-card group hover:border-gold/30 transition-all duration-300">
+    <Card className="glass-card group hover:border-primary/30 transition-all duration-300">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-base">
-            <Star className="h-4 w-4 text-gold fill-gold" />
+            <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
             Starred Candidates
           </div>
-          <Badge variant="outline" className="bg-gold/10 text-gold border-gold/30">
+          <Badge variant="secondary">
             {shortlist?.length || 0}
           </Badge>
         </CardTitle>
@@ -105,7 +105,7 @@ export function CandidateShortlistWidget({ companyId }: { companyId: string }) {
       <CardContent>
         {!shortlist || shortlist.length === 0 ? (
           <div className="text-center py-6 space-y-2">
-            <Sparkles className="h-8 w-8 mx-auto text-gold/40" />
+            <Users className="h-8 w-8 mx-auto text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">
               Star candidates from applications to access them quickly
             </p>
@@ -125,9 +125,9 @@ export function CandidateShortlistWidget({ companyId }: { companyId: string }) {
                   transition={{ delay: index * 0.05 }}
                   className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors group/item"
                 >
-                  <Avatar className="h-9 w-9 border border-gold/20">
+                  <Avatar className="h-9 w-9 border border-border">
                     <AvatarImage src={item.candidate?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gold/10 text-gold text-xs">
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
                       {item.candidate?.full_name?.charAt(0) || '?'}
                     </AvatarFallback>
                   </Avatar>
@@ -138,7 +138,7 @@ export function CandidateShortlistWidget({ companyId }: { companyId: string }) {
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {item.candidate?.title || 'No title'} 
-                      {item.job && <span className="text-gold"> • {item.job.title}</span>}
+                      {item.job && <span className="text-primary"> • {item.job.title}</span>}
                     </p>
                   </div>
 

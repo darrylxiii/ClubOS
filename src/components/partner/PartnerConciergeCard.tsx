@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageSquare, Calendar, Mail, Clock, Activity, Crown, Sparkles } from "lucide-react";
+import { MessageSquare, Calendar, Mail, Clock, Activity, User } from "lucide-react";
 import { CardLoadingSkeleton } from "@/components/LoadingSkeletons";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -87,7 +87,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
 
   if (loading) {
     return (
-      <Card className="glass-card border-2 border-gold/30">
+      <Card className="glass-card">
         <CardHeader>
           <CardLoadingSkeleton />
         </CardHeader>
@@ -102,19 +102,16 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="relative overflow-hidden border-2 border-dashed border-gold/30 bg-gradient-to-br from-card via-card to-gold/5">
-          {/* Decorative gold line */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
-          
+        <Card className="glass-card border-dashed">
           <CardHeader>
             <div className="flex items-center gap-4">
-              <div className="p-4 rounded-full bg-gold/10 border border-gold/20">
-                <Crown className="w-8 h-8 text-gold" />
+              <div className="p-4 rounded-full bg-muted border border-border">
+                <User className="w-8 h-8 text-muted-foreground" />
               </div>
               <div>
                 <CardTitle className="text-xl flex items-center gap-2">
-                  <span>Elite Concierge Assignment</span>
-                  <Badge variant="outline" className="border-gold/50 text-gold bg-gold/10">
+                  <span>Concierge Assignment</span>
+                  <Badge variant="secondary">
                     Coming Soon
                   </Badge>
                 </CardTitle>
@@ -142,29 +139,20 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="relative overflow-hidden border-2 border-gold/30 bg-gradient-to-br from-card via-card to-gold/5">
-        {/* Premium gold accent line */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-gold/30 via-gold to-gold/30" />
-        
-        {/* Subtle glow effect */}
-        <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-gold/10 blur-3xl" />
-        
+      <Card className="glass-card group hover:border-primary/30 transition-all duration-300">
         <CardHeader className="pb-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-5">
-              {/* Premium Avatar with gold ring */}
               <div className="relative">
-                <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-gold via-gold/50 to-gold/30 opacity-75" />
-                <Avatar className="relative h-20 w-20 border-4 border-background">
+                <Avatar className="h-16 w-16 border-2 border-border">
                   <AvatarImage src={strategist.avatar_url} alt={strategist.full_name} />
-                  <AvatarFallback className="bg-gradient-to-br from-gold/30 to-gold/10 text-gold font-bold text-xl">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
-                {/* Availability pulse */}
                 {strategist.is_available && (
                   <motion.div 
-                    className="absolute -bottom-1 -right-1 w-6 h-6 bg-success rounded-full border-4 border-background"
+                    className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-3 border-background"
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
@@ -172,16 +160,13 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
               </div>
               
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-gold" />
-                  <span className="text-sm font-semibold uppercase tracking-wider text-gold">
-                    Your Dedicated Concierge
-                  </span>
-                </div>
-                <CardTitle className="text-2xl font-bold tracking-tight">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Your Dedicated Concierge
+                </p>
+                <CardTitle className="text-xl font-bold tracking-tight">
                   {strategist.full_name}
                 </CardTitle>
-                <p className="text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {strategist.title || 'Senior Partner Strategist'}
                 </p>
               </div>
@@ -189,42 +174,35 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
 
             <Badge 
               variant={strategist.is_available ? "default" : "secondary"} 
-              className={`flex items-center gap-1.5 px-3 py-1.5 ${
+              className={`flex items-center gap-1.5 ${
                 strategist.is_available 
-                  ? 'bg-success/20 text-success border-success/30' 
+                  ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' 
                   : ''
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${strategist.is_available ? 'bg-success animate-pulse' : 'bg-muted-foreground'}`} />
+              <span className={`w-2 h-2 rounded-full ${strategist.is_available ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground'}`} />
               {strategist.is_available ? 'Available Now' : 'Busy'}
             </Badge>
           </div>
 
           {strategist.bio && (
-            <CardDescription className="mt-4 text-base leading-relaxed">
+            <CardDescription className="mt-4 text-sm leading-relaxed">
               {strategist.bio}
             </CardDescription>
           )}
         </CardHeader>
 
         <CardContent className="space-y-5">
-          {/* Premium Action Buttons */}
+          {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-3">
-            <Button
-              className="w-full bg-gradient-to-r from-gold to-gold-muted text-gold-foreground hover:from-gold/90 hover:to-gold-muted/90 shadow-lg"
-              asChild
-            >
+            <Button className="w-full" asChild>
               <Link to="/messages">
                 <MessageSquare className="w-4 h-4 mr-2" />
-                Message {strategist.full_name.split(' ')[0]}
+                Message
               </Link>
             </Button>
 
-            <Button
-              variant="outline"
-              className="w-full border-gold/30 hover:bg-gold/10 hover:border-gold/50"
-              asChild
-            >
+            <Button variant="outline" className="w-full" asChild>
               <Link to="/calendar">
                 <Calendar className="w-4 h-4 mr-2" />
                 Schedule Call
@@ -235,15 +213,14 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
           {/* Contact Info */}
           {strategist.email && (
             <div className="pt-4 border-t border-border/50 space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                <Sparkles className="w-3 h-3 text-gold" />
-                Direct Line
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Direct Contact
               </p>
               <div className="flex items-center gap-2 text-sm">
                 <Mail className="w-4 h-4 text-muted-foreground" />
                 <a 
                   href={`mailto:${strategist.email}`} 
-                  className="hover:text-gold transition-colors"
+                  className="hover:text-primary transition-colors"
                 >
                   {strategist.email}
                 </a>
@@ -254,7 +231,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
           {/* Recent Updates */}
           {recentUpdates.length > 0 && (
             <div className="pt-4 border-t border-border/50 space-y-3">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                 <Activity className="w-3 h-3" />
                 Recent Activity
               </p>
@@ -267,7 +244,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
                     transition={{ delay: idx * 0.1 }}
                     className="text-sm flex items-start gap-2"
                   >
-                    <span className="text-gold mt-1.5">•</span>
+                    <span className="text-primary mt-1.5">•</span>
                     <span className="text-muted-foreground">{update}</span>
                   </motion.li>
                 ))}
@@ -275,20 +252,17 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
             </div>
           )}
 
-          {/* Premium SLA Badge */}
-          <div className="bg-gradient-to-r from-gold/10 via-gold/5 to-gold/10 rounded-xl p-4 flex items-center gap-3 border border-gold/20">
-            <div className="p-2.5 rounded-full bg-gold/20">
-              <Clock className="w-5 h-5 text-gold" />
+          {/* Response SLA */}
+          <div className="bg-muted/50 rounded-lg p-4 flex items-center gap-3 border border-border/50">
+            <div className="p-2 rounded-full bg-primary/10">
+              <Clock className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-semibold">Premium Response SLA</p>
+              <p className="text-sm font-medium">Response SLA</p>
               <p className="text-xs text-muted-foreground">
                 {strategist.is_available ? '< 4 hours guaranteed' : 'Within 24 hours'}
               </p>
             </div>
-            <Badge variant="outline" className="ml-auto border-gold/30 text-gold text-xs">
-              Elite
-            </Badge>
           </div>
         </CardContent>
       </Card>

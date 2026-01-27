@@ -79,7 +79,7 @@ export function SmartAlertsPanel({ companyId }: { companyId: string }) {
       <Card className="glass-card">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Bell className="h-4 w-4 text-gold" />
+            <Bell className="h-4 w-4 text-primary" />
             Smart Alerts
           </CardTitle>
         </CardHeader>
@@ -95,20 +95,17 @@ export function SmartAlertsPanel({ companyId }: { companyId: string }) {
   }
 
   return (
-    <Card className="glass-card group hover:border-gold/30 transition-all duration-300">
+    <Card className="glass-card group hover:border-primary/30 transition-all duration-300">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-base">
-            <div className="p-1.5 rounded-lg bg-gold/10">
-              <Bell className="h-4 w-4 text-gold" />
+            <div className="p-1.5 rounded-lg bg-primary/10">
+              <Bell className="h-4 w-4 text-primary" />
             </div>
             Smart Alerts
           </div>
           {alerts && alerts.length > 0 && (
-            <Badge 
-              variant="outline" 
-              className="bg-gold/10 text-gold border-gold/30 animate-pulse"
-            >
+            <Badge variant="secondary">
               {alerts.length} Active
             </Badge>
           )}
@@ -157,7 +154,6 @@ export function SmartAlertsPanel({ companyId }: { companyId: string }) {
                               <Button 
                                 size="sm" 
                                 variant="default" 
-                                className="bg-gold hover:bg-gold/90 text-background"
                                 asChild
                               >
                                 <Link to={alert.action_url}>

@@ -59,33 +59,33 @@ export function DailyBriefing({ companyId }: { companyId: string }) {
 
   const getImpactColor = (level: string) => {
     switch (level?.toLowerCase()) {
-      case 'high': return 'bg-gold/10 text-gold border-gold/30';
-      case 'medium': return 'bg-primary/10 text-primary border-primary/30';
+      case 'high': return 'bg-destructive/10 text-destructive border-destructive/30';
+      case 'medium': return 'bg-amber-500/10 text-amber-600 border-amber-500/30';
       default: return 'bg-muted';
     }
   };
 
   return (
-    <Card className="glass-card border-gold/20 bg-gradient-to-br from-card via-card to-gold/5 group hover:border-gold/40 transition-all duration-300">
+    <Card className="glass-card group hover:border-primary/30 transition-all duration-300">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-base">
-            <div className="p-1.5 rounded-lg bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/20">
-              <Brain className="h-4 w-4 text-gold" />
+            <div className="p-1.5 rounded-lg bg-primary/10">
+              <Brain className="h-4 w-4 text-primary" />
             </div>
             <span>QUIN Daily Briefing</span>
-            <Badge variant="outline" className="ml-1 text-[10px] bg-gold/10 text-gold border-gold/30">
+            <Badge variant="secondary" className="ml-1 text-[10px]">
               AI
             </Badge>
           </div>
           <Button 
             size="sm" 
             variant="ghost"
-            className="h-8 w-8 p-0 hover:bg-gold/10"
+            className="h-8 w-8 p-0"
             onClick={() => generateBriefing.mutate()}
             disabled={generateBriefing.isPending}
           >
-            <RefreshCw className={`h-4 w-4 text-gold ${generateBriefing.isPending ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${generateBriefing.isPending ? 'animate-spin' : ''}`} />
           </Button>
         </CardTitle>
       </CardHeader>
@@ -105,11 +105,11 @@ export function DailyBriefing({ companyId }: { companyId: string }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ delay: index * 0.05 }}
-              className="p-4 rounded-lg bg-background/60 border border-gold/10 hover:border-gold/30 transition-all space-y-2"
+              className="p-4 rounded-lg bg-muted/30 border border-border/50 hover:border-primary/30 transition-all space-y-2"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-start gap-2">
-                  <Lightbulb className="h-4 w-4 text-gold mt-0.5 flex-shrink-0" />
+                  <Lightbulb className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                   <h4 className="font-semibold text-sm">{insight.title}</h4>
                 </div>
                 <Button 
@@ -142,8 +142,8 @@ export function DailyBriefing({ companyId }: { companyId: string }) {
             animate={{ opacity: 1 }}
             className="text-center py-8 space-y-3"
           >
-            <div className="inline-flex p-3 rounded-full bg-gold/10 border border-gold/20">
-              <Sparkles className="h-6 w-6 text-gold" />
+            <div className="inline-flex p-3 rounded-full bg-primary/10">
+              <Sparkles className="h-6 w-6 text-primary" />
             </div>
             <div>
               <p className="font-medium">Your briefing awaits</p>
@@ -153,11 +153,10 @@ export function DailyBriefing({ companyId }: { companyId: string }) {
             </div>
             <Button 
               variant="outline"
-              className="border-gold/30 hover:bg-gold/10 hover:border-gold/50"
               onClick={() => generateBriefing.mutate()}
               disabled={generateBriefing.isPending}
             >
-              <Sparkles className="h-4 w-4 mr-2 text-gold" />
+              <Sparkles className="h-4 w-4 mr-2" />
               Generate Briefing
             </Button>
           </motion.div>
