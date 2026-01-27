@@ -26,7 +26,7 @@ import { useRoleStats } from "@/hooks/useRoleStats";
 import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
 import { TimeTrackingWidget } from "./TimeTrackingWidget";
 import { InterviewTodayWidget } from "./InterviewTodayWidget";
-import { PlacementRevenueWidget } from "../partner/PlacementRevenueWidget";
+
 import { OfferPipelineWidget } from "../partner/OfferPipelineWidget";
 import { CandidateShortlistWidget } from "../partner/CandidateShortlistWidget";
 import { PositionFillCountdown } from "../partner/PositionFillCountdown";
@@ -76,15 +76,14 @@ export const PartnerHome = () => {
         </motion.div>
       )}
 
-      {/* Revenue, Offers & Messages - High Priority Business Metrics */}
+      {/* Offers & Messages - High Priority Business Metrics */}
       {companyId && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: staggerDelay * 2 }}
         >
-          <DashboardSection columns={3}>
-            <PlacementRevenueWidget companyId={companyId} />
+          <DashboardSection columns={2}>
             <OfferPipelineWidget companyId={companyId} />
             <UnreadMessagesWidget companyId={companyId} userId={user?.id} />
           </DashboardSection>
