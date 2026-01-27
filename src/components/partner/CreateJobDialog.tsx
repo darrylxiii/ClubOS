@@ -531,6 +531,12 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       title: '',
       description: '',
       location: '',
+      latitude: null,
+      longitude: null,
+      location_city: null,
+      location_country_code: null,
+      location_formatted: null,
+      locationData: null,
       employment_type: 'fulltime',
       salary_min: '',
       salary_max: '',
@@ -540,6 +546,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       stealth_viewers: [],
       external_url: '',
     });
+    setLocationData(null); // Clear location autocomplete state
     setJobDescriptionFile(null);
     setSupportingDocuments([]);
     setRequiredTools([]);
