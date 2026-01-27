@@ -5,8 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Sparkles } from "lucide-react";
-import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
-import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
+import quantumLogoLight from "@/assets/quantum-logo-dark.png";
+import quantumLogoDark from "@/assets/quantum-club-logo.png";
 
 export default function CandidateOnboarding() {
   const [isActive, setIsActive] = useState(true);
@@ -35,12 +35,12 @@ export default function CandidateOnboarding() {
             <img 
               src={quantumLogoDark} 
               alt="Quantum Club" 
-              className="h-28 dark:hidden"
+              className="h-20 w-auto dark:hidden"
             />
             <img 
               src={quantumLogoLight} 
               alt="Quantum Club" 
-              className="h-28 hidden dark:block"
+              className="h-20 w-auto hidden dark:block"
             />
             <div className="absolute right-4 flex items-center gap-4">
               <Link 
@@ -75,12 +75,12 @@ export default function CandidateOnboarding() {
           <img 
             src={quantumLogoDark} 
             alt="Quantum Club" 
-            className="h-28 dark:hidden"
+            className="h-20 w-auto dark:hidden"
           />
           <img 
             src={quantumLogoLight} 
             alt="Quantum Club" 
-            className="h-28 hidden dark:block"
+            className="h-20 w-auto hidden dark:block"
           />
           <div className="absolute right-4 flex items-center gap-4">
             <Link 
