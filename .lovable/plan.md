@@ -1,190 +1,186 @@
 
-# Light/Dark Theme Fix - Comprehensive Site-Wide Audit
+# Logo Squeezing Fix - Full Audit and Resolution
 
-## Overview
-This plan addresses all theme visibility issues across The Quantum Club application, with the primary issue being the QC logo showing white-on-white in light mode. The audit identifies 15+ locations where logos and theme-sensitive elements need fixes.
+## Problem Identified
 
----
+The Quantum Club logo appears "squeezed" because several pages are using the **wrong logo assets**. The pages are importing the SHORT icon versions (`quantum-logo-*-transparent.png`) instead of the FULL text logo versions (`quantum-club-logo.png` and `quantum-logo-dark.png`).
 
-## Root Cause Analysis
+### Asset Clarification
 
-### Logo Asset Naming Convention (SWAPPED/CONFUSING)
-The current naming convention in the codebase is **inverted**, causing confusion:
-- `quantum-logo-light-transparent.png` = WHITE logo (for dark backgrounds)
-- `quantum-logo-dark-transparent.png` = BLACK logo (for light backgrounds)
+| Asset File | What It Is | When to Use |
+|------------|-----------|-------------|
+| `quantum-logo-dark-transparent.png` | QC clover ICON (black) | Collapsed sidebar, favicons |
+| `quantum-logo-light-transparent.png` | QC clover ICON (white) | Collapsed sidebar, favicons |
+| `quantum-club-logo.png` | FULL "Quantum CLUB" text logo (black) | Light theme headers, auth pages |
+| `quantum-logo-dark.png` | FULL "Quantum CLUB" text logo (white) | Dark theme headers, auth pages |
 
-This means:
-- Light theme needs `quantumLogoDark` (black logo)
-- Dark theme needs `quantumLogoLight` (white logo)
+### Current Incorrect Usage
 
-### Current Issues Found
-
-| Location | Issue | Theme Affected |
-|----------|-------|----------------|
-| Auth.tsx | Uses single SVG logo `/quantum-logo.svg` - may not have proper contrast | Both |
-| PartnerFunnel.tsx | Logo classes appear correct but need verification | Light |
-| CandidateOnboarding.tsx | Logo classes appear correct but need verification | Light |
-| PendingApproval.tsx | Logo classes appear correct but need verification | Light |
-| NotFound.tsx | Uses `resolvedTheme` conditional - references non-existent `/quantum-logo-dark.png` | Both |
-| Install.tsx | Uses single SVG `/quantum-logo.svg` - no theme variant | Both |
-| AppLayout.tsx | Mobile header uses correct pattern | OK |
-| AnimatedSidebar.tsx | Desktop sidebar logo swap logic is **inverted** (lines 133-162, 243-251) | Both |
-| ForgotPassword.tsx | No logo, uses icon only | OK |
+| File | Current Import | Issue |
+|------|----------------|-------|
+| `Auth.tsx` | `quantum-logo-*-transparent.png` with `w-32 h-32` | Using SHORT icon with forced square dimensions |
+| `PartnerFunnel.tsx` | `quantum-logo-*-transparent.png` with `h-28` | Using SHORT icon for header |
+| `CandidateOnboarding.tsx` | `quantum-logo-*-transparent.png` with `h-28` | Using SHORT icon for header |
+| `PendingApproval.tsx` | `quantum-logo-*-transparent.png` with `h-28` | Using SHORT icon for header |
+| `PartnershipSubmitted.tsx` | `quantum-logo-*-transparent.png` with `h-28` | Using SHORT icon for header |
+| `Install.tsx` | `quantum-logo-*-transparent.png` with `w-14 h-14` | Using SHORT icon with forced square |
+| `NotFound.tsx` | `quantum-logo-*-transparent.png` with `h-12` | Using SHORT icon |
 
 ---
 
 ## Implementation Plan
 
-### 1. Fix Auth.tsx Logo
-**File:** `src/pages/Auth.tsx`
-**Lines:** 46, 484
+### 1. Fix Auth.tsx (Lines 46-47, 484-487)
 
-Replace single SVG with theme-aware dual logos:
+**Change imports from:**
 ```tsx
-// Add imports
 import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
 import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
+```
 
-// Replace logo render (around line 484)
+**To:**
+```tsx
+import quantumLogoLight from "@/assets/quantum-logo-dark.png";     // White logo for dark theme
+import quantumLogoDark from "@/assets/quantum-club-logo.png";      // Black logo for light theme
+```
+
+**Update logo render (line 484-487):**
+```tsx
 <div className="flex items-center justify-center mb-2">
-  <img 
-    src={quantumLogoDark} 
-    alt="The Quantum Club" 
-    className="w-32 h-32 dark:hidden" 
-  />
-  <img 
-    src={quantumLogoLight} 
-    alt="The Quantum Club" 
-    className="w-32 h-32 hidden dark:block" 
-  />
+  <img src={quantumLogoDark} alt="The Quantum Club" className="h-24 w-auto dark:hidden" />
+  <img src={quantumLogoLight} alt="The Quantum Club" className="h-24 w-auto hidden dark:block" />
 </div>
 ```
+- Remove fixed `w-32 h-32` (forces square)
+- Use `h-24 w-auto` to maintain aspect ratio
 
-### 2. Fix NotFound.tsx Logo Reference
-**File:** `src/pages/NotFound.tsx`
-**Lines:** 74-78
+### 2. Fix PartnerFunnel.tsx (Lines 9-10, 42-50, 77-85)
 
-Replace with proper asset imports (current references non-existent public files):
+**Change imports:**
 ```tsx
-// Add imports
-import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
-import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
-
-// Replace logo (lines 74-78)
-<img
-  src={quantumLogoDark}
-  alt="The Quantum Club"
-  className="h-12 w-auto object-contain dark:hidden"
-/>
-<img
-  src={quantumLogoLight}
-  alt="The Quantum Club"
-  className="h-12 w-auto object-contain hidden dark:block"
-/>
+import quantumLogoLight from "@/assets/quantum-logo-dark.png";
+import quantumLogoDark from "@/assets/quantum-club-logo.png";
 ```
 
-### 3. Fix Install.tsx Logo
-**File:** `src/pages/Install.tsx`
-**Lines:** 85-89
-
-Add theme-aware logo:
+**Update logo render:**
 ```tsx
-// Add imports
-import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
-import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
-
-// Replace single logo with dual (lines 85-89)
 <img 
   src={quantumLogoDark} 
-  alt="The Quantum Club" 
-  className="w-14 h-14 dark:hidden"
+  alt="Quantum Club" 
+  className="h-20 w-auto dark:hidden"
 />
 <img 
   src={quantumLogoLight} 
-  alt="The Quantum Club" 
-  className="w-14 h-14 hidden dark:block"
+  alt="Quantum Club" 
+  className="h-20 w-auto hidden dark:block"
 />
 ```
+- Add `w-auto` to preserve aspect ratio
 
-### 4. Fix AnimatedSidebar.tsx Logo Logic (CRITICAL)
-**File:** `src/components/AnimatedSidebar.tsx`
+### 3. Fix CandidateOnboarding.tsx (Lines 8-9, 35-43, 75-83)
 
-The sidebar logo logic is **inverted** in multiple places:
-
-**Desktop Sidebar (lines 133-142 - EXPANDED state, lines 154-163 - COLLAPSED state):**
-Current code shows `logoLightShort` for dark mode and `logoDarkShort` for light mode in EXPANDED state.
-
-This appears correct based on the inverted naming, but the COLLAPSED state (lines 154-163) shows:
-- `logoLight` in dark mode
-- `logoDark` in light mode
-
-And `AppLayout.tsx` passes:
-- `logoLight` = `quantum-logo-dark.png` (white logo)
-- `logoDark` = `quantum-club-logo.png` (black logo)
-
-The naming is extremely confusing. We need to verify each logo file visually and ensure:
-- Light theme → Black/dark-colored logo visible
-- Dark theme → White/light-colored logo visible
-
-**Mobile Sidebar (lines 243-251):**
-Same issue - need to verify the swap is correct.
-
-### 5. Verify PartnerFunnel.tsx, CandidateOnboarding.tsx, PendingApproval.tsx
-**Files:** All three pages
-
-Current pattern (appears correct):
+**Change imports:**
 ```tsx
-<img src={quantumLogoDark} className="h-28 dark:hidden" />
-<img src={quantumLogoLight} className="h-28 hidden dark:block" />
+import quantumLogoLight from "@/assets/quantum-logo-dark.png";
+import quantumLogoDark from "@/assets/quantum-club-logo.png";
 ```
 
-This shows:
-- `quantumLogoDark` (black logo) on light theme ✓
-- `quantumLogoLight` (white logo) on dark theme ✓
+**Update logo render:**
+```tsx
+<img src={quantumLogoDark} alt="Quantum Club" className="h-20 w-auto dark:hidden" />
+<img src={quantumLogoLight} alt="Quantum Club" className="h-20 w-auto hidden dark:block" />
+```
 
-**No changes needed** if the asset files are correctly named.
+### 4. Fix PendingApproval.tsx (Lines 8-9, 78-79)
+
+**Change imports:**
+```tsx
+import quantumLogoLight from "@/assets/quantum-logo-dark.png";
+import quantumLogoDark from "@/assets/quantum-club-logo.png";
+```
+
+**Update logo render:**
+```tsx
+<img src={quantumLogoDark} alt="Quantum Club" className="h-20 w-auto dark:hidden" />
+<img src={quantumLogoLight} alt="Quantum Club" className="h-20 w-auto hidden dark:block" />
+```
+
+### 5. Fix PartnershipSubmitted.tsx (Lines 7-8, 37-45)
+
+**Change imports:**
+```tsx
+import quantumLogoLight from "@/assets/quantum-logo-dark.png";
+import quantumLogoDark from "@/assets/quantum-club-logo.png";
+```
+
+**Update logo render:**
+```tsx
+<img src={quantumLogoDark} alt="Quantum Club" className="h-20 w-auto dark:hidden" />
+<img src={quantumLogoLight} alt="Quantum Club" className="h-20 w-auto hidden dark:block" />
+```
+
+### 6. Fix Install.tsx (Lines 17-18, 87-96)
+
+**Change imports:**
+```tsx
+import quantumLogoLight from "@/assets/quantum-logo-dark.png";
+import quantumLogoDark from "@/assets/quantum-club-logo.png";
+```
+
+**Update logo render:**
+```tsx
+<div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl">
+  <img src={quantumLogoDark} alt="The Quantum Club" className="h-16 w-auto dark:hidden" />
+  <img src={quantumLogoLight} alt="The Quantum Club" className="h-16 w-auto hidden dark:block" />
+</div>
+```
+
+### 7. Fix NotFound.tsx (Lines 6-7, 74-82)
+
+**Change imports:**
+```tsx
+import quantumLogoLight from "@/assets/quantum-logo-dark.png";
+import quantumLogoDark from "@/assets/quantum-club-logo.png";
+```
+
+**Update logo render:**
+```tsx
+<img src={quantumLogoDark} alt="The Quantum Club" className="h-12 w-auto object-contain dark:hidden" />
+<img src={quantumLogoLight} alt="The Quantum Club" className="h-12 w-auto object-contain hidden dark:block" />
+```
 
 ---
 
-## Summary of Files to Modify
+## Summary of Changes
 
-| File | Action |
-|------|--------|
-| `src/pages/Auth.tsx` | Add theme-aware dual logo |
-| `src/pages/NotFound.tsx` | Fix logo references to use imported assets |
-| `src/pages/Install.tsx` | Add theme-aware dual logo |
-| `src/components/AnimatedSidebar.tsx` | Verify and potentially fix logo swap logic |
+| File | Changes |
+|------|---------|
+| `src/pages/Auth.tsx` | Switch to full logo imports, change `w-32 h-32` to `h-24 w-auto` |
+| `src/pages/PartnerFunnel.tsx` | Switch to full logo imports, add `w-auto` |
+| `src/pages/CandidateOnboarding.tsx` | Switch to full logo imports, add `w-auto` |
+| `src/pages/PendingApproval.tsx` | Switch to full logo imports, add `w-auto` |
+| `src/pages/PartnershipSubmitted.tsx` | Switch to full logo imports, add `w-auto` |
+| `src/pages/Install.tsx` | Switch to full logo imports, change dimensions |
+| `src/pages/NotFound.tsx` | Switch to full logo imports, add `w-auto` |
 
 ---
 
-## Technical Notes
+## Key Fixes Applied
 
-### Correct Pattern for Theme-Aware Logos
-```tsx
-// Light theme: show dark/black logo (visible on white background)
-<img src={darkLogo} className="dark:hidden" />
-
-// Dark theme: show light/white logo (visible on dark background)
-<img src={lightLogo} className="hidden dark:block" />
-```
-
-### Asset File Clarification
-Based on naming convention:
-- `quantum-logo-dark-transparent.png` = BLACK logo (use in light mode)
-- `quantum-logo-light-transparent.png` = WHITE logo (use in dark mode)
-- `quantum-club-logo.png` = BLACK full logo (use in light mode)
-- `quantum-logo-dark.png` = WHITE full logo (use in dark mode)
+1. **Correct asset files** - Use `quantum-club-logo.png` (black full logo) and `quantum-logo-dark.png` (white full logo) instead of the transparent icon files
+2. **Preserve aspect ratio** - Always use `w-auto` with a fixed height to prevent squeezing
+3. **Consistent sizing** - Use appropriate heights for each context (h-20 for headers, h-24 for auth, h-12 for compact areas)
 
 ---
 
 ## Testing Checklist
 
 After implementation, verify on these pages in BOTH light and dark modes:
-1. `/auth` - Login page
-2. `/onboarding` - Candidate onboarding
-3. `/partner-funnel` - Partner request
-4. `/pending-approval` - Pending approval page
-5. `/404` - Not found page
-6. `/install` - PWA install page
-7. Main app sidebar (collapsed and expanded states)
-8. Mobile menu header
+1. `/auth` - Login page - logo should show full "Quantum CLUB" text
+2. `/onboarding` - Candidate onboarding - logo in header
+3. `/partner-funnel` - Partner request - logo in header
+4. `/pending-approval` - Pending approval page - logo in header
+5. `/partnership-submitted` - Submission confirmation - logo in header
+6. `/404` - Not found page - logo in header
+7. `/install` - PWA install page - logo in card
+8. Main app sidebar - Verify expanded state still shows correct logo
