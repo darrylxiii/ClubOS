@@ -8606,6 +8606,7 @@ export type Database = {
       }
       companies: {
         Row: {
+          annual_revenue_goal: number | null
           archive_reason: string | null
           archived_at: string | null
           archived_by: string | null
@@ -8664,6 +8665,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          annual_revenue_goal?: number | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -8722,6 +8724,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          annual_revenue_goal?: number | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
