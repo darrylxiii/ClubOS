@@ -27,6 +27,9 @@ import { TimeTrackingWidget } from "./TimeTrackingWidget";
 import { InterviewTodayWidget } from "./InterviewTodayWidget";
 import { PlacementRevenueWidget } from "../partner/PlacementRevenueWidget";
 import { OfferPipelineWidget } from "../partner/OfferPipelineWidget";
+import { CandidateShortlistWidget } from "../partner/CandidateShortlistWidget";
+import { PositionFillCountdown } from "../partner/PositionFillCountdown";
+import { InterviewSuccessWidget } from "../partner/InterviewSuccessWidget";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
 
@@ -161,11 +164,26 @@ export const PartnerHome = () => {
         </DashboardSection>
       </motion.div>
 
+      {/* Position Tracking & Shortlists */}
+      {companyId && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: staggerDelay * 6 }}
+        >
+          <DashboardSection columns={3}>
+            <PositionFillCountdown companyId={companyId} />
+            <CandidateShortlistWidget companyId={companyId} />
+            <InterviewSuccessWidget companyId={companyId} />
+          </DashboardSection>
+        </motion.div>
+      )}
+
       {/* Time Tracking */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: staggerDelay * 6 }}
+        transition={{ duration: 0.5, delay: staggerDelay * 7 }}
       >
         <DashboardSection>
           {companyId && <TimeTrackingWidget role="partner" companyId={companyId} />}
@@ -176,7 +194,7 @@ export const PartnerHome = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: staggerDelay * 7 }}
+        transition={{ duration: 0.5, delay: staggerDelay * 8 }}
       >
         <DashboardSection columns={2}>
           {companyId && <RecentApplicationsList companyId={companyId} />}
@@ -189,7 +207,7 @@ export const PartnerHome = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 8 }}
+          transition={{ duration: 0.5, delay: staggerDelay * 9 }}
         >
           <DashboardSection>
             <PartnerActivityFeed companyId={companyId} />

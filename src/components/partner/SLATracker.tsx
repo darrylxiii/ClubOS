@@ -2,19 +2,26 @@ import { useSLATracking } from "@/hooks/usePartnerAnalytics";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Clock, AlertCircle, CheckCircle } from "lucide-react";
+import { Clock, AlertCircle, CheckCircle, Shield, Timer } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { motion } from "framer-motion";
 
 export function SLATracker({ companyId }: { companyId: string }) {
   const { data: slaItems, isLoading } = useSLATracking(companyId);
 
   if (isLoading) {
     return (
-      <Card className="border-2 border-primary/20">
-        <CardContent className="p-6">
+      <Card className="glass-card">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Shield className="h-4 w-4 text-primary" />
+            SLA Commitments
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="animate-pulse space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-16 bg-muted rounded" />
+            {[1, 2].map(i => (
+              <div key={i} className="h-16 bg-muted rounded-lg" />
             ))}
           </div>
         </CardContent>
@@ -35,23 +42,26 @@ export function SLATracker({ companyId }: { companyId: string }) {
   });
 
   return (
-    <Card className="border-2 border-primary/20">
-      <CardHeader>
+    <Card className="glass-card group hover:border-primary/30 transition-all duration-300">
+      <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            SLA Tracking
-          </span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-base">
+            <div className="p-1.5 rounded-lg bg-primary/10">
+              <Shield className="h-4 w-4 text-primary" />
+            </div>
+            SLA Commitments
+          </div>
+          <div className="flex items-center gap-1.5">
             {overdue.length > 0 && (
-              <Badge variant="destructive" className="flex items-center gap-1">
+              <Badge variant="destructive" className="flex items-center gap-1 text-xs">
                 <AlertCircle className="h-3 w-3" />
-                {overdue.length} Overdue
+                {overdue.length}
               </Badge>
             )}
             {urgentItems.length > 0 && (
-              <Badge variant="outline" className="border-yellow-500 text-yellow-600 dark:text-yellow-500">
-                {urgentItems.length} Urgent
+              <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-600 text-xs">
+                <Timer className="h-3 w-3 mr-1" />
+                {urgentItems.length}
               </Badge>
             )}
           </div>
@@ -59,14 +69,22 @@ export function SLATracker({ companyId }: { companyId: string }) {
       </CardHeader>
       <CardContent className="space-y-3">
         {(!items || items.length === 0) && (
-          <div className="text-center py-8 text-muted-foreground">
-            <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-500" />
-            <p>All SLAs met</p>
-            <p className="text-sm">No pending deadlines</p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-center gap-4 p-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5"
+          >
+            <div className="p-2 rounded-full bg-emerald-500/10">
+              <CheckCircle className="h-5 w-5 text-emerald-500" />
+            </div>
+            <div>
+              <p className="font-medium text-emerald-600 dark:text-emerald-400">All SLAs Met</p>
+              <p className="text-sm text-muted-foreground">No pending commitments</p>
+            </div>
+          </motion.div>
         )}
 
-        {items.map((item: any) => {
+        {items.map((item: any, index: number) => {
           const deadline = new Date(item.sla_deadline);
           const totalTime = deadline.getTime() - new Date(item.created_at).getTime();
           const elapsed = Date.now() - new Date(item.created_at).getTime();
@@ -74,20 +92,40 @@ export function SLATracker({ companyId }: { companyId: string }) {
           const isOverdue = deadline.getTime() < Date.now();
           const hoursRemaining = (deadline.getTime() - Date.now()) / (1000 * 60 * 60);
 
+          const getStyle = () => {
+            if (isOverdue) return {
+              border: 'border-destructive/40',
+              bg: 'bg-destructive/5',
+              progress: '[&>div]:bg-destructive',
+              icon: 'text-destructive'
+            };
+            if (hoursRemaining <= 24) return {
+              border: 'border-amber-500/40',
+              bg: 'bg-amber-500/5',
+              progress: '[&>div]:bg-amber-500',
+              icon: 'text-amber-500'
+            };
+            return {
+              border: 'border-border/50',
+              bg: 'bg-muted/30',
+              progress: '[&>div]:bg-primary',
+              icon: 'text-muted-foreground'
+            };
+          };
+
+          const style = getStyle();
+
           return (
-            <div 
+            <motion.div 
               key={item.id}
-              className={`p-4 rounded-lg border ${
-                isOverdue 
-                  ? 'border-destructive/40 bg-destructive/5' 
-                  : hoursRemaining <= 24
-                  ? 'border-yellow-500/40 bg-yellow-50/50 dark:bg-yellow-950/20'
-                  : 'border-border/40'
-              }`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className={`p-3 rounded-lg border ${style.border} ${style.bg} transition-all hover:shadow-sm`}
             >
               <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex-1">
-                  <div className="font-medium capitalize">
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm capitalize truncate">
                     {item.event_type.replace(/_/g, ' ')}
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -98,24 +136,16 @@ export function SLATracker({ companyId }: { companyId: string }) {
                   </div>
                 </div>
                 {isOverdue ? (
-                  <AlertCircle className="h-5 w-5 text-destructive" />
-                ) : hoursRemaining <= 24 ? (
-                  <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
+                  <AlertCircle className={`h-4 w-4 flex-shrink-0 ${style.icon}`} />
                 ) : (
-                  <Clock className="h-5 w-5 text-muted-foreground" />
+                  <Clock className={`h-4 w-4 flex-shrink-0 ${style.icon}`} />
                 )}
               </div>
               <Progress 
                 value={progress} 
-                className={`h-2 ${
-                  isOverdue 
-                    ? '[&>div]:bg-destructive' 
-                    : hoursRemaining <= 24
-                    ? '[&>div]:bg-yellow-600'
-                    : ''
-                }`}
+                className={`h-1.5 ${style.progress}`}
               />
-            </div>
+            </motion.div>
           );
         })}
       </CardContent>

@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, RefreshCw, Check } from "lucide-react";
+import { Sparkles, RefreshCw, Check, Brain, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function DailyBriefing({ companyId }: { companyId: string }) {
   const queryClient = useQueryClient();
@@ -56,70 +57,110 @@ export function DailyBriefing({ companyId }: { companyId: string }) {
     }
   });
 
+  const getImpactColor = (level: string) => {
+    switch (level?.toLowerCase()) {
+      case 'high': return 'bg-gold/10 text-gold border-gold/30';
+      case 'medium': return 'bg-primary/10 text-primary border-primary/30';
+      default: return 'bg-muted';
+    }
+  };
+
   return (
-    <Card className="border-2 border-accent/30 bg-gradient-to-br from-card to-accent/5">
-      <CardHeader>
+    <Card className="glass-card border-gold/20 bg-gradient-to-br from-card via-card to-gold/5 group hover:border-gold/40 transition-all duration-300">
+      <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-accent" />
-            Club AI Daily Briefing
-          </span>
+          <div className="flex items-center gap-2 text-base">
+            <div className="p-1.5 rounded-lg bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/20">
+              <Brain className="h-4 w-4 text-gold" />
+            </div>
+            <span>QUIN Daily Briefing</span>
+            <Badge variant="outline" className="ml-1 text-[10px] bg-gold/10 text-gold border-gold/30">
+              AI
+            </Badge>
+          </div>
           <Button 
             size="sm" 
-            variant="outline"
+            variant="ghost"
+            className="h-8 w-8 p-0 hover:bg-gold/10"
             onClick={() => generateBriefing.mutate()}
             disabled={generateBriefing.isPending}
           >
-            <RefreshCw className={`h-4 w-4 ${generateBriefing.isPending ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 text-gold ${generateBriefing.isPending ? 'animate-spin' : ''}`} />
           </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {isLoading && (
-          <div className="animate-pulse space-y-2">
-            <div className="h-20 bg-muted rounded" />
-            <div className="h-20 bg-muted rounded" />
+          <div className="animate-pulse space-y-3">
+            <div className="h-24 bg-muted rounded-lg" />
+            <div className="h-24 bg-muted rounded-lg" />
           </div>
         )}
 
-        {!isLoading && insights && insights.length > 0 && insights.map((insight) => (
-          <div key={insight.id} className="p-4 rounded-lg bg-background/60 border border-border/40 space-y-2">
-            <div className="flex items-start justify-between gap-2">
-              <h4 className="font-semibold">{insight.title}</h4>
-              <Button 
-                size="sm" 
-                variant="ghost"
-                onClick={() => markRead.mutate(insight.id)}
-                disabled={markRead.isPending}
-              >
-                <Check className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {insight.content}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="outline" className="capitalize">
-                {insight.impact_level} impact
-              </Badge>
-              <span>•</span>
-              <span>{new Date(insight.generated_at).toLocaleDateString()}</span>
-            </div>
-          </div>
-        ))}
+        <AnimatePresence mode="popLayout">
+          {!isLoading && insights && insights.length > 0 && insights.map((insight, index) => (
+            <motion.div 
+              key={insight.id} 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ delay: index * 0.05 }}
+              className="p-4 rounded-lg bg-background/60 border border-gold/10 hover:border-gold/30 transition-all space-y-2"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2">
+                  <Lightbulb className="h-4 w-4 text-gold mt-0.5 flex-shrink-0" />
+                  <h4 className="font-semibold text-sm">{insight.title}</h4>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  className="h-7 w-7 p-0 opacity-60 hover:opacity-100 hover:bg-emerald-500/10"
+                  onClick={() => markRead.mutate(insight.id)}
+                  disabled={markRead.isPending}
+                >
+                  <Check className="h-4 w-4 text-emerald-500" />
+                </Button>
+              </div>
+              <div className="text-sm text-muted-foreground whitespace-pre-wrap pl-6">
+                {insight.content}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground pl-6">
+                <Badge variant="outline" className={`capitalize ${getImpactColor(insight.impact_level)}`}>
+                  {insight.impact_level} impact
+                </Badge>
+                <span className="text-border">•</span>
+                <span>{new Date(insight.generated_at).toLocaleDateString()}</span>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
         {!isLoading && (!insights || insights.length === 0) && (
-          <div className="text-center py-8 text-muted-foreground">
-            <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>No new insights today</p>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-8 space-y-3"
+          >
+            <div className="inline-flex p-3 rounded-full bg-gold/10 border border-gold/20">
+              <Sparkles className="h-6 w-6 text-gold" />
+            </div>
+            <div>
+              <p className="font-medium">Your briefing awaits</p>
+              <p className="text-sm text-muted-foreground">
+                Let QUIN analyze your hiring activity
+              </p>
+            </div>
             <Button 
-              variant="link" 
+              variant="outline"
+              className="border-gold/30 hover:bg-gold/10 hover:border-gold/50"
               onClick={() => generateBriefing.mutate()}
-              className="mt-2"
+              disabled={generateBriefing.isPending}
             >
-              Generate briefing
+              <Sparkles className="h-4 w-4 mr-2 text-gold" />
+              Generate Briefing
             </Button>
-          </div>
+          </motion.div>
         )}
       </CardContent>
     </Card>

@@ -7427,6 +7427,85 @@ export type Database = {
         }
         Relationships: []
       }
+      candidate_shortlists: {
+        Row: {
+          added_by: string | null
+          candidate_id: string | null
+          company_id: string | null
+          created_at: string | null
+          id: string
+          job_id: string | null
+          notes: string | null
+          priority: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          candidate_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+          priority?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          candidate_id?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+          priority?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_shortlists_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_shortlists_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_shortlists_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_shortlists_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_shortlists_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_shortlists_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       capacity_metrics: {
         Row: {
           created_at: string
@@ -52792,6 +52871,10 @@ export type Database = {
       calculate_online_status: {
         Args: { last_activity: string }
         Returns: string
+      }
+      calculate_partner_benchmarks: {
+        Args: { p_company_id: string }
+        Returns: undefined
       }
       calculate_partner_health_score: {
         Args: { p_partner_id: string }
