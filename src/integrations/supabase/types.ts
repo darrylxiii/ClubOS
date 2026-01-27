@@ -40564,36 +40564,45 @@ export type Database = {
       }
       salary_benchmarks: {
         Row: {
+          confidence_score: number | null
           currency: string | null
           experience_years: unknown
+          fetched_at: string | null
           id: string
           location: string
           role_title: string
           salary_max: number | null
           salary_min: number | null
           sample_size: number | null
+          source: string | null
           updated_at: string | null
         }
         Insert: {
+          confidence_score?: number | null
           currency?: string | null
           experience_years?: unknown
+          fetched_at?: string | null
           id?: string
           location: string
           role_title: string
           salary_max?: number | null
           salary_min?: number | null
           sample_size?: number | null
+          source?: string | null
           updated_at?: string | null
         }
         Update: {
+          confidence_score?: number | null
           currency?: string | null
           experience_years?: unknown
+          fetched_at?: string | null
           id?: string
           location?: string
           role_title?: string
           salary_max?: number | null
           salary_min?: number | null
           sample_size?: number | null
+          source?: string | null
           updated_at?: string | null
         }
         Relationships: []
