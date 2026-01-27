@@ -224,6 +224,11 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --premium: 262 83% 58%;
     --premium-foreground: 210 40% 98%;
 
+    /* Gold Accent for Luxury Elements */
+    --gold: 43 74% 54%;
+    --gold-foreground: 0 0% 10%;
+    --gold-muted: 43 50% 45%;
+
     --success: 142 65% 50%;
     --success-foreground: 0 0% 100%;
 
@@ -288,6 +293,11 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
     --premium: 262 83% 58%;
     --premium-foreground: 210 40% 98%;
+
+    /* Gold Accent for Luxury Elements (Dark Mode) */
+    --gold: 43 74% 54%;
+    --gold-foreground: 0 0% 10%;
+    --gold-muted: 43 60% 50%;
 
     --success: 142 65% 55%;
     --success-foreground: 0 0% 10%;
