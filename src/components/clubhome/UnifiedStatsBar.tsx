@@ -1,7 +1,8 @@
 import { MetricCard } from "@/components/admin/shared/MetricCard";
 import { MetricCardSkeleton } from "@/components/admin/shared/MetricCardSkeleton";
 import { Users, Briefcase, Calendar, MessageSquare, Target, TrendingUp, Building2, AlertCircle } from "lucide-react";
-import { T } from "@/components/T";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface StatConfig {
   icon: typeof Users;
@@ -29,6 +30,40 @@ interface UnifiedStatsBarProps {
     messages?: number;
   };
   loading?: boolean;
+}
+
+// Animated counter component
+function AnimatedNumber({ value, duration = 1000 }: { value: number; duration?: number }) {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    if (value === 0) {
+      setDisplayValue(0);
+      return;
+    }
+    
+    let startTime: number;
+    let animationId: number;
+    
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.floor(eased * value));
+      
+      if (progress < 1) {
+        animationId = requestAnimationFrame(animate);
+      }
+    };
+    
+    animationId = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationId) cancelAnimationFrame(animationId);
+    };
+  }, [value, duration]);
+  
+  return <>{displayValue}</>;
 }
 
 export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBarProps) => {
@@ -73,7 +108,7 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             secondaryFallback: 'Reviews',
           },
         ];
-      
+
       case 'partner':
         return [
           {
@@ -113,7 +148,7 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             secondaryFallback: 'Following',
           },
         ];
-      
+
       case 'user':
       case 'strategist':
       default:
@@ -171,23 +206,51 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
   const statsConfig = getStatsConfig();
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <motion.div
+      className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.08,
+          },
+        },
+      }}
+    >
       {statsConfig.map((stat, index) => (
-        <div
+        <motion.div
           key={index}
-          className="animate-fade-in"
-          style={{ animationDelay: `${index * 50}ms` }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            delay: index * 0.08,
+            duration: 0.4,
+            ease: "easeOut"
+          }}
+          whileHover={{ 
+            scale: 1.02, 
+            transition: { duration: 0.2 } 
+          }}
+          className="relative group"
         >
-          <MetricCard
-            icon={stat.icon}
-            iconColor={stat.iconColor}
-            title={stat.titleFallback}
-            primaryMetric={stat.value}
-            secondaryText={stat.secondaryFallback}
-            className="glass-subtle hover:glass transition-all duration-300"
-          />
-        </div>
+          {/* Subtle hover glow for premium feel */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm" />
+          
+          <div className="relative">
+            <MetricCard
+              icon={stat.icon}
+              iconColor={stat.iconColor}
+              title={stat.titleFallback}
+              primaryMetric={stat.value}
+              secondaryText={stat.secondaryFallback}
+              className="glass-subtle hover:glass transition-all duration-300 border-border/50 hover:border-primary/30"
+            />
+          </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 };
