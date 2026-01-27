@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, TrendingUp, Clock, Target, X, ExternalLink } from "lucide-react";
+import { AlertCircle, TrendingUp, Clock, Target, X, ExternalLink, Bell, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SmartAlert {
   id: string;
@@ -53,75 +55,137 @@ export function SmartAlertsPanel({ companyId }: { companyId: string }) {
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'critical': return <AlertCircle className="h-5 w-5 text-destructive" />;
-      case 'warning': return <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />;
-      case 'success': return <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-500" />;
+      case 'warning': return <Clock className="h-5 w-5 text-amber-500" />;
+      case 'success': return <TrendingUp className="h-5 w-5 text-emerald-500" />;
       default: return <Target className="h-5 w-5 text-primary" />;
     }
   };
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityStyles = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'border-destructive/50 bg-destructive/5';
-      case 'warning': return 'border-yellow-500/50 bg-yellow-50/50 dark:bg-yellow-950/20';
-      case 'success': return 'border-green-500/50 bg-green-50/50 dark:bg-green-950/20';
-      default: return 'border-primary/50 bg-primary/5';
+      case 'critical': 
+        return 'border-destructive/40 bg-destructive/5 dark:bg-destructive/10';
+      case 'warning': 
+        return 'border-amber-500/40 bg-amber-500/5 dark:bg-amber-500/10';
+      case 'success': 
+        return 'border-emerald-500/40 bg-emerald-500/5 dark:bg-emerald-500/10';
+      default: 
+        return 'border-primary/40 bg-primary/5 dark:bg-primary/10';
     }
   };
 
   if (isLoading) {
-    return <div className="animate-pulse h-32 bg-muted rounded-lg" />;
-  }
-
-  if (!alerts || alerts.length === 0) {
     return (
-      <Alert className="border-green-500/50 bg-green-50/50 dark:bg-green-950/20">
-        <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-500" />
-        <AlertTitle>All clear</AlertTitle>
-        <AlertDescription>No urgent actions required right now</AlertDescription>
-      </Alert>
+      <Card className="glass-card">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Bell className="h-4 w-4 text-gold" />
+            Smart Alerts
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-3">
+            {[1, 2].map(i => (
+              <div key={i} className="h-20 bg-muted rounded-lg" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-3">
-      {alerts.map((alert) => (
-        <Alert key={alert.id} className={getSeverityColor(alert.severity)}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3 flex-1">
-              {getSeverityIcon(alert.severity)}
-              <div className="flex-1 space-y-1">
-                <AlertTitle className="flex items-center gap-2 flex-wrap">
-                  {alert.title}
-                  <Badge variant="outline" className="text-xs">
-                    {alert.alert_type.replace('_', ' ')}
-                  </Badge>
-                </AlertTitle>
-                <AlertDescription className="text-sm">
-                  {alert.message}
-                </AlertDescription>
-                {alert.action_required && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <Button size="sm" variant="default" asChild>
-                      <Link to={alert.action_url}>
-                        {alert.action_required}
-                        <ExternalLink className="ml-2 h-3 w-3" />
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-              </div>
+    <Card className="glass-card group hover:border-gold/30 transition-all duration-300">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-base">
+            <div className="p-1.5 rounded-lg bg-gold/10">
+              <Bell className="h-4 w-4 text-gold" />
             </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => dismissAlert.mutate(alert.id)}
-              disabled={dismissAlert.isPending}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            Smart Alerts
           </div>
-        </Alert>
-      ))}
-    </div>
+          {alerts && alerts.length > 0 && (
+            <Badge 
+              variant="outline" 
+              className="bg-gold/10 text-gold border-gold/30 animate-pulse"
+            >
+              {alerts.length} Active
+            </Badge>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {!alerts || alerts.length === 0 ? (
+          <div className="flex items-center gap-4 p-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5">
+            <div className="p-2 rounded-full bg-emerald-500/10">
+              <Sparkles className="h-5 w-5 text-emerald-500" />
+            </div>
+            <div>
+              <p className="font-medium text-emerald-600 dark:text-emerald-400">All Clear</p>
+              <p className="text-sm text-muted-foreground">No urgent actions required. Your hiring is on track.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <AnimatePresence mode="popLayout">
+              {alerts.map((alert, index) => (
+                <motion.div
+                  key={alert.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20, height: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Alert className={`${getSeverityStyles(alert.severity)} transition-all hover:shadow-md`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="mt-0.5">
+                          {getSeverityIcon(alert.severity)}
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <AlertTitle className="flex items-center gap-2 flex-wrap text-sm">
+                            {alert.title}
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {alert.alert_type.replace(/_/g, ' ')}
+                            </Badge>
+                          </AlertTitle>
+                          <AlertDescription className="text-sm text-muted-foreground">
+                            {alert.message}
+                          </AlertDescription>
+                          {alert.action_required && (
+                            <div className="pt-2">
+                              <Button 
+                                size="sm" 
+                                variant="default" 
+                                className="bg-gold hover:bg-gold/90 text-background"
+                                asChild
+                              >
+                                <Link to={alert.action_url}>
+                                  {alert.action_required}
+                                  <ExternalLink className="ml-2 h-3 w-3" />
+                                </Link>
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 opacity-60 hover:opacity-100"
+                        onClick={() => dismissAlert.mutate(alert.id)}
+                        disabled={dismissAlert.isPending}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </Alert>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

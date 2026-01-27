@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Activity } from "lucide-react";
+import { Activity, Zap, Clock, TrendingUp, AlertTriangle } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function HealthScoreDashboard({ companyId }: { companyId: string }) {
   const { data: healthData, isLoading } = useQuery({
@@ -40,14 +41,19 @@ export function HealthScoreDashboard({ companyId }: { companyId: string }) {
 
   if (isLoading) {
     return (
-      <Card className="border-2 border-primary/20">
-        <CardContent className="p-6">
+      <Card className="glass-card">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Activity className="h-4 w-4 text-primary" />
+            Hiring Health
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-3/4" />
-            <div className="h-12 bg-muted rounded" />
-            <div className="grid grid-cols-2 gap-3">
-              <div className="h-16 bg-muted rounded" />
-              <div className="h-16 bg-muted rounded" />
+            <div className="h-20 bg-muted rounded-lg" />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="h-14 bg-muted rounded" />
+              <div className="h-14 bg-muted rounded" />
             </div>
           </div>
         </CardContent>
@@ -57,10 +63,31 @@ export function HealthScoreDashboard({ companyId }: { companyId: string }) {
 
   const score = healthData?.overall_score || 0;
   
-  const getScoreColor = () => {
-    if (score >= 80) return 'text-green-600 dark:text-green-500';
-    if (score >= 60) return 'text-yellow-600 dark:text-yellow-500';
-    return 'text-destructive';
+  const getScoreStyle = () => {
+    if (score >= 80) return { 
+      color: 'text-gold', 
+      bg: 'bg-gold/10', 
+      border: 'border-gold/30',
+      progress: '[&>div]:bg-gold'
+    };
+    if (score >= 60) return { 
+      color: 'text-emerald-500', 
+      bg: 'bg-emerald-500/10', 
+      border: 'border-emerald-500/30',
+      progress: '[&>div]:bg-emerald-500'
+    };
+    if (score >= 40) return { 
+      color: 'text-amber-500', 
+      bg: 'bg-amber-500/10', 
+      border: 'border-amber-500/30',
+      progress: '[&>div]:bg-amber-500'
+    };
+    return { 
+      color: 'text-destructive', 
+      bg: 'bg-destructive/10', 
+      border: 'border-destructive/30',
+      progress: '[&>div]:bg-destructive'
+    };
   };
 
   const getScoreLabel = () => {
@@ -70,70 +97,94 @@ export function HealthScoreDashboard({ companyId }: { companyId: string }) {
     return 'Critical';
   };
 
-  const getProgressColor = () => {
-    if (score >= 80) return 'bg-green-600';
-    if (score >= 60) return 'bg-yellow-600';
-    return 'bg-destructive';
-  };
+  const style = getScoreStyle();
+
+  const subScores = [
+    { 
+      label: 'Response', 
+      value: healthData?.response_time_score,
+      icon: Clock 
+    },
+    { 
+      label: 'Velocity', 
+      value: healthData?.pipeline_velocity_score,
+      icon: Zap 
+    },
+    { 
+      label: 'Conversion', 
+      value: healthData?.conversion_rate_score,
+      icon: TrendingUp 
+    },
+    { 
+      label: 'Bottlenecks', 
+      value: healthData?.bottleneck_score,
+      icon: AlertTriangle 
+    },
+  ];
 
   return (
-    <Card className="border-2 border-primary/20">
-      <CardHeader>
+    <Card className={`glass-card ${style.border} group hover:shadow-lg transition-all duration-300`}>
+      <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Hiring Health Score
-          </span>
-          <Badge variant="outline" className={getScoreColor()}>
+          <div className="flex items-center gap-2 text-base">
+            <div className={`p-1.5 rounded-lg ${style.bg}`}>
+              <Activity className={`h-4 w-4 ${style.color}`} />
+            </div>
+            Hiring Health
+          </div>
+          <Badge variant="outline" className={`${style.bg} ${style.color} ${style.border}`}>
             {getScoreLabel()}
           </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className={`text-4xl font-bold ${getScoreColor()}`}>
-              {score}
-            </span>
-            <span className="text-muted-foreground">/100</span>
+        {/* Main Score */}
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-center py-2"
+        >
+          <div className={`text-5xl font-bold ${style.color} tabular-nums`}>
+            {score}
+            <span className="text-lg font-normal text-muted-foreground">/100</span>
           </div>
-          <div className="relative">
-            <Progress value={score} className="h-3" />
-            <div 
-              className={`absolute inset-0 h-3 rounded-full ${getProgressColor()} transition-all`}
-              style={{ width: `${score}%` }}
-            />
-          </div>
-        </div>
+          <Progress 
+            value={score} 
+            className={`h-2 mt-3 ${style.progress}`}
+          />
+        </motion.div>
 
-        {healthData && (
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="space-y-1 p-3 rounded-lg bg-muted/30">
-              <div className="text-muted-foreground">Response Time</div>
-              <div className="font-semibold text-lg">
-                {healthData.response_time_score || '-'}/100
-              </div>
-            </div>
-            <div className="space-y-1 p-3 rounded-lg bg-muted/30">
-              <div className="text-muted-foreground">Pipeline Velocity</div>
-              <div className="font-semibold text-lg">
-                {healthData.pipeline_velocity_score || '-'}/100
-              </div>
-            </div>
-            <div className="space-y-1 p-3 rounded-lg bg-muted/30">
-              <div className="text-muted-foreground">Conversion Rate</div>
-              <div className="font-semibold text-lg">
-                {healthData.conversion_rate_score || '-'}/100
-              </div>
-            </div>
-            <div className="space-y-1 p-3 rounded-lg bg-muted/30">
-              <div className="text-muted-foreground">Bottleneck Score</div>
-              <div className="font-semibold text-lg">
-                {healthData.bottleneck_score || '-'}/100
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Sub-scores Grid */}
+        <div className="grid grid-cols-2 gap-2">
+          {subScores.map((sub, index) => {
+            const Icon = sub.icon;
+            const subValue = sub.value ?? 0;
+            const subStyle = subValue >= 70 
+              ? 'text-emerald-500' 
+              : subValue >= 40 
+                ? 'text-amber-500' 
+                : 'text-destructive';
+            
+            return (
+              <motion.div
+                key={sub.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="p-2.5 rounded-lg bg-muted/30 border border-border/50 hover:border-primary/30 transition-colors"
+              >
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                  <Icon className="h-3 w-3" />
+                  {sub.label}
+                </div>
+                <div className={`font-semibold text-lg ${sub.value !== null ? subStyle : 'text-muted-foreground'}`}>
+                  {sub.value !== null ? sub.value : '-'}
+                  <span className="text-xs font-normal text-muted-foreground">/100</span>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );
