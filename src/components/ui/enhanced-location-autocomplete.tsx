@@ -319,6 +319,7 @@ export function EnhancedLocationAutocomplete({
             <AnimatePresence>
               {inputValue && !disabled && (
                 <motion.button
+                  key="clear-button"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
@@ -352,6 +353,7 @@ export function EnhancedLocationAutocomplete({
               <AnimatePresence>
                 {showLoading && (
                   <motion.div
+                    key="loading-state"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -494,6 +496,7 @@ export function EnhancedLocationAutocomplete({
       <AnimatePresence>
         {showCoordinates && value && (
           <motion.div
+            key="coordinates-display"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}

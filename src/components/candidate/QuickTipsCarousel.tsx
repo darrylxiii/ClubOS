@@ -78,7 +78,7 @@ export function QuickTipsCarousel({ tips }: QuickTipsCarouselProps) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="popLayout">
             {visibleTips.map((tip, index) => (
               <TipCard key={tip.id} tip={tip} index={index} />
             ))}
