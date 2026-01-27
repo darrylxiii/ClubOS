@@ -1,87 +1,147 @@
 
+# Full Audit: Application Load Issues and Fixes
 
-# Fix: Estimated Placement Fee Not Updating When Salary Range is Entered
+## Investigation Summary
 
-## Problem Identified
+After thorough analysis of console logs, network requests, and source code, I identified that **the application IS successfully loading** (confirmed by `[Main] ✅ Application initialized successfully` in console). However, there are several issues causing perceived "unable to load" behavior:
 
-The "Estimated Placement Fee" in the **Create Job Dialog** does NOT update when you enter a salary range because the `salaryMax` prop is **not being passed** to the `JobFeeConfiguration` component.
+### Root Causes Identified
 
-### Current Code (CreateJobDialog.tsx line 849-854):
-```tsx
-<JobFeeConfiguration
-  companyId={formData.company_id}
-  feeConfig={feeConfig}
-  onFeeConfigChange={setFeeConfig}
-  disabled={isSubmitting}
-/>  // ← Missing salaryMax prop!
-```
-
-### EditJobSheet.tsx (already correct):
-```tsx
-<JobFeeConfiguration
-  companyId={formData.company_id}
-  feeConfig={feeConfig}
-  onFeeConfigChange={(config) => {...}}
-  salaryMax={formData.salary_max ? parseInt(formData.salary_max) : null}  // ✓ Correct!
-/>
-```
-
-### How Fee Calculation Works
-
-In `JobFeeConfiguration.tsx`, line 107-108:
-```tsx
-const getPreviewFee = () => {
-  const baseSalary = salaryMax || 75000;  // Falls back to €75,000 if salaryMax not provided
-  // ... calculates fee based on baseSalary
-};
-```
-
-So when `salaryMax` is not passed, it always uses €75,000 regardless of what the user enters in the salary fields.
+| Issue | Severity | Impact |
+|-------|----------|--------|
+| AnimatePresence `mode="wait"` with multiple children | Medium | Console warnings, potential visual glitches |
+| QuickTipsCarousel rendering multiple items inside AnimatePresence | Medium | Odd visual behavior during transitions |
+| Auth session check causing loading state | Low | Brief loading screen before redirect |
+| User triggered cache reset | Info | Reload loop from button click |
 
 ---
 
-## Solution
+## Files to Fix
 
-Pass the `salaryMax` prop from the form data to the `JobFeeConfiguration` component in `CreateJobDialog.tsx`.
+### 1. QuickTipsCarousel.tsx - AnimatePresence Warning
 
-### File to Modify
+**Problem**: Using `AnimatePresence mode="wait"` with `.map()` that renders multiple children simultaneously.
 
-| File | Change |
-|------|--------|
-| `src/components/partner/CreateJobDialog.tsx` | Add `salaryMax` prop to `JobFeeConfiguration` |
+**File**: `src/components/candidate/QuickTipsCarousel.tsx`
 
-### Code Change
-
-**Line 849-854 - Add the missing prop:**
-
+**Current Code (lines 81-85)**:
 ```tsx
-<JobFeeConfiguration
-  companyId={formData.company_id}
-  feeConfig={feeConfig}
-  onFeeConfigChange={setFeeConfig}
-  disabled={isSubmitting}
-  salaryMax={formData.salary_max ? parseInt(formData.salary_max) : null}
-/>
+<AnimatePresence mode="wait">
+  {visibleTips.map((tip, index) => (
+    <TipCard key={tip.id} tip={tip} index={index} />
+  ))}
+</AnimatePresence>
+```
+
+**Fixed Code**:
+```tsx
+<AnimatePresence mode="popLayout">
+  {visibleTips.map((tip, index) => (
+    <TipCard key={tip.id} tip={tip} index={index} />
+  ))}
+</AnimatePresence>
+```
+
+**Why**: `mode="popLayout"` is designed for lists where multiple items animate simultaneously. `mode="wait"` is only for single item transitions.
+
+---
+
+### 2. Location Autocomplete - Add Keys to AnimatePresence Children
+
+**File**: `src/components/ui/enhanced-location-autocomplete.tsx`
+
+Ensure all motion elements inside AnimatePresence have unique keys:
+
+**Line 319-333 (Clear button)**:
+```tsx
+<AnimatePresence>
+  {inputValue && !disabled && (
+    <motion.button
+      key="clear-button"  // Add key
+      initial={{ opacity: 0, scale: 0.8 }}
+      // ... rest
+    >
+```
+
+**Line 352-364 (Loading state)**:
+```tsx
+<AnimatePresence>
+  {showLoading && (
+    <motion.div
+      key="loading-state"  // Add key
+      initial={{ opacity: 0 }}
+      // ... rest
+    >
+```
+
+**Line 494-512 (Coordinates display)**:
+```tsx
+<AnimatePresence>
+  {showCoordinates && value && (
+    <motion.div
+      key="coordinates-display"  // Add key
+      initial={{ opacity: 0, height: 0 }}
+      // ... rest
+    >
 ```
 
 ---
 
-## Expected Behavior After Fix
+### 3. Location Autocomplete (Simple) - Same Key Fixes
 
-1. User opens "Create New Job" dialog
-2. User selects a company
-3. Fee Configuration section appears showing estimated fee based on €75,000 default
-4. User enters salary range (e.g., Min: €80,000, Max: €120,000)
-5. **Estimated Placement Fee immediately updates** to reflect the new salary:
-   - With 20% fee: €120,000 × 20% = **€24,000**
-   - Label changes to: "Based on €120,000 salary"
+**File**: `src/components/ui/location-autocomplete.tsx`
+
+Apply same key additions to AnimatePresence children at:
+- Line 237 (Clear button)
+- Line 269 (Loading state)
 
 ---
 
-## Technical Note
+## Technical Details
 
-The component uses `salary_max` (the higher end of the range) for the fee calculation because:
-- It's a conservative estimate for revenue planning
-- Candidates often negotiate toward the higher end of posted ranges
-- It matches how deal pipeline revenue calculations work elsewhere in the app
+### AnimatePresence Mode Reference
 
+| Mode | Use Case |
+|------|----------|
+| `sync` (default) | Multiple items can enter/exit simultaneously |
+| `wait` | Wait for exiting item to finish before entering new one (single item only!) |
+| `popLayout` | For lists with layout animations - items can enter/exit together |
+
+### Why These Warnings Appear
+
+The warning `"You're attempting to animate multiple children within AnimatePresence, but its mode is set to 'wait'"` occurs when:
+1. `mode="wait"` is set
+2. More than one child is rendered at the same time
+3. Framer Motion can't determine which single element to animate
+
+---
+
+## Verification Checklist
+
+After fixes:
+1. No AnimatePresence warnings in console
+2. QuickTipsCarousel transitions smoothly
+3. Location autocomplete clear button animates correctly
+4. Loading states animate without glitches
+5. Application loads without visual jumps
+
+---
+
+## Additional Observations
+
+### Auth Flow (Working as Designed)
+- User on `/home` without session triggers ProtectedRoute
+- PageLoader shows during auth check
+- Redirect to `/auth` happens correctly
+- This is expected behavior, not a bug
+
+### Cache Reset (User Action)
+- Console shows `[PageLoader] Cache cleared. Reloading...`
+- This was triggered by user clicking "Reset Cache & Reload" button
+- Not an application error
+
+### Non-Critical Warnings (No Action Needed)
+- `[RB2B] Script blocked` - Ad blocker, expected
+- `[Sentry] DSN not configured` - No Sentry key set
+- `[PostHog] API key not configured` - No PostHog key set
+- `cdn.tailwindcss.com warning` - Development only, not in production
