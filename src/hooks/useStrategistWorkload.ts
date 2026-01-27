@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface StrategistWorkload {
   id: string;
-  user_id: string;
   full_name: string;
   avatar_url: string | null;
   email: string | null;
@@ -15,6 +14,14 @@ export interface StrategistWorkload {
   maxCapacity: number;
 }
 
+export interface TeamMember {
+  id: string;
+  full_name: string;
+  email: string | null;
+  avatar_url: string | null;
+  current_title: string | null;
+}
+
 const MAX_COMPANY_CAPACITY = 25;
 const MAX_CANDIDATE_CAPACITY = 50;
 
@@ -22,14 +29,29 @@ export function useStrategistWorkload() {
   return useQuery({
     queryKey: ['strategist-workload'],
     queryFn: async (): Promise<StrategistWorkload[]> => {
-      // Fetch all active strategists from talent_strategists
-      const { data: strategists, error: strategistsError } = await (supabase as any)
-        .from('talent_strategists')
-        .select('id, user_id, full_name, title, email, photo_url')
-        .eq('is_active', true);
+      // Fetch user_roles for admins and strategists first
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['admin', 'strategist']);
 
-      if (strategistsError) throw strategistsError;
-      if (!strategists?.length) return [];
+      if (rolesError) throw rolesError;
+      if (!roles?.length) return [];
+
+      const teamUserIds = [...new Set(roles.map(r => r.user_id))];
+
+      // Fetch profiles for these users
+      const { data: teamMembers, error: teamError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url, current_title')
+        .in('id', teamUserIds)
+        .order('full_name');
+
+      if (teamError) throw teamError;
+      if (!teamMembers?.length) return [];
+
+      if (teamError) throw teamError;
+      if (!teamMembers?.length) return [];
 
       // Fetch company assignments
       const { data: companyAssignments } = await supabase
@@ -56,14 +78,14 @@ export function useStrategistWorkload() {
         activeApps = apps || [];
       }
 
-      // Calculate workload for each strategist
-      const workloadMap: StrategistWorkload[] = strategists.map((strategist: any) => {
+      // Calculate workload for each team member
+      const workloadMap: StrategistWorkload[] = teamMembers.map((member: any) => {
         const companyCount = companyAssignments?.filter(
-          (a: any) => a.strategist_id === strategist.user_id
+          (a: any) => a.strategist_id === member.id
         ).length || 0;
 
         const assignedCandidates = candidates?.filter(
-          (c: any) => c.assigned_strategist_id === strategist.user_id
+          (c: any) => c.assigned_strategist_id === member.id
         ) || [];
         const candidateCount = assignedCandidates.length;
 
@@ -78,12 +100,11 @@ export function useStrategistWorkload() {
         const capacityPercent = Math.min(100, Math.round((companyCapacity * 0.4 + candidateCapacity * 0.6)));
 
         return {
-          id: strategist.id,
-          user_id: strategist.user_id,
-          full_name: strategist.full_name || 'Unknown',
-          avatar_url: strategist.photo_url,
-          email: strategist.email,
-          title: strategist.title,
+          id: member.id,
+          full_name: member.full_name || 'Unknown',
+          avatar_url: member.avatar_url,
+          email: member.email,
+          title: member.current_title,
           companyCount,
           candidateCount,
           activeApplications,
@@ -101,15 +122,28 @@ export function useStrategistWorkload() {
 export function useStrategistList() {
   return useQuery({
     queryKey: ['strategist-list'],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('talent_strategists')
-        .select('id, user_id, full_name, title, email, photo_url, availability')
-        .eq('is_active', true)
+    queryFn: async (): Promise<TeamMember[]> => {
+      // Fetch user_roles for admins and strategists first
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['admin', 'strategist']);
+
+      if (rolesError) throw rolesError;
+      if (!roles?.length) return [];
+
+      const teamUserIds = [...new Set(roles.map(r => r.user_id))];
+
+      // Fetch profiles for these users
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url, current_title')
+        .in('id', teamUserIds)
         .order('full_name');
 
-      if (error) throw error;
-      return data || [];
+      if (profilesError) throw profilesError;
+      
+      return profiles || [];
     },
     staleTime: 60000,
   });

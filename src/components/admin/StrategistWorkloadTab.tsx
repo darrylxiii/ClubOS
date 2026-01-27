@@ -7,6 +7,8 @@ import { Building2, Users, Briefcase, Loader2, AlertTriangle, CheckCircle } from
 
 export function StrategistWorkloadTab() {
   const { data: workloads, isLoading, error } = useStrategistWorkload();
+  
+  // Note: workloads now use 'id' (profiles.id) instead of 'user_id'
 
   if (isLoading) {
     return (

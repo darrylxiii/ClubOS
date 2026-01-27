@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, User, UserPlus, UserMinus, Loader2, Briefcase } from "lucide-react";
 import { toast } from "sonner";
-import { useStrategistList } from "@/hooks/useStrategistWorkload";
+import { useStrategistList, TeamMember } from "@/hooks/useStrategistWorkload";
 
 interface CandidateWithStrategist {
   id: string;
@@ -21,11 +21,7 @@ interface CandidateWithStrategist {
   current_company: string | null;
   assigned_strategist_id: string | null;
   is_active: boolean;
-  strategist: {
-    user_id: string;
-    full_name: string;
-    photo_url: string | null;
-  } | null;
+  strategist: TeamMember | null;
 }
 
 export function StrategistCandidateTab() {
@@ -41,7 +37,7 @@ export function StrategistCandidateTab() {
   // Fetch candidates with their assignments
   const { data: candidates, isLoading } = useQuery({
     queryKey: ['candidates-with-assignments', activeOnly],
-    queryFn: async () => {
+    queryFn: async (): Promise<CandidateWithStrategist[]> => {
       // Build query based on filters
       const { data: candidatesData, error } = await supabase
         .from('candidate_profiles')
@@ -51,16 +47,26 @@ export function StrategistCandidateTab() {
 
       if (error) throw error;
 
-      // Fetch strategist details
-      const { data: strategistData } = await (supabase as any)
-        .from('talent_strategists')
-        .select('user_id, full_name, photo_url')
-        .eq('is_active', true);
+      // Fetch user_roles for admins and strategists
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['admin', 'strategist']);
+
+      const teamUserIds = [...new Set((roles || []).map(r => r.user_id))];
+
+      // Fetch team member profiles for strategist display
+      const { data: teamProfiles } = teamUserIds.length > 0 
+        ? await supabase
+            .from('profiles')
+            .select('id, full_name, email, avatar_url, current_title')
+            .in('id', teamUserIds)
+        : { data: [] };
 
       // Map candidates with their strategist
       return candidatesData?.map(candidate => {
         const strategist = candidate.assigned_strategist_id
-          ? strategistData?.find((s: any) => s.user_id === candidate.assigned_strategist_id)
+          ? teamProfiles?.find((p: any) => p.id === candidate.assigned_strategist_id)
           : null;
         
         return {
@@ -72,8 +78,14 @@ export function StrategistCandidateTab() {
           current_company: candidate.current_company,
           assigned_strategist_id: candidate.assigned_strategist_id,
           is_active: true, // Default to true since we don't have this column
-          strategist,
-        } as CandidateWithStrategist;
+          strategist: strategist ? {
+            id: strategist.id,
+            full_name: strategist.full_name,
+            email: strategist.email,
+            avatar_url: strategist.avatar_url,
+            current_title: strategist.current_title,
+          } : null,
+        };
       }) || [];
     },
   });
@@ -213,8 +225,8 @@ export function StrategistCandidateTab() {
               <SelectValue placeholder="Select strategist..." />
             </SelectTrigger>
             <SelectContent>
-              {strategists?.map((s: any) => (
-                <SelectItem key={s.user_id} value={s.user_id}>
+              {strategists?.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
                   {s.full_name}
                 </SelectItem>
               ))}
@@ -283,7 +295,7 @@ export function StrategistCandidateTab() {
                 {candidate.strategist ? (
                   <>
                     <Avatar className="h-7 w-7">
-                      <AvatarImage src={candidate.strategist.photo_url || undefined} />
+                      <AvatarImage src={candidate.strategist.avatar_url || undefined} />
                       <AvatarFallback className="text-xs">
                         {candidate.strategist.full_name?.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
@@ -309,8 +321,8 @@ export function StrategistCandidateTab() {
                     <SelectValue placeholder="Assign..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {strategists?.map((s: any) => (
-                      <SelectItem key={s.user_id} value={s.user_id}>
+                    {strategists?.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
                         {s.full_name}
                       </SelectItem>
                     ))}

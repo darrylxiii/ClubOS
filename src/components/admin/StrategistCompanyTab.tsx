@@ -10,25 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Building2, UserPlus, UserMinus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useStrategistList } from "@/hooks/useStrategistWorkload";
+import { useStrategistList, TeamMember } from "@/hooks/useStrategistWorkload";
 
-interface CompanyAssignment {
+interface CompanyWithAssignment {
   id: string;
-  company_id: string;
-  strategist_id: string;
-  sla_response_days: number;
-  commission_split_percent: number;
-  company: {
-    id: string;
-    name: string;
-    logo_url: string | null;
-    industry: string | null;
-  };
-  strategist: {
-    user_id: string;
-    full_name: string;
-    photo_url: string | null;
-  } | null;
+  name: string;
+  logo_url: string | null;
+  industry: string | null;
+  assignment: any | null;
+  strategist: TeamMember | null;
 }
 
 export function StrategistCompanyTab() {
@@ -43,7 +33,7 @@ export function StrategistCompanyTab() {
   // Fetch companies with their assignments
   const { data: companies, isLoading } = useQuery({
     queryKey: ['companies-with-assignments'],
-    queryFn: async () => {
+    queryFn: async (): Promise<CompanyWithAssignment[]> => {
       const { data: allCompanies, error: companiesError } = await supabase
         .from('companies')
         .select('id, name, logo_url, industry')
@@ -60,23 +50,42 @@ export function StrategistCompanyTab() {
 
       if (assignmentsError) throw assignmentsError;
 
-      // Fetch strategist details
-      const { data: strategistData } = await (supabase as any)
-        .from('talent_strategists')
-        .select('user_id, full_name, photo_url')
-        .eq('is_active', true);
+      // Fetch user_roles for admins and strategists
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['admin', 'strategist']);
+
+      const teamUserIds = [...new Set((roles || []).map(r => r.user_id))];
+
+      // Fetch team member profiles for strategist display
+      const { data: teamProfiles } = teamUserIds.length > 0 
+        ? await supabase
+            .from('profiles')
+            .select('id, full_name, email, avatar_url, current_title')
+            .in('id', teamUserIds)
+        : { data: [] };
 
       // Map companies with their assignments
       return allCompanies?.map(company => {
         const assignment = assignments?.find(a => a.company_id === company.id);
         const strategist = assignment 
-          ? strategistData?.find((s: any) => s.user_id === assignment.strategist_id)
+          ? teamProfiles?.find((p: any) => p.id === assignment.strategist_id)
           : null;
         
         return {
-          ...company,
+          id: company.id,
+          name: company.name,
+          logo_url: company.logo_url,
+          industry: company.industry,
           assignment,
-          strategist,
+          strategist: strategist ? {
+            id: strategist.id,
+            full_name: strategist.full_name,
+            email: strategist.email,
+            avatar_url: strategist.avatar_url,
+            current_title: strategist.current_title,
+          } : null,
         };
       }) || [];
     },
@@ -248,8 +257,8 @@ export function StrategistCompanyTab() {
               <SelectValue placeholder="Select strategist..." />
             </SelectTrigger>
             <SelectContent>
-              {strategists?.map((s: any) => (
-                <SelectItem key={s.user_id} value={s.user_id}>
+              {strategists?.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
                   {s.full_name}
                 </SelectItem>
               ))}
@@ -309,7 +318,7 @@ export function StrategistCompanyTab() {
                 {company.strategist ? (
                   <>
                     <Avatar className="h-7 w-7">
-                      <AvatarImage src={company.strategist.photo_url || undefined} />
+                      <AvatarImage src={company.strategist.avatar_url || undefined} />
                       <AvatarFallback className="text-xs">
                         {company.strategist.full_name?.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
@@ -329,7 +338,7 @@ export function StrategistCompanyTab() {
               {/* Actions */}
               <div className="flex items-center gap-2">
                 <Select
-                  value={company.strategist?.user_id || ""}
+                  value={company.strategist?.id || ""}
                   onValueChange={(value) => {
                     if (value) {
                       assignMutation.mutate({ companyId: company.id, strategistId: value });
@@ -340,8 +349,8 @@ export function StrategistCompanyTab() {
                     <SelectValue placeholder="Assign..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {strategists?.map((s: any) => (
-                      <SelectItem key={s.user_id} value={s.user_id}>
+                    {strategists?.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
                         {s.full_name}
                       </SelectItem>
                     ))}
