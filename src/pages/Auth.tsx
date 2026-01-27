@@ -10,18 +10,38 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Lock, CheckCircle2, AlertTriangle } from "lucide-react";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
-import { FaGoogle } from "react-icons/fa";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useLoginLockout } from "@/hooks/useLoginLockout";
-import { generateOAuthState, validateOAuthState, clearOAuthState } from "@/utils/oauthCsrfProtection";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { logger } from "@/lib/logger";
 
 // Lazy load heavy components to reduce initial bundle
 const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({ default: m.OAuthDiagnostics })));
+
+// Inline Google icon SVG to avoid react-icons bundle size
+const GoogleIcon = () => (
+  <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
+    <path
+      fill="currentColor"
+      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+    />
+    <path
+      fill="currentColor"
+      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+    />
+    <path
+      fill="currentColor"
+      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+    />
+    <path
+      fill="currentColor"
+      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+    />
+  </svg>
+);
 
 const quantumLogo = "/quantum-logo.svg?v=8";
 const emailSchema = z.string().email();
@@ -51,51 +71,65 @@ const Auth = () => {
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
   const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
+  const [oauthProcessing, setOauthProcessing] = useState(false);
   const { checkLockout, recordAttempt } = useLoginLockout();
   const navigate = useNavigate();
 
+  // OAuth callback handler - exchanges code for session BEFORE cleaning URL
   useEffect(() => {
     const handleOAuthCallback = async () => {
       const params = new URLSearchParams(window.location.search);
       const error = params.get('error');
       const errorDescription = params.get('error_description');
-      const state = params.get('state');
+      const code = params.get('code');
 
       // Handle OAuth errors first
       if (error) {
         logger.error('OAuth error', new Error(errorDescription || error), { componentName: 'Auth', error });
         toast.error(`Sign in failed: ${errorDescription || error}`);
+        localStorage.removeItem('pending_invite_code');
         window.history.replaceState({}, '', '/auth');
-        clearOAuthState();
         return;
       }
 
-      // If we have a state parameter, this is an OAuth callback
-      if (state) {
-        logger.debug('OAuth callback detected with state', { componentName: 'Auth' });
+      // If we have a code parameter, this is an OAuth callback that needs processing
+      if (code) {
+        logger.debug('OAuth callback detected with code', { componentName: 'Auth' });
+        setOauthProcessing(true);
 
-        // Check if Supabase already has a valid session (OAuth succeeded)
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        try {
+          // Let Supabase's detectSessionInUrl handle the exchange automatically
+          // Just wait for the session to be established
+          let attempts = 0;
+          const maxAttempts = 20; // 10 seconds max wait
+          
+          while (attempts < maxAttempts) {
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            
+            if (currentSession?.user) {
+              logger.debug('OAuth session established successfully', { componentName: 'Auth' });
+              // Clean up URL only after session is confirmed
+              window.history.replaceState({}, '', '/auth');
+              setOauthProcessing(false);
+              return;
+            }
+            
+            // Wait 500ms before checking again
+            await new Promise(resolve => setTimeout(resolve, 500));
+            attempts++;
+          }
 
-        if (existingSession?.user) {
-          // User is authenticated - OAuth worked, clear state and let auth flow continue
-          logger.debug('OAuth succeeded - session found', { componentName: 'Auth' });
-          clearOAuthState();
+          // If we get here, session wasn't established in time
+          logger.warn('OAuth session not established after waiting', { componentName: 'Auth' });
+          toast.error('Sign in timed out. Please try again.');
           window.history.replaceState({}, '', '/auth');
-          return;
+        } catch (err) {
+          logger.error('OAuth callback processing error', err instanceof Error ? err : new Error(String(err)), { componentName: 'Auth' });
+          toast.error('Sign in failed. Please try again.');
+          window.history.replaceState({}, '', '/auth');
+        } finally {
+          setOauthProcessing(false);
         }
-
-        // No session yet - validate CSRF state but don't block if it fails
-        // (Session check above is the real security, state is defense-in-depth)
-        const isValid = validateOAuthState(state);
-        if (!isValid) {
-          logger.warn('OAuth state validation failed, but continuing...', { componentName: 'Auth' });
-        } else {
-          logger.debug('OAuth CSRF validation passed', { componentName: 'Auth' });
-        }
-
-        // Clean up URL
-        window.history.replaceState({}, '', '/auth');
       }
     };
 
@@ -115,26 +149,42 @@ const Auth = () => {
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
+      // Don't navigate while OAuth is still processing
+      if (oauthProcessing) return;
+      
       if (!loading && user && session && !mfaRequired) {
-        // Check if user has completed onboarding
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_completed_at')
-          .eq('id', user.id)
-          .single();
+        try {
+          // Check if user has completed onboarding
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('onboarding_completed_at')
+            .eq('id', user.id)
+            .single();
 
-        if (!profile?.onboarding_completed_at) {
-          console.log("[Auth Page] ⚠️ User needs to complete onboarding");
+          if (error) {
+            logger.warn('Failed to fetch profile for onboarding check', { componentName: 'Auth', error });
+            // Safe default: route to onboarding
+            navigate("/oauth-onboarding");
+            return;
+          }
+
+          if (!profile?.onboarding_completed_at) {
+            logger.debug('User needs to complete onboarding', { componentName: 'Auth' });
+            navigate("/oauth-onboarding");
+          } else {
+            logger.debug('User authenticated, navigating to /home', { componentName: 'Auth' });
+            navigate("/home");
+          }
+        } catch (err) {
+          logger.error('Error checking onboarding status', err instanceof Error ? err : new Error(String(err)), { componentName: 'Auth' });
+          // Safe default: route to onboarding
           navigate("/oauth-onboarding");
-        } else {
-          console.log("[Auth Page] ✅ User authenticated, navigating to /home");
-          navigate("/home");
         }
       }
     };
 
     checkOnboardingStatus();
-  }, [loading, user, session, mfaRequired, navigate]);
+  }, [loading, user, session, mfaRequired, oauthProcessing, navigate]);
 
   useEffect(() => {
     if (inviteCode) {
@@ -241,7 +291,7 @@ const Auth = () => {
         }
 
         if (data?.session) {
-          console.log("[Auth Page] Login successful");
+          logger.debug('Login successful', { componentName: 'Auth' });
         }
       } else {
         if (!fullName.trim()) {
@@ -291,28 +341,24 @@ const Auth = () => {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
 
-      // Generate CSRF state parameter
-      const state = generateOAuthState();
-
       const redirectUrl = inviteCode
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
 
+      // Let Supabase handle PKCE and state internally - don't override state
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent',
-            state
+            prompt: 'consent'
           }
         }
       });
 
       if (error) throw error;
     } catch (error: any) {
-      clearOAuthState();
       toast.error(error.message || t('errors.failedToInitiate', { provider: t('oauth.google') }));
     }
   };
@@ -323,24 +369,20 @@ const Auth = () => {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
 
-      // Generate CSRF state parameter
-      const state = generateOAuthState();
-
       const redirectUrl = inviteCode
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
 
+      // Let Supabase handle PKCE and state internally - don't override state
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
-          redirectTo: redirectUrl,
-          queryParams: { state }
+          redirectTo: redirectUrl
         }
       });
 
       if (error) throw error;
     } catch (error: any) {
-      clearOAuthState();
       toast.error(error.message || t('errors.failedToInitiate', { provider: t('oauth.apple') }));
     }
   };
@@ -351,25 +393,21 @@ const Auth = () => {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
 
-      // Generate CSRF state parameter
-      const state = generateOAuthState();
-
       const redirectUrl = inviteCode
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
 
+      // Let Supabase handle PKCE and state internally - don't override state
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
           redirectTo: redirectUrl,
-          scopes: 'openid profile email',
-          queryParams: { state }
+          scopes: 'openid profile email'
         }
       });
 
       if (error) throw error;
     } catch (error: any) {
-      clearOAuthState();
       toast.error(error.message || t('errors.failedToInitiate', { provider: t('oauth.linkedin') }));
     }
   };
@@ -434,7 +472,7 @@ const Auth = () => {
     }
   };
 
-  if (loading) {
+  if (loading || oauthProcessing) {
     return <UnifiedLoader variant="page" showBranding />;
   }
 
@@ -614,7 +652,7 @@ const Auth = () => {
                   variant="outline"
                   className="w-full h-14 rounded-2xl font-semibold"
                 >
-                  <FaGoogle className="mr-3 h-5 w-5" />
+                  <GoogleIcon />
                   {t('signInWith', { provider: t('oauth.google') })}
                 </Button>
 
