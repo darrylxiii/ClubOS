@@ -823,57 +823,61 @@ export function CandidateOnboardingSteps() {
             )}
 
             {emailOtpSent && !emailVerified && (
-              <div className="p-4 border-3 border-primary/20 bg-primary/5 rounded-lg space-y-3 shadow-lg shadow-primary/20">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1">
-                    <Label className="text-lg font-bold">Verify Your Email</Label>
-                    <p className="text-sm text-muted-foreground mt-1">
+              <div className="p-3 sm:p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3 shadow-lg shadow-primary/20 max-w-full overflow-hidden">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-base sm:text-lg font-bold">Verify Your Email</Label>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
                       We've sent a 6-digit code to {formData.email}
                     </p>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Enter Verification Code *</Label>
-                  <InputOTP
-                    maxLength={6}
-                    value={emailOtpCode}
-                    onChange={(value) => {
-                      setEmailOtpCode(value);
-                      if (value.length === 6) {
-                        verifyEmailOTP(formData.email, value, async () => {
-                          setEmailVerified(true);
-                          setEmailOtpCode("");
-                          await trackStep("complete");
-                          setCurrentStep(1);
-                        });
-                      }
-                    }}
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
+                  <Label className="text-sm">Enter Verification Code *</Label>
+                  <div className="flex justify-center w-full">
+                    <InputOTP
+                      maxLength={6}
+                      value={emailOtpCode}
+                      onChange={(value) => {
+                        setEmailOtpCode(value);
+                        if (value.length === 6) {
+                          verifyEmailOTP(formData.email, value, async () => {
+                            setEmailVerified(true);
+                            setEmailOtpCode("");
+                            await trackStep("complete");
+                            setCurrentStep(1);
+                          });
+                        }
+                      }}
+                    >
+                      <InputOTPGroup className="gap-1 sm:gap-2">
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
                   {isVerifyingEmail && (
-                    <p className="text-sm text-muted-foreground">Verifying...</p>
+                    <p className="text-sm text-muted-foreground text-center">Verifying...</p>
                   )}
                   {emailResendCooldown === 0 && emailOtpSent && (
-                    <Button
-                      type="button"
-                      variant="link"
-                      onClick={() => sendEmailOTP(formData.email)}
-                      disabled={isSendingEmailOtp}
-                      className="p-0 h-auto"
-                    >
-                      Resend code
-                    </Button>
+                    <div className="text-center">
+                      <Button
+                        type="button"
+                        variant="link"
+                        onClick={() => sendEmailOTP(formData.email)}
+                        disabled={isSendingEmailOtp}
+                        className="p-0 h-auto"
+                      >
+                        Resend code
+                      </Button>
+                    </div>
                   )}
                   {emailResendCooldown > 0 && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground text-center">
                       Resend available in {emailResendCooldown}s
                     </p>
                   )}
