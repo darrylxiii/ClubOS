@@ -1,88 +1,190 @@
 
-Goal
-- Fix Google OAuth so that after signing in on bytqc.com the user ends up in the app (e.g. /home or /oauth-onboarding) instead of landing back on /auth with no session.
-- Also address the current production build failure (Node “heap out of memory”), which is likely caused by overly large bundles from certain imports used on /auth.
+# Light/Dark Theme Fix - Comprehensive Site-Wide Audit
 
-What’s happening (root cause)
-1) The OAuth callback is being “cleaned” too early in src/pages/Auth.tsx:
-   - On the OAuth return, the URL contains critical query parameters (typically code, state, etc.) that the auth client uses to exchange for a session.
-   - The current effect detects state and calls:
-     - window.history.replaceState({}, '', '/auth')
-   - That can remove the OAuth code/state from the URL before the auth library finishes exchanging it for a session.
-   - Result: no session is created, so the user remains on /auth (appears as “redirected back to /auth again”).
+## Overview
+This plan addresses all theme visibility issues across The Quantum Club application, with the primary issue being the QC logo showing white-on-white in light mode. The audit identifies 15+ locations where logos and theme-sensitive elements need fixes.
 
-2) There is also a strong chance your custom “state” parameter conflicts with the auth system’s own use of state for PKCE/CSRF.
-   - handleGoogleAuth passes queryParams: { …, state }
-   - Many auth flows treat state as reserved and managed by the auth client; overriding it can break the exchange.
+---
 
-3) Production build currently fails with “JavaScript heap out of memory”.
-   - A common trigger in Vite builds is importing “react-icons” packs (even a single icon import can pull in large subgraphs depending on configuration).
-   - src/pages/Auth.tsx imports FaGoogle from react-icons/fa, which is a likely contributor.
-   - Fixing that should reduce build memory pressure.
+## Root Cause Analysis
 
-Plan (implementation steps)
-A) Fix OAuth callback handling so the code exchange can complete
-1. Update src/pages/Auth.tsx OAuth callback effect (the useEffect that calls handleOAuthCallback):
-   - Stop clearing the URL immediately when state exists.
-   - Instead:
-     - Detect if the URL looks like an OAuth return (e.g. has “code=” or “access_token=” or “error=”).
-     - If error is present: show toast, clear any local “pending invite” state, then clean URL to /auth.
-     - If code is present:
-       - Call supabase.auth.exchangeCodeForSession(window.location.href) (or the appropriate method supported by your auth client version).
-       - Only after exchange succeeds (or after a short wait + getSession confirms session exists), then clean the URL to /auth (or to a neutral route) to remove the code from the address bar.
-   - This ensures the session is established before we remove the callback parameters.
+### Logo Asset Naming Convention (SWAPPED/CONFUSING)
+The current naming convention in the codebase is **inverted**, causing confusion:
+- `quantum-logo-light-transparent.png` = WHITE logo (for dark backgrounds)
+- `quantum-logo-dark-transparent.png` = BLACK logo (for light backgrounds)
 
-2. Remove the custom CSRF “state” usage that conflicts with provider state:
-   - In handleGoogleAuth (and Apple/LinkedIn handlers if present):
-     - Remove queryParams.state.
-     - Keep provider-safe params like access_type/prompt.
-   - If you still want additional “defense-in-depth” correlation:
-     - Use a non-reserved param name (e.g. tqc_invite, tqc_flow) where supported, or store correlation in localStorage and verify after session exists (not before).
+This means:
+- Light theme needs `quantumLogoDark` (black logo)
+- Dark theme needs `quantumLogoLight` (white logo)
 
-3. Make post-login navigation deterministic
-   - The existing onboarding check useEffect navigates to /oauth-onboarding if onboarding_completed_at is missing, else /home.
-   - We’ll ensure this runs only after:
-     - loading === false
-     - session exists
-     - and we’re not mid-MFA
-   - Add robust error handling around the profile fetch:
-     - If the profiles query errors, log it and route to /oauth-onboarding (safe default) or show a discreet “We couldn’t complete sign-in. Try again.” message, depending on desired UX.
-   - Avoid any code path that calls window.history.replaceState before session exchange is complete.
+### Current Issues Found
 
-B) Reduce build memory usage to fix the production build OOM
-4. Replace react-icons usage on /auth
-   - Replace import { FaGoogle } from "react-icons/fa" with a lightweight alternative:
-     - Prefer lucide-react icons already in use (e.g. a simple “G” icon / brand mark) or a small inline SVG for Google.
-   - This typically reduces bundle size substantially and helps Vite build within memory limits.
+| Location | Issue | Theme Affected |
+|----------|-------|----------------|
+| Auth.tsx | Uses single SVG logo `/quantum-logo.svg` - may not have proper contrast | Both |
+| PartnerFunnel.tsx | Logo classes appear correct but need verification | Light |
+| CandidateOnboarding.tsx | Logo classes appear correct but need verification | Light |
+| PendingApproval.tsx | Logo classes appear correct but need verification | Light |
+| NotFound.tsx | Uses `resolvedTheme` conditional - references non-existent `/quantum-logo-dark.png` | Both |
+| Install.tsx | Uses single SVG `/quantum-logo.svg` - no theme variant | Both |
+| AppLayout.tsx | Mobile header uses correct pattern | OK |
+| AnimatedSidebar.tsx | Desktop sidebar logo swap logic is **inverted** (lines 133-162, 243-251) | Both |
+| ForgotPassword.tsx | No logo, uses icon only | OK |
 
-5. (If still needed) Further bundle slimming on Auth route
-   - Confirm other heavy imports are already lazy-loaded (OAuthDiagnostics already is).
-   - Ensure any large, rarely used UI components on Auth are dynamically imported only when needed (e.g. OTP UI only when in verification state).
+---
 
-C) Verification checklist (what we’ll test after implementing)
-6. Test on bytqc.com:
-   - Click “Continue with Google”
-   - Complete Google consent
-   - Confirm you land on:
-     - /oauth-onboarding (if profile onboarding isn’t complete) OR
-     - /home (if onboarding is complete)
-   - Confirm you are not returned to /auth unless you explicitly sign out.
+## Implementation Plan
 
-7. Test on preview domain:
-   - Same flow; confirm stable sign-in behavior without looping.
+### 1. Fix Auth.tsx Logo
+**File:** `src/pages/Auth.tsx`
+**Lines:** 46, 484
 
-8. Confirm build succeeds
-   - Re-run production build; verify no OOM.
-   - If OOM persists, we’ll identify the next heaviest import(s) and reduce them similarly.
+Replace single SVG with theme-aware dual logos:
+```tsx
+// Add imports
+import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
+import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
 
-Notes / constraints
-- Your backend URL allow list + Site URL appear correct from the screenshots; this is now primarily a frontend callback handling issue.
-- Lovable Cloud supports Google OAuth; other providers shown in the UI may not work depending on backend support. We won’t change that unless you ask.
+// Replace logo render (around line 484)
+<div className="flex items-center justify-center mb-2">
+  <img 
+    src={quantumLogoDark} 
+    alt="The Quantum Club" 
+    className="w-32 h-32 dark:hidden" 
+  />
+  <img 
+    src={quantumLogoLight} 
+    alt="The Quantum Club" 
+    className="w-32 h-32 hidden dark:block" 
+  />
+</div>
+```
 
-De-scope option (if you want the simplest, most reliable fix)
-- Remove the custom oauthCsrfProtection layer entirely for OAuth and rely on the auth system’s built-in PKCE/state protections. This reduces risk of breaking the exchange and simplifies maintenance.
+### 2. Fix NotFound.tsx Logo Reference
+**File:** `src/pages/NotFound.tsx`
+**Lines:** 74-78
 
-Acceptance criteria
-- After completing Google OAuth on bytqc.com, user ends up authenticated and routed to /home or /oauth-onboarding within 1–2 seconds.
-- No repeated landing on /auth after successful OAuth.
-- Production build completes without Node heap OOM.
+Replace with proper asset imports (current references non-existent public files):
+```tsx
+// Add imports
+import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
+import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
+
+// Replace logo (lines 74-78)
+<img
+  src={quantumLogoDark}
+  alt="The Quantum Club"
+  className="h-12 w-auto object-contain dark:hidden"
+/>
+<img
+  src={quantumLogoLight}
+  alt="The Quantum Club"
+  className="h-12 w-auto object-contain hidden dark:block"
+/>
+```
+
+### 3. Fix Install.tsx Logo
+**File:** `src/pages/Install.tsx`
+**Lines:** 85-89
+
+Add theme-aware logo:
+```tsx
+// Add imports
+import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
+import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
+
+// Replace single logo with dual (lines 85-89)
+<img 
+  src={quantumLogoDark} 
+  alt="The Quantum Club" 
+  className="w-14 h-14 dark:hidden"
+/>
+<img 
+  src={quantumLogoLight} 
+  alt="The Quantum Club" 
+  className="w-14 h-14 hidden dark:block"
+/>
+```
+
+### 4. Fix AnimatedSidebar.tsx Logo Logic (CRITICAL)
+**File:** `src/components/AnimatedSidebar.tsx`
+
+The sidebar logo logic is **inverted** in multiple places:
+
+**Desktop Sidebar (lines 133-142 - EXPANDED state, lines 154-163 - COLLAPSED state):**
+Current code shows `logoLightShort` for dark mode and `logoDarkShort` for light mode in EXPANDED state.
+
+This appears correct based on the inverted naming, but the COLLAPSED state (lines 154-163) shows:
+- `logoLight` in dark mode
+- `logoDark` in light mode
+
+And `AppLayout.tsx` passes:
+- `logoLight` = `quantum-logo-dark.png` (white logo)
+- `logoDark` = `quantum-club-logo.png` (black logo)
+
+The naming is extremely confusing. We need to verify each logo file visually and ensure:
+- Light theme → Black/dark-colored logo visible
+- Dark theme → White/light-colored logo visible
+
+**Mobile Sidebar (lines 243-251):**
+Same issue - need to verify the swap is correct.
+
+### 5. Verify PartnerFunnel.tsx, CandidateOnboarding.tsx, PendingApproval.tsx
+**Files:** All three pages
+
+Current pattern (appears correct):
+```tsx
+<img src={quantumLogoDark} className="h-28 dark:hidden" />
+<img src={quantumLogoLight} className="h-28 hidden dark:block" />
+```
+
+This shows:
+- `quantumLogoDark` (black logo) on light theme ✓
+- `quantumLogoLight` (white logo) on dark theme ✓
+
+**No changes needed** if the asset files are correctly named.
+
+---
+
+## Summary of Files to Modify
+
+| File | Action |
+|------|--------|
+| `src/pages/Auth.tsx` | Add theme-aware dual logo |
+| `src/pages/NotFound.tsx` | Fix logo references to use imported assets |
+| `src/pages/Install.tsx` | Add theme-aware dual logo |
+| `src/components/AnimatedSidebar.tsx` | Verify and potentially fix logo swap logic |
+
+---
+
+## Technical Notes
+
+### Correct Pattern for Theme-Aware Logos
+```tsx
+// Light theme: show dark/black logo (visible on white background)
+<img src={darkLogo} className="dark:hidden" />
+
+// Dark theme: show light/white logo (visible on dark background)
+<img src={lightLogo} className="hidden dark:block" />
+```
+
+### Asset File Clarification
+Based on naming convention:
+- `quantum-logo-dark-transparent.png` = BLACK logo (use in light mode)
+- `quantum-logo-light-transparent.png` = WHITE logo (use in dark mode)
+- `quantum-club-logo.png` = BLACK full logo (use in light mode)
+- `quantum-logo-dark.png` = WHITE full logo (use in dark mode)
+
+---
+
+## Testing Checklist
+
+After implementation, verify on these pages in BOTH light and dark modes:
+1. `/auth` - Login page
+2. `/onboarding` - Candidate onboarding
+3. `/partner-funnel` - Partner request
+4. `/pending-approval` - Pending approval page
+5. `/404` - Not found page
+6. `/install` - PWA install page
+7. Main app sidebar (collapsed and expanded states)
+8. Mobile menu header
