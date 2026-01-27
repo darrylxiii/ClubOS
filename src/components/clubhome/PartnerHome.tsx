@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { RecentApplicationsList } from "./RecentApplicationsList";
 import { TalentRecommendations } from "../partner/TalentRecommendations";
 import { HiringPipelineOverview } from "./HiringPipelineOverview";
@@ -30,12 +31,20 @@ import { OfferPipelineWidget } from "../partner/OfferPipelineWidget";
 import { CandidateShortlistWidget } from "../partner/CandidateShortlistWidget";
 import { PositionFillCountdown } from "../partner/PositionFillCountdown";
 import { InterviewSuccessWidget } from "../partner/InterviewSuccessWidget";
+import { UnreadMessagesWidget } from "../partner/UnreadMessagesWidget";
+import { UpcomingDeadlinesWidget } from "../partner/UpcomingDeadlinesWidget";
+import { DossierActivityWidget } from "../partner/DossierActivityWidget";
+import { usePartnerDataPopulation } from "@/hooks/usePartnerDataPopulation";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
 
 export const PartnerHome = () => {
   const { companyId } = useRole();
+  const { user } = useAuth();
   const { stats, loading } = useRoleStats('partner', undefined, companyId || undefined);
+  
+  // Auto-populate dashboard data on mount
+  usePartnerDataPopulation(companyId || undefined);
 
   const staggerDelay = 0.1;
 
@@ -63,21 +72,22 @@ export const PartnerHome = () => {
         </motion.div>
       )}
 
-      {/* Revenue & Offers - High Priority Business Metrics */}
+      {/* Revenue, Offers & Messages - High Priority Business Metrics */}
       {companyId && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: staggerDelay * 2 }}
         >
-          <DashboardSection columns={2}>
+          <DashboardSection columns={3}>
             <PlacementRevenueWidget companyId={companyId} />
             <OfferPipelineWidget companyId={companyId} />
+            <UnreadMessagesWidget companyId={companyId} userId={user?.id} />
           </DashboardSection>
         </motion.div>
       )}
 
-      {/* Dashboard Intelligence */}
+      {/* AI Daily Briefing - Full Width */}
       {companyId && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -85,26 +95,74 @@ export const PartnerHome = () => {
           transition={{ duration: 0.5, delay: staggerDelay * 3 }}
         >
           <DashboardSection>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <SmartAlertsPanel companyId={companyId} />
-                <DailyBriefing companyId={companyId} />
-              </div>
-              <div className="space-y-6">
-                <HealthScoreDashboard companyId={companyId} />
-                <BenchmarkComparison companyId={companyId} />
-                <SLATracker companyId={companyId} />
-              </div>
-            </div>
+            <DailyBriefing companyId={companyId} />
           </DashboardSection>
         </motion.div>
       )}
 
-      {/* Quick Actions & Pipeline */}
+      {/* Smart Alerts, Health Score & SLA - 3-column grid */}
+      {companyId && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: staggerDelay * 4 }}
+        >
+          <DashboardSection columns={3}>
+            <SmartAlertsPanel companyId={companyId} />
+            <HealthScoreDashboard companyId={companyId} />
+            <SLATracker companyId={companyId} />
+          </DashboardSection>
+        </motion.div>
+      )}
+
+      {/* Today's Interviews & Upcoming Deadlines */}
+      {companyId && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: staggerDelay * 5 }}
+        >
+          <DashboardSection columns={2}>
+            <InterviewTodayWidget />
+            <UpcomingDeadlinesWidget companyId={companyId} />
+          </DashboardSection>
+        </motion.div>
+      )}
+
+      {/* Pipeline Overview & Talent Matches */}
+      {companyId && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: staggerDelay * 6 }}
+        >
+          <DashboardSection columns={2}>
+            <HiringPipelineOverview companyId={companyId} />
+            <TalentRecommendations companyId={companyId} />
+          </DashboardSection>
+        </motion.div>
+      )}
+
+      {/* Position Tracking, Shortlists & Benchmarks */}
+      {companyId && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: staggerDelay * 7 }}
+        >
+          <DashboardSection columns={3}>
+            <PositionFillCountdown companyId={companyId} />
+            <CandidateShortlistWidget companyId={companyId} />
+            <BenchmarkComparison companyId={companyId} />
+          </DashboardSection>
+        </motion.div>
+      )}
+
+      {/* Quick Actions & Interview Success */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: staggerDelay * 4 }}
+        transition={{ duration: 0.5, delay: staggerDelay * 8 }}
       >
         <DashboardSection columns={2}>
           <Card className="glass-card group hover:border-primary/30 transition-colors">
@@ -148,68 +206,33 @@ export const PartnerHome = () => {
               </Button>
             </CardContent>
           </Card>
-          {companyId && <HiringPipelineOverview companyId={companyId} />}
+          {companyId && <InterviewSuccessWidget companyId={companyId} />}
         </DashboardSection>
       </motion.div>
 
-      {/* Today's Interviews & Upcoming Meetings */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: staggerDelay * 5 }}
-      >
-        <DashboardSection columns={2}>
-          <InterviewTodayWidget />
-          <UpcomingMeetingsWidget />
-        </DashboardSection>
-      </motion.div>
-
-      {/* Position Tracking & Shortlists */}
-      {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 6 }}
-        >
-          <DashboardSection columns={3}>
-            <PositionFillCountdown companyId={companyId} />
-            <CandidateShortlistWidget companyId={companyId} />
-            <InterviewSuccessWidget companyId={companyId} />
-          </DashboardSection>
-        </motion.div>
-      )}
-
-      {/* Time Tracking */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: staggerDelay * 7 }}
-      >
-        <DashboardSection>
-          {companyId && <TimeTrackingWidget role="partner" companyId={companyId} />}
-        </DashboardSection>
-      </motion.div>
-
-      {/* Applications & Recommendations */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: staggerDelay * 8 }}
-      >
-        <DashboardSection columns={2}>
-          {companyId && <RecentApplicationsList companyId={companyId} />}
-          {companyId && <TalentRecommendations companyId={companyId} />}
-        </DashboardSection>
-      </motion.div>
-
-      {/* Activity Feed */}
+      {/* Time Tracking & Dossier Activity */}
       {companyId && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: staggerDelay * 9 }}
         >
-          <DashboardSection>
+          <DashboardSection columns={2}>
+            <TimeTrackingWidget role="partner" companyId={companyId} />
+            <DossierActivityWidget companyId={companyId} />
+          </DashboardSection>
+        </motion.div>
+      )}
+
+      {/* Recent Applications & Activity Feed */}
+      {companyId && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: staggerDelay * 10 }}
+        >
+          <DashboardSection columns={2}>
+            <RecentApplicationsList companyId={companyId} />
             <PartnerActivityFeed companyId={companyId} />
           </DashboardSection>
         </motion.div>

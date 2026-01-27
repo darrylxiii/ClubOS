@@ -52,6 +52,16 @@ export function PlacementRevenueWidget({ companyId }: PlacementRevenueWidgetProp
       const lastQuarterEnd = new Date(quarterStart);
       lastQuarterEnd.setDate(lastQuarterEnd.getDate() - 1);
 
+      // Fetch company's annual revenue goal
+      const { data: companyData } = await supabase
+        .from('companies')
+        .select('annual_revenue_goal')
+        .eq('id', companyId)
+        .maybeSingle();
+
+      const annualGoal = (companyData as any)?.annual_revenue_goal || 800000; // Default €800k/year
+      const quarterlyGoal = annualGoal / 4; // Convert to quarterly
+
       // Current quarter revenue
       const { data: currentQuarter } = await (supabase as any)
         .from('placement_fees')
@@ -68,12 +78,10 @@ export function PlacementRevenueWidget({ companyId }: PlacementRevenueWidgetProp
         .gte('hired_date', lastQuarterStart.toISOString())
         .lte('hired_date', lastQuarterEnd.toISOString());
 
-      const currentTotal = (currentQuarter || []).reduce((sum, p) => sum + (p.fee_amount || 0), 0);
-      const lastTotal = (lastQuarter || []).reduce((sum, p) => sum + (p.fee_amount || 0), 0);
+      const currentTotal = (currentQuarter || []).reduce((sum: number, p: any) => sum + (p.fee_amount || 0), 0);
+      const lastTotal = (lastQuarter || []).reduce((sum: number, p: any) => sum + (p.fee_amount || 0), 0);
       const percentChange = lastTotal > 0 ? ((currentTotal - lastTotal) / lastTotal) * 100 : 0;
 
-      // Quarterly goal (mock - would come from company settings)
-      const quarterlyGoal = 200000;
       const progressPercent = (currentTotal / quarterlyGoal) * 100;
 
       return {
