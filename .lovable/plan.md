@@ -1,378 +1,247 @@
 
-# Partner Home — Full 100/100 Implementation Plan
+# Admin Strategist Assignment Management System
 
-## Executive Summary
-
-This plan transforms the Partner Home from a **72/100** functionality score to a **100/100** enterprise-grade dashboard worthy of a luxury 0.1% recruitment agency. We'll fix all backend data gaps, add missing features that elite clients expect, and ensure everything syncs seamlessly with the rest of the platform.
-
----
+## Overview
+This plan creates a comprehensive admin system for managing strategist assignments across both companies and candidates. The system will provide a centralized modal for bulk viewing/editing, plus inline assignment capabilities throughout the admin interface.
 
 ## Current State Analysis
 
-### Database Health Check
-| Table | Current Count | Required Action |
-|-------|---------------|-----------------|
-| `partner_smart_alerts` | 0 rows | Need trigger-based population |
-| `partner_ai_insights` | 0 rows | Edge function exists but not triggered |
-| `partner_benchmarks` | 0 rows | RPC exists, needs scheduled execution |
-| `talent_matches` | 0 rows | RPC exists, needs job-triggered execution |
-| `partner_sla_tracking` | 0 rows | Need SLA creation triggers |
-| `partner_health_scores` | 2 rows | Working, but sub-scores null |
-| `company_strategist_assignments` | 0 rows | Need company-to-strategist mapping |
-| `candidate_shortlists` | 0 rows | Table exists, needs UI integration |
-| `placement_fees` | 3 rows | Working |
-| `talent_strategists` | 4 active | Data exists |
+| Entity | Current Assignment Method | Gap |
+|--------|--------------------------|-----|
+| Companies | Dropdown menu → StrategistAssignmentDialog | No centralized overview, no bulk management |
+| Candidates | BulkActionsToolbar in AdminCandidates | No individual assignment dialog, no quick inline edit |
 
-### Database Functions Status
-All required RPCs exist:
-- `generate_partner_smart_alerts()` — Created
-- `calculate_partner_benchmarks()` — Created
-- `calculate_company_health_score()` — Created
-- `generate_talent_matches()` — Created
-- `generate_daily_analytics_snapshot()` — Created
-- `generate_smart_alerts()` — Created
-
-### Edge Function Status
-- `generate-partner-insights` — Exists, uses Lovable AI, needs auto-trigger
+**Database Status:**
+- All 15+ companies are currently assigned to Sebastiaan Brouwer (backfilled by trigger)
+- The `company_strategist_assignments` table has proper schema with SLA configs
+- Candidates use `assigned_strategist_id` in `candidate_profiles` table
 
 ---
 
-## What a 0.1% Luxury Client Expects (Currently Missing)
+## Implementation Components
 
-### High Priority — Must Have for 100/100
+### 1. Admin Strategist Management Modal (Centralized Hub)
 
-| Feature | Why Elite Clients Expect It | Current Status |
-|---------|---------------------------|----------------|
-| **Dedicated Concierge with Availability** | "Who is my point of contact and are they available NOW?" | Partially working — needs assignment mapping |
-| **AI Daily Briefing** | "Give me the 60-second summary each morning" | Backend exists, not auto-triggered |
-| **Smart Alerts** | "Proactively tell me what needs attention" | Trigger exists, no data generated |
-| **Revenue Visibility** | "What ROI am I getting from this agency?" | Working but goal is hardcoded |
-| **SLA Tracking** | "Are you meeting your promises?" | Empty — need SLA creation on key events |
-| **Industry Benchmarks** | "How do I compare to market?" | RPC exists, not executed |
-| **Talent Matches** | "Show me candidates I should consider" | Empty — not running on job publish |
-| **Candidate Shortlist** | "Quick access to my starred candidates" | Table exists, needs population |
-| **Unread Messages Count** | "Do I have waiting communications?" | Not shown on homepage |
-| **Upcoming Deadlines** | "What's time-sensitive this week?" | Partially in SLA, needs enhancement |
+A full-screen modal/page accessible from Admin dashboard showing:
 
-### Medium Priority — Differentiators
+```text
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 👥 Strategist Assignment Manager                              [×]         │
+├────────────────────────────────────────────────────────────────────────────┤
+│ ┌─── Tabs ───────────────────────────────────────────────────────────────┐ │
+│ │ [Companies (15)]  [Candidates (247)]  [Strategist Workload]           │ │
+│ └────────────────────────────────────────────────────────────────────────┘ │
+│                                                                            │
+│ ┌─── Companies Tab ──────────────────────────────────────────────────────┐ │
+│ │ Search: [________________] [Industry ▼] [Unassigned Only □]           │ │
+│ │                                                                        │ │
+│ │ Company              │ Current Strategist  │ SLA │ Actions            │ │
+│ │ ─────────────────────┼────────────────────┼─────┼────────────────────│ │
+│ │ ABB                  │ Sebastiaan B.      │ 3d  │ [Change] [Remove]  │ │
+│ │ Qualogy              │ Sebastiaan B.      │ 3d  │ [Change] [Remove]  │ │
+│ │ HEARS                │ —                  │ —   │ [Assign]           │ │
+│ │                                                                        │ │
+│ │ [Bulk Assign Selected] [Export Assignments]                           │ │
+│ └────────────────────────────────────────────────────────────────────────┘ │
+│                                                                            │
+│ ┌─── Candidates Tab ─────────────────────────────────────────────────────┐ │
+│ │ Search: [________________] [Unassigned Only □] [Active Only □]        │ │
+│ │                                                                        │ │
+│ │ Candidate           │ Current Strategist  │ Status │ Actions          │ │
+│ │ ────────────────────┼────────────────────┼────────┼──────────────────│ │
+│ │ Sarah Chen          │ —                  │ Active │ [Assign]         │ │
+│ │ Mark Liu            │ Sebastiaan B.      │ Active │ [Change]         │ │
+│ └────────────────────────────────────────────────────────────────────────┘ │
+│                                                                            │
+│ ┌─── Strategist Workload Tab ────────────────────────────────────────────┐ │
+│ │ Strategist          │ Companies │ Candidates │ Active Apps │ Capacity │ │
+│ │ ────────────────────┼───────────┼────────────┼─────────────┼──────────│ │
+│ │ Sebastiaan B.       │ 15        │ 10         │ 23          │ ██████░░ │ │
+│ │ (Unassigned)        │ 0         │ 237        │ —           │ —        │ │
+│ └────────────────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────────────┘
+```
 
-| Feature | Business Value |
-|---------|---------------|
-| **Dossier Activity** | Show when candidates' dossiers are viewed/shared |
-| **Meeting Prep Reminders** | "You have an interview in 2 hours — here's the prep" |
-| **Invoice/Payment Status** | Billing visibility for enterprise clients |
-| **Comparative Hiring Speed** | "You're hiring 23% faster than industry average" |
-| **Calendar Integration Status** | "Your calendar is synced and working" |
+### 2. Add Company Dialog Enhancement
 
-### Low Priority — Future Enhancements
+When creating a new company, add strategist assignment step:
 
-| Feature | Description |
-|---------|-------------|
-| **Market Salary Intelligence** | Live comp data for open roles |
-| **Competitor Activity** | Who else is hiring similar roles |
-| **Predictive Time-to-Fill** | AI estimate based on role parameters |
+```text
+┌─────────────────────────────────────────────────────────┐
+│ Add New Company                                    [×]  │
+├─────────────────────────────────────────────────────────┤
+│ Step 3 of 3: Assign Strategist                          │
+│                                                         │
+│ Company: TechCorp                                       │
+│                                                         │
+│ Assign Strategist *                                     │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ [Select strategist...]                          ▼  │ │
+│ │   ○ Sebastiaan Brouwer (15 companies, 10 cand.)   │ │
+│ │   ○ Auto-assign (round-robin)                      │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ SLA Response Time: [3] days                             │
+│ Commission Split:  [20] %                               │
+│                                                         │
+│ [← Back]                            [Create Company]    │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 3. Candidate Strategist Assignment Dialog
+
+A dedicated modal for assigning strategist to individual candidates:
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│ Assign Strategist                                  [×]  │
+├─────────────────────────────────────────────────────────┤
+│ Candidate: Sarah Chen                                   │
+│ Status: Active • Last activity: 2 days ago              │
+│                                                         │
+│ Current Strategist: (None assigned)                     │
+│                                                         │
+│ Select Strategist                                       │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ ○ Sebastiaan Brouwer                               │ │
+│ │   15 companies • 10 candidates • 85% capacity      │ │
+│ │                                                     │ │
+│ │ ○ (More strategists would appear here)             │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ Assignment Notes (optional):                            │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ High-priority candidate for fintech roles          │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ [Cancel]                                     [Assign]   │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 4. Inline Quick Assignment
+
+Add quick-edit capability to existing components:
+
+**In UnifiedCandidateCard:**
+- Add small "Assign Strategist" button/icon next to candidate name
+- Shows current strategist with ability to change inline
+
+**In Companies table:**
+- Show strategist column with current assignment
+- Click to open quick-change popover
 
 ---
 
-## Implementation Plan
-
-### Phase 1: Backend Data Population (Critical)
-
-#### 1.1 Fix Company-Strategist Assignment
-Create automatic assignment when companies are created or assign the first active strategist.
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│ Database Migration                                       │
-├─────────────────────────────────────────────────────────┤
-│ 1. Create function: auto_assign_strategist_to_company   │
-│ 2. Create trigger on companies INSERT                   │
-│ 3. Backfill: Assign strategist to existing companies   │
-└─────────────────────────────────────────────────────────┘
-```
-
-#### 1.2 Fix Smart Alerts Generation
-Create triggers that fire when:
-- New application received
-- Application stuck > 7 days
-- Interview scheduled < 24 hours
-- Offer pending > 5 days
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│ Database Trigger: on_application_change                 │
-├─────────────────────────────────────────────────────────┤
-│ AFTER INSERT OR UPDATE ON applications                  │
-│ → Call generate_partner_smart_alerts(company_id)        │
-└─────────────────────────────────────────────────────────┘
-```
-
-#### 1.3 Fix AI Daily Briefing Auto-Generation
-Create a scheduled job or on-demand trigger when Partner Home loads (if no briefing exists for today).
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│ Logic: On PartnerHome mount                             │
-├─────────────────────────────────────────────────────────┤
-│ 1. Check if partner_ai_insights has today's briefing    │
-│ 2. If not, call generate-partner-insights edge function │
-│ 3. Display loading state while generating               │
-└─────────────────────────────────────────────────────────┘
-```
-
-#### 1.4 Fix Benchmark Calculation
-Trigger benchmark calculation when:
-- Application hired
-- Weekly scheduled job
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│ Database Trigger: on_hire_complete                      │
-├─────────────────────────────────────────────────────────┤
-│ AFTER UPDATE ON applications WHERE status = 'hired'     │
-│ → Call calculate_partner_benchmarks(company_id)         │
-└─────────────────────────────────────────────────────────┘
-```
-
-#### 1.5 Fix Talent Matching
-Trigger talent matching when:
-- Job published
-- Daily refresh for active jobs
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│ Database Trigger: on_job_published                      │
-├─────────────────────────────────────────────────────────┤
-│ AFTER UPDATE ON jobs WHERE status = 'published'         │
-│ → Call generate_talent_matches(job_id, 10)              │
-└─────────────────────────────────────────────────────────┘
-```
-
-#### 1.6 Fix SLA Tracking
-Create SLAs automatically when:
-- New application → 48-hour response SLA
-- Interview scheduled → Feedback within 24 hours SLA
-- Offer extended → Decision within 5 days SLA
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│ Database Trigger: create_sla_on_application             │
-├─────────────────────────────────────────────────────────┤
-│ AFTER INSERT ON applications                            │
-│ → Insert into partner_sla_tracking with deadline        │
-└─────────────────────────────────────────────────────────┘
-```
-
-#### 1.7 Fix Health Score Sub-metrics
-Update `calculate_company_health_score` to return all sub-metrics and store them properly.
-
----
-
-### Phase 2: Frontend Improvements
-
-#### 2.1 Add Missing Widgets
-
-| New Widget | Data Source | Purpose |
-|------------|-------------|---------|
-| `UnreadMessagesWidget` | `messages` table | Show unread count + preview |
-| `DossierActivityWidget` | `dossier_views` table | Recent profile views |
-| `CalendarSyncStatusWidget` | `calendar_integrations` | Integration health |
-| `UpcomingDeadlinesWidget` | Aggregated from SLAs + interviews | Critical dates this week |
-
-#### 2.2 Improve Existing Widgets
-
-| Widget | Improvement |
-|--------|-------------|
-| `PlacementRevenueWidget` | Fetch goal from company settings, not hardcoded |
-| `PartnerConciergeCard` | Use company_strategist_assignments for proper mapping |
-| `DailyBriefing` | Auto-generate on first load if no today's briefing |
-| `SLATracker` | Use partner_sla_tracking with proper events |
-
-#### 2.3 Layout Optimization
-
-```text
-Current Layout:
-┌─────────────────────────────────────────────────────────┐
-│ Stats Bar                                               │
-├─────────────────────────────────────────────────────────┤
-│ Concierge Card                                          │
-├─────────────────────────────────────────────────────────┤
-│ Revenue | Offers                                        │
-├─────────────────────────────────────────────────────────┤
-│ Smart Alerts + Briefing | Health + Benchmarks + SLA     │
-├─────────────────────────────────────────────────────────┤
-│ Quick Actions | Pipeline                                │
-├─────────────────────────────────────────────────────────┤
-│ Interviews Today | Upcoming Meetings                    │
-├─────────────────────────────────────────────────────────┤
-│ Position Countdown | Shortlist | Interview Success      │
-├─────────────────────────────────────────────────────────┤
-│ Time Tracking                                           │
-├─────────────────────────────────────────────────────────┤
-│ Recent Applications | Talent Recommendations            │
-├─────────────────────────────────────────────────────────┤
-│ Activity Feed                                           │
-└─────────────────────────────────────────────────────────┘
-
-Proposed Optimized Layout:
-┌─────────────────────────────────────────────────────────┐
-│ Stats Bar (Active Jobs | Applications | Interviews | ⚡ │
-│ Unread Messages count added)                            │
-├─────────────────────────────────────────────────────────┤
-│ Concierge Card (Full width hero)                        │
-├─────────────────────────────────────────────────────────┤
-│ Revenue | Offers | Messages Preview (3-col)             │
-├─────────────────────────────────────────────────────────┤
-│ Daily Briefing (Full width AI summary)                  │
-├─────────────────────────────────────────────────────────┤
-│ Smart Alerts | Health Score | SLA Tracker (3-col)       │
-├─────────────────────────────────────────────────────────┤
-│ Today's Interviews | Upcoming Deadlines (2-col)         │
-├─────────────────────────────────────────────────────────┤
-│ Pipeline Overview | Talent Matches (2-col)              │
-├─────────────────────────────────────────────────────────┤
-│ Shortlist | Position Countdown | Benchmarks (3-col)     │
-├─────────────────────────────────────────────────────────┤
-│ Recent Applications | Activity Feed (2-col)             │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-### Phase 3: Data Integrity Fixes
-
-#### 3.1 Backfill Existing Data
-Run one-time scripts to:
-1. Assign strategists to all existing companies
-2. Generate benchmarks for companies with historical data
-3. Create talent matches for all published jobs
-4. Generate initial AI briefings for active companies
-
-#### 3.2 Add Realtime Subscriptions
-Enable realtime for:
-- `partner_smart_alerts` — Live alert updates
-- `applications` — Pipeline changes
-- `meetings` — Meeting status updates
-
----
-
-### Phase 4: New Premium Widgets
-
-#### 4.1 UnreadMessagesWidget
-```text
-┌─────────────────────────────────────────┐
-│ 💬 Messages                    [3 New] │
-├─────────────────────────────────────────┤
-│ Sarah Chen (2h ago)                     │
-│ "Thanks for the update on..."           │
-│                                         │
-│ Jasper @ TQC (4h ago)                   │
-│ "New candidate for your review..."      │
-│                                         │
-│ [View All Messages →]                   │
-└─────────────────────────────────────────┘
-```
-
-#### 4.2 UpcomingDeadlinesWidget
-```text
-┌─────────────────────────────────────────┐
-│ ⏰ This Week's Deadlines               │
-├─────────────────────────────────────────┤
-│ TODAY                                   │
-│ • Interview: Sarah Chen @ 2pm           │
-│ • Response due: Mark Liu application    │
-│                                         │
-│ TOMORROW                                │
-│ • Offer expires: John Doe               │
-│                                         │
-│ THIS WEEK                               │
-│ • 3 interviews scheduled                │
-│ • 2 SLA deadlines approaching           │
-└─────────────────────────────────────────┘
-```
-
-#### 4.3 DossierActivityWidget
-```text
-┌─────────────────────────────────────────┐
-│ 👁️ Profile Views                       │
-├─────────────────────────────────────────┤
-│ Your team viewed 12 candidate profiles  │
-│ this week                               │
-│                                         │
-│ Most viewed:                            │
-│ • Sarah Chen (5 views)                  │
-│ • Mark Liu (3 views)                    │
-└─────────────────────────────────────────┘
-```
-
----
-
-## Technical Implementation Details
-
-### Files to Create
+## Files to Create
 
 | File | Purpose |
 |------|---------|
-| `src/components/partner/UnreadMessagesWidget.tsx` | Messages preview |
-| `src/components/partner/UpcomingDeadlinesWidget.tsx` | Deadline aggregation |
-| `src/components/partner/DossierActivityWidget.tsx` | Profile view tracking |
-| `src/hooks/usePartnerDataPopulation.ts` | Auto-populate missing data |
+| `src/components/admin/StrategistManagementModal.tsx` | Main admin modal with tabs |
+| `src/components/admin/StrategistCompanyTab.tsx` | Companies assignment tab content |
+| `src/components/admin/StrategistCandidateTab.tsx` | Candidates assignment tab content |
+| `src/components/admin/StrategistWorkloadTab.tsx` | Workload overview tab content |
+| `src/components/admin/CandidateStrategistDialog.tsx` | Individual candidate assignment dialog |
+| `src/hooks/useStrategistWorkload.ts` | Hook for calculating strategist capacity |
 
-### Files to Modify
+## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/clubhome/PartnerHome.tsx` | Add new widgets, optimize layout |
-| `src/components/partner/PartnerConciergeCard.tsx` | Use proper assignment mapping |
-| `src/components/partner/DailyBriefing.tsx` | Auto-generate on load |
-| `src/components/partner/PlacementRevenueWidget.tsx` | Fetch goal from company settings |
-| `src/components/partner/SLATracker.tsx` | Use partner_sla_tracking |
-| `src/components/clubhome/UnifiedStatsBar.tsx` | Add unread messages count |
-
-### Database Migrations Required
-
-1. **Strategist Assignment Trigger** — Auto-assign on company creation
-2. **Smart Alert Trigger** — Generate on application changes
-3. **SLA Tracking Trigger** — Create SLAs on key events
-4. **Talent Match Trigger** — Generate on job publish
-5. **Benchmark Trigger** — Calculate on hire completion
-6. **Backfill Script** — Populate data for existing records
+| `src/pages/Admin.tsx` | Add "Manage Strategists" button to open modal |
+| `src/components/admin/UnifiedCandidateCard.tsx` | Add inline strategist display/edit |
+| `src/components/companies/AddCompanyDialog.tsx` | Add strategist assignment step |
+| `src/pages/Companies.tsx` | Show strategist column in company list |
+| `src/components/admin/companies/CompanyRowActions.tsx` | Already has dialog - enhance it |
 
 ---
 
-## Expected Scores After Implementation
+## Database Changes
 
-| Dimension | Before | After | Notes |
-|-----------|--------|-------|-------|
-| Feature Completeness | 72/100 | **98/100** | All widgets functional with real data |
-| UI/UX & Styling | 88/100 | **92/100** | Optimized layout, consistent styling |
-| Data Integrity | 55/100 | **95/100** | Automated triggers ensure data exists |
-| Partner Experience | 72/100 | **98/100** | Feels like $50K+/year enterprise tool |
-| **Overall** | **72/100** | **96/100** | Elite luxury experience |
+No schema changes required - existing tables support this:
+- `company_strategist_assignments` - for company assignments
+- `candidate_profiles.assigned_strategist_id` - for candidate assignments
 
 ---
 
-## Implementation Priority
+## Technical Implementation
 
-| Priority | Task | Estimated Impact |
-|----------|------|------------------|
-| 1 | Database triggers for smart alerts, SLAs, benchmarks | +15 points |
-| 2 | Fix Concierge strategist assignment | +5 points |
-| 3 | Auto-generate Daily Briefing on load | +5 points |
-| 4 | Add UnreadMessagesWidget | +3 points |
-| 5 | Add UpcomingDeadlinesWidget | +3 points |
-| 6 | Backfill existing data | +10 points |
-| 7 | Optimize layout with new widgets | +3 points |
-| 8 | Add realtime subscriptions | +2 points |
+### Hook: useStrategistWorkload
+
+```typescript
+// Calculates workload for each strategist
+interface StrategistWorkload {
+  id: string;
+  name: string;
+  avatar_url: string;
+  email: string;
+  companyCount: number;
+  candidateCount: number;
+  activeApplications: number;
+  capacityPercent: number; // 0-100
+}
+```
+
+### Component: StrategistManagementModal
+
+- Uses Radix Dialog for modal
+- Three tabs via Radix Tabs
+- React Query for data fetching
+- Bulk selection with checkboxes
+- Search/filter functionality
+- Optimistic updates for smooth UX
+
+### Integration Points
+
+1. **Admin Dashboard**: "Manage Strategists" button in header
+2. **Companies Page**: Strategist column visible for admins
+3. **Candidates Page**: Inline assignment in cards + bulk toolbar
+4. **Add Company Flow**: Step 3 strategist selection
 
 ---
 
-## Risks and Mitigations
+## User Experience Flow
 
-| Risk | Mitigation |
-|------|------------|
-| AI briefing generation slow | Show skeleton + "Generating insights..." message |
-| Trigger loops | Use `pg_trigger_depth()` checks |
-| Empty states remain | Graceful fallbacks with aspirational copy |
-| Performance with realtime | Debounce updates, limit to 5 alerts |
+### Admin Assigning Strategist to New Company
 
+1. Admin clicks "Add Company"
+2. Fills company details (Step 1-2)
+3. Step 3: Select strategist from dropdown with workload indicators
+4. Creates company with assignment
+
+### Admin Reassigning Strategist
+
+1. Admin opens Strategist Management Modal
+2. Selects Companies tab
+3. Searches for company
+4. Clicks "Change" → selects new strategist
+5. Confirms change
+
+### Admin Bulk Assigning Candidates
+
+1. Admin opens Strategist Management Modal
+2. Selects Candidates tab
+3. Filters to "Unassigned Only"
+4. Selects multiple candidates via checkboxes
+5. Uses "Bulk Assign" dropdown to select strategist
+6. All selected candidates updated
+
+---
+
+## Expected Outcomes
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Time to assign strategist to company | ~5 clicks (find company → dropdown → dialog) | 2 clicks from modal |
+| Visibility of all assignments | None (must check each company) | Full overview in one place |
+| Candidate assignment | Bulk only, no individual | Both bulk and individual |
+| Workload balancing | Manual counting | Visual capacity indicators |
+
+---
+
+## Priority Order
+
+1. **P0**: StrategistManagementModal with Companies tab (immediate need)
+2. **P0**: CandidateStrategistDialog for individual assignment
+3. **P1**: Add strategist step to AddCompanyDialog
+4. **P1**: Workload tab for capacity planning
+5. **P2**: Inline assignment in cards (nice-to-have polish)
