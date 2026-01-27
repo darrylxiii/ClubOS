@@ -14,6 +14,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { Card, CardContent } from '@/components/ui/card';
+import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
+import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
 
 export default function Install() {
   const { isInstallable, isIOS, isInstalled, isStandalone, promptInstall } = useInstallPrompt();
@@ -83,9 +85,14 @@ export default function Install() {
           >
             <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl">
               <img 
-                src="/quantum-logo.svg" 
+                src={quantumLogoDark} 
                 alt="The Quantum Club" 
-                className="w-14 h-14"
+                className="w-14 h-14 dark:hidden"
+              />
+              <img 
+                src={quantumLogoLight} 
+                alt="The Quantum Club" 
+                className="w-14 h-14 hidden dark:block"
               />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">

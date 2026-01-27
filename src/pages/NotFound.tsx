@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Home, Calendar, MessageCircle, ArrowLeft, Search } from "lucide-react";
 import { motion } from "framer-motion";
-import { useTheme } from "next-themes";
+import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
+import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
 
 const NotFound = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
   const [countdown, setCountdown] = useState(15);
 
   useEffect(() => {
@@ -72,9 +72,14 @@ const NotFound = () => {
           className="flex justify-center mb-8"
         >
           <img
-            src={resolvedTheme === 'dark' ? '/quantum-logo-dark.png' : '/quantum-club-logo.png'}
+            src={quantumLogoDark}
             alt="The Quantum Club"
-            className="h-12 w-auto object-contain"
+            className="h-12 w-auto object-contain dark:hidden"
+          />
+          <img
+            src={quantumLogoLight}
+            alt="The Quantum Club"
+            className="h-12 w-auto object-contain hidden dark:block"
           />
         </motion.div>
 

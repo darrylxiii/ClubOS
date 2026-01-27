@@ -43,7 +43,8 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const quantumLogo = "/quantum-logo.svg?v=8";
+import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
+import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
 const emailSchema = z.string().email();
 const passwordSchema = z.string().min(12).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/);
 
@@ -481,7 +482,8 @@ const Auth = () => {
       <Card className="w-full max-w-lg bg-background/30 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[32px]">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           <div className="flex items-center justify-center mb-2">
-            <img src={quantumLogo} alt="The Quantum Club" className="w-32 h-32" width="128" height="128" fetchPriority="high" />
+            <img src={quantumLogoDark} alt="The Quantum Club" className="w-32 h-32 dark:hidden" width="128" height="128" fetchPriority="high" />
+            <img src={quantumLogoLight} alt="The Quantum Club" className="w-32 h-32 hidden dark:block" width="128" height="128" fetchPriority="high" />
           </div>
 
           <div className="space-y-3">
