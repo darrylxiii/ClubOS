@@ -35,6 +35,7 @@ import { UnreadMessagesWidget } from "../partner/UnreadMessagesWidget";
 import { UpcomingDeadlinesWidget } from "../partner/UpcomingDeadlinesWidget";
 import { DossierActivityWidget } from "../partner/DossierActivityWidget";
 import { usePartnerDataPopulation } from "@/hooks/usePartnerDataPopulation";
+import { usePartnerRealtime } from "@/hooks/usePartnerRealtime";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
 
@@ -45,6 +46,9 @@ export const PartnerHome = () => {
   
   // Auto-populate dashboard data on mount
   usePartnerDataPopulation(companyId || undefined);
+  
+  // Enable real-time updates for dashboard
+  usePartnerRealtime(companyId || undefined);
 
   const staggerDelay = 0.1;
 
