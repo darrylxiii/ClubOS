@@ -196,12 +196,12 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
       {/* Mobile Header - Hidden (using AppLayout header instead) */}
       <div className="h-16 px-4 hidden items-center justify-between bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 fixed top-0 left-0 right-0 z-[100]">
         <img
-          src={logoDark}
+          src={logoLight}
           alt="The Quantum Club"
-          className="h-9 dark:block hidden"
+          className="h-9 hidden dark:block"
         />
         <img
-          src={logoLight}
+          src={logoDark}
           alt="The Quantum Club"
           className="h-9 dark:hidden block"
         />
@@ -241,12 +241,12 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
             >
               <div className="h-16 flex items-center justify-between px-4 border-b border-border/20">
                 <img
-                  src={logoDark}
+                  src={logoLight}
                   alt="The Quantum Club"
-                  className="h-9 dark:block hidden"
+                  className="h-9 hidden dark:block"
                 />
                 <img
-                  src={logoLight}
+                  src={logoDark}
                   alt="The Quantum Club"
                   className="h-9 dark:hidden block"
                 />
