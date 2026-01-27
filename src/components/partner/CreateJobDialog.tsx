@@ -851,6 +851,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                 feeConfig={feeConfig}
                 onFeeConfigChange={setFeeConfig}
                 disabled={isSubmitting}
+                salaryMax={formData.salary_max ? parseInt(formData.salary_max) : null}
               />
             </>
           )}
