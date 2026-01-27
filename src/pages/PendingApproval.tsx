@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CandidateApplicationTracker } from "@/components/candidate-onboarding/CandidateApplicationTracker";
-import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
-import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
+import quantumLogoLight from "@/assets/quantum-logo-dark.png";
+import quantumLogoDark from "@/assets/quantum-club-logo.png";
 import { XCircle } from "lucide-react";
 import { PageLoader } from "@/components/PageLoader";
 
@@ -75,8 +75,8 @@ export default function PendingApproval() {
       {/* Header */}
       <div className="border-b border-border/50 bg-background/95 backdrop-blur">
         <div className="container mx-auto px-2 py-1 relative flex justify-center items-center">
-          <img src={quantumLogoDark} alt="Quantum Club" className="h-28 dark:hidden" />
-          <img src={quantumLogoLight} alt="Quantum Club" className="h-28 hidden dark:block" />
+          <img src={quantumLogoDark} alt="Quantum Club" className="h-20 w-auto dark:hidden" />
+          <img src={quantumLogoLight} alt="Quantum Club" className="h-20 w-auto hidden dark:block" />
           <div className="absolute right-4 flex items-center gap-2">
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>

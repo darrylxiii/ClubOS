@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Home, Calendar, MessageCircle, ArrowLeft, Search } from "lucide-react";
 import { motion } from "framer-motion";
-import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
-import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
+import quantumLogoLight from "@/assets/quantum-logo-dark.png";
+import quantumLogoDark from "@/assets/quantum-club-logo.png";
 
 const NotFound = () => {
   const location = useLocation();

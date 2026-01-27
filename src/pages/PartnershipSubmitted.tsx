@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CheckCircle } from "lucide-react";
 import { PartnerRequestTracker } from "@/components/partner-funnel/PartnerRequestTracker";
-import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
-import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
+import quantumLogoLight from "@/assets/quantum-logo-dark.png";
+import quantumLogoDark from "@/assets/quantum-club-logo.png";
 import { useEffect } from "react";
 
 // Extend Window interface for Google Tag Manager
@@ -37,12 +37,12 @@ export default function PartnershipSubmitted() {
           <img 
             src={quantumLogoDark} 
             alt="Quantum Club" 
-            className="h-28 dark:hidden"
+            className="h-20 w-auto dark:hidden"
           />
           <img 
             src={quantumLogoLight} 
             alt="Quantum Club" 
-            className="h-28 hidden dark:block"
+            className="h-20 w-auto hidden dark:block"
           />
           <div className="absolute right-4">
             <ThemeToggle />
