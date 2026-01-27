@@ -1,7 +1,7 @@
 
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Loader2 } from "lucide-react";
+import { Shield, Loader2, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";
@@ -26,6 +26,7 @@ import { SystemHealthDashboard } from "@/components/admin/system/SystemHealthDas
 import { CommissionTiersManager } from "@/components/admin/revenue/CommissionTiersManager";
 import { EmployeeCommissionSettings } from "@/components/admin/revenue/EmployeeCommissionSettings";
 import { BackfillRunner } from "@/components/admin/revenue/BackfillRunner";
+import { StrategistManagementModal } from "@/components/admin/StrategistManagementModal";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
@@ -64,11 +65,21 @@ const Admin = () => {
           />
 
           <div className="space-y-4 mb-12">
-            <div className="flex items-center gap-2">
-              <Shield className="w-8 h-8" />
-              <h1 className="text-4xl font-black uppercase tracking-tight">
-                Admin Control Panel
-              </h1>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shield className="w-8 h-8" />
+                <h1 className="text-4xl font-black uppercase tracking-tight">
+                  Admin Control Panel
+                </h1>
+              </div>
+              <StrategistManagementModal 
+                trigger={
+                  <Button variant="outline" className="gap-2">
+                    <Users className="h-4 w-4" />
+                    Manage Strategists
+                  </Button>
+                }
+              />
             </div>
             <p className="text-lg text-muted-foreground">
               Manage companies, users, and system configuration
