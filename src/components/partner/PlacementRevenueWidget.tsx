@@ -93,7 +93,7 @@ export function PlacementRevenueWidget({ companyId }: PlacementRevenueWidgetProp
 
   if (isLoading) {
     return (
-      <Card className="border-2 border-gold/30 bg-gradient-to-br from-card via-card to-gold/5">
+      <Card className="glass-card">
         <CardContent className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-6 bg-muted rounded w-1/2" />
@@ -111,15 +111,12 @@ export function PlacementRevenueWidget({ companyId }: PlacementRevenueWidgetProp
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
     >
-      <Card className="border-2 border-gold/30 bg-gradient-to-br from-card via-card to-gold/5 overflow-hidden relative">
-        {/* Gold accent line at top */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-gold/50 via-gold to-gold/50" />
-        
+      <Card className="glass-card group hover:border-primary/30 transition-all duration-300">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-gold/20">
-                <DollarSign className="h-5 w-5 text-gold" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <DollarSign className="h-5 w-5 text-primary" />
               </div>
               <span className="text-lg font-semibold">Placement Revenue</span>
             </span>
@@ -127,8 +124,8 @@ export function PlacementRevenueWidget({ companyId }: PlacementRevenueWidgetProp
               variant="outline" 
               className={`flex items-center gap-1 ${
                 isPositive 
-                  ? 'border-success/50 text-success bg-success/10' 
-                  : 'border-destructive/50 text-destructive bg-destructive/10'
+                  ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' 
+                  : 'bg-destructive/10 text-destructive border-destructive/30'
               }`}
             >
               {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -139,7 +136,7 @@ export function PlacementRevenueWidget({ companyId }: PlacementRevenueWidgetProp
         
         <CardContent className="space-y-4">
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold text-gold tracking-tight">
+            <span className="text-4xl font-bold text-foreground tracking-tight">
               €{animatedRevenue.toLocaleString()}
             </span>
             <span className="text-sm text-muted-foreground">this quarter</span>
@@ -152,16 +149,10 @@ export function PlacementRevenueWidget({ companyId }: PlacementRevenueWidgetProp
                 {Math.min(100, revenueData?.progressPercent || 0).toFixed(0)}%
               </span>
             </div>
-            <div className="relative">
-              <Progress 
-                value={Math.min(100, revenueData?.progressPercent || 0)} 
-                className="h-3 bg-gold/20"
-              />
-              <div 
-                className="absolute inset-0 h-3 rounded-full bg-gradient-to-r from-gold/80 to-gold transition-all"
-                style={{ width: `${Math.min(100, revenueData?.progressPercent || 0)}%` }}
-              />
-            </div>
+            <Progress 
+              value={Math.min(100, revenueData?.progressPercent || 0)} 
+              className="h-2"
+            />
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>{revenueData?.placements || 0} placements</span>
               <span>Goal: €{(revenueData?.quarterlyGoal || 0).toLocaleString()}</span>

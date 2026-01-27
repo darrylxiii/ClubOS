@@ -76,14 +76,14 @@ export function BenchmarkComparison({ companyId }: { companyId: string }) {
         transition={{ delay: index * 0.1 }}
         className={`relative p-4 rounded-lg border transition-all hover:shadow-md ${
           isTopPerformer 
-            ? 'border-gold/40 bg-gold/5' 
+            ? 'border-emerald-500/40 bg-emerald-500/5' 
             : 'border-border/50 bg-muted/30'
         }`}
       >
         {isTopPerformer && (
           <div className="absolute -top-2 -right-2">
-            <div className="p-1 rounded-full bg-gold/20 border border-gold/40">
-              <Trophy className="h-3 w-3 text-gold" />
+            <div className="p-1 rounded-full bg-emerald-500/20 border border-emerald-500/40">
+              <Trophy className="h-3 w-3 text-emerald-500" />
             </div>
           </div>
         )}
@@ -134,7 +134,7 @@ export function BenchmarkComparison({ companyId }: { companyId: string }) {
       <Card className="glass-card">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Award className="h-4 w-4 text-gold" />
+            <Award className="h-4 w-4 text-primary" />
             Industry Benchmarks
           </CardTitle>
         </CardHeader>
@@ -149,12 +149,12 @@ export function BenchmarkComparison({ companyId }: { companyId: string }) {
   }
 
   return (
-    <Card className="glass-card group hover:border-gold/30 transition-all duration-300">
+    <Card className="glass-card group hover:border-primary/30 transition-all duration-300">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-base">
-            <div className="p-1.5 rounded-lg bg-gold/10">
-              <Award className="h-4 w-4 text-gold" />
+            <div className="p-1.5 rounded-lg bg-primary/10">
+              <Award className="h-4 w-4 text-primary" />
             </div>
             Industry Benchmarks
           </div>
@@ -168,7 +168,7 @@ export function BenchmarkComparison({ companyId }: { companyId: string }) {
       <CardContent className="space-y-3">
         {!benchmarks || benchmarks.length === 0 ? (
           <div className="text-center py-6 space-y-2">
-            <Award className="h-8 w-8 mx-auto text-gold/40" />
+            <Award className="h-8 w-8 mx-auto text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">
               Complete more hiring cycles to unlock benchmark comparisons
             </p>

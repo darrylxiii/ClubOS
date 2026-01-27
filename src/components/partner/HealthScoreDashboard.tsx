@@ -65,16 +65,16 @@ export function HealthScoreDashboard({ companyId }: { companyId: string }) {
   
   const getScoreStyle = () => {
     if (score >= 80) return { 
-      color: 'text-gold', 
-      bg: 'bg-gold/10', 
-      border: 'border-gold/30',
-      progress: '[&>div]:bg-gold'
-    };
-    if (score >= 60) return { 
       color: 'text-emerald-500', 
       bg: 'bg-emerald-500/10', 
       border: 'border-emerald-500/30',
       progress: '[&>div]:bg-emerald-500'
+    };
+    if (score >= 60) return { 
+      color: 'text-primary', 
+      bg: 'bg-primary/10', 
+      border: 'border-primary/30',
+      progress: '[&>div]:bg-primary'
     };
     if (score >= 40) return { 
       color: 'text-amber-500', 
@@ -123,7 +123,7 @@ export function HealthScoreDashboard({ companyId }: { companyId: string }) {
   ];
 
   return (
-    <Card className={`glass-card ${style.border} group hover:shadow-lg transition-all duration-300`}>
+    <Card className={`glass-card group hover:border-primary/30 transition-all duration-300`}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-base">

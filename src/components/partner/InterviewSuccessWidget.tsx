@@ -150,7 +150,7 @@ export function InterviewSuccessWidget({ companyId }: { companyId: string }) {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className={`h-full rounded-full ${
                     index === 0 ? 'bg-primary' :
-                    index === funnelData.funnel.length - 1 ? 'bg-gold' :
+                    index === funnelData.funnel.length - 1 ? 'bg-emerald-500' :
                     'bg-primary/60'
                   }`}
                 />
