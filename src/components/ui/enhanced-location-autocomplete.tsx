@@ -209,7 +209,7 @@ export function EnhancedLocationAutocomplete({
 
   return (
     <div className="space-y-1">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={false}>
         <PopoverTrigger asChild>
           <div className="relative">
             <Input
