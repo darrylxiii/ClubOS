@@ -113,7 +113,7 @@ export function CandidateStrategistDialog({
             <div className="text-sm">
               <span className="text-muted-foreground">Currently assigned to: </span>
               <span className="font-medium">
-                {workloads?.find(w => w.user_id === candidate.assigned_strategist_id)?.full_name || 'Unknown'}
+                {workloads?.find(w => w.id === candidate.assigned_strategist_id)?.full_name || 'Unknown'}
               </span>
             </div>
           )}
@@ -130,15 +130,15 @@ export function CandidateStrategistDialog({
                 <RadioGroup value={selectedStrategist} onValueChange={setSelectedStrategist}>
                   {workloads?.map((strategist) => (
                     <div
-                      key={strategist.user_id}
+                      key={strategist.id}
                       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                        selectedStrategist === strategist.user_id
+                        selectedStrategist === strategist.id
                           ? 'border-primary bg-primary/5'
                           : 'border-border/50 hover:bg-accent/5'
                       }`}
-                      onClick={() => setSelectedStrategist(strategist.user_id)}
+                      onClick={() => setSelectedStrategist(strategist.id)}
                     >
-                      <RadioGroupItem value={strategist.user_id} id={strategist.user_id} />
+                      <RadioGroupItem value={strategist.id} id={strategist.id} />
                       
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={strategist.avatar_url || undefined} />
@@ -163,7 +163,7 @@ export function CandidateStrategistDialog({
                         </Badge>
                       </div>
 
-                      {selectedStrategist === strategist.user_id && (
+                      {selectedStrategist === strategist.id && (
                         <CheckCircle className="h-4 w-4 text-primary" />
                       )}
                     </div>
