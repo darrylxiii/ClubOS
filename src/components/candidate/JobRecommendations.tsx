@@ -46,49 +46,85 @@ export function JobRecommendations({ userId }: { userId: string }) {
 
   const fetchRecommendations = async () => {
     try {
-      const { data, error } = await supabase
+      // First, get match scores for this user
+      const { data: matches, error: matchError } = await supabase
         .from('match_scores')
-        .select(`
-          id,
-          job_id,
-          overall_score,
-          club_match_factors,
-          jobs:job_id (
-            title,
-            location,
-            employment_type,
-            companies:company_id (
-              name
-            )
-          )
-        `)
+        .select('id, job_id, overall_score, club_match_factors')
         .eq('user_id', userId)
         .gte('overall_score', 70)
         .order('overall_score', { ascending: false })
         .limit(5);
 
-      if (error) {
-        // Silently fail if relationship doesn't exist yet
-        logger.warn('Could not fetch recommendations - database schema may need migration', { componentName: 'JobRecommendations', error: error.message });
+      if (matchError) {
+        logger.warn('Could not fetch match scores', { componentName: 'JobRecommendations', error: matchError.message });
         setRecommendations([]);
         setLoading(false);
         return;
       }
 
-      const formatted = data?.map(match => ({
-        id: match.id,
-        job_id: match.job_id,
-        overall_score: match.overall_score || 0,
-        club_match_factors: (match.club_match_factors as any) || {},
-        job: {
-          title: (match.jobs as any)?.title || 'Unknown Position',
-          location: (match.jobs as any)?.location || 'Remote',
-          employment_type: (match.jobs as any)?.employment_type || 'Full-time',
-          company: {
-            name: (match.jobs as any)?.companies?.name || 'Unknown Company'
-          }
+      if (!matches || matches.length === 0) {
+        setRecommendations([]);
+        setLoading(false);
+        return;
+      }
+
+      // Filter job_ids that look like UUIDs (for proper job lookups)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const uuidJobIds = matches
+        .filter(m => uuidRegex.test(m.job_id))
+        .map(m => m.job_id);
+
+      // Fetch job details for UUID-based job_ids
+      let jobsMap: Record<string, { title: string; location: string; employment_type: string; company_name: string }> = {};
+      
+      if (uuidJobIds.length > 0) {
+        const { data: jobs } = await supabase
+          .from('jobs')
+          .select('id, title, location, employment_type, companies:company_id(name)')
+          .in('id', uuidJobIds);
+
+        if (jobs) {
+          jobs.forEach(job => {
+            jobsMap[job.id] = {
+              title: job.title || 'Unknown Position',
+              location: job.location || 'Remote',
+              employment_type: job.employment_type || 'Full-time',
+              company_name: (job.companies as any)?.name || 'Unknown Company'
+            };
+          });
         }
-      })) || [];
+      }
+
+      // Format results, handling both UUID and text-based job_ids
+      const formatted = matches.map(match => {
+        const isUuid = uuidRegex.test(match.job_id);
+        const jobInfo = isUuid ? jobsMap[match.job_id] : null;
+        
+        // For text-based job_ids (legacy format: "Company-Title"), parse them
+        let parsedTitle = 'Unknown Position';
+        let parsedCompany = 'Unknown Company';
+        
+        if (!isUuid && match.job_id.includes('-')) {
+          const parts = match.job_id.split('-');
+          parsedCompany = parts[0] || 'Unknown Company';
+          parsedTitle = parts.slice(1).join('-') || 'Unknown Position';
+        }
+
+        return {
+          id: match.id,
+          job_id: match.job_id,
+          overall_score: match.overall_score || 0,
+          club_match_factors: (match.club_match_factors as any) || {},
+          job: {
+            title: jobInfo?.title || parsedTitle,
+            location: jobInfo?.location || 'Remote',
+            employment_type: jobInfo?.employment_type || 'Full-time',
+            company: {
+              name: jobInfo?.company_name || parsedCompany
+            }
+          }
+        };
+      });
 
       setRecommendations(formatted);
     } catch (error) {
