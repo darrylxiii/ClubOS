@@ -14,9 +14,11 @@ import {
   Lightbulb,
   Star,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Calendar
 } from "lucide-react";
 import { toast } from "sonner";
+import { SelfBookingWidget, PrepBriefCard } from "@/components/interview";
 
 interface Application {
   id: string;
@@ -196,12 +198,29 @@ export default function InterviewPrep() {
         </Card>
 
         {selectedApp && (
-          <Tabs defaultValue="questions" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="schedule" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="schedule">
+                <Calendar className="h-4 w-4 mr-2" />
+                Schedule
+              </TabsTrigger>
               <TabsTrigger value="questions">Practice Questions</TabsTrigger>
               <TabsTrigger value="star">STAR Method</TabsTrigger>
               <TabsTrigger value="tips">Tips & Tricks</TabsTrigger>
             </TabsList>
+
+            {/* Schedule Interview Tab */}
+            <TabsContent value="schedule" className="space-y-4">
+              <SelfBookingWidget
+                applicationId={selectedApp.id}
+                companyId={selectedApp.job.company.id}
+                jobTitle={selectedApp.job.title}
+                companyName={selectedApp.job.company.name}
+                onBookingComplete={() => {
+                  toast.success("Interview scheduled! Check your email for details.");
+                }}
+              />
+            </TabsContent>
 
             {/* Practice Questions Tab */}
             <TabsContent value="questions" className="space-y-4">
