@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "title": "Apply for Elite Membership | The Quantum Club",
+    "description": "Join The Quantum Club - an exclusive community for the top 3% of professionals. Complete your application in 5 minutes."
+  },
+  "header": {
+    "badge": "Only 3% of applicants are accepted",
+    "title": "Apply for Elite Membership",
+    "subtitle": "Join 2,500+ exceptional professionals in The Quantum Club",
+    "timing": "~5 minutes to complete • Your data is encrypted and secure"
+  },
+  "steps": {
+    "contact": {
+      "title": "Contact Information",
+      "subtitle": "Let's start with your basic details",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "John Doe",
+      "email": "Email Address",
+      "emailPlaceholder": "john@example.com",
+      "emailVerified": "Email verified",
+      "location": "Current Location (Optional)",
+      "locationHelp": "Start typing to see suggestions from cities worldwide",
+      "verificationRequired": "Email verification required to continue",
+      "verificationHelp": "Click \"Send Verification Code\" below to verify your email",
+      "verifyEmail": "Verify Your Email",
+      "codeSentTo": "We've sent a 6-digit code to",
+      "enterCode": "Enter Verification Code"
+    },
+    "professional": {
+      "title": "Professional Details",
+      "subtitle": "Tell us about your current role",
+      "currentTitle": "Current Job Title",
+      "currentTitlePlaceholder": "e.g., Senior Software Engineer",
+      "linkedin": "LinkedIn Profile (Optional)",
+      "linkedinPlaceholder": "https://linkedin.com/in/yourprofile",
+      "bio": "Professional Bio (Optional)",
+      "bioPlaceholder": "Brief description of your experience and expertise...",
+      "resume": "Resume/CV (Optional)"
+    },
+    "career": {
+      "title": "Career Goals",
+      "subtitle": "What are you looking for?",
+      "dreamJob": "Dream Job Title",
+      "dreamJobPlaceholder": "e.g., VP of Engineering, Lead Product Designer",
+      "employmentType": "Employment Type Preference",
+      "fulltime": "Full-time only",
+      "freelance": "Freelance/Contract only",
+      "both": "Open to both",
+      "remoteWork": "Open to Remote Work",
+      "workFromAnywhere": "Work from anywhere",
+      "noticePeriod": "Notice Period",
+      "immediate": "Immediate",
+      "2weeks": "2 weeks",
+      "1month": "1 month",
+      "2months": "2 months",
+      "3months": "3 months"
+    },
+    "compensation": {
+      "title": "Compensation Expectations",
+      "subtitle": "Help us match you with the right opportunities",
+      "currentSalary": "Current Salary Range (€/year)",
+      "preferNotToShare": "Prefer not to share",
+      "shareSalary": "Share Salary",
+      "hidden": "Hidden",
+      "desiredSalary": "Desired Next Role Salary Range (€/year)",
+      "freelanceRate": "Freelance Hourly Rate (€/hour)"
+    },
+    "preferences": {
+      "title": "Work Preferences",
+      "subtitle": "Where would you like to work?",
+      "preferredCities": "Preferred Cities (Optional)",
+      "searchCities": "Search for cities where you'd like to work",
+      "maxDistance": "Maximum distance from",
+      "withinRadius": "Within {{radius}} km radius",
+      "verifyPhone": "Verify Your Phone",
+      "phoneRequired": "Required to join The Quantum Club",
+      "mobileNumber": "Mobile Number",
+      "phoneHelp": "Select your country and enter your number. We'll send a verification code.",
+      "phoneVerified": "Phone verified successfully"
+    },
+    "password": {
+      "title": "Secure Your Account",
+      "subtitle": "Create a strong password to complete your registration",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "confirmPassword": "Confirm Password",
+      "confirmPlaceholder": "Confirm your password",
+      "requirements": {
+        "length": "At least 12 characters",
+        "uppercase": "One uppercase letter",
+        "lowercase": "One lowercase letter",
+        "number": "One number",
+        "special": "One special character"
+      },
+      "passwordsMatch": "Passwords match",
+      "passwordsDontMatch": "Passwords do not match"
+    },
+    "success": {
+      "title": "Welcome to The Quantum Club!",
+      "subtitle": "Your account has been created successfully. Your Talent Strategist will review your profile soon.",
+      "redirecting": "Redirecting to pending approval...",
+      "viewStatus": "View Application Status"
+    }
+  },
+  "navigation": {
+    "back": "Back",
+    "continue": "Continue",
+    "sendVerification": "Send Verification Code",
+    "createAccount": "Create Account",
+    "creatingAccount": "Creating Account...",
+    "checking": "Checking...",
+    "verifying": "Verifying...",
+    "resendCode": "Resend code",
+    "resendIn": "Resend available in {{seconds}}s"
+  },
+  "trustBadges": {
+    "ssl": "256-bit SSL",
+    "gdpr": "GDPR Compliant",
+    "neverShared": "Never Shared"
+  },
+  "gdpr": {
+    "consent": "I agree to the",
+    "privacyPolicy": "Privacy Policy",
+    "and": "and",
+    "termsOfService": "Terms of Service",
+    "consentDescription": "I consent to the processing of my personal data as described."
+  },
+  "errors": {
+    "missingInfo": "Please fill in all required fields",
+    "invalidEmail": "Please enter a valid email address",
+    "verifyEmailFirst": "Please verify your email address first",
+    "enterJobTitle": "Please enter your current job title",
+    "enterDreamJob": "Please enter your dream job title",
+    "verifyPhone": "Please verify your phone number",
+    "enterPhone": "Please enter your phone number",
+    "strongPassword": "Please create a strong password",
+    "passwordRequirements": "Password must meet all requirements",
+    "passwordsNoMatch": "Passwords do not match",
+    "accountCreationFailed": "Account creation failed",
+    "invalidCode": "Invalid code"
+  },
+  "dialogs": {
+    "emailExists": {
+      "title": "Account Already Exists",
+      "description": "An account with {{email}} already exists.",
+      "help": "Would you like to log in instead, or try a different email?",
+      "tryDifferent": "Try Different Email",
+      "goToLogin": "Go to Login"
+    }
+  }
+}
