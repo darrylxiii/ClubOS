@@ -292,8 +292,8 @@ export function CandidateOnboardingSteps() {
     if (currentStep === 0) {
       if (!formData.email || !formData.full_name) {
         toast({ 
-          title: "Missing information", 
-          description: "Please fill in all required fields",
+          title: t('candidate.messages.missingInfo', 'Missing information'), 
+          description: t('candidate.messages.fillRequiredFields', 'Please fill in all required fields'),
           variant: "destructive"
         });
         return;
@@ -309,8 +309,8 @@ export function CandidateOnboardingSteps() {
         const success = await sendEmailOTP(formData.email);
         if (success) {
           toast({ 
-            title: "Verification code sent", 
-            description: "Please check your email and enter the code below" 
+            title: t('candidate.messages.verificationCodeSent', 'Verification code sent'), 
+            description: t('candidate.messages.checkEmailForCode', 'Please check your email and enter the code below') 
           });
         }
       }
@@ -319,7 +319,7 @@ export function CandidateOnboardingSteps() {
 
     if (currentStep === 4 && !phoneVerified) {
       if (!phoneNumber) {
-        toast({ title: "Please enter your phone number", variant: "destructive" });
+        toast({ title: t('candidate.messages.pleaseEnterPhone', 'Please enter your phone number'), variant: "destructive" });
         return;
       }
       
@@ -328,8 +328,8 @@ export function CandidateOnboardingSteps() {
         return;
       }
       toast({ 
-        title: "Verification code sent", 
-        description: "Please check your phone and enter the code below" 
+        title: t('candidate.messages.verificationCodeSent', 'Verification code sent'), 
+        description: t('candidate.messages.checkPhoneForCode', 'Please check your phone and enter the code below') 
       });
       return;
     }
@@ -364,51 +364,51 @@ export function CandidateOnboardingSteps() {
     switch (currentStep) {
       case 0:
         if (!formData.full_name || !formData.email) {
-          toast({ title: "Please fill in all required fields", variant: "destructive" });
+          toast({ title: t('candidate.messages.fillRequiredFields', 'Please fill in all required fields'), variant: "destructive" });
           return false;
         }
         if (!emailRegex.test(formData.email)) {
-          toast({ title: "Please enter a valid email address", variant: "destructive" });
+          toast({ title: t('candidate.validation.invalidEmail', 'Please enter a valid email address'), variant: "destructive" });
           return false;
         }
         if (!emailVerified) {
-          toast({ title: "Please verify your email address first", variant: "destructive" });
+          toast({ title: t('candidate.validation.pleaseVerifyEmail', 'Please verify your email address first'), variant: "destructive" });
           return false;
         }
         break;
       case 1:
         if (!formData.current_title) {
-          toast({ title: "Please enter your current job title", variant: "destructive" });
+          toast({ title: t('candidate.messages.enterCurrentTitle', 'Please enter your current job title'), variant: "destructive" });
           return false;
         }
         break;
       case 2:
         if (!formData.dream_job_title) {
-          toast({ title: "Please enter your dream job title", variant: "destructive" });
+          toast({ title: t('candidate.messages.enterDreamJob', 'Please enter your dream job title'), variant: "destructive" });
           return false;
         }
         break;
       case 4:
         if (!phoneVerified) {
-          toast({ title: "Please verify your phone number", variant: "destructive" });
+          toast({ title: t('candidate.validation.pleaseVerifyPhone', 'Please verify your phone number'), variant: "destructive" });
           return false;
         }
         break;
       case 5:
         if (!gdprConsent) {
-          toast({ title: "Please accept the Privacy Policy and Terms of Service", variant: "destructive" });
+          toast({ title: t('candidate.validation.consentRequired', 'Please accept the Privacy Policy and Terms of Service'), variant: "destructive" });
           return false;
         }
         if (!password || password.length < 12) {
-          toast({ title: "Please create a strong password", variant: "destructive" });
+          toast({ title: t('candidate.validation.passwordTooShort', 'Please create a strong password'), variant: "destructive" });
           return false;
         }
         if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
-          toast({ title: "Password must meet all requirements", variant: "destructive" });
+          toast({ title: t('candidate.validation.weakPassword', 'Password must meet all requirements'), variant: "destructive" });
           return false;
         }
         if (password !== confirmPassword) {
-          toast({ title: "Passwords do not match", variant: "destructive" });
+          toast({ title: t('candidate.validation.passwordMismatch', 'Passwords do not match'), variant: "destructive" });
           return false;
         }
         break;
@@ -945,56 +945,57 @@ export function CandidateOnboardingSteps() {
 
       case 1:
         return (
-          <FunnelErrorBoundary stepName="Professional Details">
+          <FunnelErrorBoundary stepName={t('candidate.professional.title', 'Professional Details')}>
             <div className="space-y-4">
               <div className="text-center mb-6">
                 <Briefcase className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
-                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Professional Details</h2>
-                <p className="text-muted-foreground">Tell us about your current role</p>
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]" id="step-heading">
+                  {t('candidate.professional.title', 'Professional Details')}
+                </h2>
+                <p className="text-muted-foreground">{t('candidate.professional.subtitle', 'Tell us about your experience')}</p>
               </div>
               <div>
-                <Label htmlFor="current-title">Current Job Title *</Label>
+                <Label htmlFor="current-title">{t('candidate.professional.currentTitle', 'Current Title')} *</Label>
                 <Input
                   id="current-title"
-                  aria-label="Current job title"
+                  aria-label={t('candidate.professional.currentTitle', 'Current title')}
                   aria-required="true"
                   value={formData.current_title}
                   onChange={(e) => setFormData({ ...formData, current_title: e.target.value })}
-                  placeholder="e.g., Senior Software Engineer"
+                  placeholder={t('candidate.professional.currentTitlePlaceholder', 'e.g., Senior Product Manager')}
                 />
               </div>
               <div>
-                <Label htmlFor="linkedin-url">LinkedIn Profile (Optional)</Label>
+                <Label htmlFor="linkedin">{t('candidate.professional.linkedin', 'LinkedIn Profile')} <span className="text-muted-foreground text-sm">{t('candidate.professional.linkedinOptional', '(Optional)')}</span></Label>
                 <Input
-                  id="linkedin-url"
-                  type="url"
-                  aria-label="LinkedIn profile URL"
+                  id="linkedin"
+                  aria-label={t('candidate.professional.linkedin', 'LinkedIn profile URL')}
                   value={formData.linkedin_url}
                   onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
-                  placeholder="https://linkedin.com/in/yourprofile"
+                  placeholder={t('candidate.professional.linkedinPlaceholder', 'https://linkedin.com/in/johndoe')}
                 />
               </div>
               <div>
-                <Label htmlFor="bio">Professional Summary (Optional)</Label>
+                <Label htmlFor="bio">{t('candidate.professional.bio', 'Short Bio')} <span className="text-muted-foreground text-sm">{t('candidate.professional.bioOptional', '(Optional)')}</span></Label>
                 <Textarea
                   id="bio"
-                  aria-label="Professional summary"
+                  aria-label={t('candidate.professional.bio', 'Short bio')}
                   value={formData.bio}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  placeholder="Brief description of your experience and expertise..."
-                  rows={4}
+                  placeholder={t('candidate.professional.bioPlaceholder', 'Brief description of your background and expertise...')}
+                  rows={3}
                 />
               </div>
               <div>
-                <Label>Resume/CV (Optional)</Label>
+                <Label>{t('candidate.professional.resume', 'Resume / CV')} <span className="text-muted-foreground text-sm">{t('candidate.professional.linkedinOptional', '(Optional)')}</span></Label>
                 <input
                   ref={fileInputRef}
+                  id="resume-upload"
                   type="file"
                   accept=".pdf,.doc,.docx"
                   onChange={handleResumeUpload}
                   className="hidden"
-                  id="resume-upload"
-                  aria-label="Upload resume"
+                  aria-label={t('candidate.professional.resume', 'Upload resume')}
                 />
                 {!formData.resume_url ? (
                   <label
@@ -1006,7 +1007,7 @@ export function CandidateOnboardingSteps() {
                   >
                     <Upload className="w-8 h-8 text-muted-foreground mb-2" aria-hidden="true" />
                     <span className="text-sm text-muted-foreground">
-                      {isUploadingResume ? "Uploading..." : "Click to upload PDF or Word document"}
+                      {isUploadingResume ? t('candidate.professional.uploading', 'Uploading...') : t('candidate.professional.clickToUpload', 'Click to upload PDF or Word document')}
                     </span>
                   </label>
                 ) : (
@@ -1020,7 +1021,7 @@ export function CandidateOnboardingSteps() {
                       variant="ghost"
                       size="sm"
                       onClick={handleRemoveResume}
-                      aria-label="Remove resume"
+                      aria-label={t('candidate.professional.removeResume', 'Remove resume')}
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -1033,37 +1034,37 @@ export function CandidateOnboardingSteps() {
 
       case 2:
         return (
-          <FunnelErrorBoundary stepName="Career Goals">
+          <FunnelErrorBoundary stepName={t('candidate.career.title', 'Career Goals')}>
             <div className="space-y-4">
               <div className="text-center mb-6">
                 <Target className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
-                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Career Goals</h2>
-                <p className="text-muted-foreground">What are you looking for in your next role?</p>
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]" id="step-heading">{t('candidate.career.title', 'Career Goals')}</h2>
+                <p className="text-muted-foreground">{t('candidate.career.subtitle', 'What are you looking for in your next role?')}</p>
               </div>
               <div>
-                <Label htmlFor="dream-job">Dream Job Title *</Label>
+                <Label htmlFor="dream-job">{t('candidate.career.desiredTitle', 'Dream Job Title')} *</Label>
                 <Input
                   id="dream-job"
-                  aria-label="Dream job title"
+                  aria-label={t('candidate.career.desiredTitle', 'Dream job title')}
                   aria-required="true"
                   value={formData.dream_job_title}
                   onChange={(e) => setFormData({ ...formData, dream_job_title: e.target.value })}
-                  placeholder="e.g., VP of Engineering, Lead Product Designer"
+                  placeholder={t('candidate.career.desiredTitlePlaceholder', 'e.g., VP of Engineering, Lead Product Designer')}
                 />
               </div>
               <div>
-                <Label htmlFor="employment-type">Employment Type Preference *</Label>
+                <Label htmlFor="employment-type">{t('candidate.career.employmentType', 'Employment Type Preference')} *</Label>
                 <Select 
                   value={formData.employment_type} 
                   onValueChange={(value: any) => setFormData({ ...formData, employment_type: value })}
                 >
-                  <SelectTrigger id="employment-type" aria-label="Employment type preference">
+                  <SelectTrigger id="employment-type" aria-label={t('candidate.career.employmentType', 'Employment type preference')}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fulltime">Full-time only</SelectItem>
-                    <SelectItem value="freelance">Freelance/Contract only</SelectItem>
-                    <SelectItem value="both">Open to both</SelectItem>
+                    <SelectItem value="fulltime">{t('candidate.career.fulltime', 'Full-time only')}</SelectItem>
+                    <SelectItem value="freelance">{t('candidate.career.freelance', 'Freelance/Contract only')}</SelectItem>
+                    <SelectItem value="both">{t('candidate.career.both', 'Open to both')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1071,35 +1072,35 @@ export function CandidateOnboardingSteps() {
               <div className="flex items-center justify-between p-4 border-2 border-border rounded-lg bg-accent/5">
                 <div>
                   <Label htmlFor="remoteAspiration" className="text-base font-semibold cursor-pointer">
-                    Open to Remote Work
+                    {t('candidate.career.remoteWork', 'Open to Remote Work')}
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Work from anywhere
+                    {t('candidate.career.remoteWorkLabel', 'Work from anywhere')}
                   </p>
                 </div>
                 <Switch
                   id="remoteAspiration"
-                  aria-label="Open to remote work"
+                  aria-label={t('candidate.career.remoteWork', 'Open to remote work')}
                   checked={formData.remote_work_aspiration}
                   onCheckedChange={(checked) => setFormData({ ...formData, remote_work_aspiration: checked })}
                 />
               </div>
               
               <div>
-                <Label htmlFor="notice-period">Notice Period *</Label>
+                <Label htmlFor="notice-period">{t('candidate.career.noticePeriod', 'Notice Period')} *</Label>
                 <Select 
                   value={formData.notice_period} 
                   onValueChange={(value) => setFormData({ ...formData, notice_period: value })}
                 >
-                  <SelectTrigger id="notice-period" aria-label="Notice period">
+                  <SelectTrigger id="notice-period" aria-label={t('candidate.career.noticePeriod', 'Notice period')}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="immediate">Immediate</SelectItem>
-                    <SelectItem value="2_weeks">2 weeks</SelectItem>
-                    <SelectItem value="1_month">1 month</SelectItem>
-                    <SelectItem value="2_months">2 months</SelectItem>
-                    <SelectItem value="3_months">3 months</SelectItem>
+                    <SelectItem value="immediate">{t('candidate.career.immediate', 'Immediate')}</SelectItem>
+                    <SelectItem value="2_weeks">{t('candidate.career.twoWeeks', '2 weeks')}</SelectItem>
+                    <SelectItem value="1_month">{t('candidate.career.oneMonth', '1 month')}</SelectItem>
+                    <SelectItem value="2_months">{t('candidate.career.twoMonths', '2 months')}</SelectItem>
+                    <SelectItem value="3_months">{t('candidate.career.threeMonths', '3 months')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1109,19 +1110,19 @@ export function CandidateOnboardingSteps() {
 
       case 3:
         return (
-          <FunnelErrorBoundary stepName="Compensation Expectations">
+          <FunnelErrorBoundary stepName={t('candidate.compensation.title', 'Compensation Expectations')}>
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <DollarSign className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
-                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Compensation Expectations</h2>
-                <p className="text-muted-foreground">Help us match you with the right opportunities</p>
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]" id="step-heading">{t('candidate.compensation.title', 'Compensation Expectations')}</h2>
+                <p className="text-muted-foreground">{t('candidate.compensation.subtitle', 'Help us match you with the right opportunities')}</p>
               </div>
 
               {(formData.employment_type === 'fulltime' || formData.employment_type === 'both') && (
                 <>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label id="current-salary-label">Current Salary Range (€/year)</Label>
+                      <Label id="current-salary-label">{t('candidate.compensation.currentSalary', 'Current Salary Range (€/year)')}</Label>
                       <Button
                         type="button"
                         variant="link"
@@ -1129,7 +1130,7 @@ export function CandidateOnboardingSteps() {
                         onClick={() => setFormData({ ...formData, salary_preference_hidden: !formData.salary_preference_hidden })}
                         className="text-xs"
                       >
-                        {formData.salary_preference_hidden ? "Share Salary" : "Prefer not to share"}
+                        {formData.salary_preference_hidden ? t('candidate.compensation.shareSalary', 'Share Salary') : t('candidate.compensation.preferNotToShare', 'Prefer not to share')}
                       </Button>
                     </div>
                     <div className="pt-2 pb-4">
@@ -1150,7 +1151,7 @@ export function CandidateOnboardingSteps() {
                     </div>
                     <p className="text-sm text-muted-foreground" aria-live="polite">
                       {formData.salary_preference_hidden ? (
-                        <span className="italic">Hidden</span>
+                        <span className="italic">{t('candidate.compensation.salaryHidden', 'Hidden')}</span>
                       ) : (
                         <>€{formData.current_salary_min.toLocaleString()} - €{formData.current_salary_max.toLocaleString()}</>
                       )}
@@ -1158,7 +1159,7 @@ export function CandidateOnboardingSteps() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label id="desired-salary-label">Desired Next Role Salary Range (€/year) *</Label>
+                    <Label id="desired-salary-label">{t('candidate.compensation.desiredSalary', 'Desired Next Role Salary Range (€/year)')} *</Label>
                     <div className="pt-2 pb-4">
                       <Slider
                         min={0}
@@ -1182,7 +1183,7 @@ export function CandidateOnboardingSteps() {
 
               {(formData.employment_type === 'freelance' || formData.employment_type === 'both') && (
                 <div className="space-y-2">
-                  <Label id="hourly-rate-label">Freelance Hourly Rate (€/hour) *</Label>
+                  <Label id="hourly-rate-label">{t('candidate.compensation.freelanceRate', 'Freelance Hourly Rate (€/hour)')} *</Label>
                   <div className="pt-2 pb-4">
                     <Slider
                       min={0}
@@ -1208,57 +1209,57 @@ export function CandidateOnboardingSteps() {
 
       case 4:
         return (
-          <FunnelErrorBoundary stepName="Work Preferences">
+          <FunnelErrorBoundary stepName={t('candidate.preferences.title', 'Work Preferences')}>
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <MapPin className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
-                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Work Preferences</h2>
-                <p className="text-muted-foreground">Where would you like to work?</p>
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]" id="step-heading">{t('candidate.preferences.title', 'Work Preferences')}</h2>
+                <p className="text-muted-foreground">{t('candidate.preferences.subtitle', 'Where would you like to work?')}</p>
               </div>
 
               <div className="flex items-center justify-between p-4 border-2 border-border rounded-lg bg-accent/5">
                 <div>
                   <Label htmlFor="remoteWork" className="text-base font-semibold cursor-pointer">
-                    Open to Remote Work
+                    {t('candidate.career.remoteWork', 'Open to Remote Work')}
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Work from anywhere
+                    {t('candidate.career.remoteWorkLabel', 'Work from anywhere')}
                   </p>
                 </div>
                 <Switch
                   id="remoteWork"
-                  aria-label="Open to remote work preference"
+                  aria-label={t('candidate.career.remoteWork', 'Open to remote work preference')}
                   checked={formData.remote_work_preference}
                   onCheckedChange={(checked) => setFormData({ ...formData, remote_work_preference: checked })}
                 />
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="preferred-cities">Preferred Cities (Optional)</Label>
+                <Label htmlFor="preferred-cities">{t('candidate.preferences.preferredCities', 'Preferred Cities (Optional)')}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Search for cities where you'd like to work
+                  {t('candidate.preferences.searchCities', "Search for cities where you'd like to work")}
                 </p>
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <LocationAutocomplete
                       value={selectedCity}
                       onChange={setSelectedCity}
-                      placeholder="Type to search cities..."
+                      placeholder={t('candidate.preferences.typeToSearch', 'Type to search cities...')}
                     />
                   </div>
                   <Button
                     type="button"
                     onClick={handleAddPreferredLocation}
                     disabled={!selectedCity}
-                    aria-label="Add preferred location"
+                    aria-label={t('candidate.preferences.add', 'Add preferred location')}
                   >
-                    Add
+                    {t('candidate.preferences.add', 'Add')}
                   </Button>
                 </div>
 
                 {selectedCity && (
                   <div className="space-y-2 p-4 border-2 border-primary/20 rounded-lg bg-primary/5">
-                    <Label id="radius-label">Maximum distance from {selectedCity.split(", ")[0]}</Label>
+                    <Label id="radius-label">{t('candidate.preferences.maxDistance', 'Maximum distance from')} {selectedCity.split(", ")[0]}</Label>
                     <div className="pt-2 pb-4">
                       <Slider
                         min={0}
@@ -1269,7 +1270,7 @@ export function CandidateOnboardingSteps() {
                         aria-labelledby="radius-label"
                       />
                     </div>
-                    <p className="text-sm text-muted-foreground">Within {cityRadius} km radius</p>
+                    <p className="text-sm text-muted-foreground">{t('candidate.preferences.withinRadius', 'Within {{km}} km radius').replace('{{km}}', String(cityRadius))}</p>
                   </div>
                 )}
 
@@ -1282,7 +1283,7 @@ export function CandidateOnboardingSteps() {
                         role="listitem"
                       >
                         <span>
-                          {location.city}, {location.country} (within {location.radius_km}km)
+                          {location.city}, {location.country} ({t('candidate.preferences.withinRadius', 'within {{km}}km').replace('{{km}}', String(location.radius_km))})
                         </span>
                         <button
                           type="button"
@@ -1309,18 +1310,18 @@ export function CandidateOnboardingSteps() {
                         <Phone className="w-7 h-7 text-primary" aria-hidden="true" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-foreground">Verify Your Phone</h3>
-                        <p className="text-sm text-muted-foreground">Required to join The Quantum Club</p>
+                        <h3 className="text-xl font-bold text-foreground">{t('candidate.preferences.verifyPhone', 'Verify Your Phone')}</h3>
+                        <p className="text-sm text-muted-foreground">{t('candidate.preferences.requiredToJoin', 'Required to join The Quantum Club')}</p>
                       </div>
                       <span className="px-3 py-1 text-xs font-semibold bg-primary/20 text-primary rounded-full border border-primary/30">
-                        Required
+                        {t('candidate.preferences.required', 'Required')}
                       </span>
                     </div>
                     
                     <div className="space-y-3">
-                      <Label htmlFor="phone-input" className="text-base font-semibold">Mobile Number</Label>
+                      <Label htmlFor="phone-input" className="text-base font-semibold">{t('candidate.preferences.mobileNumber', 'Mobile Number')}</Label>
                       <p className="text-sm text-muted-foreground -mt-1">
-                        Select your country and enter your number. We'll send a verification code.
+                        {t('candidate.preferences.selectCountry', "Select your country and enter your number. We'll send a verification code.")}
                       </p>
                       <div className="p-1 bg-background/50 rounded-lg border-2 border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                         <PhoneInput
@@ -1331,22 +1332,22 @@ export function CandidateOnboardingSteps() {
                           onChange={(value) => setPhoneNumber(value || "")}
                           disabled={phoneVerified}
                           className="phone-input-premium"
-                          aria-label="Phone number"
+                          aria-label={t('candidate.preferences.mobileNumber', 'Phone number')}
                         />
                       </div>
                       {phoneVerified && (
                         <p className="text-sm text-green-600 flex items-center font-medium" role="status">
                           <CheckCircle className="w-4 h-4 mr-2" aria-hidden="true" />
-                          Phone verified successfully
+                          {t('candidate.preferences.phoneVerified', 'Phone verified successfully')}
                         </p>
                       )}
                     </div>
 
                     {otpSent && !phoneVerified && (
                       <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3 mt-4">
-                        <Label htmlFor="phone-otp" className="text-base font-semibold">Enter Verification Code</Label>
+                        <Label htmlFor="phone-otp" className="text-base font-semibold">{t('candidate.preferences.enterCode', 'Enter Verification Code')}</Label>
                         <p className="text-sm text-muted-foreground">
-                          We've sent a 6-digit code to {phoneNumber}
+                          {t('candidate.preferences.codeSentTo', "We've sent a 6-digit code to")} {phoneNumber}
                         </p>
                         <div className="flex justify-center w-full">
                           <InputOTP
@@ -1354,7 +1355,7 @@ export function CandidateOnboardingSteps() {
                             maxLength={6}
                             value={verificationCode}
                             onChange={setVerificationCode}
-                            aria-label="Phone verification code"
+                            aria-label={t('candidate.preferences.enterCode', 'Phone verification code')}
                             autoComplete="one-time-code"
                           >
                             <InputOTPGroup className="gap-1 sm:gap-2">
@@ -1372,16 +1373,16 @@ export function CandidateOnboardingSteps() {
                           onClick={async () => {
                             const verified = await verifyOTP(phoneNumber, verificationCode, () => {
                               setPhoneVerified(true);
-                              toast({ title: "Phone verified successfully!" });
+                              toast({ title: t('candidate.messages.phoneVerified', 'Phone verified successfully!') });
                             });
                             if (!verified) {
-                              toast({ title: "Invalid code", variant: "destructive" });
+                              toast({ title: t('candidate.messages.invalidCode', 'Invalid code'), variant: "destructive" });
                             }
                           }}
                           disabled={verificationCode.length !== 6 || isVerifying}
                           className="w-full"
                         >
-                          {isVerifying ? "Verifying..." : "Verify Phone"}
+                          {isVerifying ? t('candidate.contact.verifying', 'Verifying...') : t('candidate.contact.verifyPhone', 'Verify Phone')}
                         </Button>
                         {resendCooldown === 0 && (
                           <Button
@@ -1391,12 +1392,12 @@ export function CandidateOnboardingSteps() {
                             disabled={isSendingOtp}
                             className="p-0 h-auto"
                           >
-                            Resend code
+                            {t('candidate.contact.resendCode', 'Resend code')}
                           </Button>
                         )}
                         {resendCooldown > 0 && (
                           <p className="text-sm text-muted-foreground" aria-live="polite">
-                            Resend available in {resendCooldown}s
+                            {t('candidate.contact.resendAvailableIn', 'Resend available in {{seconds}}s').replace('{{seconds}}', String(resendCooldown))}
                           </p>
                         )}
                       </div>
@@ -1410,65 +1411,65 @@ export function CandidateOnboardingSteps() {
 
       case 5:
         return (
-          <FunnelErrorBoundary stepName="Secure Your Account">
+          <FunnelErrorBoundary stepName={t('candidate.password.title', 'Secure Your Account')}>
             <div className="space-y-4">
               <div className="text-center mb-6">
                 <Lock className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
-                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">
-                  Secure Your Account
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]" id="step-heading">
+                  {t('candidate.password.title', 'Secure Your Account')}
                 </h2>
                 <p className="text-muted-foreground">
-                  Create a strong password to complete your registration
+                  {t('candidate.password.subtitle', 'Create a strong password to complete your registration')}
                 </p>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="password">Password *</Label>
+                  <Label htmlFor="password">{t('candidate.password.password', 'Password')} *</Label>
                   <Input
                     id="password"
                     type="password"
-                    aria-label="Password"
+                    aria-label={t('candidate.password.password', 'Password')}
                     aria-required="true"
                     aria-describedby="password-requirements"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
+                    placeholder={t('candidate.password.password', 'Enter your password')}
                   />
                 </div>
 
-                <div id="password-requirements" className="text-xs space-y-2 p-4 rounded-lg bg-accent/10 border border-border" role="list" aria-label="Password requirements">
+                <div id="password-requirements" className="text-xs space-y-2 p-4 rounded-lg bg-accent/10 border border-border" role="list" aria-label={t('candidate.password.requirements', 'Password requirements')}>
                   <p className={password.length >= 12 ? "text-success font-semibold" : "text-muted-foreground"} role="listitem">
-                    {password.length >= 12 ? "✓" : "○"} At least 12 characters
+                    {password.length >= 12 ? "✓" : "○"} {t('candidate.password.minLength', 'At least 12 characters')}
                   </p>
                   <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"} role="listitem">
-                    {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
+                    {/[A-Z]/.test(password) ? "✓" : "○"} {t('candidate.password.uppercase', 'One uppercase letter')}
                   </p>
                   <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"} role="listitem">
-                    {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
+                    {/[a-z]/.test(password) ? "✓" : "○"} {t('candidate.password.lowercase', 'One lowercase letter')}
                   </p>
                   <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"} role="listitem">
-                    {/[0-9]/.test(password) ? "✓" : "○"} One number
+                    {/[0-9]/.test(password) ? "✓" : "○"} {t('candidate.password.number', 'One number')}
                   </p>
                   <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"} role="listitem">
-                    {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
+                    {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} {t('candidate.password.special', 'One special character')}
                   </p>
                 </div>
 
                 <div>
-                  <Label htmlFor="confirm-password">Confirm Password *</Label>
+                  <Label htmlFor="confirm-password">{t('candidate.password.confirmPassword', 'Confirm Password')} *</Label>
                   <Input
                     id="confirm-password"
                     type="password"
-                    aria-label="Confirm password"
+                    aria-label={t('candidate.password.confirmPassword', 'Confirm password')}
                     aria-required="true"
                     aria-invalid={confirmPassword !== "" && password !== confirmPassword}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm your password"
+                    placeholder={t('candidate.password.confirmPassword', 'Confirm your password')}
                   />
                   {confirmPassword && password !== confirmPassword && (
-                    <p className="text-sm text-destructive mt-1" role="alert">Passwords do not match</p>
+                    <p className="text-sm text-destructive mt-1" role="alert">{t('candidate.password.passwordsDoNotMatch', 'Passwords do not match')}</p>
                   )}
                 </div>
 
@@ -1479,25 +1480,25 @@ export function CandidateOnboardingSteps() {
                       id="gdpr-consent"
                       checked={gdprConsent}
                       onCheckedChange={(checked) => setGdprConsent(checked === true)}
-                      aria-label="GDPR consent"
+                      aria-label={t('candidate.password.gdprConsent', 'GDPR consent')}
                       aria-required="true"
                       className="mt-1"
                     />
                     <Label htmlFor="gdpr-consent" className="text-sm leading-relaxed cursor-pointer">
-                      I agree to the{" "}
+                      {t('candidate.password.gdprConsent', 'I agree to the')}{" "}
                       <Link to="/privacy" className="text-primary underline hover:text-primary/80" target="_blank">
-                        Privacy Policy
+                        {t('candidate.password.privacyPolicy', 'Privacy Policy')}
                       </Link>{" "}
-                      and{" "}
+                      {t('candidate.password.and', 'and')}{" "}
                       <Link to="/terms" className="text-primary underline hover:text-primary/80" target="_blank">
-                        Terms of Service
+                        {t('candidate.password.termsOfService', 'Terms of Service')}
                       </Link>
-                      . I consent to the processing of my personal data as described. *
+                      . {t('candidate.password.consentDescription', 'I consent to the processing of my personal data as described.')} *
                     </Label>
                   </div>
                   {!gdprConsent && (
                     <p className="text-xs text-muted-foreground pl-6">
-                      You must accept to continue with registration
+                      {t('candidate.password.mustAccept', 'You must accept to continue with registration')}
                     </p>
                   )}
                 </div>
@@ -1505,10 +1506,10 @@ export function CandidateOnboardingSteps() {
 
               <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg mt-4" role="status">
                 <p className="text-sm text-muted-foreground">
-                  ✓ Email verified: {formData.email}<br/>
-                  ✓ Phone verified: {phoneNumber}<br/>
-                  {gdprConsent ? "✓" : "○"} Terms accepted<br/>
-                  ○ Account will be created after submission
+                  ✓ {t('candidate.password.emailVerifiedLabel', 'Email verified')}: {formData.email}<br/>
+                  ✓ {t('candidate.password.phoneVerifiedLabel', 'Phone verified')}: {phoneNumber}<br/>
+                  {gdprConsent ? "✓" : "○"} {t('candidate.password.termsAccepted', 'Terms accepted')}<br/>
+                  ○ {t('candidate.password.accountCreated', 'Account will be created after submission')}
                 </p>
               </div>
             </div>
@@ -1520,9 +1521,9 @@ export function CandidateOnboardingSteps() {
           <div className="space-y-8 py-4">
             <div className="text-center">
               <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" aria-hidden="true" />
-              <h2 className="text-3xl font-semibold mb-3 uppercase font-[Inter]">Welcome to The Quantum Club!</h2>
+              <h2 className="text-3xl font-semibold mb-3 uppercase font-[Inter]">{t('candidate.complete.title', 'Welcome to The Quantum Club!')}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Your account has been created successfully. Your Talent Strategist will review your profile soon.
+                {t('candidate.complete.message', 'Your account has been created successfully. Your Talent Strategist will review your profile soon.')}
               </p>
             </div>
 
@@ -1532,14 +1533,14 @@ export function CandidateOnboardingSteps() {
 
             <div className="flex flex-col gap-4 items-center mt-8">
               <p className="text-sm text-muted-foreground">
-                Redirecting to pending approval...
+                {t('candidate.complete.redirecting', 'Redirecting to pending approval...')}
               </p>
               <Button 
                 size="lg" 
                 onClick={() => navigate("/pending-approval")}
                 variant="outline"
               >
-                View Application Status
+                {t('candidate.complete.viewStatus', 'View Application Status')}
               </Button>
             </div>
           </div>
@@ -1548,12 +1549,12 @@ export function CandidateOnboardingSteps() {
   };
 
   const stepLabels = [
-    { icon: User, label: "Contact" },
-    { icon: Briefcase, label: "Professional" },
-    { icon: Target, label: "Career" },
-    { icon: DollarSign, label: "Compensation" },
-    { icon: MapPin, label: "Preferences" },
-    { icon: Lock, label: "Password" },
+    { icon: User, label: t('candidate.steps.contact', 'Contact') },
+    { icon: Briefcase, label: t('candidate.steps.professional', 'Professional') },
+    { icon: Target, label: t('candidate.steps.career', 'Career') },
+    { icon: DollarSign, label: t('candidate.steps.compensation', 'Compensation') },
+    { icon: MapPin, label: t('candidate.steps.preferences', 'Preferences') },
+    { icon: Lock, label: t('candidate.steps.password', 'Security') },
   ];
 
   if (currentStep === 6) {
