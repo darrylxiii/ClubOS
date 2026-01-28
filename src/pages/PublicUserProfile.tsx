@@ -4,12 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import EnhancedProfile from "./EnhancedProfile";
 import { MinimalHeader } from "@/components/MinimalHeader";
 import { Loader2 } from "lucide-react";
+import { useProfileViewTracking } from "@/hooks/useProfileViewTracking";
 
 export default function PublicUserProfile() {
   const { userIdOrSlug } = useParams<{ userIdOrSlug: string }>();
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Track profile views when userId is resolved
+  useProfileViewTracking(userId);
   useEffect(() => {
     const resolveUserId = async () => {
       if (!userIdOrSlug) {
