@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,10 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { migrateToast as toast } from "@/lib/notify";
-import { ArrowRight, ArrowLeft, CheckCircle, User, Briefcase, Target, DollarSign, MapPin, Phone, Upload, X, Mail, Lock, AlertCircle, Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ArrowRight, ArrowLeft, CheckCircle, User, Briefcase, Target, DollarSign, MapPin, Phone, Upload, X, Mail, Lock, AlertCircle, Shield, Wifi, WifiOff } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
 import PhoneInput from "react-phone-number-input";
@@ -21,6 +22,8 @@ import { Slider } from "@/components/ui/slider";
 import { CandidateApplicationTracker } from "./CandidateApplicationTracker";
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { ExitIntentPopup, useExitIntent } from "@/components/partner-funnel/ExitIntentPopup";
+import { FunnelErrorBoundary } from "@/components/partner-funnel/FunnelErrorBoundary";
+import { ProgressSaver } from "@/components/partner-funnel/ProgressSaver";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,14 +44,14 @@ export function CandidateOnboardingSteps() {
   const [stepStartTime, setStepStartTime] = useState(Date.now());
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  // Cities now fetched via LocationAutocomplete (OpenStreetMap API) - no DB needed
   const [selectedCity, setSelectedCity] = useState("");
   const [cityRadius, setCityRadius] = useState(25);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [gdprConsent, setGdprConsent] = useState(false);
   
   const { uploadResume, isUploading: isUploadingResume, validateFile } = useResumeUpload();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
   
   const navigate = useNavigate();
   
@@ -82,23 +85,19 @@ export function CandidateOnboardingSteps() {
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 
   const [formData, setFormData] = useState({
-    // Contact
     full_name: "",
     email: "",
     phone: "",
     location: "",
-    // Professional
     current_title: "",
     linkedin_url: "",
     bio: "",
     resume_url: "",
     resume_filename: "",
-    // Career
     dream_job_title: "",
     employment_type: "fulltime" as "fulltime" | "freelance" | "both",
     notice_period: "2_weeks",
     remote_work_aspiration: false,
-    // Compensation
     current_salary_min: 50000,
     current_salary_max: 70000,
     salary_preference_hidden: false,
@@ -106,17 +105,29 @@ export function CandidateOnboardingSteps() {
     desired_salary_max: 90000,
     freelance_hourly_rate_min: 50,
     freelance_hourly_rate_max: 100,
-    // Preferences
     remote_work_preference: false,
     preferred_work_locations: [] as Array<{ city: string; country: string; radius_km: number }>,
   });
 
-  // Exit intent state
   const [exitIntentOpen, setExitIntentOpen] = useState(false);
   const { reset: resetExitIntent } = useExitIntent(
     currentStep > 0 && currentStep < 5,
     () => setExitIntentOpen(true)
   );
+
+  // Network status monitoring
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Mark as critical flow to prevent PWA auto-reload
   useEffect(() => {
@@ -127,11 +138,30 @@ export function CandidateOnboardingSteps() {
     };
   }, []);
 
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
+      if (e.key === 'Enter' && currentStep < 5) {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === 'Escape' && currentStep > 0) {
+        e.preventDefault();
+        handleBack();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentStep, emailVerified, phoneVerified]);
+
   useEffect(() => {
     trackStep("view");
   }, [currentStep]);
-
-  // loadCities removed - using LocationAutocomplete with OpenStreetMap API instead
 
   const trackStep = async (action: string) => {
     const timeOnStep = Math.floor((Date.now() - stepStartTime) / 1000);
@@ -180,7 +210,6 @@ export function CandidateOnboardingSteps() {
     navigate(`/auth?email=${encodedEmail}`);
   };
 
-  // Save partial progress after each step
   const savePartialProgress = async (completedStep: number) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -243,7 +272,6 @@ export function CandidateOnboardingSteps() {
   };
 
   const handleNext = async () => {
-    // Step 0: Contact info - check email and verify
     if (currentStep === 0) {
       if (!formData.email || !formData.full_name) {
         toast({ 
@@ -254,7 +282,6 @@ export function CandidateOnboardingSteps() {
         return;
       }
 
-      // Check if email already exists
       if (!emailVerified) {
         const emailExists = await checkEmailExists(formData.email);
         if (emailExists) {
@@ -262,7 +289,6 @@ export function CandidateOnboardingSteps() {
           return;
         }
 
-        // Email is available, send verification code
         const success = await sendEmailOTP(formData.email);
         if (success) {
           toast({ 
@@ -274,7 +300,6 @@ export function CandidateOnboardingSteps() {
       return;
     }
 
-    // Phone verification before final step
     if (currentStep === 4 && !phoneVerified) {
       if (!phoneNumber) {
         toast({ title: "Please enter your phone number", variant: "destructive" });
@@ -294,7 +319,6 @@ export function CandidateOnboardingSteps() {
     
     if (!validateStep()) return;
     
-    // Save progress before moving to next step
     await savePartialProgress(currentStep);
     await trackStep("complete");
     setCurrentStep(currentStep + 1);
@@ -303,7 +327,6 @@ export function CandidateOnboardingSteps() {
   const handleBack = async () => {
     await trackStep("abandon");
     
-    // Update step tracker when going back
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await supabase
@@ -322,7 +345,7 @@ export function CandidateOnboardingSteps() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
     switch (currentStep) {
-      case 0: // Contact
+      case 0:
         if (!formData.full_name || !formData.email) {
           toast({ title: "Please fill in all required fields", variant: "destructive" });
           return false;
@@ -336,25 +359,29 @@ export function CandidateOnboardingSteps() {
           return false;
         }
         break;
-      case 1: // Professional
+      case 1:
         if (!formData.current_title) {
           toast({ title: "Please enter your current job title", variant: "destructive" });
           return false;
         }
         break;
-      case 2: // Career
+      case 2:
         if (!formData.dream_job_title) {
           toast({ title: "Please enter your dream job title", variant: "destructive" });
           return false;
         }
         break;
-      case 4: // Preferences
+      case 4:
         if (!phoneVerified) {
           toast({ title: "Please verify your phone number", variant: "destructive" });
           return false;
         }
         break;
-      case 5: // Password
+      case 5:
+        if (!gdprConsent) {
+          toast({ title: "Please accept the Privacy Policy and Terms of Service", variant: "destructive" });
+          return false;
+        }
         if (!password || password.length < 12) {
           toast({ title: "Please create a strong password", variant: "destructive" });
           return false;
@@ -373,7 +400,15 @@ export function CandidateOnboardingSteps() {
   };
 
   const handleSubmit = async () => {
-    // Validate password
+    if (!gdprConsent) {
+      toast({ 
+        title: "Consent required", 
+        description: "Please accept the Privacy Policy and Terms of Service",
+        variant: "destructive" 
+      });
+      return;
+    }
+
     if (password.length < 12 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || 
         !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
       toast({ 
@@ -396,7 +431,6 @@ export function CandidateOnboardingSteps() {
 
       console.log('[Onboarding] Starting account creation for:', formData.email);
 
-      // STEP 1: Create Supabase auth account with all onboarding data
       const { data: authData, error: signupError } = await supabase.auth.signUp({
         email: formData.email,
         password: password,
@@ -407,6 +441,7 @@ export function CandidateOnboardingSteps() {
             phone: phoneNumber,
             email_verified: true,
             phone_verified: true,
+            gdpr_consent_at: new Date().toISOString(),
           }
         }
       });
@@ -423,10 +458,8 @@ export function CandidateOnboardingSteps() {
 
       console.log('[Onboarding] Auth account created, user ID:', authData.user.id);
 
-      // STEP 1.5: Wait for trigger to create profile (fix race condition)
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Verify profile exists before updating
       const { data: existingProfile, error: profileCheckError } = await supabase
         .from('profiles')
         .select('id')
@@ -440,7 +473,6 @@ export function CandidateOnboardingSteps() {
 
       console.log('[Onboarding] Profile verified, updating with onboarding data');
 
-      // STEP 2: Update profiles table with complete onboarding data
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -467,8 +499,6 @@ export function CandidateOnboardingSteps() {
           resume_filename: formData.resume_filename || null,
           onboarding_completed_at: new Date().toISOString(),
           account_status: 'pending',
-          // Auto-assign strategist will be handled by trigger/function
-          // assigned_strategist_id is set automatically based on workload
         })
         .eq('id', authData.user.id);
 
@@ -479,23 +509,19 @@ export function CandidateOnboardingSteps() {
 
       console.log('[Onboarding] Profile updated successfully');
 
-      // STEP 2.5: Move resume from onboarding folder to user's folder
       if (formData.resume_url) {
         try {
           const oldPath = formData.resume_url.split('/resumes/')[1];
-          const fileName = oldPath.split('/')[1]; // Get filename from onboarding/filename
+          const fileName = oldPath.split('/')[1];
           const newPath = `${authData.user.id}/${fileName}`;
           
-          // Copy file to user's folder
           const { error: copyError } = await supabase.storage
             .from('resumes')
             .copy(oldPath, newPath);
           
           if (!copyError) {
-            // Delete from onboarding folder
             await supabase.storage.from('resumes').remove([oldPath]);
             
-            // Update URL to new location
             const { data: { publicUrl } } = supabase.storage
               .from('resumes')
               .getPublicUrl(newPath);
@@ -507,7 +533,6 @@ export function CandidateOnboardingSteps() {
         }
       }
 
-      // STEP 3: Check system setting for auto-merge
       console.log('[Onboarding] Checking auto-merge setting');
 
       const { data: autoMergeSetting } = await supabase
@@ -519,7 +544,6 @@ export function CandidateOnboardingSteps() {
       const autoMergeEnabled = autoMergeSetting?.setting_value === true;
       console.log('[Onboarding] Auto-merge enabled:', autoMergeEnabled);
 
-      // Check for existing candidate profile
       const { data: existingCandidate, error: checkError } = await supabase
         .from('candidate_profiles')
         .select('id, user_id, email, full_name')
@@ -533,13 +557,11 @@ export function CandidateOnboardingSteps() {
       if (existingCandidate) {
         console.log('[Onboarding] Found existing candidate profile');
         
-        // Verify it's not already linked to another account
         if (existingCandidate.user_id && existingCandidate.user_id !== authData.user.id) {
           throw new Error('This email is already linked to another account. Please contact support at hello@thequantumclub.com');
         }
         
         if (autoMergeEnabled) {
-          // AUTO-MERGE PATH (original logic)
           console.log('[Onboarding] Auto-merge enabled, initiating merge');
           
           const { error: mergeError } = await supabase.functions.invoke('merge-candidate-profile', {
@@ -557,7 +579,6 @@ export function CandidateOnboardingSteps() {
           
           console.log('[Onboarding] Profile merged successfully');
           
-          // Update the merged candidate profile with new onboarding data
           const { error: updateError } = await supabase
             .from('candidate_profiles')
             .update({
@@ -582,12 +603,9 @@ export function CandidateOnboardingSteps() {
           }
           
         } else {
-          // MANUAL MERGE PATH (auto-merge disabled)
           console.log('[Onboarding] Auto-merge disabled, skipping candidate profile creation');
           console.log('[Onboarding] User account created, but candidate profile will need manual linking');
           
-          // Don't create a new candidate_profile - let admin manually merge via dashboard
-          // Just log that this user needs manual attention
           await supabase.from('candidate_interactions').insert({
             candidate_id: existingCandidate.id,
             interaction_type: 'note',
@@ -600,7 +618,6 @@ export function CandidateOnboardingSteps() {
         }
         
       } else {
-        // No existing profile - create new one (original logic)
         console.log('[Onboarding] Creating new candidate profile');
         
         const { error: insertError } = await supabase
@@ -622,7 +639,6 @@ export function CandidateOnboardingSteps() {
             resume_filename: formData.resume_filename,
             resume_url: formData.resume_url,
             application_status: 'applied',
-            // assigned_strategist_id is handled by database trigger based on strategist workload
             source_channel: 'integrated_funnel',
             invitation_status: 'registered',
           });
@@ -637,7 +653,6 @@ export function CandidateOnboardingSteps() {
 
       await trackStep("complete");
 
-      // Sign out the user (prevent auto-login)
       await supabase.auth.signOut();
 
       toast({ 
@@ -645,10 +660,8 @@ export function CandidateOnboardingSteps() {
         description: "Darryl will review your application within 24-48 hours" 
       });
 
-      // Move to success screen
       setCurrentStep(6);
 
-      // Redirect to pending approval page after 2 seconds
       setTimeout(() => {
         navigate("/pending-approval");
       }, 2000);
@@ -656,11 +669,10 @@ export function CandidateOnboardingSteps() {
     } catch (error: any) {
       console.error('[Onboarding] Account creation error:', error);
       
-      // Log detailed error to database for debugging
       try {
         await supabase.from('funnel_analytics').insert({
           session_id: sessionId,
-          step_number: 999, // Error step
+          step_number: 999,
           step_name: 'account_creation_error',
           action: 'error',
           error_details: {
@@ -696,10 +708,8 @@ export function CandidateOnboardingSteps() {
 
   const handleAddPreferredLocation = () => {
     if (selectedCity) {
-      // Handle multi-part location strings (e.g., "Amsterdam, North Holland, Netherlands")
       const parts = selectedCity.split(", ");
       const cityName = parts[0];
-      // Use last part as country, or second part if only 2 parts
       const country = parts.length > 2 ? parts[parts.length - 1] : (parts[1] || '');
       
       const locationExists = formData.preferred_work_locations.some(
@@ -736,31 +746,27 @@ export function CandidateOnboardingSteps() {
     if (!validateFile(file)) return;
 
     try {
-      // Create a new file object with sessionId prefixed to ensure uniqueness/tracing in onboarding folder
       const renamedFile = new File([file], `${sessionId}_${file.name}`, { type: file.type });
       
-      // Upload to 'onboarding' "folder" (user_id param treated as folder)
       const result = await uploadResume(renamedFile, 'onboarding', 'candidate');
       
       if (result) {
         setFormData({
           ...formData,
           resume_url: result.url,
-          resume_filename: file.name, // Keep original name for display
+          resume_filename: file.name,
         });
 
         toast({ title: "Resume uploaded successfully" });
       }
     } catch (error: any) {
       console.error('Upload error:', error);
-      // Hook handles toast
     }
   };
 
   const handleRemoveResume = async () => {
     if (formData.resume_url) {
       try {
-        // Extract file path from URL
         const urlParts = formData.resume_url.split('/resumes/');
         if (urlParts[1]) {
           await supabase.storage.from('resumes').remove([urlParts[1]]);
@@ -783,635 +789,718 @@ export function CandidateOnboardingSteps() {
 
   const renderStep = () => {
     switch (currentStep) {
-      case 0: // Contact Information
+      case 0:
         return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <User className="w-12 h-12 text-primary mx-auto mb-3" />
-              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Contact Information</h2>
-              <p className="text-muted-foreground">Let's start with your basic details</p>
-            </div>
-            <div>
-              <Label>Full Name *</Label>
-              <Input
-                value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                placeholder="John Doe"
-              />
-            </div>
-            <div>
-              <Label>Email Address *</Label>
-              <Input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="john@example.com"
-                disabled={emailVerified}
-              />
-              {emailVerified && (
-                <p className="text-sm text-green-600 mt-2 flex items-center">
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Email verified
-                </p>
-              )}
-            </div>
-
-            {!emailVerified && !emailOtpSent && (
-              <div className="p-4 border-3 border-primary/30 bg-primary/10 rounded-xl animate-pulse">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-10 h-10 text-primary" />
-                  <div className="flex-1">
-                    <p className="text-base font-bold text-foreground">Email verification required to continue</p>
-                    <p className="text-sm text-muted-foreground mt-1">Click "Send Verification Code" below to verify your email</p>
-                  </div>
-                </div>
+          <FunnelErrorBoundary stepName="Contact Information">
+            <div className="space-y-4">
+              <div className="text-center mb-6">
+                <User className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]" id="step-heading">Contact Information</h2>
+                <p className="text-muted-foreground">Let's start with your basic details</p>
               </div>
-            )}
-
-            {emailOtpSent && !emailVerified && (
-              <div className="p-3 sm:p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3 shadow-lg shadow-primary/20 max-w-full overflow-hidden">
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="flex-1 min-w-0">
-                    <Label className="text-base sm:text-lg font-bold">Verify Your Email</Label>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
-                      We've sent a 6-digit code to {formData.email}
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">Enter Verification Code *</Label>
-                  <div className="flex justify-center w-full">
-                    <InputOTP
-                      maxLength={6}
-                      value={emailOtpCode}
-                      onChange={(value) => {
-                        setEmailOtpCode(value);
-                        if (value.length === 6) {
-                          verifyEmailOTP(formData.email, value, async () => {
-                            setEmailVerified(true);
-                            setEmailOtpCode("");
-                            await trackStep("complete");
-                            setCurrentStep(1);
-                          });
-                        }
-                      }}
-                    >
-                      <InputOTPGroup className="gap-1 sm:gap-2">
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
-                  {isVerifyingEmail && (
-                    <p className="text-sm text-muted-foreground text-center">Verifying...</p>
-                  )}
-                  {emailResendCooldown === 0 && emailOtpSent && (
-                    <div className="text-center">
-                      <Button
-                        type="button"
-                        variant="link"
-                        onClick={() => sendEmailOTP(formData.email)}
-                        disabled={isSendingEmailOtp}
-                        className="p-0 h-auto"
-                      >
-                        Resend code
-                      </Button>
-                    </div>
-                  )}
-                  {emailResendCooldown > 0 && (
-                    <p className="text-sm text-muted-foreground text-center">
-                      Resend available in {emailResendCooldown}s
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <Label>Current Location (Optional)</Label>
-              <LocationAutocomplete
-                value={formData.location}
-                onChange={(value) => setFormData({ ...formData, location: value })}
-                placeholder="Type to search cities worldwide..."
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Start typing to see suggestions from cities worldwide
-              </p>
-            </div>
-          </div>
-        );
-
-      case 1: // Professional Details
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <Briefcase className="w-12 h-12 text-primary mx-auto mb-3" />
-              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Professional Details</h2>
-              <p className="text-muted-foreground">Tell us about your current role</p>
-            </div>
-            <div>
-              <Label>Current Job Title *</Label>
-              <Input
-                value={formData.current_title}
-                onChange={(e) => setFormData({ ...formData, current_title: e.target.value })}
-                placeholder="e.g., Senior Software Engineer"
-              />
-            </div>
-            <div>
-              <Label>LinkedIn Profile (Optional)</Label>
-              <Input
-                type="url"
-                value={formData.linkedin_url}
-                onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
-                placeholder="https://linkedin.com/in/yourprofile"
-              />
-            </div>
-            <div>
-              <Label>Professional Bio (Optional)</Label>
-              <Textarea
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Tell us about your experience and what drives you..."
-                rows={4}
-              />
-              <p className="text-sm text-muted-foreground mt-1">You can skip this and complete it later in settings</p>
-            </div>
-            
-            {/* Resume Upload */}
-            <div className="space-y-2">
-              <Label>Resume (Optional)</Label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={handleResumeUpload}
-                className="hidden"
-              />
-              
-              {!formData.resume_filename ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingResume}
-                  className="w-full"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {isUploadingResume ? "Uploading..." : "Upload your resume"}
-                </Button>
-              ) : (
-                <div className="flex items-center gap-2 p-3 border-2 border-primary/20 bg-primary/5 rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-sm font-medium flex-1 truncate">{formData.resume_filename}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRemoveResume}
-                    className="flex-shrink-0"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-              <p className="text-sm text-muted-foreground">
-                You can add this later in settings. Accepted formats: PDF, DOC, DOCX (max 10MB)
-              </p>
-            </div>
-          </div>
-        );
-
-      case 2: // Career Aspirations
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <Target className="w-12 h-12 text-primary mx-auto mb-3" />
-              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Career Aspirations</h2>
-              <p className="text-muted-foreground">What's your ideal next role?</p>
-            </div>
-            <div>
-              <Label>Dream Job Title *</Label>
-              <Input
-                value={formData.dream_job_title}
-                onChange={(e) => setFormData({ ...formData, dream_job_title: e.target.value })}
-                placeholder="e.g., VP of Engineering, Lead Product Designer"
-              />
-            </div>
-            <div>
-              <Label>Employment Type Preference *</Label>
-              <Select value={formData.employment_type} onValueChange={(value: any) => setFormData({ ...formData, employment_type: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fulltime">Full-time only</SelectItem>
-                  <SelectItem value="freelance">Freelance/Contract only</SelectItem>
-                  <SelectItem value="both">Open to both</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Remote Work Aspiration Toggle */}
-            <div className="flex items-center justify-between p-4 border-2 border-border rounded-lg bg-accent/5">
               <div>
-                <Label htmlFor="remoteAspiration" className="text-base font-semibold cursor-pointer">
-                  Open to Remote Work
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Work from anywhere
-                </p>
+                <Label htmlFor="full-name">Full Name *</Label>
+                <Input
+                  id="full-name"
+                  aria-label="Full name"
+                  aria-required="true"
+                  aria-invalid={!formData.full_name}
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  placeholder="John Doe"
+                />
               </div>
-              <Switch
-                id="remoteAspiration"
-                checked={formData.remote_work_aspiration}
-                onCheckedChange={(checked) => setFormData({ ...formData, remote_work_aspiration: checked })}
-              />
-            </div>
-            
-            <div>
-              <Label>Notice Period *</Label>
-              <Select value={formData.notice_period} onValueChange={(value) => setFormData({ ...formData, notice_period: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="immediate">Immediate</SelectItem>
-                  <SelectItem value="2_weeks">2 weeks</SelectItem>
-                  <SelectItem value="1_month">1 month</SelectItem>
-                  <SelectItem value="2_months">2 months</SelectItem>
-                  <SelectItem value="3_months">3 months</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        );
-
-      case 3: // Compensation
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <DollarSign className="w-12 h-12 text-primary mx-auto mb-3" />
-              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Compensation Expectations</h2>
-              <p className="text-muted-foreground">Help us match you with the right opportunities</p>
-            </div>
-
-            {(formData.employment_type === 'fulltime' || formData.employment_type === 'both') && (
-              <>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Current Salary Range (€/year)</Label>
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="sm"
-                      onClick={() => setFormData({ ...formData, salary_preference_hidden: !formData.salary_preference_hidden })}
-                      className="text-xs"
-                    >
-                      {formData.salary_preference_hidden ? "Share Salary" : "Prefer not to share"}
-                    </Button>
-                  </div>
-                  <div className="pt-2 pb-4">
-                    <Slider
-                      min={0}
-                      max={500000}
-                      step={5000}
-                      value={[formData.current_salary_min, formData.current_salary_max]}
-                      onValueChange={(value) => setFormData({ 
-                        ...formData, 
-                        current_salary_min: value[0], 
-                        current_salary_max: value[1] 
-                      })}
-                      disabled={formData.salary_preference_hidden}
-                      className={formData.salary_preference_hidden ? "opacity-50" : ""}
-                    />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {formData.salary_preference_hidden ? (
-                      <span className="italic">Hidden</span>
-                    ) : (
-                      <>€{formData.current_salary_min.toLocaleString()} - €{formData.current_salary_max.toLocaleString()}</>
-                    )}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Desired Next Role Salary Range (€/year) *</Label>
-                  <div className="pt-2 pb-4">
-                    <Slider
-                      min={0}
-                      max={500000}
-                      step={5000}
-                      value={[formData.desired_salary_min, formData.desired_salary_max]}
-                      onValueChange={(value) => setFormData({ 
-                        ...formData, 
-                        desired_salary_min: value[0], 
-                        desired_salary_max: value[1] 
-                      })}
-                    />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    €{formData.desired_salary_min.toLocaleString()} - €{formData.desired_salary_max.toLocaleString()}
-                  </p>
-                </div>
-              </>
-            )}
-
-            {(formData.employment_type === 'freelance' || formData.employment_type === 'both') && (
-              <div className="space-y-2">
-                <Label>Freelance Hourly Rate (€/hour) *</Label>
-                <div className="pt-2 pb-4">
-                  <Slider
-                    min={0}
-                    max={500}
-                    step={5}
-                    value={[formData.freelance_hourly_rate_min, formData.freelance_hourly_rate_max]}
-                    onValueChange={(value) => setFormData({ 
-                      ...formData, 
-                      freelance_hourly_rate_min: value[0], 
-                      freelance_hourly_rate_max: value[1] 
-                    })}
-                  />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  €{formData.freelance_hourly_rate_min}/hr - €{formData.freelance_hourly_rate_max}/hr
-                </p>
-              </div>
-            )}
-          </div>
-        );
-
-      case 4: // Work Preferences & Verification
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <MapPin className="w-12 h-12 text-primary mx-auto mb-3" />
-              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Work Preferences</h2>
-              <p className="text-muted-foreground">Where would you like to work?</p>
-            </div>
-
-            <div className="flex items-center justify-between p-4 border-2 border-border rounded-lg bg-accent/5">
               <div>
-                <Label htmlFor="remoteWork" className="text-base font-semibold cursor-pointer">
-                  Open to Remote Work
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Work from anywhere
-                </p>
-              </div>
-              <Switch
-                id="remoteWork"
-                checked={formData.remote_work_preference}
-                onCheckedChange={(checked) => setFormData({ ...formData, remote_work_preference: checked })}
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label>Preferred Cities (Optional)</Label>
-              <p className="text-sm text-muted-foreground">
-                Search for cities where you'd like to work
-              </p>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <LocationAutocomplete
-                    value={selectedCity}
-                    onChange={setSelectedCity}
-                    placeholder="Type to search cities..."
-                  />
-                </div>
-                <Button
-                  type="button"
-                  onClick={handleAddPreferredLocation}
-                  disabled={!selectedCity}
-                >
-                  Add
-                </Button>
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  aria-label="Email address"
+                  aria-required="true"
+                  aria-describedby={emailVerified ? "email-verified-status" : undefined}
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="john@example.com"
+                  disabled={emailVerified}
+                />
+                {emailVerified && (
+                  <p id="email-verified-status" className="text-sm text-green-600 mt-2 flex items-center">
+                    <CheckCircle className="w-4 h-4 mr-2" aria-hidden="true" />
+                    Email verified
+                  </p>
+                )}
               </div>
 
-              {selectedCity && (
-                <div className="space-y-2 p-4 border-2 border-primary/20 rounded-lg bg-primary/5">
-                  <Label>Maximum distance from {selectedCity.split(", ")[0]}</Label>
-                  <div className="pt-2 pb-4">
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={5}
-                      value={[cityRadius]}
-                      onValueChange={(value) => setCityRadius(value[0])}
-                    />
-                  </div>
-                  <p className="text-sm text-muted-foreground">Within {cityRadius} km radius</p>
-                </div>
-              )}
-
-              {formData.preferred_work_locations.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.preferred_work_locations.map((location, index) => (
-                    <div
-                      key={`${location.city}-${location.country}-${index}`}
-                      className="flex items-center gap-2 px-3 py-2 bg-accent/10 border border-accent/20 rounded-lg text-sm"
-                    >
-                      <span>
-                        {location.city}, {location.country} (within {location.radius_km}km)
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemovePreferredLocation(location)}
-                        className="text-primary hover:text-primary/80 text-lg leading-none"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Phone Verification - Premium Highlight */}
-            <div className="pt-6 border-t">
-              <div className="p-6 border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-xl shadow-lg shadow-primary/10 relative overflow-hidden">
-                {/* Decorative glow */}
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center ring-4 ring-primary/30">
-                      <Phone className="w-7 h-7 text-primary" />
-                    </div>
+              {!emailVerified && !emailOtpSent && (
+                <div className="p-4 border-3 border-primary/30 bg-primary/10 rounded-xl animate-pulse" role="alert">
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-10 h-10 text-primary" aria-hidden="true" />
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-foreground">Verify Your Phone</h3>
-                      <p className="text-sm text-muted-foreground">Required to join The Quantum Club</p>
+                      <p className="text-base font-bold text-foreground">Email verification required to continue</p>
+                      <p className="text-sm text-muted-foreground mt-1">Click "Send Verification Code" below to verify your email</p>
                     </div>
-                    <span className="px-3 py-1 text-xs font-semibold bg-primary/20 text-primary rounded-full border border-primary/30">
-                      Required
-                    </span>
                   </div>
-                  
-                  <div className="space-y-3">
-                    <Label className="text-base font-semibold">Mobile Number</Label>
-                    <p className="text-sm text-muted-foreground -mt-1">
-                      Select your country and enter your number. We'll send a verification code.
-                    </p>
-                    <div className="p-1 bg-background/50 rounded-lg border-2 border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                      <PhoneInput
-                        international
-                        defaultCountry={countryCode as any}
-                        value={phoneNumber}
-                        onChange={(value) => setPhoneNumber(value || "")}
-                        disabled={phoneVerified}
-                        className="phone-input-premium"
-                      />
-                    </div>
-                    {phoneVerified && (
-                      <p className="text-sm text-green-600 flex items-center font-medium">
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Phone verified successfully
-                      </p>
-                    )}
-                  </div>
+                </div>
+              )}
 
-                  {otpSent && !phoneVerified && (
-                    <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3 mt-4">
-                      <Label className="text-base font-semibold">Enter Verification Code</Label>
-                      <p className="text-sm text-muted-foreground">
-                        We've sent a 6-digit code to {phoneNumber}
+              {emailOtpSent && !emailVerified && (
+                <div className="p-3 sm:p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3 shadow-lg shadow-primary/20 max-w-full overflow-hidden">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="flex-1 min-w-0">
+                      <Label className="text-base sm:text-lg font-bold">Verify Your Email</Label>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
+                        We've sent a 6-digit code to {formData.email}
                       </p>
-                      <div className="flex justify-center w-full">
-                        <InputOTP
-                          maxLength={6}
-                          value={verificationCode}
-                          onChange={setVerificationCode}
-                        >
-                          <InputOTPGroup className="gap-1 sm:gap-2">
-                            <InputOTPSlot index={0} />
-                            <InputOTPSlot index={1} />
-                            <InputOTPSlot index={2} />
-                            <InputOTPSlot index={3} />
-                            <InputOTPSlot index={4} />
-                            <InputOTPSlot index={5} />
-                          </InputOTPGroup>
-                        </InputOTP>
-                      </div>
-                      <Button
-                        type="button"
-                        onClick={async () => {
-                          const verified = await verifyOTP(phoneNumber, verificationCode, () => {
-                            setPhoneVerified(true);
-                            toast({ title: "Phone verified successfully!" });
-                          });
-                          if (!verified) {
-                            toast({ title: "Invalid code", variant: "destructive" });
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email-otp">Enter Verification Code *</Label>
+                    <div className="flex justify-center w-full">
+                      <InputOTP
+                        id="email-otp"
+                        maxLength={6}
+                        value={emailOtpCode}
+                        aria-label="Email verification code"
+                        autoComplete="one-time-code"
+                        onChange={(value) => {
+                          setEmailOtpCode(value);
+                          if (value.length === 6) {
+                            verifyEmailOTP(formData.email, value, async () => {
+                              setEmailVerified(true);
+                              setEmailOtpCode("");
+                              await trackStep("complete");
+                              setCurrentStep(1);
+                            });
                           }
                         }}
-                        disabled={verificationCode.length !== 6 || isVerifying}
-                        className="w-full"
                       >
-                        {isVerifying ? "Verifying..." : "Verify Phone"}
-                      </Button>
-                      {resendCooldown === 0 && (
+                        <InputOTPGroup className="gap-1 sm:gap-2">
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
+                    {isVerifyingEmail && (
+                      <p className="text-sm text-muted-foreground text-center" role="status">Verifying...</p>
+                    )}
+                    {emailResendCooldown === 0 && emailOtpSent && (
+                      <div className="text-center">
                         <Button
                           type="button"
                           variant="link"
-                          onClick={() => sendOTP(phoneNumber)}
-                          disabled={isSendingOtp}
+                          onClick={() => sendEmailOTP(formData.email)}
+                          disabled={isSendingEmailOtp}
                           className="p-0 h-auto"
                         >
                           Resend code
                         </Button>
+                      </div>
+                    )}
+                    {emailResendCooldown > 0 && (
+                      <p className="text-sm text-muted-foreground text-center" aria-live="polite">
+                        Resend available in {emailResendCooldown}s
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="location">Current Location (Optional)</Label>
+                <LocationAutocomplete
+                  value={formData.location}
+                  onChange={(value) => setFormData({ ...formData, location: value })}
+                  placeholder="Type to search cities worldwide..."
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Start typing to see suggestions from cities worldwide
+                </p>
+              </div>
+            </div>
+          </FunnelErrorBoundary>
+        );
+
+      case 1:
+        return (
+          <FunnelErrorBoundary stepName="Professional Details">
+            <div className="space-y-4">
+              <div className="text-center mb-6">
+                <Briefcase className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Professional Details</h2>
+                <p className="text-muted-foreground">Tell us about your current role</p>
+              </div>
+              <div>
+                <Label htmlFor="current-title">Current Job Title *</Label>
+                <Input
+                  id="current-title"
+                  aria-label="Current job title"
+                  aria-required="true"
+                  value={formData.current_title}
+                  onChange={(e) => setFormData({ ...formData, current_title: e.target.value })}
+                  placeholder="e.g., Senior Software Engineer"
+                />
+              </div>
+              <div>
+                <Label htmlFor="linkedin-url">LinkedIn Profile (Optional)</Label>
+                <Input
+                  id="linkedin-url"
+                  type="url"
+                  aria-label="LinkedIn profile URL"
+                  value={formData.linkedin_url}
+                  onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                  placeholder="https://linkedin.com/in/yourprofile"
+                />
+              </div>
+              <div>
+                <Label htmlFor="bio">Professional Summary (Optional)</Label>
+                <Textarea
+                  id="bio"
+                  aria-label="Professional summary"
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  placeholder="Brief description of your experience and expertise..."
+                  rows={4}
+                />
+              </div>
+              <div>
+                <Label>Resume/CV (Optional)</Label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleResumeUpload}
+                  className="hidden"
+                  id="resume-upload"
+                  aria-label="Upload resume"
+                />
+                {!formData.resume_url ? (
+                  <label
+                    htmlFor="resume-upload"
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+                  >
+                    <Upload className="w-8 h-8 text-muted-foreground mb-2" aria-hidden="true" />
+                    <span className="text-sm text-muted-foreground">
+                      {isUploadingResume ? "Uploading..." : "Click to upload PDF or Word document"}
+                    </span>
+                  </label>
+                ) : (
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-accent/5">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />
+                      <span className="text-sm">{formData.resume_filename}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveResume}
+                      aria-label="Remove resume"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </FunnelErrorBoundary>
+        );
+
+      case 2:
+        return (
+          <FunnelErrorBoundary stepName="Career Goals">
+            <div className="space-y-4">
+              <div className="text-center mb-6">
+                <Target className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Career Goals</h2>
+                <p className="text-muted-foreground">What are you looking for in your next role?</p>
+              </div>
+              <div>
+                <Label htmlFor="dream-job">Dream Job Title *</Label>
+                <Input
+                  id="dream-job"
+                  aria-label="Dream job title"
+                  aria-required="true"
+                  value={formData.dream_job_title}
+                  onChange={(e) => setFormData({ ...formData, dream_job_title: e.target.value })}
+                  placeholder="e.g., VP of Engineering, Lead Product Designer"
+                />
+              </div>
+              <div>
+                <Label htmlFor="employment-type">Employment Type Preference *</Label>
+                <Select 
+                  value={formData.employment_type} 
+                  onValueChange={(value: any) => setFormData({ ...formData, employment_type: value })}
+                >
+                  <SelectTrigger id="employment-type" aria-label="Employment type preference">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fulltime">Full-time only</SelectItem>
+                    <SelectItem value="freelance">Freelance/Contract only</SelectItem>
+                    <SelectItem value="both">Open to both</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-center justify-between p-4 border-2 border-border rounded-lg bg-accent/5">
+                <div>
+                  <Label htmlFor="remoteAspiration" className="text-base font-semibold cursor-pointer">
+                    Open to Remote Work
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Work from anywhere
+                  </p>
+                </div>
+                <Switch
+                  id="remoteAspiration"
+                  aria-label="Open to remote work"
+                  checked={formData.remote_work_aspiration}
+                  onCheckedChange={(checked) => setFormData({ ...formData, remote_work_aspiration: checked })}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="notice-period">Notice Period *</Label>
+                <Select 
+                  value={formData.notice_period} 
+                  onValueChange={(value) => setFormData({ ...formData, notice_period: value })}
+                >
+                  <SelectTrigger id="notice-period" aria-label="Notice period">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="immediate">Immediate</SelectItem>
+                    <SelectItem value="2_weeks">2 weeks</SelectItem>
+                    <SelectItem value="1_month">1 month</SelectItem>
+                    <SelectItem value="2_months">2 months</SelectItem>
+                    <SelectItem value="3_months">3 months</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </FunnelErrorBoundary>
+        );
+
+      case 3:
+        return (
+          <FunnelErrorBoundary stepName="Compensation Expectations">
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <DollarSign className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Compensation Expectations</h2>
+                <p className="text-muted-foreground">Help us match you with the right opportunities</p>
+              </div>
+
+              {(formData.employment_type === 'fulltime' || formData.employment_type === 'both') && (
+                <>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label id="current-salary-label">Current Salary Range (€/year)</Label>
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        onClick={() => setFormData({ ...formData, salary_preference_hidden: !formData.salary_preference_hidden })}
+                        className="text-xs"
+                      >
+                        {formData.salary_preference_hidden ? "Share Salary" : "Prefer not to share"}
+                      </Button>
+                    </div>
+                    <div className="pt-2 pb-4">
+                      <Slider
+                        min={0}
+                        max={500000}
+                        step={5000}
+                        value={[formData.current_salary_min, formData.current_salary_max]}
+                        onValueChange={(value) => setFormData({ 
+                          ...formData, 
+                          current_salary_min: value[0], 
+                          current_salary_max: value[1] 
+                        })}
+                        disabled={formData.salary_preference_hidden}
+                        className={formData.salary_preference_hidden ? "opacity-50" : ""}
+                        aria-labelledby="current-salary-label"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground" aria-live="polite">
+                      {formData.salary_preference_hidden ? (
+                        <span className="italic">Hidden</span>
+                      ) : (
+                        <>€{formData.current_salary_min.toLocaleString()} - €{formData.current_salary_max.toLocaleString()}</>
                       )}
-                      {resendCooldown > 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          Resend available in {resendCooldown}s
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label id="desired-salary-label">Desired Next Role Salary Range (€/year) *</Label>
+                    <div className="pt-2 pb-4">
+                      <Slider
+                        min={0}
+                        max={500000}
+                        step={5000}
+                        value={[formData.desired_salary_min, formData.desired_salary_max]}
+                        onValueChange={(value) => setFormData({ 
+                          ...formData, 
+                          desired_salary_min: value[0], 
+                          desired_salary_max: value[1] 
+                        })}
+                        aria-labelledby="desired-salary-label"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground" aria-live="polite">
+                      €{formData.desired_salary_min.toLocaleString()} - €{formData.desired_salary_max.toLocaleString()}
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {(formData.employment_type === 'freelance' || formData.employment_type === 'both') && (
+                <div className="space-y-2">
+                  <Label id="hourly-rate-label">Freelance Hourly Rate (€/hour) *</Label>
+                  <div className="pt-2 pb-4">
+                    <Slider
+                      min={0}
+                      max={500}
+                      step={5}
+                      value={[formData.freelance_hourly_rate_min, formData.freelance_hourly_rate_max]}
+                      onValueChange={(value) => setFormData({ 
+                        ...formData, 
+                        freelance_hourly_rate_min: value[0], 
+                        freelance_hourly_rate_max: value[1] 
+                      })}
+                      aria-labelledby="hourly-rate-label"
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground" aria-live="polite">
+                    €{formData.freelance_hourly_rate_min}/hr - €{formData.freelance_hourly_rate_max}/hr
+                  </p>
+                </div>
+              )}
+            </div>
+          </FunnelErrorBoundary>
+        );
+
+      case 4:
+        return (
+          <FunnelErrorBoundary stepName="Work Preferences">
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <MapPin className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Work Preferences</h2>
+                <p className="text-muted-foreground">Where would you like to work?</p>
+              </div>
+
+              <div className="flex items-center justify-between p-4 border-2 border-border rounded-lg bg-accent/5">
+                <div>
+                  <Label htmlFor="remoteWork" className="text-base font-semibold cursor-pointer">
+                    Open to Remote Work
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Work from anywhere
+                  </p>
+                </div>
+                <Switch
+                  id="remoteWork"
+                  aria-label="Open to remote work preference"
+                  checked={formData.remote_work_preference}
+                  onCheckedChange={(checked) => setFormData({ ...formData, remote_work_preference: checked })}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="preferred-cities">Preferred Cities (Optional)</Label>
+                <p className="text-sm text-muted-foreground">
+                  Search for cities where you'd like to work
+                </p>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <LocationAutocomplete
+                      value={selectedCity}
+                      onChange={setSelectedCity}
+                      placeholder="Type to search cities..."
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleAddPreferredLocation}
+                    disabled={!selectedCity}
+                    aria-label="Add preferred location"
+                  >
+                    Add
+                  </Button>
+                </div>
+
+                {selectedCity && (
+                  <div className="space-y-2 p-4 border-2 border-primary/20 rounded-lg bg-primary/5">
+                    <Label id="radius-label">Maximum distance from {selectedCity.split(", ")[0]}</Label>
+                    <div className="pt-2 pb-4">
+                      <Slider
+                        min={0}
+                        max={100}
+                        step={5}
+                        value={[cityRadius]}
+                        onValueChange={(value) => setCityRadius(value[0])}
+                        aria-labelledby="radius-label"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Within {cityRadius} km radius</p>
+                  </div>
+                )}
+
+                {formData.preferred_work_locations.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2" role="list" aria-label="Selected preferred locations">
+                    {formData.preferred_work_locations.map((location, index) => (
+                      <div
+                        key={`${location.city}-${location.country}-${index}`}
+                        className="flex items-center gap-2 px-3 py-2 bg-accent/10 border border-accent/20 rounded-lg text-sm"
+                        role="listitem"
+                      >
+                        <span>
+                          {location.city}, {location.country} (within {location.radius_km}km)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePreferredLocation(location)}
+                          className="text-primary hover:text-primary/80 text-lg leading-none"
+                          aria-label={`Remove ${location.city}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Phone Verification */}
+              <div className="pt-6 border-t">
+                <div className="p-6 border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-xl shadow-lg shadow-primary/10 relative overflow-hidden">
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
+                  
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center ring-4 ring-primary/30">
+                        <Phone className="w-7 h-7 text-primary" aria-hidden="true" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-foreground">Verify Your Phone</h3>
+                        <p className="text-sm text-muted-foreground">Required to join The Quantum Club</p>
+                      </div>
+                      <span className="px-3 py-1 text-xs font-semibold bg-primary/20 text-primary rounded-full border border-primary/30">
+                        Required
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <Label htmlFor="phone-input" className="text-base font-semibold">Mobile Number</Label>
+                      <p className="text-sm text-muted-foreground -mt-1">
+                        Select your country and enter your number. We'll send a verification code.
+                      </p>
+                      <div className="p-1 bg-background/50 rounded-lg border-2 border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                        <PhoneInput
+                          id="phone-input"
+                          international
+                          defaultCountry={countryCode as any}
+                          value={phoneNumber}
+                          onChange={(value) => setPhoneNumber(value || "")}
+                          disabled={phoneVerified}
+                          className="phone-input-premium"
+                          aria-label="Phone number"
+                        />
+                      </div>
+                      {phoneVerified && (
+                        <p className="text-sm text-green-600 flex items-center font-medium" role="status">
+                          <CheckCircle className="w-4 h-4 mr-2" aria-hidden="true" />
+                          Phone verified successfully
                         </p>
                       )}
                     </div>
-                  )}
+
+                    {otpSent && !phoneVerified && (
+                      <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3 mt-4">
+                        <Label htmlFor="phone-otp" className="text-base font-semibold">Enter Verification Code</Label>
+                        <p className="text-sm text-muted-foreground">
+                          We've sent a 6-digit code to {phoneNumber}
+                        </p>
+                        <div className="flex justify-center w-full">
+                          <InputOTP
+                            id="phone-otp"
+                            maxLength={6}
+                            value={verificationCode}
+                            onChange={setVerificationCode}
+                            aria-label="Phone verification code"
+                            autoComplete="one-time-code"
+                          >
+                            <InputOTPGroup className="gap-1 sm:gap-2">
+                              <InputOTPSlot index={0} />
+                              <InputOTPSlot index={1} />
+                              <InputOTPSlot index={2} />
+                              <InputOTPSlot index={3} />
+                              <InputOTPSlot index={4} />
+                              <InputOTPSlot index={5} />
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={async () => {
+                            const verified = await verifyOTP(phoneNumber, verificationCode, () => {
+                              setPhoneVerified(true);
+                              toast({ title: "Phone verified successfully!" });
+                            });
+                            if (!verified) {
+                              toast({ title: "Invalid code", variant: "destructive" });
+                            }
+                          }}
+                          disabled={verificationCode.length !== 6 || isVerifying}
+                          className="w-full"
+                        >
+                          {isVerifying ? "Verifying..." : "Verify Phone"}
+                        </Button>
+                        {resendCooldown === 0 && (
+                          <Button
+                            type="button"
+                            variant="link"
+                            onClick={() => sendOTP(phoneNumber)}
+                            disabled={isSendingOtp}
+                            className="p-0 h-auto"
+                          >
+                            Resend code
+                          </Button>
+                        )}
+                        {resendCooldown > 0 && (
+                          <p className="text-sm text-muted-foreground" aria-live="polite">
+                            Resend available in {resendCooldown}s
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </FunnelErrorBoundary>
         );
 
-      case 5: // Password Creation
+      case 5:
         return (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <Lock className="w-12 h-12 text-primary mx-auto mb-3" />
-              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">
-                Secure Your Account
-              </h2>
-              <p className="text-muted-foreground">
-                Create a strong password to complete your registration
-              </p>
-            </div>
-            
+          <FunnelErrorBoundary stepName="Secure Your Account">
             <div className="space-y-4">
-              <div>
-                <Label>Password *</Label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                />
-              </div>
-
-              <div className="text-xs space-y-2 p-4 rounded-lg bg-accent/10 border border-border">
-                <p className={password.length >= 12 ? "text-success font-semibold" : "text-muted-foreground"}>
-                  {password.length >= 12 ? "✓" : "○"} At least 12 characters
-                </p>
-                <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
-                  {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
-                </p>
-                <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
-                  {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
-                </p>
-                <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
-                  {/[0-9]/.test(password) ? "✓" : "○"} One number
-                </p>
-                <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
-                  {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
+              <div className="text-center mb-6">
+                <Lock className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">
+                  Secure Your Account
+                </h2>
+                <p className="text-muted-foreground">
+                  Create a strong password to complete your registration
                 </p>
               </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="password">Password *</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    aria-label="Password"
+                    aria-required="true"
+                    aria-describedby="password-requirements"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                  />
+                </div>
 
-              <div>
-                <Label>Confirm Password *</Label>
-                <Input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm your password"
-                />
-                {confirmPassword && password !== confirmPassword && (
-                  <p className="text-sm text-destructive mt-2">Passwords do not match</p>
-                )}
-                {confirmPassword && password === confirmPassword && (
-                  <p className="text-sm text-success mt-2 flex items-center">
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Passwords match
+                <div id="password-requirements" className="text-xs space-y-2 p-4 rounded-lg bg-accent/10 border border-border" role="list" aria-label="Password requirements">
+                  <p className={password.length >= 12 ? "text-success font-semibold" : "text-muted-foreground"} role="listitem">
+                    {password.length >= 12 ? "✓" : "○"} At least 12 characters
                   </p>
-                )}
+                  <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"} role="listitem">
+                    {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
+                  </p>
+                  <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"} role="listitem">
+                    {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
+                  </p>
+                  <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"} role="listitem">
+                    {/[0-9]/.test(password) ? "✓" : "○"} One number
+                  </p>
+                  <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"} role="listitem">
+                    {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="confirm-password">Confirm Password *</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    aria-label="Confirm password"
+                    aria-required="true"
+                    aria-invalid={confirmPassword !== "" && password !== confirmPassword}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm your password"
+                  />
+                  {confirmPassword && password !== confirmPassword && (
+                    <p className="text-sm text-destructive mt-1" role="alert">Passwords do not match</p>
+                  )}
+                </div>
+
+                {/* GDPR Consent Checkbox */}
+                <div className="p-4 border-2 border-border rounded-lg bg-accent/5 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="gdpr-consent"
+                      checked={gdprConsent}
+                      onCheckedChange={(checked) => setGdprConsent(checked === true)}
+                      aria-label="GDPR consent"
+                      aria-required="true"
+                      className="mt-1"
+                    />
+                    <Label htmlFor="gdpr-consent" className="text-sm leading-relaxed cursor-pointer">
+                      I agree to the{" "}
+                      <Link to="/privacy" className="text-primary underline hover:text-primary/80" target="_blank">
+                        Privacy Policy
+                      </Link>{" "}
+                      and{" "}
+                      <Link to="/terms" className="text-primary underline hover:text-primary/80" target="_blank">
+                        Terms of Service
+                      </Link>
+                      . I consent to the processing of my personal data as described. *
+                    </Label>
+                  </div>
+                  {!gdprConsent && (
+                    <p className="text-xs text-muted-foreground pl-6">
+                      You must accept to continue with registration
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg mt-4" role="status">
+                <p className="text-sm text-muted-foreground">
+                  ✓ Email verified: {formData.email}<br/>
+                  ✓ Phone verified: {phoneNumber}<br/>
+                  {gdprConsent ? "✓" : "○"} Terms accepted<br/>
+                  ○ Account will be created after submission
+                </p>
               </div>
             </div>
-            
-            <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg mt-4">
-              <p className="text-sm text-muted-foreground">
-                ✓ Email verified: {formData.email}<br/>
-                ✓ Phone verified: {phoneNumber}<br/>
-                ○ Account will be created after submission
-              </p>
-            </div>
-          </div>
+          </FunnelErrorBoundary>
         );
 
-      case 6: // Success
+      case 6:
         return (
           <div className="space-y-8 py-4">
             <div className="text-center">
-              <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
+              <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" aria-hidden="true" />
               <h2 className="text-3xl font-semibold mb-3 uppercase font-[Inter]">Welcome to The Quantum Club!</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 Your account has been created successfully. Your Talent Strategist will review your profile soon.
@@ -1458,36 +1547,60 @@ export function CandidateOnboardingSteps() {
 
   return (
     <Card className="p-8 glass-effect">
+      {/* Network Status Indicator */}
+      {!isOnline && (
+        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center gap-2 text-destructive" role="alert">
+          <WifiOff className="w-4 h-4" aria-hidden="true" />
+          <span className="text-sm font-medium">You're offline. Changes will be saved when you reconnect.</span>
+        </div>
+      )}
+
+      {/* Progress Saver */}
+      <div className="mb-4 flex justify-end">
+        <ProgressSaver
+          sessionId={sessionId}
+          currentStep={currentStep}
+          formData={formData}
+          email={formData.email}
+        />
+      </div>
+
       {/* Progress Indicator */}
-      <div className="mb-8">
+      <nav className="mb-8" aria-label="Onboarding progress">
         <div className="flex justify-between items-center mb-4">
           {stepLabels.map((step, index) => {
             const Icon = step.icon;
             return (
-              <div key={index} className="flex flex-col items-center flex-1">
+              <div 
+                key={index} 
+                className="flex flex-col items-center flex-1"
+                aria-current={index === currentStep ? "step" : undefined}
+              >
                 <div className={`
                   w-10 h-10 rounded-full flex items-center justify-center mb-2
                   ${index < currentStep ? 'bg-primary text-primary-foreground' : 
                     index === currentStep ? 'bg-primary/20 text-primary border-2 border-primary' : 
                     'bg-muted text-muted-foreground'}
                 `}>
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-5 h-5" aria-hidden="true" />
                 </div>
-                <span className="text-xs text-center">{step.label}</span>
+                <span className="text-xs text-center sr-only sm:not-sr-only">{step.label}</span>
               </div>
             );
           })}
         </div>
-        <div className="w-full bg-muted rounded-full h-2">
+        <div className="w-full bg-muted rounded-full h-2" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={6}>
           <div 
             className="bg-primary h-2 rounded-full transition-all duration-300"
             style={{ width: `${(currentStep / 6) * 100}%` }}
           />
         </div>
-      </div>
+      </nav>
 
       {/* Step Content */}
-      {renderStep()}
+      <main aria-labelledby="step-heading">
+        {renderStep()}
+      </main>
 
       {/* Navigation */}
       <div className="flex justify-between mt-8 pt-6 border-t">
@@ -1496,39 +1609,55 @@ export function CandidateOnboardingSteps() {
           variant="outline"
           onClick={handleBack}
           disabled={currentStep === 0}
+          aria-label="Go to previous step"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
           Back
         </Button>
         
         {currentStep < 5 ? (
-          <Button type="button" onClick={handleNext} disabled={isCheckingEmail}>
+          <Button 
+            type="button" 
+            onClick={handleNext} 
+            disabled={isCheckingEmail || !isOnline}
+            aria-label={currentStep === 0 && !emailVerified ? "Send verification code" : "Continue to next step"}
+          >
             {isCheckingEmail ? "Checking..." :
              currentStep === 0 && !emailVerified ? "Send Verification Code" :
              currentStep === 4 && !phoneVerified ? "Send Verification Code" :
              "Continue"}
-            <ArrowRight className="w-4 h-4 ml-2" />
+            <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
           </Button>
         ) : (
-          <Button type="button" onClick={handleSubmit} disabled={isLoading}>
+          <Button 
+            type="button" 
+            onClick={handleSubmit} 
+            disabled={isLoading || !isOnline || !gdprConsent}
+            aria-label="Create account"
+          >
             {isLoading ? "Creating Account..." : "Create Account"}
-            <CheckCircle className="w-4 h-4 ml-2" />
+            <CheckCircle className="w-4 h-4 ml-2" aria-hidden="true" />
           </Button>
         )}
       </div>
 
+      {/* Keyboard Shortcut Hint */}
+      <p className="text-xs text-muted-foreground text-center mt-4 hidden sm:block">
+        Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">Enter</kbd> to continue or <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">Esc</kbd> to go back
+      </p>
+
       {/* Trust Badges */}
       <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-border/50">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Lock className="w-3.5 h-3.5" />
+          <Lock className="w-3.5 h-3.5" aria-hidden="true" />
           <span>256-bit SSL</span>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Shield className="w-3.5 h-3.5" />
+          <Shield className="w-3.5 h-3.5" aria-hidden="true" />
           <span>GDPR Compliant</span>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <CheckCircle className="w-3.5 h-3.5" />
+          <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" />
           <span>Never Shared</span>
         </div>
       </div>
@@ -1550,7 +1679,7 @@ export function CandidateOnboardingSteps() {
           <AlertDialogHeader>
             <div className="flex items-center justify-center mb-4">
               <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-accent" />
+                <AlertCircle className="w-6 h-6 text-accent" aria-hidden="true" />
               </div>
             </div>
             <AlertDialogTitle className="text-center text-2xl">
