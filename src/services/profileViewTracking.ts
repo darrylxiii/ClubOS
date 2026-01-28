@@ -74,19 +74,33 @@ export async function trackProfileView({
       return;
     }
 
-    // Insert profile view record (simple insert, not upsert)
-    const { error: viewError } = await supabase
-      .from('profile_views')
-      .insert({
-        viewed_user_id: profileId,
-        viewer_user_id: viewerId,
-        viewer_company_id: viewerProfile.company_id,
-        is_anonymous: false,
-        viewed_at: new Date().toISOString()
-      });
+    // Insert profile view record
+    try {
+      const { error: viewError } = await supabase
+        .from('profile_views')
+        .insert({
+          viewed_user_id: profileId,
+          viewer_user_id: viewerId,
+          viewer_company_id: viewerProfile.company_id,
+          is_anonymous: false,
+          viewed_at: new Date().toISOString()
+        });
 
-    if (viewError) {
-      console.error('[Profile View] Error tracking view:', viewError);
+      if (viewError) {
+        // Log but don't throw - tracking should not break user experience
+        logger.warn('Error inserting profile view', { 
+          componentName: 'ProfileViewTracking', 
+          error: viewError.message,
+          profileId,
+          viewerId 
+        });
+        return;
+      }
+    } catch (insertError) {
+      logger.warn('Exception inserting profile view', { 
+        componentName: 'ProfileViewTracking', 
+        error: insertError 
+      });
       return;
     }
 

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { useEffect } from "react";
 
 interface DocumentStatus {
   type: 'cv' | 'cover_letter' | 'portfolio' | 'certificates';
@@ -30,6 +31,7 @@ interface DocumentStatus {
 export function DocumentStatusWidget() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: documentStatus, isLoading } = useQuery({
     queryKey: ['document-status', user?.id],
@@ -114,16 +116,53 @@ export function DocumentStatusWidget() {
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
 
+  // Real-time subscription for document changes
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('documents-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'candidate_documents',
+          filter: `candidate_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['document-status', user.id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'candidate_profiles',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['document-status', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
+
   if (isLoading) {
     return (
       <Card className="glass-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <FileText className="h-4 w-4 text-primary" />
+            <FileText className="h-4 w-4 text-primary" aria-hidden="true" />
             Documents
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-3" role="status" aria-label="Loading document status">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-12 w-full" />
           ))}
@@ -139,31 +178,42 @@ export function DocumentStatusWidget() {
   const getStatusIcon = (status: DocumentStatus['status']) => {
     switch (status) {
       case 'complete':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" aria-hidden="true" />;
       case 'outdated':
-        return <Clock className="h-4 w-4 text-amber-500" />;
+        return <Clock className="h-4 w-4 text-amber-500" aria-hidden="true" />;
       case 'missing':
-        return <AlertCircle className="h-4 w-4 text-muted-foreground" />;
+        return <AlertCircle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />;
+    }
+  };
+
+  const getStatusLabel = (status: DocumentStatus['status']) => {
+    switch (status) {
+      case 'complete':
+        return 'Uploaded';
+      case 'outdated':
+        return 'Update Needed';
+      case 'missing':
+        return 'Missing';
     }
   };
 
   const getStatusBadge = (status: DocumentStatus['status']) => {
     switch (status) {
       case 'complete':
-        return <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600">Uploaded</Badge>;
+        return <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600">{getStatusLabel(status)}</Badge>;
       case 'outdated':
-        return <Badge variant="secondary" className="text-xs bg-amber-500/10 text-amber-600">Update Needed</Badge>;
+        return <Badge variant="secondary" className="text-xs bg-amber-500/10 text-amber-600">{getStatusLabel(status)}</Badge>;
       case 'missing':
-        return <Badge variant="outline" className="text-xs">Missing</Badge>;
+        return <Badge variant="outline" className="text-xs">{getStatusLabel(status)}</Badge>;
     }
   };
 
   return (
-    <Card className="glass-card">
+    <Card className="glass-card" role="region" aria-label="Document status">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
-            <FileText className="h-4 w-4 text-primary" />
+            <FileText className="h-4 w-4 text-primary" aria-hidden="true" />
             Documents
           </CardTitle>
           <Button 
@@ -171,6 +221,7 @@ export function DocumentStatusWidget() {
             size="sm" 
             className="text-xs"
             onClick={() => navigate('/settings?tab=documents')}
+            aria-label="Manage your documents"
           >
             Manage
           </Button>
@@ -180,61 +231,71 @@ export function DocumentStatusWidget() {
         <div className="mt-3">
           <div className="flex items-center justify-between text-xs mb-2">
             <span className="text-muted-foreground">Profile Documents</span>
-            <span className="font-medium">{completedCount}/{totalCount} Complete</span>
+            <span className="font-medium" aria-live="polite">{completedCount}/{totalCount} Complete</span>
           </div>
-          <Progress value={completionPercentage} className="h-2" />
+          <Progress 
+            value={completionPercentage} 
+            className="h-2" 
+            aria-label={`Document completion: ${completionPercentage}%`}
+          />
         </div>
       </CardHeader>
       
       <CardContent className="space-y-2">
-        {documentStatus?.map((doc) => (
-          <div 
-            key={doc.type}
-            className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              {getStatusIcon(doc.status)}
-              <div>
-                <p className="text-sm font-medium">{doc.label}</p>
-                {doc.status !== 'missing' && doc.updatedAt && (
-                  <p className="text-xs text-muted-foreground">
-                    Updated {formatDistanceToNow(new Date(doc.updatedAt), { addSuffix: true })}
-                  </p>
-                )}
-              </div>
-            </div>
+        <ul className="space-y-2" role="list" aria-label="Document list">
+          {documentStatus?.map((doc) => (
+            <li key={doc.type}>
+              <div 
+                className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                role="listitem"
+              >
+                <div className="flex items-center gap-3">
+                  {getStatusIcon(doc.status)}
+                  <div>
+                    <p className="text-sm font-medium">{doc.label}</p>
+                    {doc.status !== 'missing' && doc.updatedAt && (
+                      <p className="text-xs text-muted-foreground">
+                        Updated {formatDistanceToNow(new Date(doc.updatedAt), { addSuffix: true })}
+                      </p>
+                    )}
+                  </div>
+                </div>
 
-            <div className="flex items-center gap-2">
-              {getStatusBadge(doc.status)}
-              
-              {doc.status === 'missing' ? (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => navigate('/settings?tab=documents')}
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-              ) : doc.url ? (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => window.open(doc.url!, '_blank')}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-              ) : null}
-            </div>
-          </div>
-        ))}
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(doc.status)}
+                  
+                  {doc.status === 'missing' ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => navigate('/settings?tab=documents')}
+                      aria-label={`Upload ${doc.label}`}
+                    >
+                      <Upload className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  ) : doc.url ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => window.open(doc.url!, '_blank')}
+                      aria-label={`Open ${doc.label}`}
+                    >
+                      <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
 
         {/* Quick action for CV if missing */}
         {documentStatus?.find(d => d.type === 'cv')?.status === 'missing' && (
-          <div className="mt-4 p-3 rounded-lg bg-accent/50 border border-border">
+          <div className="mt-4 p-3 rounded-lg bg-accent/50 border border-border" role="alert">
             <div className="flex items-start gap-3">
-              <FileCheck className="h-5 w-5 text-primary mt-0.5" />
+              <FileCheck className="h-5 w-5 text-primary mt-0.5" aria-hidden="true" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Upload your CV to get started</p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -244,8 +305,9 @@ export function DocumentStatusWidget() {
                   size="sm" 
                   className="mt-3"
                   onClick={() => navigate('/settings?tab=documents')}
+                  aria-label="Upload your CV now"
                 >
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                   Upload CV
                 </Button>
               </div>
