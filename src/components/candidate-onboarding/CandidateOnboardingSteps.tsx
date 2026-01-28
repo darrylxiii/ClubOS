@@ -1,4 +1,18 @@
+/**
+ * CandidateOnboardingSteps - Multi-step onboarding wizard for candidates
+ * 
+ * @description Enterprise-grade onboarding flow with:
+ * - Email/Phone verification via OTP
+ * - Progressive data collection across 6 steps
+ * - Session recovery for cross-device continuation
+ * - GDPR consent on final step
+ * - Full i18n support (EN/NL)
+ * 
+ * @example
+ * <CandidateOnboardingSteps />
+ */
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +38,7 @@ import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { ExitIntentPopup, useExitIntent } from "@/components/partner-funnel/ExitIntentPopup";
 import { FunnelErrorBoundary } from "@/components/partner-funnel/FunnelErrorBoundary";
 import { ProgressSaver } from "@/components/partner-funnel/ProgressSaver";
+import { SessionRecoveryBanner } from "@/components/partner-funnel/SessionRecoveryBanner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,8 +53,10 @@ import {
 const STEPS = ["contact", "professional", "career", "compensation", "preferences", "password"];
 
 export function CandidateOnboardingSteps() {
+  const { t } = useTranslation('onboarding');
   const [currentStep, setCurrentStep] = useState(0);
   const [sessionId] = useState(() => crypto.randomUUID());
+  const [showRecoveryBanner, setShowRecoveryBanner] = useState(true);
   const [startTime] = useState(Date.now());
   const [stepStartTime, setStepStartTime] = useState(Date.now());
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -791,42 +808,44 @@ export function CandidateOnboardingSteps() {
     switch (currentStep) {
       case 0:
         return (
-          <FunnelErrorBoundary stepName="Contact Information">
+          <FunnelErrorBoundary stepName={t('candidate.contact.title', 'Contact Information')}>
             <div className="space-y-4">
               <div className="text-center mb-6">
                 <User className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
-                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]" id="step-heading">Contact Information</h2>
-                <p className="text-muted-foreground">Let's start with your basic details</p>
+                <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]" id="step-heading">
+                  {t('candidate.contact.title', 'Contact Information')}
+                </h2>
+                <p className="text-muted-foreground">{t('candidate.contact.subtitle', "Let's start with your basic details")}</p>
               </div>
               <div>
-                <Label htmlFor="full-name">Full Name *</Label>
+                <Label htmlFor="full-name">{t('candidate.contact.fullName', 'Full Name')} *</Label>
                 <Input
                   id="full-name"
-                  aria-label="Full name"
+                  aria-label={t('candidate.contact.fullName', 'Full name')}
                   aria-required="true"
                   aria-invalid={!formData.full_name}
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  placeholder="John Doe"
+                  placeholder={t('candidate.contact.fullNamePlaceholder', 'John Doe')}
                 />
               </div>
               <div>
-                <Label htmlFor="email">Email Address *</Label>
+                <Label htmlFor="email">{t('candidate.contact.email', 'Email Address')} *</Label>
                 <Input
                   id="email"
                   type="email"
-                  aria-label="Email address"
+                  aria-label={t('candidate.contact.email', 'Email address')}
                   aria-required="true"
                   aria-describedby={emailVerified ? "email-verified-status" : undefined}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="john@example.com"
+                  placeholder={t('candidate.contact.emailPlaceholder', 'john@example.com')}
                   disabled={emailVerified}
                 />
                 {emailVerified && (
-                  <p id="email-verified-status" className="text-sm text-green-600 mt-2 flex items-center">
+                  <p id="email-verified-status" className="text-sm text-success mt-2 flex items-center">
                     <CheckCircle className="w-4 h-4 mr-2" aria-hidden="true" />
-                    Email verified
+                    {t('candidate.contact.emailVerified', 'Email verified')}
                   </p>
                 )}
               </div>
@@ -836,8 +855,8 @@ export function CandidateOnboardingSteps() {
                   <div className="flex items-center gap-3">
                     <Mail className="w-10 h-10 text-primary" aria-hidden="true" />
                     <div className="flex-1">
-                      <p className="text-base font-bold text-foreground">Email verification required to continue</p>
-                      <p className="text-sm text-muted-foreground mt-1">Click "Send Verification Code" below to verify your email</p>
+                      <p className="text-base font-bold text-foreground">{t('candidate.contact.emailVerificationRequired', 'Email verification required to continue')}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{t('candidate.contact.clickSendVerification', 'Click "Send Verification Code" below to verify your email')}</p>
                     </div>
                   </div>
                 </div>
@@ -847,20 +866,20 @@ export function CandidateOnboardingSteps() {
                 <div className="p-3 sm:p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3 shadow-lg shadow-primary/20 max-w-full overflow-hidden">
                   <div className="flex items-start gap-2 sm:gap-3">
                     <div className="flex-1 min-w-0">
-                      <Label className="text-base sm:text-lg font-bold">Verify Your Email</Label>
+                      <Label className="text-base sm:text-lg font-bold">{t('candidate.contact.verifyYourEmail', 'Verify Your Email')}</Label>
                       <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
-                        We've sent a 6-digit code to {formData.email}
+                        {t('candidate.contact.weSentCode', "We've sent a 6-digit code to")} {formData.email}
                       </p>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email-otp">Enter Verification Code *</Label>
+                    <Label htmlFor="email-otp">{t('candidate.contact.enterVerificationCode', 'Enter Verification Code')} *</Label>
                     <div className="flex justify-center w-full">
                       <InputOTP
                         id="email-otp"
                         maxLength={6}
                         value={emailOtpCode}
-                        aria-label="Email verification code"
+                        aria-label={t('candidate.contact.enterVerificationCode', 'Email verification code')}
                         autoComplete="one-time-code"
                         onChange={(value) => {
                           setEmailOtpCode(value);
@@ -885,7 +904,7 @@ export function CandidateOnboardingSteps() {
                       </InputOTP>
                     </div>
                     {isVerifyingEmail && (
-                      <p className="text-sm text-muted-foreground text-center" role="status">Verifying...</p>
+                      <p className="text-sm text-muted-foreground text-center" role="status">{t('candidate.contact.verifying', 'Verifying...')}</p>
                     )}
                     {emailResendCooldown === 0 && emailOtpSent && (
                       <div className="text-center">
@@ -896,13 +915,13 @@ export function CandidateOnboardingSteps() {
                           disabled={isSendingEmailOtp}
                           className="p-0 h-auto"
                         >
-                          Resend code
+                          {t('candidate.contact.resendCode', 'Resend code')}
                         </Button>
                       </div>
                     )}
                     {emailResendCooldown > 0 && (
                       <p className="text-sm text-muted-foreground text-center" aria-live="polite">
-                        Resend available in {emailResendCooldown}s
+                        {t('candidate.contact.resendAvailableIn', 'Resend available in {{seconds}}s').replace('{{seconds}}', String(emailResendCooldown))}
                       </p>
                     )}
                   </div>
@@ -1551,8 +1570,17 @@ export function CandidateOnboardingSteps() {
       {!isOnline && (
         <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center gap-2 text-destructive" role="alert">
           <WifiOff className="w-4 h-4" aria-hidden="true" />
-          <span className="text-sm font-medium">You're offline. Changes will be saved when you reconnect.</span>
+          <span className="text-sm font-medium">{t('candidate.offline.message', "You're offline. Changes will be saved when you reconnect.")}</span>
         </div>
+      )}
+
+      {/* Session Recovery Banner - Show after first step */}
+      {currentStep > 0 && formData.email && showRecoveryBanner && (
+        <SessionRecoveryBanner
+          sessionId={sessionId}
+          currentStep={currentStep}
+          onDismiss={() => setShowRecoveryBanner(false)}
+        />
       )}
 
       {/* Progress Saver */}
@@ -1609,10 +1637,10 @@ export function CandidateOnboardingSteps() {
           variant="outline"
           onClick={handleBack}
           disabled={currentStep === 0}
-          aria-label="Go to previous step"
+          aria-label={t('candidate.navigation.back', 'Go to previous step')}
         >
           <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
-          Back
+          {t('candidate.navigation.back', 'Back')}
         </Button>
         
         {currentStep < 5 ? (
@@ -1620,12 +1648,12 @@ export function CandidateOnboardingSteps() {
             type="button" 
             onClick={handleNext} 
             disabled={isCheckingEmail || !isOnline}
-            aria-label={currentStep === 0 && !emailVerified ? "Send verification code" : "Continue to next step"}
+            aria-label={currentStep === 0 && !emailVerified ? t('candidate.navigation.sendVerificationCode', 'Send verification code') : t('candidate.navigation.continue', 'Continue to next step')}
           >
-            {isCheckingEmail ? "Checking..." :
-             currentStep === 0 && !emailVerified ? "Send Verification Code" :
-             currentStep === 4 && !phoneVerified ? "Send Verification Code" :
-             "Continue"}
+            {isCheckingEmail ? t('candidate.navigation.checking', 'Checking...') :
+             currentStep === 0 && !emailVerified ? t('candidate.navigation.sendVerificationCode', 'Send Verification Code') :
+             currentStep === 4 && !phoneVerified ? t('candidate.navigation.sendVerificationCode', 'Send Verification Code') :
+             t('candidate.navigation.continue', 'Continue')}
             <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
           </Button>
         ) : (
@@ -1633,9 +1661,9 @@ export function CandidateOnboardingSteps() {
             type="button" 
             onClick={handleSubmit} 
             disabled={isLoading || !isOnline || !gdprConsent}
-            aria-label="Create account"
+            aria-label={t('candidate.navigation.createAccount', 'Create account')}
           >
-            {isLoading ? "Creating Account..." : "Create Account"}
+            {isLoading ? t('candidate.navigation.creatingAccount', 'Creating Account...') : t('candidate.navigation.createAccount', 'Create Account')}
             <CheckCircle className="w-4 h-4 ml-2" aria-hidden="true" />
           </Button>
         )}
@@ -1643,22 +1671,22 @@ export function CandidateOnboardingSteps() {
 
       {/* Keyboard Shortcut Hint */}
       <p className="text-xs text-muted-foreground text-center mt-4 hidden sm:block">
-        Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">Enter</kbd> to continue or <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">Esc</kbd> to go back
+        {t('candidate.keyboard.pressEnter', 'Press')} <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">Enter</kbd> {t('candidate.keyboard.toContinue', 'to continue or')} <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">Esc</kbd> {t('candidate.keyboard.toGoBack', 'to go back')}
       </p>
 
       {/* Trust Badges */}
       <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-border/50">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Lock className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>256-bit SSL</span>
+          <span>{t('candidate.trustBadges.ssl', '256-bit SSL')}</span>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Shield className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>GDPR Compliant</span>
+          <span>{t('candidate.trustBadges.gdpr', 'GDPR Compliant')}</span>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>Never Shared</span>
+          <span>{t('candidate.trustBadges.neverShared', 'Never Shared')}</span>
         </div>
       </div>
 
@@ -1683,14 +1711,14 @@ export function CandidateOnboardingSteps() {
               </div>
             </div>
             <AlertDialogTitle className="text-center text-2xl">
-              Account Already Exists
+              {t('candidate.dialog.accountExists', 'Account Already Exists')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-4">
               <p className="text-base">
-                An account with <span className="font-semibold text-foreground">{formData.email}</span> already exists.
+                {t('candidate.dialog.accountExistsMessage', 'An account with')} <span className="font-semibold text-foreground">{formData.email}</span> {t('candidate.dialog.accountExistsMessage', 'already exists.')}
               </p>
               <p className="text-sm text-muted-foreground">
-                Would you like to log in instead, or try a different email?
+                {t('candidate.dialog.loginOrTryDifferent', 'Would you like to log in instead, or try a different email?')}
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1702,13 +1730,13 @@ export function CandidateOnboardingSteps() {
               }}
               className="w-full sm:w-auto"
             >
-              Try Different Email
+              {t('candidate.dialog.tryDifferentEmail', 'Try Different Email')}
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleNavigateToLogin}
               className="w-full sm:w-auto bg-gradient-accent hover:opacity-90"
             >
-              Go to Login
+              {t('candidate.dialog.goToLogin', 'Go to Login')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
