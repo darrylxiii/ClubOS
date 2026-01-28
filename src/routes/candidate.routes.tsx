@@ -19,6 +19,7 @@ const Incubator20 = lazy(() => import("@/pages/assessments/Incubator20"));
 const PressureCooker = lazy(() => import("@/pages/PressureCooker"));
 const BlindSpotDetector = lazy(() => import("@/pages/BlindSpotDetector"));
 const ValuesPoker = lazy(() => import("@/pages/ValuesPoker"));
+const OfferComparison = lazy(() => import("@/pages/OfferComparison"));
 
 /**
  * Candidate-specific routes
@@ -38,6 +39,9 @@ export const candidateRoutes = (
     
     {/* Referrals */}
     <Route path="/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
+    
+    {/* Offer Comparison */}
+    <Route path="/offers" element={<ProtectedRoute><OfferComparison /></ProtectedRoute>} />
     
     {/* Interview Preparation */}
     <Route path="/interview-prep" element={<ProtectedRoute><InterviewPrep /></ProtectedRoute>} />
