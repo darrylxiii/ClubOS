@@ -24,6 +24,8 @@ import { AchievementsPreviewWidget } from "./AchievementsPreviewWidget";
 import { NotificationsPreviewWidget } from "./NotificationsPreviewWidget";
 import { InterviewCountdownWidget } from "./InterviewCountdownWidget";
 import { StrategistContactCard } from "./StrategistContactCard";
+import { SavedJobsWidget } from "./SavedJobsWidget";
+import { DocumentStatusWidget } from "./DocumentStatusWidget";
 import { T } from "@/components/T";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
@@ -118,6 +120,12 @@ export const CandidateHome = () => {
       <DashboardSection columns={2}>
         <UpcomingMeetingsWidget />
         <MessagesPreviewWidget />
+      </DashboardSection>
+
+      {/* Saved Jobs & Documents */}
+      <DashboardSection columns={2}>
+        <SavedJobsWidget />
+        <DocumentStatusWidget />
       </DashboardSection>
 
       {/* Referrals & Achievements */}
