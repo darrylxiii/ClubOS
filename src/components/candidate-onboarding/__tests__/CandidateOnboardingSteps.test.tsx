@@ -221,21 +221,21 @@ describe('CandidateOnboardingSteps - i18n', () => {
   });
 
   it('should render in English by default', () => {
-    renderComponent('en');
+    renderComponent();
     
     expect(screen.getByText(/Contact Information/i)).toBeInTheDocument();
     expect(screen.getByText(/256-bit SSL/i)).toBeInTheDocument();
   });
 
   it('should update language when changed', async () => {
-    renderComponent('en');
+    renderComponent();
     
     // Verify English is displayed
     expect(screen.getByLabelText(/Full Name/i)).toBeInTheDocument();
   });
 
   it('should have translation keys for all steps', () => {
-    renderComponent('en');
+    renderComponent();
     
     // Verify step labels exist (even if sr-only on mobile)
     const nav = screen.getByRole('navigation', { name: /Onboarding progress/i });
