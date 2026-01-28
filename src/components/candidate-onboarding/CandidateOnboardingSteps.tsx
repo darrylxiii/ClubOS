@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { migrateToast as toast } from "@/lib/notify";
-import { ArrowRight, ArrowLeft, CheckCircle, User, Briefcase, Target, DollarSign, MapPin, Phone, Upload, X, Mail, Lock, AlertCircle } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, User, Briefcase, Target, DollarSign, MapPin, Phone, Upload, X, Mail, Lock, AlertCircle, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
@@ -20,6 +20,7 @@ import { useResumeUpload } from "@/hooks/useResumeUpload";
 import { Slider } from "@/components/ui/slider";
 import { CandidateApplicationTracker } from "./CandidateApplicationTracker";
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
+import { ExitIntentPopup, useExitIntent } from "@/components/partner-funnel/ExitIntentPopup";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -109,6 +110,22 @@ export function CandidateOnboardingSteps() {
     remote_work_preference: false,
     preferred_work_locations: [] as Array<{ city: string; country: string; radius_km: number }>,
   });
+
+  // Exit intent state
+  const [exitIntentOpen, setExitIntentOpen] = useState(false);
+  const { reset: resetExitIntent } = useExitIntent(
+    currentStep > 0 && currentStep < 5,
+    () => setExitIntentOpen(true)
+  );
+
+  // Mark as critical flow to prevent PWA auto-reload
+  useEffect(() => {
+    sessionStorage.setItem('pwa-critical-flow-active', 'true');
+    
+    return () => {
+      sessionStorage.removeItem('pwa-critical-flow-active');
+    };
+  }, []);
 
   useEffect(() => {
     trackStep("view");
@@ -1213,87 +1230,107 @@ export function CandidateOnboardingSteps() {
               )}
             </div>
 
-            {/* Phone Verification */}
+            {/* Phone Verification - Premium Highlight */}
             <div className="pt-6 border-t">
-              <div className="text-center mb-4">
-                <Phone className="w-10 h-10 text-primary mx-auto mb-2" />
-                <h3 className="text-lg font-semibold">Verify Your Phone Number</h3>
-                <p className="text-sm text-muted-foreground">Required to complete your profile</p>
-              </div>
-
-              <div className="space-y-3">
-                <Label>Phone Number *</Label>
-                <PhoneInput
-                  international
-                  defaultCountry={countryCode as any}
-                  value={phoneNumber}
-                  onChange={(value) => setPhoneNumber(value || "")}
-                  disabled={phoneVerified}
-                  className="phone-input"
-                />
-                {phoneVerified && (
-                  <p className="text-sm text-green-600 flex items-center">
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Phone verified
-                  </p>
-                )}
-              </div>
-
-              {otpSent && !phoneVerified && (
-                <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3 mt-4">
-                  <Label className="text-base font-semibold">Enter Verification Code</Label>
-                  <p className="text-sm text-muted-foreground">
-                    We've sent a 6-digit code to {phoneNumber}
-                  </p>
-                  <div className="flex justify-center w-full">
-                    <InputOTP
-                      maxLength={6}
-                      value={verificationCode}
-                      onChange={setVerificationCode}
-                    >
-                      <InputOTPGroup className="gap-1 sm:gap-2">
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                      </InputOTPGroup>
-                    </InputOTP>
+              <div className="p-6 border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-xl shadow-lg shadow-primary/10 relative overflow-hidden">
+                {/* Decorative glow */}
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+                
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center ring-4 ring-primary/30">
+                      <Phone className="w-7 h-7 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-foreground">Verify Your Phone</h3>
+                      <p className="text-sm text-muted-foreground">Required to join The Quantum Club</p>
+                    </div>
+                    <span className="px-3 py-1 text-xs font-semibold bg-primary/20 text-primary rounded-full border border-primary/30">
+                      Required
+                    </span>
                   </div>
-                  <Button
-                    onClick={async () => {
-                      const verified = await verifyOTP(phoneNumber, verificationCode, () => {
-                        setPhoneVerified(true);
-                        toast({ title: "Phone verified successfully!" });
-                      });
-                      if (!verified) {
-                        toast({ title: "Invalid code", variant: "destructive" });
-                      }
-                    }}
-                    disabled={verificationCode.length !== 6 || isVerifying}
-                    className="w-full"
-                  >
-                    {isVerifying ? "Verifying..." : "Verify Phone"}
-                  </Button>
-                  {resendCooldown === 0 && (
-                    <Button
-                      type="button"
-                      variant="link"
-                      onClick={() => sendOTP(phoneNumber)}
-                      disabled={isSendingOtp}
-                      className="p-0 h-auto"
-                    >
-                      Resend code
-                    </Button>
-                  )}
-                  {resendCooldown > 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      Resend available in {resendCooldown}s
+                  
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">Mobile Number</Label>
+                    <p className="text-sm text-muted-foreground -mt-1">
+                      Select your country and enter your number. We'll send a verification code.
                     </p>
+                    <div className="p-1 bg-background/50 rounded-lg border-2 border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                      <PhoneInput
+                        international
+                        defaultCountry={countryCode as any}
+                        value={phoneNumber}
+                        onChange={(value) => setPhoneNumber(value || "")}
+                        disabled={phoneVerified}
+                        className="phone-input-premium"
+                      />
+                    </div>
+                    {phoneVerified && (
+                      <p className="text-sm text-green-600 flex items-center font-medium">
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Phone verified successfully
+                      </p>
+                    )}
+                  </div>
+
+                  {otpSent && !phoneVerified && (
+                    <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3 mt-4">
+                      <Label className="text-base font-semibold">Enter Verification Code</Label>
+                      <p className="text-sm text-muted-foreground">
+                        We've sent a 6-digit code to {phoneNumber}
+                      </p>
+                      <div className="flex justify-center w-full">
+                        <InputOTP
+                          maxLength={6}
+                          value={verificationCode}
+                          onChange={setVerificationCode}
+                        >
+                          <InputOTPGroup className="gap-1 sm:gap-2">
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={async () => {
+                          const verified = await verifyOTP(phoneNumber, verificationCode, () => {
+                            setPhoneVerified(true);
+                            toast({ title: "Phone verified successfully!" });
+                          });
+                          if (!verified) {
+                            toast({ title: "Invalid code", variant: "destructive" });
+                          }
+                        }}
+                        disabled={verificationCode.length !== 6 || isVerifying}
+                        className="w-full"
+                      >
+                        {isVerifying ? "Verifying..." : "Verify Phone"}
+                      </Button>
+                      {resendCooldown === 0 && (
+                        <Button
+                          type="button"
+                          variant="link"
+                          onClick={() => sendOTP(phoneNumber)}
+                          disabled={isSendingOtp}
+                          className="p-0 h-auto"
+                        >
+                          Resend code
+                        </Button>
+                      )}
+                      {resendCooldown > 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          Resend available in {resendCooldown}s
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         );
@@ -1455,6 +1492,7 @@ export function CandidateOnboardingSteps() {
       {/* Navigation */}
       <div className="flex justify-between mt-8 pt-6 border-t">
         <Button
+          type="button"
           variant="outline"
           onClick={handleBack}
           disabled={currentStep === 0}
@@ -1464,7 +1502,7 @@ export function CandidateOnboardingSteps() {
         </Button>
         
         {currentStep < 5 ? (
-          <Button onClick={handleNext} disabled={isCheckingEmail}>
+          <Button type="button" onClick={handleNext} disabled={isCheckingEmail}>
             {isCheckingEmail ? "Checking..." :
              currentStep === 0 && !emailVerified ? "Send Verification Code" :
              currentStep === 4 && !phoneVerified ? "Send Verification Code" :
@@ -1472,12 +1510,39 @@ export function CandidateOnboardingSteps() {
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         ) : (
-          <Button onClick={handleSubmit} disabled={isLoading}>
+          <Button type="button" onClick={handleSubmit} disabled={isLoading}>
             {isLoading ? "Creating Account..." : "Create Account"}
             <CheckCircle className="w-4 h-4 ml-2" />
           </Button>
         )}
       </div>
+
+      {/* Trust Badges */}
+      <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-border/50">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Lock className="w-3.5 h-3.5" />
+          <span>256-bit SSL</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Shield className="w-3.5 h-3.5" />
+          <span>GDPR Compliant</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <CheckCircle className="w-3.5 h-3.5" />
+          <span>Never Shared</span>
+        </div>
+      </div>
+
+      {/* Exit Intent Popup */}
+      {currentStep > 0 && currentStep < 5 && (
+        <ExitIntentPopup
+          isOpen={exitIntentOpen}
+          onClose={() => setExitIntentOpen(false)}
+          onStay={() => setExitIntentOpen(false)}
+          currentStep={currentStep}
+          totalSteps={6}
+        />
+      )}
 
       {/* Email Already Exists Dialog */}
       <AlertDialog open={showEmailExistsDialog} onOpenChange={setShowEmailExistsDialog}>
