@@ -9,8 +9,6 @@ import { ProfileCompletion } from "@/components/ProfileCompletion";
 import { CandidateQuickActions } from "@/components/candidate/CandidateQuickActions";
 import { ApplicationStatusTracker } from "@/components/candidate/ApplicationStatusTracker";
 import { JobRecommendations } from "@/components/candidate/JobRecommendations";
-import { LivePulse } from "@/components/LivePulse";
-import { ProfileViewers } from "@/components/ProfileViewers";
 import { ActivityTimeline } from "@/components/candidate/ActivityTimeline";
 import { QuickTipsCarousel } from "@/components/candidate/QuickTipsCarousel";
 import { quickTips } from "@/data/quickTips";
@@ -19,13 +17,13 @@ import { UnifiedStatsBar } from "./UnifiedStatsBar";
 import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
 import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
-import { ClubPilotTasksWidget } from "./ClubPilotTasksWidget";
 import { MessagesPreviewWidget } from "./MessagesPreviewWidget";
-import { TimeTrackingWidget } from "./TimeTrackingWidget";
 import { NextBestActionCard } from "./NextBestActionCard";
 import { ReferralStatsWidget } from "./ReferralStatsWidget";
 import { AchievementsPreviewWidget } from "./AchievementsPreviewWidget";
 import { NotificationsPreviewWidget } from "./NotificationsPreviewWidget";
+import { InterviewCountdownWidget } from "./InterviewCountdownWidget";
+import { StrategistContactCard } from "./StrategistContactCard";
 import { T } from "@/components/T";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
@@ -73,14 +71,40 @@ export const CandidateHome = () => {
         <UnifiedStatsBar role="user" stats={stats} loading={loading} />
       </motion.div>
 
-      {/* Profile Completion */}
-      <ProfileCompletion />
-
       {/* Next Best Action - QUIN Powered */}
       <NextBestActionCard />
 
+      {/* Interview Countdown & Strategist Contact - P0 Widgets */}
+      <DashboardSection columns={2}>
+        <InterviewCountdownWidget />
+        <StrategistContactCard />
+      </DashboardSection>
+
+      {/* Profile Completion */}
+      <ProfileCompletion />
+
+      {/* Application Tracker & Job Recommendations */}
+      {user && (
+        <DashboardSection columns={2}>
+          <ApplicationStatusTracker userId={user.id} />
+          <JobRecommendations userId={user.id} />
+        </DashboardSection>
+      )}
+
       {/* Notifications Preview */}
       <NotificationsPreviewWidget />
+
+      {/* Quick Actions */}
+      {user && (
+        <DashboardSection>
+          <CandidateQuickActions
+            profileCompletion={profileCompletion}
+            newMatches={stats.matches}
+            pendingApplications={stats.applications}
+            upcomingInterviews={stats.interviews}
+          />
+        </DashboardSection>
+      )}
 
       {/* Quick Tips & Resources */}
       <DashboardSection
@@ -88,6 +112,18 @@ export const CandidateHome = () => {
         description={t('common:home.quickTips.subtitle', 'Expert advice to accelerate your career journey')}
       >
         <QuickTipsCarousel tips={quickTips} />
+      </DashboardSection>
+
+      {/* Upcoming Meetings & Messages */}
+      <DashboardSection columns={2}>
+        <UpcomingMeetingsWidget />
+        <MessagesPreviewWidget />
+      </DashboardSection>
+
+      {/* Referrals & Achievements */}
+      <DashboardSection columns={2}>
+        <ReferralStatsWidget />
+        <AchievementsPreviewWidget />
       </DashboardSection>
 
       {/* Club Projects Banner */}
@@ -133,50 +169,6 @@ export const CandidateHome = () => {
           </CardContent>
         </Card>
       </motion.div>
-
-      {/* Quick Actions */}
-      {user && (
-        <DashboardSection>
-          <CandidateQuickActions
-            profileCompletion={profileCompletion}
-            newMatches={stats.matches}
-            pendingApplications={stats.applications}
-            upcomingInterviews={stats.interviews}
-          />
-        </DashboardSection>
-      )}
-
-      {/* Application Tracker & Job Recommendations */}
-      {user && (
-        <DashboardSection columns={2}>
-          <ApplicationStatusTracker userId={user.id} />
-          <JobRecommendations userId={user.id} />
-        </DashboardSection>
-      )}
-
-      {/* Upcoming Meetings & Tasks */}
-      <DashboardSection columns={2}>
-        <UpcomingMeetingsWidget />
-        <ClubPilotTasksWidget />
-      </DashboardSection>
-
-      {/* Messages & Time Tracking */}
-      <DashboardSection columns={2}>
-        <MessagesPreviewWidget />
-        <TimeTrackingWidget role="candidate" />
-      </DashboardSection>
-
-      {/* Referrals & Achievements */}
-      <DashboardSection columns={2}>
-        <ReferralStatsWidget />
-        <AchievementsPreviewWidget />
-      </DashboardSection>
-
-      {/* Live Pulse & Profile Views */}
-      <DashboardSection columns={2}>
-        <LivePulse />
-        <ProfileViewers />
-      </DashboardSection>
 
       {/* Recent Activity */}
       {user && (
