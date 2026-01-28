@@ -40,7 +40,7 @@ export function CandidateOnboardingSteps() {
   const [stepStartTime, setStepStartTime] = useState(Date.now());
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  const [cities, setCities] = useState<Array<{ id: string; name: string; country: string }>>([]);
+  // Cities now fetched via LocationAutocomplete (OpenStreetMap API) - no DB needed
   const [selectedCity, setSelectedCity] = useState("");
   const [cityRadius, setCityRadius] = useState(25);
   
@@ -111,26 +111,10 @@ export function CandidateOnboardingSteps() {
   });
 
   useEffect(() => {
-    loadCities();
     trackStep("view");
   }, [currentStep]);
 
-  const loadCities = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('cities')
-        .select('id, name, country')
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-      if (data) {
-        setCities(data);
-      }
-    } catch (error) {
-      console.error('Error loading cities:', error);
-    }
-  };
+  // loadCities removed - using LocationAutocomplete with OpenStreetMap API instead
 
   const trackStep = async (action: string) => {
     const timeOnStep = Math.floor((Date.now() - stepStartTime) / 1000);
@@ -1165,26 +1149,17 @@ export function CandidateOnboardingSteps() {
 
             <div className="space-y-3">
               <Label>Preferred Cities (Optional)</Label>
+              <p className="text-sm text-muted-foreground">
+                Search for cities where you'd like to work
+              </p>
               <div className="flex gap-2">
-                <Select value={selectedCity} onValueChange={setSelectedCity}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a city" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {cities
-                      .filter(city => {
-                        const cityString = `${city.name}, ${city.country}`;
-                        return !formData.preferred_work_locations.some(
-                          loc => loc.city === city.name && loc.country === city.country
-                        );
-                      })
-                      .map((city) => (
-                        <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
-                          {city.name}, {city.country}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex-1">
+                  <LocationAutocomplete
+                    value={selectedCity}
+                    onChange={setSelectedCity}
+                    placeholder="Type to search cities..."
+                  />
+                </div>
                 <Button
                   type="button"
                   onClick={handleAddPreferredLocation}
