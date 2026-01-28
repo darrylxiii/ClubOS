@@ -1,481 +1,260 @@
 
-# Comprehensive Candidate Home Dashboard Audit
+# Candidate Home Dashboard Comprehensive Audit Report
 
-## Executive Summary
+## Current Score: 82/100
 
-The candidate home page exists in **two versions**:
-1. `/home` route → renders `ClubHome.tsx` → which delegates to `CandidateHome.tsx`
-2. `Home.tsx` — a standalone page that's NOT currently routed (legacy/unused)
-
-**Current state: The main home page at `/home` uses `CandidateHome.tsx`**
+After implementing P0, P1, and P2 fixes, the dashboard has improved significantly from the initial 72/100, but there are still gaps preventing a perfect score.
 
 ---
 
-## Component-by-Component Scoring
+## Score Breakdown by Category
 
-### 1. UnifiedStatsBar (Stats at Top)
-**Score: 78/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Working | Uses `useRoleStats` hook |
-| Real data | Partial | Applications ✓, Matches ✓, Interviews ✓, Messages ✓ |
-| Animations | Excellent | Framer Motion stagger animations |
-| Responsiveness | Good | 2-col mobile, 4-col desktop |
-
-**Issues Found:**
-- Matches count relies on `match_scores` table which has 370 entries but `JobRecommendations` has schema issues
-- No click-through actions on stat cards
-- Missing trend indicators (up/down arrows)
+| Category | Score | Max | Issues |
+|----------|-------|-----|--------|
+| Data Accuracy | 78 | 100 | Activity triggers missing (5 of 6), profile_views still empty |
+| UI/UX Polish | 92 | 100 | Excellent animations, glass-morphism, responsive |
+| Real-time Updates | 75 | 100 | Some widgets lack Supabase subscriptions |
+| Feature Completeness | 85 | 100 | New widgets added, but some empty states |
+| Performance | 80 | 100 | 15+ queries on page load, no batching |
+| Error Handling | 78 | 100 | Better logging, but some console.errors remain |
+| Accessibility | 75 | 100 | Missing ARIA labels, keyboard navigation gaps |
+| Testing Coverage | 70 | 100 | No unit/E2E tests for new widgets |
 
 ---
 
-### 2. ProfileCompletion
-**Score: 82/100**
+## Component Audit (Post-Implementation)
 
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data source | Working | `profile_strength_stats` + `profile_strength_tasks` tables |
-| Task navigation | Working | Clickable tasks navigate to correct pages |
-| Progress calculation | Working | Multi-level system with percentages |
-| UI polish | Good | Glass morphism, gradient CTAs |
+### Excellent (90-100)
+| Component | Score | Notes |
+|-----------|-------|-------|
+| ApplicationStatusTracker | 95 | Real-time, well-designed, navigable |
+| InterviewCountdownWidget (NEW) | 92 | Live countdown, meeting link integration |
+| StrategistContactCard (NEW) | 90 | Working data (12 candidates have strategists) |
+| QuickTipsCarousel | 90 | All 30 links now point to valid routes |
+| UnifiedStatsBar | 88 | Animated counters, real data |
 
-**Issues Found:**
-- Doesn't show when stats are null (loading state missing)
-- Hardcoded task definitions may not sync with actual profile fields
+### Good (75-89)
+| Component | Score | Notes |
+|-----------|-------|-------|
+| NextBestActionCard | 85 | Logic works, but application query uses wrong column |
+| JobRecommendations | 82 | Fixed schema error, 370 matches available |
+| ProfileCompletion | 82 | Working, but slow multi-query |
+| SavedJobsWidget (NEW) | 80 | Working, 1 saved job in DB |
+| DocumentStatusWidget (NEW) | 78 | Working, 9 documents in DB |
+| MessagesPreviewWidget | 78 | Working, complex query chain |
+| UpcomingMeetingsWidget | 78 | Working, but no interview bookings exist |
 
----
+### Needs Work (60-74)
+| Component | Score | Notes |
+|-----------|-------|-------|
+| ReferralStatsWidget | 72 | Works but "Projected" vs "Realized" unclear |
+| AchievementsPreviewWidget | 72 | Good data (79 achievements), needs XP animation |
+| ActivityTimeline | 68 | Only 17 entries, triggers missing |
+| NotificationsPreviewWidget | 68 | Works, but not user-specific filtering visible |
 
-### 3. NextBestActionCard (QUIN Powered)
-**Score: 85/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Logic | Working | Prioritizes: Profile → Interview → Applications → CV → All Set |
-| Data queries | Working | Fetches profile, bookings, applications, candidate_profile |
-| UI | Excellent | Priority-based color coding, smooth animations |
-| Actionability | Good | Direct links to action pages |
-
-**Issues Found:**
-- "Powered by QUIN" branding but no actual AI inference
-- Limited action types (only 5 states)
-- No personalized recommendations beyond basic checks
-
-**Enhancement Opportunities:**
-- Add AI-generated text explaining WHY this action matters
-- Include estimated impact ("3x more recruiter views")
-- Add deadline urgency for interview prep
-
----
-
-### 4. NotificationsPreviewWidget
-**Score: 80/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Working | Uses `useNotifications` hook |
-| Real-time | Unknown | No visible subscription |
-| Mark as read | Working | Individual + bulk mark read |
-| Empty state | Good | Clear messaging |
-
-**Issues Found:**
-- Database shows 60 notifications but may not be user-specific
-- No notification categories or filtering
-- Missing notification preferences link
+### Critical Issues (Below 60)
+| Component | Score | Notes |
+|-----------|-------|-------|
+| Activity Feed Population | 40 | Only 1 of 6 triggers created (referral only) |
+| Profile Views | 35 | 0 entries - tracking hook exists but no data generated |
 
 ---
 
-### 5. QuickTipsCarousel
-**Score: 88/100**
+## Critical Gaps Blocking 100/100
 
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Content quality | Excellent | 30 well-written tips across 5 categories |
-| Responsiveness | Working | 1/2/3 cards per view based on screen |
-| Auto-play | Working | 7-second interval with pause on hover |
-| Navigation | Good | Arrows + dot indicators |
+### 1. Missing Activity Feed Triggers (P0 - Incomplete)
+The migration only created 1 of 6 planned triggers:
 
-**Issues Found:**
-- All actionLinks go to `/resources/*` which may not exist as pages
-- Tips are static (not personalized to user's situation)
-- No tip dismissal or "already read" tracking
+| Trigger | Status | Impact |
+|---------|--------|--------|
+| `log_referral_to_activity_feed` | Created | Referrals logged |
+| `log_application_to_activity_feed` | MISSING | No application events |
+| `log_application_status_change` | MISSING | No status change events |
+| `log_achievement_to_activity_feed` | MISSING | No achievement events |
+| `log_meeting_to_activity_feed` | MISSING | No meeting events |
+| `log_profile_update_to_activity_feed` | MISSING | No profile events |
 
----
+**Current State**: `activity_feed` has 0 public entries, making the LivePulse widget useless (correctly removed, but data triggers still needed for ActivityTimeline).
 
-### 6. Club Projects Banner
-**Score: 72/100**
+### 2. Profile Views Not Tracking
+- Hook `useProfileViewTracking` exists and is integrated into `PublicUserProfile.tsx`
+- But `profile_views` table has 0 entries
+- Possible cause: RLS blocking inserts, or profile pages not being visited
 
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Content | Good | Promotes freelance marketplace |
-| Design | Good | Badge, features list, CTA |
-| Link target | Uncertain | Links to `/projects` |
+### 3. Interview Countdown Widget Shows "No Interviews"
+- `bookings.is_interview_booking` has 0 true entries
+- Widget works correctly but has no data to display
 
-**Issues Found:**
-- Hardcoded "New Feature" badge may become stale
-- No personalization based on user's freelance interest
-- Should be dismissible or shown conditionally
+### 4. NextBestActionCard Query Bug
+Line 94 uses `user_id` but applications table uses `candidate_id`:
+```typescript
+// WRONG
+.eq('user_id', user.id);
 
----
-
-### 7. CandidateQuickActions
-**Score: 75/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Action variety | Good | 6 actions, shows 4 based on conditions |
-| Dynamic badges | Working | Shows "X new matches", "X active" |
-| Navigation | Working | All paths are valid routes |
-
-**Issues Found:**
-- `newMatches` always 0 (hardcoded in `Home.tsx`, not from DB)
-- Actions are generic, not personalized
-- Missing: Calendar/schedule, Messages, Settings shortcuts
-
----
-
-### 8. ApplicationStatusTracker
-**Score: 90/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Excellent | Uses unified `useApplications` hook |
-| Real-time updates | Working | Supabase realtime subscription |
-| Stage visualization | Working | Progress bars, stage icons, color coding |
-| Navigation | Working | Click navigates to application detail |
-
-**Issues Found:**
-- Only shows 5 applications (limiting)
-- "View All Applications" button appears only when >= 5
-- Stage info relies on `getApplicationStageInfo` utility
-
-**This is the strongest component on the page!**
-
----
-
-### 9. JobRecommendations
-**Score: 45/100 - CRITICAL ISSUE**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | BROKEN | Schema cache error: "Could not find relationship between 'match_scores' and 'job_id'" |
-| Fallback | Working | Shows "Complete profile" empty state |
-| Dismiss feature | Working | Saves to `dismissed_jobs` table |
-
-**Console Error Detected:**
-```
-⚠️ Could not fetch recommendations - database schema may need migration
-{"error":"Could not find a relationship between 'match_scores' and 'job_id' in the schema cache"}
+// CORRECT  
+.eq('candidate_id', user.id);
 ```
 
-**Root Cause:** The `match_scores` table likely doesn't have a proper foreign key relationship to `jobs` table, or the column is named differently.
+### 5. Missing Click-Through on Stats
+- Stats in `UnifiedStatsBar` are not clickable
+- Users can't navigate to detailed views from summary metrics
+
+### 6. No Real-time Subscriptions on Key Widgets
+- `SavedJobsWidget` - no realtime
+- `DocumentStatusWidget` - no realtime
+- `JobRecommendations` - no realtime
+
+### 7. Club Projects Banner Not Dismissible
+- Hardcoded "New Feature" badge never expires
+- No dismiss/close functionality
+- Takes up significant screen space
+
+### 8. Accessibility Gaps
+- Missing `aria-label` on icon-only buttons
+- No keyboard shortcuts for quick actions
+- Screen reader announcements missing for live updates
 
 ---
 
-### 10. UpcomingMeetingsWidget
-**Score: 85/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Working | Queries `meeting_participants` + `meetings` |
-| Real-time | Working | Subscribes to meeting changes |
-| Status badges | Excellent | "Live Now", "Starting Soon" indicators |
-| Join button | Working | Shows for in-progress meetings |
-
-**Issues Found:**
-- Complex query may be slow with many participants
-- "Schedule a Meeting" link goes to `/meetings` (general, not scheduling)
-
----
-
-### 11. ClubPilotTasksWidget
-**Score: 70/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Working | Queries `pilot_tasks` table |
-| Task completion | Working | Updates status in database |
-| Priority colors | Good | High/medium/low visual distinction |
-
-**Issues Found:**
-- Database shows 0 pending tasks (no data seeded)
-- No task creation from this widget
-- "AI Suggested" badge but tasks aren't AI-generated
-
----
-
-### 12. MessagesPreviewWidget
-**Score: 82/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Working | Queries conversations + messages + profiles |
-| Real-time | Working | Subscribes to new messages |
-| Unread indicator | Working | Animated pulse dot |
-| Refresh button | Good | Manual refresh available |
-
-**Issues Found:**
-- Complex multi-query fetch (conversations → messages → profiles)
-- No message preview truncation issues
-
----
-
-### 13. TimeTrackingWidget
-**Score: 68/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Working | Queries `time_entries` for this week |
-| Active timer | Working | Shows "Timer running" indicator |
-| Earnings calculation | Working | Hourly rate × hours |
-
-**Issues Found:**
-- Only 2 time entries in database (minimal data)
-- Widget assumes freelance/project work context
-- May not be relevant for all candidates
-
----
-
-### 14. ReferralStatsWidget
-**Score: 78/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Working | Uses `useReferralStats` hook |
-| Stats display | Good | Active, Projected, Earned |
-| Empty state | Good | Clear CTA to start referring |
-
-**Issues Found:**
-- "Projected" vs "Realized" distinction unclear visually
-- No recent referral activity shown
-
----
-
-### 15. AchievementsPreviewWidget
-**Score: 85/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Working | Queries `user_quantum_achievements` + `quantum_achievements` |
-| Visual display | Excellent | Emoji icons, tooltips, progress bars |
-| XP system | Working | Points accumulated and displayed |
-| Milestones | Working | 5/10/25/50/100 progression |
-
-**Issues Found:**
-- Database shows 79 achievements unlocked (good data!)
-- "Next achievement slot" placeholder could show actual next achievable
-
----
-
-### 16. LivePulse
-**Score: 55/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Working | Queries `activity_feed` where visibility='public' |
-| Real-time | Working | Subscribes to inserts |
-| Event types | Good | 6 different event types supported |
-
-**Issues Found:**
-- **Database shows 0 public activity feed entries!** Widget will always be empty
-- No activity generation triggers in place
-- Fixed 400px height is too tall for empty state
-
----
-
-### 17. ProfileViewers
-**Score: 60/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Working | Queries `profile_views` with viewer/company joins |
-| Real-time | Working | Subscribes to new views |
-| Anonymous handling | Good | Shows "Anonymous Viewer" appropriately |
-
-**Issues Found:**
-- **Database shows 0 profile views!** Widget will always show empty state
-- No profile view tracking implementation
-- Fixed 400px height is too tall for empty state
-
----
-
-### 18. ActivityTimeline
-**Score: 75/100**
-
-| Aspect | Status | Issue |
-|--------|--------|-------|
-| Data fetching | Working | Queries `activity_timeline` |
-| Real-time | Working | Subscribes to new activities |
-| Date grouping | Excellent | Today/Yesterday/Date format |
-| Event types | Comprehensive | 15+ activity types supported |
-
-**Issues Found:**
-- Database shows only 17 entries (sparse data)
-- Timeline is at the bottom of the page (low visibility)
-- No activity generation for common actions
-
----
-
-## Overall Home Page Score: 72/100
-
-### Scoring Breakdown
-
-| Category | Score | Weight | Weighted |
-|----------|-------|--------|----------|
-| Data Accuracy | 65/100 | 25% | 16.25 |
-| UI/UX Polish | 85/100 | 20% | 17.00 |
-| Real-time Updates | 80/100 | 15% | 12.00 |
-| Feature Completeness | 70/100 | 20% | 14.00 |
-| Performance | 75/100 | 10% | 7.50 |
-| Error Handling | 60/100 | 10% | 6.00 |
-| **TOTAL** | | | **72.75** |
-
----
-
-## Critical Issues Requiring Immediate Fix
-
-### P0 - Broken
-
-1. **JobRecommendations component is broken** — Schema relationship error prevents any recommendations from showing
-
-### P1 - Data Missing
-
-2. **LivePulse has no data** — `activity_feed` table has 0 public entries
-3. **ProfileViewers has no data** — `profile_views` table has 0 entries
-4. **ClubPilotTasks has no data** — 0 pending pilot tasks
-
-### P2 - Logic Issues
-
-5. **`newMatches` always shows 0** — Hardcoded in stats calculation
-6. **QuickTips links to non-existent `/resources/*` pages**
-
----
-
-## Features Missing from Home That Exist in App
-
-| Feature | Page Location | Priority to Surface |
-|---------|--------------|---------------------|
-| Salary Insights | `/salary-insights` | HIGH - mentioned in QuickActions but no preview |
-| Interview Prep | `/interview-prep` | HIGH - critical for candidates with interviews |
-| Career Path Planner | `/career-path` | MEDIUM - personalization opportunity |
-| My Skills | `/my-skills-page` | HIGH - profile completeness |
-| Assessments | `/assessments` | MEDIUM - gamification |
-| Academy/Learning | `/academy` | MEDIUM - engagement |
-| Club DJ/Radio | `/radio` | LOW - entertainment |
-| Projects/Gigs | `/projects` | MEDIUM - mentioned in banner |
-
----
-
-## Features That Should Be Created
-
-### 1. Interview Countdown Widget (P0)
-- Shows time until next interview
-- Quick access to interview prep materials
-- Panel/interviewer info preview
-- Join meeting button when live
-
-### 2. Offer Pipeline Widget (P1)
-- Active offers requiring response
-- Deadline countdowns
-- Compare offers side-by-side link
-
-### 3. Skill Gap Analysis Widget (P1)
-- Based on jobs being applied to
-- Recommended courses/certifications
-- Links to Academy
-
-### 4. Strategist Contact Card (P0)
-- Assigned TQC strategist info
-- Quick message button
-- Last contact date
-- Scheduled call link
-
-### 5. Document Status Widget (P1)
-- CV upload status
-- Document expiry warnings
-- Quick upload button
-
-### 6. Saved Jobs Preview (P2)
-- Jobs saved for later
-- Quick apply button
-- Remove from saved
-
-### 7. Company Following Updates (P2)
-- News from followed companies
-- New jobs posted by followed companies
-
----
-
-## Recommended Architecture Changes
-
-### 1. Consolidate Home Pages
-- Remove `Home.tsx` (unused legacy)
-- Route `/home` continues to use `ClubHome.tsx` → `CandidateHome.tsx`
-
-### 2. Fix Data Population
-- Create triggers to populate `activity_feed` on key events
-- Create triggers to log `profile_views`
-- Seed `pilot_tasks` for onboarding users
-
-### 3. Prioritize Widget Layout
-
-**Proposed Layout Order:**
-```text
-1. UnifiedStatsBar (keep)
-2. NextBestActionCard (keep - QUIN)
-3. InterviewCountdownWidget (NEW - P0)
-4. StrategistContactCard (NEW - P0)
-5. ApplicationStatusTracker (keep)
-6. JobRecommendations (FIX SCHEMA)
-7. ProfileCompletion (move up if incomplete)
-8. UpcomingMeetingsWidget (keep)
-9. MessagesPreviewWidget (keep)
-10. ReferralStatsWidget (keep)
-11. AchievementsPreviewWidget (keep)
-12. QuickTipsCarousel (keep)
-13. ActivityTimeline (keep at bottom)
-
-REMOVE or CONDENSE:
-- LivePulse (no data, remove until populated)
-- ProfileViewers (no data, remove until populated)
-- ClubPilotTasks (no data, remove until populated)
-- TimeTrackingWidget (niche use case)
-- Club Projects Banner (make dismissible)
+## Plan to Reach 100/100
+
+### Phase 1: Fix Critical Data Issues (Score: 82 → 90)
+
+**Task 1.1: Create Missing Activity Feed Triggers**
+Create a new migration with all 5 missing triggers:
+
+```sql
+-- Application submitted trigger
+CREATE OR REPLACE FUNCTION public.log_application_to_activity_feed()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.activity_feed (user_id, event_type, event_data, visibility, created_at)
+  VALUES (
+    NEW.candidate_id,
+    'application_submitted',
+    jsonb_build_object('application_id', NEW.id, 'job_id', NEW.job_id),
+    'private',
+    NOW()
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+CREATE TRIGGER application_activity_feed_trigger
+  AFTER INSERT ON public.applications
+  FOR EACH ROW
+  EXECUTE FUNCTION public.log_application_to_activity_feed();
+
+-- Similar triggers for:
+-- - Application status change (UPDATE on applications where status changes)
+-- - Achievement unlocked (INSERT on user_quantum_achievements)
+-- - Meeting scheduled (INSERT on meeting_participants)
+-- - Profile updated (UPDATE on profiles with significant changes)
 ```
 
-### 4. Performance Optimizations
-- Reduce from 15+ individual queries to batched parallel queries
-- Add `Suspense` boundaries around widget groups
-- Lazy load below-fold widgets
+**Task 1.2: Fix NextBestActionCard Query**
+Change line 94 from `user_id` to `candidate_id`.
+
+**Task 1.3: Debug Profile View Tracking**
+Add RLS policy allowing authenticated users to insert their own views:
+```sql
+CREATE POLICY "Allow profile view inserts" ON profile_views
+  FOR INSERT TO authenticated
+  WITH CHECK (true);
+```
+
+---
+
+### Phase 2: Enhance Interactivity (Score: 90 → 95)
+
+**Task 2.1: Make Stats Clickable**
+Update `UnifiedStatsBar` to wrap each stat in a `Link`:
+- Applications → `/applications`
+- Matches → `/jobs?filter=matches`
+- Interviews → `/meetings`
+- Messages → `/messages`
+
+**Task 2.2: Add Real-time to New Widgets**
+Add Supabase realtime subscriptions to:
+- `SavedJobsWidget` - subscribe to `saved_jobs` table
+- `DocumentStatusWidget` - subscribe to `candidate_documents`
+- `JobRecommendations` - subscribe to `match_scores`
+
+**Task 2.3: Make Club Projects Banner Dismissible**
+- Add close button
+- Store dismissal in localStorage
+- Add `banner_dismissed_at` column to profiles for persistence
+
+**Task 2.4: Add Trend Indicators to Stats**
+Calculate week-over-week change and show up/down arrows with percentages.
+
+---
+
+### Phase 3: Polish & Accessibility (Score: 95 → 98)
+
+**Task 3.1: Add ARIA Labels**
+- All icon-only buttons need `aria-label`
+- Live regions for countdown timers
+- Announce new messages/notifications
+
+**Task 3.2: Add Keyboard Navigation**
+- `Tab` through all interactive elements
+- `Enter`/`Space` to activate
+- `Escape` to close modals/dismissibles
+
+**Task 3.3: Performance Optimization**
+Batch queries using `Promise.all` where possible:
+- Combine profile + candidate_profile queries
+- Combine stats queries in a single hook
+
+**Task 3.4: Add Loading Skeletons**
+Ensure all widgets have proper skeleton states (most already do, verify completeness).
+
+---
+
+### Phase 4: Testing & Documentation (Score: 98 → 100)
+
+**Task 4.1: Unit Tests for New Widgets**
+Create Vitest tests for:
+- `InterviewCountdownWidget.test.tsx`
+- `StrategistContactCard.test.tsx`
+- `SavedJobsWidget.test.tsx`
+- `DocumentStatusWidget.test.tsx`
+
+**Task 4.2: E2E Tests**
+Create Playwright tests:
+- Home page loads all widgets
+- Stats display correct counts
+- Interview countdown updates in real-time
+- Quick actions navigate correctly
+
+**Task 4.3: Update Documentation**
+- Document new widgets in component library
+- Update `TECHNICAL_DEBT.md` to mark items complete
+- Add home page architecture diagram
 
 ---
 
 ## Implementation Priority
 
-| Task | Effort | Impact | Priority |
-|------|--------|--------|----------|
-| Fix JobRecommendations schema | 1h | HIGH | P0 |
-| Add InterviewCountdownWidget | 3h | HIGH | P0 |
-| Add StrategistContactCard | 2h | HIGH | P0 |
-| Remove empty widgets (LivePulse, ProfileViewers) | 30m | MEDIUM | P1 |
-| Create activity_feed triggers | 2h | MEDIUM | P1 |
-| Create profile_views tracking | 2h | MEDIUM | P1 |
-| Fix newMatches calculation | 30m | MEDIUM | P1 |
-| Fix QuickTips resource links | 1h | LOW | P2 |
-| Consolidate Home.tsx | 30m | LOW | P2 |
-| Add Saved Jobs Widget | 2h | MEDIUM | P2 |
-| Add Document Status Widget | 2h | MEDIUM | P2 |
+| Phase | Tasks | Effort | Score Impact |
+|-------|-------|--------|--------------|
+| Phase 1 | Fix data triggers, query bug | 3h | +8 points |
+| Phase 2 | Interactivity & realtime | 4h | +5 points |
+| Phase 3 | Accessibility & polish | 3h | +3 points |
+| Phase 4 | Testing & docs | 4h | +2 points |
+| **Total** | | **14h** | **82 → 100** |
 
 ---
 
 ## Summary
 
-The Candidate Home is **functional but underperforming** at 72/100. The main issues are:
-1. **Broken JobRecommendations** due to schema relationship error
-2. **Empty widgets** (LivePulse, ProfileViewers, ClubPilot) with no data
-3. **Missing P0 features** like Interview Countdown and Strategist Contact
-4. **Stale hardcoded values** (`newMatches` always 0)
+The Candidate Home has improved from **72/100 to 82/100** with the P0-P2 implementations. The main blockers to 100/100 are:
 
-The UI polish and animation quality are excellent (85/100), but data accuracy (65/100) and feature completeness (70/100) drag down the overall score.
+1. **Incomplete database triggers** (5 of 6 missing)
+2. **Query bug** in NextBestActionCard
+3. **No interactivity** on stats cards
+4. **Missing realtime** on new widgets
+5. **Accessibility gaps**
 
-**Recommendation:** Focus on P0 fixes first (JobRecommendations, new widgets), then populate missing data triggers, then add P1 enhancements.
+With the 4-phase plan above, the dashboard can reach **100/100** in approximately **14 hours** of focused development.
