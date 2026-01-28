@@ -46,3 +46,37 @@
   height: 0.5rem;
   margin-left: 0.25rem;
 }
+
+/* Premium phone input styling for onboarding */
+.phone-input-premium .PhoneInput {
+  padding: 0.75rem;
+  background: transparent;
+}
+
+.phone-input-premium .PhoneInputInput {
+  font-size: 1.125rem;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  background: transparent;
+}
+
+.phone-input-premium .PhoneInputInput::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.7;
+}
+
+.phone-input-premium .PhoneInputCountryIcon {
+  width: 1.5rem;
+  height: 1.125rem;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.phone-input-premium .PhoneInputCountrySelectArrow {
+  color: hsl(var(--primary));
+  opacity: 0.8;
+}
+
+.phone-input-premium .PhoneInputCountrySelect:focus + .PhoneInputCountryIcon {
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.3);
+}

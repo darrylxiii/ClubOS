@@ -68,6 +68,13 @@ export function usePWAUpdate() {
     if (!('serviceWorker' in navigator)) return;
 
     const handleControllerChange = () => {
+      // Don't auto-reload if user is in a critical flow (onboarding, checkout, etc.)
+      const inCriticalFlow = sessionStorage.getItem('pwa-critical-flow-active') === 'true';
+      if (inCriticalFlow) {
+        console.log('[PWA] Update available but user in critical flow - deferring reload');
+        setState(prev => ({ ...prev, isUpdateAvailable: true }));
+        return;
+      }
       window.location.reload();
     };
 
