@@ -605,7 +605,7 @@ export function CandidateOnboardingSteps() {
             resume_filename: formData.resume_filename,
             resume_url: formData.resume_url,
             application_status: 'applied',
-            assigned_strategist_id: '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5',
+            // assigned_strategist_id is handled by database trigger based on strategist workload
             source_channel: 'integrated_funnel',
             invitation_status: 'registered',
           });
@@ -679,17 +679,22 @@ export function CandidateOnboardingSteps() {
 
   const handleAddPreferredLocation = () => {
     if (selectedCity) {
-      const [cityName, country] = selectedCity.split(", ");
+      // Handle multi-part location strings (e.g., "Amsterdam, North Holland, Netherlands")
+      const parts = selectedCity.split(", ");
+      const cityName = parts[0];
+      // Use last part as country, or second part if only 2 parts
+      const country = parts.length > 2 ? parts[parts.length - 1] : (parts[1] || '');
+      
       const locationExists = formData.preferred_work_locations.some(
         loc => loc.city === cityName && loc.country === country
       );
       
-      if (!locationExists) {
+      if (!locationExists && cityName) {
         setFormData({
           ...formData,
           preferred_work_locations: [
             ...formData.preferred_work_locations, 
-            { city: cityName, country, radius_km: cityRadius }
+            { city: cityName, country: country || 'Unknown', radius_km: cityRadius }
           ]
         });
         setSelectedCity('');
@@ -1240,20 +1245,22 @@ export function CandidateOnboardingSteps() {
                   <p className="text-sm text-muted-foreground">
                     We've sent a 6-digit code to {phoneNumber}
                   </p>
-                  <InputOTP
-                    maxLength={6}
-                    value={verificationCode}
-                    onChange={setVerificationCode}
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
+                  <div className="flex justify-center w-full">
+                    <InputOTP
+                      maxLength={6}
+                      value={verificationCode}
+                      onChange={setVerificationCode}
+                    >
+                      <InputOTPGroup className="gap-1 sm:gap-2">
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
                   <Button
                     onClick={async () => {
                       const verified = await verifyOTP(phoneNumber, verificationCode, () => {
@@ -1357,7 +1364,7 @@ export function CandidateOnboardingSteps() {
               <p className="text-sm text-muted-foreground">
                 ✓ Email verified: {formData.email}<br/>
                 ✓ Phone verified: {phoneNumber}<br/>
-                ✓ Profile completed
+                ○ Account will be created after submission
               </p>
             </div>
           </div>
@@ -1380,14 +1387,14 @@ export function CandidateOnboardingSteps() {
 
             <div className="flex flex-col gap-4 items-center mt-8">
               <p className="text-sm text-muted-foreground">
-                Redirecting to your dashboard...
+                Redirecting to pending approval...
               </p>
               <Button 
                 size="lg" 
-                onClick={() => navigate("/home")}
+                onClick={() => navigate("/pending-approval")}
                 variant="outline"
               >
-                Go to Dashboard Now
+                View Application Status
               </Button>
             </div>
           </div>
@@ -1437,7 +1444,7 @@ export function CandidateOnboardingSteps() {
         <div className="w-full bg-muted rounded-full h-2">
           <div 
             className="bg-primary h-2 rounded-full transition-all duration-300"
-            style={{ width: `${(currentStep / 5) * 100}%` }}
+            style={{ width: `${(currentStep / 6) * 100}%` }}
           />
         </div>
       </div>
