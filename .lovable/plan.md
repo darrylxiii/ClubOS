@@ -1,20 +1,23 @@
 
-# Critical Fix: Onboarding SMS Verification & Cities Selector
+# Comprehensive /onboarding Audit Report
 
-## Problem Summary
-Two blocking issues preventing candidate onboarding completion:
+## Current Score: 76/100
 
-1. **SMS Verification "Failed to fetch"**: CORS headers missing critical Supabase client headers
-2. **Preferred Cities dropdown empty/erroring**: RLS policy requires authentication, but onboarding users aren't authenticated yet
-3. **UX Issue**: Dropdown is not user-friendly; should be typeahead like job location picker
+The onboarding flow has solid core functionality but several issues need addressing to reach 100/100.
 
 ---
 
-## Fix 1: SMS Verification CORS Headers
+## Issues Found (Organized by Severity)
 
-### File: `supabase/functions/send-sms-verification/index.ts`
+### CRITICAL Issues (Blocking - Must Fix) [-15 points]
 
-**Current (lines 17-20):**
+#### 1. CORS Headers Inconsistency on Edge Functions
+**Impact:** Can cause "Failed to fetch" errors intermittently
+**Files Affected:**
+- `verify-sms-code/index.ts` (line 9-12) - Missing enhanced CORS headers
+- `check-email-exists/index.ts` (line 7-9) - Missing enhanced CORS headers
+
+**Current (broken):**
 ```typescript
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,7 +25,7 @@ const corsHeaders = {
 };
 ```
 
-**Updated:**
+**Required:**
 ```typescript
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,164 +35,116 @@ const corsHeaders = {
 };
 ```
 
-This matches the enhanced CORS headers used in `send-email-verification` and ensures all Supabase client headers are allowed.
+#### 2. Hardcoded Strategist ID in Profile Creation
+**File:** `CandidateOnboardingSteps.tsx` (line 608)
+**Issue:** `assigned_strategist_id: '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5'` - hardcoded UUID
+**Risk:** If this strategist is removed or changes, all new candidates fail assignment
 
 ---
 
-## Fix 2: Cities RLS Policy for Anonymous Access
+### HIGH Priority Issues [-6 points]
 
-### Database Migration
+#### 3. Phone OTP Input Missing Styling Consistency
+**File:** `CandidateOnboardingSteps.tsx` (lines 1243-1256)
+**Issue:** Phone OTP input (step 4) lacks the responsive styling that email OTP has
+**Current:** No `className="gap-1 sm:gap-2"` on InputOTPGroup
+**Fix:** Add same responsive styling as email OTP (lines 837-845)
 
-Add a public SELECT policy so unauthenticated users can read active cities:
+#### 4. Missing Error Boundary for Resume Upload
+**File:** `CandidateOnboardingSteps.tsx` (lines 710-736)
+**Issue:** Resume upload errors are caught but toast might not show if component crashes
+**Fix:** Wrap in try-catch with explicit error logging
 
-```sql
--- Allow anonymous (public) access to read active cities
--- This is needed for onboarding where users aren't authenticated yet
-CREATE POLICY "Public can view active cities"
-  ON public.cities
-  FOR SELECT
-  TO anon
-  USING (is_active = true);
-```
-
-Cities are non-sensitive reference data, so public read access is safe.
-
----
-
-## Fix 3: Replace Dropdown with LocationAutocomplete Typeahead
-
-### File: `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx`
-
-**Changes:**
-
-1. **Remove the Select dropdown** (lines 1169-1187)
-2. **Replace with LocationAutocomplete component** (already imported at line 22)
-3. **Update add location logic** to work with typeahead selection
-
-**Before (lines 1166-1234):**
-```tsx
-<div className="space-y-3">
-  <Label>Preferred Cities (Optional)</Label>
-  <div className="flex gap-2">
-    <Select value={selectedCity} onValueChange={setSelectedCity}>
-      <SelectTrigger>
-        <SelectValue placeholder="Select a city" />
-      </SelectTrigger>
-      <SelectContent className="max-h-[300px]">
-        {cities
-          .filter(city => { ... })
-          .map((city) => (
-            <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
-              {city.name}, {city.country}
-            </SelectItem>
-          ))}
-      </SelectContent>
-    </Select>
-    <Button type="button" onClick={handleAddPreferredLocation} disabled={!selectedCity}>
-      Add
-    </Button>
-  </div>
-  ...
-</div>
-```
-
-**After:**
-```tsx
-<div className="space-y-3">
-  <Label>Preferred Cities (Optional)</Label>
-  <p className="text-sm text-muted-foreground mb-2">
-    Search for cities where you'd like to work
-  </p>
-  <div className="flex gap-2">
-    <div className="flex-1">
-      <LocationAutocomplete
-        value={selectedCity}
-        onChange={setSelectedCity}
-        placeholder="Type to search cities..."
-      />
-    </div>
-    <Button 
-      type="button" 
-      onClick={handleAddPreferredLocation} 
-      disabled={!selectedCity}
-    >
-      Add
-    </Button>
-  </div>
-
-  {selectedCity && (
-    <div className="space-y-2 p-4 border-2 border-primary/20 rounded-lg bg-primary/5">
-      <Label>Maximum distance from {selectedCity.split(", ")[0]}</Label>
-      <div className="pt-2 pb-4">
-        <Slider
-          min={0}
-          max={100}
-          step={5}
-          value={[cityRadius]}
-          onValueChange={(value) => setCityRadius(value[0])}
-        />
-      </div>
-      <p className="text-sm text-muted-foreground">Within {cityRadius} km radius</p>
-    </div>
-  )}
-
-  {formData.preferred_work_locations.length > 0 && (
-    <div className="flex flex-wrap gap-2 mt-2">
-      {formData.preferred_work_locations.map((location, index) => (
-        <div
-          key={`${location.city}-${location.country}-${index}`}
-          className="flex items-center gap-2 px-3 py-2 bg-accent/10 border border-accent/20 rounded-lg text-sm"
-        >
-          <span>
-            {location.city}, {location.country} (within {location.radius_km}km)
-          </span>
-          <button
-            type="button"
-            onClick={() => handleRemovePreferredLocation(location)}
-            className="text-primary hover:text-primary/80 text-lg leading-none"
-          >
-            ×
-          </button>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
-```
-
-4. **Remove the `loadCities` function and `cities` state** (lines 43, 118-133) since we're using OpenStreetMap API via LocationAutocomplete instead of the database.
+#### 5. funnel_config Query Not Handling Missing Data
+**File:** `CandidateOnboarding.tsx` (lines 18-28)
+**Issue:** If `funnel_config` table is empty, `.single()` throws error
+**Current:** No error handling
+**Fix:** Add error handling and default to `isActive = true`
 
 ---
 
-## Technical Notes
+### MEDIUM Priority Issues [-3 points]
 
-### LocationAutocomplete Benefits
-- Uses OpenStreetMap Nominatim API (no RLS issues)
-- Typeahead experience like job postings
-- Recent searches stored in localStorage
-- Full keyboard navigation
-- Works for unauthenticated users
+#### 6. Progress Bar Calculation Off by One
+**File:** `CandidateOnboardingSteps.tsx` (line 1440)
+**Current:** `style={{ width: \`${(currentStep / 5) * 100}%\` }}`
+**Issue:** Should be `/ 6` for 6 steps (0-5), shows 100% at step 5 instead of step 6
 
-### Security Consideration
-The cities table RLS update only allows `SELECT` on active cities - no write access. This is safe for reference data.
+#### 7. Location Parsing Edge Case
+**File:** `CandidateOnboardingSteps.tsx` (lines 680-698)
+**Issue:** `selectedCity.split(", ")` assumes format "City, Country" but LocationAutocomplete can return different formats (e.g., "Amsterdam, North Holland, Netherlands")
+**Fix:** Handle multi-part location strings properly
 
----
-
-## Implementation Order
-
-1. Update SMS CORS headers and deploy edge function
-2. Add RLS policy for anonymous city access (backup)
-3. Replace dropdown with LocationAutocomplete in onboarding
-4. Remove unused cities state/fetch code
-5. Test full onboarding flow
+#### 8. Missing aria-labels for Accessibility
+**Files:** Multiple form inputs lack proper aria-labels
+**Impact:** Screen readers cannot properly describe form fields
 
 ---
 
-## Testing Checklist
+### LOW Priority Issues (Polish)
 
-- [x] SMS verification sends successfully during onboarding (CORS fixed, deployed)
-- [x] Location typeahead shows suggestions as user types (using LocationAutocomplete)
-- [ ] Phone verification code input works
-- [ ] Can add multiple preferred cities with radius
-- [ ] Can remove preferred cities
-- [ ] Complete onboarding flow end-to-end
+#### 9. Console.log Statements in Production
+**File:** `CandidateOnboardingSteps.tsx`
+**Lines:** 222, 380, 407, 424, 463, 503, 517, 526, 541, 569, 587, 618
+**Issue:** Multiple `console.log` statements should use structured logging or be removed
+
+#### 10. Success Screen Redirect Logic
+**File:** `CandidateOnboardingSteps.tsx` (lines 632-637)
+**Issue:** Shows "Redirecting to your dashboard" but redirects to `/pending-approval`
+**Misleading UX:** Copy doesn't match destination
+
+#### 11. Password Step Shows "Profile Completed" Prematurely
+**File:** `CandidateOnboardingSteps.tsx` (lines 1356-1362)
+**Issue:** Shows "Profile completed" checkmark before account is actually created
+
+---
+
+## Score Breakdown
+
+| Category | Current | Max | Issues |
+|----------|---------|-----|--------|
+| Core Functionality | 32 | 40 | CORS on 2 edge functions |
+| UX/Polish | 18 | 25 | OTP styling, progress bar, copy |
+| Security | 13 | 15 | Hardcoded strategist ID |
+| Error Handling | 8 | 12 | Missing boundaries, funnel config |
+| Accessibility | 5 | 8 | Missing aria-labels |
+| **TOTAL** | **76** | **100** | |
+
+---
+
+## Path to 100/100
+
+### Phase 1: Critical Fixes (+15 points)
+
+1. **Update CORS headers** on `verify-sms-code` and `check-email-exists`
+2. **Dynamic strategist assignment** - Query available strategists or use system setting
+
+### Phase 2: High Priority (+6 points)
+
+3. **Phone OTP styling** - Add responsive classes matching email OTP
+4. **Resume upload error boundary** - Add explicit error handling
+5. **funnel_config error handling** - Default to active if query fails
+
+### Phase 3: Medium Priority (+3 points)
+
+6. **Progress bar fix** - Change divisor from 5 to 6
+7. **Location parsing fix** - Use robust parsing for multi-part locations
+8. **Add aria-labels** - Audit all form inputs
+
+### Phase 4: Polish (+0 points, but professional)
+
+9. **Remove console.log statements** - Use logger utility
+10. **Fix success screen copy** - Match "pending approval" destination
+11. **Fix password step indicator** - Only show "completed" after submission
+
+---
+
+## Implementation Files
+
+### Files to Modify:
+1. `supabase/functions/verify-sms-code/index.ts` - CORS headers
+2. `supabase/functions/check-email-exists/index.ts` - CORS headers
+3. `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx` - Multiple fixes
+4. `src/pages/CandidateOnboarding.tsx` - Error handling
+
+### Estimated Time: ~45 minutes for 100/100
