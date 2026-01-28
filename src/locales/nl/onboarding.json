@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "title": "Solliciteer voor Elite Lidmaatschap | The Quantum Club",
+    "description": "Word lid van The Quantum Club - een exclusieve community voor de top 3% professionals. Vul je aanvraag in binnen 5 minuten."
+  },
+  "header": {
+    "badge": "Slechts 3% van de sollicitanten wordt geaccepteerd",
+    "title": "Solliciteer voor Elite Lidmaatschap",
+    "subtitle": "Sluit je aan bij 2.500+ uitzonderlijke professionals in The Quantum Club",
+    "timing": "~5 minuten om in te vullen • Je gegevens zijn versleuteld en veilig"
+  },
+  "steps": {
+    "contact": {
+      "title": "Contactgegevens",
+      "subtitle": "Laten we beginnen met je basisgegevens",
+      "fullName": "Volledige Naam",
+      "fullNamePlaceholder": "Jan Jansen",
+      "email": "E-mailadres",
+      "emailPlaceholder": "jan@voorbeeld.nl",
+      "emailVerified": "E-mail geverifieerd",
+      "location": "Huidige Locatie (Optioneel)",
+      "locationHelp": "Begin met typen om suggesties te zien van steden wereldwijd",
+      "verificationRequired": "E-mailverificatie vereist om door te gaan",
+      "verificationHelp": "Klik hieronder op \"Verificatiecode Verzenden\" om je e-mail te verifiëren",
+      "verifyEmail": "Verifieer Je E-mail",
+      "codeSentTo": "We hebben een 6-cijferige code gestuurd naar",
+      "enterCode": "Voer Verificatiecode In"
+    },
+    "professional": {
+      "title": "Professionele Details",
+      "subtitle": "Vertel ons over je huidige rol",
+      "currentTitle": "Huidige Functietitel",
+      "currentTitlePlaceholder": "bijv. Senior Software Engineer",
+      "linkedin": "LinkedIn Profiel (Optioneel)",
+      "linkedinPlaceholder": "https://linkedin.com/in/jouwprofiel",
+      "bio": "Professionele Bio (Optioneel)",
+      "bioPlaceholder": "Korte beschrijving van je ervaring en expertise...",
+      "resume": "CV (Optioneel)"
+    },
+    "career": {
+      "title": "Carrièredoelen",
+      "subtitle": "Wat zoek je?",
+      "dreamJob": "Droomfunctie",
+      "dreamJobPlaceholder": "bijv. VP of Engineering, Lead Product Designer",
+      "employmentType": "Type Dienstverband Voorkeur",
+      "fulltime": "Alleen fulltime",
+      "freelance": "Alleen freelance/contract",
+      "both": "Open voor beide",
+      "remoteWork": "Open voor Remote Werk",
+      "workFromAnywhere": "Werk vanuit elke locatie",
+      "noticePeriod": "Opzegtermijn",
+      "immediate": "Direct beschikbaar",
+      "2weeks": "2 weken",
+      "1month": "1 maand",
+      "2months": "2 maanden",
+      "3months": "3 maanden"
+    },
+    "compensation": {
+      "title": "Salarisverwachtingen",
+      "subtitle": "Zodat we je kunnen matchen met de juiste kansen",
+      "currentSalary": "Huidig Salarisbereik (€/jaar)",
+      "preferNotToShare": "Liever niet delen",
+      "shareSalary": "Salaris Delen",
+      "hidden": "Verborgen",
+      "desiredSalary": "Gewenst Salarisbereik Volgende Rol (€/jaar)",
+      "freelanceRate": "Freelance Uurtarief (€/uur)"
+    },
+    "preferences": {
+      "title": "Werkvoorkeuren",
+      "subtitle": "Waar zou je willen werken?",
+      "preferredCities": "Voorkeurssteden (Optioneel)",
+      "searchCities": "Zoek naar steden waar je wilt werken",
+      "maxDistance": "Maximale afstand van",
+      "withinRadius": "Binnen {{radius}} km straal",
+      "verifyPhone": "Verifieer Je Telefoon",
+      "phoneRequired": "Vereist om lid te worden van The Quantum Club",
+      "mobileNumber": "Mobiel Nummer",
+      "phoneHelp": "Selecteer je land en voer je nummer in. We sturen een verificatiecode.",
+      "phoneVerified": "Telefoon succesvol geverifieerd"
+    },
+    "password": {
+      "title": "Beveilig Je Account",
+      "subtitle": "Maak een sterk wachtwoord om je registratie te voltooien",
+      "password": "Wachtwoord",
+      "passwordPlaceholder": "Voer je wachtwoord in",
+      "confirmPassword": "Bevestig Wachtwoord",
+      "confirmPlaceholder": "Bevestig je wachtwoord",
+      "requirements": {
+        "length": "Minimaal 12 tekens",
+        "uppercase": "Eén hoofdletter",
+        "lowercase": "Eén kleine letter",
+        "number": "Eén cijfer",
+        "special": "Eén speciaal teken"
+      },
+      "passwordsMatch": "Wachtwoorden komen overeen",
+      "passwordsDontMatch": "Wachtwoorden komen niet overeen"
+    },
+    "success": {
+      "title": "Welkom bij The Quantum Club!",
+      "subtitle": "Je account is succesvol aangemaakt. Je Talent Strategist zal je profiel binnenkort beoordelen.",
+      "redirecting": "Doorsturen naar goedkeuring in afwachting...",
+      "viewStatus": "Bekijk Aanvraagstatus"
+    }
+  },
+  "navigation": {
+    "back": "Terug",
+    "continue": "Doorgaan",
+    "sendVerification": "Verificatiecode Verzenden",
+    "createAccount": "Account Aanmaken",
+    "creatingAccount": "Account Aanmaken...",
+    "checking": "Controleren...",
+    "verifying": "Verifiëren...",
+    "resendCode": "Code opnieuw verzenden",
+    "resendIn": "Opnieuw verzenden beschikbaar over {{seconds}}s"
+  },
+  "trustBadges": {
+    "ssl": "256-bit SSL",
+    "gdpr": "AVG Conform",
+    "neverShared": "Nooit Gedeeld"
+  },
+  "gdpr": {
+    "consent": "Ik ga akkoord met het",
+    "privacyPolicy": "Privacybeleid",
+    "and": "en de",
+    "termsOfService": "Algemene Voorwaarden",
+    "consentDescription": "Ik geef toestemming voor de verwerking van mijn persoonsgegevens zoals beschreven."
+  },
+  "errors": {
+    "missingInfo": "Vul alle verplichte velden in",
+    "invalidEmail": "Voer een geldig e-mailadres in",
+    "verifyEmailFirst": "Verifieer eerst je e-mailadres",
+    "enterJobTitle": "Voer je huidige functietitel in",
+    "enterDreamJob": "Voer je droomfunctie in",
+    "verifyPhone": "Verifieer je telefoonnummer",
+    "enterPhone": "Voer je telefoonnummer in",
+    "strongPassword": "Maak een sterk wachtwoord",
+    "passwordRequirements": "Wachtwoord moet aan alle eisen voldoen",
+    "passwordsNoMatch": "Wachtwoorden komen niet overeen",
+    "accountCreationFailed": "Account aanmaken mislukt",
+    "invalidCode": "Ongeldige code"
+  },
+  "dialogs": {
+    "emailExists": {
+      "title": "Account Bestaat Al",
+      "description": "Een account met {{email}} bestaat al.",
+      "help": "Wil je inloggen of een ander e-mailadres proberen?",
+      "tryDifferent": "Ander E-mailadres Proberen",
+      "goToLogin": "Naar Inloggen"
+    }
+  }
+}
