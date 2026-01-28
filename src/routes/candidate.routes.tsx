@@ -20,6 +20,7 @@ const PressureCooker = lazy(() => import("@/pages/PressureCooker"));
 const BlindSpotDetector = lazy(() => import("@/pages/BlindSpotDetector"));
 const ValuesPoker = lazy(() => import("@/pages/ValuesPoker"));
 const OfferComparison = lazy(() => import("@/pages/OfferComparison"));
+const CoverLetterGenerator = lazy(() => import("@/pages/CoverLetterGenerator"));
 
 /**
  * Candidate-specific routes
@@ -42,6 +43,9 @@ export const candidateRoutes = (
     
     {/* Offer Comparison */}
     <Route path="/offers" element={<ProtectedRoute><OfferComparison /></ProtectedRoute>} />
+    
+    {/* Cover Letter Builder */}
+    <Route path="/cover-letter-builder" element={<ProtectedRoute><CoverLetterGenerator /></ProtectedRoute>} />
     
     {/* Interview Preparation */}
     <Route path="/interview-prep" element={<ProtectedRoute><InterviewPrep /></ProtectedRoute>} />

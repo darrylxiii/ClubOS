@@ -1,285 +1,79 @@
+# Candidate Platform Implementation Progress
 
-# Phase 3: AI Cover Letter Generator Implementation
-
-## Overview
-This phase adds a QUIN-powered cover letter generation system that allows candidates to create personalized, professional cover letters based on job descriptions and their profile data.
-
-**Score Impact: +5 points (93/100 → 98/100)**
+## Current Score: 98/100 (+20 from baseline 78)
 
 ---
 
-## Technical Architecture
+## ✅ PHASE 1: Offer Management System (COMPLETE)
+**Score Impact: +8 points**
 
-```text
-┌─────────────────────────────────────────────────────────────────────┐
-│                    Cover Letter Generator Flow                       │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  ┌──────────────┐    ┌───────────────┐    ┌───────────────────┐    │
-│  │  Job Select  │───►│ Tone Selector │───►│ Generate Button   │    │
-│  │  (dropdown)  │    │ (3 options)   │    │ (QUIN powered)    │    │
-│  └──────────────┘    └───────────────┘    └───────────────────┘    │
-│                                                                      │
-│                              ▼                                       │
-│  ┌────────────────────────────────────────────────────────────────┐│
-│  │                    Edge Function                                ││
-│  │  generate-cover-letter                                          ││
-│  │  - Fetches job description + requirements                       ││
-│  │  - Fetches candidate profile + experience + skills              ││
-│  │  - Generates tailored cover letter via Lovable AI               ││
-│  └────────────────────────────────────────────────────────────────┘│
-│                              ▼                                       │
-│  ┌────────────────────────────────────────────────────────────────┐│
-│  │                    Cover Letter Preview                         ││
-│  │  - Rich text editor for manual adjustments                      ││
-│  │  - Export to PDF / Copy to clipboard                            ││
-│  │  - Save to candidate_documents                                  ││
-│  └────────────────────────────────────────────────────────────────┘│
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
-```
+### Completed:
+- ✅ `src/hooks/useCandidateOffers.ts` - Data fetching hook with compensation calculations
+- ✅ `src/components/offers/OfferCard.tsx` - Individual offer display
+- ✅ `src/components/offers/CompensationBreakdown.tsx` - Salary/equity/bonus visualization
+- ✅ `src/components/offers/OfferComparisonTable.tsx` - Side-by-side comparison
+- ✅ `src/components/offers/OfferNegotiationChat.tsx` - QUIN negotiation assistant
+- ✅ `src/pages/OfferComparison.tsx` - Main comparison dashboard
+- ✅ Navigation and routing updates
 
 ---
 
-## Files to Create
+## ✅ PHASE 2: Interview Self-Booking (COMPLETE)
+**Score Impact: +7 points**
 
-### 1. Edge Function: `supabase/functions/generate-cover-letter/index.ts`
-**Purpose:** AI-powered cover letter generation using Lovable AI
-
-**Logic:**
-- Accept `jobId`, `candidateId`, `tone` (professional/conversational/executive)
-- Fetch job details: title, description, requirements, company info
-- Fetch candidate data: profile, experience, skills
-- Construct prompt for QUIN with proper context
-- Return generated cover letter text
-- Handle rate limits (429) and payment errors (402)
-
-### 2. Hook: `src/hooks/useCoverLetterGenerator.ts`
-**Purpose:** React hook for cover letter generation and management
-
-**Features:**
-- `generateCoverLetter(jobId, tone)` - Calls edge function
-- `saveCoverLetter(content, jobId)` - Saves to `candidate_documents`
-- `getCoverLetters()` - Fetches saved cover letters
-- Loading and error states
-
-### 3. Page: `src/pages/CoverLetterGenerator.tsx`
-**Purpose:** Standalone cover letter builder page
-
-**UI Components:**
-- Job selector dropdown (from applications or all jobs)
-- Tone selector: Professional / Conversational / Executive
-- "Generate with QUIN" button
-- Live preview with edit capability
-- Export options: PDF download, copy to clipboard
-- Save to documents button
-
-### 4. Component: `src/components/applications/CoverLetterBuilder.tsx`
-**Purpose:** Reusable cover letter builder component
-
-**Props:**
-- `jobId` - Pre-selected job
-- `jobTitle` - Display name
-- `companyName` - For context
-- `onComplete` - Callback when saved
-
-### 5. Component: `src/components/applications/CoverLetterPreview.tsx`
-**Purpose:** Preview and edit generated cover letter
-
-**Features:**
-- Editable textarea for manual refinements
-- Character/word count
-- Regenerate button
-- Export actions
+### Completed:
+- ✅ `src/hooks/useInterviewBookingLinks.ts` - Fetch available booking links
+- ✅ `src/components/interview/InterviewSlotPicker.tsx` - Calendar and slot UI
+- ✅ `src/components/interview/SelfBookingWidget.tsx` - Multi-step booking flow
+- ✅ `src/components/interview/PrepBriefCard.tsx` - Interview prep briefs display
+- ✅ Updated `src/pages/InterviewPrep.tsx` with Schedule tab
 
 ---
 
-## Files to Modify
+## ✅ PHASE 3: AI Cover Letter Generator (COMPLETE)
+**Score Impact: +5 points**
 
-### 1. `src/pages/JobDetail.tsx`
-**Changes (lines 424-430):**
-- Add "Generate Cover Letter" quick action button in Overview tab
-- Opens CoverLetterBuilder dialog pre-filled with job context
-
-### 2. `src/config/navigation.config.ts`
-**Changes (line 168-178):**
-- Add navigation item under Career section:
-```typescript
-{ name: "Cover Letter Builder", icon: FileText, path: "/cover-letter-builder" }
-```
-
-### 3. `src/routes/candidate.routes.tsx`
-**Changes:**
-- Add route: `/cover-letter-builder` → `CoverLetterGenerator`
-
-### 4. `src/components/candidate/CandidateQuickActions.tsx`
-**Changes (lines 33-40):**
-- Add "Cover Letter" quick action pointing to generator
-
-### 5. `.lovable/plan.md`
-**Changes:**
-- Update Phase 3 status to ✅ COMPLETE
-- Update current score to 98/100
+### Completed:
+- ✅ `supabase/functions/generate-cover-letter/index.ts` - AI generation edge function
+- ✅ `src/hooks/useCoverLetterGenerator.ts` - React hook for generation/saving
+- ✅ `src/components/applications/CoverLetterPreview.tsx` - Preview with edit/export
+- ✅ `src/components/applications/CoverLetterBuilder.tsx` - Full builder UI
+- ✅ `src/pages/CoverLetterGenerator.tsx` - Standalone page
+- ✅ Updated routes in `src/routes/candidate.routes.tsx`
+- ✅ Updated navigation in `src/config/navigation.config.ts`
+- ✅ Added quick action in `src/components/candidate/CandidateQuickActions.tsx`
+- ✅ Added dialog in `src/pages/JobDetail.tsx` for inline generation
 
 ---
 
-## Database Integration
+## 📋 REMAINING PHASES
 
-### Saving Cover Letters
-Cover letters are stored in the existing `candidate_documents` table:
-```typescript
-{
-  candidate_id: userId,
-  document_type: 'cover_letter',
-  file_name: 'Cover Letter - {Company} - {Job Title}.pdf',
-  file_url: uploadedPdfUrl,
-  metadata: {
-    job_id: jobId,
-    generated_with_ai: true,
-    tone: 'professional'
-  }
-}
-```
+### Phase 4: Career Development Suite (+6 pts)
+- Mentor Matching System
+- Enhanced Career Path page
+- Skill Gap Analyzer
 
-### No Schema Changes Required
-The `candidate_documents` table already supports `document_type: 'cover_letter'` (confirmed in `ResumeUploadModal.tsx`).
+### Phase 5: Club Projects Completion (+5 pts)
+- Dynamic stats in ProjectsPage
+- Video intro for proposals
+- Portfolio attachment
 
----
+### Phase 6: Assessment Enhancements (+4 pts)
+- AI skill gap analysis post-assessment
+- Assessment results dashboard
 
-## Edge Function Details
+### Phase 7: Mobile/PWA Enhancements (+4 pts)
+- Push notifications
+- Biometric auth
+- Offline mode
 
-### Input Schema
-```typescript
-interface CoverLetterRequest {
-  jobId: string;
-  candidateId: string;
-  tone: 'professional' | 'conversational' | 'executive';
-}
-```
-
-### Output Schema
-```typescript
-interface CoverLetterResponse {
-  coverLetter: string;
-  jobTitle: string;
-  companyName: string;
-  generatedAt: string;
-}
-```
-
-### AI Prompt Structure
-The edge function will:
-1. Query `jobs` table with company join for context
-2. Query `profiles` + `profile_experience` + candidate skills
-3. Build a structured prompt:
-   - System: "You are QUIN, a professional career assistant..."
-   - User context: Job requirements, candidate experience, desired tone
-4. Use `google/gemini-3-flash-preview` model (default per guidelines)
-5. Return parsed cover letter with no explanations
+### Phase 8: Polish & Testing (+6 pts)
+- Remove "Coming Soon" stubs
+- E2E testing suite
+- Accessibility audit
+- Performance optimization
 
 ---
 
-## UI/UX Design
-
-### Standalone Page Layout
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  COVER LETTER BUILDER                         [Profile docs]│
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────────────┐  ┌──────────────────────────────┐ │
-│  │ Step 1: Select Job  │  │ Step 2: Choose Tone          │ │
-│  │ [Dropdown...]       │  │ ○ Professional (formal)      │ │
-│  │                     │  │ ○ Conversational (friendly)  │ │
-│  │ Or paste job URL    │  │ ○ Executive (C-level)        │ │
-│  └─────────────────────┘  └──────────────────────────────┘ │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │ [✨ Generate with QUIN]                              │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │                                                      │  │
-│  │  Dear Hiring Manager,                                │  │
-│  │                                                      │  │
-│  │  I am writing to express my interest in the         │  │
-│  │  [Position] role at [Company]...                    │  │
-│  │                                                      │  │
-│  │  [Editable content area]                            │  │
-│  │                                                      │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                                                             │
-│  [📄 Export PDF]  [📋 Copy]  [💾 Save to Documents]       │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Tone Descriptions
-- **Professional**: Formal business tone, suitable for corporate roles
-- **Conversational**: Friendly and approachable, good for startups
-- **Executive**: Concise, results-focused, for senior positions
-
----
-
-## Integration with JobDetail
-
-Add a "Generate Cover Letter" button in the job detail page that:
-1. Opens a dialog with `CoverLetterBuilder` component
-2. Pre-fills job context
-3. Allows inline generation and preview
-4. Option to save or download immediately
-
----
-
-## Implementation Order
-
-1. **Edge Function** (`generate-cover-letter/index.ts`)
-   - Create function with CORS, auth handling
-   - Implement job + candidate data fetching
-   - Add AI generation logic with tone support
-   - Handle rate limits and errors
-
-2. **Hook** (`useCoverLetterGenerator.ts`)
-   - Wrap edge function calls
-   - Add save/load functionality
-   - Manage loading states
-
-3. **Components**
-   - `CoverLetterPreview.tsx` - Preview/edit UI
-   - `CoverLetterBuilder.tsx` - Full builder with steps
-
-4. **Page** (`CoverLetterGenerator.tsx`)
-   - Main standalone page
-   - Integrate builder component
-
-5. **Navigation Updates**
-   - Add route
-   - Add nav item
-   - Add quick action
-
-6. **JobDetail Integration**
-   - Add "Generate Cover Letter" button
-   - Dialog integration
-
-7. **Plan Update**
-   - Mark Phase 3 complete
-   - Update score tracker
-
----
-
-## Testing Considerations
-
-- Test with jobs that have minimal vs comprehensive descriptions
-- Verify PDF generation works correctly
-- Test all three tone options produce distinct outputs
-- Ensure saved documents appear in DocumentStatusWidget
-- Test rate limit handling displays appropriate toast messages
-
----
-
-## Accessibility
-
-- All form elements have proper labels
-- Keyboard navigation for tone selection
-- Screen reader announcements for generation status
-- Export buttons have descriptive aria-labels
+## Summary
+Phases 1-3 complete. Platform score increased from 78 to 98/100.
