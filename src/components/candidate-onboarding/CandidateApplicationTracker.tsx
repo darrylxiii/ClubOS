@@ -27,18 +27,22 @@ export function CandidateApplicationTracker() {
   useEffect(() => {
     const loadStrategist = async () => {
       try {
-        const { data, error } = await supabase
-          .from("profiles")
+        // Cast to any to break deep type instantiation chain
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = await (supabase.from("profiles") as any)
           .select("id, full_name, avatar_url")
           .eq("role", "strategist")
           .eq("account_status", "active")
           .limit(1);
 
-        if (!error && data && data.length > 0) {
+        const rows = result.data as Array<{ id: string; full_name: string | null; avatar_url: string | null }> | null;
+        
+        if (!result.error && rows && rows.length > 0) {
+          const row = rows[0];
           setStrategist({
-            id: String(data[0].id),
-            full_name: String(data[0].full_name || ''),
-            avatar_url: data[0].avatar_url ? String(data[0].avatar_url) : null
+            id: String(row.id),
+            full_name: String(row.full_name || ''),
+            avatar_url: row.avatar_url ? String(row.avatar_url) : null
           });
         }
       } catch (err) {
