@@ -17,6 +17,7 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { SentryErrorBoundary } from "@/components/SentryErrorBoundary";
 import { TranslationProvider } from "@/providers/TranslationProvider";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { HelmetProvider } from "react-helmet-async";
 import { lazy, Suspense, memo, useEffect } from "react";
 import { PageLoader } from "@/components/PageLoader";
 import i18n from "@/i18n/config";
@@ -138,6 +139,7 @@ const isTracingEnabled = import.meta.env.DEV;
 const App = () => {
   return (
     <SentryErrorBoundary>
+      <HelmetProvider>
       <TracingProvider enabled={isTracingEnabled}>
         <QueryClientProvider client={queryClient}>
           <TranslationProvider>
@@ -321,6 +323,7 @@ const App = () => {
         </TranslationProvider>
       </QueryClientProvider>
       </TracingProvider>
+      </HelmetProvider>
     </SentryErrorBoundary>
   );
 };
