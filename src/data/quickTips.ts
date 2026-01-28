@@ -1,15 +1,15 @@
 import { QuickTip } from "@/types/quickTip";
 
 export const quickTips: QuickTip[] = [
-  // Career Advice (8 tips)
+  // Career Advice (8 tips) - Links updated to existing app routes
   {
     id: '1',
     category: 'career',
     title: 'How to Negotiate Your Salary Like a Pro',
     description: 'Learn the 3-step framework top earners use to increase offers by 15-25%',
     icon: 'Target',
-    actionLabel: 'Read Guide',
-    actionLink: '/resources/salary-negotiation',
+    actionLabel: 'View Insights',
+    actionLink: '/salary-insights',
     readTime: '3 min',
     gradient: 'from-amber-500/20 to-amber-600/10'
   },
@@ -19,8 +19,8 @@ export const quickTips: QuickTip[] = [
     title: 'Making a Career Pivot at 30+',
     description: 'Strategic guide to transitioning industries without starting over',
     icon: 'TrendingUp',
-    actionLabel: 'Learn More',
-    actionLink: '/resources/career-pivot',
+    actionLabel: 'Plan Your Path',
+    actionLink: '/career-path',
     readTime: '4 min',
     gradient: 'from-amber-500/20 to-amber-600/10'
   },
@@ -31,7 +31,7 @@ export const quickTips: QuickTip[] = [
     description: 'Build capabilities that remain valuable regardless of industry trends',
     icon: 'Award',
     actionLabel: 'View Skills',
-    actionLink: '/resources/future-skills',
+    actionLink: '/my-skills-page',
     readTime: '3 min',
     gradient: 'from-amber-500/20 to-amber-600/10'
   },
@@ -41,8 +41,8 @@ export const quickTips: QuickTip[] = [
     title: 'The Art of Strategic Networking',
     description: 'How to build meaningful professional relationships that open doors',
     icon: 'Users',
-    actionLabel: 'Learn Strategy',
-    actionLink: '/resources/networking',
+    actionLabel: 'View Referrals',
+    actionLink: '/referrals',
     readTime: '5 min',
     gradient: 'from-amber-500/20 to-amber-600/10'
   },
@@ -52,8 +52,8 @@ export const quickTips: QuickTip[] = [
     title: 'When to Stay vs. When to Leave',
     description: 'Decision framework for evaluating your current role objectively',
     icon: 'GitBranch',
-    actionLabel: 'Use Framework',
-    actionLink: '/resources/stay-or-leave',
+    actionLabel: 'Browse Jobs',
+    actionLink: '/jobs',
     readTime: '4 min',
     gradient: 'from-amber-500/20 to-amber-600/10'
   },
@@ -63,8 +63,8 @@ export const quickTips: QuickTip[] = [
     title: 'Building Your Personal Brand',
     description: 'Stand out as a thought leader in your industry',
     icon: 'Star',
-    actionLabel: 'Get Started',
-    actionLink: '/resources/personal-brand',
+    actionLabel: 'Edit Profile',
+    actionLink: '/profile',
     readTime: '4 min',
     gradient: 'from-amber-500/20 to-amber-600/10'
   },
@@ -74,8 +74,8 @@ export const quickTips: QuickTip[] = [
     title: 'Remote Work Mastery',
     description: 'Thrive in remote roles and stay visible to leadership',
     icon: 'Home',
-    actionLabel: 'Learn Tips',
-    actionLink: '/resources/remote-work',
+    actionLabel: 'Set Preferences',
+    actionLink: '/settings?tab=profile',
     readTime: '3 min',
     gradient: 'from-amber-500/20 to-amber-600/10'
   },
@@ -85,8 +85,8 @@ export const quickTips: QuickTip[] = [
     title: 'Leadership vs. Management: What\'s Next?',
     description: 'Navigate the transition from IC to people leader',
     icon: 'Crown',
-    actionLabel: 'Explore Path',
-    actionLink: '/resources/leadership',
+    actionLabel: 'Plan Career',
+    actionLink: '/career-path',
     readTime: '5 min',
     gradient: 'from-amber-500/20 to-amber-600/10'
   },
@@ -98,8 +98,8 @@ export const quickTips: QuickTip[] = [
     title: '7 Smart Questions Every Interviewer Wants to Hear',
     description: 'Stand out by asking questions that demonstrate strategic thinking',
     icon: 'MessageSquare',
-    actionLabel: 'See Questions',
-    actionLink: '/resources/interview-questions',
+    actionLabel: 'Prepare Now',
+    actionLink: '/interview-prep',
     readTime: '2 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -110,7 +110,7 @@ export const quickTips: QuickTip[] = [
     description: 'Master behavioral interviews with this proven storytelling framework',
     icon: 'BookOpen',
     actionLabel: 'Learn Method',
-    actionLink: '/resources/star-method',
+    actionLink: '/interview-prep',
     readTime: '3 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -120,8 +120,8 @@ export const quickTips: QuickTip[] = [
     title: 'Body Language That Gets You Hired',
     description: 'Non-verbal cues that signal confidence and competence',
     icon: 'Eye',
-    actionLabel: 'View Guide',
-    actionLink: '/resources/body-language',
+    actionLabel: 'View Tips',
+    actionLink: '/interview-prep',
     readTime: '3 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -131,8 +131,8 @@ export const quickTips: QuickTip[] = [
     title: 'Post-Interview Follow-Up That Works',
     description: 'Stand out with thank-you notes that reinforce your value',
     icon: 'Mail',
-    actionLabel: 'See Template',
-    actionLink: '/resources/follow-up',
+    actionLabel: 'View Applications',
+    actionLink: '/applications',
     readTime: '2 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -143,7 +143,7 @@ export const quickTips: QuickTip[] = [
     description: 'Navigate "weakness", "failure", and salary questions with ease',
     icon: 'AlertCircle',
     actionLabel: 'Prepare Now',
-    actionLink: '/resources/tough-questions',
+    actionLink: '/interview-prep',
     readTime: '4 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -153,8 +153,8 @@ export const quickTips: QuickTip[] = [
     title: 'Virtual Interview Excellence',
     description: 'Technical setup, lighting, and presence for video calls',
     icon: 'Video',
-    actionLabel: 'Optimize Setup',
-    actionLink: '/resources/virtual-interviews',
+    actionLabel: 'View Meetings',
+    actionLink: '/meetings',
     readTime: '3 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -164,8 +164,8 @@ export const quickTips: QuickTip[] = [
     title: 'Final Round Strategies',
     description: 'Closing the deal when you\'re in the last interview stage',
     icon: 'Check',
-    actionLabel: 'Read Strategy',
-    actionLink: '/resources/final-round',
+    actionLabel: 'Prepare Now',
+    actionLink: '/interview-prep',
     readTime: '4 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -175,8 +175,8 @@ export const quickTips: QuickTip[] = [
     title: 'Technical Interview Prep for Non-Engineers',
     description: 'How to approach case studies and problem-solving interviews',
     icon: 'Code',
-    actionLabel: 'Get Prepared',
-    actionLink: '/resources/technical-prep',
+    actionLabel: 'Take Assessment',
+    actionLink: '/assessments',
     readTime: '5 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -256,8 +256,8 @@ export const quickTips: QuickTip[] = [
     title: '2025 Tech Hiring Trends You Need to Know',
     description: 'Which skills are in highest demand and what companies are paying',
     icon: 'TrendingUp',
-    actionLabel: 'View Report',
-    actionLink: '/resources/hiring-trends',
+    actionLabel: 'View Insights',
+    actionLink: '/salary-insights',
     readTime: '4 min',
     gradient: 'from-muted/30 to-muted/10'
   },
@@ -268,7 +268,7 @@ export const quickTips: QuickTip[] = [
     description: 'Know your market value before negotiating your next offer',
     icon: 'DollarSign',
     actionLabel: 'Check Benchmarks',
-    actionLink: '/resources/salary-benchmarks',
+    actionLink: '/salary-insights',
     readTime: '3 min',
     gradient: 'from-muted/30 to-muted/10'
   },
@@ -278,8 +278,8 @@ export const quickTips: QuickTip[] = [
     title: 'Remote vs. Hybrid: What Employers Offer in 2025',
     description: 'Latest data on work arrangements and compensation differences',
     icon: 'MapPin',
-    actionLabel: 'See Data',
-    actionLink: '/resources/work-arrangements',
+    actionLabel: 'Browse Jobs',
+    actionLink: '/jobs',
     readTime: '3 min',
     gradient: 'from-muted/30 to-muted/10'
   },
@@ -289,21 +289,21 @@ export const quickTips: QuickTip[] = [
     title: 'The Real Timeline: How Long Hiring Actually Takes',
     description: 'Set realistic expectations for your job search journey',
     icon: 'Clock',
-    actionLabel: 'Learn More',
-    actionLink: '/resources/hiring-timeline',
+    actionLabel: 'View Applications',
+    actionLink: '/applications',
     readTime: '2 min',
     gradient: 'from-muted/30 to-muted/10'
   },
 
-  // Success Stories (4 tips)
+  // Success Stories (4 tips) - Link to Academy for learning resources
   {
     id: '27',
     category: 'success',
     title: 'From Burnout to Dream Role in 6 Weeks',
     description: 'How Sarah used Club AI to find a 40% salary increase and work-life balance',
     icon: 'Heart',
-    actionLabel: 'Read Story',
-    actionLink: '/resources/success-sarah',
+    actionLabel: 'Try Club AI',
+    actionLink: '/ai-assistant',
     readTime: '3 min',
     gradient: 'from-muted/30 to-muted/10'
   },
@@ -313,8 +313,8 @@ export const quickTips: QuickTip[] = [
     title: 'Career Pivot at 45: Tech to Healthcare',
     description: 'Marcus shares how he leveraged transferable skills for a fresh start',
     icon: 'UserCheck',
-    actionLabel: 'Read Story',
-    actionLink: '/resources/success-marcus',
+    actionLabel: 'Plan Your Path',
+    actionLink: '/career-path',
     readTime: '4 min',
     gradient: 'from-muted/30 to-muted/10'
   },
@@ -324,8 +324,8 @@ export const quickTips: QuickTip[] = [
     title: 'Referral Rewards: €15K in 3 Months',
     description: 'How Elena turned her network into passive income',
     icon: 'Euro',
-    actionLabel: 'Read Story',
-    actionLink: '/resources/success-elena',
+    actionLabel: 'Start Referring',
+    actionLink: '/referrals',
     readTime: '3 min',
     gradient: 'from-muted/30 to-muted/10'
   },
@@ -335,8 +335,8 @@ export const quickTips: QuickTip[] = [
     title: 'From Rejected to VP: A Comeback Story',
     description: 'How Tom turned 5 rejections into lessons that landed him a VP role',
     icon: 'Trophy',
-    actionLabel: 'Read Story',
-    actionLink: '/resources/success-tom',
+    actionLabel: 'Visit Academy',
+    actionLink: '/academy',
     readTime: '4 min',
     gradient: 'from-muted/30 to-muted/10'
   },
