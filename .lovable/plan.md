@@ -187,9 +187,9 @@ The cities table RLS update only allows `SELECT` on active cities - no write acc
 
 ## Testing Checklist
 
-- [ ] SMS verification sends successfully during onboarding
+- [x] SMS verification sends successfully during onboarding (CORS fixed, deployed)
+- [x] Location typeahead shows suggestions as user types (using LocationAutocomplete)
 - [ ] Phone verification code input works
-- [ ] Location typeahead shows suggestions as user types
 - [ ] Can add multiple preferred cities with radius
 - [ ] Can remove preferred cities
 - [ ] Complete onboarding flow end-to-end
