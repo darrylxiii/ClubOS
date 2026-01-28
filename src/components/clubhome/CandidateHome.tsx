@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,7 +12,7 @@ import { JobRecommendations } from "@/components/candidate/JobRecommendations";
 import { ActivityTimeline } from "@/components/candidate/ActivityTimeline";
 import { QuickTipsCarousel } from "@/components/candidate/QuickTipsCarousel";
 import { quickTips } from "@/data/quickTips";
-import { Briefcase } from "lucide-react";
+import { Briefcase, X } from "lucide-react";
 import { UnifiedStatsBar } from "./UnifiedStatsBar";
 import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
@@ -28,13 +28,23 @@ import { SavedJobsWidget } from "./SavedJobsWidget";
 import { DocumentStatusWidget } from "./DocumentStatusWidget";
 import { T } from "@/components/T";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+
+const BANNER_DISMISS_KEY = 'tqc_club_projects_banner_dismissed';
 
 export const CandidateHome = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { stats: roleStats, loading } = useRoleStats('user', user?.id);
   const [profileCompletion, setProfileCompletion] = useState(0);
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    return localStorage.getItem(BANNER_DISMISS_KEY) === 'true';
+  });
+
+  const handleDismissBanner = useCallback(() => {
+    setBannerDismissed(true);
+    localStorage.setItem(BANNER_DISMISS_KEY, 'true');
+  }, []);
 
   const stats = roleStats as { applications: number; matches: number; interviews: number; messages: number };
 
@@ -134,49 +144,63 @@ export const CandidateHome = () => {
         <AchievementsPreviewWidget />
       </DashboardSection>
 
-      {/* Club Projects Banner */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1 }}
-      >
-        <Card className="glass-strong hover:glass transition-all duration-300">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="secondary" className="gap-1 bg-premium/20 text-premium-foreground border-premium/30 text-xs">
-                    <Briefcase className="h-3 w-3" />
-                    <T k="common:badges.newFeature" fallback="New Feature" />
-                  </Badge>
+      {/* Club Projects Banner - Dismissible */}
+      <AnimatePresence>
+        {!bannerDismissed && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95, height: 0, marginBottom: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="glass-strong hover:glass transition-all duration-300 relative" role="region" aria-label="Club Projects announcement">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-8 w-8 z-10"
+                onClick={handleDismissBanner}
+                aria-label="Dismiss Club Projects announcement"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </Button>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                  <div className="flex-1 pr-8">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="secondary" className="gap-1 bg-primary/20 text-primary border-primary/30 text-xs">
+                        <Briefcase className="h-3 w-3" aria-hidden="true" />
+                        <T k="common:badges.newFeature" fallback="New Feature" />
+                      </Badge>
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-bold mb-2">
+                      💼 <T k="common:clubProjects.title" fallback="Introducing Club Projects" />
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      <T k="common:clubProjects.description" fallback="Earn while you search. Join our premium freelance marketplace and get matched with high-value projects using Club AI." />
+                    </p>
+                    <div className="flex flex-wrap gap-2 text-xs sm:text-sm text-muted-foreground mb-4">
+                      <div className="flex items-center gap-1">
+                        <span aria-hidden="true">✓</span> <T k="common:clubProjects.features.aiMatching" fallback="AI-powered matching" />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span aria-hidden="true">✓</span> <T k="common:clubProjects.features.avgRate" fallback="€100-150/hr avg rate" />
+                      </div>
+                      <div className="flex items-center gap-1 hidden sm:flex">
+                        <span aria-hidden="true">✓</span> <T k="common:clubProjects.features.timeToHire" fallback="<24h time to hire" />
+                      </div>
+                    </div>
+                    <Button asChild className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+                      <Link to="/projects" aria-label="Explore Club Projects">
+                        <T k="common:clubProjects.cta" fallback="Explore Projects" />
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold mb-2">
-                  💼 <T k="common:clubProjects.title" fallback="Introducing Club Projects" />
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  <T k="common:clubProjects.description" fallback="Earn while you search. Join our premium freelance marketplace and get matched with high-value projects using Club AI." />
-                </p>
-                <div className="flex flex-wrap gap-2 text-xs sm:text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center gap-1">
-                    ✓ <T k="common:clubProjects.features.aiMatching" fallback="AI-powered matching" />
-                  </div>
-                  <div className="flex items-center gap-1">
-                    ✓ <T k="common:clubProjects.features.avgRate" fallback="€100-150/hr avg rate" />
-                  </div>
-                  <div className="flex items-center gap-1 hidden sm:flex">
-                    ✓ <T k="common:clubProjects.features.timeToHire" fallback="<24h time to hire" />
-                  </div>
-                </div>
-                <Button asChild className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
-                  <Link to="/projects">
-                    <T k="common:clubProjects.cta" fallback="Explore Projects" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Recent Activity */}
       {user && (

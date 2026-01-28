@@ -3,6 +3,7 @@ import { MetricCardSkeleton } from "@/components/admin/shared/MetricCardSkeleton
 import { Users, Briefcase, Calendar, MessageSquare, Target, TrendingUp, Building2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 interface StatConfig {
   icon: typeof Users;
@@ -12,6 +13,8 @@ interface StatConfig {
   value: number;
   secondaryKey: string;
   secondaryFallback: string;
+  link?: string;
+  ariaLabel?: string;
 }
 
 interface UnifiedStatsBarProps {
@@ -79,6 +82,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.totalUsers || 0,
             secondaryKey: 'common:status.active',
             secondaryFallback: 'Active',
+            link: '/admin/users',
+            ariaLabel: `${stats.totalUsers || 0} total users. Click to view all users.`,
           },
           {
             icon: Building2,
@@ -88,6 +93,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.totalCompanies || 0,
             secondaryKey: 'common:branding.tagline',
             secondaryFallback: 'Registered',
+            link: '/admin/companies',
+            ariaLabel: `${stats.totalCompanies || 0} registered companies. Click to view all companies.`,
           },
           {
             icon: Briefcase,
@@ -97,6 +104,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.totalJobs || 0,
             secondaryKey: 'common:jobs.posted',
             secondaryFallback: 'Posted',
+            link: '/admin/jobs',
+            ariaLabel: `${stats.totalJobs || 0} active jobs. Click to view all jobs.`,
           },
           {
             icon: AlertCircle,
@@ -106,6 +115,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.pendingReviews || 0,
             secondaryKey: 'common:status.pending',
             secondaryFallback: 'Reviews',
+            link: '/admin/reviews',
+            ariaLabel: `${stats.pendingReviews || 0} pending reviews. Click to view pending items.`,
           },
         ];
 
@@ -119,6 +130,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.activeJobs || 0,
             secondaryKey: 'common:jobs.posted',
             secondaryFallback: 'Posted',
+            link: '/jobs?filter=company',
+            ariaLabel: `${stats.activeJobs || 0} active jobs. Click to view your jobs.`,
           },
           {
             icon: Users,
@@ -128,6 +141,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.totalApplications || 0,
             secondaryKey: 'common:applications.status.applied',
             secondaryFallback: 'Applied',
+            link: '/applications',
+            ariaLabel: `${stats.totalApplications || 0} applications received. Click to view all applications.`,
           },
           {
             icon: Calendar,
@@ -137,6 +152,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.interviews || 0,
             secondaryKey: 'common:actions.scheduleInterview',
             secondaryFallback: 'Scheduled',
+            link: '/meetings',
+            ariaLabel: `${stats.interviews || 0} interviews scheduled. Click to view meetings.`,
           },
           {
             icon: TrendingUp,
@@ -146,6 +163,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.followers || 0,
             secondaryKey: 'common:status.active',
             secondaryFallback: 'Following',
+            link: '/company/followers',
+            ariaLabel: `${stats.followers || 0} followers. Click to view company followers.`,
           },
         ];
 
@@ -161,6 +180,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.applications || 0,
             secondaryKey: 'common:status.active',
             secondaryFallback: 'Active',
+            link: '/applications',
+            ariaLabel: `${stats.applications || 0} active applications. Click to view your applications.`,
           },
           {
             icon: Target,
@@ -170,6 +191,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.matches || 0,
             secondaryKey: 'common:jobs.matchScore',
             secondaryFallback: 'Match Score',
+            link: '/jobs?filter=matches',
+            ariaLabel: `${stats.matches || 0} job matches. Click to view matching jobs.`,
           },
           {
             icon: Calendar,
@@ -179,6 +202,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.interviews || 0,
             secondaryKey: 'common:actions.scheduleInterview',
             secondaryFallback: 'Scheduled',
+            link: '/meetings',
+            ariaLabel: `${stats.interviews || 0} interviews scheduled. Click to view your meetings.`,
           },
           {
             icon: MessageSquare,
@@ -188,6 +213,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             value: stats.messages || 0,
             secondaryKey: 'common:notifications.unread',
             secondaryFallback: 'Unread',
+            link: '/messages',
+            ariaLabel: `${stats.messages || 0} unread messages. Click to view your messages.`,
           },
         ];
     }
@@ -195,7 +222,7 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" role="status" aria-label="Loading statistics">
         {[...Array(4)].map((_, i) => (
           <MetricCardSkeleton key={i} />
         ))}
@@ -208,6 +235,8 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
   return (
     <motion.div
       className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+      role="region"
+      aria-label="Dashboard statistics"
       initial="hidden"
       animate="visible"
       variants={{
@@ -239,16 +268,20 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
           {/* Subtle hover glow for premium feel */}
           <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm" />
           
-          <div className="relative">
+          <Link 
+            to={stat.link || '#'} 
+            className="relative block focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-xl"
+            aria-label={stat.ariaLabel}
+          >
             <MetricCard
               icon={stat.icon}
               iconColor={stat.iconColor}
               title={stat.titleFallback}
               primaryMetric={stat.value}
               secondaryText={stat.secondaryFallback}
-              className="glass-subtle hover:glass transition-all duration-300 border-border/50 hover:border-primary/30"
+              className="glass-subtle hover:glass transition-all duration-300 border-border/50 hover:border-primary/30 cursor-pointer"
             />
-          </div>
+          </Link>
         </motion.div>
       ))}
     </motion.div>
