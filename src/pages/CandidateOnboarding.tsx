@@ -16,14 +16,27 @@ export default function CandidateOnboarding() {
   }, []);
 
   const loadFunnelConfig = async () => {
-    // Check if candidate onboarding is active
-    const { data } = await supabase
-      .from("funnel_config")
-      .select("*")
-      .single();
+    try {
+      // Check if candidate onboarding is active
+      const { data, error } = await supabase
+        .from("funnel_config")
+        .select("*")
+        .single();
 
-    if (data) {
-      setIsActive(data.is_active);
+      if (error) {
+        // If no config exists or error, default to active
+        console.warn('[Onboarding] funnel_config query error, defaulting to active:', error.message);
+        setIsActive(true);
+        return;
+      }
+
+      if (data) {
+        setIsActive(data.is_active);
+      }
+    } catch (err) {
+      console.error('[Onboarding] Failed to load funnel config:', err);
+      // Default to active on error
+      setIsActive(true);
     }
   };
 
