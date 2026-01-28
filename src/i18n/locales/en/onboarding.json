@@ -12,8 +12,8 @@
       "complete": "Complete"
     },
     "contact": {
-      "title": "Let's start with the basics",
-      "subtitle": "Your contact information",
+      "title": "Contact Information",
+      "subtitle": "Let's start with your basic details",
       "fullName": "Full Name",
       "fullNamePlaceholder": "John Doe",
       "email": "Email Address",
@@ -25,34 +25,46 @@
       "sendOTP": "Send Verification Code",
       "verifyPhone": "Verify Phone",
       "phoneVerified": "Phone Verified",
-      "emailVerified": "Email Verified"
+      "emailVerified": "Email verified",
+      "emailVerificationRequired": "Email verification required to continue",
+      "clickSendVerification": "Click \"Send Verification Code\" below to verify your email",
+      "verifyYourEmail": "Verify Your Email",
+      "weSentCode": "We've sent a 6-digit code to",
+      "enterVerificationCode": "Enter Verification Code",
+      "verifying": "Verifying...",
+      "resendCode": "Resend Code",
+      "resendAvailableIn": "Resend available in {{seconds}}s"
     },
     "professional": {
-      "title": "Your professional background",
+      "title": "Professional Details",
       "subtitle": "Tell us about your experience",
       "currentTitle": "Current Title",
-      "currentTitlePlaceholder": "Senior Developer",
+      "currentTitlePlaceholder": "e.g., Senior Product Manager",
       "currentCompany": "Current Company",
       "currentCompanyPlaceholder": "Tech Corp",
       "experience": "Years of Experience",
       "linkedin": "LinkedIn Profile",
       "linkedinPlaceholder": "https://linkedin.com/in/johndoe",
+      "linkedinOptional": "(Optional)",
       "bio": "Short Bio",
-      "bioPlaceholder": "Tell us about yourself...",
-      "resume": "Upload Resume",
+      "bioPlaceholder": "Brief description of your background and expertise...",
+      "bioOptional": "(Optional)",
+      "resume": "Resume / CV",
       "resumeUploaded": "Resume uploaded",
       "uploadResume": "Upload",
-      "removeResume": "Remove"
+      "removeResume": "Remove",
+      "uploading": "Uploading...",
+      "clickToUpload": "Click to upload PDF or Word document"
     },
     "career": {
-      "title": "What are you looking for?",
-      "subtitle": "Your career aspirations",
+      "title": "Career Goals",
+      "subtitle": "What are you looking for in your next role?",
       "desiredTitle": "Dream Job Title",
-      "desiredTitlePlaceholder": "Lead Developer",
-      "employmentType": "Employment Type",
-      "fulltime": "Full-time",
-      "freelance": "Freelance",
-      "both": "Both",
+      "desiredTitlePlaceholder": "e.g., VP of Engineering, Lead Product Designer",
+      "employmentType": "Employment Type Preference",
+      "fulltime": "Full-time only",
+      "freelance": "Freelance/Contract only",
+      "both": "Open to both",
       "noticePeriod": "Notice Period",
       "immediate": "Immediate",
       "oneWeek": "1 week",
@@ -60,24 +72,26 @@
       "oneMonth": "1 month",
       "twoMonths": "2 months",
       "threeMonths": "3 months",
-      "remoteWork": "Remote Work Aspiration",
-      "remoteWorkLabel": "I prefer remote work"
+      "remoteWork": "Open to Remote Work",
+      "remoteWorkLabel": "Work from anywhere"
     },
     "compensation": {
-      "title": "Compensation expectations",
-      "subtitle": "Help us find the right match",
-      "currentSalary": "Current Salary Range",
-      "desiredSalary": "Desired Salary Range",
+      "title": "Compensation Expectations",
+      "subtitle": "Help us match you with the right opportunities",
+      "currentSalary": "Current Salary Range (€/year)",
+      "desiredSalary": "Desired Next Role Salary Range (€/year)",
       "currency": "Currency",
       "min": "Min",
       "max": "Max",
       "hideFromClients": "Hide salary from clients",
-      "freelanceRate": "Freelance Hourly Rate",
-      "salaryHidden": "Salary preference will be hidden from clients"
+      "shareSalary": "Share Salary",
+      "preferNotToShare": "Prefer not to share",
+      "freelanceRate": "Freelance Hourly Rate (€/hour)",
+      "salaryHidden": "Hidden"
     },
     "preferences": {
-      "title": "Work preferences",
-      "subtitle": "Customize your experience",
+      "title": "Work Preferences",
+      "subtitle": "Where would you like to work?",
       "jobAlerts": "Job Alert Frequency",
       "daily": "Daily",
       "weekly": "Weekly",
@@ -92,11 +106,25 @@
       "healthcare": "Healthcare",
       "retail": "Retail",
       "other": "Other",
-      "availableHours": "Available Hours per Week"
+      "availableHours": "Available Hours per Week",
+      "preferredCities": "Preferred Cities (Optional)",
+      "searchCities": "Search for cities where you'd like to work",
+      "typeToSearch": "Type to search cities...",
+      "add": "Add",
+      "maxDistance": "Maximum distance from",
+      "withinRadius": "Within {{km}} km radius",
+      "verifyPhone": "Verify Your Phone",
+      "requiredToJoin": "Required to join The Quantum Club",
+      "required": "Required",
+      "mobileNumber": "Mobile Number",
+      "selectCountry": "Select your country and enter your number. We'll send a verification code.",
+      "phoneVerified": "Phone verified successfully",
+      "enterCode": "Enter Verification Code",
+      "codeSentTo": "We've sent a 6-digit code to"
     },
     "password": {
-      "title": "Secure your account",
-      "subtitle": "Create a strong password",
+      "title": "Secure Your Account",
+      "subtitle": "Create a strong password to complete your registration",
       "password": "Password",
       "confirmPassword": "Confirm Password",
       "requirements": "Password must contain:",
@@ -104,7 +132,25 @@
       "uppercase": "One uppercase letter",
       "lowercase": "One lowercase letter",
       "number": "One number",
-      "special": "One special character"
+      "special": "One special character",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "gdprConsent": "I agree to the",
+      "privacyPolicy": "Privacy Policy",
+      "and": "and",
+      "termsOfService": "Terms of Service",
+      "consentDescription": "I consent to the processing of my personal data as described.",
+      "mustAccept": "You must accept to continue with registration",
+      "accountSummary": "Account Summary",
+      "emailVerifiedLabel": "Email verified",
+      "phoneVerifiedLabel": "Phone verified",
+      "termsAccepted": "Terms accepted",
+      "accountCreated": "Account will be created after submission"
+    },
+    "complete": {
+      "title": "Welcome to The Quantum Club!",
+      "message": "Your account has been created successfully. Your Talent Strategist will review your profile soon.",
+      "redirecting": "Redirecting to pending approval...",
+      "viewStatus": "View Application Status"
     },
     "applicationPending": {
       "title": "Application Under Review",
@@ -120,16 +166,83 @@
       "invalidLinkedin": "Invalid LinkedIn URL",
       "passwordTooShort": "Password must be at least 12 characters",
       "passwordMismatch": "Passwords do not match",
-      "weakPassword": "Password does not meet requirements"
+      "weakPassword": "Password does not meet requirements",
+      "pleaseVerifyEmail": "Please verify your email address first",
+      "pleaseVerifyPhone": "Please verify your phone number first",
+      "consentRequired": "Please accept the Privacy Policy and Terms of Service"
     },
     "messages": {
+      "missingInfo": "Missing information",
+      "fillRequiredFields": "Please fill in all required fields",
       "savingProgress": "Saving progress...",
       "progressSaved": "Progress saved",
       "submitting": "Submitting application...",
       "submitted": "Application submitted successfully!",
       "error": "An error occurred. Please try again.",
       "phoneVerificationRequired": "Please verify your phone number",
-      "emailVerificationRequired": "Please verify your email"
+      "emailVerificationRequired": "Please verify your email",
+      "verificationCodeSent": "Verification code sent",
+      "checkEmailForCode": "Please check your email and enter the code below",
+      "checkPhoneForCode": "Please check your phone and enter the code below",
+      "resumeUploaded": "Resume uploaded successfully",
+      "accountCreationFailed": "Account creation failed",
+      "applicationSubmitted": "Application submitted!",
+      "reviewTime": "Darryl will review your application within 24-48 hours",
+      "invalidCode": "Invalid code",
+      "phoneVerified": "Phone verified successfully!",
+      "pleaseEnterPhone": "Please enter your phone number",
+      "enterCurrentTitle": "Please enter your current job title",
+      "enterDreamJob": "Please enter your dream job title",
+      "invalidPassword": "Invalid password",
+      "meetPasswordRequirements": "Please meet all password requirements"
+    },
+    "navigation": {
+      "back": "Back",
+      "continue": "Continue",
+      "createAccount": "Create Account",
+      "sendVerificationCode": "Send Verification Code",
+      "creatingAccount": "Creating Account...",
+      "checking": "Checking..."
+    },
+    "header": {
+      "onlyAccepted": "Only 3% of applicants are accepted",
+      "applyForMembership": "Apply for Elite Membership",
+      "joinProfessionals": "Join 2,500+ exceptional professionals in The Quantum Club",
+      "timeToComplete": "~5 minutes to complete • Your data is encrypted and secure",
+      "backToLogin": "Back to Login"
+    },
+    "paused": {
+      "title": "Applications Temporarily Paused",
+      "message": "We're currently at capacity and not accepting new applications. Please check back soon or join our waitlist."
+    },
+    "dialog": {
+      "accountExists": "Account Already Exists",
+      "accountExistsMessage": "An account with this email address already exists.",
+      "loginOrTryDifferent": "Would you like to log in instead, or try a different email?",
+      "tryDifferentEmail": "Try Different Email",
+      "goToLogin": "Go to Login"
+    },
+    "trustBadges": {
+      "ssl": "256-bit SSL",
+      "gdpr": "GDPR Compliant",
+      "neverShared": "Never Shared"
+    },
+    "keyboard": {
+      "pressEnter": "Press",
+      "toContinue": "to continue or",
+      "toGoBack": "to go back"
+    },
+    "offline": {
+      "message": "You're offline. Changes will be saved when you reconnect."
+    },
+    "sessionRecovery": {
+      "continueOnAnotherDevice": "Continue on another device?",
+      "progressSaved": "Progress saved",
+      "enterEmail": "Enter your email",
+      "send": "Send",
+      "linkSent": "Recovery link sent!",
+      "checkEmail": "Check your email to continue on another device",
+      "continueFromStep": "Check your email to continue from step {{step}}"
     }
   }
 }
