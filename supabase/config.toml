@@ -1092,4 +1092,6 @@ verify_jwt = true
 [functions.process-external-import]
 verify_jwt = true
 
+[functions.generate-cover-letter]
+verify_jwt = true
 

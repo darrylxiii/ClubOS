@@ -166,6 +166,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Jobs Map", icon: Globe, path: "/jobs/map" },
         { name: "Applications", icon: FileText, path: "/applications" },
         { name: "Offers", icon: DollarSign, path: "/offers", badge: "New" },
+        { name: "Cover Letter Builder", icon: FileText, path: "/cover-letter-builder" },
         { name: "Companies", icon: Building2, path: "/companies" },
         { name: "Salary Insights", icon: TrendingUp, path: "/salary-insights" },
         { name: "Career Path", icon: Target, path: "/career-path" },

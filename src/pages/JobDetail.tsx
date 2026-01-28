@@ -23,8 +23,10 @@ import { canManageJob } from "@/utils/jobNavigation";
 import { trackJobView, trackJobSave } from "@/services/analyticsTracking";
 import { toast } from "sonner";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
-import { ArrowLeft, Settings, Activity, Edit, ExternalLink } from "lucide-react";
+import { ArrowLeft, Settings, Activity, Edit, ExternalLink, PenLine } from "lucide-react";
 import { motion } from "framer-motion";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { CoverLetterBuilder } from "@/components/applications/CoverLetterBuilder";
 
 export default function JobDetail() {
   const { jobId } = useParams<{ jobId: string }>();
@@ -37,6 +39,7 @@ export default function JobDetail() {
   const [isApplied, setIsApplied] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCoverLetterDialogOpen, setIsCoverLetterDialogOpen] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
 
   useEffect(() => {
@@ -422,6 +425,42 @@ export default function JobDetail() {
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6 mt-6">
+              {/* Quick Action: Generate Cover Letter */}
+              {!canEdit && (
+                <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+                  <CardContent className="flex items-center justify-between py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <PenLine className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Generate a Cover Letter</p>
+                        <p className="text-sm text-muted-foreground">Create an AI-powered cover letter for this role</p>
+                      </div>
+                    </div>
+                    <Dialog open={isCoverLetterDialogOpen} onOpenChange={setIsCoverLetterDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="gap-2">
+                          <PenLine className="w-4 h-4" />
+                          Generate with QUIN
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Cover Letter Builder</DialogTitle>
+                        </DialogHeader>
+                        <CoverLetterBuilder 
+                          jobId={job.id}
+                          jobTitle={job.title}
+                          companyName={job.companies?.name || 'Company'}
+                          onComplete={() => setIsCoverLetterDialogOpen(false)}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  </CardContent>
+                </Card>
+              )}
+
               <AboutRoleSection description={job.description} />
 
               <JobDescriptionViewer

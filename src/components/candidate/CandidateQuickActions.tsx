@@ -10,7 +10,8 @@ import {
   Sparkles,
   TrendingUp,
   DollarSign,
-  Target
+  Target,
+  PenLine
 } from "lucide-react";
 
 interface QuickAction {
@@ -46,6 +47,15 @@ export function CandidateQuickActions({
       path: "/jobs",
       variant: "default",
       badge: newMatches > 0 ? `${newMatches} new matches` : undefined,
+      condition: true
+    },
+    {
+      icon: PenLine,
+      label: "Cover Letter",
+      description: "AI-powered writing",
+      path: "/cover-letter-builder",
+      variant: "outline",
+      badge: "New",
       condition: true
     },
     {
