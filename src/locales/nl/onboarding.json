@@ -125,6 +125,19 @@
     "termsOfService": "Algemene Voorwaarden",
     "consentDescription": "Ik geef toestemming voor de verwerking van mijn persoonsgegevens zoals beschreven."
   },
+  "consent": {
+    "sectionTitle": "Juridische Overeenkomsten",
+    "termsLabel": "Ik ga akkoord met de",
+    "termsLink": "Algemene Voorwaarden",
+    "privacyLabel": "Ik ga akkoord met het",
+    "privacyLink": "Privacybeleid",
+    "communicationsNote": "Door een account aan te maken, stem je in met het ontvangen van carrièremogelijkheden en communicatie van The Quantum Club.",
+    "mustAcceptBoth": "Beide overeenkomsten zijn vereist om door te gaan"
+  },
+  "validation": {
+    "consentRequired": "Toestemming vereist",
+    "acceptBothRequired": "Accepteer zowel de Algemene Voorwaarden als het Privacybeleid om door te gaan"
+  },
   "errors": {
     "missingInfo": "Vul alle verplichte velden in",
     "invalidEmail": "Voer een geldig e-mailadres in",

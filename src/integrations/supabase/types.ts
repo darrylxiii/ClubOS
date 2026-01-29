@@ -36147,6 +36147,7 @@ export type Database = {
           preferred_language: string | null
           preferred_locations: string[] | null
           preferred_work_locations: Json | null
+          privacy_accepted_at: string | null
           privacy_settings: Json | null
           profile_slug: string | null
           public_fields: Json | null
@@ -36169,6 +36170,7 @@ export type Database = {
           suspended_at: string | null
           suspended_by: string | null
           suspension_reason: string | null
+          terms_accepted_at: string | null
           twitter_connected: boolean | null
           twitter_username: string | null
           updated_at: string | null
@@ -36263,6 +36265,7 @@ export type Database = {
           preferred_language?: string | null
           preferred_locations?: string[] | null
           preferred_work_locations?: Json | null
+          privacy_accepted_at?: string | null
           privacy_settings?: Json | null
           profile_slug?: string | null
           public_fields?: Json | null
@@ -36285,6 +36288,7 @@ export type Database = {
           suspended_at?: string | null
           suspended_by?: string | null
           suspension_reason?: string | null
+          terms_accepted_at?: string | null
           twitter_connected?: boolean | null
           twitter_username?: string | null
           updated_at?: string | null
@@ -36379,6 +36383,7 @@ export type Database = {
           preferred_language?: string | null
           preferred_locations?: string[] | null
           preferred_work_locations?: Json | null
+          privacy_accepted_at?: string | null
           privacy_settings?: Json | null
           profile_slug?: string | null
           public_fields?: Json | null
@@ -36401,6 +36406,7 @@ export type Database = {
           suspended_at?: string | null
           suspended_by?: string | null
           suspension_reason?: string | null
+          terms_accepted_at?: string | null
           twitter_connected?: boolean | null
           twitter_username?: string | null
           updated_at?: string | null
