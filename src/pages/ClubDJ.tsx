@@ -113,12 +113,17 @@ export default function ClubDJ() {
     }
   }, [liveSession]);
 
+  // Get all available roles to check if user has admin access
+  const { availableRoles } = useRole();
+  const hasAdminAccess = availableRoles.includes('admin');
+
   useEffect(() => {
-    if (!loading && currentRole && currentRole !== 'admin') {
-      console.log('[ClubDJ] Redirecting non-admin user:', currentRole);
+    // Only redirect if loading is complete AND user definitively doesn't have admin role
+    if (!loading && availableRoles.length > 0 && !hasAdminAccess) {
+      console.log('[ClubDJ] Redirecting non-admin user. Available roles:', availableRoles);
       navigate('/home');
     }
-  }, [currentRole, loading, navigate]);
+  }, [availableRoles, loading, navigate, hasAdminAccess]);
 
   if (loading || !currentRole) {
     return (
@@ -130,8 +135,8 @@ export default function ClubDJ() {
     );
   }
 
-  if (currentRole !== 'admin') {
-    console.log('[ClubDJ] Non-admin role detected:', currentRole);
+  if (!hasAdminAccess) {
+    console.log('[ClubDJ] User does not have admin access. Available roles:', availableRoles);
     return null;
   }
 
