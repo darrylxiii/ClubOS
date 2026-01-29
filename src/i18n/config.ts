@@ -127,8 +127,10 @@ import messagesEn from '@/i18n/locales/en/messages.json';
 import partnerEn from '@/i18n/locales/en/partner.json';
 import settingsEn from '@/i18n/locales/en/settings.json';
 
-// Bundled Dutch translations
+// Bundled Dutch translations - ensure onboarding works offline
 import authNl from '@/i18n/locales/nl/auth.json';
+import onboardingNl from '@/i18n/locales/nl/onboarding.json';
+import commonNl from '@/i18n/locales/nl/common.json';
 
 // All English translations bundled locally - instant fallback
 const bundledResources = {
@@ -149,6 +151,8 @@ const bundledResources = {
   },
   nl: {
     auth: authNl,
+    onboarding: onboardingNl,
+    common: commonNl,
   }
 };
 

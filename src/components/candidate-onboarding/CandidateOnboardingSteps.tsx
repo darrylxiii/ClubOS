@@ -813,9 +813,9 @@ export function CandidateOnboardingSteps() {
               <div className="text-center mb-6">
                 <User className="w-12 h-12 text-primary mx-auto mb-3" aria-hidden="true" />
                 <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]" id="step-heading">
-                  {t('candidate.contact.title', 'Contact Information')}
+                  {t('candidate.contact.title', "Let's start with the basics")}
                 </h2>
-                <p className="text-muted-foreground">{t('candidate.contact.subtitle', "Let's start with your basic details")}</p>
+                <p className="text-muted-foreground">{t('candidate.contact.subtitle', 'Your contact details')}</p>
               </div>
               <div>
                 <Label htmlFor="full-name">{t('candidate.contact.fullName', 'Full Name')} *</Label>
@@ -929,14 +929,14 @@ export function CandidateOnboardingSteps() {
               )}
 
               <div>
-                <Label htmlFor="location">Current Location (Optional)</Label>
+                <Label htmlFor="location">{t('candidate.contact.location', 'Current Location')} ({t('candidate.professional.linkedinOptional', 'Optional')})</Label>
                 <LocationAutocomplete
                   value={formData.location}
                   onChange={(value) => setFormData({ ...formData, location: value })}
-                  placeholder="Type to search cities worldwide..."
+                  placeholder={t('candidate.preferences.typeToSearch', 'Type to search cities...')}
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  Start typing to see suggestions from cities worldwide
+                  {t('candidate.contact.locationHint', 'Start typing to see suggestions from cities worldwide')}
                 </p>
               </div>
             </div>

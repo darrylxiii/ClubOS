@@ -12,8 +12,8 @@
       "complete": "Complete"
     },
     "contact": {
-      "title": "Contact Information",
-      "subtitle": "Let's start with your basic details",
+      "title": "Let's start with the basics",
+      "subtitle": "Your contact details",
       "fullName": "Full Name",
       "fullNamePlaceholder": "John Doe",
       "email": "Email Address",
@@ -22,6 +22,7 @@
       "phonePlaceholder": "+31 6 12345678",
       "location": "Current Location",
       "locationPlaceholder": "Amsterdam, Netherlands",
+      "locationHint": "Start typing to see suggestions from cities worldwide",
       "sendOTP": "Send Verification Code",
       "verifyPhone": "Verify Phone",
       "phoneVerified": "Phone Verified",
@@ -230,6 +231,9 @@
       "ssl": "256-bit SSL",
       "gdpr": "GDPR Compliant",
       "neverShared": "Never Shared"
+    },
+    "socialProof": {
+      "partnerCompany": "Partner Company"
     },
     "keyboard": {
       "pressEnter": "Press",

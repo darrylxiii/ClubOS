@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Quote } from "lucide-react";
 
 export function SocialProofCarousel() {
+  const { t } = useTranslation('onboarding');
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -41,7 +43,7 @@ export function SocialProofCarousel() {
         <blockquote className="text-lg font-medium mb-4">
           "{testimonials[currentIndex]?.testimonial}"
         </blockquote>
-        <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center justify-center gap-3">
           <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
             <span className="font-bold text-primary">
               {testimonials[currentIndex]?.company?.[0]}
@@ -49,7 +51,7 @@ export function SocialProofCarousel() {
           </div>
           <div className="text-left">
             <div className="font-semibold">{testimonials[currentIndex]?.company}</div>
-            <div className="text-sm text-muted-foreground">Partner Company</div>
+            <div className="text-sm text-muted-foreground">{t('candidate.socialProof.partnerCompany', 'Partner Company')}</div>
           </div>
         </div>
         <div className="flex justify-center gap-2 mt-6">
