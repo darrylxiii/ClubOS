@@ -1,225 +1,218 @@
 
-# Plan: Candidate Onboarding Flow - 88/100 → 100/100
+# Plan: Complete i18n Audit and Fix for Candidate Onboarding
 
-## Current State Analysis
+## Problem Identified
 
-After thorough exploration, the onboarding flow currently scores **88/100** with the following gaps:
+After a thorough audit, I found **38+ hardcoded English strings** in the codebase that are NOT using the `t()` translation function. While the translation files (`en/onboarding.json` and `nl/onboarding.json`) contain comprehensive translations, many strings in the code are still hardcoded.
 
-| Category | Current | Target | Gap |
-|----------|---------|--------|-----|
-| i18n Integration | 0% | 100% | Not using `useTranslation` hook |
-| NL Translation File | Missing | Complete | Only EN exists in `/src/i18n/locales/nl/` |
-| Language Selector | Global only | Step-aware | No toggle in onboarding header |
-| SessionRecoveryBanner | Absent | Integrated | Exists in partner-funnel but not used |
-| SocialProofCarousel | Absent | Integrated | Exists in partner-funnel but not used |
-| Testing Coverage | ~70% | 95%+ | Missing i18n tests, recovery tests |
-| Documentation | JSDoc absent | Complete | No component documentation |
+## Hardcoded Strings Found
 
----
+### 1. `CandidateOnboardingSteps.tsx` - handleSubmit function (lines 419-440)
+| Line | Hardcoded String | Required Translation Key |
+|------|------------------|-------------------------|
+| 421 | `"Consent required"` | `candidate.validation.consentRequired` |
+| 422 | `"Please accept the Privacy Policy..."` | `candidate.validation.consentRequiredDescription` |
+| 431 | `"Invalid password"` | `candidate.messages.invalidPassword` |
+| 432 | `"Please meet all password requirements"` | `candidate.messages.meetPasswordRequirements` |
+| 440 | `"Passwords do not match"` | `candidate.validation.passwordMismatch` |
+| 675 | `"Application submitted!"` | `candidate.messages.applicationSubmitted` |
+| 676 | `"Darryl will review..."` | `candidate.messages.reviewTime` |
+| 713 | `"Account creation failed"` | `candidate.messages.accountCreationFailed` |
+| 777 | `"Resume uploaded successfully"` | `candidate.messages.resumeUploaded` |
 
-## Implementation Phases
+### 2. `CandidateOnboardingSteps.tsx` - Error messages (lines 713-720)
+| Line | Hardcoded String |
+|------|------------------|
+| 714-718 | Error descriptions in toast |
 
-### Phase 1: i18n Integration (Score Impact: +5 pts)
+### 3. Dutch Translation File - Missing Keys
 
-**Files to modify:**
-
-1. **`src/components/candidate-onboarding/CandidateOnboardingSteps.tsx`**
-   - Add `import { useTranslation } from 'react-i18next';`
-   - Initialize: `const { t } = useTranslation('onboarding');`
-   - Replace all hardcoded strings with translation keys
-
-   Example transformation:
-   ```typescript
-   // Before
-   <h2 className="text-2xl font-semibold mb-2">Contact Information</h2>
-   
-   // After
-   <h2 className="text-2xl font-semibold mb-2">{t('steps.contact.title')}</h2>
-   ```
-
-2. **`src/pages/CandidateOnboarding.tsx`**
-   - Add `useTranslation` hook
-   - Translate header text: "Only 3% of applicants are accepted", "Apply for Elite Membership", etc.
-   - Update Helmet meta tags with translated content
-
-3. **Create `src/i18n/locales/nl/onboarding.json`**
-   - Copy structure from `src/locales/nl/onboarding.json` (which already exists)
-   - Move to correct location or import properly
+The Dutch file `nl/onboarding.json` is missing several keys that exist in English:
+- `candidate.messages.missingInfo`
+- `candidate.messages.fillRequiredFields`
+- `candidate.messages.pleaseEnterPhone`
+- `candidate.messages.enterCurrentTitle`
+- `candidate.messages.enterDreamJob`
+- `candidate.professional.linkedinOptional`
+- `candidate.professional.bioOptional`
+- `candidate.professional.uploading`
+- `candidate.professional.clickToUpload`
+- `candidate.preferences.enterCode`
+- `candidate.preferences.codeSentTo`
+- `candidate.preferences.typeToSearch`
 
 ---
 
-### Phase 2: Language Selector in Header (Score Impact: +2 pts)
+## Implementation Plan
 
-**Files to modify:**
+### Phase 1: Fix Hardcoded Strings in handleSubmit (lines 419-724)
 
-1. **`src/pages/CandidateOnboarding.tsx`**
-   - Add inline language toggle (EN/NL) next to ThemeToggle
-   - Use existing `LanguageSelector` component or create minimal dropdown
+Replace all hardcoded toast messages with translation calls:
 
-   ```typescript
-   // In header section, add:
-   <LanguageSelector variant="minimal" />
-   ```
+```typescript
+// Line 421-427 - Before:
+toast({ 
+  title: "Consent required", 
+  description: "Please accept the Privacy Policy and Terms of Service",
+  variant: "destructive" 
+});
 
----
+// After:
+toast({ 
+  title: t('candidate.validation.consentRequired'), 
+  description: t('candidate.validation.consentRequiredDescription'),
+  variant: "destructive" 
+});
+```
 
-### Phase 3: Session Recovery Integration (Score Impact: +3 pts)
+```typescript
+// Line 431-437 - Before:
+toast({ 
+  title: "Invalid password", 
+  description: "Please meet all password requirements",
+  variant: "destructive" 
+});
 
-**Files to modify:**
+// After:
+toast({ 
+  title: t('candidate.messages.invalidPassword'), 
+  description: t('candidate.messages.meetPasswordRequirements'),
+  variant: "destructive" 
+});
+```
 
-1. **`src/components/candidate-onboarding/CandidateOnboardingSteps.tsx`**
-   - Import `SessionRecoveryBanner` from partner-funnel
-   - Display after step 0 when email is entered
-   - Allow users to send recovery link to email for cross-device continuation
+```typescript
+// Line 440 - Before:
+toast({ title: "Passwords do not match", variant: "destructive" });
 
-   ```typescript
-   import { SessionRecoveryBanner } from '@/components/partner-funnel/SessionRecoveryBanner';
-   
-   // After step 0 completes, show:
-   {currentStep > 0 && formData.email && (
-     <SessionRecoveryBanner
-       sessionId={sessionId}
-       currentStep={currentStep}
-       onDismiss={() => setShowRecoveryBanner(false)}
-     />
-   )}
-   ```
+// After:
+toast({ title: t('candidate.validation.passwordMismatch'), variant: "destructive" });
+```
 
----
+```typescript
+// Line 675-678 - Before:
+toast({ 
+  title: "Application submitted!", 
+  description: "Darryl will review your application within 24-48 hours" 
+});
 
-### Phase 4: Social Proof Integration (Score Impact: +2 pts)
+// After:
+toast({ 
+  title: t('candidate.messages.applicationSubmitted'), 
+  description: t('candidate.messages.reviewTime') 
+});
+```
 
-**Files to modify:**
+```typescript
+// Line 712-720 - Before:
+toast({ 
+  title: "Account creation failed", 
+  description: error.message... 
+  variant: "destructive" 
+});
 
-1. **`src/pages/CandidateOnboarding.tsx`**
-   - Import `SocialProofCarousel` from partner-funnel
-   - Display below main onboarding card or in sidebar on desktop
-   - Only show on steps 1-4 (not on contact or password steps)
+// After:
+toast({ 
+  title: t('candidate.messages.accountCreationFailed'), 
+  description: error.message... // Keep dynamic error messages
+  variant: "destructive" 
+});
+```
 
-   ```typescript
-   import { SocialProofCarousel } from '@/components/partner-funnel/SocialProofCarousel';
-   
-   // Below CandidateOnboardingSteps:
-   <div className="mt-6">
-     <SocialProofCarousel />
-   </div>
-   ```
+```typescript
+// Line 777 - Before:
+toast({ title: "Resume uploaded successfully" });
 
----
+// After:
+toast({ title: t('candidate.messages.resumeUploaded') });
+```
 
-### Phase 5: Dutch Translation File Completion (Score Impact: +3 pts)
+### Phase 2: Complete Dutch Translation File
 
-**Files to create:**
+Add all missing keys to `src/i18n/locales/nl/onboarding.json`:
 
-1. **`src/i18n/locales/nl/onboarding.json`**
-   - Full Dutch translation matching structure of EN file
-   - Include all step titles, labels, buttons, errors, dialogs
-   - Already have a good base in `src/locales/nl/onboarding.json` - merge into correct location
+```json
+{
+  "candidate": {
+    "messages": {
+      "missingInfo": "Ontbrekende informatie",
+      "fillRequiredFields": "Vul alle verplichte velden in",
+      "pleaseEnterPhone": "Voer je telefoonnummer in",
+      "enterCurrentTitle": "Voer je huidige functietitel in",
+      "enterDreamJob": "Voer je droomfunctie in",
+      "invalidPassword": "Ongeldig wachtwoord",
+      "meetPasswordRequirements": "Voldoe aan alle wachtwoordvereisten"
+    },
+    "professional": {
+      "linkedinOptional": "(Optioneel)",
+      "bioOptional": "(Optioneel)",
+      "uploading": "Uploaden...",
+      "clickToUpload": "Klik om PDF of Word document te uploaden"
+    },
+    "preferences": {
+      "enterCode": "Voer verificatiecode in",
+      "codeSentTo": "We hebben een 6-cijferige code gestuurd naar",
+      "typeToSearch": "Typ om steden te zoeken..."
+    },
+    "validation": {
+      "consentRequiredDescription": "Accepteer het Privacybeleid en de Servicevoorwaarden"
+    }
+  }
+}
+```
 
----
+### Phase 3: Fix Dialog Box Translation Issue (line 1719)
 
-### Phase 6: Enhanced Testing (Score Impact: +3 pts)
+The dialog message is incorrectly split:
+```typescript
+// Before (line 1719):
+{t('candidate.dialog.accountExistsMessage', 'An account with')} <span>...</span> {t('candidate.dialog.accountExistsMessage', 'already exists.')}
 
-**Files to modify/create:**
+// After - use a single key with interpolation:
+<Trans 
+  i18nKey="candidate.dialog.accountExistsMessageWithEmail"
+  values={{ email: formData.email }}
+  components={{ bold: <span className="font-semibold text-foreground" /> }}
+>
+  An account with <bold>{{email}}</bold> already exists.
+</Trans>
+```
 
-1. **`src/components/candidate-onboarding/__tests__/CandidateOnboardingSteps.test.tsx`**
-   - Add i18n translation tests
-   - Add session recovery banner tests
-   - Add language switching tests
-
-2. **`tests/e2e/onboarding.spec.ts`**
-   - Add E2E test for language switching
-   - Add E2E test for session recovery flow
-   - Add E2E test for social proof visibility
-
----
-
-### Phase 7: Documentation (Score Impact: +2 pts)
-
-**Files to modify:**
-
-1. **`src/components/candidate-onboarding/CandidateOnboardingSteps.tsx`**
-   - Add JSDoc comments for main component
-   - Document each step's purpose
-   - Document validation logic
-
-   ```typescript
-   /**
-    * CandidateOnboardingSteps - Multi-step onboarding wizard for candidates
-    * 
-    * @description Enterprise-grade onboarding flow with:
-    * - Email/Phone verification via OTP
-    * - Progressive data collection across 6 steps
-    * - Session recovery for cross-device continuation
-    * - GDPR consent on final step
-    * - Full i18n support (EN/NL)
-    * 
-    * @example
-    * <CandidateOnboardingSteps />
-    */
-   ```
-
----
-
-## Technical Details
-
-### i18n Key Mapping (Phase 1)
-
-All strings in `CandidateOnboardingSteps.tsx` will map to:
-
-| Hardcoded String | Translation Key |
-|-----------------|-----------------|
-| "Contact Information" | `steps.contact.title` |
-| "Let's start with your basic details" | `steps.contact.subtitle` |
-| "Full Name" | `steps.contact.fullName` |
-| "Email Address" | `steps.contact.email` |
-| "Email verified" | `steps.contact.emailVerified` |
-| "Professional Details" | `steps.professional.title` |
-| "Continue" | `navigation.continue` |
-| "Back" | `navigation.back` |
-| "Create Account" | `navigation.createAccount` |
-| ... (100+ more strings) |
-
-### Session Recovery Edge Function
-
-The `send-recovery-email` edge function already exists. We just need to integrate the `SessionRecoveryBanner` component.
-
----
-
-## Expected Final Scores
-
-| Category | Before | After |
-|----------|--------|-------|
-| i18n Integration | 0 | 100 |
-| Testing Coverage | 70 | 95 |
-| UX Features | 85 | 100 |
-| Documentation | 40 | 80 |
-| **COMPOSITE SCORE** | **88** | **100** |
+Or simpler approach:
+```typescript
+{t('candidate.dialog.accountExistsMessage', 'An account with this email address already exists.')}
+```
 
 ---
 
-## Files Summary
+## Files to Modify
 
-### New Files
-- `src/i18n/locales/nl/onboarding.json` (if not already correct)
+### 1. `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx`
+- Lines 421-427: Replace hardcoded consent toast
+- Lines 431-437: Replace hardcoded password toast
+- Line 440: Replace hardcoded password mismatch toast
+- Lines 675-678: Replace hardcoded submission toast
+- Lines 712-720: Replace hardcoded error toast title
+- Line 777: Replace hardcoded resume upload toast
+- Line 1719: Fix dialog message translation
 
-### Modified Files
-1. `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx` - i18n, SessionRecovery, JSDoc
-2. `src/pages/CandidateOnboarding.tsx` - i18n, LanguageSelector, SocialProof
-3. `src/components/candidate-onboarding/__tests__/CandidateOnboardingSteps.test.tsx` - Enhanced tests
-4. `tests/e2e/onboarding.spec.ts` - i18n and recovery E2E tests
+### 2. `src/i18n/locales/nl/onboarding.json`
+- Add all missing translation keys listed above
+
+### 3. `src/i18n/locales/en/onboarding.json`
+- Add missing keys for consistency:
+  - `candidate.validation.consentRequiredDescription`
+  - `candidate.dialog.accountExistsMessageWithEmail` (if using interpolation)
 
 ---
 
 ## Verification Checklist
 
 After implementation:
-- [ ] All hardcoded strings replaced with `t()` calls
-- [ ] Language toggle works (EN ↔ NL)
-- [ ] Dutch translations display correctly
-- [ ] SessionRecoveryBanner appears after step 1
-- [ ] SocialProofCarousel displays testimonials
-- [ ] All unit tests pass
-- [ ] All E2E tests pass
-- [ ] No TypeScript errors
-- [ ] Mobile responsive verified
+- [ ] All toast messages use `t()` function
+- [ ] All form labels use `t()` function
+- [ ] All validation messages use `t()` function
+- [ ] Dutch translation file has all keys matching English file
+- [ ] Switch language to NL and verify all text changes
+- [ ] No console warnings about missing translation keys
+- [ ] Test all 6 onboarding steps in both languages
