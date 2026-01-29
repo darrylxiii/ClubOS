@@ -699,6 +699,21 @@ export function CandidateOnboardingSteps() {
 
       // User stays logged in after account creation - no signOut()
 
+      // Send application submitted email (non-blocking)
+      try {
+        await supabase.functions.invoke('send-application-submitted-email', {
+          body: {
+            userId: authData.user.id,
+            email: formData.email,
+            fullName: formData.full_name
+          }
+        });
+        console.log('[Onboarding] Application submitted email sent');
+      } catch (emailError) {
+        console.error('[Onboarding] Failed to send confirmation email:', emailError);
+        // Non-blocking - don't fail onboarding if email fails
+      }
+
       toast({
         title: t('candidate.messages.applicationSubmitted', 'Application submitted!'), 
         description: t('candidate.messages.reviewTime', 'Darryl will review your application within 24-48 hours') 

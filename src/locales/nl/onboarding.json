@@ -164,5 +164,24 @@
   "pendingApproval": {
     "submittedTitle": "Aanvraag Ingediend",
     "submittedDescription": "Bedankt voor je aanmelding. Controleer je e-mail voor bevestiging en log in om je aanvraagstatus te volgen."
+  },
+  "applicationPortal": {
+    "title": "Aanvraagstatus",
+    "invalidToken": "Ongeldige of verlopen toegangslink",
+    "invalidTokenDescription": "Deze link is mogelijk ongeldig. Neem contact op met support of log in als je bent goedgekeurd.",
+    "signIn": "Inloggen",
+    "pending": {
+      "title": "Aanvraag Wordt Beoordeeld",
+      "description": "Je aanvraag wordt beoordeeld. We sturen je een e-mail zodra er een beslissing is genomen."
+    },
+    "approved": {
+      "title": "Je Bent Goedgekeurd!",
+      "description": "Gefeliciteerd! Check je e-mail voor je persoonlijke inloglink, of log hieronder in.",
+      "accessDashboard": "Inloggen"
+    },
+    "declined": {
+      "title": "Aanvraag Update",
+      "description": "Bedankt voor je interesse. Helaas kunnen we op dit moment niet doorgaan met je aanvraag."
+    }
   }
 }

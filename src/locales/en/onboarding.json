@@ -164,5 +164,24 @@
   "pendingApproval": {
     "submittedTitle": "Application Submitted",
     "submittedDescription": "Thank you for applying. Please check your email for confirmation and sign in to track your application status."
+  },
+  "applicationPortal": {
+    "title": "Application Status",
+    "invalidToken": "Invalid or expired access link",
+    "invalidTokenDescription": "This link may be invalid. Please contact support or sign in if you've been approved.",
+    "signIn": "Sign In",
+    "pending": {
+      "title": "Application Under Review",
+      "description": "Your application is being reviewed. We'll send you an email once a decision is made."
+    },
+    "approved": {
+      "title": "You've Been Approved!",
+      "description": "Congratulations! Check your email for your personal login link, or sign in below.",
+      "accessDashboard": "Sign In"
+    },
+    "declined": {
+      "title": "Application Update",
+      "description": "Thank you for your interest. Unfortunately, we're unable to proceed with your application at this time."
+    }
   }
 }
