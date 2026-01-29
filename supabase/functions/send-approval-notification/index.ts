@@ -14,9 +14,10 @@ interface NotificationRequest {
   userId: string;
   email: string;
   fullName: string;
-  requestType: 'candidate' | 'partner';
+  requestType?: 'candidate' | 'partner';
   status: 'approved' | 'declined';
   declineReason?: string;
+  testMode?: boolean;
 }
 
 serve(async (req) => {
@@ -25,9 +26,13 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, email, fullName, requestType, status, declineReason }: NotificationRequest = await req.json();
+    const { userId, email, fullName, requestType = 'candidate', status, declineReason, testMode }: NotificationRequest = await req.json();
 
-    console.log('[send-approval-notification] Processing:', { userId, email, requestType, status });
+    console.log('[send-approval-notification] Processing:', { userId, email, requestType, status, testMode });
+
+    if (!email || !fullName) {
+      throw new Error('Missing required fields: email or fullName');
+    }
 
     const appUrl = getAppUrl();
     let loginUrl = `${appUrl}/auth`;

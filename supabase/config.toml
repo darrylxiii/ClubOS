@@ -527,8 +527,11 @@ verify_jwt = false
 [functions.send-notification-email]
 verify_jwt = true
 
+[functions.send-application-submitted-email]
+verify_jwt = false
+
 [functions.send-approval-notification]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-approval-sms]
 verify_jwt = true
