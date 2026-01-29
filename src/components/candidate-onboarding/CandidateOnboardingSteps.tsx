@@ -697,9 +697,9 @@ export function CandidateOnboardingSteps() {
 
       await trackStep("complete");
 
-      await supabase.auth.signOut();
+      // User stays logged in after account creation - no signOut()
 
-      toast({ 
+      toast({
         title: t('candidate.messages.applicationSubmitted', 'Application submitted!'), 
         description: t('candidate.messages.reviewTime', 'Darryl will review your application within 24-48 hours') 
       });
