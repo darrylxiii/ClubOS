@@ -34,7 +34,13 @@ export default function PendingApproval() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        navigate("/auth");
+        // Show generic pending message for logged-out users (just submitted)
+        setStatus({ 
+          account_status: 'pending', 
+          account_decline_reason: null, 
+          full_name: '' 
+        });
+        setLoading(false);
         return;
       }
 

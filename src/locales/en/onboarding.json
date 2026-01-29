@@ -160,5 +160,9 @@
       "tryDifferent": "Try Different Email",
       "goToLogin": "Go to Login"
     }
+  },
+  "pendingApproval": {
+    "submittedTitle": "Application Submitted",
+    "submittedDescription": "Thank you for applying. Please check your email for confirmation and sign in to track your application status."
   }
 }

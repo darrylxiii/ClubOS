@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { CandidateOnboardingSteps } from "@/components/candidate-onboarding/CandidateOnboardingSteps";
@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Sparkles } from "lucide-react";
 import quantumLogoLight from "@/assets/quantum-logo-dark.png";
 import quantumLogoDark from "@/assets/quantum-club-logo.png";
+import { PageLoader } from "@/components/PageLoader";
 
 /**
  * CandidateOnboarding - Main onboarding page for candidate applications
@@ -25,7 +26,40 @@ import quantumLogoDark from "@/assets/quantum-club-logo.png";
  */
 export default function CandidateOnboarding() {
   const { t } = useTranslation('onboarding');
+  const navigate = useNavigate();
   const [isActive, setIsActive] = useState(true);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Check if user is already logged in and redirect appropriately
+  useEffect(() => {
+    const checkExistingUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('account_status, onboarding_completed_at')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile) {
+            if (profile.account_status === 'approved' && profile.onboarding_completed_at) {
+              navigate('/home');
+              return;
+            } else {
+              navigate('/pending-approval');
+              return;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[Onboarding] Auth check error:', error);
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+    checkExistingUser();
+  }, [navigate]);
 
   useEffect(() => {
     loadFunnelConfig();
@@ -52,6 +86,11 @@ export default function CandidateOnboarding() {
       setIsActive(true);
     }
   };
+
+  // Show loader while checking auth
+  if (checkingAuth) {
+    return <PageLoader />;
+  }
 
   if (!isActive) {
     return (

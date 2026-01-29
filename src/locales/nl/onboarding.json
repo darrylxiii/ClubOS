@@ -160,5 +160,9 @@
       "tryDifferent": "Ander E-mailadres Proberen",
       "goToLogin": "Naar Inloggen"
     }
+  },
+  "pendingApproval": {
+    "submittedTitle": "Aanvraag Ingediend",
+    "submittedDescription": "Bedankt voor je aanmelding. Controleer je e-mail voor bevestiging en log in om je aanvraagstatus te volgen."
   }
 }
