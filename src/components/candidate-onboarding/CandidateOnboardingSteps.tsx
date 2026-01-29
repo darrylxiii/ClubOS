@@ -64,7 +64,8 @@ export function CandidateOnboardingSteps() {
   const [selectedCity, setSelectedCity] = useState("");
   const [cityRadius, setCityRadius] = useState(25);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [gdprConsent, setGdprConsent] = useState(false);
+  const [termsConsent, setTermsConsent] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   
   const { uploadResume, isUploading: isUploadingResume, validateFile } = useResumeUpload();
   
@@ -395,8 +396,12 @@ export function CandidateOnboardingSteps() {
         }
         break;
       case 5:
-        if (!gdprConsent) {
-          toast({ title: t('candidate.validation.consentRequired', 'Please accept the Privacy Policy and Terms of Service'), variant: "destructive" });
+        if (!termsConsent || !privacyConsent) {
+          toast({ 
+            title: t('candidate.validation.consentRequired', 'Consent required'), 
+            description: t('candidate.validation.acceptBothRequired', 'Please accept both the Terms of Service and Privacy Policy to continue'),
+            variant: "destructive" 
+          });
           return false;
         }
         if (!password || password.length < 12) {
@@ -417,10 +422,10 @@ export function CandidateOnboardingSteps() {
   };
 
   const handleSubmit = async () => {
-    if (!gdprConsent) {
+    if (!termsConsent || !privacyConsent) {
       toast({ 
         title: t('candidate.validation.consentRequired', 'Consent required'), 
-        description: t('candidate.validation.consentRequiredDescription', 'Please accept the Privacy Policy and Terms of Service'),
+        description: t('candidate.validation.acceptBothRequired', 'Please accept both the Terms of Service and Privacy Policy to continue'),
         variant: "destructive" 
       });
       return;
@@ -490,34 +495,56 @@ export function CandidateOnboardingSteps() {
 
       console.log('[Onboarding] Profile verified, updating with onboarding data');
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          phone: phoneNumber || null,
-          phone_verified: !!phoneNumber,
-          email_verified: true,
-          location: formData.location || null,
-          current_title: formData.current_title,
-          linkedin_url: formData.linkedin_url || null,
-          career_preferences: formData.bio || null,
-          employment_type_preference: formData.employment_type,
-          notice_period: formData.notice_period,
-          current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
-          current_salary_max: formData.salary_preference_hidden ? null : formData.current_salary_max,
-          salary_preference_hidden: formData.salary_preference_hidden,
-          desired_salary_min: formData.desired_salary_min,
-          desired_salary_max: formData.desired_salary_max,
-          freelance_hourly_rate_min: formData.freelance_hourly_rate_min,
-          freelance_hourly_rate_max: formData.freelance_hourly_rate_max,
-          remote_work_preference: formData.remote_work_preference,
-          remote_work_aspiration: formData.remote_work_aspiration,
-          preferred_work_locations: formData.preferred_work_locations,
-          resume_url: formData.resume_url || null,
-          resume_filename: formData.resume_filename || null,
-          onboarding_completed_at: new Date().toISOString(),
-          account_status: 'pending',
-        })
-        .eq('id', authData.user.id);
+        const consentTimestamp = new Date().toISOString();
+
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            phone: phoneNumber || null,
+            phone_verified: !!phoneNumber,
+            email_verified: true,
+            location: formData.location || null,
+            current_title: formData.current_title,
+            linkedin_url: formData.linkedin_url || null,
+            career_preferences: formData.bio || null,
+            employment_type_preference: formData.employment_type,
+            notice_period: formData.notice_period,
+            current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
+            current_salary_max: formData.salary_preference_hidden ? null : formData.current_salary_max,
+            salary_preference_hidden: formData.salary_preference_hidden,
+            desired_salary_min: formData.desired_salary_min,
+            desired_salary_max: formData.desired_salary_max,
+            freelance_hourly_rate_min: formData.freelance_hourly_rate_min,
+            freelance_hourly_rate_max: formData.freelance_hourly_rate_max,
+            remote_work_preference: formData.remote_work_preference,
+            remote_work_aspiration: formData.remote_work_aspiration,
+            preferred_work_locations: formData.preferred_work_locations,
+            resume_url: formData.resume_url || null,
+            resume_filename: formData.resume_filename || null,
+            onboarding_completed_at: consentTimestamp,
+            account_status: 'pending',
+            terms_accepted_at: consentTimestamp,
+            privacy_accepted_at: consentTimestamp,
+          })
+          .eq('id', authData.user.id);
+
+        // Create consent receipts for audit trail
+        await Promise.all([
+          supabase.from('consent_receipts').insert({
+            user_id: authData.user.id,
+            consent_type: 'terms_of_service',
+            scope: 'platform_usage',
+            granted: true,
+            consent_text: 'User accepted Terms of Service during onboarding'
+          }),
+          supabase.from('consent_receipts').insert({
+            user_id: authData.user.id,
+            consent_type: 'privacy_policy',
+            scope: 'data_processing_and_communications',
+            granted: true,
+            consent_text: 'User accepted Privacy Policy during onboarding (includes marketing communications consent)'
+          })
+        ]);
 
       if (profileError) {
         console.error("[Onboarding] Profile update error:", profileError);
@@ -1473,32 +1500,57 @@ export function CandidateOnboardingSteps() {
                   )}
                 </div>
 
-                {/* GDPR Consent Checkbox */}
-                <div className="p-4 border-2 border-border rounded-lg bg-accent/5 space-y-3">
+                {/* Legal Agreements - Two separate checkboxes */}
+                <div className="p-4 border-2 border-border rounded-lg bg-accent/5 space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    {t('candidate.consent.sectionTitle', 'Legal Agreements')}
+                  </h3>
+                  
+                  {/* Terms of Service Checkbox */}
                   <div className="flex items-start gap-3">
                     <Checkbox
-                      id="gdpr-consent"
-                      checked={gdprConsent}
-                      onCheckedChange={(checked) => setGdprConsent(checked === true)}
-                      aria-label={t('candidate.password.gdprConsent', 'GDPR consent')}
+                      id="terms-consent"
+                      checked={termsConsent}
+                      onCheckedChange={(checked) => setTermsConsent(checked === true)}
+                      aria-label={t('candidate.consent.termsLabel', 'Terms of Service consent')}
                       aria-required="true"
-                      className="mt-1"
+                      className="mt-0.5"
                     />
-                    <Label htmlFor="gdpr-consent" className="text-sm leading-relaxed cursor-pointer">
-                      {t('candidate.password.gdprConsent', 'I agree to the')}{" "}
-                      <Link to="/privacy" className="text-primary underline hover:text-primary/80" target="_blank">
-                        {t('candidate.password.privacyPolicy', 'Privacy Policy')}
-                      </Link>{" "}
-                      {t('candidate.password.and', 'and')}{" "}
+                    <Label htmlFor="terms-consent" className="text-sm leading-relaxed cursor-pointer">
+                      {t('candidate.consent.termsLabel', 'I agree to the')}{" "}
                       <Link to="/terms" className="text-primary underline hover:text-primary/80" target="_blank">
-                        {t('candidate.password.termsOfService', 'Terms of Service')}
-                      </Link>
-                      . {t('candidate.password.consentDescription', 'I consent to the processing of my personal data as described.')} *
+                        {t('candidate.consent.termsLink', 'Terms of Service')}
+                      </Link>{" "}*
                     </Label>
                   </div>
-                  {!gdprConsent && (
-                    <p className="text-xs text-muted-foreground pl-6">
-                      {t('candidate.password.mustAccept', 'You must accept to continue with registration')}
+
+                  {/* Privacy Policy Checkbox */}
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="privacy-consent"
+                      checked={privacyConsent}
+                      onCheckedChange={(checked) => setPrivacyConsent(checked === true)}
+                      aria-label={t('candidate.consent.privacyLabel', 'Privacy Policy consent')}
+                      aria-required="true"
+                      className="mt-0.5"
+                    />
+                    <Label htmlFor="privacy-consent" className="text-sm leading-relaxed cursor-pointer">
+                      {t('candidate.consent.privacyLabel', 'I agree to the')}{" "}
+                      <Link to="/privacy" className="text-primary underline hover:text-primary/80" target="_blank">
+                        {t('candidate.consent.privacyLink', 'Privacy Policy')}
+                      </Link>{" "}*
+                    </Label>
+                  </div>
+
+                  {/* Communications Note */}
+                  <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">
+                    {t('candidate.consent.communicationsNote', 'By creating an account, you consent to receiving career opportunities and communications from The Quantum Club.')}
+                  </p>
+
+                  {/* Validation hint */}
+                  {(!termsConsent || !privacyConsent) && (
+                    <p className="text-xs text-destructive/80">
+                      {t('candidate.consent.mustAcceptBoth', 'Both agreements are required to continue')}
                     </p>
                   )}
                 </div>
@@ -1508,7 +1560,8 @@ export function CandidateOnboardingSteps() {
                 <p className="text-sm text-muted-foreground">
                   ✓ {t('candidate.password.emailVerifiedLabel', 'Email verified')}: {formData.email}<br/>
                   ✓ {t('candidate.password.phoneVerifiedLabel', 'Phone verified')}: {phoneNumber}<br/>
-                  {gdprConsent ? "✓" : "○"} {t('candidate.password.termsAccepted', 'Terms accepted')}<br/>
+                  {termsConsent ? "✓" : "○"} {t('candidate.consent.termsLink', 'Terms of Service')}<br/>
+                  {privacyConsent ? "✓" : "○"} {t('candidate.consent.privacyLink', 'Privacy Policy')}<br/>
                   ○ {t('candidate.password.accountCreated', 'Account will be created after submission')}
                 </p>
               </div>
@@ -1661,7 +1714,7 @@ export function CandidateOnboardingSteps() {
           <Button 
             type="button" 
             onClick={handleSubmit} 
-            disabled={isLoading || !isOnline || !gdprConsent}
+            disabled={isLoading || !isOnline || !termsConsent || !privacyConsent}
             aria-label={t('candidate.navigation.createAccount', 'Create account')}
           >
             {isLoading ? t('candidate.navigation.creatingAccount', 'Creating Account...') : t('candidate.navigation.createAccount', 'Create Account')}

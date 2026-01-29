@@ -125,6 +125,19 @@
     "termsOfService": "Terms of Service",
     "consentDescription": "I consent to the processing of my personal data as described."
   },
+  "consent": {
+    "sectionTitle": "Legal Agreements",
+    "termsLabel": "I agree to the",
+    "termsLink": "Terms of Service",
+    "privacyLabel": "I agree to the",
+    "privacyLink": "Privacy Policy",
+    "communicationsNote": "By creating an account, you consent to receiving career opportunities and communications from The Quantum Club.",
+    "mustAcceptBoth": "Both agreements are required to continue"
+  },
+  "validation": {
+    "consentRequired": "Consent required",
+    "acceptBothRequired": "Please accept both the Terms of Service and Privacy Policy to continue"
+  },
   "errors": {
     "missingInfo": "Please fill in all required fields",
     "invalidEmail": "Please enter a valid email address",
