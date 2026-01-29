@@ -36075,6 +36075,7 @@ export type Database = {
           apple_music_connected: boolean | null
           apple_music_playlists: Json | null
           apple_music_user_id: string | null
+          application_access_token: string | null
           assigned_strategist_id: string | null
           availability_onboarding_completed: boolean | null
           available_hours_per_week: number | null
@@ -36193,6 +36194,7 @@ export type Database = {
           apple_music_connected?: boolean | null
           apple_music_playlists?: Json | null
           apple_music_user_id?: string | null
+          application_access_token?: string | null
           assigned_strategist_id?: string | null
           availability_onboarding_completed?: boolean | null
           available_hours_per_week?: number | null
@@ -36311,6 +36313,7 @@ export type Database = {
           apple_music_connected?: boolean | null
           apple_music_playlists?: Json | null
           apple_music_user_id?: string | null
+          application_access_token?: string | null
           assigned_strategist_id?: string | null
           availability_onboarding_completed?: boolean | null
           available_hours_per_week?: number | null
@@ -52085,6 +52088,30 @@ export type Database = {
       }
     }
     Views: {
+      application_status_public: {
+        Row: {
+          account_decline_reason: string | null
+          account_status: string | null
+          application_access_token: string | null
+          created_at: string | null
+          full_name: string | null
+        }
+        Insert: {
+          account_decline_reason?: string | null
+          account_status?: string | null
+          application_access_token?: string | null
+          created_at?: string | null
+          full_name?: string | null
+        }
+        Update: {
+          account_decline_reason?: string | null
+          account_status?: string | null
+          application_access_token?: string | null
+          created_at?: string | null
+          full_name?: string | null
+        }
+        Relationships: []
+      }
       applications_with_deleted_candidates: {
         Row: {
           application_source:

@@ -82,6 +82,7 @@ const PartnerFunnel = lazy(() => import("./pages/PartnerFunnel"));
 const PartnershipSubmitted = lazy(() => import("./pages/PartnershipSubmitted"));
 const CandidateOnboarding = lazy(() => import("./pages/CandidateOnboarding"));
 const PendingApproval = lazy(() => import("./pages/PendingApproval"));
+const ApplicationStatusPortal = lazy(() => import("./pages/ApplicationStatusPortal"));
 const OAuthOnboarding = lazy(() => import("./pages/OAuthOnboarding"));
 const ClubHome = lazy(() => import("./pages/ClubHome"));
 
@@ -228,6 +229,13 @@ const App = () => {
                   <PublicProviders>
                     <RouteErrorBoundary>
                       <Suspense fallback={<PageLoader />}><PendingApproval /></Suspense>
+                    </RouteErrorBoundary>
+                  </PublicProviders>
+                } />
+                <Route path="/application/status/:token" element={
+                  <PublicProviders>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><ApplicationStatusPortal /></Suspense>
                     </RouteErrorBoundary>
                   </PublicProviders>
                 } />
