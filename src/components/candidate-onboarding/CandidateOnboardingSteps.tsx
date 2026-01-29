@@ -419,8 +419,8 @@ export function CandidateOnboardingSteps() {
   const handleSubmit = async () => {
     if (!gdprConsent) {
       toast({ 
-        title: "Consent required", 
-        description: "Please accept the Privacy Policy and Terms of Service",
+        title: t('candidate.validation.consentRequired', 'Consent required'), 
+        description: t('candidate.validation.consentRequiredDescription', 'Please accept the Privacy Policy and Terms of Service'),
         variant: "destructive" 
       });
       return;
@@ -429,15 +429,15 @@ export function CandidateOnboardingSteps() {
     if (password.length < 12 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || 
         !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
       toast({ 
-        title: "Invalid password", 
-        description: "Please meet all password requirements",
+        title: t('candidate.messages.invalidPassword', 'Invalid password'), 
+        description: t('candidate.messages.meetPasswordRequirements', 'Please meet all password requirements'),
         variant: "destructive" 
       });
       return;
     }
 
     if (password !== confirmPassword) {
-      toast({ title: "Passwords do not match", variant: "destructive" });
+      toast({ title: t('candidate.validation.passwordMismatch', 'Passwords do not match'), variant: "destructive" });
       return;
     }
 
@@ -673,8 +673,8 @@ export function CandidateOnboardingSteps() {
       await supabase.auth.signOut();
 
       toast({ 
-        title: "Application submitted!", 
-        description: "Darryl will review your application within 24-48 hours" 
+        title: t('candidate.messages.applicationSubmitted', 'Application submitted!'), 
+        description: t('candidate.messages.reviewTime', 'Darryl will review your application within 24-48 hours') 
       });
 
       setCurrentStep(6);
@@ -710,12 +710,12 @@ export function CandidateOnboardingSteps() {
       }
 
       toast({ 
-        title: "Account creation failed", 
+        title: t('candidate.messages.accountCreationFailed', 'Account creation failed'), 
         description: error.message?.includes('already linked') 
-          ? "This email is already associated with another account. Please contact support@thequantumclub.com"
+          ? t('candidate.messages.emailAlreadyLinked', 'This email is already associated with another account. Please contact support@thequantumclub.com')
           : error.message?.includes('link your profile')
-          ? "We found your profile but couldn't complete the merge. Please try again or contact support."
-          : error.message || "An unexpected error occurred. Please try again or contact support.", 
+          ? t('candidate.messages.profileMergeFailed', "We found your profile but couldn't complete the merge. Please try again or contact support.")
+          : error.message || t('candidate.messages.unexpectedError', 'An unexpected error occurred. Please try again or contact support.'), 
         variant: "destructive" 
       });
     } finally {
@@ -774,7 +774,7 @@ export function CandidateOnboardingSteps() {
           resume_filename: file.name,
         });
 
-        toast({ title: "Resume uploaded successfully" });
+        toast({ title: t('candidate.messages.resumeUploaded', 'Resume uploaded successfully') });
       }
     } catch (error: any) {
       console.error('Upload error:', error);

@@ -45,12 +45,16 @@
       "experience": "Jaren ervaring",
       "linkedin": "LinkedIn profiel",
       "linkedinPlaceholder": "https://linkedin.com/in/jandvries",
+      "linkedinOptional": "(Optioneel)",
       "bio": "Korte biografie",
       "bioPlaceholder": "Vertel ons over jezelf...",
+      "bioOptional": "(Optioneel)",
       "resume": "CV uploaden",
       "resumeUploaded": "CV geüpload",
       "uploadResume": "Uploaden",
-      "removeResume": "Verwijderen"
+      "removeResume": "Verwijderen",
+      "uploading": "Uploaden...",
+      "clickToUpload": "Klik om PDF of Word document te uploaden"
     },
     "career": {
       "title": "Wat zoek je?",
@@ -108,6 +112,7 @@
       "availableHours": "Beschikbare uren per week",
       "preferredCities": "Voorkeurssteden (optioneel)",
       "searchCities": "Zoek naar steden...",
+      "typeToSearch": "Typ om steden te zoeken...",
       "add": "Toevoegen",
       "maxDistance": "Maximale afstand vanaf",
       "withinRadius": "Binnen {{km}} km straal",
@@ -116,7 +121,9 @@
       "required": "Vereist",
       "mobileNumber": "Mobiel nummer",
       "selectCountry": "Selecteer je land en voer je nummer in. We sturen een verificatiecode.",
-      "phoneVerified": "Telefoon succesvol geverifieerd"
+      "phoneVerified": "Telefoon succesvol geverifieerd",
+      "enterCode": "Voer verificatiecode in",
+      "codeSentTo": "We hebben een 6-cijferige code gestuurd naar"
     },
     "password": {
       "title": "Beveilig je account",
@@ -165,9 +172,12 @@
       "weakPassword": "Wachtwoord voldoet niet aan de vereisten",
       "pleaseVerifyEmail": "Verifieer eerst je e-mailadres",
       "pleaseVerifyPhone": "Verifieer eerst je telefoonnummer",
-      "consentRequired": "Accepteer het Privacybeleid en de Servicevoorwaarden"
+      "consentRequired": "Toestemming vereist",
+      "consentRequiredDescription": "Accepteer het Privacybeleid en de Servicevoorwaarden"
     },
     "messages": {
+      "missingInfo": "Ontbrekende informatie",
+      "fillRequiredFields": "Vul alle verplichte velden in",
       "savingProgress": "Voortgang opslaan...",
       "progressSaved": "Voortgang opgeslagen",
       "submitting": "Aanvraag verzenden...",
@@ -183,7 +193,15 @@
       "applicationSubmitted": "Aanvraag verzonden!",
       "reviewTime": "Darryl zal je aanvraag binnen 24-48 uur bekijken",
       "invalidCode": "Ongeldige code",
-      "phoneVerified": "Telefoon succesvol geverifieerd!"
+      "phoneVerified": "Telefoon succesvol geverifieerd!",
+      "pleaseEnterPhone": "Voer je telefoonnummer in",
+      "enterCurrentTitle": "Voer je huidige functietitel in",
+      "enterDreamJob": "Voer je droomfunctie in",
+      "invalidPassword": "Ongeldig wachtwoord",
+      "meetPasswordRequirements": "Voldoe aan alle wachtwoordvereisten",
+      "emailAlreadyLinked": "Dit e-mailadres is al gekoppeld aan een ander account. Neem contact op met support@thequantumclub.com",
+      "profileMergeFailed": "We hebben je profiel gevonden maar konden de samenvoeging niet voltooien. Probeer het opnieuw of neem contact op met support.",
+      "unexpectedError": "Er is een onverwachte fout opgetreden. Probeer het opnieuw of neem contact op met support."
     },
     "navigation": {
       "back": "Terug",

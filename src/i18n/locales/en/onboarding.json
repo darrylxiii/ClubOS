@@ -169,7 +169,8 @@
       "weakPassword": "Password does not meet requirements",
       "pleaseVerifyEmail": "Please verify your email address first",
       "pleaseVerifyPhone": "Please verify your phone number first",
-      "consentRequired": "Please accept the Privacy Policy and Terms of Service"
+      "consentRequired": "Consent required",
+      "consentRequiredDescription": "Please accept the Privacy Policy and Terms of Service"
     },
     "messages": {
       "missingInfo": "Missing information",
@@ -194,7 +195,10 @@
       "enterCurrentTitle": "Please enter your current job title",
       "enterDreamJob": "Please enter your dream job title",
       "invalidPassword": "Invalid password",
-      "meetPasswordRequirements": "Please meet all password requirements"
+      "meetPasswordRequirements": "Please meet all password requirements",
+      "emailAlreadyLinked": "This email is already associated with another account. Please contact support@thequantumclub.com",
+      "profileMergeFailed": "We found your profile but couldn't complete the merge. Please try again or contact support.",
+      "unexpectedError": "An unexpected error occurred. Please try again or contact support."
     },
     "navigation": {
       "back": "Back",
