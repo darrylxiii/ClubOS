@@ -1,0 +1,197 @@
+{
+  "navigation": {
+    "home": "Home",
+    "jobs": "Vacatures",
+    "messages": "Berichten",
+    "applications": "Sollicitaties",
+    "profile": "Profiel",
+    "settings": "Instellingen",
+    "admin": "Admin",
+    "clubhome": "Club Home",
+    "academy": "Academy",
+    "quantum_meetings": "Quantum Meetings",
+    "analytics": "Analytics",
+    "hiring_intelligence": "Hiring Intelligence",
+    "viewAll": "Alles bekijken"
+  },
+  "actions": {
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "apply": "Solliciteren",
+    "submit": "Verzenden",
+    "continue": "Doorgaan",
+    "back": "Terug",
+    "next": "Volgende",
+    "loading": "Laden...",
+    "search": "Zoeken",
+    "filter": "Filteren",
+    "download": "Downloaden",
+    "upload": "Uploaden",
+    "view": "Bekijken",
+    "close": "Sluiten",
+    "confirm": "Bevestigen",
+    "resend": "Opnieuw versturen",
+    "verify": "Verifiëren",
+    "save_changes": "Wijzigingen opslaan",
+    "start": "Starten",
+    "join": "Deelnemen",
+    "refresh": "Vernieuwen"
+  },
+  "status": {
+    "pending": "In behandeling",
+    "approved": "Goedgekeurd",
+    "declined": "Afgewezen",
+    "rejected": "Afgewezen",
+    "active": "Actief",
+    "archived": "Gearchiveerd",
+    "completed": "Voltooid",
+    "in_progress": "Bezig",
+    "liveNow": "Nu live",
+    "startingSoon": "Start binnenkort",
+    "all": "Alle statussen"
+  },
+  "time": {
+    "today": "Vandaag",
+    "yesterday": "Gisteren",
+    "lastWeek": "Vorige week",
+    "lastMonth": "Vorige maand",
+    "thisWeek": "Deze week",
+    "daysAgo": "{{count}} dag geleden",
+    "daysAgo_other": "{{count}} dagen geleden",
+    "hoursAgo": "{{count}} uur geleden",
+    "hoursAgo_other": "{{count}} uur geleden",
+    "minutesAgo": "{{count}} minuut geleden",
+    "minutesAgo_other": "{{count}} minuten geleden"
+  },
+  "empty": {
+    "noResults": "Geen resultaten gevonden",
+    "noData": "Geen gegevens beschikbaar",
+    "tryAgain": "Probeer opnieuw",
+    "noMeetings": "Geen aankomende meetings",
+    "allCaughtUp": "Alles bijgewerkt!"
+  },
+  "validation": {
+    "required": "Dit veld is verplicht",
+    "invalidEmail": "Ongeldig e-mailadres",
+    "invalidPhone": "Ongeldig telefoonnummer",
+    "passwordTooShort": "Wachtwoord moet minimaal 12 tekens bevatten",
+    "passwordMismatch": "Wachtwoorden komen niet overeen"
+  },
+  "notifications": {
+    "success": "Succes",
+    "error": "Fout",
+    "info": "Info",
+    "warning": "Waarschuwing"
+  },
+  "preferences": {
+    "display": {
+      "title": "Weergavevoorkeuren",
+      "description": "Pas aan hoe het platform eruitziet"
+    },
+    "language": {
+      "label": "Taal",
+      "description": "Selecteer je voorkeurstaal"
+    },
+    "currency": {
+      "label": "Valuta",
+      "description": "Selecteer je voorkeursvaluta"
+    },
+    "timezone": {
+      "label": "Werkzone",
+      "description": "Je voorkeurszone voor meetings en werkuren"
+    },
+    "availability": {
+      "label": "Beschikbare uren per week",
+      "description": "Hoeveel uur per week je kunt werken"
+    }
+  },
+  "settings": {
+    "tabs": {
+      "profile": "Profiel",
+      "compensation": "Salaris",
+      "preferences": "Voorkeuren",
+      "privacy": "Privacy",
+      "security": "Beveiliging",
+      "connections": "Verbindingen",
+      "notifications": "Notificaties",
+      "calendar": "Agenda",
+      "freelance": "Freelance projecten"
+    }
+  },
+  "roles": {
+    "admin": "Beheerder",
+    "partner": "Partner",
+    "strategist": "Strateeg",
+    "candidate": "Kandidaat",
+    "user": "Lid"
+  },
+  "home": {
+    "greeting": {
+      "morning": "Goedemorgen",
+      "afternoon": "Goedemiddag",
+      "evening": "Goedenavond"
+    },
+    "clubMember": "Club lid",
+    "welcome": "Welkom terug",
+    "welcomeBack": "Welkom terug, {{name}}",
+    "personalizedDashboard": "Dit is je gepersonaliseerde dashboard"
+  },
+  "dashboard": {
+    "quickActions": {
+      "title": "Snelle acties",
+      "description": "Veelgebruikte taken en snelkoppelingen"
+    },
+    "quickManagement": {
+      "title": "Snelbeheer",
+      "description": "Veelgebruikte admin taken"
+    },
+    "upcomingMeetings": {
+      "title": "Aankomende meetings",
+      "description": "Je geplande gesprekken en interviews",
+      "scheduleMeeting": "Meeting plannen"
+    },
+    "timeTracking": {
+      "myTime": "Mijn tijdregistratie",
+      "teamTime": "Team tijdregistratie",
+      "thisWeek": "Deze week",
+      "earnings": "Inkomsten",
+      "teamHours": "Team uren",
+      "timerRunning": "Timer actief",
+      "viewTimer": "Timer bekijken",
+      "startTracking": "Start registratie"
+    },
+    "nextSteps": {
+      "title": "Volgende stappen",
+      "yourJourney": "Jouw reis",
+      "stageProgress": "Fase voortgang",
+      "overallJourney": "Totale reis",
+      "tasksComplete": "{{completed}} van {{total}} taken",
+      "allTasksComplete": "Je hebt alle taken voor je huidige fase voltooid",
+      "exploreJobs": "Bekijk vacatures"
+    }
+  },
+  "partner": {
+    "postJob": "Nieuwe vacature plaatsen",
+    "reviewApplications": "Sollicitaties bekijken",
+    "updateCompany": "Bedrijfsprofiel bijwerken",
+    "messageCandidate": "Kandidaten berichten"
+  },
+  "admin": {
+    "manageUsers": "Gebruikers & rollen beheren",
+    "manageCompanies": "Bedrijven beheren",
+    "securitySettings": "Beveiligingsinstellingen",
+    "viewLogs": "Systeemlogs bekijken",
+    "kpiCenter": "KPI Command Center"
+  },
+  "filters": {
+    "searchPlaceholder": "Zoeken op naam, e-mail, telefoon of functie...",
+    "filterByStatus": "Filteren op status",
+    "sortBy": "Sorteren op",
+    "dateNewest": "Datum (Nieuwste)",
+    "dateOldest": "Datum (Oudste)",
+    "nameAZ": "Naam (A-Z)",
+    "nameZA": "Naam (Z-A)"
+  }
+}

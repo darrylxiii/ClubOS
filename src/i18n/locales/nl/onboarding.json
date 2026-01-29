@@ -13,7 +13,7 @@
     },
     "contact": {
       "title": "Laten we beginnen met de basis",
-      "subtitle": "Je contactgegevens",
+      "subtitle": "Uw contactgegevens",
       "fullName": "Volledige naam",
       "fullNamePlaceholder": "Jan de Vries",
       "email": "E-mailadres",
@@ -22,6 +22,7 @@
       "phonePlaceholder": "+31 6 12345678",
       "location": "Huidige locatie",
       "locationPlaceholder": "Amsterdam, Nederland",
+      "locationHint": "Begin met typen om steden wereldwijd te zoeken",
       "sendOTP": "Verificatiecode versturen",
       "verifyPhone": "Telefoon verifiëren",
       "phoneVerified": "Telefoon geverifieerd",
@@ -233,6 +234,9 @@
       "ssl": "256-bit SSL",
       "gdpr": "AVG Compliant",
       "neverShared": "Nooit gedeeld"
+    },
+    "socialProof": {
+      "partnerCompany": "Partner bedrijf"
     },
     "keyboard": {
       "pressEnter": "Druk op",
