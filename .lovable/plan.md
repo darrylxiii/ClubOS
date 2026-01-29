@@ -1,109 +1,139 @@
 
+# Plan: Fix Onboarding Flow & Pending Approval Routing
 
-# Plan: Terms of Service & Privacy Policy Consent (Simplified)
+## Problems Identified
 
-## Overview
+### Problem 1: Users Logged Out After Account Creation
+After completing the onboarding form, the code calls `supabase.auth.signOut()` at line 700 in `CandidateOnboardingSteps.tsx`, then navigates to `/pending-approval`. But `/pending-approval` requires authentication and redirects unauthenticated users to `/auth`.
 
-Implement two required consent checkboxes at the end of the candidate onboarding flow. Marketing communications are covered within the Privacy Policy and Terms of Service documents, eliminating the need for a separate opt-in.
-
-## Rationale
-
-Since contacting candidates with career opportunities is core to The Quantum Club's service, marketing consent is embedded in the legal documents rather than as a separate checkbox. Both consents are mandatory to complete registration.
-
-## UI Design
-
+**Current Flow (Broken):**
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│                    Step 5: Secure Your Account                  │
-├─────────────────────────────────────────────────────────────────┤
-│  Password Creation (existing)                                   │
-├─────────────────────────────────────────────────────────────────┤
-│  LEGAL AGREEMENTS                                               │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │ ☐ I agree to the Terms of Service *                       │  │
-│  │   [Link opens → /terms]                                   │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │ ☐ I agree to the Privacy Policy *                         │  │
-│  │   [Link opens → /privacy]                                 │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                                                                 │
-│  By creating an account, you consent to receiving career        │
-│  opportunities and communications from The Quantum Club.        │
-├─────────────────────────────────────────────────────────────────┤
-│  [Create Account] button                                        │
-└─────────────────────────────────────────────────────────────────┘
+User completes form → Account created → signOut() called → Navigate to /pending-approval
+                                                                      ↓
+                                            /pending-approval checks: no user? → Redirect to /auth
 ```
 
-## Database Changes
+### Problem 2: Logged-In Pending Users Not Routed Correctly
+When a pending user logs in via `/auth`, they are correctly routed to `/pending-approval` by `ProtectedRoute`. However, if they try to access `/onboarding` again, they should be able to see the pending status page, not restart onboarding.
 
-Add timestamp columns to `profiles` table to record when each consent was granted:
+## Solution
 
-| Column | Type | Purpose |
-|--------|------|---------|
-| `terms_accepted_at` | `TIMESTAMP WITH TIME ZONE` | When Terms of Service was accepted |
-| `privacy_accepted_at` | `TIMESTAMP WITH TIME ZONE` | When Privacy Policy was accepted |
+### Fix 1: Remove signOut() After Account Creation
 
-## Implementation Details
+The user should remain logged in after creating their account. This allows them to see the `/pending-approval` page with their application tracker.
 
-### 1. Component Changes (`CandidateOnboardingSteps.tsx`)
+**File:** `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx`
 
-**New state variables:**
-- `termsConsent: boolean` - Terms of Service checkbox
-- `privacyConsent: boolean` - Privacy Policy checkbox
+```typescript
+// REMOVE this line (line 700):
+await supabase.auth.signOut();
+```
 
-**Replace existing single GDPR checkbox with two separate checkboxes, each linking to their respective legal documents.**
+### Fix 2: Make PendingApproval Handle Both Logged-In and Logged-Out States
 
-**Updated validation:**
-- Both checkboxes must be checked to proceed
-- Clear error message if either is unchecked
+The `/pending-approval` page should work for:
+1. **Logged-in pending users** → Show application tracker with their data
+2. **Logged-out users who just submitted** → Show a generic "check your email" message
 
-### 2. Consent Receipt Recording
+**File:** `src/pages/PendingApproval.tsx`
 
-On successful account creation, store two consent receipts in `consent_receipts` table:
+Change the redirect logic:
+```typescript
+const checkApprovalStatus = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      // Instead of redirecting to auth, show a generic pending message
+      setStatus({ 
+        account_status: 'pending', 
+        account_decline_reason: null, 
+        full_name: '' 
+      });
+      setLoading(false);
+      return;
+    }
+    // ... rest of existing logic
+  }
+};
+```
 
-| consent_type | scope | granted |
-|--------------|-------|---------|
-| `terms_of_service` | `platform_usage` | `true` |
-| `privacy_policy` | `data_processing_and_communications` | `true` |
+### Fix 3: Redirect Logged-In Pending Users from /onboarding
 
-### 3. Profile Update
+If a user tries to access `/onboarding` but is already logged in with a pending account, redirect them to `/pending-approval`.
 
-Update the user's profile with consent timestamps:
-- `terms_accepted_at` → current timestamp
-- `privacy_accepted_at` → current timestamp
+**File:** `src/pages/CandidateOnboarding.tsx`
 
-### 4. Translation Keys
-
-**English:**
-- `candidate.consent.termsLabel` → "I agree to the"
-- `candidate.consent.termsLink` → "Terms of Service"
-- `candidate.consent.privacyLabel` → "I agree to the"
-- `candidate.consent.privacyLink` → "Privacy Policy"
-- `candidate.consent.communicationsNote` → "By creating an account, you consent to receiving career opportunities and communications from The Quantum Club."
-- `candidate.validation.acceptBothRequired` → "Please accept both the Terms of Service and Privacy Policy to continue"
-
-**Dutch:**
-- `candidate.consent.termsLabel` → "Ik ga akkoord met de"
-- `candidate.consent.termsLink` → "Algemene Voorwaarden"
-- `candidate.consent.privacyLabel` → "Ik ga akkoord met het"
-- `candidate.consent.privacyLink` → "Privacybeleid"
-- `candidate.consent.communicationsNote` → "Door een account aan te maken, stem je in met het ontvangen van carrièremogelijkheden en communicatie van The Quantum Club."
-- `candidate.validation.acceptBothRequired` → "Accepteer zowel de Algemene Voorwaarden als het Privacybeleid om door te gaan"
+Add a useEffect to check if user is already authenticated:
+```typescript
+useEffect(() => {
+  const checkExistingUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('account_status, onboarding_completed_at')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile) {
+        if (profile.account_status === 'approved' && profile.onboarding_completed_at) {
+          navigate('/home');
+        } else {
+          navigate('/pending-approval');
+        }
+      }
+    }
+  };
+  checkExistingUser();
+}, []);
+```
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx` | Replace GDPR checkbox with two required consent checkboxes, update validation, add consent receipt creation |
-| `src/i18n/locales/en/onboarding.json` | Add consent translation keys |
-| `src/i18n/locales/nl/onboarding.json` | Add Dutch consent translations |
-| Database migration | Add `terms_accepted_at` and `privacy_accepted_at` columns to profiles |
+| `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx` | Remove `signOut()` call after account creation |
+| `src/pages/PendingApproval.tsx` | Handle logged-out state gracefully, show generic pending message |
+| `src/pages/CandidateOnboarding.tsx` | Add auth check to redirect already-logged-in users |
 
-## Technical Notes
+## Updated Flow After Fix
 
-- Both consents are mandatory - account creation blocked if either unchecked
-- Consent receipts provide audit trail for GDPR compliance
-- Timestamps on profile enable easy verification of when user agreed
-- Communications consent is implicit via Privacy Policy acceptance (standard practice when comms are core to service)
+```text
+NEW USER FLOW:
+User completes form → Account created → Stay logged in → Navigate to /pending-approval
+                                                                      ↓
+                                              /pending-approval shows: Application Tracker (personalized)
 
+RETURNING PENDING USER FLOW:
+User logs in → ProtectedRoute detects pending status → Redirect to /pending-approval
+                                                                      ↓
+                                              /pending-approval shows: Application Tracker (personalized)
+
+RETURNING PENDING USER TRIES /onboarding:
+User visits /onboarding → Auth check finds user → Redirect to /pending-approval
+```
+
+## i18n Additions
+
+Add translation keys for the logged-out pending state message:
+
+**English:**
+```json
+{
+  "pendingApproval": {
+    "submittedTitle": "Application Submitted",
+    "submittedDescription": "Thank you for applying. Please check your email for confirmation and sign in to track your application status."
+  }
+}
+```
+
+**Dutch:**
+```json
+{
+  "pendingApproval": {
+    "submittedTitle": "Aanvraag Ingediend",
+    "submittedDescription": "Bedankt voor je aanmelding. Controleer je e-mail voor bevestiging en log in om je aanvraagstatus te volgen."
+  }
+}
+```
