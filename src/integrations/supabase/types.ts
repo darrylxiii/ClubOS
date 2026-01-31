@@ -53069,10 +53069,9 @@ export type Database = {
         Args: { last_activity: string }
         Returns: string
       }
-      calculate_partner_benchmarks: {
-        Args: { p_company_id: string }
-        Returns: undefined
-      }
+      calculate_partner_benchmarks:
+        | { Args: never; Returns: Json }
+        | { Args: { p_company_id: string }; Returns: undefined }
       calculate_partner_health_score: {
         Args: { p_partner_id: string }
         Returns: Json
@@ -53351,6 +53350,10 @@ export type Database = {
         Returns: string
       }
       generate_meeting_code: { Args: never; Returns: string }
+      generate_partner_smart_alerts: {
+        Args: { p_company_id: string }
+        Returns: Json
+      }
       generate_pmr_code: { Args: { p_user_id: string }; Returns: string }
       generate_probation_alerts: { Args: never; Returns: undefined }
       generate_profile_slug: { Args: { name: string }; Returns: string }
