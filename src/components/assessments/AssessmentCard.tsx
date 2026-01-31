@@ -46,8 +46,9 @@ export const AssessmentCard = memo(({ assessment }: AssessmentCardProps) => {
           <Button
             onClick={handleStart}
             disabled={!assessment.isActive}
+            variant={assessment.isActive ? "default" : "outline"}
           >
-            {assessment.isActive ? 'Start Test' : 'Coming Soon'}
+            {assessment.isActive ? 'Start Test' : 'Available Soon'}
           </Button>
         </div>
       </CardContent>

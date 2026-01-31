@@ -15,6 +15,7 @@ import { EnhancedEmojiPicker } from "./EnhancedEmojiPicker";
 import { GifPicker } from "./GifPicker";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { YouTubePicker } from "./YouTubePicker";
+import { MessageTemplatesPanel } from "./MessageTemplatesPanel";
 import { validatePostMediaFile } from "@/lib/fileValidation";
 import { extractSpotifyInfo } from "@/lib/spotifyEmbedUtils";
 
@@ -151,6 +152,11 @@ export const MessageComposer = ({
     }
   };
 
+  const handleTemplateSelect = (content: string) => {
+    setMessage(content);
+    textareaRef.current?.focus();
+  };
+
   const handleFocus = () => {
     setShowControls(true);
   };
@@ -208,6 +214,8 @@ export const MessageComposer = ({
           <GifPicker onSelect={handleGifSelect} />
 
           <YouTubePicker onSelect={handleYouTubeSelect} />
+
+          <MessageTemplatesPanel onSelectTemplate={handleTemplateSelect} />
           
           <Popover>
             <PopoverTrigger asChild>

@@ -26,6 +26,7 @@ import { InterviewCountdownWidget } from "./InterviewCountdownWidget";
 import { StrategistContactCard } from "./StrategistContactCard";
 import { SavedJobsWidget } from "./SavedJobsWidget";
 import { DocumentStatusWidget } from "./DocumentStatusWidget";
+import { PushNotificationOptIn } from "@/components/notifications/PushNotificationOptIn";
 import { T } from "@/components/T";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
@@ -85,6 +86,9 @@ export const CandidateHome = () => {
 
       {/* Next Best Action - QUIN Powered */}
       <NextBestActionCard />
+
+      {/* Push Notification Opt-In Prompt */}
+      <PushNotificationOptIn />
 
       {/* Interview Countdown & Strategist Contact - P0 Widgets */}
       <DashboardSection columns={2}>

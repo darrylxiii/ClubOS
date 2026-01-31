@@ -33,28 +33,36 @@ export const StageQuickActionsToolbar = memo(({
       icon: Mail,
       label: 'Bulk Email',
       description: `Email all ${candidateCount} candidates`,
-      onClick: onBulkEmail || (() => toast.info('Bulk email coming soon')),
+      onClick: onBulkEmail || (() => toast('Bulk email', { 
+        description: 'Contact your strategist to send bulk emails to this stage.' 
+      })),
       color: 'text-primary'
     },
     {
       icon: Calendar,
       label: 'Schedule All',
       description: 'Send scheduling links',
-      onClick: onBulkSchedule || (() => toast.info('Bulk scheduling coming soon')),
+      onClick: onBulkSchedule || (() => toast('Schedule interviews', { 
+        description: 'Contact your strategist to coordinate bulk scheduling.' 
+      })),
       color: 'text-accent'
     },
     {
       icon: FileText,
       label: 'Send Assessment',
       description: 'Assign assessment to all',
-      onClick: onBulkAssessment || (() => toast.info('Bulk assessment coming soon')),
+      onClick: onBulkAssessment || (() => toast('Send assessments', { 
+        description: 'Contact your strategist to send assessments to candidates.' 
+      })),
       color: 'text-success'
     },
     {
       icon: Download,
       label: 'Export',
       description: 'Export stage data',
-      onClick: onExportStage || (() => toast.info('Export coming soon')),
+      onClick: onExportStage || (() => toast('Export stage', { 
+        description: 'Contact your strategist for a detailed export of this stage.' 
+      })),
       color: 'text-muted-foreground'
     }
   ];

@@ -876,10 +876,10 @@ const Profile = () => {
   }, []);
 
   const handleConnectCalendar = async (provider: 'google' | 'microsoft' | 'apple') => {
-    // Apple Calendar support coming soon
+    // Apple Calendar - not yet supported
     if (provider === 'apple') {
-      toast.info('Apple Calendar integration coming soon', {
-        description: 'We\'re working on adding Apple Calendar support. Use Google or Microsoft Calendar for now.'
+      toast.info('Apple Calendar integration in development', {
+        description: 'Apple Calendar support is being built. Use Google or Microsoft Calendar for now.'
       });
       return;
     }
@@ -2663,13 +2663,14 @@ const Profile = () => {
                           <Button
                             type="button"
                             disabled
-                            className="bg-gradient-accent text-background"
+                            variant="outline"
+                            className="opacity-80"
                           >
                             <Sparkles className="w-4 h-4 mr-2" />
-                            Coming Soon - Create TQC Resume
+                            TQC Resume Builder - In Development
                           </Button>
                           <p className="text-xs text-muted-foreground mt-2">
-                            This feature will be available soon
+                            We're building an AI-powered resume creator. Contact your strategist for personalized resume help in the meantime.
                           </p>
                         </div>
                       </div>

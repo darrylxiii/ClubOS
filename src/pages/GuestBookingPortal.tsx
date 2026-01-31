@@ -432,7 +432,7 @@ export default function GuestBookingPortal() {
                   <Button 
                     variant="outline" 
                     className="flex-1 min-w-[140px]"
-                    onClick={() => toast.info("Add attendees feature coming soon")}
+                    onClick={() => toast("Add attendees", { description: "Contact the meeting organizer to add additional attendees." })}
                   >
                     <UserPlus className="w-4 h-4 mr-2" />
                     Add Attendees
