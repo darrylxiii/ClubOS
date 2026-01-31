@@ -1,74 +1,102 @@
 
-# Approval Workflow & System Audit
+# Candidate Home Page Audit & Feature Roadmap
 
-## Current Score: 45/100
-
-The member approval workflow and related database triggers have critical bugs that prevent core functionality from working correctly.
+## Current Score: 88/100
 
 ---
 
-## Critical Issue Found
+## Critical Bug Fix: "Unknown Position" in Top Matches
 
-### Root Cause: `activity_feed` Foreign Key Violation
+### Root Cause Identified
+The `JobRecommendations` component displays "Unknown Position" because:
 
-**Error:** `insert or update on table "activity_feed" violates foreign key constraint "activity_feed_user_id_fkey"`
+1. **139 orphaned match_scores** reference jobs that have been **deleted** from the `jobs` table
+2. The current code only checks if `job_id` exists in the lookup, but for deleted jobs, the join returns `null`
+3. No fallback filtering excludes these orphaned records from display
 
-**Technical Explanation:**
-When you approve a candidate and add them to a job pipeline, the system creates an application record. This triggers the `log_application_to_activity_feed()` function which attempts to insert into `activity_feed`:
-
-```sql
-INSERT INTO public.activity_feed (user_id, event_type, ...)
-VALUES (NEW.candidate_id, 'application_submitted', ...);
+### Data Evidence
+```
+Orphaned (job deleted): 139 records
+Valid: 235 records
+Total: 374 match_scores with UUID job_ids
 ```
 
-**The Problem:**
-- `activity_feed.user_id` has a **foreign key to `auth.users(id)`**
-- `applications.candidate_id` references **`candidate_profiles.id`** (NOT auth.users)
-- These are completely different IDs
-- Standalone candidates (80 of 108 in your database) have **no linked auth.users record**
+### Fix Required (Score Impact: +5 points)
 
-**Data Evidence:**
-- 80 standalone candidates (no auth user)
-- 28 linked candidates (have auth user)
-- 87 existing applications would fail this trigger
+**Option A: Filter at Query Level (Recommended)**
+- Use a database view or modify the query to only return match_scores where the job still exists
+- Add a JOIN to filter orphaned records at fetch time
+
+**Option B: Cleanup + Prevent**
+- Delete orphaned match_scores from database
+- Add a database trigger to cascade delete match_scores when a job is deleted
+
+**Implementation:**
+1. Modify `fetchRecommendations()` in `JobRecommendations.tsx` to filter out matches where job lookup returns null
+2. Add ON DELETE CASCADE to match_scores foreign key (for future prevention)
+3. Optionally clean up the 139 orphaned records
 
 ---
 
-## All Issues Found
+## Current Home Page Architecture
 
-### Issue 1: Activity Feed Trigger Uses Wrong ID (CRITICAL)
-**Score Impact:** -25 points
-**File:** `log_application_to_activity_feed()` database function
-**Problem:** Uses `candidate_id` (candidate_profiles.id) instead of looking up the actual `user_id` from candidate_profiles
-**Fix:** Modify trigger to:
-1. Look up `user_id` from `candidate_profiles` where `id = NEW.candidate_id`
-2. Skip insert if `user_id` is NULL (standalone candidate)
+The candidate home (`/home` → `CandidateHome.tsx`) contains these widgets:
 
-### Issue 2: Duplicate Activity Feed Triggers (CRITICAL)
-**Score Impact:** -10 points
-**Problem:** Two triggers on applications table call the same function:
-- `application_submitted_activity_trigger`
-- `application_activity_trigger`
+| Widget | Status | Description |
+|--------|--------|-------------|
+| UnifiedStatsBar | ✅ Complete | Applications, Matches, Interviews, Messages |
+| NextBestActionCard | ✅ Complete | QUIN-powered priority actions |
+| PushNotificationOptIn | ✅ Complete | Added in Phase 1 |
+| InterviewCountdownWidget | ✅ Complete | Live countdown to next interview |
+| StrategistContactCard | ✅ Complete | Dedicated recruiter contact |
+| ProfileCompletion | ✅ Complete | With itemized breakdown |
+| ApplicationStatusTracker | ✅ Complete | Pipeline visualization |
+| JobRecommendations | ⚠️ Bug | "Unknown Position" issue |
+| NotificationsPreviewWidget | ✅ Complete | Recent notifications |
+| CandidateQuickActions | ✅ Complete | Quick navigation cards |
+| QuickTipsCarousel | ✅ Complete | Expert advice |
+| UpcomingMeetingsWidget | ✅ Complete | Calendar integration |
+| MessagesPreviewWidget | ✅ Complete | Recent messages |
+| SavedJobsWidget | ✅ Complete | Real-time subscriptions |
+| DocumentStatusWidget | ✅ Complete | CV/document status |
+| ReferralStatsWidget | ✅ Complete | Referral earnings |
+| AchievementsPreviewWidget | ✅ Complete | XP and badges |
+| Club Projects Banner | ✅ Complete | Dismissible promo |
+| ActivityTimeline | ✅ Complete | Recent activity feed |
 
-Both call `log_application_to_activity_feed()`, causing duplicate inserts and double failures.
+---
 
-### Issue 3: KPI Function Column Name Mismatch (HIGH)
-**Score Impact:** -10 points
-**File:** `get_realtime_system_health()` function
-**Problem:** References `km.metric_name` but table column is `kpi_name`
-**Evidence:** 20 consecutive errors in logs: `column km.metric_name does not exist`
+## Missing Features Analysis
 
-### Issue 4: No Fallback for Standalone Candidates
-**Score Impact:** -5 points
-**Location:** `memberApprovalService.ts` lines 330-352
-**Problem:** When creating applications for standalone candidates, the code doesn't handle the trigger failure gracefully
+### Category 1: Market Intelligence (Score Impact: +3)
 
-### Issue 5: Security Linter Warnings
-**Score Impact:** -5 points
-**Problem:** 77 linter issues including:
-- 1 ERROR: Security Definer View
-- Multiple WARN: Function Search Path Mutable
-- Multiple WARN: RLS Policy Always True
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Salary Insights Widget | ❌ Missing | Quick salary benchmark on home |
+| Market Trends Preview | ❌ Missing | Industry demand indicators |
+| Skill Demand Radar | ❌ Missing | Hot skills in user's field |
+
+### Category 2: Career Growth Tools (Score Impact: +2)
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Career Progress Tracker | ❌ Missing | Journey visualization |
+| Skill Gap Summary | ❌ Missing | What to learn next |
+| Learning Recommendations | ❌ Missing | Academy course suggestions |
+
+### Category 3: Social & Network (Score Impact: +1)
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Network Strength Score | ❌ Missing | Professional connections health |
+| Referral Opportunities | ❌ Missing | Roles to share with network |
+
+### Category 4: Application Analytics (Score Impact: +1)
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Application Funnel Widget | ❌ Missing | Personal conversion metrics |
+| Response Rate Tracker | ❌ Missing | How often candidates get responses |
 
 ---
 
@@ -76,123 +104,136 @@ Both call `log_application_to_activity_feed()`, causing duplicate inserts and do
 
 | Category | Current | Max | Notes |
 |----------|---------|-----|-------|
-| Activity Feed Triggers | 0/25 | 25 | Broken for standalone candidates |
-| Duplicate Trigger Prevention | 0/10 | 10 | Two triggers doing same thing |
-| KPI Functions | 0/10 | 10 | Column name mismatch |
-| Error Handling | 5/10 | 10 | Partial graceful degradation |
-| Data Model Correctness | 20/25 | 25 | FKs properly defined but misused |
-| Security Posture | 20/20 | 20 | RLS enabled, policies exist |
-| **TOTAL** | **45/100** | 100 | |
+| Core Dashboard Widgets | 18/20 | 20 | "Unknown Position" bug |
+| Stats & Metrics | 10/10 | 10 | UnifiedStatsBar complete |
+| Next Actions & AI | 10/10 | 10 | QUIN NextBestAction working |
+| Job Discovery | 8/10 | 10 | Missing market intelligence |
+| Career Tools | 6/10 | 10 | Missing progress/skill widgets |
+| Communication | 10/10 | 10 | Messages, notifications complete |
+| Social/Referrals | 8/10 | 10 | Missing network features |
+| Gamification | 10/10 | 10 | Achievements, XP complete |
+| Real-time Updates | 8/10 | 10 | Some widgets missing subscriptions |
+| **TOTAL** | **88/100** | 100 | |
 
 ---
 
 ## Roadmap to 100/100
 
-### Phase 1: Fix Critical Blocking Issue (+35 points)
+### Phase 1: Critical Bug Fix (+5 points)
 
-#### 1.1 Fix `log_application_to_activity_feed()` Function
-```sql
-CREATE OR REPLACE FUNCTION public.log_application_to_activity_feed()
-RETURNS TRIGGER AS $$
-DECLARE
-  actual_user_id UUID;
-BEGIN
-  -- Look up the actual auth user_id from candidate_profiles
-  SELECT cp.user_id INTO actual_user_id
-  FROM candidate_profiles cp
-  WHERE cp.id = NEW.candidate_id;
-  
-  -- Only log if candidate has a linked auth user
-  IF actual_user_id IS NOT NULL THEN
-    INSERT INTO public.activity_feed (user_id, event_type, event_data, visibility, created_at)
-    VALUES (
-      actual_user_id,  -- Use the ACTUAL auth user id
-      'application_submitted',
-      jsonb_build_object(
-        'application_id', NEW.id,
-        'job_id', NEW.job_id,
-        'status', NEW.status,
-        'candidate_id', NEW.candidate_id
-      ),
-      'private',
-      NOW()
-    );
-  END IF;
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-```
+**Task 1.1: Fix "Unknown Position" in JobRecommendations**
+- Filter out orphaned match_scores at query time
+- Add null check before displaying
+- Show only jobs that actually exist
 
-#### 1.2 Drop Duplicate Trigger
-```sql
-DROP TRIGGER IF EXISTS application_activity_trigger ON public.applications;
-```
+**Task 1.2: Database Cleanup**
+- Add cascade delete trigger for match_scores → jobs
+- Clean orphaned records
 
-#### 1.3 Fix Status Change Trigger Similarly
-Apply the same lookup pattern to `log_application_status_change_to_activity_feed()`.
+### Phase 2: Market Intelligence Widget (+3 points)
 
-### Phase 2: Fix KPI Function (+10 points)
+**Task 2.1: SalaryInsightsWidget**
+- Compact salary range for user's role/location
+- "How you compare" indicator
+- Link to full Salary Insights page
 
-```sql
-CREATE OR REPLACE FUNCTION public.get_realtime_system_health()
-RETURNS TABLE (
-  metric_name text,
-  value numeric,
-  status text,
-  last_updated timestamptz
-)
-LANGUAGE plpgsql
-SECURITY INVOKER
-SET search_path = public
-AS $$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    km.kpi_name::text,    -- Fixed: was metric_name
-    km.value::numeric,
-    COALESCE(km.trend_direction, 'stable')::text,  -- status column doesn't exist
-    km.updated_at::timestamptz
-  FROM kpi_metrics km
-  WHERE km.category = 'system_health'
-  ORDER BY km.kpi_name;
-END;
-$$;
-```
+**Task 2.2: SkillDemandWidget**
+- Top 3 hot skills in user's field
+- Growth/decline indicators
+- Link to skill gap analysis
 
-### Phase 3: Security Hardening (+10 points)
+### Phase 3: Career Progress Widget (+2 points)
 
-1. Add `SET search_path = public` to all functions missing it
-2. Review SECURITY DEFINER views
-3. Tighten RLS policies that use `USING (true)`
+**Task 3.1: CareerProgressWidget**
+- Visual journey from current → target role
+- Milestones achieved (applications, interviews, offers)
+- "Career velocity" score
+
+**Task 3.2: LearningRecommendationsWidget**
+- 3 suggested Academy courses based on skill gaps
+- Progress on current courses
+- Link to Academy
+
+### Phase 4: Application Analytics (+1 point)
+
+**Task 4.1: ApplicationFunnelWidget**
+- Mini funnel: Applied → Screened → Interview → Offer
+- Personal conversion rates
+- Industry comparison
+
+### Phase 5: Network Features (+1 point)
+
+**Task 5.1: NetworkStrengthWidget**
+- Connection quality score
+- Referral opportunities available
+- "Who to reach out to" suggestion
 
 ---
 
-## Files to Modify
+## Technical Implementation Details
 
-| File/Object | Type | Change |
-|-------------|------|--------|
-| `log_application_to_activity_feed()` | DB Function | Look up user_id from candidate_profiles |
-| `log_application_status_change_to_activity_feed()` | DB Function | Same fix |
-| `application_activity_trigger` | DB Trigger | Drop (duplicate) |
-| `get_realtime_system_health()` | DB Function | Fix column name kpi_name |
-| Functions with missing search_path | DB Functions | Add SET search_path |
+### Fix 1: JobRecommendations.tsx
+
+```typescript
+// Filter orphaned records BEFORE mapping
+const formatted = matches
+  .map(match => {
+    const isUuid = uuidRegex.test(match.job_id);
+    const jobInfo = isUuid ? jobsMap[match.job_id] : null;
+    
+    // Skip if UUID but job doesn't exist (deleted)
+    if (isUuid && !jobInfo) {
+      return null;
+    }
+    
+    // ... rest of mapping
+  })
+  .filter(Boolean); // Remove nulls
+```
+
+### Fix 2: Database Migration
+
+```sql
+-- Clean up orphaned match_scores
+DELETE FROM match_scores ms
+WHERE ms.job_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+AND NOT EXISTS (
+  SELECT 1 FROM jobs j WHERE j.id = ms.job_id::uuid
+);
+
+-- Add cascade delete for future
+-- (if FK doesn't exist, this prevents future orphans)
+```
+
+### New Widgets (Summary)
+
+| Widget | Data Source | Complexity |
+|--------|-------------|------------|
+| SalaryInsightsWidget | salary_benchmarks table | Low |
+| SkillDemandWidget | jobs table (aggregate) | Medium |
+| CareerProgressWidget | applications + profiles | Medium |
+| LearningRecommendationsWidget | courses + user_skills | Medium |
+| ApplicationFunnelWidget | applications (aggregate) | Low |
+| NetworkStrengthWidget | referrals + connections | Medium |
 
 ---
 
-## Implementation Priority
+## Priority Order
 
-1. **Immediate (Blocking):** Fix activity feed triggers - this unblocks the approval workflow
-2. **High:** Fix KPI function - this is causing console spam every 30 seconds
-3. **Medium:** Drop duplicate triggers - prevents future duplicate data
-4. **Low:** Security hardening - important but not blocking functionality
+1. **Immediate (Blocking)**: Fix "Unknown Position" bug
+2. **High (Quick Win)**: Clean orphaned match_scores
+3. **Medium**: Add SalaryInsightsWidget, SkillDemandWidget
+4. **Low**: Career progress, Learning, Network widgets
 
 ---
 
 ## Summary
 
-The approval workflow is failing because database triggers incorrectly assume `candidate_id` equals `user_id`, but they reference different tables:
-- `candidate_id` → `candidate_profiles.id`
-- `user_id` → `auth.users.id`
+The candidate home page is **88/100** - a solid, feature-rich dashboard with one critical bug. The "Unknown Position" issue affects ~37% of displayed matches due to orphaned records from deleted jobs.
 
-For standalone candidates (74% of your candidates), there is no auth user, so the FK constraint fails. The fix is to look up the actual `user_id` from the candidate_profiles table and skip logging for standalone candidates.
+**Quick Wins:**
+- Fix JobRecommendations filtering (+5 points)
+- Add SalaryInsightsWidget (+2 points)
+- Add CareerProgressWidget (+2 points)
+
+Implementing Phase 1-2 would bring the home page to **93/100**, with Phase 3-5 completing the journey to **100/100**.
