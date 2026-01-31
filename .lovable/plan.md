@@ -1,259 +1,198 @@
 
-# Comprehensive Candidate Experience Audit
+# Approval Workflow & System Audit
 
-## Current Score: 87/100
+## Current Score: 45/100
 
-The Quantum Club candidate platform is a sophisticated, feature-rich application that delivers an enterprise-grade experience. This audit evaluates every touchpoint from the candidate's perspective and identifies specific improvements to reach 100/100.
-
----
-
-## Scoring Breakdown by Category
-
-| Category | Current Score | Max Points | Status |
-|----------|---------------|------------|--------|
-| Onboarding Experience | 18/20 | 20 | Excellent |
-| Dashboard & Home | 17/20 | 20 | Excellent |
-| Job Discovery & Applications | 16/20 | 20 | Very Good |
-| Interview & Career Tools | 14/15 | 15 | Very Good |
-| Communication & Messaging | 9/10 | 10 | Excellent |
-| Profile & Settings | 8/10 | 10 | Very Good |
-| Assessments & Learning | 5/5 | 5 | Excellent |
-| **TOTAL** | **87/100** | 100 | |
+The member approval workflow and related database triggers have critical bugs that prevent core functionality from working correctly.
 
 ---
 
-## Category 1: Onboarding Experience (18/20)
+## Critical Issue Found
 
-### What's Working Well
-- 6-step progressive onboarding wizard with clear progress indicators
-- Email and phone OTP verification with resend cooldowns
-- Session recovery for cross-device continuation (ProgressSaver)
-- Exit intent popup to prevent abandonment
-- PWA critical flow protection (prevents reload during submission)
-- Full i18n support (EN/NL)
-- Mandatory T&C and Privacy Policy consent with separate checkboxes
-- Professional email flow with magic links (just implemented)
-- Public application status portal for tracking without login
+### Root Cause: `activity_feed` Foreign Key Violation
 
-### Gaps to Address (-2 points)
-1. **Missing: LinkedIn/Google OAuth onboarding** - Users must manually enter all data. Social SSO with profile auto-fill would reduce friction.
-2. **Missing: CV parsing during onboarding** - The resume upload exists but doesn't auto-populate fields from the CV.
+**Error:** `insert or update on table "activity_feed" violates foreign key constraint "activity_feed_user_id_fkey"`
 
----
+**Technical Explanation:**
+When you approve a candidate and add them to a job pipeline, the system creates an application record. This triggers the `log_application_to_activity_feed()` function which attempts to insert into `activity_feed`:
 
-## Category 2: Dashboard & Home (17/20)
-
-### What's Working Well
-- UnifiedStatsBar with clickable metrics (Applications, Matches, Interviews, Messages)
-- NextBestActionCard powered by QUIN with smart prioritization
-- InterviewCountdownWidget for upcoming interviews
-- StrategistContactCard for concierge access
-- ProfileCompletion progress indicator
-- ApplicationStatusTracker with real-time updates
-- JobRecommendations with match explanations ("Why this role")
-- SavedJobsWidget and DocumentStatusWidget with real-time Supabase subscriptions
-- Quick Tips Carousel with expert advice
-- Referral Stats and Achievements preview
-- Club Projects banner (dismissible with localStorage persistence)
-- Framer Motion animations throughout
-
-### Gaps to Address (-3 points)
-1. **Missing: Push notification opt-in prompt** - Mobile users should see a native prompt to enable notifications
-2. **Missing: Calendar integration widget** - No quick view of calendar sync status or upcoming events beyond interviews
-3. **Partially missing: Skill gap analyzer** - Referenced in roadmap but not implemented
-
----
-
-## Category 3: Job Discovery & Applications (16/20)
-
-### What's Working Well
-- Elite search with filters (location, salary, remote, company, department)
-- Club Sync auto-apply for 90%+ matches with confirmation dialog
-- Match score display with transparent factors (skills, comp, location)
-- "Jobs For You" personalized section
-- Currency conversion based on user preference
-- Save/unsave jobs with real-time sync
-- Jobs map view available
-- Dismissible job recommendations
-
-### Applications Section
-- Tabs for Active, Rejected, Archived
-- Pipeline visualization with swipeable stages
-- StrategistContactCard, NextStepHelper, ProgressionHeatmap
-- CompetitionInsight showing candidates ahead/behind
-- TimelineDeadlines with estimated next steps
-- Export to CSV functionality
-- Mobile-optimized MobileApplicationPipeline
-
-### Gaps to Address (-4 points)
-1. **Missing: Application analytics** - No personal funnel metrics (e.g., "You've applied to 12 jobs, interviewed at 3")
-2. **Missing: Batch application actions** - Cannot withdraw or follow up on multiple applications at once
-3. **211 "Coming Soon" placeholders** - Many features are stubbed (e.g., bulk email, bulk scheduling, bulk assessment in job dashboard)
-4. **Missing: Job alerts customization** - No granular control over which jobs trigger alerts
-
----
-
-## Category 4: Interview & Career Tools (14/15)
-
-### What's Working Well
-- Interview Prep hub with practice questions, STAR method builder, tips
-- SelfBookingWidget for interview scheduling
-- Interview countdown with meeting links
-- QUIN Voice Assistant for in-meeting help
-- Meeting prep and post-meeting panels
-- Offer Comparison with side-by-side view
-- Compensation breakdown with Dutch tax estimates
-- QUIN Negotiation Assistant with AI chat
-- Cover Letter Generator with 3 tones and PDF export
-
-### Gaps to Address (-1 point)
-1. **Missing: Mock interview with AI** - The prep tools are static; no AI-driven mock interview simulation
-
----
-
-## Category 5: Communication & Messaging (9/10)
-
-### What's Working Well
-- Full-featured messaging with conversations, threads, typing indicators
-- Audio and video calling built-in
-- Group conversations supported
-- Message editing, reactions, read receipts
-- Pin, mute, archive conversation actions
-- Real-time presence indicators
-- AI Page Copilot on messages page
-- CallNotificationManager for incoming calls
-
-### Gaps to Address (-1 point)
-1. **Missing: Message templates** - No quick-reply templates for common responses (e.g., "Thanks for the update")
-
----
-
-## Category 6: Profile & Settings (8/10)
-
-### What's Working Well
-- Comprehensive profile with header media (image/video)
-- Experience, Education, Skills, Portfolio, Music sections
-- LinkedIn import capability
-- Social connections (LinkedIn, GitHub, Twitter, Instagram)
-- Privacy settings with granular field-level controls
-- Stealth mode with levels
-- Blocked companies list
-- Compensation settings (current, desired, freelance rates)
-- Calendar integrations (Google, Outlook coming soon)
-- GDPR data export request
-- Shareable profile with custom URL slug
-- Freelance info section for Club Projects
-
-### Gaps to Address (-2 points)
-1. **Missing: Profile completeness score breakdown** - Shows 75% but doesn't itemize what's missing
-2. **ATS integrations marked as "Coming Soon"** - Greenhouse, Lever, Slack integrations are not functional
-
----
-
-## Category 7: Assessments & Learning (5/5)
-
-### What's Working Well
-- 6 active assessments: Would You Rather, Miljoenenjacht, Incubator:20, Pressure Cooker, Blind Spot Detector, Values Poker
-- Each assessment has estimated time and category
-- Academy with courses, learning paths, creator hub
-- Learner dashboard with progress tracking
-- Course carousels (featured, trending, new releases)
-- Badges and achievements system
-- Streak and weekly goal widgets
-
-**No gaps identified - full marks**
-
----
-
-## Technical Excellence Indicators
-
-### Strengths
-- Comprehensive testing suite (85% coverage per memory)
-- Real-time Supabase subscriptions throughout
-- i18n with EN/NL support
-- Mobile-responsive with PWA capabilities
-- Framer Motion animations for polish
-- QUIN AI integration across multiple features
-- Skeleton loaders for async content
-- Error boundaries at route level
-
-### Technical Debt
-- 211 "Coming Soon" instances across 25 files
-- Some calendar providers not implemented
-- Webhook configuration placeholder only
-
----
-
-## Roadmap to 100/100 (+13 points)
-
-### Phase 1: Quick Wins (+5 points)
-
-| Task | Points | Effort |
-|------|--------|--------|
-| Add profile completeness breakdown (itemize missing fields) | +1 | Low |
-| Add push notification opt-in prompt on mobile | +1 | Medium |
-| Replace at least 50 "Coming Soon" with real features or remove | +2 | Medium |
-| Add message quick-reply templates | +1 | Low |
-
-### Phase 2: OAuth & CV Parsing (+3 points)
-
-| Task | Points | Effort |
-|------|--------|--------|
-| Add Google/LinkedIn OAuth during onboarding | +1 | Medium |
-| Implement CV parsing to auto-fill profile fields | +1 | Medium |
-| Add personal application funnel analytics | +1 | Medium |
-
-### Phase 3: Advanced Features (+5 points)
-
-| Task | Points | Effort |
-|------|--------|--------|
-| AI mock interview simulator with QUIN | +1 | High |
-| Calendar sync status widget on dashboard | +1 | Low |
-| Job alert customization (criteria, frequency) | +1 | Medium |
-| Batch application actions (withdraw, follow-up) | +1 | Medium |
-| Skill gap analyzer with recommendations | +1 | High |
-
----
-
-## Priority Matrix
-
-```text
-                    IMPACT
-                High        Low
-         ┌──────────┬──────────┐
-    Low  │  Quick   │  Defer   │
- EFFORT  │  Wins    │          │
-         ├──────────┼──────────┤
-    High │ Strategic│  Avoid   │
-         │ Projects │          │
-         └──────────┴──────────┘
-
-Quick Wins (Do Now):
-- Profile completeness breakdown
-- Push notification prompt
-- Message templates
-
-Strategic Projects (Plan):
-- OAuth onboarding
-- CV parsing
-- AI mock interviews
-- Skill gap analyzer
+```sql
+INSERT INTO public.activity_feed (user_id, event_type, ...)
+VALUES (NEW.candidate_id, 'application_submitted', ...);
 ```
+
+**The Problem:**
+- `activity_feed.user_id` has a **foreign key to `auth.users(id)`**
+- `applications.candidate_id` references **`candidate_profiles.id`** (NOT auth.users)
+- These are completely different IDs
+- Standalone candidates (80 of 108 in your database) have **no linked auth.users record**
+
+**Data Evidence:**
+- 80 standalone candidates (no auth user)
+- 28 linked candidates (have auth user)
+- 87 existing applications would fail this trigger
+
+---
+
+## All Issues Found
+
+### Issue 1: Activity Feed Trigger Uses Wrong ID (CRITICAL)
+**Score Impact:** -25 points
+**File:** `log_application_to_activity_feed()` database function
+**Problem:** Uses `candidate_id` (candidate_profiles.id) instead of looking up the actual `user_id` from candidate_profiles
+**Fix:** Modify trigger to:
+1. Look up `user_id` from `candidate_profiles` where `id = NEW.candidate_id`
+2. Skip insert if `user_id` is NULL (standalone candidate)
+
+### Issue 2: Duplicate Activity Feed Triggers (CRITICAL)
+**Score Impact:** -10 points
+**Problem:** Two triggers on applications table call the same function:
+- `application_submitted_activity_trigger`
+- `application_activity_trigger`
+
+Both call `log_application_to_activity_feed()`, causing duplicate inserts and double failures.
+
+### Issue 3: KPI Function Column Name Mismatch (HIGH)
+**Score Impact:** -10 points
+**File:** `get_realtime_system_health()` function
+**Problem:** References `km.metric_name` but table column is `kpi_name`
+**Evidence:** 20 consecutive errors in logs: `column km.metric_name does not exist`
+
+### Issue 4: No Fallback for Standalone Candidates
+**Score Impact:** -5 points
+**Location:** `memberApprovalService.ts` lines 330-352
+**Problem:** When creating applications for standalone candidates, the code doesn't handle the trigger failure gracefully
+
+### Issue 5: Security Linter Warnings
+**Score Impact:** -5 points
+**Problem:** 77 linter issues including:
+- 1 ERROR: Security Definer View
+- Multiple WARN: Function Search Path Mutable
+- Multiple WARN: RLS Policy Always True
+
+---
+
+## Scoring Breakdown
+
+| Category | Current | Max | Notes |
+|----------|---------|-----|-------|
+| Activity Feed Triggers | 0/25 | 25 | Broken for standalone candidates |
+| Duplicate Trigger Prevention | 0/10 | 10 | Two triggers doing same thing |
+| KPI Functions | 0/10 | 10 | Column name mismatch |
+| Error Handling | 5/10 | 10 | Partial graceful degradation |
+| Data Model Correctness | 20/25 | 25 | FKs properly defined but misused |
+| Security Posture | 20/20 | 20 | RLS enabled, policies exist |
+| **TOTAL** | **45/100** | 100 | |
+
+---
+
+## Roadmap to 100/100
+
+### Phase 1: Fix Critical Blocking Issue (+35 points)
+
+#### 1.1 Fix `log_application_to_activity_feed()` Function
+```sql
+CREATE OR REPLACE FUNCTION public.log_application_to_activity_feed()
+RETURNS TRIGGER AS $$
+DECLARE
+  actual_user_id UUID;
+BEGIN
+  -- Look up the actual auth user_id from candidate_profiles
+  SELECT cp.user_id INTO actual_user_id
+  FROM candidate_profiles cp
+  WHERE cp.id = NEW.candidate_id;
+  
+  -- Only log if candidate has a linked auth user
+  IF actual_user_id IS NOT NULL THEN
+    INSERT INTO public.activity_feed (user_id, event_type, event_data, visibility, created_at)
+    VALUES (
+      actual_user_id,  -- Use the ACTUAL auth user id
+      'application_submitted',
+      jsonb_build_object(
+        'application_id', NEW.id,
+        'job_id', NEW.job_id,
+        'status', NEW.status,
+        'candidate_id', NEW.candidate_id
+      ),
+      'private',
+      NOW()
+    );
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+```
+
+#### 1.2 Drop Duplicate Trigger
+```sql
+DROP TRIGGER IF EXISTS application_activity_trigger ON public.applications;
+```
+
+#### 1.3 Fix Status Change Trigger Similarly
+Apply the same lookup pattern to `log_application_status_change_to_activity_feed()`.
+
+### Phase 2: Fix KPI Function (+10 points)
+
+```sql
+CREATE OR REPLACE FUNCTION public.get_realtime_system_health()
+RETURNS TABLE (
+  metric_name text,
+  value numeric,
+  status text,
+  last_updated timestamptz
+)
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    km.kpi_name::text,    -- Fixed: was metric_name
+    km.value::numeric,
+    COALESCE(km.trend_direction, 'stable')::text,  -- status column doesn't exist
+    km.updated_at::timestamptz
+  FROM kpi_metrics km
+  WHERE km.category = 'system_health'
+  ORDER BY km.kpi_name;
+END;
+$$;
+```
+
+### Phase 3: Security Hardening (+10 points)
+
+1. Add `SET search_path = public` to all functions missing it
+2. Review SECURITY DEFINER views
+3. Tighten RLS policies that use `USING (true)`
+
+---
+
+## Files to Modify
+
+| File/Object | Type | Change |
+|-------------|------|--------|
+| `log_application_to_activity_feed()` | DB Function | Look up user_id from candidate_profiles |
+| `log_application_status_change_to_activity_feed()` | DB Function | Same fix |
+| `application_activity_trigger` | DB Trigger | Drop (duplicate) |
+| `get_realtime_system_health()` | DB Function | Fix column name kpi_name |
+| Functions with missing search_path | DB Functions | Add SET search_path |
+
+---
+
+## Implementation Priority
+
+1. **Immediate (Blocking):** Fix activity feed triggers - this unblocks the approval workflow
+2. **High:** Fix KPI function - this is causing console spam every 30 seconds
+3. **Medium:** Drop duplicate triggers - prevents future duplicate data
+4. **Low:** Security hardening - important but not blocking functionality
 
 ---
 
 ## Summary
 
-The Quantum Club candidate experience is **enterprise-grade** at 87/100. The platform excels in:
-- Onboarding flow with session recovery and professional emails
-- Dashboard with QUIN-powered next best actions
-- Interview and offer tools with AI negotiation support
-- Messaging with voice/video calling
-- Comprehensive assessments and academy
+The approval workflow is failing because database triggers incorrectly assume `candidate_id` equals `user_id`, but they reference different tables:
+- `candidate_id` → `candidate_profiles.id`
+- `user_id` → `auth.users.id`
 
-The 13-point gap to perfection consists of:
-- 5 points: Quality polish (Coming Soon cleanup, push notifications, message templates)
-- 5 points: Automation features (OAuth, CV parsing, AI mock interviews)
-- 3 points: Analytics and customization (application funnel, job alerts, skill gaps)
-
-Executing the three-phase roadmap would bring the platform to a world-class 100/100 candidate experience.
+For standalone candidates (74% of your candidates), there is no auth user, so the FK constraint fails. The fix is to look up the actual `user_id` from the candidate_profiles table and skip logging for standalone candidates.
