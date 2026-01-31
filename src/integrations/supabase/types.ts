@@ -4996,6 +4996,13 @@ export type Database = {
             foreignKeyName: "bookings_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -5952,6 +5959,13 @@ export type Database = {
             foreignKeyName: "candidate_interactions_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_interactions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -6057,6 +6071,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "candidate_interview_performance_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "candidate_interview_performance_application_id_fkey"
             columns: ["application_id"]
@@ -6557,6 +6578,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "candidate_offers_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "candidate_offers_application_id_fkey"
             columns: ["application_id"]
@@ -9173,6 +9201,13 @@ export type Database = {
             foreignKeyName: "company_candidate_feedback_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_candidate_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -11408,6 +11443,13 @@ export type Database = {
             foreignKeyName: "consent_receipts_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_receipts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -11891,6 +11933,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "continuous_pipeline_hires_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "continuous_pipeline_hires_application_id_fkey"
             columns: ["application_id"]
@@ -12622,6 +12671,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_application_id_fkey"
             columns: ["application_id"]
@@ -14861,6 +14917,13 @@ export type Database = {
             foreignKeyName: "csat_surveys_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csat_surveys_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -15780,6 +15843,13 @@ export type Database = {
           user_notes?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "detected_interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "detected_interviews_application_id_fkey"
             columns: ["application_id"]
@@ -21241,6 +21311,13 @@ export type Database = {
             foreignKeyName: "interview_feedback_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -22642,6 +22719,13 @@ export type Database = {
             columns: ["closed_by"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_closures_hired_application_id_fkey"
+            columns: ["hired_application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
             referencedColumns: ["id"]
           },
           {
@@ -27866,6 +27950,13 @@ export type Database = {
             foreignKeyName: "meeting_recordings_extended_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_recordings_extended_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -28410,6 +28501,13 @@ export type Database = {
           video_session_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "meetings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "meetings_application_id_fkey"
             columns: ["application_id"]
@@ -30223,6 +30321,13 @@ export type Database = {
             foreignKeyName: "moneybird_sales_invoices_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moneybird_sales_invoices_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -30762,6 +30867,13 @@ export type Database = {
           survey_type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "nps_surveys_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "nps_surveys_application_id_fkey"
             columns: ["application_id"]
@@ -34042,6 +34154,13 @@ export type Database = {
             foreignKeyName: "placement_fees_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: true
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_fees_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -35138,6 +35257,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "probation_alerts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "probation_alerts_application_id_fkey"
             columns: ["application_id"]
@@ -37587,6 +37713,13 @@ export type Database = {
             foreignKeyName: "projected_earnings_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: true
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projected_earnings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -39126,6 +39259,13 @@ export type Database = {
             foreignKeyName: "referral_earnings_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_earnings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -39424,6 +39564,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "referral_payouts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "referral_payouts_application_id_fkey"
             columns: ["application_id"]
@@ -40470,6 +40617,13 @@ export type Database = {
           strong_points?: string[] | null
         }
         Relationships: [
+          {
+            foreignKeyName: "role_candidate_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "role_candidate_feedback_application_id_fkey"
             columns: ["application_id"]
@@ -41913,6 +42067,13 @@ export type Database = {
             foreignKeyName: "scorecard_voting_sessions_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scorecard_voting_sessions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["id"]
           },
@@ -43056,6 +43217,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sourcing_credits_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sourcing_credits_application_id_fkey"
             columns: ["application_id"]
@@ -52093,22 +52261,15 @@ export type Database = {
           account_decline_reason: string | null
           account_status: string | null
           application_access_token: string | null
+          company_logo: string | null
+          company_name: string | null
           created_at: string | null
           full_name: string | null
-        }
-        Insert: {
-          account_decline_reason?: string | null
-          account_status?: string | null
-          application_access_token?: string | null
-          created_at?: string | null
-          full_name?: string | null
-        }
-        Update: {
-          account_decline_reason?: string | null
-          account_status?: string | null
-          application_access_token?: string | null
-          created_at?: string | null
-          full_name?: string | null
+          id: string | null
+          job_title: string | null
+          stages: Json | null
+          status: string | null
+          updated_at: string | null
         }
         Relationships: []
       }
@@ -53097,6 +53258,15 @@ export type Database = {
         Returns: boolean
       }
       cosine_similarity: { Args: { a: string; b: string }; Returns: number }
+      create_secret: {
+        Args: {
+          new_description?: string
+          new_key_id?: string
+          new_name: string
+          new_secret: string
+        }
+        Returns: string
+      }
       create_user_session: {
         Args: {
           p_device_fingerprint?: string
@@ -53698,6 +53868,7 @@ export type Database = {
       }
       refresh_activity_dashboard_view: { Args: never; Returns: undefined }
       refresh_analytics_views: { Args: never; Returns: undefined }
+      refresh_company_benchmarks: { Args: never; Returns: undefined }
       register_listener: {
         Args: {
           p_ip_address?: string
@@ -53840,10 +54011,9 @@ export type Database = {
         Args: { p_enabled: boolean; p_eta?: string; p_message?: string }
         Returns: boolean
       }
-      tqc__assert_user_schema: {
-        Args: { p_schema: string }
-        Returns: undefined
-      }
+      tqc__assert_user_schema:
+        | { Args: never; Returns: boolean }
+        | { Args: { p_schema: string }; Returns: undefined }
       tqc__list_user_schemas: {
         Args: never
         Returns: {
@@ -53853,7 +54023,6 @@ export type Database = {
       tqc__list_user_tables: {
         Args: never
         Returns: {
-          schema_name: string
           table_name: string
         }[]
       }
@@ -53940,6 +54109,16 @@ export type Database = {
       }
       update_relationship_score: {
         Args: { p_related_user_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      update_secret: {
+        Args: {
+          new_description?: string
+          new_key_id?: string
+          new_name?: string
+          new_secret?: string
+          secret_id: string
+        }
         Returns: undefined
       }
       update_session_activity: {
