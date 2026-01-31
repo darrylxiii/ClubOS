@@ -24,10 +24,23 @@ export const useSystemHealth = () => {
     queryKey: ['system-health'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_realtime_system_health');
-      if (error) throw error;
+      if (error) {
+        console.warn('System health check failed:', error.message);
+        // Return safe defaults on error
+        return {
+          platform_status: 'unknown',
+          active_users_1h: 0,
+          total_errors_1h: 0,
+          critical_errors_1h: 0,
+          avg_response_time_ms: 0,
+          db_connections: 0,
+        } as SystemHealthData;
+      }
+      // Function now returns JSON directly
       return data as unknown as SystemHealthData;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
+    retry: false, // Don't retry on failure to avoid log spam
   });
 
   const { data: functions, isLoading: functionsLoading } = useQuery({

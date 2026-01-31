@@ -53420,15 +53420,7 @@ export type Database = {
           table_name: string
         }[]
       }
-      get_realtime_system_health: {
-        Args: never
-        Returns: {
-          last_updated: string
-          metric_name: string
-          status: string
-          value: number
-        }[]
-      }
+      get_realtime_system_health: { Args: never; Returns: Json }
       get_recruiter_stats: {
         Args: { p_days?: number; p_user_id: string }
         Returns: Json
