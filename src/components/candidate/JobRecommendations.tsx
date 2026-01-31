@@ -96,35 +96,43 @@ export function JobRecommendations({ userId }: { userId: string }) {
       }
 
       // Format results, handling both UUID and text-based job_ids
-      const formatted = matches.map(match => {
-        const isUuid = uuidRegex.test(match.job_id);
-        const jobInfo = isUuid ? jobsMap[match.job_id] : null;
-        
-        // For text-based job_ids (legacy format: "Company-Title"), parse them
-        let parsedTitle = 'Unknown Position';
-        let parsedCompany = 'Unknown Company';
-        
-        if (!isUuid && match.job_id.includes('-')) {
-          const parts = match.job_id.split('-');
-          parsedCompany = parts[0] || 'Unknown Company';
-          parsedTitle = parts.slice(1).join('-') || 'Unknown Position';
-        }
-
-        return {
-          id: match.id,
-          job_id: match.job_id,
-          overall_score: match.overall_score || 0,
-          club_match_factors: (match.club_match_factors as any) || {},
-          job: {
-            title: jobInfo?.title || parsedTitle,
-            location: jobInfo?.location || 'Remote',
-            employment_type: jobInfo?.employment_type || 'Full-time',
-            company: {
-              name: jobInfo?.company_name || parsedCompany
-            }
+      // CRITICAL: Filter out orphaned records where job was deleted
+      const formatted = matches
+        .map(match => {
+          const isUuid = uuidRegex.test(match.job_id);
+          const jobInfo = isUuid ? jobsMap[match.job_id] : null;
+          
+          // Skip orphaned records: UUID job_id but job doesn't exist (was deleted)
+          if (isUuid && !jobInfo) {
+            return null;
           }
-        };
-      });
+          
+          // For text-based job_ids (legacy format: "Company-Title"), parse them
+          let parsedTitle = 'Unknown Position';
+          let parsedCompany = 'Unknown Company';
+          
+          if (!isUuid && match.job_id.includes('-')) {
+            const parts = match.job_id.split('-');
+            parsedCompany = parts[0] || 'Unknown Company';
+            parsedTitle = parts.slice(1).join('-') || 'Unknown Position';
+          }
+
+          return {
+            id: match.id,
+            job_id: match.job_id,
+            overall_score: match.overall_score || 0,
+            club_match_factors: (match.club_match_factors as any) || {},
+            job: {
+              title: jobInfo?.title || parsedTitle,
+              location: jobInfo?.location || 'Remote',
+              employment_type: jobInfo?.employment_type || 'Full-time',
+              company: {
+                name: jobInfo?.company_name || parsedCompany
+              }
+            }
+          };
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null);
 
       setRecommendations(formatted);
     } catch (error) {

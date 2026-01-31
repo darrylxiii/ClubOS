@@ -26,6 +26,9 @@ import { InterviewCountdownWidget } from "./InterviewCountdownWidget";
 import { StrategistContactCard } from "./StrategistContactCard";
 import { SavedJobsWidget } from "./SavedJobsWidget";
 import { DocumentStatusWidget } from "./DocumentStatusWidget";
+import { SalaryInsightsWidget } from "./SalaryInsightsWidget";
+import { SkillDemandWidget } from "./SkillDemandWidget";
+import { CareerProgressWidget } from "./CareerProgressWidget";
 import { PushNotificationOptIn } from "@/components/notifications/PushNotificationOptIn";
 import { T } from "@/components/T";
 import { useTranslation } from "react-i18next";
@@ -140,6 +143,13 @@ export const CandidateHome = () => {
       <DashboardSection columns={2}>
         <SavedJobsWidget />
         <DocumentStatusWidget />
+      </DashboardSection>
+
+      {/* Market Intelligence & Career Growth - New Widgets */}
+      <DashboardSection columns={3}>
+        <SalaryInsightsWidget />
+        <SkillDemandWidget />
+        <CareerProgressWidget />
       </DashboardSection>
 
       {/* Referrals & Achievements */}
