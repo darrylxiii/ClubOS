@@ -99,7 +99,7 @@ export function TipCard({ tip, index }: TipCardProps) {
             )}
             disabled={isPlaceholder}
           >
-            {isPlaceholder ? "Coming Soon" : `${tip.actionLabel} →`}
+            {isPlaceholder ? "In Development" : `${tip.actionLabel} →`}
           </Button>
         )}
       </Card>

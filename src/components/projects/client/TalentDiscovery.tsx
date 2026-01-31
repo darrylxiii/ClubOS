@@ -338,7 +338,7 @@ export function TalentDiscovery() {
                 isSaved={savedFreelancers?.includes(freelancer.id) || false}
                 onSave={() => saveFreelancerMutation.mutate(freelancer.id)}
                 onView={() => navigate(`/profile/${freelancer.id}`)}
-                onInvite={() => toast.info("Invite feature coming soon")}
+                onInvite={() => toast("Invite freelancer", { description: "Go to their profile to send a message and invite them to your project." })}
               />
             ))}
           </div>

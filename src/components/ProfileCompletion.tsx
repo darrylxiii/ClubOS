@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { ProfileStrengthDialog } from "./profile/ProfileStrengthDialog";
+import { ProfileCompletionBreakdown } from "./profile/ProfileCompletionBreakdown";
 import { getTasksForRole, ProfileTask } from "@/lib/profileStrengthTasks";
 
 interface ProfileStats {
@@ -88,10 +89,6 @@ export const ProfileCompletion = () => {
     );
   }
 
-  // Get first 4 incomplete tasks
-  const incompleteTasks = allTasks.filter(task => !completedTasks.has(task.key)).slice(0, 4);
-  const displayTasks = incompleteTasks.length > 0 ? incompleteTasks : allTasks.slice(0, 4);
-
   const handleTaskClick = (task: ProfileTask) => {
     if (task.actionPath) {
       navigate(task.actionPath);
@@ -121,32 +118,13 @@ export const ProfileCompletion = () => {
           
           <Progress value={stats.completion_percentage} className="h-2.5" />
           
-          <div className="space-y-2">
-            {displayTasks.map((task) => {
-              const isCompleted = completedTasks.has(task.key);
-              const Icon = task.icon;
-              
-              return (
-                <button
-                  key={task.key}
-                  onClick={() => handleTaskClick(task)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl glass-subtle hover:bg-card/80 transition-all group text-left"
-                >
-                  {isCompleted ? (
-                    <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
-                  ) : (
-                    <Circle className="w-4 h-4 text-muted-foreground group-hover:text-foreground flex-shrink-0 transition-colors" />
-                  )}
-                  <span className={`text-sm flex-1 ${isCompleted ? 'line-through text-muted-foreground' : 'font-medium text-foreground'}`}>
-                    {task.title}
-                  </span>
-                  {!isCompleted && (
-                    <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+          {/* Enhanced breakdown with itemized missing fields */}
+          <ProfileCompletionBreakdown
+            tasks={allTasks}
+            completedTasks={completedTasks}
+            maxToShow={4}
+            onTaskClick={handleTaskClick}
+          />
 
           <button 
             onClick={() => setShowDialog(true)}
