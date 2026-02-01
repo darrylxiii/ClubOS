@@ -1,211 +1,315 @@
 
-# Phase 3: Jobs Page to 100/100 - Final Push
 
-## Current State: 92/100
+# World-Class UI/UX Redesign for /jobs Admin Page
 
-Phase 1 and 2 are complete:
-- Bulk Actions with Multi-Select
-- Real-time Updates via Supabase
-- Keyboard Navigation (J/K, shortcuts dialog)
-- View Mode Switcher (Grid/List/Kanban/Table)
-- Virtualized List for performance
-- Filter persistence (localStorage + URL sync)
+## Current Problems Analysis
 
----
+After reviewing the 1761-line `PartnerJobsHome.tsx` and its 15+ child components, here are the core issues making the page feel "crowded and cheap":
 
-## What's Missing for 100/100
+### Visual Hierarchy Issues
+1. **Too many competing elements at equal weight** - The KPI grid (6 cards), AI insights widget, status tabs, quick filters, advanced filters, search bar, view switcher, presets dropdown, keyboard button, and bulk select all compete for attention
+2. **Excessive padding and nested borders** - Cards within cards, filters in cards, metrics in cards - creates visual noise
+3. **No clear "focus path"** - Users don't know where to look first
+4. **Inconsistent spacing** - Mix of `gap-4`, `gap-6`, `space-y-4`, `mb-8` with no rhythm
 
-### 1. Inline Micro-Charts (Sparklines) — +2 points
-**Current:** Job cards show static candidate count
-**Target:** Show 7-day application trend sparkline
+### Information Density Issues
+5. **Job cards are too tall (~400px)** - Club Sync banners, Next Action prompts, 4 metric cards, activity, and CTAs create scroll fatigue
+6. **Metrics repeated redundantly** - KPI grid shows totals, then each card shows same data
+7. **AI insights widget takes 300px+ when expanded** - Prime real estate for secondary feature
 
-Create `JobSparkline.tsx`:
-- Tiny inline chart (64x20px) showing last 7 days of applications
-- Uses existing DynamicChart pattern but minimal config
-- Data fetched per-job lazily (on-demand)
-
-Wire into `JobCardMetrics.tsx`:
-- Add sparkline next to Candidates metric
-- Tooltip shows "7-day trend"
+### Interaction Design Issues
+8. **Action buttons as tall "tiles"** - The 4 action buttons (Applications Hub, Company Settings, Admin Tools, New Job) look like dashboard widgets, not navigation
+9. **Bulk select always visible** - The "Select all X jobs" row is visible even when not needed
+10. **Filter UI spread across 3 layers** - Status tabs + Quick filters + Advanced filters (collapsed)
 
 ---
 
-### 2. AI Hiring Recommendations Widget — +3 points
-**Current:** No AI insights on jobs list page
-**Target:** Collapsible widget showing QUIN recommendations
+## Design Philosophy: "Calm Command Center"
 
-Create `JobsAIInsightsWidget.tsx`:
-- Uses existing `useAggregatedHiringIntelligence` hook
-- Displays:
-  - Overall hiring health score (0-100)
-  - Top strategic recommendations (priority: critical/high/medium)
-  - Cross-pipeline patterns (bottlenecks, concerns)
-  - 30/60/90 day forecast
-- Collapsible design to save space
-- "Powered by QUIN" branding
+Inspired by Linear, Notion, and Figma dashboards:
 
-Add to `PartnerJobsHome.tsx`:
-- Position above the job grid (below analytics widget)
-- Only visible to admin users
-- Lazy-loaded to avoid initial bundle impact
+- **Progressive disclosure** - Show less, reveal more on demand
+- **Semantic density** - Pack more meaning into fewer pixels
+- **Breathing room** - Strategic whitespace > padding everywhere
+- **Single focus path** - Hero metric + immediate action + content grid
 
 ---
 
-### 3. Enhanced Job Card — +2 points
-**Current:** UrgencyBadge exists but missing interview count, next best action
-**Target:** Add scheduled interviews this week + AI-suggested next action
+## Redesign Plan
 
-Modify `JobCardMetrics.tsx`:
-- Add "Interviews This Week" metric card
-- Fetch interview count from meetings table
+### Section 1: Collapse the Header (Currently ~200px → 80px)
 
-Create `JobNextAction.tsx`:
-- AI-generated "next best action" prompt
-- E.g., "3 candidates awaiting feedback" or "Consider promoting - low applicants"
-- Uses job metrics to generate locally (no API call)
+**Current:**
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ "Platform Overview" label                                     │
+│ "All Active Searches" H1 (huge)                              │
+│ "Cross-company view" subtitle                                 │
+│                                                               │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐  │
+│ │ Applications    │ │ Company Settings│ │ Admin Tools     │  │
+│ │ Hub (tile)      │ │ (tile)          │ │ (tile)          │  │
+│ │                 │ │                 │ │                 │  │
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘  │
+└──────────────────────────────────────────────────────────────┘
+```
 
----
+**New:**
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ Jobs ─────────────────────────────────── [+New Job] [⋮ More] │
+│ 12 Active • 156 Candidates • Avg 23d TTH     ───  [🔍Search] │
+└──────────────────────────────────────────────────────────────┘
+```
 
-### 4. Saved Filter Presets — +1 point
-**Current:** Filters persist to localStorage but no named presets
-**Target:** Save/load named filter configurations
-
-Create `SavedFilterPresets.tsx`:
-- Dropdown showing saved presets
-- "Save Current View" button
-- Delete preset functionality
-- Max 10 presets per user
-
-Create `useSavedFilterPresets.ts` hook:
-- CRUD operations on localStorage
-- Structure: `{ name: string, filters: JobFilterState }[]`
-
-Add to filter bar in `PartnerJobsHome.tsx`:
-- Small "Presets" dropdown next to search
-
----
-
-### 5. Table Column Customization — +1 point (bonus polish)
-**Current:** Table view has fixed columns
-**Target:** Show/hide columns via settings dropdown
-
-Modify `JobTableView.tsx`:
-- Add column visibility state
-- Settings dropdown in header with checkboxes
-- Persist to localStorage
-- Default visible: Title, Status, Candidates, Days, Conversion
-- Optional: Location, Progress, Created
+**Changes:**
+- Single-line header with inline metrics (the important KPIs as text, not cards)
+- "New Job" as primary CTA button
+- Overflow menu (⋮) for Applications Hub, Settings, Admin Tools
+- Search integrated into header row
+- Remove the 4 tall action tiles completely
 
 ---
 
-## Files to Create
+### Section 2: Simplify KPI Grid (6 tall cards → Inline Stats Bar)
 
-| File | Purpose |
-|------|---------|
-| `src/components/partner/job-card/JobSparkline.tsx` | 7-day mini chart |
-| `src/components/partner/JobsAIInsightsWidget.tsx` | AI recommendations widget |
-| `src/components/partner/job-card/JobNextAction.tsx` | AI-suggested next action |
-| `src/components/partner/SavedFilterPresets.tsx` | Save/load filter configs |
-| `src/hooks/useSavedFilterPresets.ts` | Saved presets CRUD |
+**Current:** 6 individual cards (~300px total height) with badges, icons, padding
+
+**New:** Single horizontal stats bar (48px)
+
+```text
+┌────────────────────────────────────────────────────────────────────┐
+│  12 Active   │   156 Candidates   │   23d TTH   │   8% Conv   │   ⚡5 Club Sync   │
+│  ▲2 this week│   ▲34 new          │   ▼-2d      │   ▲+1%      │   [Enable 7 more]  │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+**Changes:**
+- Horizontal stats with micro-trends inline
+- Click any stat to filter/drill down
+- Club Sync CTA becomes text link, not full card
+
+---
+
+### Section 3: Streamline Filters (3 layers → 1 unified bar)
+
+**Current:**
+- Status tabs in `JobStatusSummaryBar` (row 1)
+- Quick filters in `JobFilterBar` (row 2)
+- Advanced filters in collapsible `AdvancedJobFilters` (row 3)
+- View switcher + Presets + Keyboard button (row 4)
+
+**New:** Single filter row with smart grouping
+
+```text
+┌─────────────────────────────────────────────────────────────────────────┐
+│ [All] [Active] [Draft] [Closed]  │  ⚡Expiring │ 🕐Recent │ 📈Engaged │  │
+│                                  │  [Filters▾] │ [Views▾] │  [?]      │  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Changes:**
+- Status tabs stay as pills (most important filter)
+- Quick filters become icons with labels on hover
+- "Filters" dropdown replaces entire AdvancedJobFilters card
+- "Views" dropdown contains: Grid/List/Kanban/Table + Saved Presets
+- Keyboard help is just "?"
+
+---
+
+### Section 4: Redesign AI Insights Widget (300px → Dismissible Banner)
+
+**Current:** Full collapsible card with health circle, forecasts, recommendations
+
+**New:** Smart banner at top (only when actionable)
+
+```text
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🧠 QUIN: "3 roles have stalled pipelines. 2 candidates awaiting feedback." │
+│                                                        [View Details] [✕]  │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Changes:**
+- Only shows when there's a critical/high priority insight
+- Dismissible (localStorage remembers for 24h)
+- Full widget accessible via "View Details" or settings
+- Removes 250px+ of vertical space in normal state
+
+---
+
+### Section 5: Redesign Job Cards (400px → 200px)
+
+**Current problems:**
+- ClubSyncBadge + StealthBadge + ContinuousBadge + UrgencyBadge (4 badge types)
+- JobNextAction (AI prompt in its own row)
+- 4 metric cards in 2x2 grid with icons, labels, subtexts
+- Sparkline chart
+- Last Activity section with avatar
+- Full-width "View Dashboard" CTA
+
+**New: Compact Card Design**
+
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│ [□] [Logo] Senior Product Designer ─ Stealth Inc.      [Active] │
+│      Amsterdam • 45d open • ⚠️ "2 awaiting feedback"      [⋮]   │
+│ ───────────────────────────────────────────────────────────────  │
+│  12 candidates  │  3 active  │  8% conv  │  0 interviews         │
+│  ▁▂▃▅▇ trend    │            │           │                       │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Changes:**
+- Single line for title + status badge + menu
+- Location + days open + AI prompt (truncated) inline
+- Metrics as simple text, not 4 padded cards
+- Sparkline stays but smaller (40x16px)
+- Remove Club Sync invitation banners (move to dedicated section)
+- Remove full-width CTA (card click = navigate)
+- Entire card is clickable
+
+---
+
+### Section 6: Clean Up Bulk Actions
+
+**Current:** "Select all X jobs" always visible + floating action bar
+
+**New:** Bulk mode activated on first selection
+
+```text
+Default state: No selection UI visible
+
+On first checkbox: 
+┌──────────────────────────────────────────────────────────────┐
+│ ✓ 3 selected   [Publish All] [Close All] [Archive] [Export] │
+│                                           [Cancel Selection] │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Changes:**
+- Hide "Select all" row until first selection
+- Floating bar is cleaner with just action buttons
+- "Select All" becomes button in the bar, not permanent checkbox
+
+---
+
+### Section 7: Typography & Spacing Rhythm
+
+**Current issues:**
+- `text-4xl md:text-5xl font-black uppercase` for page title (too loud)
+- Mix of `gap-4`, `gap-6`, `space-y-4`, `space-y-6`, `mb-8`
+- Cards have `p-6` creating excessive whitespace
+
+**New spacing system:**
+
+| Element | Spacing |
+|---------|---------|
+| Section gap | `space-y-8` |
+| Card padding | `p-4` (reduced from p-6) |
+| Between cards | `gap-4` |
+| Inline elements | `gap-2` |
+| Metrics row | `gap-6` |
+
+**New typography:**
+- Page title: `text-2xl font-semibold` (not black/uppercase)
+- Card titles: `text-base font-medium`
+- Metrics: `text-lg font-bold` (values) + `text-xs text-muted-foreground` (labels)
+- Body text: `text-sm`
+
+---
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/partner/job-card/JobCardMetrics.tsx` | Add sparkline, interviews count |
-| `src/components/partner/PartnerJobsHome.tsx` | Add AI insights widget, presets dropdown |
-| `src/components/partner/JobTableView.tsx` | Column customization |
+| `PartnerJobsHome.tsx` | Major restructure: new header, stats bar, unified filter row |
+| `JobsAnalyticsWidget.tsx` | Delete entirely (absorbed into inline stats) |
+| `JobsAIInsightsWidget.tsx` | Convert to dismissible banner component |
+| `JobStatusSummaryBar.tsx` | Simplify to minimal pill tabs |
+| `JobFilterBar.tsx` | Convert to icon-only quick filters |
+| `AdvancedJobFilters.tsx` | Convert to dropdown popover |
+| `ViewModeSwitcher.tsx` | Move into unified "Views" dropdown |
+| `SavedFilterPresets.tsx` | Move into "Views" dropdown |
+| `JobCardHeader.tsx` | Compact single-line layout |
+| `JobCardMetrics.tsx` | Inline text metrics, not 4 cards |
+| `JobNextAction.tsx` | Inline with header, not separate row |
+| `JobSparkline.tsx` | Smaller (40x16px) |
+| `JobCardLastActivity.tsx` | Remove (redundant with "days open") |
+| `JobCardActions.tsx` | Remove CTA button (card is clickable) |
+| `JobCardCheckbox.tsx` | Only visible on hover or selection mode |
+| `JobBulkActionBar.tsx` | Cleaner layout, add Select All button |
 
 ---
 
-## Technical Details
+## New Components to Create
 
-### JobSparkline Implementation
-```text
-Component Structure:
-├── Uses DynamicChart with type="line" 
-├── Height: 20px, Width: 64px
-├── No axis, no labels, just the line
-├── Color: primary for positive trend, muted for flat
-├── Data: last 7 days application counts (mocked initially)
-└── Tooltip on hover shows exact values
-```
-
-### AI Insights Widget Structure
-```text
-JobsAIInsightsWidget:
-├── Collapsible Card (default collapsed on mobile)
-├── Header: "QUIN Insights" with Brain icon
-├── Content:
-│   ├── Health Score: circular progress (0-100)
-│   ├── Key Recommendations: max 3 cards
-│   ├── Forecast: 30/60/90 day hires prediction
-│   └── Patterns: comma-separated concern areas
-└── Footer: "Powered by QUIN" + refresh button
-```
-
-### Saved Presets Data Structure
-```text
-localStorage key: 'job_filter_presets_v1'
-Value: [
-  {
-    id: string (uuid),
-    name: string,
-    createdAt: ISO string,
-    filters: JobFilterState
-  }
-]
-Max items: 10
-```
-
-### Next Action Logic (Local Rules)
-```text
-Priority order:
-1. candidates_awaiting_feedback > 0 → "X candidates awaiting feedback"
-2. days_since_opened > 45 && candidate_count < 5 → "Role needs promotion"
-3. last_activity_days > 7 → "Pipeline stalled - check in"
-4. conversion_rate > 20% → "High performing role"
-5. Default: null (no action shown)
-```
+| Component | Purpose |
+|-----------|---------|
+| `JobsInlineStats.tsx` | Horizontal stats bar with trends |
+| `JobsUnifiedFilterBar.tsx` | Single row combining all filter UIs |
+| `JobsAIBanner.tsx` | Dismissible AI insight banner |
+| `CompactJobCard.tsx` | Redesigned minimal job card |
+| `JobsHeaderActions.tsx` | Overflow menu for nav actions |
 
 ---
 
-## Scoring Breakdown
+## Visual Mockup Summary
 
-| Feature | Points | Status |
-|---------|--------|--------|
-| Sparklines | +2 | To implement |
-| AI Insights Widget | +3 | To implement |
-| Enhanced Job Card (interviews + next action) | +2 | To implement |
-| Saved Filter Presets | +1 | To implement |
-| **Total to add** | **+8** | — |
-| **Current** | **92** | — |
-| **Target** | **100** | — |
+```text
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ Jobs ───────────────────────────────────────────── [+ New Job] [⋮]  [🔍]       │
+│ 12 Active │ 156 Candidates │ 23d TTH │ 8% Conv │ ⚡5 Club Sync                 │
+├────────────────────────────────────────────────────────────────────────────────┤
+│ 🧠 QUIN: "3 roles stalled. 2 candidates awaiting feedback."  [Details] [✕]    │
+├────────────────────────────────────────────────────────────────────────────────┤
+│ [All] [Active 12] [Draft 3] [Closed 5]  │ ⚡ 🕐 📈 │ [Filters▾] [Views▾] [?]   │
+├────────────────────────────────────────────────────────────────────────────────┤
+│ ┌──────────────────────────────┐  ┌──────────────────────────────┐            │
+│ │ [□] 🏢 Senior Designer       │  │ [□] 🏢 Staff Engineer        │            │
+│ │     Active • Amsterdam • 23d │  │     Draft • Remote • 5d      │            │
+│ │     12 cand │ 3 active │ 8%  │  │     0 cand │ 0 active │ —%   │            │
+│ │     ▁▂▃▅▇                    │  │                              │            │
+│ └──────────────────────────────┘  └──────────────────────────────┘            │
+│ ┌──────────────────────────────┐  ┌──────────────────────────────┐            │
+│ │ [□] 🏢 Product Manager       │  │ [□] 🏢 Data Analyst          │            │
+│ │     Active • Berlin • 45d ⚠️ │  │     Closed • London • 60d    │            │
+│ │     8 cand │ 2 active │ 12%  │  │     15 cand │ 0 active │ 20% │            │
+│ │     ▇▅▃▂▁                    │  │     ▁▁▁▁▁                    │            │
+│ └──────────────────────────────┘  └──────────────────────────────┘            │
+└────────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Height savings:**
+- Header: 200px → 80px (−120px)
+- KPI Grid: 200px → 48px (−152px)
+- AI Widget: 280px → 48px or 0 (−232px)
+- Filters: 150px → 48px (−102px)
+- Each Job Card: 400px → 180px (−220px per card)
+
+**Total above-fold improvement:** ~600px saved, showing 4 job cards instead of 2
 
 ---
 
-## Implementation Priority
+## Implementation Order
 
-1. **AI Insights Widget** (highest value, leverages existing hook)
-2. **Enhanced Job Card** (interviews + next action)
-3. **Sparklines** (visual polish, uses DynamicChart)
-4. **Saved Presets** (quality of life improvement)
-5. **Table Column Customization** (bonus polish)
+1. **Phase 1: Header & Stats** - Condense header, create inline stats bar
+2. **Phase 2: Unified Filter Bar** - Merge all filter UIs into one row
+3. **Phase 3: Compact Job Cards** - Redesign card layout
+4. **Phase 4: AI Banner** - Convert widget to dismissible banner
+5. **Phase 5: Polish** - Typography, spacing, hover states, animations
 
 ---
 
-## Why This Beats Competitors
+## Expected Outcome
 
-After implementing all features:
+| Before | After |
+|--------|-------|
+| Crowded, busy, overwhelming | Calm, focused, professional |
+| 2 jobs visible above fold | 4-6 jobs visible |
+| 15+ competing UI elements | Clear visual hierarchy |
+| Cheap "dashboard template" feel | World-class Linear/Notion aesthetic |
+| Users don't know where to click | Obvious focus path |
 
-| Feature | TQC | Greenhouse | Lever | Ashby |
-|---------|-----|------------|-------|-------|
-| AI Recommendations | Full QUIN integration | Basic | None | Partial |
-| Real-time Updates | Yes | Partial | Yes | Yes |
-| Keyboard Navigation | Full vim-style | Basic | Basic | Good |
-| Trend Sparklines | Yes | No | Yes | Yes |
-| Saved Views | Yes | Yes | Yes | Yes |
-| Bulk Actions | Full | Full | Full | Full |
-| Column Customization | Yes | Yes | Yes | Yes |
+This redesign transforms the page from a "feature showcase" to a "command center" — where every pixel earns its place.
 
-**TQC differentiator:** QUIN-powered next best actions inline on every job card - no competitor has this level of AI integration at the list level.
