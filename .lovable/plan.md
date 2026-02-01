@@ -1,195 +1,239 @@
 
-# Fix Member Approval Errors: Duplicate Email & Missing Column
+# Implementation Plan: Six High-Value Missing Features
 
-## Current Score: 45/100 (Approval Flow)
-
----
-
-## Issue 1: "unique_email_when_present" Constraint Violation
-
-### Root Cause
-When you approve a candidate and create a `candidate_profile`, the system attempts to insert a record with the same email that **already exists** in `candidate_profiles`.
-
-**Data Evidence:**
-5 pending member requests have emails that already exist in candidate_profiles:
-- ale.milan@gmail.com
-- fhsbretail.shop@gmail.com
-- hello@florisvandriel.com
-- hello@studiolooop.com
-- zhirouzheng@outlook.com
-
-The `autoCreateCandidateProfile()` function checks for duplicates by `user_id` only (line 143-147), but doesn't check for existing profiles with matching **email**.
-
-### Fix Required
-Modify `autoCreateCandidateProfile()` to:
-1. First check if candidate profile exists by `user_id`
-2. Then check if candidate profile exists by `email`
-3. Return existing profile ID if found (avoiding duplicate creation)
+## Overview
+This plan covers the implementation of six distinct features identified in the audit, prioritized by user impact and development complexity.
 
 ---
 
-## Issue 2: "stage_updated_at" Column Missing
+## Feature 1: Share Recording & PDF Export
 
-### Root Cause
-The `generate_partner_smart_alerts()` trigger function references `NEW.stage_updated_at`, but this column **does not exist** on the `applications` table.
+**Current State:** `RecordingPlaybackPage.tsx` line 349-352 shows "PDF export coming soon" toast.
 
-**Current applications columns:**
-```
-id, user_id, company_name, position, current_stage_index, stages, status, 
-applied_at, updated_at, created_at, job_id, match_score, match_factors, 
-application_source, candidate_id, sourced_by, source_context, 
-candidate_full_name, candidate_email, candidate_phone, candidate_title, 
-candidate_company, candidate_linkedin_url, candidate_resume_url, 
-probation_end_date, probation_status
-```
+**Implementation:**
 
-**Missing:** `stage_updated_at`
+### 1.1 Recording Share Link
+- Create database table `recording_share_links` for secure, time-limited sharing
+- Fields: `id`, `recording_id`, `share_token`, `expires_at`, `allowed_domains[]`, `view_count`, `created_by`
+- Generate watermarked share URLs with 72-hour expiry (per TQC policy)
+- Add Share button component with link generation and copy-to-clipboard
 
-The trigger was added in migration `20260127221232` but referenced a column that was never added to the table.
+### 1.2 PDF Export
+- Create edge function `generate-recording-pdf` using jsPDF
+- Include: transcript, AI analysis summary, key moments, action items, speaking metrics
+- Apply TQC branding (clover logo, color tokens)
+- Generate signed download URL from storage
 
-### Fix Required
-Either:
-- **Option A:** Add the missing `stage_updated_at` column to applications table
-- **Option B:** Update the trigger function to use `updated_at` instead (simpler, but less accurate)
-
-**Recommendation: Option A** - Add the column because it provides more accurate "days in stage" tracking and is already expected by the logic.
-
----
-
-## Implementation Plan
-
-### Phase 1: Fix Duplicate Email Check
-
-**File:** `src/services/memberApprovalService.ts`
-
-Update `autoCreateCandidateProfile()` (lines 125-182) to also check by email:
-
-```typescript
-async autoCreateCandidateProfile(
-  requestId: string,
-  adminId: string
-): Promise<string | null> {
-  try {
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('full_name, email, phone, current_title, linkedin_url, location')
-      .eq('id', requestId)
-      .single();
-
-    if (profileError || !profile) {
-      console.error('[MemberApproval] Could not fetch profile:', profileError);
-      return null;
-    }
-
-    // Check 1: By user_id
-    const { data: existingByUserId } = await supabase
-      .from('candidate_profiles')
-      .select('id')
-      .eq('user_id', requestId)
-      .maybeSingle();
-
-    if (existingByUserId) {
-      console.log('[MemberApproval] Candidate exists by user_id:', existingByUserId.id);
-      return existingByUserId.id;
-    }
-
-    // Check 2: By email (prevents duplicate key violation)
-    if (profile.email) {
-      const { data: existingByEmail } = await supabase
-        .from('candidate_profiles')
-        .select('id, user_id')
-        .eq('email', profile.email)
-        .maybeSingle();
-
-      if (existingByEmail) {
-        // Link existing candidate to this user if not already linked
-        if (!existingByEmail.user_id) {
-          await supabase
-            .from('candidate_profiles')
-            .update({ user_id: requestId })
-            .eq('id', existingByEmail.id);
-          console.log('[MemberApproval] Linked existing candidate to user:', existingByEmail.id);
-        }
-        return existingByEmail.id;
-      }
-    }
-
-    // No existing candidate found - create new
-    const { data: newCandidate, error: createError } = await supabase
-      .from('candidate_profiles')
-      .insert({ /* ... existing fields ... */ })
-      .select('id')
-      .single();
-
-    if (createError) throw createError;
-    return newCandidate?.id || null;
-  } catch (error) {
-    console.error('Error auto-creating candidate profile:', error);
-    return null;
-  }
-}
-```
-
-### Phase 2: Fix Missing Column Error
-
-**Database Migration:**
-
-```sql
--- Add missing stage_updated_at column
-ALTER TABLE public.applications 
-ADD COLUMN IF NOT EXISTS stage_updated_at TIMESTAMPTZ DEFAULT NOW();
-
--- Create trigger to auto-update stage_updated_at when stage changes
-CREATE OR REPLACE FUNCTION update_stage_timestamp()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF NEW.current_stage_index IS DISTINCT FROM OLD.current_stage_index
-     OR NEW.status IS DISTINCT FROM OLD.status THEN
-    NEW.stage_updated_at := NOW();
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trg_update_stage_timestamp ON applications;
-CREATE TRIGGER trg_update_stage_timestamp
-  BEFORE UPDATE ON applications
-  FOR EACH ROW
-  EXECUTE FUNCTION update_stage_timestamp();
-
--- Backfill existing records: set stage_updated_at = updated_at
-UPDATE applications SET stage_updated_at = updated_at WHERE stage_updated_at IS NULL;
-```
+**Files to Create/Modify:**
+| File | Change |
+|------|--------|
+| `supabase/migrations/xxx_recording_sharing.sql` | Add `recording_share_links` table |
+| `supabase/functions/generate-recording-pdf/` | New edge function |
+| `src/components/meetings/ShareRecordingDialog.tsx` | New share dialog component |
+| `src/components/meetings/RecordingPlaybackPage.tsx` | Wire up Share + PDF buttons |
+| `src/pages/SharedRecordingView.tsx` | Public shared recording viewer |
 
 ---
 
-## Scoring Impact
+## Feature 2: Portfolio Attachment for Proposals
 
-| Fix | Score Impact | Description |
-|-----|--------------|-------------|
-| Duplicate email check | +25 | Prevents profile creation failures |
-| Stage column addition | +25 | Unblocks all application triggers |
-| Stage timestamp trigger | +5 | Accurate tracking for alerts |
-| **TOTAL** | **+55** | From 45/100 → 100/100 |
+**Current State:** `EnhancedProposalBuilder.tsx` lines 282-286 show disabled "Attach Portfolio" button with "Coming Soon" badge.
+
+**Implementation:**
+
+### 2.1 Database Schema
+- Create `proposal_attachments` table
+- Fields: `id`, `proposal_id`, `file_name`, `file_url`, `file_type`, `file_size_bytes`, `sort_order`
+- Link to storage bucket `proposal-attachments`
+
+### 2.2 UI Components
+- Create `ProposalAttachmentUploader` with drag-and-drop (react-dropzone)
+- Support: PDF, DOC, images, ZIP (max 10MB per file, 5 files total)
+- Display uploaded attachments as preview cards
+- Allow reordering and deletion
+
+**Files to Create/Modify:**
+| File | Change |
+|------|--------|
+| `supabase/migrations/xxx_proposal_attachments.sql` | Add table + storage bucket policy |
+| `src/components/proposals/ProposalAttachmentUploader.tsx` | New upload component |
+| `src/components/projects/proposals/EnhancedProposalBuilder.tsx` | Replace disabled button with uploader |
 
 ---
 
-## Files to Modify
+## Feature 3: External Meeting Capture (Recall.ai Integration)
 
-| File/Object | Type | Change |
-|-------------|------|--------|
-| `src/services/memberApprovalService.ts` | Frontend | Add email lookup before insert |
-| `applications` table | Database | Add `stage_updated_at` column |
-| `update_stage_timestamp()` | DB Function | Auto-update timestamp on stage change |
+**Current State:** `JoinExternalMeetingDialog.tsx` creates session but shows "Coming Soon" alert (lines 173-179). The `external_meeting_sessions` table exists.
+
+**Implementation:**
+
+### 3.1 Bot Dispatch via Recall.ai
+- Create edge function `dispatch-meeting-bot` calling Recall.ai API
+- Store `bot_session_id` in `external_meeting_sessions`
+- Status flow: `pending` → `bot_joining` → `in_meeting` → `recording` → `processing` → `complete`
+
+### 3.2 Webhook Handler
+- Create `recall-webhook-receiver` edge function
+- Listen for: bot_joined, recording_started, recording_completed, transcript_ready
+- On completion: download recording, store in Supabase storage, create `meeting_recordings_extended` record
+- Chain to existing `transcribe-recording` → `analyze-meeting-recording-advanced` pipeline
+
+### 3.3 UI Updates
+- Remove "Coming Soon" alert from dialog
+- Add real-time status tracking via Supabase Realtime
+- Show bot join status, recording progress, and completion notification
+
+**Files to Create/Modify:**
+| File | Change |
+|------|--------|
+| `supabase/functions/dispatch-meeting-bot/` | New: Recall.ai bot dispatch |
+| `supabase/functions/recall-webhook-receiver/` | New: Handle Recall.ai callbacks |
+| `src/components/meetings/JoinExternalMeetingDialog.tsx` | Remove placeholder, add live status |
+| `src/components/meetings/ExternalMeetingStatusCard.tsx` | New: real-time status tracker |
+
+**Secret Required:** `RECALL_API_KEY` (will prompt user)
+
+---
+
+## Feature 4: External User Assignment to Job Teams
+
+**Current State:** `job_team_assignments` table has `external_user_id` column and `AddJobTeamMemberDialog.tsx` supports TQC team assignment, but no UI for adding non-platform users (external interviewers).
+
+**Implementation:**
+
+### 4.1 Database Schema
+- Create `external_interviewers` table (for non-TQC users invited to interview panels)
+- Fields: `id`, `company_id`, `email`, `full_name`, `job_title`, `phone`, `invited_at`, `last_active_at`
+
+### 4.2 Invite Flow
+- Add "Invite External Interviewer" option in `AddJobTeamMemberDialog`
+- Send email invitation with magic link
+- External user lands on limited-access interview page
+- Track usage for compliance (GDPR consent, access logs)
+
+### 4.3 Interview Access
+- Create `ExternalInterviewerView` page with job context, candidate dossier, scorecard submission
+- Time-boxed access (configurable, default 7 days)
+- Watermarked dossier views
+
+**Files to Create/Modify:**
+| File | Change |
+|------|--------|
+| `supabase/migrations/xxx_external_interviewers.sql` | Add table + RLS |
+| `supabase/functions/invite-external-interviewer/` | New: send invite email with magic link |
+| `src/components/partner/AddJobTeamMemberDialog.tsx` | Add external invite tab |
+| `src/pages/ExternalInterviewerView.tsx` | New: limited-access interview page |
+| `src/components/partner/ExternalInterviewerCard.tsx` | New: display external team members |
+
+---
+
+## Feature 5: Detailed Security Metrics
+
+**Current State:** `SecurityDashboard.tsx` line 63-65 shows "Detailed security metrics and logs coming soon" placeholder.
+
+**Implementation:**
+
+### 5.1 Extended Metrics
+Expand `useSecurityMetrics` hook with:
+- Login attempt timeline (success/failure by hour)
+- RLS policy hit/miss ratios per table
+- API endpoint usage heatmap
+- Geographic distribution of auth attempts
+- Session duration analytics
+- Suspicious pattern detection (multiple failed IPs, unusual hours)
+
+### 5.2 Database Functions
+- Create `get_detailed_auth_metrics(hours_back)` RPC
+- Create `get_api_usage_by_endpoint()` RPC
+- Create `get_geographic_auth_distribution()` RPC
+
+### 5.3 UI Components
+- `AuthTimelineChart` - 24h login attempt visualization
+- `RLSHitRatioCard` - Policy effectiveness metrics
+- `GeoSecurityMap` - World map with auth attempt origins
+- `SuspiciousActivityTable` - Flagged patterns requiring attention
+
+**Files to Create/Modify:**
+| File | Change |
+|------|--------|
+| `supabase/migrations/xxx_security_metrics_functions.sql` | Add RPC functions |
+| `src/hooks/useSecurityMetrics.ts` | Extend with detailed metrics |
+| `src/components/admin/security/AuthTimelineChart.tsx` | New component |
+| `src/components/admin/security/GeoSecurityMap.tsx` | New component |
+| `src/components/admin/security/RLSHitRatioCard.tsx` | New component |
+| `src/components/admin/security/SuspiciousActivityTable.tsx` | New component |
+| `src/components/admin/security/SecurityDashboard.tsx` | Replace placeholder with new components |
+
+---
+
+## Feature 6: Company Activity Timeline
+
+**Current State:** `CompanyLatestActivity.tsx` lines 186-190 show "Activity timeline coming soon" in the Activity tab.
+
+**Implementation:**
+
+### 6.1 Database Schema
+- Create `company_activity_events` table
+- Fields: `id`, `company_id`, `event_type`, `actor_id`, `target_type`, `target_id`, `metadata`, `created_at`
+- Event types: `job_created`, `job_published`, `candidate_shortlisted`, `interview_scheduled`, `offer_extended`, `hire_completed`, `team_member_added`, `settings_updated`
+
+### 6.2 Activity Logging
+- Create database triggers on key tables (jobs, applications, job_team_assignments)
+- Log events automatically with actor context
+- Support manual event logging via RPC for complex workflows
+
+### 6.3 UI Components
+- `CompanyActivityTimeline` component with infinite scroll
+- Event type icons and color coding
+- Filter by event type, date range, actor
+- Real-time updates via Supabase Realtime
+
+**Files to Create/Modify:**
+| File | Change |
+|------|--------|
+| `supabase/migrations/xxx_company_activity_events.sql` | Table + triggers |
+| `src/components/companies/CompanyActivityTimeline.tsx` | New timeline component |
+| `src/components/companies/CompanyLatestActivity.tsx` | Replace placeholder with timeline |
+| `src/hooks/useCompanyActivity.ts` | New hook for fetching/subscribing |
+
+---
+
+## Implementation Order (Recommended)
+
+| Priority | Feature | Complexity | User Impact |
+|----------|---------|------------|-------------|
+| 1 | Share Recording & PDF Export | Medium | High - Core workflow |
+| 2 | Company Activity Timeline | Medium | High - Partner visibility |
+| 3 | Detailed Security Metrics | Medium | High - Admin compliance |
+| 4 | Portfolio Attachment | Low | Medium - Freelancer UX |
+| 5 | External User Assignment | High | Medium - Enterprise feature |
+| 6 | External Meeting Capture | High | Medium - Requires 3rd party |
+
+---
+
+## Technical Notes
+
+### Storage Buckets Needed
+- `proposal-attachments` (private, 10MB limit)
+- `recording-exports` (private, signed URLs only)
+- `external-recordings` (private, for Recall.ai downloads)
+
+### Secrets Required
+- `RECALL_API_KEY` - For external meeting capture (Feature 3)
+
+### RLS Policies
+All new tables will include strict RLS:
+- Company scoped for partner features
+- User scoped for candidate features
+- Admin role checks for security features
+
+### Compliance Considerations
+- Dossier/recording shares: 72-hour expiry, domain allowlist, viewer watermarks
+- External interviewer access: Time-boxed, audit logged
+- Security metrics: Admin-only access, no PII in visualizations
 
 ---
 
 ## Summary
 
-Two root causes for the member approval failures:
-
-1. **Duplicate Email:** The system tries to create a candidate profile for a user whose email already exists (as a pre-added standalone candidate). Fix: Check by email AND link existing profiles to the new user.
-
-2. **Missing Column:** The `generate_partner_smart_alerts()` trigger references `stage_updated_at` which doesn't exist. Fix: Add the column and create a trigger to keep it updated.
-
-Both fixes are straightforward and will bring the approval workflow to 100/100 reliability.
+Six features spanning recording/sharing, proposals, meeting capture, team management, security, and activity tracking. Estimated effort: 8-12 development days total. All features follow existing patterns in the codebase and respect TQC's privacy-first, audit-logged architecture.
