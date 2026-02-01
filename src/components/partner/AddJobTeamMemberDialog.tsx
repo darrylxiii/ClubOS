@@ -422,7 +422,91 @@ export const AddJobTeamMemberDialog = ({
           </TabsContent>
 
           <TabsContent value="external" className="space-y-4 py-4">
-            <p className="text-sm text-muted-foreground">External user assignment coming soon...</p>
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search TQC team by name or email..."
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Select TQC Team Member</Label>
+                <RadioGroup value={selectedExternalUserId} onValueChange={setSelectedExternalUserId}>
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {filteredTqcMembers.map((member) => (
+                      <div
+                        key={member.id}
+                        className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                      >
+                        <RadioGroupItem value={member.id} id={`tqc-${member.id}`} />
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={member.avatar_url} />
+                          <AvatarFallback>
+                            {member.full_name?.charAt(0) || member.email?.charAt(0) || '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <label htmlFor={`tqc-${member.id}`} className="flex-1 cursor-pointer">
+                          <div className="font-medium">{member.full_name || 'Unknown'}</div>
+                          <div className="text-sm text-muted-foreground">{member.email}</div>
+                        </label>
+                        <div className="flex gap-1">
+                          {member.roles?.includes('admin') && (
+                            <Badge variant="outline" className="text-xs">Admin</Badge>
+                          )}
+                          {member.roles?.includes('strategist') && (
+                            <Badge variant="secondary" className="text-xs">Strategist</Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {filteredTqcMembers.length === 0 && (
+                      <p className="text-center py-4 text-muted-foreground text-sm">
+                        No matching team members found
+                      </p>
+                    )}
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="reason">Assignment Reason</Label>
+                <Textarea
+                  id="reason"
+                  placeholder="Why is this person being assigned to this job?"
+                  value={assignmentReason}
+                  onChange={(e) => setAssignmentReason(e.target.value)}
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Select value={jobRole} onValueChange={handleRoleChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hiring_manager">Hiring Manager</SelectItem>
+                    <SelectItem value="technical_interviewer">Technical Interviewer</SelectItem>
+                    <SelectItem value="behavioral_interviewer">Behavioral Interviewer</SelectItem>
+                    <SelectItem value="panel_member">Panel Member</SelectItem>
+                    <SelectItem value="coordinator">Interview Coordinator</SelectItem>
+                    <SelectItem value="observer">Observer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
+                <Shield className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  External users receive limited, time-boxed access with audit logging
+                </span>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
 

@@ -24,6 +24,7 @@ import { SpeakingMetricsPanel } from './SpeakingMetricsPanel';
 import { RecordingClipCreator } from './RecordingClipCreator';
 import { GenerateDossierButton } from './GenerateDossierButton';
 import { AIHighlightClips } from './AIHighlightClips';
+import { ShareRecordingDialog } from './ShareRecordingDialog';
 
 export default function RecordingPlaybackPage() {
   const { recordingId } = useParams();
@@ -40,6 +41,8 @@ export default function RecordingPlaybackPage() {
   // Clip creator state
   const [clipDialogOpen, setClipDialogOpen] = useState(false);
   const [clipData, setClipData] = useState({ startMs: 0, endMs: 0, text: '' });
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
   useEffect(() => {
@@ -252,6 +255,31 @@ export default function RecordingPlaybackPage() {
     toast.success('Transcript downloaded');
   };
 
+  const handleExportPDF = async () => {
+    if (!recording?.id) return;
+    
+    setExportingPDF(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-recording-pdf', {
+        body: { recordingId: recording.id }
+      });
+
+      if (error) throw error;
+
+      if (data?.downloadUrl) {
+        window.open(data.downloadUrl, '_blank');
+        toast.success('PDF report generated');
+      } else {
+        toast.error('Failed to generate PDF');
+      }
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Failed to export PDF');
+    } finally {
+      setExportingPDF(false);
+    }
+  };
+
   if (loading) {
     return (
       <AppLayout>
@@ -346,9 +374,13 @@ export default function RecordingPlaybackPage() {
                 <FileText className="h-4 w-4 mr-2" />
                 Export Transcript
               </Button>
-              <Button onClick={() => toast.info('PDF export coming soon')} variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export PDF
+              <Button onClick={handleExportPDF} variant="outline" size="sm" disabled={exportingPDF}>
+                <Download className={`h-4 w-4 mr-2 ${exportingPDF ? 'animate-spin' : ''}`} />
+                {exportingPDF ? 'Exporting...' : 'Export PDF'}
+              </Button>
+              <Button onClick={() => setShareDialogOpen(true)} variant="outline" size="sm">
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
               </Button>
             </div>
           </div>
@@ -897,7 +929,7 @@ export default function RecordingPlaybackPage() {
                   variant="outline" 
                   className="w-full justify-start" 
                   size="sm"
-                  onClick={() => toast.info('Coming soon')}
+                  onClick={() => setShareDialogOpen(true)}
                 >
                   <Share2 className="h-4 w-4 mr-2" />
                   Share Recording
@@ -917,6 +949,14 @@ export default function RecordingPlaybackPage() {
         endMs={clipData.endMs}
         transcript={clipData.text}
         recordingUrl={recording?.recording_url}
+      />
+
+      {/* Share Recording Dialog */}
+      <ShareRecordingDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        recordingId={recording?.id || ''}
+        recordingTitle={recording?.title || recording?.meeting?.title || 'Recording'}
       />
     </AppLayout>
   );
