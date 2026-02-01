@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -27,6 +27,10 @@ import {
   Archive,
   RefreshCw,
   RotateCcw,
+  Users,
+  Clock,
+  TrendingUp,
+  Calendar,
   AlertCircle,
   Lightbulb,
 } from 'lucide-react';
@@ -68,8 +72,8 @@ const MiniSparkline = memo(({ data }: { data: number[] }) => {
   if (data.length < 2) return null;
   
   const max = Math.max(...data, 1);
-  const width = 40;
-  const height = 16;
+  const width = 48;
+  const height = 20;
   const points = data.map((v, i) => {
     const x = (i / (data.length - 1)) * width;
     const y = height - (v / max) * height;
@@ -123,6 +127,36 @@ const getNextAction = (job: CompactJobCardProps['job']) => {
   return null;
 };
 
+// Metric item component for the grid
+const MetricItem = memo(({ 
+  icon: Icon, 
+  value, 
+  label, 
+  valueClassName,
+  children,
+}: { 
+  icon: React.ElementType; 
+  value: string | number; 
+  label: string; 
+  valueClassName?: string;
+  children?: React.ReactNode;
+}) => (
+  <div className="flex flex-col gap-1">
+    <div className="flex items-center gap-1.5 text-muted-foreground">
+      <Icon className="w-3.5 h-3.5" />
+      <span className="text-xs">{label}</span>
+    </div>
+    <div className="flex items-center justify-between">
+      <span className={cn("text-lg font-bold", valueClassName || "text-foreground")}>
+        {value}
+      </span>
+      {children}
+    </div>
+  </div>
+));
+
+MetricItem.displayName = 'MetricItem';
+
 export const CompactJobCard = memo(({
   job,
   isSelected,
@@ -139,24 +173,37 @@ export const CompactJobCard = memo(({
   const nextAction = getNextAction(job);
   const trendData = generateTrendData(job.candidate_count, job.days_since_opened);
 
+  const getDaysColor = (days: number) => {
+    if (days > 45) return 'text-destructive';
+    if (days > 30) return 'text-amber-500';
+    return undefined;
+  };
+
+  const getConversionColor = (rate: number | null) => {
+    if (rate === null) return undefined;
+    if (rate >= 15) return 'text-success';
+    if (rate < 5) return 'text-muted-foreground';
+    return undefined;
+  };
+
   return (
     <Card
       className={cn(
         'relative group cursor-pointer transition-all duration-200',
-        'border border-border/20 bg-card/20 backdrop-blur-sm',
-        'hover:border-border/40 hover:bg-card/30',
-        isSelected && 'ring-2 ring-primary border-primary/40',
-        isFocused && 'ring-2 ring-primary/50 border-primary/30'
+        'border border-border/30 bg-card/40 backdrop-blur-sm',
+        'hover:border-border/50 hover:bg-card/50 hover:shadow-lg',
+        isSelected && 'ring-2 ring-primary border-primary/50',
+        isFocused && 'ring-2 ring-primary/60 border-primary/40'
       )}
       onClick={onNavigate}
     >
-      <div className="p-4 space-y-3">
+      <CardHeader className="pb-3">
         {/* Row 1: Checkbox, Logo, Title, Status, Menu */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           {/* Checkbox - visible on hover or when selected */}
           <div 
             className={cn(
-              'shrink-0 transition-opacity',
+              'shrink-0 mt-1 transition-opacity',
               isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             )}
             onClick={(e) => e.stopPropagation()}
@@ -169,42 +216,51 @@ export const CompactJobCard = memo(({
           </div>
 
           {/* Company Logo */}
-          <Avatar className="h-8 w-8 border border-border/20 shrink-0">
+          <Avatar className="h-10 w-10 border border-border/30 shrink-0">
             <AvatarImage src={job.company_logo || undefined} alt={job.company_name} />
-            <AvatarFallback className="bg-card/40 text-foreground text-xs font-medium">
+            <AvatarFallback className="bg-muted text-foreground text-sm font-medium">
               {job.company_name.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
 
-          {/* Title + Company */}
+          {/* Title + Company + Location */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-sm text-foreground truncate">
+            <div className="flex items-center gap-2 mb-0.5">
+              <h3 className="font-semibold text-base text-foreground truncate">
                 {job.title}
               </h3>
               {job.is_stealth && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Lock className="h-3 w-3 text-amber-500 shrink-0" />
+                    <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
                   </TooltipTrigger>
                   <TooltipContent>Confidential</TooltipContent>
                 </Tooltip>
               )}
             </div>
-            <p className="text-xs text-muted-foreground truncate">{job.company_name}</p>
+            <p className="text-sm text-muted-foreground truncate">{job.company_name}</p>
+            {job.location && (
+              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3" />
+                <span className="truncate">{job.location}</span>
+              </div>
+            )}
           </div>
 
-          {/* Status Badge */}
-          <JobStatusBadge status={job.status as JobStatus} size="sm" />
+          {/* Status Badge + Club Sync */}
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            <JobStatusBadge status={job.status as JobStatus} size="sm" />
+            <ClubSyncBadge status={job.club_sync_status as any} size="sm" />
+          </div>
 
           {/* Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 -mt-1">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-card/95 backdrop-blur-xl">
+            <DropdownMenuContent align="end" className="w-48 bg-card/95 backdrop-blur-xl border-border/40">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
               
@@ -256,72 +312,57 @@ export const CompactJobCard = memo(({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+      </CardHeader>
 
-        {/* Row 2: Location, Days Open, Next Action */}
-        <div className="flex items-center gap-3 text-xs text-muted-foreground pl-7">
-          {job.location && (
-            <div className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              <span className="truncate max-w-[120px]">{job.location}</span>
-            </div>
-          )}
-          <span>•</span>
-          <span className={cn(
-            job.days_since_opened > 45 ? 'text-amber-500' : 
-            job.days_since_opened > 30 ? 'text-warning' : ''
+      <CardContent className="pt-0 space-y-4">
+        {/* AI Next Action (if available) */}
+        {nextAction && (
+          <div className={cn(
+            'flex items-center gap-2 px-3 py-2 rounded-md text-sm',
+            nextAction.urgent 
+              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' 
+              : 'bg-primary/10 text-primary'
           )}>
-            {job.days_since_opened}d open
-          </span>
-          
-          {nextAction && (
-            <>
-              <span>•</span>
-              <div className={cn(
-                'flex items-center gap-1',
-                nextAction.urgent ? 'text-amber-500' : 'text-primary'
-              )}>
-                {nextAction.urgent ? (
-                  <AlertCircle className="h-3 w-3" />
-                ) : (
-                  <Lightbulb className="h-3 w-3" />
-                )}
-                <span className="truncate max-w-[120px]">{nextAction.text}</span>
-              </div>
-            </>
-          )}
-          
-          <ClubSyncBadge status={job.club_sync_status as any} size="sm" />
-        </div>
+            {nextAction.urgent ? (
+              <AlertCircle className="h-4 w-4 shrink-0" />
+            ) : (
+              <Lightbulb className="h-4 w-4 shrink-0" />
+            )}
+            <span className="font-medium">{nextAction.text}</span>
+          </div>
+        )}
 
-        {/* Row 3: Metrics bar */}
-        <div className="flex items-center gap-4 pl-7 pt-1 border-t border-border/10">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-foreground">{job.candidate_count}</span>
-            <span className="text-xs text-muted-foreground">candidates</span>
-          </div>
-          <span className="text-muted-foreground/50">│</span>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-foreground">{job.active_stage_count}</span>
-            <span className="text-xs text-muted-foreground">active</span>
-          </div>
-          <span className="text-muted-foreground/50">│</span>
-          <div className="flex items-center gap-2">
-            <span className={cn(
-              'text-sm font-semibold',
-              job.conversion_rate && job.conversion_rate >= 15 ? 'text-success' :
-              job.conversion_rate && job.conversion_rate < 5 ? 'text-muted-foreground' : 'text-foreground'
-            )}>
-              {job.conversion_rate !== null ? `${job.conversion_rate}%` : '—'}
-            </span>
-            <span className="text-xs text-muted-foreground">conv</span>
-          </div>
-          
-          {/* Sparkline */}
-          <div className="ml-auto">
+        {/* Metrics Grid - 2x2 */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Candidates */}
+          <MetricItem icon={Users} value={job.candidate_count} label="Candidates">
             <MiniSparkline data={trendData} />
-          </div>
+          </MetricItem>
+
+          {/* Days Open */}
+          <MetricItem 
+            icon={Clock} 
+            value={`${job.days_since_opened}d`} 
+            label="Days Open"
+            valueClassName={getDaysColor(job.days_since_opened)}
+          />
+
+          {/* Active */}
+          <MetricItem 
+            icon={Calendar} 
+            value={job.active_stage_count} 
+            label="Active Pipeline"
+          />
+
+          {/* Conversion */}
+          <MetricItem 
+            icon={TrendingUp} 
+            value={job.conversion_rate !== null ? `${job.conversion_rate}%` : '—'} 
+            label="Conversion"
+            valueClassName={getConversionColor(job.conversion_rate)}
+          />
         </div>
-      </div>
+      </CardContent>
     </Card>
   );
 });
