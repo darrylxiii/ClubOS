@@ -8927,6 +8927,45 @@ export type Database = {
           },
         ]
       }
+      company_activity_events: {
+        Row: {
+          actor_id: string | null
+          actor_name: string | null
+          company_id: string
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          target_id: string | null
+          target_name: string | null
+          target_type: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_name?: string | null
+          company_id: string
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_name?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          actor_name?: string | null
+          company_id?: string
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_name?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
       company_analytics: {
         Row: {
           application_completes: number | null
