@@ -90,6 +90,9 @@ import { JobStatusSummaryBar, JobStatusFilter } from "./JobStatusSummaryBar";
 import { JobBulkActionBar } from "./JobBulkActionBar";
 import { ViewModeSwitcher, usePersistedViewMode, ViewMode } from "./ViewModeSwitcher";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
+import { JobKanbanView } from "./JobKanbanView";
+import { JobTableView } from "./JobTableView";
+import { JobListView } from "./JobListView";
 import { useJobSelection } from "@/hooks/useJobSelection";
 import { useJobsRealtime } from "@/hooks/useJobsRealtime";
 import { useJobsKeyboardNav } from "@/hooks/useJobsKeyboardNav";
@@ -1426,27 +1429,101 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          {statusFilteredJobs.map((job, index) => (
-            <MemoizedJobCard 
-              key={job.id}
-              job={job}
-              isSelected={isSelected(job.id)}
-              isFocused={focusedIndex === index}
-              onToggleSelect={() => toggleJob(job.id)}
-              onNavigate={(id: string) => navigate(`/jobs/${id}/dashboard`)}
+        <>
+          {/* Grid View (Default) */}
+          {viewMode === 'grid' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              {statusFilteredJobs.map((job, index) => (
+                <MemoizedJobCard 
+                  key={job.id}
+                  job={job}
+                  isSelected={isSelected(job.id)}
+                  isFocused={focusedIndex === index}
+                  onToggleSelect={() => toggleJob(job.id)}
+                  onNavigate={(id: string) => navigate(`/jobs/${id}/dashboard`)}
+                  onPublish={handlePublishJob}
+                  onUnpublish={handleUnpublishJob}
+                  onClose={handleCloseJob}
+                  onReopen={handleReopenJob}
+                  onArchive={handleArchiveJob}
+                  onRestore={handleRestoreJob}
+                  onQuickAction={handleQuickAction}
+                  onClubSync={handleClubSyncAction}
+                  getClubSyncBadge={getClubSyncBadge}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* List View (Compact) */}
+          {viewMode === 'list' && (
+            <JobListView
+              jobs={statusFilteredJobs}
+              selectedIds={selectedIds}
+              focusedIndex={focusedIndex}
+              onToggleSelect={toggleJob}
+              onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
               onPublish={handlePublishJob}
               onUnpublish={handleUnpublishJob}
               onClose={handleCloseJob}
               onReopen={handleReopenJob}
               onArchive={handleArchiveJob}
               onRestore={handleRestoreJob}
-              onQuickAction={handleQuickAction}
-              onClubSync={handleClubSyncAction}
-              getClubSyncBadge={getClubSyncBadge}
+              isSelected={isSelected}
             />
-          ))}
-        </div>
+          )}
+
+          {/* Kanban View */}
+          {viewMode === 'kanban' && (
+            <JobKanbanView
+              jobs={statusFilteredJobs}
+              selectedIds={selectedIds}
+              focusedIndex={focusedIndex}
+              onToggleSelect={toggleJob}
+              onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
+              onStatusChange={async (jobId, newStatus) => {
+                const job = statusFilteredJobs.find(j => j.id === jobId);
+                if (!job) return;
+                
+                switch (newStatus) {
+                  case 'published':
+                    await handlePublishJob(jobId, job.title);
+                    break;
+                  case 'draft':
+                    await handleUnpublishJob(jobId, job.title);
+                    break;
+                  case 'closed':
+                    await handleCloseJob(jobId, job.title);
+                    break;
+                  case 'archived':
+                    await handleArchiveJob(jobId, job.title);
+                    break;
+                }
+              }}
+              isSelected={isSelected}
+            />
+          )}
+
+          {/* Table View */}
+          {viewMode === 'table' && (
+            <JobTableView
+              jobs={statusFilteredJobs}
+              selectedIds={selectedIds}
+              focusedIndex={focusedIndex}
+              onToggleSelect={toggleJob}
+              onToggleAll={toggleAll}
+              isAllSelected={isAllSelected}
+              onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
+              onPublish={handlePublishJob}
+              onUnpublish={handleUnpublishJob}
+              onClose={handleCloseJob}
+              onReopen={handleReopenJob}
+              onArchive={handleArchiveJob}
+              onRestore={handleRestoreJob}
+              isSelected={isSelected}
+            />
+          )}
+        </>
       )}
 
       {/* Bulk Action Bar */}
