@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useMemo } from 'react';
+import { memo, useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -15,6 +15,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -39,6 +40,7 @@ import {
   Archive,
   RotateCcw,
   XCircle,
+  Settings2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getDaysOpenColor, getConversionColor } from '@/lib/jobUtils';
@@ -323,6 +325,38 @@ const JobTableRow = memo(({
 
 JobTableRow.displayName = 'JobTableRow';
 
+// Column visibility settings
+type ColumnKey = 'location' | 'status' | 'candidates' | 'days' | 'conversion' | 'progress' | 'created';
+
+interface ColumnConfig {
+  key: ColumnKey;
+  label: string;
+  defaultVisible: boolean;
+}
+
+const COLUMNS: ColumnConfig[] = [
+  { key: 'location', label: 'Location', defaultVisible: true },
+  { key: 'status', label: 'Status', defaultVisible: true },
+  { key: 'candidates', label: 'Candidates', defaultVisible: true },
+  { key: 'days', label: 'Days Open', defaultVisible: true },
+  { key: 'conversion', label: 'Conversion', defaultVisible: true },
+  { key: 'progress', label: 'Progress', defaultVisible: false },
+  { key: 'created', label: 'Created', defaultVisible: true },
+];
+
+const COLUMN_STORAGE_KEY = 'job_table_columns_v1';
+
+const loadColumnVisibility = (): Record<ColumnKey, boolean> => {
+  try {
+    const stored = localStorage.getItem(COLUMN_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return COLUMNS.reduce((acc, col) => {
+    acc[col.key] = col.defaultVisible;
+    return acc;
+  }, {} as Record<ColumnKey, boolean>);
+};
+
 export const JobTableView = memo(({
   jobs,
   selectedIds,
@@ -341,6 +375,18 @@ export const JobTableView = memo(({
 }: JobTableViewProps) => {
   const [sortKey, setSortKey] = useState<SortKey | null>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [columnVisibility, setColumnVisibility] = useState<Record<ColumnKey, boolean>>(loadColumnVisibility);
+
+  // Persist column visibility
+  useEffect(() => {
+    try {
+      localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(columnVisibility));
+    } catch {}
+  }, [columnVisibility]);
+
+  const toggleColumn = useCallback((key: ColumnKey) => {
+    setColumnVisibility(prev => ({ ...prev, [key]: !prev[key] }));
+  }, []);
 
   const handleSort = useCallback((key: SortKey) => {
     if (sortKey === key) {
@@ -411,47 +457,79 @@ export const JobTableView = memo(({
               sortDirection={sortDirection}
               onSort={handleSort}
             />
-            <TableHead>Location</TableHead>
-            <SortableHeader
-              label="Status"
-              sortKey="status"
-              currentSortKey={sortKey}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-            />
-            <SortableHeader
-              label="Candidates"
-              sortKey="candidate_count"
-              currentSortKey={sortKey}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-              className="text-center"
-            />
-            <SortableHeader
-              label="Days"
-              sortKey="days_since_opened"
-              currentSortKey={sortKey}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-              className="text-center"
-            />
-            <SortableHeader
-              label="Conv."
-              sortKey="conversion_rate"
-              currentSortKey={sortKey}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-              className="text-center"
-            />
-            <TableHead className="text-center">Progress</TableHead>
-            <SortableHeader
-              label="Created"
-              sortKey="created_at"
-              currentSortKey={sortKey}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-            />
-            <TableHead className="w-12"></TableHead>
+            {columnVisibility.location && <TableHead>Location</TableHead>}
+            {columnVisibility.status && (
+              <SortableHeader
+                label="Status"
+                sortKey="status"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
+            )}
+            {columnVisibility.candidates && (
+              <SortableHeader
+                label="Candidates"
+                sortKey="candidate_count"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                className="text-center"
+              />
+            )}
+            {columnVisibility.days && (
+              <SortableHeader
+                label="Days"
+                sortKey="days_since_opened"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                className="text-center"
+              />
+            )}
+            {columnVisibility.conversion && (
+              <SortableHeader
+                label="Conv."
+                sortKey="conversion_rate"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                className="text-center"
+              />
+            )}
+            {columnVisibility.progress && <TableHead className="text-center">Progress</TableHead>}
+            {columnVisibility.created && (
+              <SortableHeader
+                label="Created"
+                sortKey="created_at"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
+            )}
+            <TableHead className="w-12">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Settings2 className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Visible Columns</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {COLUMNS.map(col => (
+                    <DropdownMenuItem
+                      key={col.key}
+                      onClick={() => toggleColumn(col.key)}
+                      className="gap-2"
+                    >
+                      <Checkbox checked={columnVisibility[col.key]} />
+                      {col.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
