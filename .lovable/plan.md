@@ -1,176 +1,381 @@
 
-# Native External Meeting Capture System
+# /Jobs Page Audit for Admins - Comprehensive Analysis
 
-## Overview
-Replace the Recall.ai-based external meeting capture with a browser-native screen capture approach that leverages your existing recording compositor, OpenAI Whisper transcription, and AI analysis pipeline.
+## Executive Summary
 
-## How It Works
+**Current Score: 76/100**
 
-```text
-User Flow:
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                                                                              │
-│  1. User opens external meeting (Zoom/Teams/Meet) in separate window/tab    │
-│                                                                              │
-│  2. User clicks "Capture External Meeting" in TQC app                       │
-│                                                                              │
-│  3. Browser prompts for screen share (window/tab picker)                    │
-│                                                                              │
-│  4. User selects the meeting window/tab + audio                             │
-│                                                                              │
-│  5. TQC records screen + audio using MediaRecorder                          │
-│                                                                              │
-│  6. On stop: Upload to storage → Transcribe → Analyze → Show insights       │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
+The admin /jobs page (PartnerJobsHome) is a solid enterprise foundation with glass-morphism aesthetics, real-time metrics, and thoughtful filtering. However, it lacks several industry-leading features that would elevate it to 100/100 status and outpace competitors like Greenhouse, Lever, and Ashby.
 
-## Technical Architecture
+---
 
-### 1. New Hook: `useExternalMeetingCapture`
-A dedicated hook for capturing external meeting windows using `getDisplayMedia`:
+## Current State Analysis
 
-- **Screen capture** with `{ video: true, audio: true }` to get system audio
-- **MediaRecorder** for recording the captured stream
-- **Real-time transcription** chunks every 10 seconds using existing Whisper integration
-- **Status tracking** via `external_meeting_sessions` table
+### What's Working Well (Strengths)
 
-### 2. Updated Dialog: `JoinExternalMeetingDialog`
-Replace bot-based UI with screen capture flow:
+| Feature | Implementation | Score |
+|---------|---------------|-------|
+| Glass-morphism UI | Premium backdrop-blur, border styling | 9/10 |
+| KPI Metrics Grid | 6 key metrics (Active Searches, Candidates, Avg TTH, Conversion, Club Sync, Actions) | 8/10 |
+| Status Tabs | All/Published/Draft/Closed/Archived with counts | 9/10 |
+| Quick Filters | All/Expiring Soon/Recent Activity/High Engagement | 8/10 |
+| Advanced Filters | Status, Company, Date Range, Collapsible | 7/10 |
+| Job Cards | Header, metrics, last activity, actions dropdown | 8/10 |
+| Status Management | Publish/Unpublish/Close/Reopen/Archive/Restore | 9/10 |
+| Club Sync Integration | Request flow, badges, info modal | 8/10 |
+| Welcome Modal | First-time user onboarding | 7/10 |
+| Memoized Components | MemoizedJobCard for performance | 8/10 |
+| Real-time Subs | Not on job list (only on dashboard) | 5/10 |
 
-- Remove Recall.ai references
-- Add "Start Capture" button that triggers screen share picker
-- Show live recording indicator with duration
-- Preview the captured window
-- Stop button to end capture and process
+### What's Missing (Gaps)
 
-### 3. New Edge Function: `process-external-capture`
-Process the captured recording:
+| Missing Feature | Impact | Priority |
+|-----------------|--------|----------|
+| Bulk Actions | Cannot select multiple jobs to publish/close/archive | Critical |
+| Keyboard Shortcuts | No Cmd+K or navigation shortcuts on this page | High |
+| Virtualized List | No TanStack Virtual for 100+ jobs | High |
+| Kanban View | Only list view available | High |
+| Real-time Updates | Jobs list doesn't auto-refresh | High |
+| Export Functionality | "Coming Soon" toast for export | Medium |
+| Saved Views/Presets | Can't save filter combinations | Medium |
+| Column Customization | Fixed job card layout | Medium |
+| Drag & Drop Ordering | Can't reorder jobs | Medium |
+| AI Recommendations | No proactive hiring insights on list view | Medium |
+| Comparison Mode | Can't compare jobs side-by-side | Low |
+| Mobile Gestures | No swipe actions | Low |
 
-- Receive uploaded recording from storage
-- Create `meeting_recordings_extended` record
-- Chain to existing `transcribe-recording` function
-- Chain to `analyze-meeting-recording-advanced` function
-- Generate embeddings via `embed-meeting-intelligence`
+---
 
-### 4. Modified Functions
-- **dispatch-meeting-bot**: Remove Recall.ai dependency, update to handle native capture session creation
-- **recall-webhook-receiver**: Keep for backward compatibility but mark as deprecated
+## Feature-by-Feature Scoring
 
-## Database Changes
-None required - existing `external_meeting_sessions` table structure works for native capture:
-- `status` values: `pending` → `capturing` → `uploading` → `processing` → `completed`
+### 1. Navigation & Discovery (Current: 7/10)
 
-## Files to Create
+**What exists:**
+- Search bar with title/company/location
+- Status tabs with counts
+- Quick filter bar
 
-| File | Purpose |
-|------|---------|
-| `src/hooks/useExternalMeetingCapture.ts` | Screen capture + recording logic |
-| `src/components/meetings/ExternalCapturePreview.tsx` | Live preview of captured window |
-| `supabase/functions/process-external-capture/index.ts` | Post-capture processing pipeline |
+**What's missing:**
+- Global Cmd+K command palette integration
+- Breadcrumb navigation
+- Recently viewed jobs section
+- Pinned/favorited jobs
 
-## Files to Modify
+**Target: 10/10** - Add keyboard shortcuts overlay (?) and recent jobs widget
 
-| File | Changes |
-|------|---------|
-| `src/components/meetings/JoinExternalMeetingDialog.tsx` | Replace bot UI with screen capture UI |
-| `supabase/functions/dispatch-meeting-bot/index.ts` | Remove Recall.ai, support native sessions |
+---
+
+### 2. Bulk Operations (Current: 3/10)
+
+**What exists:**
+- "Publish All Drafts" button (single bulk action)
+
+**What's missing:**
+- Multi-select checkboxes on job cards
+- Bulk status changes (close, archive, delete)
+- Bulk tag assignment
+- Bulk strategist assignment
+- Bulk export selection
+
+**Target: 10/10** - Full multi-select with floating action bar
+
+---
+
+### 3. Data Visualization (Current: 6/10)
+
+**What exists:**
+- KPI cards with numeric values
+- Progress indicators on continuous pipelines
+
+**What's missing:**
+- Mini sparkline charts on metrics
+- Pipeline funnel visualization (overview)
+- Time-to-fill trend chart
+- Heatmap for activity patterns
+- Comparison to industry benchmarks
+
+**Target: 10/10** - Add inline micro-charts and expandable analytics
+
+---
+
+### 4. Real-time Updates (Current: 4/10)
+
+**What exists:**
+- Manual refresh via fetchJobsWithMetrics()
+- Real-time on JobDashboard (but not on list view)
+
+**What's missing:**
+- Live job count updates
+- Real-time activity indicators
+- New candidate badges
+- Live conversion rate updates
+
+**Target: 10/10** - Supabase Realtime subscription on jobs and applications tables
+
+---
+
+### 5. Performance at Scale (Current: 6/10)
+
+**What exists:**
+- Memoized components
+- useMemo for computed values
+
+**What's missing:**
+- Virtualized list for 100+ jobs
+- Pagination or infinite scroll
+- Lazy loading of metrics per job
+- Skeleton loading per job card
+
+**Target: 10/10** - VirtualizedList with TanStack Virtual
+
+---
+
+### 6. Filtering & Sorting (Current: 8/10)
+
+**What exists:**
+- Search, status, company, date range filters
+- Quick filters with counts
+- Persisted filters hook
+- Clear all functionality
+
+**What's missing:**
+- Saved filter presets
+- Sort by multiple columns
+- Filter by strategist/owner
+- Filter by urgency level
+- Natural language filter (AI)
+
+**Target: 10/10** - Add saved views and advanced sort
+
+---
+
+### 7. Job Card Information Density (Current: 7/10)
+
+**What exists:**
+- Company logo, title, status badges
+- Candidate count, days open, conversion rate
+- Last activity with user avatar
+- Club Sync, Stealth, Continuous badges
+
+**What's missing:**
+- Urgency indicator (SLA timer)
+- Next best action prompt
+- Interview count for this week
+- Match score distribution
+- Quick inline actions (without dropdown)
+
+**Target: 10/10** - Add urgency badge and inline quick actions
+
+---
+
+### 8. View Modes (Current: 4/10)
+
+**What exists:**
+- Grid layout (2 columns on desktop)
+
+**What's missing:**
+- Kanban board by status
+- Compact list view
+- Calendar view (by deadline/activity)
+- Table view with sortable columns
+- View toggle in header
+
+**Target: 10/10** - Add view switcher with 4 modes
+
+---
+
+### 9. Accessibility & Keyboard (Current: 5/10)
+
+**What exists:**
+- Button focus states
+- Dropdown menus
+
+**What's missing:**
+- Keyboard navigation between job cards
+- Arrow key navigation
+- Shortcut hints on actions
+- Screen reader announcements
+- Focus trap in modals
+
+**Target: 10/10** - Full WCAG AA compliance with shortcuts
+
+---
+
+### 10. Admin-Specific Features (Current: 6/10)
+
+**What exists:**
+- Admin dropdown with Company Management, AI Config, Club Sync Requests
+- Cross-company view toggle
+
+**What's missing:**
+- Strategist workload overlay
+- Company health indicators
+- Bulk company assignments
+- Admin action audit trail on list
+- Priority override indicators
+
+**Target: 10/10** - Enhanced admin toolbar with workload visibility
+
+---
+
+## Roadmap to 100/100
+
+### Phase 1: Critical Foundations (76 → 85)
+
+| Feature | Effort | Impact |
+|---------|--------|--------|
+| Bulk Actions with Multi-Select | 3 days | +4 |
+| Real-time Updates via Supabase | 2 days | +3 |
+| Keyboard Navigation (J/K, G+J, Cmd+K) | 1 day | +2 |
+
+### Phase 2: Performance & Views (85 → 92)
+
+| Feature | Effort | Impact |
+|---------|--------|--------|
+| Virtualized List (TanStack Virtual) | 2 days | +2 |
+| Kanban View Mode | 3 days | +3 |
+| Saved Filter Presets | 1 day | +2 |
+
+### Phase 3: Intelligence & Polish (92 → 100)
+
+| Feature | Effort | Impact |
+|---------|--------|--------|
+| Inline Micro-Charts (Sparklines) | 2 days | +2 |
+| AI Hiring Recommendations Widget | 2 days | +2 |
+| Enhanced Job Card (Urgency, Inline Actions) | 1 day | +2 |
+| Table View with Column Customization | 2 days | +2 |
+
+---
 
 ## Implementation Details
 
-### useExternalMeetingCapture Hook
+### 1. Bulk Actions System
+
+**Components to Create:**
+- `JobBulkActionBar.tsx` - Floating bar when items selected
+- `useJobSelection.ts` - Multi-select state management
+- Add checkbox to `MemoizedJobCard`
+
+**Actions to Support:**
+- Publish All Selected
+- Close All Selected
+- Archive All Selected
+- Assign Strategist
+- Export Selected
+
+---
+
+### 2. Real-time Jobs List
+
+**Database Changes:**
+- Enable realtime for `jobs` table (already in publication)
+
+**Hook Changes:**
 ```text
-Responsibilities:
-├── requestScreenCapture()     - Triggers getDisplayMedia with audio
-├── startRecording()           - Begins MediaRecorder
-├── stopRecording()            - Stops and returns blob
-├── uploadRecording()          - Uploads to meeting-recordings bucket
-├── triggerProcessing()        - Calls process-external-capture
-├── State: isCapturing, duration, stream preview
-└── Cleanup: releases tracks on unmount
+useEffect:
+  - Subscribe to jobs table changes
+  - On INSERT: prepend to list
+  - On UPDATE: update in place
+  - On DELETE: remove from list
+  - Debounce updates (500ms)
 ```
 
-### Screen Capture Configuration
+---
+
+### 3. Virtualized Job List
+
+**Integration:**
 ```text
-getDisplayMedia options:
-├── video: { displaySurface: "browser" | "window" | "monitor" }
-├── audio: true (captures system audio - crucial for meeting audio)
-├── preferCurrentTab: false (user picks external meeting window)
-└── systemAudio: "include" (Chrome 94+)
+VirtualizedList<JobWithMetrics>:
+  - items: statusFilteredJobs
+  - estimatedItemSize: 280px
+  - gap: 16px
+  - parentRef: scrollable container
 ```
 
-### Recording Flow
-```text
-1. User selects meeting window
-2. MediaRecorder starts with "video/webm;codecs=vp9,opus"
-3. Every 10s: send audio chunk for live transcription (optional)
-4. On stop: create blob, upload to storage
-5. Create external_meeting_sessions record with status=uploading
-6. Call process-external-capture edge function
-7. Edge function chains to transcription and analysis
-8. Update session status to completed
-```
+---
 
-### Browser Compatibility
-- **Chrome/Edge**: Full support with system audio
-- **Firefox**: Partial (no system audio in screen share)
-- **Safari**: Limited (requires user gesture, no audio)
+### 4. View Mode Switcher
 
-Will show compatibility warnings in UI when system audio unavailable.
+**View Types:**
+- `grid` - Current 2-column cards
+- `kanban` - Columns by status
+- `list` - Compact single-row cards
+- `table` - Full table with columns
 
-## Advantages Over Recall.ai
+**Persistence:** localStorage `jobs-view-mode`
 
-| Aspect | Recall.ai | Native Capture |
-|--------|-----------|----------------|
-| Cost | Per-minute API fees | Free (uses existing infra) |
-| Privacy | 3rd party sees data | Data stays in-house |
-| Setup | API key required | Zero config |
-| Quality | Varies by platform | Full HD available |
-| Latency | Bot join delay | Instant start |
-| Reliability | Depends on 3rd party | No external dependencies |
+---
 
-## User Experience
+### 5. Keyboard Shortcuts
 
-### Before (Recall.ai)
-```text
-1. Enter meeting URL
-2. Click "Send Bot"
-3. Wait for bot to join (30-60 seconds)
-4. Bot appears as participant
-5. Wait for meeting to end
-6. Processing happens asynchronously
-```
+**Shortcuts to Add:**
+- `J` / `K` - Navigate between job cards
+- `Enter` - Open selected job dashboard
+- `P` - Publish selected job
+- `E` - Edit selected job
+- `G then J` - Go to jobs
+- `/` - Focus search
+- `?` - Show shortcuts help
 
-### After (Native)
-```text
-1. Open external meeting in browser
-2. Click "Capture" in TQC
-3. Select meeting window (1 click)
-4. Recording starts immediately
-5. Click "Stop" when done
-6. Processing starts, results in ~2 minutes
-```
+---
 
-## Considerations
+### 6. Enhanced Job Card
 
-### Audio Capture Limitations
-System audio capture requires:
-- Chrome 94+ or Edge
-- User must select "Share audio" checkbox in picker
-- Show clear instructions in UI
+**Add to JobCardHeader:**
+- `UrgencyBadge` component (already exists, wire it up)
 
-### Fallback for No Audio
-If user doesn't share audio:
-- Still capture video
-- Show warning that transcript may be limited
-- Consider offering manual transcript upload
+**Add to JobCardMetrics:**
+- Mini sparkline for 7-day application trend
+- Scheduled interviews count
 
-### Privacy Notice
-Display consent reminder that:
-- Recording captures everything in selected window
-- User is responsible for informing meeting participants
-- Recording is stored securely in TQC platform
+**Add Quick Inline Actions:**
+- View Dashboard button (already exists)
+- Quick Publish (for drafts)
+- Quick Close (for published)
+
+---
+
+## Competitive Benchmarking
+
+| Feature | TQC (Current) | Greenhouse | Lever | Ashby |
+|---------|---------------|------------|-------|-------|
+| Bulk Actions | Partial | Full | Full | Full |
+| Kanban View | No | Yes | Yes | Yes |
+| Real-time | No | Partial | Yes | Yes |
+| Keyboard Nav | No | Yes | Yes | Yes |
+| AI Insights | Partial | Yes | No | Yes |
+| Custom Views | No | Yes | Yes | Yes |
+| Analytics Inline | Partial | No | Yes | Yes |
+| Mobile Gestures | No | No | No | Yes |
+
+**To beat everyone: Implement all missing features + unique AI hiring copilot integration**
+
+---
+
+## Files to Modify/Create
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `src/components/partner/PartnerJobsHome.tsx` | Modify | Add bulk actions, view toggle, real-time, keyboard |
+| `src/components/partner/JobBulkActionBar.tsx` | Create | Floating bulk action toolbar |
+| `src/components/partner/JobKanbanView.tsx` | Create | Kanban board by status |
+| `src/components/partner/JobTableView.tsx` | Create | Sortable table view |
+| `src/components/partner/JobListView.tsx` | Create | Compact list view |
+| `src/components/partner/ViewModeSwitcher.tsx` | Create | View toggle buttons |
+| `src/hooks/useJobSelection.ts` | Create | Multi-select state |
+| `src/hooks/useJobsRealtime.ts` | Create | Real-time subscription |
+| `src/hooks/useJobsKeyboardNav.ts` | Create | Keyboard navigation |
+| `src/components/partner/job-card/JobSparkline.tsx` | Create | Mini trend chart |
+
+---
 
 ## Summary
 
-This native approach removes external dependencies (Recall.ai), reduces costs to zero, keeps all data in-house, and provides a faster user experience. It leverages your existing compositor, transcription (Whisper), and AI analysis pipelines - just with a different input source (screen capture instead of meeting bot).
+The /jobs page for admins is currently at **76/100** - a strong foundation but missing critical bulk operations, real-time updates, and view flexibility that competitors offer. Following the 3-phase roadmap will elevate it to **100/100**, making it the industry benchmark for luxury recruitment platforms.
+
+**Key differentiators to pursue:**
+1. AI-powered hiring recommendations inline
+2. Real-time candidate activity pulses
+3. Executive-grade keyboard efficiency
+4. Unique Club Sync workflow integration
