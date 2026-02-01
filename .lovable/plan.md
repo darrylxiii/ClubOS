@@ -1,239 +1,176 @@
 
-# Implementation Plan: Six High-Value Missing Features
+# Native External Meeting Capture System
 
 ## Overview
-This plan covers the implementation of six distinct features identified in the audit, prioritized by user impact and development complexity.
+Replace the Recall.ai-based external meeting capture with a browser-native screen capture approach that leverages your existing recording compositor, OpenAI Whisper transcription, and AI analysis pipeline.
 
----
+## How It Works
 
-## Feature 1: Share Recording & PDF Export
+```text
+User Flow:
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  1. User opens external meeting (Zoom/Teams/Meet) in separate window/tab    │
+│                                                                              │
+│  2. User clicks "Capture External Meeting" in TQC app                       │
+│                                                                              │
+│  3. Browser prompts for screen share (window/tab picker)                    │
+│                                                                              │
+│  4. User selects the meeting window/tab + audio                             │
+│                                                                              │
+│  5. TQC records screen + audio using MediaRecorder                          │
+│                                                                              │
+│  6. On stop: Upload to storage → Transcribe → Analyze → Show insights       │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
 
-**Current State:** `RecordingPlaybackPage.tsx` line 349-352 shows "PDF export coming soon" toast.
+## Technical Architecture
 
-**Implementation:**
+### 1. New Hook: `useExternalMeetingCapture`
+A dedicated hook for capturing external meeting windows using `getDisplayMedia`:
 
-### 1.1 Recording Share Link
-- Create database table `recording_share_links` for secure, time-limited sharing
-- Fields: `id`, `recording_id`, `share_token`, `expires_at`, `allowed_domains[]`, `view_count`, `created_by`
-- Generate watermarked share URLs with 72-hour expiry (per TQC policy)
-- Add Share button component with link generation and copy-to-clipboard
+- **Screen capture** with `{ video: true, audio: true }` to get system audio
+- **MediaRecorder** for recording the captured stream
+- **Real-time transcription** chunks every 10 seconds using existing Whisper integration
+- **Status tracking** via `external_meeting_sessions` table
 
-### 1.2 PDF Export
-- Create edge function `generate-recording-pdf` using jsPDF
-- Include: transcript, AI analysis summary, key moments, action items, speaking metrics
-- Apply TQC branding (clover logo, color tokens)
-- Generate signed download URL from storage
+### 2. Updated Dialog: `JoinExternalMeetingDialog`
+Replace bot-based UI with screen capture flow:
 
-**Files to Create/Modify:**
-| File | Change |
-|------|--------|
-| `supabase/migrations/xxx_recording_sharing.sql` | Add `recording_share_links` table |
-| `supabase/functions/generate-recording-pdf/` | New edge function |
-| `src/components/meetings/ShareRecordingDialog.tsx` | New share dialog component |
-| `src/components/meetings/RecordingPlaybackPage.tsx` | Wire up Share + PDF buttons |
-| `src/pages/SharedRecordingView.tsx` | Public shared recording viewer |
+- Remove Recall.ai references
+- Add "Start Capture" button that triggers screen share picker
+- Show live recording indicator with duration
+- Preview the captured window
+- Stop button to end capture and process
 
----
+### 3. New Edge Function: `process-external-capture`
+Process the captured recording:
 
-## Feature 2: Portfolio Attachment for Proposals
+- Receive uploaded recording from storage
+- Create `meeting_recordings_extended` record
+- Chain to existing `transcribe-recording` function
+- Chain to `analyze-meeting-recording-advanced` function
+- Generate embeddings via `embed-meeting-intelligence`
 
-**Current State:** `EnhancedProposalBuilder.tsx` lines 282-286 show disabled "Attach Portfolio" button with "Coming Soon" badge.
+### 4. Modified Functions
+- **dispatch-meeting-bot**: Remove Recall.ai dependency, update to handle native capture session creation
+- **recall-webhook-receiver**: Keep for backward compatibility but mark as deprecated
 
-**Implementation:**
+## Database Changes
+None required - existing `external_meeting_sessions` table structure works for native capture:
+- `status` values: `pending` → `capturing` → `uploading` → `processing` → `completed`
 
-### 2.1 Database Schema
-- Create `proposal_attachments` table
-- Fields: `id`, `proposal_id`, `file_name`, `file_url`, `file_type`, `file_size_bytes`, `sort_order`
-- Link to storage bucket `proposal-attachments`
+## Files to Create
 
-### 2.2 UI Components
-- Create `ProposalAttachmentUploader` with drag-and-drop (react-dropzone)
-- Support: PDF, DOC, images, ZIP (max 10MB per file, 5 files total)
-- Display uploaded attachments as preview cards
-- Allow reordering and deletion
+| File | Purpose |
+|------|---------|
+| `src/hooks/useExternalMeetingCapture.ts` | Screen capture + recording logic |
+| `src/components/meetings/ExternalCapturePreview.tsx` | Live preview of captured window |
+| `supabase/functions/process-external-capture/index.ts` | Post-capture processing pipeline |
 
-**Files to Create/Modify:**
-| File | Change |
-|------|--------|
-| `supabase/migrations/xxx_proposal_attachments.sql` | Add table + storage bucket policy |
-| `src/components/proposals/ProposalAttachmentUploader.tsx` | New upload component |
-| `src/components/projects/proposals/EnhancedProposalBuilder.tsx` | Replace disabled button with uploader |
+## Files to Modify
 
----
+| File | Changes |
+|------|---------|
+| `src/components/meetings/JoinExternalMeetingDialog.tsx` | Replace bot UI with screen capture UI |
+| `supabase/functions/dispatch-meeting-bot/index.ts` | Remove Recall.ai, support native sessions |
 
-## Feature 3: External Meeting Capture (Recall.ai Integration)
+## Implementation Details
 
-**Current State:** `JoinExternalMeetingDialog.tsx` creates session but shows "Coming Soon" alert (lines 173-179). The `external_meeting_sessions` table exists.
+### useExternalMeetingCapture Hook
+```text
+Responsibilities:
+├── requestScreenCapture()     - Triggers getDisplayMedia with audio
+├── startRecording()           - Begins MediaRecorder
+├── stopRecording()            - Stops and returns blob
+├── uploadRecording()          - Uploads to meeting-recordings bucket
+├── triggerProcessing()        - Calls process-external-capture
+├── State: isCapturing, duration, stream preview
+└── Cleanup: releases tracks on unmount
+```
 
-**Implementation:**
+### Screen Capture Configuration
+```text
+getDisplayMedia options:
+├── video: { displaySurface: "browser" | "window" | "monitor" }
+├── audio: true (captures system audio - crucial for meeting audio)
+├── preferCurrentTab: false (user picks external meeting window)
+└── systemAudio: "include" (Chrome 94+)
+```
 
-### 3.1 Bot Dispatch via Recall.ai
-- Create edge function `dispatch-meeting-bot` calling Recall.ai API
-- Store `bot_session_id` in `external_meeting_sessions`
-- Status flow: `pending` → `bot_joining` → `in_meeting` → `recording` → `processing` → `complete`
+### Recording Flow
+```text
+1. User selects meeting window
+2. MediaRecorder starts with "video/webm;codecs=vp9,opus"
+3. Every 10s: send audio chunk for live transcription (optional)
+4. On stop: create blob, upload to storage
+5. Create external_meeting_sessions record with status=uploading
+6. Call process-external-capture edge function
+7. Edge function chains to transcription and analysis
+8. Update session status to completed
+```
 
-### 3.2 Webhook Handler
-- Create `recall-webhook-receiver` edge function
-- Listen for: bot_joined, recording_started, recording_completed, transcript_ready
-- On completion: download recording, store in Supabase storage, create `meeting_recordings_extended` record
-- Chain to existing `transcribe-recording` → `analyze-meeting-recording-advanced` pipeline
+### Browser Compatibility
+- **Chrome/Edge**: Full support with system audio
+- **Firefox**: Partial (no system audio in screen share)
+- **Safari**: Limited (requires user gesture, no audio)
 
-### 3.3 UI Updates
-- Remove "Coming Soon" alert from dialog
-- Add real-time status tracking via Supabase Realtime
-- Show bot join status, recording progress, and completion notification
+Will show compatibility warnings in UI when system audio unavailable.
 
-**Files to Create/Modify:**
-| File | Change |
-|------|--------|
-| `supabase/functions/dispatch-meeting-bot/` | New: Recall.ai bot dispatch |
-| `supabase/functions/recall-webhook-receiver/` | New: Handle Recall.ai callbacks |
-| `src/components/meetings/JoinExternalMeetingDialog.tsx` | Remove placeholder, add live status |
-| `src/components/meetings/ExternalMeetingStatusCard.tsx` | New: real-time status tracker |
+## Advantages Over Recall.ai
 
-**Secret Required:** `RECALL_API_KEY` (will prompt user)
+| Aspect | Recall.ai | Native Capture |
+|--------|-----------|----------------|
+| Cost | Per-minute API fees | Free (uses existing infra) |
+| Privacy | 3rd party sees data | Data stays in-house |
+| Setup | API key required | Zero config |
+| Quality | Varies by platform | Full HD available |
+| Latency | Bot join delay | Instant start |
+| Reliability | Depends on 3rd party | No external dependencies |
 
----
+## User Experience
 
-## Feature 4: External User Assignment to Job Teams
+### Before (Recall.ai)
+```text
+1. Enter meeting URL
+2. Click "Send Bot"
+3. Wait for bot to join (30-60 seconds)
+4. Bot appears as participant
+5. Wait for meeting to end
+6. Processing happens asynchronously
+```
 
-**Current State:** `job_team_assignments` table has `external_user_id` column and `AddJobTeamMemberDialog.tsx` supports TQC team assignment, but no UI for adding non-platform users (external interviewers).
+### After (Native)
+```text
+1. Open external meeting in browser
+2. Click "Capture" in TQC
+3. Select meeting window (1 click)
+4. Recording starts immediately
+5. Click "Stop" when done
+6. Processing starts, results in ~2 minutes
+```
 
-**Implementation:**
+## Considerations
 
-### 4.1 Database Schema
-- Create `external_interviewers` table (for non-TQC users invited to interview panels)
-- Fields: `id`, `company_id`, `email`, `full_name`, `job_title`, `phone`, `invited_at`, `last_active_at`
+### Audio Capture Limitations
+System audio capture requires:
+- Chrome 94+ or Edge
+- User must select "Share audio" checkbox in picker
+- Show clear instructions in UI
 
-### 4.2 Invite Flow
-- Add "Invite External Interviewer" option in `AddJobTeamMemberDialog`
-- Send email invitation with magic link
-- External user lands on limited-access interview page
-- Track usage for compliance (GDPR consent, access logs)
+### Fallback for No Audio
+If user doesn't share audio:
+- Still capture video
+- Show warning that transcript may be limited
+- Consider offering manual transcript upload
 
-### 4.3 Interview Access
-- Create `ExternalInterviewerView` page with job context, candidate dossier, scorecard submission
-- Time-boxed access (configurable, default 7 days)
-- Watermarked dossier views
-
-**Files to Create/Modify:**
-| File | Change |
-|------|--------|
-| `supabase/migrations/xxx_external_interviewers.sql` | Add table + RLS |
-| `supabase/functions/invite-external-interviewer/` | New: send invite email with magic link |
-| `src/components/partner/AddJobTeamMemberDialog.tsx` | Add external invite tab |
-| `src/pages/ExternalInterviewerView.tsx` | New: limited-access interview page |
-| `src/components/partner/ExternalInterviewerCard.tsx` | New: display external team members |
-
----
-
-## Feature 5: Detailed Security Metrics
-
-**Current State:** `SecurityDashboard.tsx` line 63-65 shows "Detailed security metrics and logs coming soon" placeholder.
-
-**Implementation:**
-
-### 5.1 Extended Metrics
-Expand `useSecurityMetrics` hook with:
-- Login attempt timeline (success/failure by hour)
-- RLS policy hit/miss ratios per table
-- API endpoint usage heatmap
-- Geographic distribution of auth attempts
-- Session duration analytics
-- Suspicious pattern detection (multiple failed IPs, unusual hours)
-
-### 5.2 Database Functions
-- Create `get_detailed_auth_metrics(hours_back)` RPC
-- Create `get_api_usage_by_endpoint()` RPC
-- Create `get_geographic_auth_distribution()` RPC
-
-### 5.3 UI Components
-- `AuthTimelineChart` - 24h login attempt visualization
-- `RLSHitRatioCard` - Policy effectiveness metrics
-- `GeoSecurityMap` - World map with auth attempt origins
-- `SuspiciousActivityTable` - Flagged patterns requiring attention
-
-**Files to Create/Modify:**
-| File | Change |
-|------|--------|
-| `supabase/migrations/xxx_security_metrics_functions.sql` | Add RPC functions |
-| `src/hooks/useSecurityMetrics.ts` | Extend with detailed metrics |
-| `src/components/admin/security/AuthTimelineChart.tsx` | New component |
-| `src/components/admin/security/GeoSecurityMap.tsx` | New component |
-| `src/components/admin/security/RLSHitRatioCard.tsx` | New component |
-| `src/components/admin/security/SuspiciousActivityTable.tsx` | New component |
-| `src/components/admin/security/SecurityDashboard.tsx` | Replace placeholder with new components |
-
----
-
-## Feature 6: Company Activity Timeline
-
-**Current State:** `CompanyLatestActivity.tsx` lines 186-190 show "Activity timeline coming soon" in the Activity tab.
-
-**Implementation:**
-
-### 6.1 Database Schema
-- Create `company_activity_events` table
-- Fields: `id`, `company_id`, `event_type`, `actor_id`, `target_type`, `target_id`, `metadata`, `created_at`
-- Event types: `job_created`, `job_published`, `candidate_shortlisted`, `interview_scheduled`, `offer_extended`, `hire_completed`, `team_member_added`, `settings_updated`
-
-### 6.2 Activity Logging
-- Create database triggers on key tables (jobs, applications, job_team_assignments)
-- Log events automatically with actor context
-- Support manual event logging via RPC for complex workflows
-
-### 6.3 UI Components
-- `CompanyActivityTimeline` component with infinite scroll
-- Event type icons and color coding
-- Filter by event type, date range, actor
-- Real-time updates via Supabase Realtime
-
-**Files to Create/Modify:**
-| File | Change |
-|------|--------|
-| `supabase/migrations/xxx_company_activity_events.sql` | Table + triggers |
-| `src/components/companies/CompanyActivityTimeline.tsx` | New timeline component |
-| `src/components/companies/CompanyLatestActivity.tsx` | Replace placeholder with timeline |
-| `src/hooks/useCompanyActivity.ts` | New hook for fetching/subscribing |
-
----
-
-## Implementation Order (Recommended)
-
-| Priority | Feature | Complexity | User Impact |
-|----------|---------|------------|-------------|
-| 1 | Share Recording & PDF Export | Medium | High - Core workflow |
-| 2 | Company Activity Timeline | Medium | High - Partner visibility |
-| 3 | Detailed Security Metrics | Medium | High - Admin compliance |
-| 4 | Portfolio Attachment | Low | Medium - Freelancer UX |
-| 5 | External User Assignment | High | Medium - Enterprise feature |
-| 6 | External Meeting Capture | High | Medium - Requires 3rd party |
-
----
-
-## Technical Notes
-
-### Storage Buckets Needed
-- `proposal-attachments` (private, 10MB limit)
-- `recording-exports` (private, signed URLs only)
-- `external-recordings` (private, for Recall.ai downloads)
-
-### Secrets Required
-- `RECALL_API_KEY` - For external meeting capture (Feature 3)
-
-### RLS Policies
-All new tables will include strict RLS:
-- Company scoped for partner features
-- User scoped for candidate features
-- Admin role checks for security features
-
-### Compliance Considerations
-- Dossier/recording shares: 72-hour expiry, domain allowlist, viewer watermarks
-- External interviewer access: Time-boxed, audit logged
-- Security metrics: Admin-only access, no PII in visualizations
-
----
+### Privacy Notice
+Display consent reminder that:
+- Recording captures everything in selected window
+- User is responsible for informing meeting participants
+- Recording is stored securely in TQC platform
 
 ## Summary
 
-Six features spanning recording/sharing, proposals, meeting capture, team management, security, and activity tracking. Estimated effort: 8-12 development days total. All features follow existing patterns in the codebase and respect TQC's privacy-first, audit-logged architecture.
+This native approach removes external dependencies (Recall.ai), reduces costs to zero, keeps all data in-house, and provides a faster user experience. It leverages your existing compositor, transcription (Whisper), and AI analysis pipelines - just with a different input source (screen capture instead of meeting bot).
