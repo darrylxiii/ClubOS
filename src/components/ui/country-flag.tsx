@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -93,14 +94,16 @@ export const CountryFlag = memo(({
   if (!showTooltip) return flagElement;
   
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        {flagElement}
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{countryName}</p>
-      </TooltipContent>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {flagElement}
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{countryName}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 });
 
