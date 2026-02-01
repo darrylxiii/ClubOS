@@ -86,21 +86,37 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
 
       const sessionData = session as any;
 
-      // In a real implementation, this would call an edge function
-      // that dispatches a meeting bot via Recall.ai or similar service
-      toast.success(
-        'External meeting capture is coming soon. This feature requires a third-party integration.',
-        { duration: 5000 }
-      );
+      // Dispatch meeting bot via edge function
+      const { data: botResult, error: botError } = await supabase.functions.invoke('dispatch-meeting-bot', {
+        body: {
+          sessionId: sessionData.id,
+          meetingUrl: meetingUrl,
+          botName: 'TQC Notetaker'
+        }
+      });
 
-      // For now, update status to show it's a placeholder
-      await supabase
-        .from('external_meeting_sessions' as any)
-        .update({ 
-          status: 'pending_integration',
-          notes: 'Awaiting Recall.ai or similar bot integration'
-        })
-        .eq('id', sessionData.id);
+      if (botError) {
+        console.error('Bot dispatch error:', botError);
+        // Show appropriate message based on error
+        if (botResult?.message?.includes('RECALL_API_KEY')) {
+          toast.warning(
+            'Meeting bot integration requires configuration. Session saved for when integration is enabled.',
+            { duration: 5000 }
+          );
+        } else {
+          toast.error('Failed to dispatch meeting bot');
+        }
+      } else if (botResult?.success) {
+        toast.success(
+          'Meeting bot dispatched! It will join your meeting shortly.',
+          { duration: 5000 }
+        );
+      } else {
+        toast.info(
+          'Session created. Bot integration pending configuration.',
+          { duration: 5000 }
+        );
+      }
 
       onSuccess?.(sessionData.id);
       setOpen(false);
@@ -170,11 +186,11 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
             </Alert>
           )}
 
-          <Alert variant="default" className="bg-yellow-500/5 border-yellow-500/20">
-            <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            <AlertDescription className="text-yellow-600 dark:text-yellow-400">
-              <strong>Coming Soon:</strong> This feature requires integration with a third-party 
-              meeting bot service (like Recall.ai). Currently in development.
+          <Alert variant="default" className="bg-primary/5 border-primary/20">
+            <AlertTriangle className="h-4 w-4 text-primary" />
+            <AlertDescription className="text-muted-foreground">
+              <strong>Note:</strong> The meeting bot will appear as "TQC Notetaker" in your call. 
+              Make sure all participants consent to recording.
             </AlertDescription>
           </Alert>
         </div>

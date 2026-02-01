@@ -9,6 +9,8 @@ import { EdgeFunctionsCard } from "./EdgeFunctionsCard";
 import { StorageBucketsCard } from "./StorageBucketsCard";
 import { SecurityTrendsChart } from "./SecurityTrendsChart";
 import { SecurityAlertsPanel } from "./SecurityAlertsPanel";
+import { AuthTimelineChart } from "./AuthTimelineChart";
+import { SuspiciousActivityTable } from "./SuspiciousActivityTable";
 import { useQueryClient } from "@tanstack/react-query";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 
@@ -52,17 +54,24 @@ export const SecurityDashboard = () => {
       <Tabs defaultValue="trends" className="space-y-4">
         <TabsList>
           <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="auth">Auth Timeline</TabsTrigger>
+          <TabsTrigger value="suspicious">Suspicious Activity</TabsTrigger>
         </TabsList>
         
         <TabsContent value="trends" className="space-y-4">
           <SecurityTrendsChart />
         </TabsContent>
         
-        <TabsContent value="details" className="space-y-4">
-          <div className="text-center py-8 text-muted-foreground">
-            Detailed security metrics and logs coming soon
-          </div>
+        <TabsContent value="auth" className="space-y-4">
+          <ErrorBoundary>
+            <AuthTimelineChart />
+          </ErrorBoundary>
+        </TabsContent>
+        
+        <TabsContent value="suspicious" className="space-y-4">
+          <ErrorBoundary>
+            <SuspiciousActivityTable />
+          </ErrorBoundary>
         </TabsContent>
       </Tabs>
     </div>

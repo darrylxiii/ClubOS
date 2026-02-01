@@ -18622,8 +18622,121 @@ export type Database = {
         }
         Relationships: []
       }
+      external_interviewer_tokens: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          interviewer_id: string
+          job_id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          interviewer_id: string
+          job_id: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          interviewer_id?: string
+          job_id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_interviewer_tokens_interviewer_id_fkey"
+            columns: ["interviewer_id"]
+            isOneToOne: false
+            referencedRelation: "external_interviewers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_interviewer_tokens_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_interviewers: {
+        Row: {
+          company_id: string
+          created_at: string
+          email: string
+          expires_at: string | null
+          full_name: string | null
+          id: string
+          invited_at: string
+          invited_by: string | null
+          job_title: string | null
+          last_active_at: string | null
+          metadata: Json | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          email: string
+          expires_at?: string | null
+          full_name?: string | null
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          job_title?: string | null
+          last_active_at?: string | null
+          metadata?: Json | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string | null
+          full_name?: string | null
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          job_title?: string | null
+          last_active_at?: string | null
+          metadata?: Json | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_interviewers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_interviewers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       external_meeting_sessions: {
         Row: {
+          bot_join_time: string | null
+          bot_leave_time: string | null
           bot_session_id: string | null
           created_at: string | null
           error_message: string | null
@@ -18632,10 +18745,13 @@ export type Database = {
           platform: string | null
           recording_id: string | null
           status: string | null
+          transcript_chunks: Json | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          bot_join_time?: string | null
+          bot_leave_time?: string | null
           bot_session_id?: string | null
           created_at?: string | null
           error_message?: string | null
@@ -18644,10 +18760,13 @@ export type Database = {
           platform?: string | null
           recording_id?: string | null
           status?: string | null
+          transcript_chunks?: Json | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          bot_join_time?: string | null
+          bot_leave_time?: string | null
           bot_session_id?: string | null
           created_at?: string | null
           error_message?: string | null
@@ -18656,6 +18775,7 @@ export type Database = {
           platform?: string | null
           recording_id?: string | null
           status?: string | null
+          transcript_chunks?: Json | null
           updated_at?: string | null
           user_id?: string
         }
