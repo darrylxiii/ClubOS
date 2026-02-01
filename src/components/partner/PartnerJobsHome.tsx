@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { useState, useEffect, useMemo, useCallback, memo, useRef } from "react";
 import { ClubSyncBadge } from "@/components/jobs/ClubSyncBadge";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -67,6 +68,8 @@ import {
   EyeOff,
   Archive,
   RotateCcw,
+  Keyboard,
+  Radio,
 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
 import { useRole } from "@/contexts/RoleContext";
@@ -75,6 +78,7 @@ import { JobCardMetrics } from "./job-card/JobCardMetrics";
 import { JobCardLastActivity } from "./job-card/JobCardLastActivity";
 import { JobCardActions } from "./job-card/JobCardActions";
 import { JobCardHeader } from "./job-card/JobCardHeader";
+import { JobCardCheckbox } from "./job-card/JobCardCheckbox";
 import { JobsAnalyticsWidget } from "./JobsAnalyticsWidget";
 import { JobFilterBar, JobFilterType } from "./JobFilterBar";
 import { formatLastActivity } from "@/lib/jobUtils";
@@ -83,6 +87,13 @@ import { AdvancedJobFilters } from "./AdvancedJobFilters";
 import { usePersistedJobFilters } from "@/hooks/usePersistedJobFilters";
 import { JobFilterState } from "@/types/jobFilters";
 import { JobStatusSummaryBar, JobStatusFilter } from "./JobStatusSummaryBar";
+import { JobBulkActionBar } from "./JobBulkActionBar";
+import { ViewModeSwitcher, usePersistedViewMode, ViewMode } from "./ViewModeSwitcher";
+import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
+import { useJobSelection } from "@/hooks/useJobSelection";
+import { useJobsRealtime } from "@/hooks/useJobsRealtime";
+import { useJobsKeyboardNav } from "@/hooks/useJobsKeyboardNav";
+import { cn } from "@/lib/utils";
 
 interface PartnerJobsHomeProps {
   companyId: string | null;
@@ -137,10 +148,16 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [statusFilter, setStatusFilter] = useState<JobStatusFilter>('all');
   const [isPublishingAll, setIsPublishingAll] = useState(false);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+  const [shortcutsDialogOpen, setShortcutsDialogOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const isAdmin = role === 'admin';
   
   // Use persisted filters
   const { filters, updateFilters, resetFilters, hasActiveFilters } = usePersistedJobFilters();
+  
+  // View mode persistence
+  const [viewMode, setViewMode] = usePersistedViewMode('grid');
 
   useEffect(() => {
     // Check if first visit
@@ -445,6 +462,139 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     if (statusFilter === 'all') return filteredJobs;
     return filteredJobs.filter(job => job.status === statusFilter);
   }, [filteredJobs, statusFilter]);
+
+  // Job selection for bulk actions
+  const {
+    selectedIds,
+    selectedCount,
+    isAllSelected,
+    toggleJob,
+    toggleAll,
+    clearSelection,
+    isSelected,
+  } = useJobSelection({ jobs: statusFilteredJobs });
+
+  // Real-time updates
+  useJobsRealtime({
+    companyId,
+    enabled: true,
+    onJobUpdate: useCallback((updatedJob: any) => {
+      setJobs(prev => prev.map(j => j.id === updatedJob.id ? { ...j, ...updatedJob } : j));
+    }, []),
+    onJobInsert: useCallback(() => {
+      fetchJobsWithMetrics();
+    }, []),
+    onJobDelete: useCallback((deletedJob: any) => {
+      setJobs(prev => prev.filter(j => j.id !== deletedJob.id));
+    }, []),
+  });
+
+  // Keyboard navigation
+  const { focusedIndex, focusedJobId, setFocusedIndex } = useJobsKeyboardNav({
+    jobs: statusFilteredJobs,
+    onNavigateToJob: (jobId) => navigate(`/jobs/${jobId}/dashboard`),
+    onPublishJob: (jobId) => {
+      const job = statusFilteredJobs.find(j => j.id === jobId);
+      if (job && job.status === 'draft') {
+        handlePublishJob(jobId, job.title);
+      }
+    },
+    onCloseJob: (jobId) => {
+      const job = statusFilteredJobs.find(j => j.id === jobId);
+      if (job && job.status === 'published') {
+        handleCloseJob(jobId, job.title);
+      }
+    },
+    onToggleSelect: toggleJob,
+    onSelectAll: toggleAll,
+    onFocusSearch: () => searchInputRef.current?.focus(),
+    onShowHelp: () => setShortcutsDialogOpen(true),
+    enabled: !loading,
+  });
+
+  // Bulk action handlers
+  const handleBulkPublish = async () => {
+    setIsBulkProcessing(true);
+    try {
+      const draftJobs = statusFilteredJobs.filter(j => selectedIds.has(j.id) && j.status === 'draft');
+      if (draftJobs.length === 0) {
+        toast.info("No draft jobs selected to publish");
+        return;
+      }
+      
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: 'published', published_at: new Date().toISOString() })
+        .in('id', draftJobs.map(j => j.id));
+
+      if (error) throw error;
+      toast.success(`Published ${draftJobs.length} job(s)`);
+      clearSelection();
+      fetchJobsWithMetrics();
+      celebrateAction();
+    } catch (error) {
+      console.error('Error bulk publishing:', error);
+      toast.error("Failed to publish selected jobs");
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const handleBulkClose = async () => {
+    setIsBulkProcessing(true);
+    try {
+      const publishedJobs = statusFilteredJobs.filter(j => selectedIds.has(j.id) && j.status === 'published');
+      if (publishedJobs.length === 0) {
+        toast.info("No published jobs selected to close");
+        return;
+      }
+      
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: 'closed' })
+        .in('id', publishedJobs.map(j => j.id));
+
+      if (error) throw error;
+      toast.success(`Closed ${publishedJobs.length} job(s)`);
+      clearSelection();
+      fetchJobsWithMetrics();
+    } catch (error) {
+      console.error('Error bulk closing:', error);
+      toast.error("Failed to close selected jobs");
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const handleBulkArchive = async () => {
+    setIsBulkProcessing(true);
+    try {
+      const archivableJobs = statusFilteredJobs.filter(j => selectedIds.has(j.id) && j.status !== 'archived');
+      if (archivableJobs.length === 0) {
+        toast.info("No jobs selected to archive");
+        return;
+      }
+      
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: 'archived' })
+        .in('id', archivableJobs.map(j => j.id));
+
+      if (error) throw error;
+      toast.success(`Archived ${archivableJobs.length} job(s)`);
+      clearSelection();
+      fetchJobsWithMetrics();
+    } catch (error) {
+      console.error('Error bulk archiving:', error);
+      toast.error("Failed to archive selected jobs");
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const handleBulkExport = () => {
+    toast.info(`Exporting ${selectedCount} jobs... (Coming soon)`);
+  };
   
   // Handler for quick filter change
   const handleQuickFilterChange = (filter: JobFilterType) => {
@@ -1156,10 +1306,49 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
       {/* Search and Filters Section */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">
-            All Jobs {jobs.length > 0 && `(${jobs.length})`}
-          </h2>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold">
+              All Jobs {jobs.length > 0 && `(${jobs.length})`}
+            </h2>
+            {/* Real-time indicator */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-success/10 border border-success/20">
+                  <Radio className="w-3 h-3 text-success animate-pulse" />
+                  <span className="text-xs text-success font-medium">Live</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Real-time updates enabled</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {/* View Mode Switcher */}
+            <ViewModeSwitcher
+              currentMode={viewMode}
+              onModeChange={setViewMode}
+            />
+            
+            {/* Keyboard shortcuts button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setShortcutsDialogOpen(true)}
+                >
+                  <Keyboard className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Keyboard shortcuts (?)</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
         
         {/* Status Summary Bar with Tabs and Bulk Actions */}
@@ -1194,6 +1383,25 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           hasActiveFilters={hasActiveFilters}
           availableCompanies={availableCompanies}
         />
+        
+        {/* Select All for bulk actions */}
+        {statusFilteredJobs.length > 0 && (
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20">
+            <Checkbox
+              checked={isAllSelected}
+              onCheckedChange={toggleAll}
+              className="h-5 w-5"
+            />
+            <span className="text-sm text-muted-foreground">
+              {isAllSelected ? 'Deselect all' : `Select all ${statusFilteredJobs.length} jobs`}
+            </span>
+            {selectedCount > 0 && (
+              <Badge variant="secondary" className="ml-auto">
+                {selectedCount} selected
+              </Badge>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Jobs Grid */}
@@ -1219,11 +1427,14 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          {statusFilteredJobs.map((job) => (
+          {statusFilteredJobs.map((job, index) => (
             <MemoizedJobCard 
               key={job.id}
               job={job}
-              onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
+              isSelected={isSelected(job.id)}
+              isFocused={focusedIndex === index}
+              onToggleSelect={() => toggleJob(job.id)}
+              onNavigate={(id: string) => navigate(`/jobs/${id}/dashboard`)}
               onPublish={handlePublishJob}
               onUnpublish={handleUnpublishJob}
               onClose={handleCloseJob}
@@ -1237,6 +1448,23 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           ))}
         </div>
       )}
+
+      {/* Bulk Action Bar */}
+      <JobBulkActionBar
+        selectedCount={selectedCount}
+        onClearSelection={clearSelection}
+        onPublishAll={handleBulkPublish}
+        onCloseAll={handleBulkClose}
+        onArchiveAll={handleBulkArchive}
+        onExportSelected={handleBulkExport}
+        isProcessing={isBulkProcessing}
+      />
+
+      {/* Keyboard Shortcuts Dialog */}
+      <KeyboardShortcutsDialog
+        open={shortcutsDialogOpen}
+        onOpenChange={setShortcutsDialogOpen}
+      />
 
       <CreateJobDialog
         open={createDialogOpen}
@@ -1253,6 +1481,9 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 // Memoized Job Card Component for Performance
 const MemoizedJobCard = memo(({ 
   job, 
+  isSelected,
+  isFocused,
+  onToggleSelect,
   onNavigate, 
   onPublish,
   onUnpublish,
@@ -1265,7 +1496,16 @@ const MemoizedJobCard = memo(({
   getClubSyncBadge 
 }: any) => {
   return (
-    <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all duration-300">
+    <Card className={cn(
+      "relative group border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all duration-300",
+      isSelected && "ring-2 ring-primary border-primary/40",
+      isFocused && "ring-2 ring-primary/50 border-primary/30"
+    )}>
+      {/* Selection Checkbox */}
+      <JobCardCheckbox
+        checked={isSelected}
+        onCheckedChange={onToggleSelect}
+      />
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
           <JobCardHeader
