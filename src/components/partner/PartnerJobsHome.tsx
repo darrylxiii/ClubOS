@@ -96,6 +96,8 @@ import { JobListView } from "./JobListView";
 import { useJobSelection } from "@/hooks/useJobSelection";
 import { useJobsRealtime } from "@/hooks/useJobsRealtime";
 import { useJobsKeyboardNav } from "@/hooks/useJobsKeyboardNav";
+import { JobsAIInsightsWidget } from "./JobsAIInsightsWidget";
+import { SavedFilterPresets } from "./SavedFilterPresets";
 import { cn } from "@/lib/utils";
 
 interface PartnerJobsHomeProps {
@@ -1307,6 +1309,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         */}
       </div>
 
+      {/* AI Insights Widget */}
+      {isAdmin && (
+        <JobsAIInsightsWidget companyId={companyId || undefined} />
+      )}
+
       {/* Search and Filters Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -1329,6 +1336,13 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </div>
           
           <div className="flex items-center gap-2">
+            {/* Saved Filter Presets */}
+            <SavedFilterPresets
+              currentFilters={filters}
+              onApplyPreset={updateFilters}
+              hasActiveFilters={hasActiveFilters}
+            />
+            
             {/* View Mode Switcher */}
             <ViewModeSwitcher
               currentMode={viewMode}
@@ -1721,12 +1735,14 @@ const MemoizedJobCard = memo(({
       <CardContent className="space-y-4">
         {/* Key Metrics */}
         <JobCardMetrics
+          jobId={job.id}
           candidateCount={job.candidate_count}
           activeStageCount={job.active_stage_count}
           daysSinceOpened={job.days_since_opened}
           conversionRate={job.conversion_rate}
           hiredCount={job.hired_count}
           targetHireCount={job.target_hire_count}
+          lastActivityDays={job.last_activity ? Math.floor((Date.now() - new Date(job.last_activity).getTime()) / (1000 * 60 * 60 * 24)) : null}
         />
 
         {/* Last Activity */}
