@@ -18,6 +18,7 @@ export interface JobWithSalary extends JobBase {
   salary_min?: number | null;
   salary_max?: number | null;
   currency?: string | null;
+  is_remote?: boolean | null;
 }
 
 export interface JobWithContinuous extends JobWithSalary {
@@ -79,6 +80,20 @@ export interface PipelineStage {
   resources?: string[] | null;
   location?: string | null;
   meeting_link?: string | null;
+}
+
+export interface JobLocation {
+  id: string;
+  job_id: string;
+  location_type: 'onsite' | 'remote' | 'hybrid';
+  city?: string | null;
+  country?: string | null;
+  country_code?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  formatted_address?: string | null;
+  is_primary?: boolean;
+  created_at?: string;
 }
 
 export interface CandidateJobView {

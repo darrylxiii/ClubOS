@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/tooltip';
 import {
   MoreVertical,
-  MapPin,
   Lock,
   Flag,
   EyeOff,
@@ -41,6 +40,7 @@ import {
 import { cn } from '@/lib/utils';
 import { JobStatusBadge, JobStatus } from '@/components/jobs/JobStatusBadge';
 import { ClubSyncBadge } from '@/components/jobs/ClubSyncBadge';
+import { JobLocationDisplay, type JobLocationItem } from '@/components/jobs/JobLocationDisplay';
 
 interface CompactJobCardProps {
   job: {
@@ -48,6 +48,9 @@ interface CompactJobCardProps {
     title: string;
     status: string;
     location: string;
+    location_country_code?: string | null;
+    is_remote?: boolean;
+    job_locations?: JobLocationItem[];
     created_at: string;
     club_sync_status: string | null;
     candidate_count: number;
@@ -262,12 +265,16 @@ export const CompactJobCard = memo(({
               )}
             </div>
             <p className="text-sm text-muted-foreground">{job.company_name}</p>
-            {job.location && (
-              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                <MapPin className="h-3 w-3 shrink-0" />
-                <span>{job.location}</span>
-              </div>
-            )}
+            <div className="mt-1">
+              <JobLocationDisplay
+                locations={job.job_locations}
+                location={job.location}
+                countryCode={job.location_country_code}
+                isRemote={job.is_remote}
+                size="sm"
+                showCities={true}
+              />
+            </div>
           </div>
 
           {/* Favorite + Menu (far right) */}
