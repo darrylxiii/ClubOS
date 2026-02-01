@@ -2888,6 +2888,7 @@ export type Database = {
           probation_status: string | null
           source_context: Json | null
           sourced_by: string | null
+          stage_updated_at: string | null
           stages: Json
           status: string
           updated_at: string
@@ -2918,6 +2919,7 @@ export type Database = {
           probation_status?: string | null
           source_context?: Json | null
           sourced_by?: string | null
+          stage_updated_at?: string | null
           stages?: Json
           status?: string
           updated_at?: string
@@ -2948,6 +2950,7 @@ export type Database = {
           probation_status?: string | null
           source_context?: Json | null
           sourced_by?: string | null
+          stage_updated_at?: string | null
           stages?: Json
           status?: string
           updated_at?: string

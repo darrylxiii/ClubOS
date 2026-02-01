@@ -139,19 +139,47 @@ export const memberApprovalService = {
         return null;
       }
 
-      // Check if candidate profile already exists for this user
-      const { data: existingCandidate } = await supabase
+      // Check 1: By user_id
+      const { data: existingByUserId } = await supabase
         .from('candidate_profiles')
         .select('id')
         .eq('user_id', requestId)
-        .single();
+        .maybeSingle();
 
-      if (existingCandidate) {
-        console.log('[MemberApproval] Candidate profile already exists:', existingCandidate.id);
-        return existingCandidate.id;
+      if (existingByUserId) {
+        console.log('[MemberApproval] Candidate exists by user_id:', existingByUserId.id);
+        return existingByUserId.id;
       }
 
-      // Create new candidate profile
+      // Check 2: By email (prevents duplicate key violation)
+      if (profile.email) {
+        const { data: existingByEmail } = await supabase
+          .from('candidate_profiles')
+          .select('id, user_id')
+          .eq('email', profile.email)
+          .maybeSingle();
+
+        if (existingByEmail) {
+          // Link existing candidate to this user if not already linked
+          if (!existingByEmail.user_id) {
+            const { error: linkError } = await supabase
+              .from('candidate_profiles')
+              .update({ user_id: requestId })
+              .eq('id', existingByEmail.id);
+            
+            if (linkError) {
+              console.error('[MemberApproval] Failed to link candidate:', linkError);
+            } else {
+              console.log('[MemberApproval] Linked existing candidate to user:', existingByEmail.id);
+            }
+          } else {
+            console.log('[MemberApproval] Candidate exists by email (already linked):', existingByEmail.id);
+          }
+          return existingByEmail.id;
+        }
+      }
+
+      // No existing candidate found - create new
       const { data: newCandidate, error: createError } = await supabase
         .from('candidate_profiles')
         .insert({
