@@ -1,239 +1,195 @@
 
-# Candidate Home Page Audit & Feature Roadmap
+# Fix Member Approval Errors: Duplicate Email & Missing Column
 
-## Current Score: 88/100
+## Current Score: 45/100 (Approval Flow)
 
 ---
 
-## Critical Bug Fix: "Unknown Position" in Top Matches
+## Issue 1: "unique_email_when_present" Constraint Violation
 
-### Root Cause Identified
-The `JobRecommendations` component displays "Unknown Position" because:
+### Root Cause
+When you approve a candidate and create a `candidate_profile`, the system attempts to insert a record with the same email that **already exists** in `candidate_profiles`.
 
-1. **139 orphaned match_scores** reference jobs that have been **deleted** from the `jobs` table
-2. The current code only checks if `job_id` exists in the lookup, but for deleted jobs, the join returns `null`
-3. No fallback filtering excludes these orphaned records from display
+**Data Evidence:**
+5 pending member requests have emails that already exist in candidate_profiles:
+- ale.milan@gmail.com
+- fhsbretail.shop@gmail.com
+- hello@florisvandriel.com
+- hello@studiolooop.com
+- zhirouzheng@outlook.com
 
-### Data Evidence
+The `autoCreateCandidateProfile()` function checks for duplicates by `user_id` only (line 143-147), but doesn't check for existing profiles with matching **email**.
+
+### Fix Required
+Modify `autoCreateCandidateProfile()` to:
+1. First check if candidate profile exists by `user_id`
+2. Then check if candidate profile exists by `email`
+3. Return existing profile ID if found (avoiding duplicate creation)
+
+---
+
+## Issue 2: "stage_updated_at" Column Missing
+
+### Root Cause
+The `generate_partner_smart_alerts()` trigger function references `NEW.stage_updated_at`, but this column **does not exist** on the `applications` table.
+
+**Current applications columns:**
 ```
-Orphaned (job deleted): 139 records
-Valid: 235 records
-Total: 374 match_scores with UUID job_ids
+id, user_id, company_name, position, current_stage_index, stages, status, 
+applied_at, updated_at, created_at, job_id, match_score, match_factors, 
+application_source, candidate_id, sourced_by, source_context, 
+candidate_full_name, candidate_email, candidate_phone, candidate_title, 
+candidate_company, candidate_linkedin_url, candidate_resume_url, 
+probation_end_date, probation_status
 ```
 
-### Fix Required (Score Impact: +5 points)
+**Missing:** `stage_updated_at`
 
-**Option A: Filter at Query Level (Recommended)**
-- Use a database view or modify the query to only return match_scores where the job still exists
-- Add a JOIN to filter orphaned records at fetch time
+The trigger was added in migration `20260127221232` but referenced a column that was never added to the table.
 
-**Option B: Cleanup + Prevent**
-- Delete orphaned match_scores from database
-- Add a database trigger to cascade delete match_scores when a job is deleted
+### Fix Required
+Either:
+- **Option A:** Add the missing `stage_updated_at` column to applications table
+- **Option B:** Update the trigger function to use `updated_at` instead (simpler, but less accurate)
 
-**Implementation:**
-1. Modify `fetchRecommendations()` in `JobRecommendations.tsx` to filter out matches where job lookup returns null
-2. Add ON DELETE CASCADE to match_scores foreign key (for future prevention)
-3. Optionally clean up the 139 orphaned records
+**Recommendation: Option A** - Add the column because it provides more accurate "days in stage" tracking and is already expected by the logic.
 
 ---
 
-## Current Home Page Architecture
+## Implementation Plan
 
-The candidate home (`/home` → `CandidateHome.tsx`) contains these widgets:
+### Phase 1: Fix Duplicate Email Check
 
-| Widget | Status | Description |
-|--------|--------|-------------|
-| UnifiedStatsBar | ✅ Complete | Applications, Matches, Interviews, Messages |
-| NextBestActionCard | ✅ Complete | QUIN-powered priority actions |
-| PushNotificationOptIn | ✅ Complete | Added in Phase 1 |
-| InterviewCountdownWidget | ✅ Complete | Live countdown to next interview |
-| StrategistContactCard | ✅ Complete | Dedicated recruiter contact |
-| ProfileCompletion | ✅ Complete | With itemized breakdown |
-| ApplicationStatusTracker | ✅ Complete | Pipeline visualization |
-| JobRecommendations | ⚠️ Bug | "Unknown Position" issue |
-| NotificationsPreviewWidget | ✅ Complete | Recent notifications |
-| CandidateQuickActions | ✅ Complete | Quick navigation cards |
-| QuickTipsCarousel | ✅ Complete | Expert advice |
-| UpcomingMeetingsWidget | ✅ Complete | Calendar integration |
-| MessagesPreviewWidget | ✅ Complete | Recent messages |
-| SavedJobsWidget | ✅ Complete | Real-time subscriptions |
-| DocumentStatusWidget | ✅ Complete | CV/document status |
-| ReferralStatsWidget | ✅ Complete | Referral earnings |
-| AchievementsPreviewWidget | ✅ Complete | XP and badges |
-| Club Projects Banner | ✅ Complete | Dismissible promo |
-| ActivityTimeline | ✅ Complete | Recent activity feed |
+**File:** `src/services/memberApprovalService.ts`
 
----
-
-## Missing Features Analysis
-
-### Category 1: Market Intelligence (Score Impact: +3)
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Salary Insights Widget | ❌ Missing | Quick salary benchmark on home |
-| Market Trends Preview | ❌ Missing | Industry demand indicators |
-| Skill Demand Radar | ❌ Missing | Hot skills in user's field |
-
-### Category 2: Career Growth Tools (Score Impact: +2)
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Career Progress Tracker | ❌ Missing | Journey visualization |
-| Skill Gap Summary | ❌ Missing | What to learn next |
-| Learning Recommendations | ❌ Missing | Academy course suggestions |
-
-### Category 3: Social & Network (Score Impact: +1)
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Network Strength Score | ❌ Missing | Professional connections health |
-| Referral Opportunities | ❌ Missing | Roles to share with network |
-
-### Category 4: Application Analytics (Score Impact: +1)
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Application Funnel Widget | ❌ Missing | Personal conversion metrics |
-| Response Rate Tracker | ❌ Missing | How often candidates get responses |
-
----
-
-## Scoring Breakdown
-
-| Category | Current | Max | Notes |
-|----------|---------|-----|-------|
-| Core Dashboard Widgets | 18/20 | 20 | "Unknown Position" bug |
-| Stats & Metrics | 10/10 | 10 | UnifiedStatsBar complete |
-| Next Actions & AI | 10/10 | 10 | QUIN NextBestAction working |
-| Job Discovery | 8/10 | 10 | Missing market intelligence |
-| Career Tools | 6/10 | 10 | Missing progress/skill widgets |
-| Communication | 10/10 | 10 | Messages, notifications complete |
-| Social/Referrals | 8/10 | 10 | Missing network features |
-| Gamification | 10/10 | 10 | Achievements, XP complete |
-| Real-time Updates | 8/10 | 10 | Some widgets missing subscriptions |
-| **TOTAL** | **88/100** | 100 | |
-
----
-
-## Roadmap to 100/100
-
-### Phase 1: Critical Bug Fix (+5 points)
-
-**Task 1.1: Fix "Unknown Position" in JobRecommendations**
-- Filter out orphaned match_scores at query time
-- Add null check before displaying
-- Show only jobs that actually exist
-
-**Task 1.2: Database Cleanup**
-- Add cascade delete trigger for match_scores → jobs
-- Clean orphaned records
-
-### Phase 2: Market Intelligence Widget (+3 points)
-
-**Task 2.1: SalaryInsightsWidget**
-- Compact salary range for user's role/location
-- "How you compare" indicator
-- Link to full Salary Insights page
-
-**Task 2.2: SkillDemandWidget**
-- Top 3 hot skills in user's field
-- Growth/decline indicators
-- Link to skill gap analysis
-
-### Phase 3: Career Progress Widget (+2 points)
-
-**Task 3.1: CareerProgressWidget**
-- Visual journey from current → target role
-- Milestones achieved (applications, interviews, offers)
-- "Career velocity" score
-
-**Task 3.2: LearningRecommendationsWidget**
-- 3 suggested Academy courses based on skill gaps
-- Progress on current courses
-- Link to Academy
-
-### Phase 4: Application Analytics (+1 point)
-
-**Task 4.1: ApplicationFunnelWidget**
-- Mini funnel: Applied → Screened → Interview → Offer
-- Personal conversion rates
-- Industry comparison
-
-### Phase 5: Network Features (+1 point)
-
-**Task 5.1: NetworkStrengthWidget**
-- Connection quality score
-- Referral opportunities available
-- "Who to reach out to" suggestion
-
----
-
-## Technical Implementation Details
-
-### Fix 1: JobRecommendations.tsx
+Update `autoCreateCandidateProfile()` (lines 125-182) to also check by email:
 
 ```typescript
-// Filter orphaned records BEFORE mapping
-const formatted = matches
-  .map(match => {
-    const isUuid = uuidRegex.test(match.job_id);
-    const jobInfo = isUuid ? jobsMap[match.job_id] : null;
-    
-    // Skip if UUID but job doesn't exist (deleted)
-    if (isUuid && !jobInfo) {
+async autoCreateCandidateProfile(
+  requestId: string,
+  adminId: string
+): Promise<string | null> {
+  try {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('full_name, email, phone, current_title, linkedin_url, location')
+      .eq('id', requestId)
+      .single();
+
+    if (profileError || !profile) {
+      console.error('[MemberApproval] Could not fetch profile:', profileError);
       return null;
     }
-    
-    // ... rest of mapping
-  })
-  .filter(Boolean); // Remove nulls
+
+    // Check 1: By user_id
+    const { data: existingByUserId } = await supabase
+      .from('candidate_profiles')
+      .select('id')
+      .eq('user_id', requestId)
+      .maybeSingle();
+
+    if (existingByUserId) {
+      console.log('[MemberApproval] Candidate exists by user_id:', existingByUserId.id);
+      return existingByUserId.id;
+    }
+
+    // Check 2: By email (prevents duplicate key violation)
+    if (profile.email) {
+      const { data: existingByEmail } = await supabase
+        .from('candidate_profiles')
+        .select('id, user_id')
+        .eq('email', profile.email)
+        .maybeSingle();
+
+      if (existingByEmail) {
+        // Link existing candidate to this user if not already linked
+        if (!existingByEmail.user_id) {
+          await supabase
+            .from('candidate_profiles')
+            .update({ user_id: requestId })
+            .eq('id', existingByEmail.id);
+          console.log('[MemberApproval] Linked existing candidate to user:', existingByEmail.id);
+        }
+        return existingByEmail.id;
+      }
+    }
+
+    // No existing candidate found - create new
+    const { data: newCandidate, error: createError } = await supabase
+      .from('candidate_profiles')
+      .insert({ /* ... existing fields ... */ })
+      .select('id')
+      .single();
+
+    if (createError) throw createError;
+    return newCandidate?.id || null;
+  } catch (error) {
+    console.error('Error auto-creating candidate profile:', error);
+    return null;
+  }
+}
 ```
 
-### Fix 2: Database Migration
+### Phase 2: Fix Missing Column Error
+
+**Database Migration:**
 
 ```sql
--- Clean up orphaned match_scores
-DELETE FROM match_scores ms
-WHERE ms.job_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-AND NOT EXISTS (
-  SELECT 1 FROM jobs j WHERE j.id = ms.job_id::uuid
-);
+-- Add missing stage_updated_at column
+ALTER TABLE public.applications 
+ADD COLUMN IF NOT EXISTS stage_updated_at TIMESTAMPTZ DEFAULT NOW();
 
--- Add cascade delete for future
--- (if FK doesn't exist, this prevents future orphans)
+-- Create trigger to auto-update stage_updated_at when stage changes
+CREATE OR REPLACE FUNCTION update_stage_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.current_stage_index IS DISTINCT FROM OLD.current_stage_index
+     OR NEW.status IS DISTINCT FROM OLD.status THEN
+    NEW.stage_updated_at := NOW();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_update_stage_timestamp ON applications;
+CREATE TRIGGER trg_update_stage_timestamp
+  BEFORE UPDATE ON applications
+  FOR EACH ROW
+  EXECUTE FUNCTION update_stage_timestamp();
+
+-- Backfill existing records: set stage_updated_at = updated_at
+UPDATE applications SET stage_updated_at = updated_at WHERE stage_updated_at IS NULL;
 ```
-
-### New Widgets (Summary)
-
-| Widget | Data Source | Complexity |
-|--------|-------------|------------|
-| SalaryInsightsWidget | salary_benchmarks table | Low |
-| SkillDemandWidget | jobs table (aggregate) | Medium |
-| CareerProgressWidget | applications + profiles | Medium |
-| LearningRecommendationsWidget | courses + user_skills | Medium |
-| ApplicationFunnelWidget | applications (aggregate) | Low |
-| NetworkStrengthWidget | referrals + connections | Medium |
 
 ---
 
-## Priority Order
+## Scoring Impact
 
-1. **Immediate (Blocking)**: Fix "Unknown Position" bug
-2. **High (Quick Win)**: Clean orphaned match_scores
-3. **Medium**: Add SalaryInsightsWidget, SkillDemandWidget
-4. **Low**: Career progress, Learning, Network widgets
+| Fix | Score Impact | Description |
+|-----|--------------|-------------|
+| Duplicate email check | +25 | Prevents profile creation failures |
+| Stage column addition | +25 | Unblocks all application triggers |
+| Stage timestamp trigger | +5 | Accurate tracking for alerts |
+| **TOTAL** | **+55** | From 45/100 → 100/100 |
+
+---
+
+## Files to Modify
+
+| File/Object | Type | Change |
+|-------------|------|--------|
+| `src/services/memberApprovalService.ts` | Frontend | Add email lookup before insert |
+| `applications` table | Database | Add `stage_updated_at` column |
+| `update_stage_timestamp()` | DB Function | Auto-update timestamp on stage change |
 
 ---
 
 ## Summary
 
-The candidate home page is **88/100** - a solid, feature-rich dashboard with one critical bug. The "Unknown Position" issue affects ~37% of displayed matches due to orphaned records from deleted jobs.
+Two root causes for the member approval failures:
 
-**Quick Wins:**
-- Fix JobRecommendations filtering (+5 points)
-- Add SalaryInsightsWidget (+2 points)
-- Add CareerProgressWidget (+2 points)
+1. **Duplicate Email:** The system tries to create a candidate profile for a user whose email already exists (as a pre-added standalone candidate). Fix: Check by email AND link existing profiles to the new user.
 
-Implementing Phase 1-2 would bring the home page to **93/100**, with Phase 3-5 completing the journey to **100/100**.
+2. **Missing Column:** The `generate_partner_smart_alerts()` trigger references `stage_updated_at` which doesn't exist. Fix: Add the column and create a trigger to keep it updated.
+
+Both fixes are straightforward and will bring the approval workflow to 100/100 reliability.
