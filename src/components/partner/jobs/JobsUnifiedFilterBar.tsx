@@ -36,13 +36,14 @@ import {
   X,
   Bookmark,
   Check,
+  Heart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ViewMode } from '../ViewModeSwitcher';
 import { JobFilterState } from '@/types/jobFilters';
 
-export type JobStatusFilter = 'all' | 'draft' | 'published' | 'closed' | 'archived';
+export type JobStatusFilter = 'all' | 'draft' | 'published' | 'closed' | 'archived' | 'favorites';
 export type QuickFilterType = 'all' | 'expiring-soon' | 'recent-activity' | 'high-engagement';
 
 interface JobsUnifiedFilterBarProps {
@@ -83,12 +84,13 @@ interface JobsUnifiedFilterBarProps {
   className?: string;
 }
 
-const STATUS_CONFIG: Record<JobStatusFilter, { label: string; shortLabel: string }> = {
+const STATUS_CONFIG: Record<JobStatusFilter, { label: string; shortLabel: string; icon?: React.ElementType }> = {
   all: { label: 'All Jobs', shortLabel: 'All' },
   published: { label: 'Active', shortLabel: 'Active' },
   draft: { label: 'Draft', shortLabel: 'Draft' },
   closed: { label: 'Closed', shortLabel: 'Closed' },
   archived: { label: 'Archived', shortLabel: 'Archived' },
+  favorites: { label: 'Favorites', shortLabel: 'Favorites', icon: Heart },
 };
 
 const VIEW_MODES: { mode: ViewMode; icon: typeof LayoutGrid; label: string }[] = [
@@ -122,7 +124,7 @@ export const JobsUnifiedFilterBar = memo(({
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
 
-  const statuses: JobStatusFilter[] = ['all', 'published', 'draft', 'closed', 'archived'];
+  const statuses: JobStatusFilter[] = ['all', 'published', 'draft', 'closed', 'archived', 'favorites'];
   const CurrentViewIcon = VIEW_MODES.find(v => v.mode === viewMode)?.icon || LayoutGrid;
 
   const activeFilterCount = 
@@ -141,8 +143,9 @@ export const JobsUnifiedFilterBar = memo(({
         <div className="flex items-center gap-1 p-1 rounded-lg bg-card/30 border border-border/20">
           {statuses.map((status) => {
             const config = STATUS_CONFIG[status];
-            const count = statusCounts[status];
+            const count = statusCounts[status] || 0;
             const isActive = statusFilter === status;
+            const Icon = config.icon;
             
             return (
               <Button
@@ -151,10 +154,12 @@ export const JobsUnifiedFilterBar = memo(({
                 size="sm"
                 className={cn(
                   'h-7 px-2.5 text-xs gap-1.5 transition-all',
-                  isActive && 'bg-primary/20 text-primary'
+                  isActive && 'bg-primary/20 text-primary',
+                  status === 'favorites' && isActive && 'bg-rose-500/20 text-rose-500'
                 )}
                 onClick={() => onStatusChange(status)}
               >
+                {Icon && <Icon className="h-3 w-3" />}
                 <span className="hidden sm:inline">{config.label}</span>
                 <span className="sm:hidden">{config.shortLabel}</span>
                 <Badge 
@@ -162,6 +167,7 @@ export const JobsUnifiedFilterBar = memo(({
                   className={cn(
                     'h-4 px-1 text-[10px] font-medium',
                     isActive ? 'bg-primary/10 border-primary/30' : 'bg-card/40',
+                    status === 'favorites' && isActive && 'bg-rose-500/10 border-rose-500/30',
                     count === 0 && 'opacity-50'
                   )}
                 >
@@ -203,13 +209,13 @@ export const JobsUnifiedFilterBar = memo(({
                 size="icon"
                 className={cn(
                   'h-8 w-8 relative',
-                  quickFilter === 'recent-activity' && 'bg-success/20 text-success'
+                  quickFilter === 'recent-activity' && 'bg-emerald-500/20 text-emerald-500'
                 )}
                 onClick={() => onQuickFilterChange(quickFilter === 'recent-activity' ? 'all' : 'recent-activity')}
               >
                 <Activity className="h-4 w-4" />
                 {quickFilterCounts.recentActivity > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 text-[10px] bg-success text-white rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 h-4 w-4 text-[10px] bg-emerald-500 text-white rounded-full flex items-center justify-center">
                     {quickFilterCounts.recentActivity}
                   </span>
                 )}

@@ -30,8 +30,8 @@ import { useRole } from "@/contexts/RoleContext";
 import confetti from "canvas-confetti";
 import { JobFilterType } from "./JobFilterBar";
 import { usePersistedJobFilters } from "@/hooks/usePersistedJobFilters";
-import { JobStatusFilter } from "./JobStatusSummaryBar";
 import { JobBulkActionBar } from "./JobBulkActionBar";
+import { useJobFavorites } from "@/hooks/useJobFavorites";
 import { usePersistedViewMode, ViewMode } from "./ViewModeSwitcher";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { JobKanbanView } from "./JobKanbanView";
@@ -51,6 +51,7 @@ import {
   JobsUnifiedFilterBar,
   CompactJobCard,
   QuickFilterType,
+  JobStatusFilter,
 } from "./jobs";
 
 interface PartnerJobsHomeProps {
@@ -105,6 +106,9 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const [clubSyncInfoOpen, setClubSyncInfoOpen] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [statusFilter, setStatusFilter] = useState<JobStatusFilter>('all');
+  
+  // Job favorites
+  const { favorites, favoritesCount, toggleFavorite, isFavorite } = useJobFavorites();
   const [isPublishingAll, setIsPublishingAll] = useState(false);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [shortcutsDialogOpen, setShortcutsDialogOpen] = useState(false);
@@ -391,12 +395,14 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     published: jobs.filter(j => j.status === 'published').length,
     closed: jobs.filter(j => j.status === 'closed').length,
     archived: jobs.filter(j => j.status === 'archived').length,
-  }), [jobs]);
+    favorites: favoritesCount,
+  }), [jobs, favoritesCount]);
 
   const statusFilteredJobs = useMemo(() => {
     if (statusFilter === 'all') return filteredJobs;
+    if (statusFilter === 'favorites') return filteredJobs.filter(job => isFavorite(job.id));
     return filteredJobs.filter(job => job.status === statusFilter);
-  }, [filteredJobs, statusFilter]);
+  }, [filteredJobs, statusFilter, isFavorite]);
 
   const {
     selectedIds,
@@ -872,6 +878,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                       job={job}
                       isSelected={isSelected(job.id)}
                       isFocused={focusedIndex === index}
+                      isFavorite={isFavorite(job.id)}
                       onToggleSelect={() => toggleJob(job.id)}
                       onNavigate={() => navigate(`/jobs/${job.id}/dashboard`)}
                       onPublish={() => handlePublishJob(job.id, job.title)}
@@ -880,6 +887,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                       onReopen={() => handleReopenJob(job.id, job.title)}
                       onArchive={() => handleArchiveJob(job.id, job.title)}
                       onRestore={() => handleRestoreJob(job.id, job.title)}
+                      onToggleFavorite={() => toggleFavorite(job.id)}
                     />
                   ))}
                 </div>
