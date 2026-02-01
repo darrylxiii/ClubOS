@@ -1,23 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, memo, useRef } from "react";
 import { ClubSyncBadge } from "@/components/jobs/ClubSyncBadge";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -26,69 +10,29 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Plus,
-  LayoutDashboard,
-  MoreVertical,
-  UserPlus,
-  Download,
-  HeadphonesIcon,
-  BarChart3,
-  Zap,
-  Clock,
-  TrendingUp,
-  Users,
   CheckCircle,
-  XCircle,
-  AlertCircle,
-  Briefcase,
-  Target,
-  Calendar,
+  Zap,
+  TrendingUp,
   Award,
-  BookOpen,
-  Bell,
-  FileText,
-  Info,
+  HeadphonesIcon,
   Sparkles,
-  Timer,
-  Flag,
-  PlayCircle,
-  Settings,
-  Shield,
-  Globe,
-  Brain,
-  Activity,
-  Lock,
-  Building2,
-  RefreshCw,
-  EyeOff,
-  Archive,
-  RotateCcw,
-  Keyboard,
   Radio,
 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
 import { useRole } from "@/contexts/RoleContext";
 import confetti from "canvas-confetti";
-import { JobCardMetrics } from "./job-card/JobCardMetrics";
-import { JobCardLastActivity } from "./job-card/JobCardLastActivity";
-import { JobCardActions } from "./job-card/JobCardActions";
-import { JobCardHeader } from "./job-card/JobCardHeader";
-import { JobCardCheckbox } from "./job-card/JobCardCheckbox";
-import { JobsAnalyticsWidget } from "./JobsAnalyticsWidget";
-import { JobFilterBar, JobFilterType } from "./JobFilterBar";
-import { formatLastActivity } from "@/lib/jobUtils";
-import { JobSearchBar } from "./JobSearchBar";
-import { AdvancedJobFilters } from "./AdvancedJobFilters";
+import { JobFilterType } from "./JobFilterBar";
 import { usePersistedJobFilters } from "@/hooks/usePersistedJobFilters";
-import { JobFilterState } from "@/types/jobFilters";
-import { JobStatusSummaryBar, JobStatusFilter } from "./JobStatusSummaryBar";
+import { JobStatusFilter } from "./JobStatusSummaryBar";
 import { JobBulkActionBar } from "./JobBulkActionBar";
-import { ViewModeSwitcher, usePersistedViewMode, ViewMode } from "./ViewModeSwitcher";
+import { usePersistedViewMode, ViewMode } from "./ViewModeSwitcher";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { JobKanbanView } from "./JobKanbanView";
 import { JobTableView } from "./JobTableView";
@@ -96,9 +40,18 @@ import { JobListView } from "./JobListView";
 import { useJobSelection } from "@/hooks/useJobSelection";
 import { useJobsRealtime } from "@/hooks/useJobsRealtime";
 import { useJobsKeyboardNav } from "@/hooks/useJobsKeyboardNav";
-import { JobsAIInsightsWidget } from "./JobsAIInsightsWidget";
-import { SavedFilterPresets } from "./SavedFilterPresets";
+import { useSavedFilterPresets } from "@/hooks/useSavedFilterPresets";
 import { cn } from "@/lib/utils";
+
+// New compact components
+import {
+  JobsCompactHeader,
+  JobsInlineStats,
+  JobsAIBanner,
+  JobsUnifiedFilterBar,
+  CompactJobCard,
+  QuickFilterType,
+} from "./jobs";
 
 interface PartnerJobsHomeProps {
   companyId: string | null;
@@ -161,11 +114,13 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   // Use persisted filters
   const { filters, updateFilters, resetFilters, hasActiveFilters } = usePersistedJobFilters();
   
+  // Saved filter presets
+  const { presets, addPreset, deletePreset } = useSavedFilterPresets();
+  
   // View mode persistence
   const [viewMode, setViewMode] = usePersistedViewMode('grid');
 
   useEffect(() => {
-    // Check if first visit
     const hasVisited = localStorage.getItem('partner_hq_visited');
     if (!hasVisited) {
       setIsFirstVisit(true);
@@ -180,7 +135,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
   const fetchJobsWithMetrics = useCallback(async () => {
     try {
-      // Fetch jobs with company info - admins see all jobs, partners see only their company's jobs
       let query = supabase
         .from('jobs')
         .select(`
@@ -210,7 +164,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
       if (jobsError) throw jobsError;
 
-      // Fetch all applications for these jobs with user info
       const jobIds = (jobsData || []).map(j => j.id.toString());
       const { data: applicationsData } = await supabase
         .from('applications')
@@ -228,26 +181,22 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         `)
         .in('job_id', jobIds);
 
-      // Group applications by job_id
       const applicationsByJob = (applicationsData || []).reduce((acc: any, app: any) => {
         if (!acc[app.job_id]) acc[app.job_id] = [];
         acc[app.job_id].push(app);
         return acc;
       }, {});
 
-      // Transform data with metrics
       const jobsWithMetrics: JobWithMetrics[] = (jobsData || []).map((job: any) => {
         const applications = applicationsByJob[job.id.toString()] || [];
         const candidateCount = applications.length;
         
-        // Count active candidates (not rejected/withdrawn)
         const activeStageCount = applications.filter((app: any) => {
           const stages = app.stages || [];
           const currentStage = stages[app.current_stage_index];
           return currentStage && !['rejected', 'withdrawn'].includes(currentStage.status?.toLowerCase());
         }).length;
 
-        // Get most recent activity with user info
         let lastActivity = null;
         let lastActivityUser = null;
         
@@ -263,12 +212,10 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           } : null;
         }
 
-        // Calculate days since job was opened
         const daysSinceOpened = Math.floor(
           (new Date().getTime() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)
         );
 
-        // Calculate conversion rate (hired / total applied)
         const hiredApps = applications.filter((app: any) => {
           const stages = app.stages || [];
           return stages.some((s: any) => s.status?.toLowerCase() === 'hired');
@@ -301,7 +248,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
       setJobs(jobsWithMetrics);
 
-      // Calculate company-wide metrics
       const activeJobs = jobsWithMetrics.filter(j => j.status === 'published').length;
       const totalCandidates = jobsWithMetrics.reduce((sum, j) => sum + j.candidate_count, 0);
       const clubSyncCount = jobsWithMetrics.filter(j => j.club_sync_status === 'accepted').length;
@@ -318,7 +264,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         ? Math.round(allConversions.reduce((sum, c) => sum + c, 0) / allConversions.length)
         : null;
 
-      // Calculate pending actions (simplified)
       const pendingActions = jobsWithMetrics.reduce((sum, j) => sum + j.active_stage_count, 0);
 
       setCompanyMetrics({
@@ -337,23 +282,19 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     }
   }, [companyId, role]);
 
-  // Extract unique companies for filter
   const availableCompanies = useMemo(() => {
     const uniqueCompanies = new Map<string, string>();
     jobs.forEach(job => {
       if (job.company_name) {
-        // Use job.id as company identifier for now (we'd need company_id in future)
         uniqueCompanies.set(job.company_name, job.company_name);
       }
     });
     return Array.from(uniqueCompanies.entries()).map(([id, name]) => ({ id, name }));
   }, [jobs]);
 
-  // Apply all filters
   const filteredJobs = useMemo(() => {
     let filtered = [...jobs];
     
-    // Apply search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(job => 
@@ -363,21 +304,18 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       );
     }
     
-    // Apply status filter
     if (filters.status.length > 0) {
       filtered = filtered.filter(job => 
         filters.status.includes(job.status.toLowerCase())
       );
     }
     
-    // Apply company filter
     if (filters.companies.length > 0) {
       filtered = filtered.filter(job => 
         filters.companies.includes(job.company_name)
       );
     }
     
-    // Apply date range filter
     if (filters.dateRange.from) {
       filtered = filtered.filter(job => 
         new Date(job.created_at) >= filters.dateRange.from!
@@ -385,21 +323,18 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     }
     if (filters.dateRange.to) {
       const toDate = new Date(filters.dateRange.to);
-      toDate.setHours(23, 59, 59, 999); // Include the entire day
+      toDate.setHours(23, 59, 59, 999);
       filtered = filtered.filter(job => 
         new Date(job.created_at) <= toDate
       );
     }
     
-    // Apply quick filter
     switch (filters.quickFilter) {
       case 'expiring-soon':
-        // Jobs open for 45+ days
         filtered = filtered.filter(job => job.days_since_opened >= 45);
         filtered.sort((a, b) => b.days_since_opened - a.days_since_opened);
         break;
       case 'recent-activity':
-        // Jobs with activity in last 7 days
         filtered = filtered.filter(job => {
           if (!job.last_activity) return false;
           const daysSince = Math.floor(
@@ -414,7 +349,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         });
         break;
       case 'high-engagement':
-        // Jobs with conversion rate >= 15% or many candidates
         filtered = filtered.filter(job => 
           (job.conversion_rate && job.conversion_rate >= 15) || 
           job.candidate_count >= 10
@@ -422,7 +356,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         filtered.sort((a, b) => (b.conversion_rate || 0) - (a.conversion_rate || 0));
         break;
       default:
-        // All jobs, sorted by most recent first
         filtered.sort((a, b) => 
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
@@ -431,7 +364,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     return filtered;
   }, [jobs, filters]);
 
-  // Calculate filter counts (for quick filter badges)
   const jobCounts = useMemo(() => {
     const expiringSoon = jobs.filter(job => job.days_since_opened >= 45).length;
     const recentActivity = jobs.filter(job => {
@@ -453,7 +385,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     };
   }, [jobs]);
 
-  // Calculate status counts for status summary bar
   const statusCounts = useMemo(() => ({
     all: jobs.length,
     draft: jobs.filter(j => j.status === 'draft').length,
@@ -462,13 +393,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     archived: jobs.filter(j => j.status === 'archived').length,
   }), [jobs]);
 
-  // Apply status filter on top of other filters
   const statusFilteredJobs = useMemo(() => {
     if (statusFilter === 'all') return filteredJobs;
     return filteredJobs.filter(job => job.status === statusFilter);
   }, [filteredJobs, statusFilter]);
 
-  // Job selection for bulk actions
   const {
     selectedIds,
     selectedCount,
@@ -479,7 +408,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     isSelected,
   } = useJobSelection({ jobs: statusFilteredJobs });
 
-  // Real-time updates
   useJobsRealtime({
     companyId,
     enabled: true,
@@ -494,7 +422,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     }, []),
   });
 
-  // Keyboard navigation
   const { focusedIndex, focusedJobId, setFocusedIndex } = useJobsKeyboardNav({
     jobs: statusFilteredJobs,
     onNavigateToJob: (jobId) => navigate(`/jobs/${jobId}/dashboard`),
@@ -601,8 +528,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     toast.info(`Exporting ${selectedCount} jobs... (Coming soon)`);
   };
   
-  // Handler for quick filter change
-  const handleQuickFilterChange = (filter: JobFilterType) => {
+  const handleQuickFilterChange = (filter: QuickFilterType) => {
     updateFilters({ quickFilter: filter });
   };
 
@@ -715,120 +641,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     }
   };
 
-  const handlePublishAllDrafts = async () => {
-    setIsPublishingAll(true);
-    try {
-      const draftJobs = jobs.filter(j => j.status === 'draft');
-      
-      const { error } = await supabase
-        .from('jobs')
-        .update({ 
-          status: 'published',
-          published_at: new Date().toISOString()
-        })
-        .in('id', draftJobs.map(j => j.id));
-
-      if (error) throw error;
-
-      toast.success(`Published ${draftJobs.length} job${draftJobs.length !== 1 ? 's' : ''} successfully!`);
-      fetchJobsWithMetrics();
-      celebrateAction();
-    } catch (error) {
-      console.error('Error publishing all drafts:', error);
-      toast.error("Failed to publish all drafts");
-    } finally {
-      setIsPublishingAll(false);
-    }
-  };
-
-  const handleClubSyncAction = async (jobId: string, action: 'accept' | 'decline') => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      if (action === 'accept') {
-        // Create Club Sync request
-        const { data: request, error: requestError } = await supabase
-          .from('club_sync_requests')
-          .insert({
-            job_id: jobId,
-            requested_by: user.id,
-            status: 'pending',
-            notes: 'Partner requested Club Sync activation',
-          })
-          .select()
-          .single();
-
-        if (requestError) throw requestError;
-
-        // Update job status to pending
-        const { error: jobError } = await supabase
-          .from('jobs')
-          .update({ club_sync_status: 'pending' })
-          .eq('id', jobId);
-
-        if (jobError) throw jobError;
-
-        // Send notification to admins
-        await supabase.functions.invoke('notify-club-sync-request', {
-          body: {
-            requestId: request.id,
-            action: 'created',
-          },
-        });
-
-        toast.success('Club Sync requested', {
-          description: 'Your request has been sent to The Quantum Club team for review',
-        });
-      } else {
-        // Decline Club Sync
-        const { error } = await supabase
-          .from('jobs')
-          .update({ club_sync_status: 'declined' })
-          .eq('id', jobId);
-
-        if (error) throw error;
-
-        toast.success('Club Sync declined for this role');
-      }
-
-      fetchJobsWithMetrics();
-    } catch (error) {
-      console.error('Error handling Club Sync action:', error);
-      toast.error('Failed to process Club Sync request');
-    }
-  };
-
-  const handleQuickAction = (action: string, jobId: string, jobTitle: string) => {
-    switch (action) {
-      case 'invite':
-        toast.info(`Invite candidates feature coming soon for ${jobTitle}`);
-        break;
-      case 'export':
-        toast.info(`Export pipeline feature coming soon for ${jobTitle}`);
-        break;
-      case 'support':
-        toast.info(`Club support request feature coming soon for ${jobTitle}`);
-        break;
-      case 'analytics':
-        navigate(`/jobs/${jobId}/dashboard`);
-        break;
-    }
-  };
-
-  // Use ClubSyncBadge component instead of inline badge creation
-  const getClubSyncBadge = (status: string | null) => {
-    return <ClubSyncBadge status={status as any} size="sm" showTooltip={true} />;
-  };
-
-  const formatLastActivity = (date: string | null) => {
-    if (!date) return 'No activity';
-    const daysAgo = Math.floor((Date.now() - new Date(date).getTime()) / (1000 * 60 * 60 * 24));
-    if (daysAgo === 0) return 'Today';
-    if (daysAgo === 1) return 'Yesterday';
-    return `${daysAgo} days ago`;
-  };
-
   const celebrateAction = () => {
     confetti({
       particleCount: 100,
@@ -839,52 +651,20 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        {/* Header Skeleton */}
+      <div className="space-y-4 p-4">
         <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-10 w-64" />
-          </div>
-          <div className="flex gap-3">
-            <Skeleton className="h-10 w-32" />
-            <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-8 w-32" />
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-9" />
           </div>
         </div>
-
-        {/* KPI Grid Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="border-2">
-              <CardContent className="p-6 space-y-3">
-                <div className="flex items-center justify-between">
-                  <Skeleton className="h-10 w-10 rounded-lg" />
-                  <Skeleton className="h-5 w-16" />
-                </div>
-                <Skeleton className="h-8 w-20" />
-                <Skeleton className="h-4 w-32" />
-              </CardContent>
-            </Card>
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32" />
           ))}
-        </div>
-
-        {/* Jobs Grid Skeleton */}
-        <div className="space-y-4">
-          <Skeleton className="h-6 w-48" />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <Card key={i} className="border-2">
-                <CardContent className="p-6 space-y-4">
-                  <Skeleton className="h-6 w-48" />
-                  <Skeleton className="h-4 w-full" />
-                  <div className="flex gap-2">
-                    <Skeleton className="h-8 w-24" />
-                    <Skeleton className="h-8 w-24" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </div>
       </div>
     );
@@ -907,855 +687,300 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 p-4 md:p-6 space-y-4">
         <TooltipProvider>
           {/* Welcome Modal */}
-      <Dialog open={welcomeModalOpen} onOpenChange={setWelcomeModalOpen}>
-        <DialogContent className="sm:max-w-lg glass-card">
-          <DialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <Sparkles className="w-6 h-6 text-white" />
-              <DialogTitle className="text-2xl">Welcome to Your Hiring HQ</DialogTitle>
-            </div>
-            <DialogDescription className="text-base space-y-4 pt-4">
-              <p>Your exclusive command center for world-class hiring. Here's what you can do:</p>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
-                  <span><strong>Track live metrics</strong> across all your searches</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
-                  <span><strong>Activate Club Sync</strong> for vetted, premium candidates 3x faster</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
-                  <span><strong>Manage your pipeline</strong> with advanced analytics and insights</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
-                  <span><strong>Get white-glove support</strong> from the Quantum Club team</span>
-                </li>
-              </ul>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex gap-3 mt-4">
-            <Button onClick={() => setWelcomeModalOpen(false)} variant="outline" className="flex-1">
-              Explore on My Own
-            </Button>
-            <Button 
-              onClick={() => {
-                setWelcomeModalOpen(false);
-                setCreateDialogOpen(true);
-              }} 
-              className="flex-1 gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Create First Job
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Club Sync Info Modal */}
-      <Dialog open={clubSyncInfoOpen} onOpenChange={setClubSyncInfoOpen}>
-        <DialogContent className="sm:max-w-md glass-card">
-          <DialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <Zap className="w-6 h-6 text-white" />
-              <DialogTitle className="text-xl">What's Club Sync?</DialogTitle>
-            </div>
-            <DialogDescription className="text-base space-y-4 pt-4">
-              <p className="font-semibold text-foreground">Your premium hiring accelerator.</p>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
-                  <TrendingUp className="w-5 h-5 text-white mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-sm">3x Faster Hiring</p>
-                    <p className="text-sm text-muted-foreground">Get vetted candidates in days, not weeks</p>
-                  </div>
+          <Dialog open={welcomeModalOpen} onOpenChange={setWelcomeModalOpen}>
+            <DialogContent className="sm:max-w-lg glass-card">
+              <DialogHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <Sparkles className="w-6 h-6 text-primary" />
+                  <DialogTitle className="text-2xl">Welcome to Your Hiring HQ</DialogTitle>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
-                  <Award className="w-5 h-5 text-white mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-sm">Pre-Vetted Talent</p>
-                    <p className="text-sm text-muted-foreground">Every candidate is Club-verified for quality</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
-                  <HeadphonesIcon className="w-5 h-5 text-white mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-sm">Dedicated Support</p>
-                    <p className="text-sm text-muted-foreground">Personal recruiter assistance included</p>
-                  </div>
-                </div>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <Button onClick={() => setClubSyncInfoOpen(false)} className="w-full">
-            Got It
-          </Button>
-        </DialogContent>
-      </Dialog>
-
-
-      {/* Header */}
-      <div className="space-y-6 mb-8">
-        <div className="flex flex-col gap-6">
-          <div>
-            <p className="text-caps text-muted-foreground mb-2">
-              {isAdmin ? "Platform Overview" : "Your Hiring HQ"}
-            </p>
-            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
-              {isAdmin ? "All Active Searches" : "Active Searches"}
-            </h1>
-            {isAdmin && (
-              <p className="text-sm text-muted-foreground mt-2">
-                {companyId ? "Viewing specific company" : "Cross-company view"}
-              </p>
-            )}
-          </div>
-          
-          {/* Action Buttons - Responsive Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Button 
-              variant="glass"
-              className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
-              onClick={() => navigate('/company-applications')}
-            >
-              <LayoutDashboard className="w-5 h-5 mb-1" />
-              <span className="text-sm font-semibold">Applications Hub</span>
-            </Button>
-            
-            <Button 
-              variant="glass"
-              className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
-              onClick={() => navigate('/company-jobs')}
-            >
-              <Settings className="w-5 h-5 mb-1" />
-              <span className="text-sm font-semibold">Company Settings</span>
-            </Button>
-            
-            {isAdmin ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="glass"
-                    className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
-                  >
-                    <Shield className="w-5 h-5 mb-1" />
-                    <span className="text-sm font-semibold">Admin Tools</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-72 bg-card/95 backdrop-blur-xl border-border/20">
-                  <DropdownMenuLabel className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-white" />
-                    Platform Administration
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuItem onClick={() => navigate('/admin/companies')} className="gap-2">
-                    <Building2 className="w-4 h-4" />
-                    <div className="flex-1">
-                      <p className="font-medium">Company Management</p>
-                      <p className="text-xs text-muted-foreground">View & manage all partners</p>
-                    </div>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem className="gap-2">
-                    <Globe className="w-4 h-4" />
-                    <div className="flex-1">
-                      <p className="font-medium">Bulk Operations</p>
-                      <p className="text-xs text-muted-foreground">Cross-job actions at scale</p>
-                    </div>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem onClick={() => navigate('/admin/ai-config')} className="gap-2">
-                    <Brain className="w-4 h-4" />
-                    <div className="flex-1">
-                      <p className="font-medium">AI Model Config</p>
-                      <p className="text-xs text-muted-foreground">Tune matching algorithms</p>
-                    </div>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuItem onClick={() => navigate('/admin/club-sync-requests')} className="gap-2">
-                    <Zap className="w-4 h-4" />
-                    <div className="flex-1">
-                      <p className="font-medium">Club Sync Requests</p>
-                      <p className="text-xs text-muted-foreground">Review partner requests</p>
-                    </div>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem className="gap-2">
-                    <Activity className="w-4 h-4" />
-                    <div className="flex-1">
-                      <p className="font-medium">System Health</p>
-                      <p className="text-xs text-muted-foreground">Platform status & uptime</p>
-                    </div>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem className="gap-2">
-                    <Lock className="w-4 h-4" />
-                    <div className="flex-1">
-                      <p className="font-medium">Access Control</p>
-                      <p className="text-xs text-muted-foreground">Roles & permissions</p>
-                    </div>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem onClick={() => navigate('/admin/analytics')} className="gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    <div className="flex-1">
-                      <p className="font-medium">Global Analytics</p>
-                      <p className="text-xs text-muted-foreground">Cross-company insights</p>
-                    </div>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuItem onClick={fetchJobsWithMetrics} className="gap-2">
-                    <RefreshCw className="w-4 h-4" />
-                    <div className="flex-1">
-                      <p className="font-medium">Refresh Metrics</p>
-                      <p className="text-xs text-muted-foreground">Recalculate everything</p>
-                    </div>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button 
-                variant="glass"
-                className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
-              >
-                <Users className="w-5 h-5 mb-1" />
-                <span className="text-sm font-semibold">Invite Team</span>
-              </Button>
-            )}
-            
-            <Button 
-              onClick={() => setCreateDialogOpen(true)}
-              variant="glass"
-              className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
-            >
-              <Plus className="w-5 h-5 mb-1" />
-              <span className="text-sm font-semibold">New Job</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Bento KPI Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Active Searches - Larger emphasis */}
-          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all sm:col-span-2 lg:col-span-1">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <Briefcase className="w-6 h-6 text-foreground" />
-                <Badge variant="outline" className="text-xs">Live</Badge>
-              </div>
-              <div className="space-y-1">
-                <p className="text-4xl font-black text-foreground">{companyMetrics.activeSearches}</p>
-                <p className="text-sm font-medium text-muted-foreground">Active Searches</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Total Candidates */}
-          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <Users className="w-5 h-5 text-foreground" />
-                <Badge variant="outline" className="text-xs">Pipeline</Badge>
-              </div>
-              <div className="space-y-1">
-                <p className="text-3xl font-black text-foreground">{companyMetrics.totalCandidates}</p>
-                <p className="text-sm text-muted-foreground">Candidates in Pipeline</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Avg Time to Hire */}
-          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <Clock className="w-5 h-5 text-foreground" />
-                <Badge variant="outline" className="text-xs">Speed</Badge>
-              </div>
-              <div className="space-y-1">
-                <p className="text-3xl font-black text-foreground">
-                  {companyMetrics.avgTimeToHire !== null ? `${companyMetrics.avgTimeToHire}d` : '—'}
-                </p>
-                <p className="text-sm text-muted-foreground">Avg. Time-to-Hire</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Conversion Rate */}
-          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <TrendingUp className="w-5 h-5 text-foreground" />
-                <Badge variant="outline" className="text-xs">Success</Badge>
-              </div>
-              <div className="space-y-1">
-                <p className="text-3xl font-black text-foreground">
-                  {companyMetrics.conversionRate !== null ? `${companyMetrics.conversionRate}%` : '—'}
-                </p>
-                <p className="text-sm text-muted-foreground">Conversion Rate</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Club Sync Status - Larger emphasis */}
-          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all sm:col-span-2 lg:col-span-1">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-6 h-6 text-foreground" />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-6 w-6 p-0"
-                        onClick={() => setClubSyncInfoOpen(true)}
-                      >
-                        <Info className="w-4 h-4 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-xs">
-                      <p className="text-sm">Get top-vetted candidates 3x faster with Club Sync</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <Badge variant="outline" className="text-xs">Premium</Badge>
-              </div>
-              <div className="space-y-1">
-                <p className="text-4xl font-black text-foreground">{companyMetrics.clubSyncActive}</p>
-                <p className="text-sm font-medium text-muted-foreground">Club Sync Active</p>
-              </div>
-              {companyMetrics.clubSyncActive < companyMetrics.activeSearches && (
+                <DialogDescription className="text-base space-y-4 pt-4">
+                  <p>Your exclusive command center for world-class hiring. Here's what you can do:</p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span><strong>Track live metrics</strong> across all your searches</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span><strong>Activate Club Sync</strong> for vetted, premium candidates 3x faster</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span><strong>Manage your pipeline</strong> with advanced analytics and insights</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span><strong>Get white-glove support</strong> from the Quantum Club team</span>
+                    </li>
+                  </ul>
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex gap-3 mt-4">
+                <Button onClick={() => setWelcomeModalOpen(false)} variant="outline" className="flex-1">
+                  Explore on My Own
+                </Button>
                 <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="w-full mt-3 text-xs gap-2"
-                  onClick={() => toast.info("Contact your Quantum Club rep to activate Club Sync")}
+                  onClick={() => {
+                    setWelcomeModalOpen(false);
+                    setCreateDialogOpen(true);
+                  }} 
+                  className="flex-1 gap-2"
                 >
-                  <Sparkles className="w-3 h-3" />
-                  Enable {companyMetrics.activeSearches - companyMetrics.clubSyncActive} More
+                  <Plus className="w-4 h-4" />
+                  Create First Job
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Club Sync Info Modal */}
+          <Dialog open={clubSyncInfoOpen} onOpenChange={setClubSyncInfoOpen}>
+            <DialogContent className="sm:max-w-md glass-card">
+              <DialogHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <Zap className="w-6 h-6 text-primary" />
+                  <DialogTitle className="text-xl">What's Club Sync?</DialogTitle>
+                </div>
+                <DialogDescription className="text-base space-y-4 pt-4">
+                  <p className="font-semibold text-foreground">Your premium hiring accelerator.</p>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
+                      <TrendingUp className="w-5 h-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-sm">3x Faster Hiring</p>
+                        <p className="text-sm text-muted-foreground">Get vetted candidates in days, not weeks</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
+                      <Award className="w-5 h-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-sm">Pre-Vetted Talent</p>
+                        <p className="text-sm text-muted-foreground">Every candidate is Club-verified for quality</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
+                      <HeadphonesIcon className="w-5 h-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-sm">Dedicated Support</p>
+                        <p className="text-sm text-muted-foreground">Personal recruiter assistance included</p>
+                      </div>
+                    </div>
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+              <Button onClick={() => setClubSyncInfoOpen(false)} className="w-full">
+                Got It
+              </Button>
+            </DialogContent>
+          </Dialog>
+
+          {/* Compact Header */}
+          <JobsCompactHeader
+            isAdmin={isAdmin}
+            searchQuery={filters.search}
+            onSearchChange={(query) => updateFilters({ search: query })}
+            onCreateJob={() => setCreateDialogOpen(true)}
+            onNavigate={navigate}
+            onRefresh={fetchJobsWithMetrics}
+            searchInputRef={searchInputRef}
+          />
+
+          {/* Inline Stats Bar */}
+          <JobsInlineStats
+            activeJobs={companyMetrics.activeSearches}
+            totalCandidates={companyMetrics.totalCandidates}
+            avgDaysOpen={companyMetrics.avgTimeToHire}
+            conversionRate={companyMetrics.conversionRate}
+            clubSyncActive={companyMetrics.clubSyncActive}
+            totalJobs={jobs.length}
+          />
+
+          {/* AI Banner (dismissible) */}
+          {isAdmin && (
+            <JobsAIBanner companyId={companyId || undefined} />
+          )}
+
+          {/* Unified Filter Bar */}
+          <JobsUnifiedFilterBar
+            statusFilter={statusFilter}
+            onStatusChange={setStatusFilter}
+            statusCounts={statusCounts}
+            quickFilter={filters.quickFilter as QuickFilterType}
+            onQuickFilterChange={handleQuickFilterChange}
+            quickFilterCounts={{
+              expiringSoon: jobCounts.expiringSoon,
+              recentActivity: jobCounts.recentActivity,
+              highEngagement: jobCounts.highEngagement,
+            }}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            filters={filters}
+            onFilterChange={updateFilters}
+            onResetFilters={resetFilters}
+            hasActiveFilters={hasActiveFilters}
+            availableCompanies={availableCompanies}
+            savedPresets={presets}
+            onApplyPreset={(presetFilters) => updateFilters(presetFilters)}
+            onSavePreset={(name) => addPreset(name, filters)}
+            onDeletePreset={deletePreset}
+            onShowKeyboardShortcuts={() => setShortcutsDialogOpen(true)}
+          />
+
+          {/* Live indicator */}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Radio className="w-3 h-3 text-success animate-pulse" />
+            <span>Live updates enabled</span>
+            <span className="text-muted-foreground/50">•</span>
+            <span>{statusFilteredJobs.length} jobs</span>
+          </div>
+
+          {/* Job Views */}
+          {statusFilteredJobs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="p-4 rounded-full bg-card/30 mb-4">
+                <Sparkles className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No jobs found</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {hasActiveFilters 
+                  ? "Try adjusting your filters to see more results"
+                  : "Create your first job to get started"}
+              </p>
+              {hasActiveFilters ? (
+                <Button variant="outline" onClick={resetFilters}>
+                  Clear Filters
+                </Button>
+              ) : (
+                <Button onClick={() => setCreateDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Job
                 </Button>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Pending Actions */}
-          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <Bell className="w-5 h-5 text-foreground" />
-                <Badge variant="outline" className="text-xs">Action</Badge>
-              </div>
-              <div className="space-y-1">
-                <p className="text-3xl font-black text-foreground">{companyMetrics.pendingActions}</p>
-                <p className="text-sm text-muted-foreground">Pending Actions</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions Bar - Hidden */}
-        {/*
-        <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:border-border/40 transition-all">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-white" />
-                <span className="font-semibold">Quick Actions</span>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap overflow-x-auto pb-2 sm:pb-0">
-                <Button variant="outline" size="sm" className="gap-2 relative">
-                  <Calendar className="w-4 h-4" />
-                  <span className="hidden sm:inline">Interviews</span>
-                  {companyMetrics.pendingActions > 0 && (
-                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-background/40 text-white text-xs border border-border/20">
-                      {companyMetrics.pendingActions}
-                    </Badge>
-                  )}
-                </Button>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">Export</span>
-                </Button>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <HeadphonesIcon className="w-4 h-4" />
-                  <span className="hidden sm:inline">Support</span>
-                </Button>
-                <Button variant="outline" size="sm" className="gap-2 relative">
-                  <Target className="w-4 h-4" />
-                  <span className="hidden sm:inline">Vetted Talent</span>
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-background/40 text-white text-xs border border-border/20">
-                    12
-                  </Badge>
-                </Button>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <BookOpen className="w-4 h-4" />
-                  <span className="hidden sm:inline">Resources</span>
-                </Button>
-              </div>
             </div>
-          </CardContent>
-        </Card>
-        </div>
-        */}
-      </div>
-
-      {/* AI Insights Widget */}
-      {isAdmin && (
-        <JobsAIInsightsWidget companyId={companyId || undefined} />
-      )}
-
-      {/* Search and Filters Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold">
-              All Jobs {jobs.length > 0 && `(${jobs.length})`}
-            </h2>
-            {/* Real-time indicator */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-success/10 border border-success/20">
-                  <Radio className="w-3 h-3 text-success animate-pulse" />
-                  <span className="text-xs text-success font-medium">Live</span>
+          ) : (
+            <>
+              {/* Grid View - Compact Cards */}
+              {viewMode === 'grid' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {statusFilteredJobs.map((job, index) => (
+                    <CompactJobCard
+                      key={job.id}
+                      job={job}
+                      isSelected={isSelected(job.id)}
+                      isFocused={focusedIndex === index}
+                      onToggleSelect={() => toggleJob(job.id)}
+                      onNavigate={() => navigate(`/jobs/${job.id}/dashboard`)}
+                      onPublish={() => handlePublishJob(job.id, job.title)}
+                      onUnpublish={() => handleUnpublishJob(job.id, job.title)}
+                      onClose={() => handleCloseJob(job.id, job.title)}
+                      onReopen={() => handleReopenJob(job.id, job.title)}
+                      onArchive={() => handleArchiveJob(job.id, job.title)}
+                      onRestore={() => handleRestoreJob(job.id, job.title)}
+                    />
+                  ))}
                 </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Real-time updates enabled</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {/* Saved Filter Presets */}
-            <SavedFilterPresets
-              currentFilters={filters}
-              onApplyPreset={updateFilters}
-              hasActiveFilters={hasActiveFilters}
-            />
-            
-            {/* View Mode Switcher */}
-            <ViewModeSwitcher
-              currentMode={viewMode}
-              onModeChange={setViewMode}
-            />
-            
-            {/* Keyboard shortcuts button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setShortcutsDialogOpen(true)}
-                >
-                  <Keyboard className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Keyboard shortcuts (?)</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-        
-        {/* Status Summary Bar with Tabs and Bulk Actions */}
-        <JobStatusSummaryBar
-          counts={statusCounts}
-          currentStatus={statusFilter}
-          onStatusChange={setStatusFilter}
-          onPublishAllDrafts={handlePublishAllDrafts}
-          isPublishingAll={isPublishingAll}
-        />
-        
-        {/* Search Bar */}
-        <JobSearchBar
-          value={filters.search}
-          onChange={(value) => updateFilters({ search: value })}
-          resultsCount={statusFilteredJobs.length}
-          placeholder="Search by job title, company, or location..."
-        />
-        
-        {/* Quick Filters */}
-        <JobFilterBar
-          currentFilter={filters.quickFilter}
-          onFilterChange={handleQuickFilterChange}
-          jobCounts={jobCounts}
-        />
-        
-        {/* Advanced Filters */}
-        <AdvancedJobFilters
-          filters={filters}
-          onFilterChange={updateFilters}
-          onReset={resetFilters}
-          hasActiveFilters={hasActiveFilters}
-          availableCompanies={availableCompanies}
-        />
-        
-        {/* Select All for bulk actions */}
-        {statusFilteredJobs.length > 0 && (
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20">
-            <Checkbox
-              checked={isAllSelected}
-              onCheckedChange={toggleAll}
-              className="h-5 w-5"
-            />
-            <span className="text-sm text-muted-foreground">
-              {isAllSelected ? 'Deselect all' : `Select all ${statusFilteredJobs.length} jobs`}
-            </span>
-            {selectedCount > 0 && (
-              <Badge variant="secondary" className="ml-auto">
-                {selectedCount} selected
-              </Badge>
-            )}
-          </div>
-        )}
-      </div>
+              )}
 
-      {/* Jobs Grid */}
-      {jobs.length === 0 ? (
-        <Card className="border-2 border-dashed border-border/40 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:border-border/60 transition-colors">
-          <CardContent className="flex flex-col items-center justify-center py-16 px-6">
-            <Briefcase className="w-12 h-12 text-white mb-4" />
-            <h3 className="text-2xl font-bold mb-2">Welcome to Your Hiring HQ</h3>
-            <p className="text-muted-foreground mb-6 text-center max-w-md">
-              Create your first job to unlock Club Sync, premium candidate matching, and world-class analytics
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <Button onClick={() => setWelcomeModalOpen(true)} variant="outline" size="lg" className="gap-2">
-                <PlayCircle className="w-5 h-5" />
-                Quick Tour
-              </Button>
-              <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
-                <Plus className="w-5 h-5" />
-                Create First Job
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {/* Grid View (Default) */}
-          {viewMode === 'grid' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              {statusFilteredJobs.map((job, index) => (
-                <MemoizedJobCard 
-                  key={job.id}
-                  job={job}
-                  isSelected={isSelected(job.id)}
-                  isFocused={focusedIndex === index}
-                  onToggleSelect={() => toggleJob(job.id)}
-                  onNavigate={(id: string) => navigate(`/jobs/${id}/dashboard`)}
+              {/* List View */}
+              {viewMode === 'list' && (
+                <JobListView
+                  jobs={statusFilteredJobs}
+                  selectedIds={selectedIds}
+                  focusedIndex={focusedIndex}
+                  onToggleSelect={toggleJob}
+                  onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
                   onPublish={handlePublishJob}
                   onUnpublish={handleUnpublishJob}
                   onClose={handleCloseJob}
                   onReopen={handleReopenJob}
                   onArchive={handleArchiveJob}
                   onRestore={handleRestoreJob}
-                  onQuickAction={handleQuickAction}
-                  onClubSync={handleClubSyncAction}
-                  getClubSyncBadge={getClubSyncBadge}
+                  isSelected={isSelected}
                 />
-              ))}
-            </div>
+              )}
+
+              {/* Kanban View */}
+              {viewMode === 'kanban' && (
+                <JobKanbanView
+                  jobs={statusFilteredJobs}
+                  selectedIds={selectedIds}
+                  focusedIndex={focusedIndex}
+                  onToggleSelect={toggleJob}
+                  onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
+                  onStatusChange={async (jobId, newStatus) => {
+                    const job = statusFilteredJobs.find(j => j.id === jobId);
+                    if (!job) return;
+                    
+                    switch (newStatus) {
+                      case 'published':
+                        await handlePublishJob(jobId, job.title);
+                        break;
+                      case 'draft':
+                        await handleUnpublishJob(jobId, job.title);
+                        break;
+                      case 'closed':
+                        await handleCloseJob(jobId, job.title);
+                        break;
+                      case 'archived':
+                        await handleArchiveJob(jobId, job.title);
+                        break;
+                    }
+                  }}
+                  isSelected={isSelected}
+                />
+              )}
+
+              {/* Table View */}
+              {viewMode === 'table' && (
+                <JobTableView
+                  jobs={statusFilteredJobs}
+                  selectedIds={selectedIds}
+                  focusedIndex={focusedIndex}
+                  onToggleSelect={toggleJob}
+                  onToggleAll={toggleAll}
+                  isAllSelected={isAllSelected}
+                  onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
+                  onPublish={handlePublishJob}
+                  onUnpublish={handleUnpublishJob}
+                  onClose={handleCloseJob}
+                  onReopen={handleReopenJob}
+                  onArchive={handleArchiveJob}
+                  onRestore={handleRestoreJob}
+                  isSelected={isSelected}
+                />
+              )}
+            </>
           )}
 
-          {/* List View (Compact) */}
-          {viewMode === 'list' && (
-            <JobListView
-              jobs={statusFilteredJobs}
-              selectedIds={selectedIds}
-              focusedIndex={focusedIndex}
-              onToggleSelect={toggleJob}
-              onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
-              onPublish={handlePublishJob}
-              onUnpublish={handleUnpublishJob}
-              onClose={handleCloseJob}
-              onReopen={handleReopenJob}
-              onArchive={handleArchiveJob}
-              onRestore={handleRestoreJob}
-              isSelected={isSelected}
-            />
-          )}
+          {/* Bulk Action Bar */}
+          <JobBulkActionBar
+            selectedCount={selectedCount}
+            onClearSelection={clearSelection}
+            onPublishAll={handleBulkPublish}
+            onCloseAll={handleBulkClose}
+            onArchiveAll={handleBulkArchive}
+            onExportSelected={handleBulkExport}
+            isProcessing={isBulkProcessing}
+          />
 
-          {/* Kanban View */}
-          {viewMode === 'kanban' && (
-            <JobKanbanView
-              jobs={statusFilteredJobs}
-              selectedIds={selectedIds}
-              focusedIndex={focusedIndex}
-              onToggleSelect={toggleJob}
-              onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
-              onStatusChange={async (jobId, newStatus) => {
-                const job = statusFilteredJobs.find(j => j.id === jobId);
-                if (!job) return;
-                
-                switch (newStatus) {
-                  case 'published':
-                    await handlePublishJob(jobId, job.title);
-                    break;
-                  case 'draft':
-                    await handleUnpublishJob(jobId, job.title);
-                    break;
-                  case 'closed':
-                    await handleCloseJob(jobId, job.title);
-                    break;
-                  case 'archived':
-                    await handleArchiveJob(jobId, job.title);
-                    break;
-                }
-              }}
-              isSelected={isSelected}
-            />
-          )}
+          {/* Keyboard Shortcuts Dialog */}
+          <KeyboardShortcutsDialog
+            open={shortcutsDialogOpen}
+            onOpenChange={setShortcutsDialogOpen}
+          />
 
-          {/* Table View */}
-          {viewMode === 'table' && (
-            <JobTableView
-              jobs={statusFilteredJobs}
-              selectedIds={selectedIds}
-              focusedIndex={focusedIndex}
-              onToggleSelect={toggleJob}
-              onToggleAll={toggleAll}
-              isAllSelected={isAllSelected}
-              onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
-              onPublish={handlePublishJob}
-              onUnpublish={handleUnpublishJob}
-              onClose={handleCloseJob}
-              onReopen={handleReopenJob}
-              onArchive={handleArchiveJob}
-              onRestore={handleRestoreJob}
-              isSelected={isSelected}
-            />
-          )}
-        </>
-      )}
-
-      {/* Bulk Action Bar */}
-      <JobBulkActionBar
-        selectedCount={selectedCount}
-        onClearSelection={clearSelection}
-        onPublishAll={handleBulkPublish}
-        onCloseAll={handleBulkClose}
-        onArchiveAll={handleBulkArchive}
-        onExportSelected={handleBulkExport}
-        isProcessing={isBulkProcessing}
-      />
-
-      {/* Keyboard Shortcuts Dialog */}
-      <KeyboardShortcutsDialog
-        open={shortcutsDialogOpen}
-        onOpenChange={setShortcutsDialogOpen}
-      />
-
-      <CreateJobDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        companyId={companyId || undefined}
-        onJobCreated={fetchJobsWithMetrics}
-      />
+          <CreateJobDialog
+            open={createDialogOpen}
+            onOpenChange={setCreateDialogOpen}
+            companyId={companyId || undefined}
+            onJobCreated={fetchJobsWithMetrics}
+          />
         </TooltipProvider>
       </div>
     </div>
   );
 };
-
-// Memoized Job Card Component for Performance
-const MemoizedJobCard = memo(({ 
-  job, 
-  isSelected,
-  isFocused,
-  onToggleSelect,
-  onNavigate, 
-  onPublish,
-  onUnpublish,
-  onClose,
-  onReopen,
-  onArchive,
-  onRestore,
-  onQuickAction, 
-  onClubSync,
-  getClubSyncBadge 
-}: any) => {
-  return (
-    <Card className={cn(
-      "relative group border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all duration-300",
-      isSelected && "ring-2 ring-primary border-primary/40",
-      isFocused && "ring-2 ring-primary/50 border-primary/30"
-    )}>
-      {/* Selection Checkbox */}
-      <JobCardCheckbox
-        checked={isSelected}
-        onCheckedChange={onToggleSelect}
-      />
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
-          <JobCardHeader
-            companyLogo={job.company_logo}
-            companyName={job.company_name}
-            title={job.title}
-            status={job.status}
-            clubSyncBadge={getClubSyncBadge(job.club_sync_status)}
-            isStealth={job.is_stealth}
-            isContinuous={job.is_continuous}
-            hiredCount={job.hired_count}
-            targetHireCount={job.target_hire_count}
-            externalUrl={job.external_url}
-            daysOpen={job.days_open || Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))}
-            lastActivityDaysAgo={job.last_activity_at ? Math.floor((Date.now() - new Date(job.last_activity_at).getTime()) / (1000 * 60 * 60 * 24)) : 999}
-            applicantsCount={job.applications_count || 0}
-          />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-card border-border">
-              {/* Status Actions */}
-              <DropdownMenuLabel className="text-xs text-muted-foreground">Status Actions</DropdownMenuLabel>
-              {job.status === 'draft' && (
-                <>
-                  <DropdownMenuItem onClick={() => onPublish(job.id, job.title)}>
-                    <Flag className="w-4 h-4 mr-2 text-success" />
-                    Publish Job
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onArchive(job.id, job.title)}>
-                    <Archive className="w-4 h-4 mr-2" />
-                    Archive Draft
-                  </DropdownMenuItem>
-                </>
-              )}
-              {job.status === 'published' && (
-                <>
-                  <DropdownMenuItem onClick={() => onUnpublish(job.id, job.title)}>
-                    <EyeOff className="w-4 h-4 mr-2" />
-                    Unpublish to Draft
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onClose(job.id, job.title)}>
-                    <XCircle className="w-4 h-4 mr-2 text-warning" />
-                    Close Job
-                  </DropdownMenuItem>
-                </>
-              )}
-              {job.status === 'closed' && (
-                <>
-                  <DropdownMenuItem onClick={() => onReopen(job.id, job.title)}>
-                    <RefreshCw className="w-4 h-4 mr-2 text-success" />
-                    Reopen Job
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onArchive(job.id, job.title)}>
-                    <Archive className="w-4 h-4 mr-2" />
-                    Archive Job
-                  </DropdownMenuItem>
-                </>
-              )}
-              {job.status === 'archived' && (
-                <DropdownMenuItem onClick={() => onRestore(job.id, job.title)}>
-                  <RotateCcw className="w-4 h-4 mr-2 text-success" />
-                  Restore from Archive
-                </DropdownMenuItem>
-              )}
-              
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs text-muted-foreground">Quick Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => onQuickAction('invite', job.id, job.title)}>
-                <UserPlus className="w-4 h-4 mr-2" />
-                Invite Candidate
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onQuickAction('export', job.id, job.title)}>
-                <Download className="w-4 h-4 mr-2" />
-                Export Pipeline
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onQuickAction('support', job.id, job.title)}>
-                <HeadphonesIcon className="w-4 h-4 mr-2" />
-                Request Club Support
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onQuickAction('analytics', job.id, job.title)}>
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Pipeline Health Check
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Club Sync Action */}
-        {job.club_sync_status === 'pending' && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20 animate-fade-in">
-            <Zap className="w-4 h-4 text-white" />
-            <span className="text-sm font-medium flex-1">Club Sync Invitation</span>
-            <div className="flex gap-2 w-full sm:w-auto">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onClubSync(job.id, 'decline')}
-                className="flex-1 sm:flex-initial"
-              >
-                Decline
-              </Button>
-              <Button
-                size="sm"
-                variant="glass"
-                className="font-semibold flex-1 sm:flex-initial"
-                onClick={() => onClubSync(job.id, 'accept')}
-              >
-                Accept
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {job.club_sync_status === 'not_offered' && (
-          <div className="p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20">
-            <div className="flex items-start gap-3">
-              <Zap className="w-5 h-5 text-white mt-0.5 shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm font-medium mb-1">Activate Club Sync</p>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Get white-glove hiring service: vetted candidates, faster matches, better outcomes
-                </p>
-                <Button size="sm" variant="outline" className="text-xs">
-                  Learn More
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Key Metrics */}
-        <JobCardMetrics
-          jobId={job.id}
-          candidateCount={job.candidate_count}
-          activeStageCount={job.active_stage_count}
-          daysSinceOpened={job.days_since_opened}
-          conversionRate={job.conversion_rate}
-          hiredCount={job.hired_count}
-          targetHireCount={job.target_hire_count}
-          lastActivityDays={job.last_activity ? Math.floor((Date.now() - new Date(job.last_activity).getTime()) / (1000 * 60 * 60 * 24)) : null}
-        />
-
-        {/* Last Activity */}
-        <JobCardLastActivity
-          lastActivity={job.last_activity}
-          lastActivityUser={job.last_activity_user}
-        />
-
-        {/* Primary CTA */}
-        <JobCardActions onOpenDashboard={() => onNavigate(job.id)} />
-      </CardContent>
-    </Card>
-  );
-});
-
-MemoizedJobCard.displayName = 'MemoizedJobCard';
