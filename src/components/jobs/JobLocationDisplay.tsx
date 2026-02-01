@@ -5,6 +5,7 @@ import { CountryFlag, countryCodeToFlag } from "@/components/ui/country-flag";
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -122,65 +123,67 @@ export const JobLocationDisplay = memo(({
   }
   
   return (
-    <div className={cn(
-      "flex items-center flex-wrap",
-      sizeClasses[size],
-      className
-    )}>
-      {/* Remote icon (if remote-only or hybrid) */}
-      {isRemote && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className={cn(
-              "flex items-center justify-center rounded-full shrink-0",
-              isRemoteOnly ? "text-primary" : "text-primary/70"
-            )}>
-              <Globe2 className={iconSizes[size]} />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{isRemoteOnly ? "Fully remote" : "Remote available"}</p>
-          </TooltipContent>
-        </Tooltip>
-      )}
-      
-      {/* Country flags */}
-      {displayFlags.map((code) => (
-        <CountryFlag 
-          key={code} 
-          countryCode={code} 
-          size={size} 
-          showTooltip={true}
-        />
-      ))}
-      
-      {/* Extra flags indicator */}
-      {extraFlagsCount > 0 && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="text-muted-foreground font-medium shrink-0">
-              +{extraFlagsCount}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{extraFlagsCount} more {extraFlagsCount === 1 ? "location" : "locations"}</p>
-          </TooltipContent>
-        </Tooltip>
-      )}
-      
-      {/* City names */}
-      {showCities && displayCityNames.length > 0 && (
-        <span className="text-muted-foreground truncate">
-          {displayCityNames.join(", ")}
-          {extraCitiesCount > 0 && ` +${extraCitiesCount}`}
-        </span>
-      )}
-      
-      {/* Remote-only label */}
-      {isRemoteOnly && (
-        <span className="text-muted-foreground font-medium">Remote</span>
-      )}
-    </div>
+    <TooltipProvider>
+      <div className={cn(
+        "flex items-center flex-wrap",
+        sizeClasses[size],
+        className
+      )}>
+        {/* Remote icon (if remote-only or hybrid) */}
+        {isRemote && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={cn(
+                "flex items-center justify-center rounded-full shrink-0",
+                isRemoteOnly ? "text-primary" : "text-primary/70"
+              )}>
+                <Globe2 className={iconSizes[size]} />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{isRemoteOnly ? "Fully remote" : "Remote available"}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+        
+        {/* Country flags */}
+        {displayFlags.map((code) => (
+          <CountryFlag 
+            key={code} 
+            countryCode={code} 
+            size={size} 
+            showTooltip={true}
+          />
+        ))}
+        
+        {/* Extra flags indicator */}
+        {extraFlagsCount > 0 && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-muted-foreground font-medium shrink-0">
+                +{extraFlagsCount}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{extraFlagsCount} more {extraFlagsCount === 1 ? "location" : "locations"}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+        
+        {/* City names */}
+        {showCities && displayCityNames.length > 0 && (
+          <span className="text-muted-foreground truncate">
+            {displayCityNames.join(", ")}
+            {extraCitiesCount > 0 && ` +${extraCitiesCount}`}
+          </span>
+        )}
+        
+        {/* Remote-only label */}
+        {isRemoteOnly && (
+          <span className="text-muted-foreground font-medium">Remote</span>
+        )}
+      </div>
+    </TooltipProvider>
   );
 });
 
