@@ -40,6 +40,7 @@ import {
 import { cn } from '@/lib/utils';
 import { JobStatusBadge, JobStatus } from '@/components/jobs/JobStatusBadge';
 import { ClubSyncBadge } from '@/components/jobs/ClubSyncBadge';
+import { NextActionBadge } from '@/components/jobs/NextActionBadge';
 import { JobLocationDisplay, type JobLocationItem } from '@/components/jobs/JobLocationDisplay';
 
 interface CompactJobCardProps {
@@ -356,30 +357,15 @@ export const CompactJobCard = memo(({
           </div>
         </div>
 
-        {/* Row 2: Badges (horizontal 2x2 layout) */}
+        {/* Row 2: Badges (horizontal layout - same sizing) */}
         <div className="flex items-center gap-2 flex-wrap">
           <JobStatusBadge status={job.status as JobStatus} size="sm" />
           <ClubSyncBadge status={job.club_sync_status as any} size="sm" />
+          <NextActionBadge action={nextAction} size="sm" />
         </div>
       </CardHeader>
 
       <CardContent className="pt-0 space-y-4">
-        {/* AI Next Action - Full Width Alert */}
-        {nextAction && (
-          <div className={cn(
-            'flex items-center gap-2 px-3 py-2.5 rounded-md text-sm w-full',
-            nextAction.urgent 
-              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' 
-              : 'bg-primary/10 text-primary border border-primary/20'
-          )}>
-            {nextAction.urgent ? (
-              <AlertCircle className="h-4 w-4 shrink-0" />
-            ) : (
-              <Lightbulb className="h-4 w-4 shrink-0" />
-            )}
-            <span className="font-medium">{nextAction.text}</span>
-          </div>
-        )}
 
         {/* Metrics Grid - 3x3 */}
         <div className="grid grid-cols-3 gap-4">
