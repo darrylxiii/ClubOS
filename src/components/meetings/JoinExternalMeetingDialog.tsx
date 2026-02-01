@@ -7,33 +7,46 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ExternalLink, Video, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ExternalLink, Video, Loader2, Monitor, CheckCircle2, Info } from "lucide-react";
+import { useExternalMeetingCapture } from "@/hooks/useExternalMeetingCapture";
+import { ExternalCapturePreview } from "./ExternalCapturePreview";
 
 interface JoinExternalMeetingDialogProps {
   trigger?: React.ReactNode;
   onSuccess?: (sessionId: string) => void;
 }
 
-type Platform = 'zoom' | 'teams' | 'meet' | 'unknown';
+type Platform = 'zoom' | 'teams' | 'meet' | 'other';
 
 export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMeetingDialogProps) {
   const [open, setOpen] = useState(false);
-  const [meetingUrl, setMeetingUrl] = useState('');
   const [meetingTitle, setMeetingTitle] = useState('');
+  const [platform, setPlatform] = useState<Platform>('other');
   const [loading, setLoading] = useState(false);
-  const [platform, setPlatform] = useState<Platform>('unknown');
 
-  const detectPlatform = (url: string): Platform => {
-    const urlLower = url.toLowerCase();
-    if (urlLower.includes('zoom.us') || urlLower.includes('zoom.com')) return 'zoom';
-    if (urlLower.includes('teams.microsoft.com') || urlLower.includes('teams.live.com')) return 'teams';
-    if (urlLower.includes('meet.google.com')) return 'meet';
-    return 'unknown';
-  };
+  const { 
+    state: captureState, 
+    checkBrowserSupport,
+    requestScreenCapture, 
+    startRecording, 
+    stopRecording,
+    cancelCapture 
+  } = useExternalMeetingCapture({
+    onCaptureComplete: (sessionId) => {
+      onSuccess?.(sessionId);
+      setOpen(false);
+      resetForm();
+    },
+    onError: (error) => {
+      console.error('Capture error:', error);
+      toast.error(error.message || 'Capture failed');
+    }
+  });
 
-  const handleUrlChange = (url: string) => {
-    setMeetingUrl(url);
-    setPlatform(detectPlatform(url));
+  const resetForm = () => {
+    setMeetingTitle('');
+    setPlatform('other');
+    setLoading(false);
   };
 
   const getPlatformBadge = () => {
@@ -45,19 +58,23 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
       case 'meet':
         return <Badge variant="secondary" className="bg-green-500/10 text-green-500">Google Meet</Badge>;
       default:
-        return null;
+        return <Badge variant="secondary" className="bg-muted">Other</Badge>;
     }
   };
 
-  const handleSubmit = async () => {
-    if (!meetingUrl.trim()) {
-      toast.error('Please enter a meeting URL');
+  const handleStartCapture = async () => {
+    const compatibility = checkBrowserSupport();
+    
+    if (!compatibility.supported) {
+      toast.error(compatibility.reason || 'Screen capture not supported');
       return;
     }
 
-    if (platform === 'unknown') {
-      toast.error('Unsupported meeting platform. Please use Zoom, Teams, or Google Meet.');
-      return;
+    if (!compatibility.supportsSystemAudio) {
+      toast.warning(
+        'Your browser may not capture meeting audio. For best results, use Chrome 94+ or Edge.',
+        { duration: 6000 }
+      );
     }
 
     setLoading(true);
@@ -74,9 +91,9 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
         .insert({
           user_id: user.id,
           platform,
-          meeting_url: meetingUrl,
           meeting_title: meetingTitle || `${platform.charAt(0).toUpperCase() + platform.slice(1)} Meeting`,
           status: 'pending',
+          capture_method: 'native_screen_capture',
           created_at: new Date().toISOString()
         })
         .select()
@@ -86,53 +103,50 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
 
       const sessionData = session as any;
 
-      // Dispatch meeting bot via edge function
-      const { data: botResult, error: botError } = await supabase.functions.invoke('dispatch-meeting-bot', {
-        body: {
-          sessionId: sessionData.id,
-          meetingUrl: meetingUrl,
-          botName: 'TQC Notetaker'
-        }
-      });
-
-      if (botError) {
-        console.error('Bot dispatch error:', botError);
-        // Show appropriate message based on error
-        if (botResult?.message?.includes('RECALL_API_KEY')) {
-          toast.warning(
-            'Meeting bot integration requires configuration. Session saved for when integration is enabled.',
-            { duration: 5000 }
-          );
-        } else {
-          toast.error('Failed to dispatch meeting bot');
-        }
-      } else if (botResult?.success) {
-        toast.success(
-          'Meeting bot dispatched! It will join your meeting shortly.',
-          { duration: 5000 }
-        );
-      } else {
-        toast.info(
-          'Session created. Bot integration pending configuration.',
-          { duration: 5000 }
+      // Request screen capture
+      const stream = await requestScreenCapture();
+      
+      if (stream) {
+        // Start recording
+        await startRecording(
+          stream, 
+          sessionData.id, 
+          platform, 
+          meetingTitle || `${platform} Meeting`
         );
       }
 
-      onSuccess?.(sessionData.id);
-      setOpen(false);
-      setMeetingUrl('');
-      setMeetingTitle('');
-
     } catch (error) {
-      console.error('Error creating external meeting session:', error);
-      toast.error('Failed to set up external meeting capture');
+      console.error('Error starting capture:', error);
+      if ((error as Error).name !== 'NotAllowedError') {
+        toast.error('Failed to start screen capture');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleStopCapture = () => {
+    stopRecording();
+  };
+
+  const handleCancel = () => {
+    if (captureState.isCapturing) {
+      cancelCapture();
+    }
+    setOpen(false);
+    resetForm();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen && captureState.isCapturing) {
+        // Don't close while capturing - user must stop first
+        return;
+      }
+      setOpen(isOpen);
+      if (!isOpen) resetForm();
+    }}>
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" className="gap-2">
@@ -141,72 +155,102 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Video className="h-5 w-5 text-primary" />
             Capture External Meeting
           </DialogTitle>
           <DialogDescription>
-            Send a notetaker bot to record and transcribe a Zoom, Teams, or Google Meet call.
+            Record your Zoom, Teams, or Google Meet window directly from your browser.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="meeting-url">Meeting URL</Label>
-            <div className="flex gap-2">
-              <Input
-                id="meeting-url"
-                value={meetingUrl}
-                onChange={e => handleUrlChange(e.target.value)}
-                placeholder="https://zoom.us/j/... or teams link or meet.google.com/..."
-              />
-              {getPlatformBadge()}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="meeting-title">Meeting Title (Optional)</Label>
-            <Input
-              id="meeting-title"
-              value={meetingTitle}
-              onChange={e => setMeetingTitle(e.target.value)}
-              placeholder="Weekly Sync, Interview with John, etc."
+        {captureState.isCapturing ? (
+          <div className="py-4">
+            <ExternalCapturePreview
+              stream={captureState.stream}
+              isCapturing={captureState.isCapturing}
+              duration={captureState.duration}
+              hasAudio={captureState.hasAudio}
+              onStop={handleStopCapture}
             />
           </div>
+        ) : captureState.isUploading || captureState.isProcessing ? (
+          <div className="py-8 flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">
+              {captureState.isUploading ? 'Uploading recording...' : 'Processing transcript...'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="meeting-title">Meeting Title</Label>
+              <Input
+                id="meeting-title"
+                value={meetingTitle}
+                onChange={e => setMeetingTitle(e.target.value)}
+                placeholder="Weekly Sync, Interview with John, etc."
+              />
+            </div>
 
-          {platform !== 'unknown' && (
+            <div className="space-y-2">
+              <Label>Platform</Label>
+              <div className="flex flex-wrap gap-2">
+                {(['zoom', 'teams', 'meet', 'other'] as Platform[]).map((p) => (
+                  <Button
+                    key={p}
+                    type="button"
+                    variant={platform === p ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setPlatform(p)}
+                    className="capitalize"
+                  >
+                    {p === 'meet' ? 'Google Meet' : p === 'teams' ? 'MS Teams' : p}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
             <Alert className="bg-primary/5 border-primary/20">
-              <CheckCircle2 className="h-4 w-4 text-primary" />
+              <Monitor className="h-4 w-4 text-primary" />
               <AlertDescription>
-                A notetaker bot will join your {platform.charAt(0).toUpperCase() + platform.slice(1)} meeting 
-                and automatically record, transcribe, and analyze the conversation.
+                <strong>How it works:</strong>
+                <ol className="list-decimal list-inside mt-2 space-y-1 text-sm text-muted-foreground">
+                  <li>Open your meeting in another browser window or tab</li>
+                  <li>Click "Start Capture" below</li>
+                  <li>Select your meeting window and check "Share audio"</li>
+                  <li>Click "Stop Recording" when the meeting ends</li>
+                </ol>
               </AlertDescription>
             </Alert>
-          )}
 
-          <Alert variant="default" className="bg-primary/5 border-primary/20">
-            <AlertTriangle className="h-4 w-4 text-primary" />
-            <AlertDescription className="text-muted-foreground">
-              <strong>Note:</strong> The meeting bot will appear as "TQC Notetaker" in your call. 
-              Make sure all participants consent to recording.
-            </AlertDescription>
-          </Alert>
-        </div>
+            <Alert variant="default" className="bg-muted/50">
+              <Info className="h-4 w-4 text-muted-foreground" />
+              <AlertDescription className="text-muted-foreground text-sm">
+                <strong>Privacy:</strong> Your recording stays in-house. Make sure all participants consent to recording.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSubmit} 
-            disabled={loading || platform === 'unknown' || !meetingUrl.trim()}
-          >
-            {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Send Notetaker Bot
-          </Button>
-        </DialogFooter>
+        {!captureState.isCapturing && !captureState.isUploading && !captureState.isProcessing && (
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleStartCapture} 
+              disabled={loading}
+              className="gap-2"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              <Monitor className="h-4 w-4" />
+              Start Capture
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
