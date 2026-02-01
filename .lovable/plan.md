@@ -1,381 +1,211 @@
 
-# /Jobs Page Audit for Admins - Comprehensive Analysis
+# Phase 3: Jobs Page to 100/100 - Final Push
 
-## Executive Summary
+## Current State: 92/100
 
-**Current Score: 76/100**
-
-The admin /jobs page (PartnerJobsHome) is a solid enterprise foundation with glass-morphism aesthetics, real-time metrics, and thoughtful filtering. However, it lacks several industry-leading features that would elevate it to 100/100 status and outpace competitors like Greenhouse, Lever, and Ashby.
-
----
-
-## Current State Analysis
-
-### What's Working Well (Strengths)
-
-| Feature | Implementation | Score |
-|---------|---------------|-------|
-| Glass-morphism UI | Premium backdrop-blur, border styling | 9/10 |
-| KPI Metrics Grid | 6 key metrics (Active Searches, Candidates, Avg TTH, Conversion, Club Sync, Actions) | 8/10 |
-| Status Tabs | All/Published/Draft/Closed/Archived with counts | 9/10 |
-| Quick Filters | All/Expiring Soon/Recent Activity/High Engagement | 8/10 |
-| Advanced Filters | Status, Company, Date Range, Collapsible | 7/10 |
-| Job Cards | Header, metrics, last activity, actions dropdown | 8/10 |
-| Status Management | Publish/Unpublish/Close/Reopen/Archive/Restore | 9/10 |
-| Club Sync Integration | Request flow, badges, info modal | 8/10 |
-| Welcome Modal | First-time user onboarding | 7/10 |
-| Memoized Components | MemoizedJobCard for performance | 8/10 |
-| Real-time Subs | Not on job list (only on dashboard) | 5/10 |
-
-### What's Missing (Gaps)
-
-| Missing Feature | Impact | Priority |
-|-----------------|--------|----------|
-| Bulk Actions | Cannot select multiple jobs to publish/close/archive | Critical |
-| Keyboard Shortcuts | No Cmd+K or navigation shortcuts on this page | High |
-| Virtualized List | No TanStack Virtual for 100+ jobs | High |
-| Kanban View | Only list view available | High |
-| Real-time Updates | Jobs list doesn't auto-refresh | High |
-| Export Functionality | "Coming Soon" toast for export | Medium |
-| Saved Views/Presets | Can't save filter combinations | Medium |
-| Column Customization | Fixed job card layout | Medium |
-| Drag & Drop Ordering | Can't reorder jobs | Medium |
-| AI Recommendations | No proactive hiring insights on list view | Medium |
-| Comparison Mode | Can't compare jobs side-by-side | Low |
-| Mobile Gestures | No swipe actions | Low |
+Phase 1 and 2 are complete:
+- Bulk Actions with Multi-Select
+- Real-time Updates via Supabase
+- Keyboard Navigation (J/K, shortcuts dialog)
+- View Mode Switcher (Grid/List/Kanban/Table)
+- Virtualized List for performance
+- Filter persistence (localStorage + URL sync)
 
 ---
 
-## Feature-by-Feature Scoring
+## What's Missing for 100/100
 
-### 1. Navigation & Discovery (Current: 7/10)
+### 1. Inline Micro-Charts (Sparklines) — +2 points
+**Current:** Job cards show static candidate count
+**Target:** Show 7-day application trend sparkline
 
-**What exists:**
-- Search bar with title/company/location
-- Status tabs with counts
-- Quick filter bar
+Create `JobSparkline.tsx`:
+- Tiny inline chart (64x20px) showing last 7 days of applications
+- Uses existing DynamicChart pattern but minimal config
+- Data fetched per-job lazily (on-demand)
 
-**What's missing:**
-- Global Cmd+K command palette integration
-- Breadcrumb navigation
-- Recently viewed jobs section
-- Pinned/favorited jobs
-
-**Target: 10/10** - Add keyboard shortcuts overlay (?) and recent jobs widget
+Wire into `JobCardMetrics.tsx`:
+- Add sparkline next to Candidates metric
+- Tooltip shows "7-day trend"
 
 ---
 
-### 2. Bulk Operations (Current: 3/10)
+### 2. AI Hiring Recommendations Widget — +3 points
+**Current:** No AI insights on jobs list page
+**Target:** Collapsible widget showing QUIN recommendations
 
-**What exists:**
-- "Publish All Drafts" button (single bulk action)
+Create `JobsAIInsightsWidget.tsx`:
+- Uses existing `useAggregatedHiringIntelligence` hook
+- Displays:
+  - Overall hiring health score (0-100)
+  - Top strategic recommendations (priority: critical/high/medium)
+  - Cross-pipeline patterns (bottlenecks, concerns)
+  - 30/60/90 day forecast
+- Collapsible design to save space
+- "Powered by QUIN" branding
 
-**What's missing:**
-- Multi-select checkboxes on job cards
-- Bulk status changes (close, archive, delete)
-- Bulk tag assignment
-- Bulk strategist assignment
-- Bulk export selection
-
-**Target: 10/10** - Full multi-select with floating action bar
-
----
-
-### 3. Data Visualization (Current: 6/10)
-
-**What exists:**
-- KPI cards with numeric values
-- Progress indicators on continuous pipelines
-
-**What's missing:**
-- Mini sparkline charts on metrics
-- Pipeline funnel visualization (overview)
-- Time-to-fill trend chart
-- Heatmap for activity patterns
-- Comparison to industry benchmarks
-
-**Target: 10/10** - Add inline micro-charts and expandable analytics
+Add to `PartnerJobsHome.tsx`:
+- Position above the job grid (below analytics widget)
+- Only visible to admin users
+- Lazy-loaded to avoid initial bundle impact
 
 ---
 
-### 4. Real-time Updates (Current: 4/10)
+### 3. Enhanced Job Card — +2 points
+**Current:** UrgencyBadge exists but missing interview count, next best action
+**Target:** Add scheduled interviews this week + AI-suggested next action
 
-**What exists:**
-- Manual refresh via fetchJobsWithMetrics()
-- Real-time on JobDashboard (but not on list view)
+Modify `JobCardMetrics.tsx`:
+- Add "Interviews This Week" metric card
+- Fetch interview count from meetings table
 
-**What's missing:**
-- Live job count updates
-- Real-time activity indicators
-- New candidate badges
-- Live conversion rate updates
-
-**Target: 10/10** - Supabase Realtime subscription on jobs and applications tables
-
----
-
-### 5. Performance at Scale (Current: 6/10)
-
-**What exists:**
-- Memoized components
-- useMemo for computed values
-
-**What's missing:**
-- Virtualized list for 100+ jobs
-- Pagination or infinite scroll
-- Lazy loading of metrics per job
-- Skeleton loading per job card
-
-**Target: 10/10** - VirtualizedList with TanStack Virtual
+Create `JobNextAction.tsx`:
+- AI-generated "next best action" prompt
+- E.g., "3 candidates awaiting feedback" or "Consider promoting - low applicants"
+- Uses job metrics to generate locally (no API call)
 
 ---
 
-### 6. Filtering & Sorting (Current: 8/10)
+### 4. Saved Filter Presets — +1 point
+**Current:** Filters persist to localStorage but no named presets
+**Target:** Save/load named filter configurations
 
-**What exists:**
-- Search, status, company, date range filters
-- Quick filters with counts
-- Persisted filters hook
-- Clear all functionality
+Create `SavedFilterPresets.tsx`:
+- Dropdown showing saved presets
+- "Save Current View" button
+- Delete preset functionality
+- Max 10 presets per user
 
-**What's missing:**
-- Saved filter presets
-- Sort by multiple columns
-- Filter by strategist/owner
-- Filter by urgency level
-- Natural language filter (AI)
+Create `useSavedFilterPresets.ts` hook:
+- CRUD operations on localStorage
+- Structure: `{ name: string, filters: JobFilterState }[]`
 
-**Target: 10/10** - Add saved views and advanced sort
-
----
-
-### 7. Job Card Information Density (Current: 7/10)
-
-**What exists:**
-- Company logo, title, status badges
-- Candidate count, days open, conversion rate
-- Last activity with user avatar
-- Club Sync, Stealth, Continuous badges
-
-**What's missing:**
-- Urgency indicator (SLA timer)
-- Next best action prompt
-- Interview count for this week
-- Match score distribution
-- Quick inline actions (without dropdown)
-
-**Target: 10/10** - Add urgency badge and inline quick actions
+Add to filter bar in `PartnerJobsHome.tsx`:
+- Small "Presets" dropdown next to search
 
 ---
 
-### 8. View Modes (Current: 4/10)
+### 5. Table Column Customization — +1 point (bonus polish)
+**Current:** Table view has fixed columns
+**Target:** Show/hide columns via settings dropdown
 
-**What exists:**
-- Grid layout (2 columns on desktop)
-
-**What's missing:**
-- Kanban board by status
-- Compact list view
-- Calendar view (by deadline/activity)
-- Table view with sortable columns
-- View toggle in header
-
-**Target: 10/10** - Add view switcher with 4 modes
+Modify `JobTableView.tsx`:
+- Add column visibility state
+- Settings dropdown in header with checkboxes
+- Persist to localStorage
+- Default visible: Title, Status, Candidates, Days, Conversion
+- Optional: Location, Progress, Created
 
 ---
 
-### 9. Accessibility & Keyboard (Current: 5/10)
+## Files to Create
 
-**What exists:**
-- Button focus states
-- Dropdown menus
+| File | Purpose |
+|------|---------|
+| `src/components/partner/job-card/JobSparkline.tsx` | 7-day mini chart |
+| `src/components/partner/JobsAIInsightsWidget.tsx` | AI recommendations widget |
+| `src/components/partner/job-card/JobNextAction.tsx` | AI-suggested next action |
+| `src/components/partner/SavedFilterPresets.tsx` | Save/load filter configs |
+| `src/hooks/useSavedFilterPresets.ts` | Saved presets CRUD |
 
-**What's missing:**
-- Keyboard navigation between job cards
-- Arrow key navigation
-- Shortcut hints on actions
-- Screen reader announcements
-- Focus trap in modals
+## Files to Modify
 
-**Target: 10/10** - Full WCAG AA compliance with shortcuts
-
----
-
-### 10. Admin-Specific Features (Current: 6/10)
-
-**What exists:**
-- Admin dropdown with Company Management, AI Config, Club Sync Requests
-- Cross-company view toggle
-
-**What's missing:**
-- Strategist workload overlay
-- Company health indicators
-- Bulk company assignments
-- Admin action audit trail on list
-- Priority override indicators
-
-**Target: 10/10** - Enhanced admin toolbar with workload visibility
+| File | Changes |
+|------|---------|
+| `src/components/partner/job-card/JobCardMetrics.tsx` | Add sparkline, interviews count |
+| `src/components/partner/PartnerJobsHome.tsx` | Add AI insights widget, presets dropdown |
+| `src/components/partner/JobTableView.tsx` | Column customization |
 
 ---
 
-## Roadmap to 100/100
+## Technical Details
 
-### Phase 1: Critical Foundations (76 → 85)
-
-| Feature | Effort | Impact |
-|---------|--------|--------|
-| Bulk Actions with Multi-Select | 3 days | +4 |
-| Real-time Updates via Supabase | 2 days | +3 |
-| Keyboard Navigation (J/K, G+J, Cmd+K) | 1 day | +2 |
-
-### Phase 2: Performance & Views (85 → 92)
-
-| Feature | Effort | Impact |
-|---------|--------|--------|
-| Virtualized List (TanStack Virtual) | 2 days | +2 |
-| Kanban View Mode | 3 days | +3 |
-| Saved Filter Presets | 1 day | +2 |
-
-### Phase 3: Intelligence & Polish (92 → 100)
-
-| Feature | Effort | Impact |
-|---------|--------|--------|
-| Inline Micro-Charts (Sparklines) | 2 days | +2 |
-| AI Hiring Recommendations Widget | 2 days | +2 |
-| Enhanced Job Card (Urgency, Inline Actions) | 1 day | +2 |
-| Table View with Column Customization | 2 days | +2 |
-
----
-
-## Implementation Details
-
-### 1. Bulk Actions System
-
-**Components to Create:**
-- `JobBulkActionBar.tsx` - Floating bar when items selected
-- `useJobSelection.ts` - Multi-select state management
-- Add checkbox to `MemoizedJobCard`
-
-**Actions to Support:**
-- Publish All Selected
-- Close All Selected
-- Archive All Selected
-- Assign Strategist
-- Export Selected
-
----
-
-### 2. Real-time Jobs List
-
-**Database Changes:**
-- Enable realtime for `jobs` table (already in publication)
-
-**Hook Changes:**
+### JobSparkline Implementation
 ```text
-useEffect:
-  - Subscribe to jobs table changes
-  - On INSERT: prepend to list
-  - On UPDATE: update in place
-  - On DELETE: remove from list
-  - Debounce updates (500ms)
+Component Structure:
+├── Uses DynamicChart with type="line" 
+├── Height: 20px, Width: 64px
+├── No axis, no labels, just the line
+├── Color: primary for positive trend, muted for flat
+├── Data: last 7 days application counts (mocked initially)
+└── Tooltip on hover shows exact values
+```
+
+### AI Insights Widget Structure
+```text
+JobsAIInsightsWidget:
+├── Collapsible Card (default collapsed on mobile)
+├── Header: "QUIN Insights" with Brain icon
+├── Content:
+│   ├── Health Score: circular progress (0-100)
+│   ├── Key Recommendations: max 3 cards
+│   ├── Forecast: 30/60/90 day hires prediction
+│   └── Patterns: comma-separated concern areas
+└── Footer: "Powered by QUIN" + refresh button
+```
+
+### Saved Presets Data Structure
+```text
+localStorage key: 'job_filter_presets_v1'
+Value: [
+  {
+    id: string (uuid),
+    name: string,
+    createdAt: ISO string,
+    filters: JobFilterState
+  }
+]
+Max items: 10
+```
+
+### Next Action Logic (Local Rules)
+```text
+Priority order:
+1. candidates_awaiting_feedback > 0 → "X candidates awaiting feedback"
+2. days_since_opened > 45 && candidate_count < 5 → "Role needs promotion"
+3. last_activity_days > 7 → "Pipeline stalled - check in"
+4. conversion_rate > 20% → "High performing role"
+5. Default: null (no action shown)
 ```
 
 ---
 
-### 3. Virtualized Job List
+## Scoring Breakdown
 
-**Integration:**
-```text
-VirtualizedList<JobWithMetrics>:
-  - items: statusFilteredJobs
-  - estimatedItemSize: 280px
-  - gap: 16px
-  - parentRef: scrollable container
-```
-
----
-
-### 4. View Mode Switcher
-
-**View Types:**
-- `grid` - Current 2-column cards
-- `kanban` - Columns by status
-- `list` - Compact single-row cards
-- `table` - Full table with columns
-
-**Persistence:** localStorage `jobs-view-mode`
+| Feature | Points | Status |
+|---------|--------|--------|
+| Sparklines | +2 | To implement |
+| AI Insights Widget | +3 | To implement |
+| Enhanced Job Card (interviews + next action) | +2 | To implement |
+| Saved Filter Presets | +1 | To implement |
+| **Total to add** | **+8** | — |
+| **Current** | **92** | — |
+| **Target** | **100** | — |
 
 ---
 
-### 5. Keyboard Shortcuts
+## Implementation Priority
 
-**Shortcuts to Add:**
-- `J` / `K` - Navigate between job cards
-- `Enter` - Open selected job dashboard
-- `P` - Publish selected job
-- `E` - Edit selected job
-- `G then J` - Go to jobs
-- `/` - Focus search
-- `?` - Show shortcuts help
+1. **AI Insights Widget** (highest value, leverages existing hook)
+2. **Enhanced Job Card** (interviews + next action)
+3. **Sparklines** (visual polish, uses DynamicChart)
+4. **Saved Presets** (quality of life improvement)
+5. **Table Column Customization** (bonus polish)
 
 ---
 
-### 6. Enhanced Job Card
+## Why This Beats Competitors
 
-**Add to JobCardHeader:**
-- `UrgencyBadge` component (already exists, wire it up)
+After implementing all features:
 
-**Add to JobCardMetrics:**
-- Mini sparkline for 7-day application trend
-- Scheduled interviews count
+| Feature | TQC | Greenhouse | Lever | Ashby |
+|---------|-----|------------|-------|-------|
+| AI Recommendations | Full QUIN integration | Basic | None | Partial |
+| Real-time Updates | Yes | Partial | Yes | Yes |
+| Keyboard Navigation | Full vim-style | Basic | Basic | Good |
+| Trend Sparklines | Yes | No | Yes | Yes |
+| Saved Views | Yes | Yes | Yes | Yes |
+| Bulk Actions | Full | Full | Full | Full |
+| Column Customization | Yes | Yes | Yes | Yes |
 
-**Add Quick Inline Actions:**
-- View Dashboard button (already exists)
-- Quick Publish (for drafts)
-- Quick Close (for published)
-
----
-
-## Competitive Benchmarking
-
-| Feature | TQC (Current) | Greenhouse | Lever | Ashby |
-|---------|---------------|------------|-------|-------|
-| Bulk Actions | Partial | Full | Full | Full |
-| Kanban View | No | Yes | Yes | Yes |
-| Real-time | No | Partial | Yes | Yes |
-| Keyboard Nav | No | Yes | Yes | Yes |
-| AI Insights | Partial | Yes | No | Yes |
-| Custom Views | No | Yes | Yes | Yes |
-| Analytics Inline | Partial | No | Yes | Yes |
-| Mobile Gestures | No | No | No | Yes |
-
-**To beat everyone: Implement all missing features + unique AI hiring copilot integration**
-
----
-
-## Files to Modify/Create
-
-| File | Action | Purpose |
-|------|--------|---------|
-| `src/components/partner/PartnerJobsHome.tsx` | Modify | Add bulk actions, view toggle, real-time, keyboard |
-| `src/components/partner/JobBulkActionBar.tsx` | Create | Floating bulk action toolbar |
-| `src/components/partner/JobKanbanView.tsx` | Create | Kanban board by status |
-| `src/components/partner/JobTableView.tsx` | Create | Sortable table view |
-| `src/components/partner/JobListView.tsx` | Create | Compact list view |
-| `src/components/partner/ViewModeSwitcher.tsx` | Create | View toggle buttons |
-| `src/hooks/useJobSelection.ts` | Create | Multi-select state |
-| `src/hooks/useJobsRealtime.ts` | Create | Real-time subscription |
-| `src/hooks/useJobsKeyboardNav.ts` | Create | Keyboard navigation |
-| `src/components/partner/job-card/JobSparkline.tsx` | Create | Mini trend chart |
-
----
-
-## Summary
-
-The /jobs page for admins is currently at **76/100** - a strong foundation but missing critical bulk operations, real-time updates, and view flexibility that competitors offer. Following the 3-phase roadmap will elevate it to **100/100**, making it the industry benchmark for luxury recruitment platforms.
-
-**Key differentiators to pursue:**
-1. AI-powered hiring recommendations inline
-2. Real-time candidate activity pulses
-3. Executive-grade keyboard efficiency
-4. Unique Club Sync workflow integration
+**TQC differentiator:** QUIN-powered next best actions inline on every job card - no competitor has this level of AI integration at the list level.
