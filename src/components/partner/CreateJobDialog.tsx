@@ -23,6 +23,8 @@ import { stealthJobAuditService } from "@/services/stealthJobAuditService";
 import { PipelineTypeSelector } from "@/components/jobs/PipelineTypeSelector";
 import { JobFeeConfiguration, type FeeConfiguration } from "@/components/jobs/JobFeeConfiguration";
 import { EnhancedLocationAutocomplete, type LocationResult } from "@/components/ui/enhanced-location-autocomplete";
+import { MultiLocationInput, type LocationInput } from "@/components/jobs/MultiLocationInput";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface CreateJobDialogProps {
   open: boolean;
@@ -79,6 +81,9 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
   // Location state with geocoordinates
   const [locationData, setLocationData] = useState<LocationResult | null>(null);
+  // Multi-location state
+  const [jobLocations, setJobLocations] = useState<LocationInput[]>([]);
+  const [isRemote, setIsRemote] = useState(false);
 
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
@@ -417,6 +422,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           hired_count: 0,
           continuous_started_at: isContinuous ? new Date().toISOString() : null,
           external_url: formData.external_url || null,
+          is_remote: isRemote,
           ...jobFeeData,
         } as any)
         .select()

@@ -23003,6 +23003,56 @@ export type Database = {
           },
         ]
       }
+      job_locations: {
+        Row: {
+          city: string | null
+          country: string | null
+          country_code: string | null
+          created_at: string | null
+          formatted_address: string | null
+          id: string
+          is_primary: boolean | null
+          job_id: string
+          latitude: number | null
+          location_type: string
+          longitude: number | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          formatted_address?: string | null
+          id?: string
+          is_primary?: boolean | null
+          job_id: string
+          latitude?: number | null
+          location_type?: string
+          longitude?: number | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          formatted_address?: string | null
+          id?: string
+          is_primary?: boolean | null
+          job_id?: string
+          latitude?: number | null
+          location_type?: string
+          longitude?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_locations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_pipelines: {
         Row: {
           company_name: string
@@ -23222,6 +23272,7 @@ export type Database = {
           id: string
           is_continuous: boolean | null
           is_lost: boolean | null
+          is_remote: boolean | null
           is_stealth: boolean | null
           jd_uploaded_at: string | null
           jd_uploaded_by: string | null
@@ -23284,6 +23335,7 @@ export type Database = {
           id?: string
           is_continuous?: boolean | null
           is_lost?: boolean | null
+          is_remote?: boolean | null
           is_stealth?: boolean | null
           jd_uploaded_at?: string | null
           jd_uploaded_by?: string | null
@@ -23346,6 +23398,7 @@ export type Database = {
           id?: string
           is_continuous?: boolean | null
           is_lost?: boolean | null
+          is_remote?: boolean | null
           is_stealth?: boolean | null
           jd_uploaded_at?: string | null
           jd_uploaded_by?: string | null
