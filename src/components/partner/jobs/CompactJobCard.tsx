@@ -220,8 +220,8 @@ export const CompactJobCard = memo(({
       )}
       onClick={onNavigate}
     >
-      <CardHeader className="pb-3">
-        {/* Row 1: Checkbox, Logo, Title, Status, Favorite, Menu */}
+      <CardHeader className="pb-3 space-y-3">
+        {/* Row 1: Checkbox + Logo + Title/Company/Location + Favorite + Menu */}
         <div className="flex items-start gap-3">
           {/* Checkbox - visible on hover or when selected */}
           <div 
@@ -249,7 +249,7 @@ export const CompactJobCard = memo(({
           {/* Title + Company + Location - Full text, no truncation */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <h3 className="font-semibold text-base text-foreground line-clamp-2">
+              <h3 className="font-semibold text-base text-foreground">
                 {job.title}
               </h3>
               {job.is_stealth && (
@@ -270,99 +270,100 @@ export const CompactJobCard = memo(({
             )}
           </div>
 
-          {/* Status Badge + Club Sync */}
-          <div className="flex flex-col items-end gap-1.5 shrink-0">
-            <JobStatusBadge status={job.status as JobStatus} size="sm" />
-            <ClubSyncBadge status={job.club_sync_status as any} size="sm" />
-          </div>
-
-          {/* Favorite Button */}
-          {onToggleFavorite && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                'h-8 w-8 shrink-0 -mt-1 transition-colors',
-                isFavorite && 'text-rose-500 hover:text-rose-600'
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite();
-              }}
-            >
-              <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
-            </Button>
-          )}
-
-          {/* Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 -mt-1">
-                <MoreVertical className="h-4 w-4" />
+          {/* Favorite + Menu (far right) */}
+          <div className="flex items-center gap-1 shrink-0">
+            {onToggleFavorite && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  'h-8 w-8 transition-colors',
+                  isFavorite && 'text-rose-500 hover:text-rose-600'
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite();
+                }}
+              >
+                <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-card/95 backdrop-blur-xl border-border/40">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              {job.status === 'draft' && (
-                <>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPublish(); }}>
-                    <Flag className="h-4 w-4 mr-2 text-emerald-500" />
-                    Publish
+            )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-card/95 backdrop-blur-xl border-border/40">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                
+                {job.status === 'draft' && (
+                  <>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPublish(); }}>
+                      <Flag className="h-4 w-4 mr-2 text-emerald-500" />
+                      Publish
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onArchive(); }}>
+                      <Archive className="h-4 w-4 mr-2" />
+                      Archive
+                    </DropdownMenuItem>
+                  </>
+                )}
+                
+                {job.status === 'published' && (
+                  <>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onUnpublish(); }}>
+                      <EyeOff className="h-4 w-4 mr-2" />
+                      Unpublish
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClose(); }}>
+                      <XCircle className="h-4 w-4 mr-2 text-amber-500" />
+                      Close
+                    </DropdownMenuItem>
+                  </>
+                )}
+                
+                {job.status === 'closed' && (
+                  <>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onReopen(); }}>
+                      <RefreshCw className="h-4 w-4 mr-2 text-emerald-500" />
+                      Reopen
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onArchive(); }}>
+                      <Archive className="h-4 w-4 mr-2" />
+                      Archive
+                    </DropdownMenuItem>
+                  </>
+                )}
+                
+                {job.status === 'archived' && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onRestore(); }}>
+                    <RotateCcw className="h-4 w-4 mr-2 text-emerald-500" />
+                    Restore
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onArchive(); }}>
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive
-                  </DropdownMenuItem>
-                </>
-              )}
-              
-              {job.status === 'published' && (
-                <>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onUnpublish(); }}>
-                    <EyeOff className="h-4 w-4 mr-2" />
-                    Unpublish
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClose(); }}>
-                    <XCircle className="h-4 w-4 mr-2 text-amber-500" />
-                    Close
-                  </DropdownMenuItem>
-                </>
-              )}
-              
-              {job.status === 'closed' && (
-                <>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onReopen(); }}>
-                    <RefreshCw className="h-4 w-4 mr-2 text-emerald-500" />
-                    Reopen
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onArchive(); }}>
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive
-                  </DropdownMenuItem>
-                </>
-              )}
-              
-              {job.status === 'archived' && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onRestore(); }}>
-                  <RotateCcw className="h-4 w-4 mr-2 text-emerald-500" />
-                  Restore
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Row 2: Badges (horizontal 2x2 layout) */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <JobStatusBadge status={job.status as JobStatus} size="sm" />
+          <ClubSyncBadge status={job.club_sync_status as any} size="sm" />
         </div>
       </CardHeader>
 
       <CardContent className="pt-0 space-y-4">
-        {/* AI Next Action (if available) */}
+        {/* AI Next Action - Full Width Alert */}
         {nextAction && (
           <div className={cn(
-            'flex items-center gap-2 px-3 py-2 rounded-md text-sm',
+            'flex items-center gap-2 px-3 py-2.5 rounded-md text-sm w-full',
             nextAction.urgent 
-              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' 
-              : 'bg-primary/10 text-primary'
+              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' 
+              : 'bg-primary/10 text-primary border border-primary/20'
           )}>
             {nextAction.urgent ? (
               <AlertCircle className="h-4 w-4 shrink-0" />
