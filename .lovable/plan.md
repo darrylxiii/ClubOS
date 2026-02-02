@@ -1,273 +1,366 @@
 
+# Comprehensive Terms & Legal Documentation System
 
-# Email Notification Management System - Admin Dashboard
+## Executive Summary
 
-## Overview
-
-This plan creates a centralized Email Notification Management page for admins to configure who receives which email notifications. The system will allow role-based, user-specific, and event-based notification assignment with full audit logging.
+This plan addresses how The Quantum Club displays and manages legal documents (Terms of Service, Privacy Policy, Cookie Policy, etc.) to users. The goal is to implement industry best practices for legal document accessibility, versioning, consent tracking, and GDPR/EU compliance while maintaining the luxury, discrete brand experience.
 
 ---
 
-## Current State Analysis
+## Current State Assessment
 
-### Existing Infrastructure
+### What Exists (Strengths)
 
-**Database Tables:**
-- `notification_preferences` - Per-user preferences (email_enabled, email_applications, email_messages, etc.)
-- `approval_notification_logs` - Logs for approval emails sent
-- `email_templates` - Template definitions for emails (3 templates: booking_confirmation, approval_approved, approval_declined)
+| Document | Status | Location |
+|----------|--------|----------|
+| Terms of Service | Complete, comprehensive | `/terms` (601 lines) |
+| Privacy Policy | Complete, GDPR-compliant | `/privacy` (541 lines) |
+| Cookie Consent Banner | Functional | `CookieConsentBanner.tsx` |
+| Consent Receipts | Database tracking | `consent_receipts` table |
+| Cookie Consent Records | Database tracking | `cookie_consent_records` table |
+| Legal Page Layout | Professional TOC sidebar | `LegalPageLayout.tsx` |
+| Subprocessors List | Exists in compliance section | `/compliance/subprocessors` |
+| Legal Agreements (DPA/BAA) | Template-based system | `/compliance/legal-agreements` |
 
-**Email Edge Functions (32+ functions):**
-- `send-notification-email` - Generic notification email sender
-- `send-approval-notification` - Member approval emails
-- `send-booking-confirmation` - Booking confirmations
-- `send-booking-reminder-email` - Booking reminders
-- `send-meeting-invitation-email` - Meeting invites
-- `send-meeting-summary-email` - Meeting summaries
-- `send-application-submitted-email` - Application confirmations
-- `send-password-reset-email` - Password resets
-- `send-security-alert` - Security notifications
-- Plus 20+ more specialized email functions
+### What is Missing (Gaps)
 
-**User Roles:**
-- `admin` (11 users)
-- `partner` (27 users)
-- `strategist` (1 user)
-- `user` (81 users)
+| Gap | Impact | Priority |
+|-----|--------|----------|
+| No Cookie Policy page | Users can't read full cookie details | High |
+| No Acceptable Use Policy (standalone) | AUP buried in ToS | Medium |
+| No Data Processing Agreement (public DPA) | Partners can't download DPA | High |
+| No Referral Terms page | Referral conditions not documented | Medium |
+| No version history viewer | Users can't see document changes | Medium |
+| No legal document modal/drawer reader | Users leave page to read terms | High |
+| No footer with legal links | Legal docs not accessible site-wide | High |
+| Links in onboarding open in new tab | Context loss, user friction | Medium |
+| No accessibility compliance statement | A11y commitment not documented | Low |
+| No Security Policy page | Security practices not public | Medium |
 
-### Current Gaps
+---
 
-1. **No centralized notification management** - Notifications are hardcoded per function
-2. **No role-based notification routing** - Can't say "all strategists get X notification"
-3. **No admin visibility** - Admins can't see who gets what or override defaults
-4. **Limited audit trail** - Only approval_notification_logs exists
-5. **No notification type registry** - Email types are scattered across 30+ functions
+## Industry Best Practices Analysis
+
+### 1. Document Accessibility
+
+**Best Practice**: Legal documents should be accessible from:
+- Global footer on every page
+- Dedicated `/legal` hub page
+- Inline within consent flows (modal/drawer, not new tab)
+- Settings/account page
+
+**Current Gap**: No global footer, links open in new tabs during onboarding.
+
+### 2. Layered Approach (GDPR Recommended)
+
+**Best Practice**: Use a "layered" approach:
+- **Layer 1**: Short summary/highlights (what users see first)
+- **Layer 2**: Full document (detailed reading)
+- **Layer 3**: Version history (transparency)
+
+**Current Gap**: Only full documents exist; no summary layer.
+
+### 3. Version Control & Notification
+
+**Best Practice**:
+- Show "Last Updated" date prominently
+- Maintain version history accessible to users
+- Email notification for material changes (30 days notice)
+- Allow users to download previous versions
+
+**Current Gap**: Last updated shown, but no version history access.
+
+### 4. Modal/Drawer Reading (Context Preservation)
+
+**Best Practice**: For consent flows, use slide-over panels or modals:
+- User stays on the page
+- Can read full document in context
+- Accept/decline buttons in footer
+- Progress saved if they scroll
+
+**Current Gap**: Links open in new browser tabs, losing onboarding context.
+
+### 5. Required Legal Documents for SaaS Platforms
+
+| Document | Required? | Audience |
+|----------|-----------|----------|
+| Terms of Service | Yes | All users |
+| Privacy Policy | Yes | All users |
+| Cookie Policy | Yes (ePrivacy) | All users |
+| Acceptable Use Policy | Recommended | All users |
+| Data Processing Agreement | Yes (B2B GDPR) | Partners |
+| Security Policy | Recommended | All users |
+| Referral Terms & Conditions | If program exists | Referrers |
+| Accessibility Statement | Recommended (EU) | All users |
+| Subprocessor List | Yes (GDPR) | All users |
 
 ---
 
 ## Solution Architecture
 
-### New Database Tables
+### New Pages to Create
 
-**1. `email_notification_types`** - Registry of all notification types
+1. **`/legal`** - Legal Hub (index page linking to all documents)
+2. **`/legal/cookies`** - Full Cookie Policy
+3. **`/legal/acceptable-use`** - Standalone AUP
+4. **`/legal/dpa`** - Public DPA template for partners
+5. **`/legal/security`** - Security practices overview
+6. **`/legal/referral-terms`** - Referral program terms
+7. **`/legal/accessibility`** - Accessibility statement
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | uuid | Primary key |
-| key | text | Unique key (e.g., "booking_reminder", "application_status") |
-| name | text | Display name |
-| description | text | What this notification is for |
-| category | text | Category (bookings, applications, system, security, meetings) |
-| default_enabled | boolean | Default on/off for new users |
-| allow_user_override | boolean | Can users disable this? |
-| priority | text | low, normal, high, critical |
-| edge_function | text | Edge function that sends this |
-| is_active | boolean | Is this notification type active? |
-| created_at | timestamptz | Created timestamp |
+### New Components to Create
 
-**2. `email_notification_assignments`** - Who gets what notifications
+1. **`LegalDocumentDrawer`** - Slide-over drawer for reading documents in context
+2. **`LegalDocumentSummary`** - Collapsible summary/highlights card
+3. **`LegalVersionHistory`** - Version history accordion
+4. **`GlobalFooter`** - Site-wide footer with legal links
+5. **`LegalHubPage`** - Central index of all legal documents
+6. **`DownloadableDocument`** - PDF download button for legal docs
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | uuid | Primary key |
-| notification_type_id | uuid | FK to email_notification_types |
-| assignment_type | text | 'role', 'user', 'all' |
-| role | text | Role if assignment_type='role' |
-| user_id | uuid | User ID if assignment_type='user' |
-| is_enabled | boolean | Enable/disable this assignment |
-| channel | text | 'email', 'push', 'both' |
-| assigned_by | uuid | Admin who made assignment |
-| created_at | timestamptz | Created timestamp |
+### Database Changes
 
-**3. `email_notification_audit_log`** - Comprehensive audit trail
-
-| Column | Type | Description |
-|--------|------|-------------|
-| id | uuid | Primary key |
-| action | text | 'assigned', 'unassigned', 'enabled', 'disabled', 'sent' |
-| notification_type_id | uuid | FK to notification type |
-| target_user_id | uuid | User affected |
-| performed_by | uuid | Admin who performed action |
-| details | jsonb | Additional context |
-| created_at | timestamptz | Timestamp |
-
----
-
-### Visual Flow
-
+New table: `legal_document_versions`
 ```text
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    EMAIL NOTIFICATION MANAGEMENT                         │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐          │
-│  │  NOTIFICATION   │  │   RECIPIENTS    │  │     AUDIT       │          │
-│  │    TYPES        │  │   MANAGEMENT    │  │      LOG        │          │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘          │
-│                                                                          │
-│  Tab 1: Browse/manage           Tab 2: Assign by role     Tab 3: View   │
-│  all notification types         or individual user         all events   │
-│                                                                          │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  NOTIFICATION TYPES                                                      │
-│  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │  📋 Application Submitted                          [Active ✓]     │ │
-│  │  Category: Applications  |  Function: send-application-submitted  │ │
-│  │  Recipients: All users (default)                                  │ │
-│  │                                       [Edit] [Assign Recipients]  │ │
-│  ├────────────────────────────────────────────────────────────────────┤ │
-│  │  🔔 Booking Reminder                               [Active ✓]     │ │
-│  │  Category: Bookings  |  Function: send-booking-reminder-email     │ │
-│  │  Recipients: All users + Partners (additional)                    │ │
-│  │                                       [Edit] [Assign Recipients]  │ │
-│  ├────────────────────────────────────────────────────────────────────┤ │
-│  │  🔒 Security Alert                                 [Active ✓]     │ │
-│  │  Category: Security  |  Function: send-security-alert             │ │
-│  │  Recipients: Admins only                                          │ │
-│  │                                       [Edit] [Assign Recipients]  │ │
-│  └────────────────────────────────────────────────────────────────────┘ │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
+id              uuid
+document_type   text (terms, privacy, cookies, aup, dpa, security, referral, accessibility)
+version         text (v1.0, v1.1, v2.0)
+effective_date  date
+summary         text (changelog summary)
+content_hash    text (for integrity verification)
+pdf_url         text (signed URL to archived PDF)
+created_at      timestamptz
 ```
 
 ---
 
-## Page Components
+## UI/UX Design
 
-### 1. Main Page: `EmailNotificationManagement.tsx`
+### 1. Global Footer Component
 
-**Features:**
-- Three-tab layout: Notification Types | Recipients | Audit Log
-- Overview statistics (total types, active assignments, emails sent today)
-- Search and filter by category
+```text
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                  │
+│  © 2025 The Quantum Club B.V.  |  Amsterdam, Netherlands                        │
+│                                                                                  │
+│  Legal                          Company                  Support                 │
+│  ─────                          ───────                  ───────                 │
+│  Terms of Service               About Us                 Help Center            │
+│  Privacy Policy                 Careers                  Contact                │
+│  Cookie Policy                  Press                    Status                 │
+│  Acceptable Use                                                                 │
+│  Security                                                                       │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
 
-### 2. Notification Types Tab
+### 2. Legal Hub Page (`/legal`)
 
-**Features:**
-- List all registered notification types
-- Show recipient count per type
-- Toggle active/inactive status
-- Quick-assign to roles
-- Link to edge function documentation
+```text
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                  │
+│  LEGAL CENTER                                                                    │
+│  ───────────                                                                     │
+│  Your rights and our commitments, clearly documented.                           │
+│                                                                                  │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐   │
+│  │ 📄 Terms of Service  │  │ 🔒 Privacy Policy    │  │ 🍪 Cookie Policy     │   │
+│  │ Updated: Jan 15, 2025│  │ Updated: Jan 15, 2025│  │ Updated: Jan 15, 2025│   │
+│  │ [Read] [Download PDF]│  │ [Read] [Download PDF]│  │ [Read] [Download PDF]│   │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────────┘   │
+│                                                                                  │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐   │
+│  │ ⚖️ Acceptable Use    │  │ 🛡️ Security Policy   │  │ 📋 DPA (Partners)    │   │
+│  │ What's allowed       │  │ How we protect data  │  │ Data processing terms│   │
+│  │ [Read]               │  │ [Read]               │  │ [Download PDF]       │   │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────────┘   │
+│                                                                                  │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐   │
+│  │ 🎁 Referral Terms    │  │ ♿ Accessibility     │  │ 🔗 Subprocessors     │   │
+│  │ Earn rewards         │  │ Our commitment       │  │ Our vendors          │   │
+│  │ [Read]               │  │ [Read]               │  │ [View List]          │   │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────────┘   │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
 
-### 3. Recipients Tab
+### 3. In-Context Legal Document Drawer
 
-**Features:**
-- View by Role or by User
-- Role-based bulk assignment (e.g., "All partners get X, Y, Z")
-- Individual user assignment with override
-- Channel selection (email/push/both)
-- Preview notification for user
+For onboarding and consent flows, instead of opening new tabs:
 
-### 4. Audit Log Tab
-
-**Features:**
-- Filterable timeline of all actions
-- Who assigned what to whom, when
-- Email send history with status
-- Export capability
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│  [Onboarding Page Content]                     │  TERMS OF SERVICE              [X] │
+│                                                │  ─────────────────────              │
+│  ☑ I agree to the Terms of Service            │  Last Updated: January 15, 2025    │
+│  ☐ I agree to the Privacy Policy              │                                     │
+│                                                │  [Summary | Full Document | History]│
+│                                                │  ──────────────────────────────────│
+│                                                │                                     │
+│                                                │  ### Key Points                     │
+│                                                │  • Platform is invite-only          │
+│                                                │  • No cure, no pay model            │
+│                                                │  • Your data remains yours          │
+│                                                │                                     │
+│                                                │  ### Full Document                  │
+│                                                │  (scrollable content)               │
+│                                                │                                     │
+│                                                │  ─────────────────────────────────  │
+│                                                │  [Download PDF]   [I've Read This]  │
+└──────────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## UI Components to Create
+## Implementation Phases
 
-| Component | Purpose |
-|-----------|---------|
-| `EmailNotificationManagement.tsx` | Main page container |
-| `NotificationTypeCard.tsx` | Card for each notification type |
-| `NotificationTypeDialog.tsx` | Edit notification type details |
-| `RecipientAssignmentPanel.tsx` | Manage role/user assignments |
-| `RoleAssignmentCard.tsx` | Quick-assign by role |
-| `UserAssignmentDialog.tsx` | Individual user assignment |
-| `NotificationAuditLog.tsx` | Audit log viewer |
-| `NotificationStatsCards.tsx` | Overview statistics |
+### Phase 1: Core Pages & Components
+
+**Files to Create:**
+- `src/pages/legal/LegalHub.tsx` - Central legal index
+- `src/pages/legal/CookiePolicy.tsx` - Full cookie policy
+- `src/pages/legal/AcceptableUsePolicy.tsx` - Standalone AUP
+- `src/pages/legal/SecurityPolicy.tsx` - Security overview
+- `src/pages/legal/ReferralTerms.tsx` - Referral T&C
+- `src/pages/legal/AccessibilityStatement.tsx` - A11y commitment
+- `src/pages/legal/DataProcessingAgreement.tsx` - Public DPA
+
+**Files to Modify:**
+- `src/App.tsx` - Add routes for new legal pages
+
+### Phase 2: Global Footer
+
+**Files to Create:**
+- `src/components/GlobalFooter.tsx` - Site-wide footer
+
+**Files to Modify:**
+- `src/components/AppLayout.tsx` - Include footer in layout
+- Public pages that need footer (Auth, Onboarding)
+
+### Phase 3: In-Context Reading
+
+**Files to Create:**
+- `src/components/legal/LegalDocumentDrawer.tsx` - Slide-over reader
+- `src/components/legal/LegalDocumentSummary.tsx` - Key points summary
+
+**Files to Modify:**
+- `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx` - Use drawer instead of new tab links
+- `src/components/partner-funnel/FunnelSteps.tsx` - Same change
+
+### Phase 4: Version History & Database
+
+**Database Migration:**
+- Create `legal_document_versions` table
+- Seed initial versions
+
+**Files to Create:**
+- `src/components/legal/LegalVersionHistory.tsx` - Version accordion
+- `src/hooks/useLegalDocuments.ts` - Data fetching
 
 ---
 
-## Implementation Steps
+## Document Content Outlines
 
-### Phase 1: Database Setup
+### Cookie Policy (New)
 
-1. Create `email_notification_types` table
-2. Create `email_notification_assignments` table
-3. Create `email_notification_audit_log` table
-4. Add RLS policies (admin-only management, users can read their own)
-5. Seed initial notification types from existing edge functions
+1. **Introduction** - What this policy covers
+2. **What Are Cookies** - Technical explanation
+3. **Types We Use** - Necessary, Functional, Analytics, Marketing
+4. **Third-Party Cookies** - We don't use advertising cookies
+5. **Your Choices** - How to manage, browser settings
+6. **Cookie List** - Detailed table of all cookies
+7. **Updates** - How we notify changes
+8. **Contact** - privacy@thequantumclub.com
 
-### Phase 2: Admin UI
+### Acceptable Use Policy (New - Extracted from ToS)
 
-1. Create main page with tabs
-2. Build notification types list with cards
-3. Build role-based assignment panel
-4. Build user-specific assignment dialog
-5. Build audit log viewer
-6. Add to admin routes
+1. **Purpose** - Why this policy exists
+2. **Prohibited Content** - What you can't upload/post
+3. **Prohibited Activities** - What you can't do
+4. **Account Sharing** - Prohibited
+5. **Enforcement** - Warnings, suspension, termination
+6. **Reporting** - How to report violations
 
-### Phase 3: Integration
+### Security Policy (New)
 
-1. Create `check-notification-recipient` edge function
-2. Update existing email edge functions to check assignments
-3. Add logging to `email_notification_audit_log`
+1. **Our Commitment** - Security philosophy
+2. **Infrastructure** - Supabase, encryption, EU hosting
+3. **Access Controls** - RLS, role-based permissions
+4. **Data Protection** - Encryption at rest/transit
+5. **Incident Response** - How we handle breaches
+6. **Responsible Disclosure** - Bug bounty/reporting
+7. **Certifications** - SOC 2 (when achieved)
+
+### Referral Terms (New)
+
+1. **Eligibility** - Who can refer
+2. **Qualifying Referrals** - What counts
+3. **Reward Amounts** - Current rates
+4. **Payment Terms** - When and how paid
+5. **Restrictions** - Self-referral, fraud, etc.
+6. **Tax Responsibility** - User's obligation
+7. **Program Changes** - TQC reserves right to modify
+
+### Data Processing Agreement (DPA) (New)
+
+1. **Definitions** - Controller, Processor, Sub-processor
+2. **Scope** - What processing covered
+3. **Data Categories** - Types of personal data
+4. **Processing Instructions** - Purpose limitation
+5. **Security Measures** - Technical/organizational
+6. **Sub-processors** - Link to list
+7. **Data Subject Rights** - Assistance obligations
+8. **Breach Notification** - 72-hour requirement
+9. **Audit Rights** - Partner rights
+10. **Term & Termination** - Data return/deletion
+11. **SCCs** - EU Standard Contractual Clauses
+
+### Accessibility Statement (New)
+
+1. **Commitment** - WCAG 2.1 AA target
+2. **Current Status** - What's accessible
+3. **Known Limitations** - What we're working on
+4. **Feedback** - How to report issues
+5. **Enforcement** - EU directive compliance
 
 ---
 
 ## Technical Details
 
-### Notification Type Categories
+### Route Structure
 
-```typescript
-const NOTIFICATION_CATEGORIES = [
-  { key: 'applications', label: 'Applications', icon: FileText },
-  { key: 'bookings', label: 'Bookings & Meetings', icon: Calendar },
-  { key: 'security', label: 'Security', icon: Shield },
-  { key: 'system', label: 'System', icon: Settings },
-  { key: 'communications', label: 'Communications', icon: MessageSquare },
-  { key: 'approvals', label: 'Approvals', icon: CheckCircle },
-];
+```text
+/legal                    -> LegalHub (index)
+/legal/terms              -> TermsOfService (redirect from /terms)
+/legal/privacy            -> PrivacyPolicy (redirect from /privacy)
+/legal/cookies            -> CookiePolicy (NEW)
+/legal/acceptable-use     -> AcceptableUsePolicy (NEW)
+/legal/security           -> SecurityPolicy (NEW)
+/legal/referral-terms     -> ReferralTerms (NEW)
+/legal/accessibility      -> AccessibilityStatement (NEW)
+/legal/dpa                -> DataProcessingAgreement (NEW)
+/legal/subprocessors      -> Redirect to /compliance/subprocessors
 ```
 
-### Default Notification Types to Seed
+### LegalDocumentDrawer Component
 
 ```typescript
-const DEFAULT_NOTIFICATION_TYPES = [
-  // Applications
-  { key: 'application_submitted', name: 'Application Submitted', category: 'applications', edge_function: 'send-application-submitted-email' },
-  { key: 'application_status_change', name: 'Application Status Changed', category: 'applications', edge_function: 'send-notification-email' },
-  
-  // Bookings
-  { key: 'booking_confirmation', name: 'Booking Confirmation', category: 'bookings', edge_function: 'send-booking-confirmation' },
-  { key: 'booking_reminder', name: 'Booking Reminder', category: 'bookings', edge_function: 'send-booking-reminder-email' },
-  { key: 'booking_cancelled', name: 'Booking Cancelled', category: 'bookings', edge_function: 'send-booking-confirmation' },
-  
-  // Meetings
-  { key: 'meeting_invitation', name: 'Meeting Invitation', category: 'bookings', edge_function: 'send-meeting-invitation-email' },
-  { key: 'meeting_summary', name: 'Meeting Summary', category: 'bookings', edge_function: 'send-meeting-summary-email' },
-  
-  // Security
-  { key: 'security_alert', name: 'Security Alert', category: 'security', edge_function: 'send-security-alert', priority: 'critical' },
-  { key: 'password_reset', name: 'Password Reset', category: 'security', edge_function: 'send-password-reset-email' },
-  { key: 'password_changed', name: 'Password Changed', category: 'security', edge_function: 'send-password-changed-email' },
-  
-  // Approvals
-  { key: 'member_approved', name: 'Member Approved', category: 'approvals', edge_function: 'send-approval-notification' },
-  { key: 'member_declined', name: 'Member Declined', category: 'approvals', edge_function: 'send-approval-notification' },
-  
-  // System
-  { key: 'system_notification', name: 'System Notification', category: 'system', edge_function: 'send-notification-email' },
-  { key: 'weekly_digest', name: 'Weekly Digest', category: 'system', edge_function: 'send-notification-email' },
-];
+interface LegalDocumentDrawerProps {
+  document: 'terms' | 'privacy' | 'cookies' | 'aup' | 'dpa';
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAccept?: () => void;  // Optional accept button
+  showAcceptButton?: boolean;
+}
 ```
 
-### Role-Based Default Assignments
+### GlobalFooter Component
 
-| Notification Type | Admin | Strategist | Partner | User |
-|-------------------|-------|------------|---------|------|
-| Security Alert | ✓ | ✓ | ✗ | ✗ |
-| Member Approved | ✓ | ✓ | ✓ | ✓ |
-| Booking Confirmation | ✓ | ✓ | ✓ | ✓ |
-| Meeting Summary | ✓ | ✓ | ✓ | ✗ |
-| Weekly Digest | ✓ | ✓ | ✓ | ✓ |
+```typescript
+interface GlobalFooterProps {
+  variant?: 'full' | 'compact' | 'minimal';
+  showOnMobile?: boolean;
+}
+```
 
 ---
 
@@ -275,36 +368,43 @@ const DEFAULT_NOTIFICATION_TYPES = [
 
 | File | Purpose |
 |------|---------|
-| `src/pages/admin/EmailNotificationManagement.tsx` | Main admin page |
-| `src/components/admin/notifications/NotificationTypesList.tsx` | List of notification types |
-| `src/components/admin/notifications/NotificationTypeCard.tsx` | Individual type card |
-| `src/components/admin/notifications/RecipientAssignmentDialog.tsx` | Assignment dialog |
-| `src/components/admin/notifications/RoleAssignmentPanel.tsx` | Role-based assignment |
-| `src/components/admin/notifications/NotificationAuditLog.tsx` | Audit log viewer |
-| `src/components/admin/notifications/NotificationStatsCards.tsx` | Stats overview |
-| `src/hooks/useNotificationTypes.ts` | Data fetching hook |
-| `src/hooks/useNotificationAssignments.ts` | Assignment management hook |
-| `supabase/functions/check-notification-recipient/index.ts` | Recipient check function |
+| `src/pages/legal/LegalHub.tsx` | Central legal index page |
+| `src/pages/legal/CookiePolicy.tsx` | Cookie policy document |
+| `src/pages/legal/AcceptableUsePolicy.tsx` | Standalone AUP |
+| `src/pages/legal/SecurityPolicy.tsx` | Security practices |
+| `src/pages/legal/ReferralTerms.tsx` | Referral program terms |
+| `src/pages/legal/AccessibilityStatement.tsx` | A11y commitment |
+| `src/pages/legal/DataProcessingAgreement.tsx` | Public DPA for partners |
+| `src/components/GlobalFooter.tsx` | Site-wide footer |
+| `src/components/legal/LegalDocumentDrawer.tsx` | In-context reading drawer |
+| `src/components/legal/LegalDocumentSummary.tsx` | Key points summary |
+| `src/components/legal/LegalVersionHistory.tsx` | Version history viewer |
+| `src/components/legal/LegalHubCard.tsx` | Card for legal hub grid |
+| `src/hooks/useLegalDocumentVersions.ts` | Version history data |
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/routes/admin.routes.tsx` | Add route for `/admin/email-notifications` |
-| `supabase/functions/send-notification-email/index.ts` | Integrate assignment check |
+| `src/App.tsx` | Add routes for /legal/* pages |
+| `src/components/AppLayout.tsx` | Include GlobalFooter |
+| `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx` | Use LegalDocumentDrawer instead of Link with target="_blank" |
+| `src/components/partner-funnel/FunnelSteps.tsx` | Same drawer integration |
+| `src/components/support/CookieConsentBanner.tsx` | Update "Learn more" link to /legal/cookies |
 
 ---
 
 ## Expected Outcome
 
-After implementation, admins will be able to:
+After implementation:
 
-1. **View all notification types** - See every email the system can send
-2. **Assign by role** - "All partners receive booking confirmations"
-3. **Assign by user** - "John specifically gets security alerts"
-4. **Override defaults** - Turn off notifications for specific users/roles
-5. **Audit everything** - Full history of who changed what and when
-6. **Monitor delivery** - See email send status and failures
+1. **Users can read legal documents anywhere** - Global footer, legal hub, in-context drawers
+2. **No context loss during onboarding** - Documents open in drawer, not new tab
+3. **All required documents exist** - Cookie Policy, AUP, DPA, Security, Referral Terms, Accessibility
+4. **Version transparency** - Users can see document history
+5. **GDPR/ePrivacy compliance** - Proper cookie policy, DPA available
+6. **Professional presentation** - Luxury brand maintained with clean legal center
+7. **Downloadable PDFs** - Partners can download DPA and other documents
+8. **Improved accessibility** - A11y statement, skip links maintained
 
-This creates a robust, enterprise-grade notification management system with full GDPR compliance through the audit trail.
-
+This creates an enterprise-grade legal documentation system that matches the platform's luxury positioning while meeting all regulatory requirements.
